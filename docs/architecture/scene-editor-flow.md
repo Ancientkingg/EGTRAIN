@@ -21,7 +21,7 @@ using legacy files.
 - Not undone: opening, creating and saving a scene, the links of rolling stock units to their source files (a link stays with a unit that keeps its identifier and goes with one that is gone), the selected scenario, the generated service occurrences left out of a run, run results and replays, diagrams, the result rows of a passenger import, the selection in lists and the layout of the window.
 - Autosave: while a scene has unsaved edits, the window keeps a recovery copy of it in a folder of its own below `Recovery` in the local application data folder of the user (`QEGTRAIN_RECOVERY_DIR` names another folder). The first edit after a write starts a timer of 30 seconds (`QEGTRAIN_RECOVERY_INTERVAL_MS` sets it in milliseconds). When the timer ends, a worker thread writes the newest state once, as an `.egscene` bundle with the writer that Save uses, so the window stays usable while a large scene is written. Later edits do not move the timer, and a state that is on disk is not written again. A new case that was never saved is copied the same way. The copy holds the authored scene and a small record: the name, the time, and the source, which is a bundle, a folder or a new case, with the absolute path of the file and the size and modification time that it had when the scene was opened or saved. Other files in a scene folder are not part of the copy. Autosave never writes to the file or folder that the scene came from, never marks the scene as saved, never changes the history, shows no dialog and sends nothing; the usage events do not see it ([Recovery files](../telemetry/README.md#recovery-files)). Every window keeps one copy, in a folder that only the user can read. A second window of EGTRAIN keeps its own, and the copy of a window that runs is never offered.
 - Lifetime of a copy: the copy goes when the scene is saved with Save or Save As, when Undo returns to the saved state, when New or an open that succeeds replaces the scene, when the window closes after Save or Discard, and when the user discards it in the recovery prompt. An open that fails after Discard leaves the scene in the window and its copy where it was, and Cancel keeps the copy. A copy that a crash or a power loss left behind stays until the user decides; no age removes it. The application keeps at most 20 such copies, removes the oldest beyond that and says so in the prompt. A copy is a bundle, so the limits of a saved bundle apply to it: 16 MiB for one entry and 64 MiB in all. If the folder cannot be made or written, for example because it is read-only or the disk is full, the status bar says `Autosave unavailable` once for that scene, and the message goes when a copy is written again. It says why in words: a case with an incomplete entry, such as an incident without a target or a new service without a composition, cannot be written as a copy, and the message names the entry by its list and position (`incident 2`, `service 1`) and not the diagnostic code. Editing, saving and runs go on, and nothing is marked as saved.
-- Recovery at the start: an interactive start looks for the copies that earlier runs left, after the window shows and before the case chooser. If at least one can be opened, **Recover Unsaved Work** lists them, newest first. A row names the case, the time of the copy and its source, which is the path or `New case study, not saved`, and says when the original changed after the copy was made, is newer than the copy, is missing or could not be compared. **Recover** opens the selected copy and is the default button unless the original may hold newer work, in which case **Decide Later** is. **Discard** asks for a second click that names the case, and it is the only way to delete a copy that can be opened. **Decide Later**, Escape and closing the dialog keep every copy for the next start. A copy that a newer version or another scene version made is listed and can only be discarded. After Recover the chooser stays closed. Scripted, offscreen and headless runs neither keep nor offer copies unless `QEGTRAIN_RECOVERY_DIR` is set, which tests do for a folder of their own.
+- Recovery at the start: an interactive start looks for the copies that earlier runs left, after the window shows and before the case chooser. If at least one can be opened, **Recover Unsaved Work** lists them, newest first. A row names the case, the time of the copy and its source, which is the path or `Not saved yet`, and says when the original changed after the copy was made, is newer than the copy, is missing or could not be compared. **Recover** opens the selected copy and is the default button unless the original may hold newer work, in which case **Decide Later** is. **Discard** asks for a second click that names the case, and it is the only way to delete a copy that can be opened. **Decide Later**, Escape and closing the dialog keep every copy for the next start. A copy that a newer version or another scene version made is listed and can only be discarded. After Recover the chooser stays closed. Scripted, offscreen and headless runs neither keep nor offer copies unless `QEGTRAIN_RECOVERY_DIR` is set, which tests do for a folder of their own.
 - Recovered scene: Recover opens the copy as an unsaved scene without a file, so it has no saved state to return to. Save leads to `Save Case Study As...`, whose dialog starts at the file that the copy came from. The original is written only when the user chooses it there and confirms the overwrite. The recovered scene is not added to the recent scenes and is not counted as an opened scene in the usage events. Its copy moves to the folder of the window, so a crash right after the recovery loses nothing, and a later copy still names the original, so a second prompt can tell that it changed.
 - Save: `Save Scene` writes back to the opened bundle or directory. `Save Case Study As...` writes a portable `.egscene`; `Save Scene As Folder...` writes canonical JSON to a directory.
 - Run handoff: Run revalidates the current model. Error diagnostics block Run, and so does a run with no selected service occurrence. If validation passes, the review window **Run simulation** opens. It names the scene and the scenario and shows the selected services, the start clock, the duration and the active incidents. Only its button **Run simulation** goes on: the shared native setup then builds the run directly from the model.
@@ -53,7 +53,7 @@ Validation runs when a bundle or directory opens, after each committed editor ch
 
 Structural diagnostics come from the bundle reader or directory loader and the required JSON files. If structural loading has errors, semantic validation is skipped to avoid duplicate noise from a partial model. Semantic diagnostics check topology, identifiers and references, rolling-stock values and traction intervals, timetable values, signalling coverage, incidents, base time, and repeated-service rules.
 
-Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any `SceneSeverity::Error`. Warnings and info diagnostics remain available in the full Validation table but do not block Run; normal-mode automatic presentation omits their non-blocking summary counts. Native builder diagnostics appear under **Runtime and results** in Loaded Data, and builder errors block Run.
+Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any `SceneSeverity::Error`. Warnings and info diagnostics remain available in the full Validation table but do not block Run; normal-mode automatic presentation omits their non-blocking summary counts. Native builder diagnostics appear under **Run** in Loaded Data, and builder errors block Run.
 
 The Advanced / Developer details choice changes presentation only. It does not
 commit focused editor values, replace the full diagnostic table, change run
@@ -94,7 +94,7 @@ queued completion from that worker. Disabled scenario controls are not pending
 edits.
 
 The Loaded Data panel reports one global runtime state instead of claiming each
-input file built a separate runtime model. It is `Not built` after open or an
+input file built a separate runtime model. It is `Not built`, shown as **Not run**, after open or an
 edit, `Ready` after `prepareScene` succeeds, `Running` while the worker runs,
 `Completed` when a run ends with results, `Stopped` when a stop request ends a
 run before it completes, and `Failed` with builder diagnostics after preparation
@@ -139,7 +139,7 @@ signalling system and a list for the track. The system list holds the six levels
 with the names of [Signalling levels](../guides/signalling-levels.md), which also says what
 each level does. The track list holds "(all tracks)" and each track of the scene
 with the extent of its blocks. A value that does not exist is listed first as
-"Invalid level N" or "Invalid track: X". An area whose system is not chosen lists
+"Invalid level N" or "X (missing)". An area whose system is not chosen lists
 "Choose a signalling system" first. A new area starts with the extent of the
 network and no system, and the case cannot run until a system is chosen.
 
@@ -147,7 +147,7 @@ Rolling-stock links are UI session state, not scene schema. The watcher keeps an
 absolute selected file and its parent directory armed through atomic replacement,
 deletion, and recreation; a short debounce groups callbacks for one file. A
 complete validated candidate is compared with the last accepted values before
-the canonical unit changes. Shared links use one grouped Keep local/Reload
+the canonical unit changes. Shared links use one grouped Keep Edits/Reload
 decision; a focused local edit prompts for a conflict decision, while an update
 observed during a run is deferred and offered after completion. New scenes,
 successful opens, unlink, deletion, and relinking clear
@@ -167,7 +167,7 @@ leaving the box), not for each digit typed; Save and Run apply a value that is
 still being typed.
 The Category chooser edits only service metadata. It offers six presets and No
 category; an imported unknown value is shown explicitly and retained until
-changed. The Service visualization colour control follows it: a swatch, Choose...
+changed. The Colour control follows it: a swatch, Choose...
 (a Qt colour dialog without alpha, written as lower-case `#rrggbb`) and Default,
 which removes the value. A stored text that is not `#RRGGBB` is shown as
 "Invalid: <text>" and retained until changed. Both edits mark the scene

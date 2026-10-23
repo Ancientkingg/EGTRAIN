@@ -1070,7 +1070,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		w.m_addIncidentButton->click();
 		process();
-		w.m_incidentTypeCombo->setCurrentText(QStringLiteral("train_breakdown"));
+		w.m_incidentTypeCombo->setCurrentIndex(w.m_incidentTypeCombo->findData(QStringLiteral("train_breakdown")));
 		process();
 		if (!editLine(w.m_incidentIdEdit, QStringLiteral("creator-breakdown"))
 			|| !choose(w.m_incidentTargetCombo, QStringLiteral("creator-service"))
@@ -1517,11 +1517,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		QTreeWidgetItem* caseRoot = w.m_validation->tree()->topLevelItemCount() > 0
 			? w.m_validation->tree()->topLevelItem(0)
 			: nullptr;
-		bool loadedDataOk = caseRoot && caseRoot->text(0) == "Case Study"
+		bool loadedDataOk = caseRoot && caseRoot->text(0) == "Case"
 			&& QFileInfo(caseRoot->text(1)).absoluteFilePath() == bundle;
 		for (const QString& label : {QStringLiteral("Infrastructure"), QStringLiteral("Scenarios"),
-				 QStringLiteral("Passengers"), QStringLiteral("Canonical schema version"),
-				 QStringLiteral("Bundle format version")}) {
+				 QStringLiteral("Passengers"), QStringLiteral("Format version"),
+				 QStringLiteral("Bundle version")}) {
 			const QList<QTreeWidgetItem*> rows = w.m_validation->tree()->findItems(
 				label, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			loadedDataOk = loadedDataOk && !rows.isEmpty()

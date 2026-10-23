@@ -458,6 +458,11 @@ double sceneTrainMassFactor(const SceneTrainPhysical& physical);
 SceneScenario* defaultScenario(SceneModel& scene);
 /// The scenario that defaultScenarioId names, or the first one when it names none; null when there is none.
 const SceneScenario* defaultScenario(const SceneModel& scene);
+/// A scenario as a list shows it: its name, or its ID when it has none, and in brackets the markers, such as "default".
+/// When another scenario of the scene shows the same name, its ID comes first in the brackets, so that the two can be
+/// told apart: "New scenario (new_scenario_2, modified)".
+std::string sceneScenarioLabel(const SceneModel& scene, const SceneScenario& scenario,
+	const std::vector<std::string>& markers = {});
 /// The incidents of defaultScenario(scene).
 std::vector<SceneIncident>& defaultScenarioIncidents(SceneModel& scene);
 /// The incidents of defaultScenario(scene); an empty list when the scene has no scenario.

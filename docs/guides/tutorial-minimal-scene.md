@@ -24,13 +24,13 @@ Every row below keeps the identifier that the editor proposes (`track`, `node`, 
 ## 1. Create the case
 
 1. Choose **File > New Case Study...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
-2. Click the tab **Case Settings** and replace **Name** (`Untitled Case Study`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration / horizon (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
+2. Click the tab **Case Settings** and replace **Name** (`Untitled case`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
 
-A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Runnable scene has no tracks". The status bar counts them ("Not ready: N validation error(s) must be fixed") and the title bar shows the mark for unsaved changes.
+A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Add a track to run this case". The status bar counts them after "Cannot run:", and the title bar shows the mark for unsaved changes.
 
 ## 2. Infrastructure, in dependency order
 
-Everything in this part happens in the dock **Infrastructure**; click its tab. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
+Everything in this part happens in the dock **Infrastructure**; click its tab. The list above the table chooses it. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
 
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
@@ -65,7 +65,7 @@ On the tab **Physical**, enter these values, pressing Enter after each:
 | Jerk (m/s³) | 0.75 |
 | Length (m) | 70 |
 
-On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
+On the tab **Traction**, choose **Add Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
 
 | Row | Lower speed | Upper speed | C0 | C1 | C2 |
 | --- | --- | --- | --- | --- | --- |
@@ -80,8 +80,8 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 
 ## 5. A service with two stops
 
-1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry Time (s)** enters at the planned departure of its first stop.
-2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
+1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry time (s)** enters at the planned departure of its first stop.
+2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add Timetable Stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
    ![The dock Services on the tab Timetable for new_service, with two stops: station on platform with departure 120, and station_2 on platform_2 with arrival 250. The case base reads 08:00:00 and the dock Case and Layers says Ready to run.](../images/tutorial-minimal-service.png)
@@ -90,7 +90,7 @@ The planned times are seconds after the base time of the case, 08:00:00 (**Plann
 
 ## 6. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows "Ready to run" and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors while the case is incomplete: "Not ready: N validation error(s) must be fixed". Follow the message, usually a missing reference such as a route without sections or a service without a composition.
+Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows "Ready to run" and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
 
 ## 7. Run
 
@@ -134,6 +134,6 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 - **Add** is disabled in Blocks, and the text above the table reads "No blocks yet. Add a track first, then add blocks on it.": add a track first. With a track, the filter above the table names it and **Add** works.
 - **Add** in Platforms leaves the table as it is and the status bar reads "Add a station before adding a platform": add the stations first.
-- **Add Stop** shows the message "No reachable stop: No station visit is available between any of the current stops. Check the route and stop order before adding a stop.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
-- A refused edit says "Infrastructure IDs must be non-empty and unique": choose another name.
+- **Add Stop** shows the message "No Reachable Stop: No station on the route is left to stop at. Check the route and the stop order.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
+- A refused edit says "IDs must be unique and not empty": choose another name.
 - **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Scene Validation** lists all of them.

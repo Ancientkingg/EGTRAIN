@@ -16,13 +16,13 @@ struct Guidance {
 // Where an entity needs another one first, the sentence for a scene that lacks it is in prerequisiteText().
 constexpr Guidance kGuidance[] = {
 	{"tracks", "tracks", "No tracks yet. Add a track: nodes, arcs and blocks are placed on tracks.", ""},
-	{"nodes", "nodes", "No nodes yet. Add creates a node; choose its track in the table.", ""},
-	{"arcs", "arcs", "No arcs yet. Add creates an arc; choose the two nodes it joins in the table.", ""},
+	{"nodes", "nodes", "No nodes yet. Add one, then choose its track in the table.", ""},
+	{"arcs", "arcs", "No arcs yet. Add one, then choose the two nodes it joins in the table.", ""},
 	{"blocks", "blocks", "No blocks on this track. Choose another track or add a block.",
-		"Blocks are ordered on the chosen track; select a row to insert or move it."},
-	{"connections", "connections", "No connections yet. Add creates a connection; choose the two nodes it joins in the table.", ""},
+		"Select a block to insert a new one in its place or to move it."},
+	{"connections", "connections", "No connections yet. Add one, then choose the two nodes it joins in the table.", ""},
 	{"stations", "stations", "No stations yet. Add a station, then add its platforms.", ""},
-	{"platforms", "platforms", "No platforms yet. Add puts a new platform on the first station.", ""},
+	{"platforms", "platforms", "No platforms yet. Add one, then set its station in the table.", ""},
 	{"signals", "signals", "No signals yet. Add a signal, then choose the section it protects.", ""},
 	{"signalling_areas", "signalling areas", "No signalling areas yet. Add an area, then choose its signalling system.", ""},
 	{"routes", "routes", "No routes yet. Add a route, then choose sections from the catalog.",
@@ -58,7 +58,7 @@ QString infrastructureGuidanceText(const QString& facet, bool empty, const Infra
 			continue;
 		const char* listed = guidance.whenListed;
 		if (!state.editable) {
-			const QString why = QStringLiteral("The scene cannot be edited while a run is in progress.");
+			const QString why = QStringLiteral("Stop the run to edit.");
 			if (empty)
 				return QStringLiteral("No %1 yet. ").arg(QLatin1String(guidance.noun)) + why;
 			return *listed ? why : QString();

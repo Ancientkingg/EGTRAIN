@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QString>
+#include <QStringList>
 
 #include <iostream>
 #include <string>
@@ -56,11 +57,11 @@ int main(int argc, char** argv) {
 
 	{
 		CaseSettingsPanel panel;
-		const QLabel* note = panel.findChild<QLabel*>("caseSettingsNote");
-		ok &= expect(note && note->text() == "Changes apply when editing finishes." && note->wordWrap()
-				&& note->property("dialogHelp").toBool() && !note->property("dialogStatus").isValid()
-				&& !note->isHidden(),
-			"the note about when changes apply is wrapped help text");
+		QStringList labels;
+		for (const QLabel* label : panel.findChildren<QLabel*>())
+			labels << label->text();
+		ok &= expect(!panel.findChild<QLabel*>("caseSettingsNote") && labels.contains("Duration (s)") && !labels.contains("Duration / horizon (s)"),
+			"the panel has no note about when changes apply, and the duration is named with its unit");
 		ok &= expect(panel.baseTimeEdit()->placeholderText() == "HH:MM:SS", "the base time field shows the format it expects");
 		ok &= expect(panel.nameEdit()->text().isEmpty() && !panel.nameEdit()->isEnabled()
 				&& !panel.baseTimeEdit()->isEnabled() && !panel.durationSecondsEdit()->isEnabled(),

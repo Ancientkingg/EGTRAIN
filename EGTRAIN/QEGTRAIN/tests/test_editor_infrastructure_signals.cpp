@@ -206,7 +206,7 @@ struct Fixture {
 };
 
 static QString blocked(const char* kind, const char* id, const QStringList& consumers) {
-	return QString("Cannot delete %1 '%2' because it is still referenced by:\n\xE2\x80\xA2 %3\nRemove or rebind those consumers first.")
+	return QString("%1 '%2' is used by:\n\xE2\x80\xA2 %3\nRemove or change these first.")
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
@@ -291,7 +291,7 @@ static bool testSignalEdit() {
 	ok &= expect(f.untouched() && f.messages.empty(), "the same id changes nothing");
 	f.type(0, 0, "signal-2");
 	ok &= expect(f.untouched() && sceneSignals(model)[0].id == "signal-x" && f.cell(0, 0) == "signal-x"
-			&& f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+			&& f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another signal has is refused, and the table shows the model again");
 	f.type(0, 0, "");
 	ok &= expect(f.untouched() && sceneSignals(model)[0].id == "signal-x" && f.messages.size() == 2, "an empty id is refused");
@@ -329,11 +329,11 @@ static bool testSignalAddAndDelete() {
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && sceneSignals(f.model()).size() == 4 && f.untouched(),
 		"a signal that an incident targets cannot be deleted");
-	ok &= expect(f.prompts.errorMessage == blocked("signals", "signal-1", {"signal-failure incident 'incident-1' in scenario 'scenario-1'"}),
+	ok &= expect(f.prompts.errorMessage == blocked("Signal", "signal-1", {"signal-failure incident 'incident-1' in scenario 'scenario-1'"}),
 		"the message names the signal-failure incident that targets the signal");
 	f.select(1);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete signals 'signal-2'?" && sceneSignals(f.model()).size() == 4 && f.untouched(),
+	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete signal 'signal-2'?" && sceneSignals(f.model()).size() == 4 && f.untouched(),
 		"nothing is deleted when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
@@ -389,7 +389,7 @@ static bool testAreaEdit() {
 			&& f.panel.selectionId() == "area-x" && f.table()->currentRow() == 1,
 		"a rename marks the document once, and the renamed area stays selected");
 	f.type(1, 0, "area-1");
-	ok &= expect(f.untouched() && f.model().signallingAreas[1].id == "area-x" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().signallingAreas[1].id == "area-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another area has is refused");
 	f.type(1, 0, "");
 	ok &= expect(f.untouched() && f.messages.size() == 2, "an empty id is refused");
@@ -455,7 +455,7 @@ static bool testAreaPlaceholders() {
 
 	// a track that the scene does not have is shown on top, until a track is chosen
 	QComboBox* nowhere = f.combo(1, 4);
-	ok &= expect(nowhere->count() == 4 && nowhere->itemText(0) == "Invalid track: nowhere" && nowhere->currentData().toString() == "nowhere",
+	ok &= expect(nowhere->count() == 4 && nowhere->itemText(0) == "nowhere (missing)" && nowhere->currentData().toString() == "nowhere",
 		"a track that the scene does not have is shown as invalid");
 	f.choose(nowhere, "track-a");
 	ok &= expect(f.model().signallingAreas[1].trackId == "track-a" && nowhere->count() == 3 && nowhere->currentData().toString() == "track-a"

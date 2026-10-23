@@ -649,8 +649,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			applyPresentation();
 			if (!w.m_validation->statusLabel()->text().isEmpty()
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
-				|| firstScenarioText().contains("Warning")
-				|| firstScenarioText().contains("Invalid"))
+				|| firstScenarioText().contains("has warnings")
+				|| firstScenarioText().contains("has errors"))
 				failures << "presentation: clean normal mode exposed diagnostic warnings";
 
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
@@ -658,24 +658,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			applyPresentation();
 			if (!w.m_validation->statusLabel()->text().isEmpty()
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
-				|| firstScenarioText().contains("Warning"))
+				|| firstScenarioText().contains("has warnings"))
 				failures << "presentation: normal mode exposed a non-blocking warning";
 
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
 				"E2E invalid scenario")};
 			applyPresentation();
-			if (!w.m_validation->statusLabel()->text().contains("Not ready")
+			if (w.m_validation->statusLabel()->text() != QStringLiteral("Cannot run: 1 error")
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
-				|| !firstScenarioText().contains("Invalid"))
+				|| !firstScenarioText().contains("has errors"))
 				failures << "presentation: normal mode hid an actionable invalid scenario";
 
 			detailsAction->setChecked(true);
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
-			if (!w.m_validation->statusLabel()->text().contains("Validation:")
-				|| !w.m_validation->statusLabel()->text().contains("warning")
-				|| !firstScenarioText().contains("Warning"))
+			if (w.m_validation->statusLabel()->text() != QStringLiteral("1 warning")
+				|| !firstScenarioText().contains("has warnings"))
 				failures << "presentation: advanced mode hid full warning details";
 
 			w.m_session->m_sceneDiagnostics = originalDiagnostics;
@@ -715,10 +714,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!nameEdit || !descriptionEdit || !baseTimeEdit || !durationEdit || !bufferEdit || !recoveryEdit || !w.m_caseSettingsDock || !w.m_caseSettingsDock->isVisible()) {
 				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable");
 			} else {
-				const auto* caseNote = w.findChild<QLabel*>("caseSettingsNote");
-				if (!caseNote || caseNote->text() != "Changes apply when editing finishes." || !caseNote->wordWrap()
-					|| baseTimeEdit->placeholderText() != "HH:MM:SS")
-					facetFailure(facetOk, "new case", "case settings lost the note about when changes apply or the base time format");
+				if (w.findChild<QLabel*>("caseSettingsNote") || baseTimeEdit->placeholderText() != "HH:MM:SS")
+					facetFailure(facetOk, "new case", "case settings show a note about when changes apply or lost the base time format");
 				nameEdit->setText("E2E New Case");
 				descriptionEdit->setText("new case editor smoke");
 				baseTimeEdit->setText("09:15:30");
@@ -1049,8 +1046,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_document->mutableModel().signallingAreas.front().trackId = "ghost";
 					w.m_infrastructurePanel->refreshTable();
 					const QComboBox* staleTrack = areaTrackCombo();
-					if (!staleTrack || staleTrack->itemText(0) != QStringLiteral("Invalid track: ghost")
-						|| staleTrack->currentText() != QStringLiteral("Invalid track: ghost") || !trackListHolds(staleTrack, 1))
+					if (!staleTrack || staleTrack->itemText(0) != QStringLiteral("ghost (missing)")
+						|| staleTrack->currentText() != QStringLiteral("ghost (missing)") || !trackListHolds(staleTrack, 1))
 						facetFailure(facetOk, "stations/signalling", "a stale track was not listed as invalid above the tracks");
 					if (!chooseListItem(areaTrackCombo(), QString()) || !w.m_document->mutableModel().signallingAreas.front().trackId.empty()
 						|| !trackListHolds(areaTrackCombo(), 0) || areaTrackCombo()->currentText() != QStringLiteral("(all tracks)"))
@@ -1748,15 +1745,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								const ScenePassengerLeg* unresolvedLeg = w.m_passengerPanel->selectedPassengerLeg();
 								const bool invalidOriginVisible = unresolvedJourney
 									&& unresolvedJourney->originStationId == "missing-origin"
-									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin")
+									&& w.m_passengerJourneyOriginCombo->currentText() == "missing-origin (missing)"
 									&& w.m_passengerJourneyOriginCombo
 										   ->itemData(w.m_passengerJourneyOriginCombo->currentIndex(), Qt::ToolTipRole)
 										   .toString()
 										   .startsWith("Station missing-origin");
 								const bool legStateAccurate = unresolvedLeg
-									? legService->currentText().startsWith("Invalid: missing-service")
+									? legService->currentText() == "missing-service (missing)"
 										&& legService->itemData(legService->currentIndex(), Qt::ToolTipRole).toString().startsWith("Service missing-service")
-										&& legOrigin->currentText().startsWith("Invalid:")
+										&& (legOrigin->currentText().endsWith(" (missing)")
+											|| legOrigin->currentText().endsWith(" (not a stop)")
+											|| legOrigin->currentText() == "(none)")
 									: legService->currentText() == "Select a leg"
 										&& legOrigin->currentText() == "Select a journey or leg";
 								if (!invalidOriginVisible || !legStateAccurate)
@@ -1919,10 +1918,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 		bool explorerOk = w.m_validation->tree() && w.m_validation->tree()->topLevelItemCount() > 0;
 		QTreeWidgetItem* caseRoot = explorerOk ? w.m_validation->tree()->topLevelItem(0) : nullptr;
-		explorerOk = explorerOk && caseRoot->text(0) == "Case Study"
+		// Advanced details are on since the presentation checks, so the tree shows the versions too.
+		explorerOk = explorerOk && caseRoot->text(0) == "Case" && !caseRoot->text(1).isEmpty()
 			&& caseRoot->text(3) != "Invalid" && caseRoot->text(3) != "Failed";
-		for (const QString& category : {QStringLiteral("Source path"), QStringLiteral("Canonical schema version"),
-				 QStringLiteral("Runtime"), QStringLiteral("Results")}) {
+		for (const QString& category : {QStringLiteral("Name"), QStringLiteral("Format version"),
+				 QStringLiteral("Messages"), QStringLiteral("Results")}) {
 			const QList<QTreeWidgetItem*> rows = w.m_validation->tree()->findItems(
 				category, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* row = rows.isEmpty() ? nullptr : rows.front();
@@ -1931,7 +1931,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 		if (w.m_session->m_sceneIsBundle) {
 			const QList<QTreeWidgetItem*> bundleRows = w.m_validation->tree()->findItems(
-				"Bundle format version", Qt::MatchExactly | Qt::MatchRecursive, 0);
+				"Bundle version", Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* bundleRow = bundleRows.isEmpty() ? nullptr : bundleRows.front();
 			if (!bundleRow || bundleRow->text(1) != "1")
 				explorerOk = false;
@@ -1952,12 +1952,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		bool hasParameterSource = false;
 		bool hasTractionSource = false;
 		for (QLabel* label : w.findChildren<QLabel*>()) {
-			hasParameterSource = hasParameterSource || label->text() == "Parameter source reference";
-			hasTractionSource = hasTractionSource || label->text() == "Tractive-effort source reference";
+			hasParameterSource = hasParameterSource || label->text() == "Parameter file";
+			hasTractionSource = hasTractionSource || label->text() == "Traction file";
 		}
 		bool hasPlotButton = false;
 		for (QPushButton* button : w.findChildren<QPushButton*>())
-			hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
+			hasPlotButton = hasPlotButton || button->text() == "Plot Traction Curve";
 		const bool hasEditableTrainSources = w.m_trainUnitSourceDataEdit && w.m_trainUnitSourceTractionEdit;
 		const bool hasPlannedArrival = w.m_stopTableWidget && w.m_stopTableWidget->columnCount() == 5
 			&& w.m_stopTableWidget->horizontalHeaderItem(3)->text().simplified() == "Planned arrival";
@@ -2050,29 +2050,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		bool facetOk = true;
 		const int originalCount = w.m_trainUnitListWidget->count();
 		const auto headings = w.m_trainUnitDock->findChildren<QLabel*>("rollingStockSectionHeading");
-		const QStringList sectionTitles{"Rolling stock unit ID", "Rolling stock engine", "Rolling stock unit characteristics"};
 		const QTabWidget* unitTabs = w.m_trainUnitPanel->tabs();
-		// Showing a page raises it, which changes the order of the children, so each heading is found by its title.
-		const auto headingTitled = [&headings](const QString& title) -> const QLabel* {
-			const auto found = std::find_if(headings.begin(), headings.end(), [&title](const QLabel* heading) { return heading->text() == title; });
-			return found == headings.end() ? nullptr : *found;
-		};
-		const QLabel* idHeading = headingTitled(sectionTitles[0]);
-		const QLabel* engineHeading = headingTitled(sectionTitles[1]);
-		const QLabel* characteristicsHeading = headingTitled(sectionTitles[2]);
-		bool layoutOk = headings.size() == sectionTitles.size() && idHeading && engineHeading && characteristicsHeading;
-		for (int i = 0; layoutOk && i < headings.size(); ++i) {
-			layoutOk = headings[i]->font().bold() && headings[i]->font().pointSizeF() > w.m_trainUnitIdEdit->font().pointSizeF();
-		}
-		// The unit id is above the tabs. The engine, its table and the Plot button are on the Traction page, in that
+		// The ID is the one heading, above the tabs. The table and the Plot button are on the Traction page, in that
 		// order, and the characteristics are on the Physical page.
+		const QLabel* idHeading = headings.size() == 1 && headings.front()->text() == "ID" ? headings.front() : nullptr;
+		bool layoutOk = idHeading && idHeading->font().bold() && idHeading->font().pointSizeF() > w.m_trainUnitIdEdit->font().pointSizeF();
 		layoutOk = layoutOk && unitTabs->count() == 2 && unitTabs->tabText(0) == "Traction" && unitTabs->tabText(1) == "Physical"
-			&& idHeading->y() < unitTabs->y() && unitTabs->widget(0)->isAncestorOf(engineHeading)
-			&& unitTabs->widget(0)->isAncestorOf(w.m_trainUnitTractionTable)
+			&& idHeading->y() < unitTabs->y() && unitTabs->widget(0)->isAncestorOf(w.m_trainUnitTractionTable)
 			&& unitTabs->widget(0)->isAncestorOf(w.m_plotTrainUnitTractionButton)
-			&& unitTabs->widget(1)->isAncestorOf(characteristicsHeading)
 			&& unitTabs->widget(1)->isAncestorOf(w.m_trainUnitPhysicalEdits[0])
-			&& w.m_trainUnitTractionTable->y() > engineHeading->y()
 			&& w.m_plotTrainUnitTractionButton->y() > w.m_trainUnitTractionTable->y();
 		const bool wasDirty = w.m_document->isDirty();
 		w.m_document->setDirty(false);
@@ -2221,7 +2207,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
-					// The editor of a cell opens at the current cell, so Delete Traction Row removes the row that is being edited.
+					// The editor of a cell opens at the current cell, so Delete Row removes the row that is being edited.
 					const int secondRow = w.m_trainUnitTractionTable->rowCount() - 1;
 					w.m_trainUnitTractionTable->setCurrentCell(secondRow, 0);
 					w.m_trainUnitTractionTable->editItem(w.m_trainUnitTractionTable->currentItem());
@@ -2329,7 +2315,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred = true;
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		bool unchangedPrompted = false;
-		answerReload("Keep local", &unchangedPrompted);
+		answerReload("Keep Edits", &unchangedPrompted);
 		w.m_trainUnitSourceLinker->m_pendingPaths.insert(sourceTractionPath);
 		w.m_trainUnitSourceLinker->processChanges();
 		settle();
@@ -2339,7 +2325,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
 		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 210000
-			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
+			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Not loaded: "))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
@@ -2359,7 +2345,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "source links", "length editor did not receive focus");
 		w.m_trainUnitPhysicalEdits[8]->findChild<QLineEdit*>()->setText("73");
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
-		answerReload("Keep local");
+		answerReload("Keep Edits");
 		w.m_trainUnitSourceLinker->processFile(sourcePhysicalPath, false);
 		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 73.0)
 			facetFailure(facetOk, "source links", "focused local edit was overwritten");
@@ -2549,7 +2535,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		expectedServices[0].category = unknownCategory;
 		w.m_servicePanel->updateDetail();
 		if (!w.m_serviceCategoryCombo || w.m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
-			|| !w.m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
+			|| w.m_serviceCategoryCombo->currentText() != QString::fromStdString(unknownCategory) + " (unknown)")
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
 		const std::string storedColor = "#3c8dd2";
 		w.m_document->mutableModel().services[0].visualizationColor = storedColor;
@@ -2568,14 +2554,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_document->mutableModel().routes.push_back(duplicateRoute);
 			w.m_servicePanel->updateDetail();
 			w.m_serviceRouteCombo->setCurrentIndex(w.m_serviceRouteCombo->findData(QString::fromStdString(duplicateRoute.id)));
+			// The choice ends with the ID, which tells two routes with the same stations apart, and its tooltip lists the stations
+			// below the full text of the choice.
+			const QString routeTip = shownToolTip(w.m_serviceRouteCombo);
 			if (w.m_document->mutableModel().services[0].route != duplicateRoute.id
-				|| !shownToolTip(w.m_serviceRouteCombo).contains("not scheduled calls"))
-				facetFailure(facetOk, "service routes", "descriptive route selection lost canonical identity or context");
+				|| !w.m_serviceRouteCombo->currentText().endsWith("[" + QString::fromStdString(duplicateRoute.id) + "]")
+				|| !routeTip.contains("\nPasses "))
+				facetFailure(facetOk, "service routes",
+					QString("descriptive route selection lost canonical identity or context (%1, tooltip '%2')")
+						.arg(w.m_serviceRouteCombo->currentText(), routeTip));
 			w.m_document->mutableModel().services[0].route = "missing-route";
 			w.m_servicePanel->updateDetail();
 			if (w.m_serviceRouteCombo->currentData().toString() != "missing-route"
 				|| !sameStop(w.m_document->mutableModel().services[0].stops.front(), originalService.stops.front())
-				|| !w.m_stopTableWidget->item(0, 0)->toolTip().contains("unresolved"))
+				|| !w.m_stopTableWidget->item(0, 0)->toolTip().startsWith("The route cannot be followed."))
 				facetFailure(facetOk, "service routes", "missing route or invalid stop was silently replaced");
 			w.m_document->mutableModel().services[0] = originalService;
 			w.m_document->mutableModel().routes.pop_back();
@@ -3016,7 +3008,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const QString expected = selected.hasPlannedArrival
 						? QString::fromStdString(formatPlannedTime(selected.plannedArrivalSeconds,
 							  mode == 1, baseTimeToSeconds(w.m_document->mutableModel().baseTime)))
-						: QStringLiteral("\u2014");
+						: QStringLiteral("-");
 					if (w.m_stopTableWidget->currentRow() != originalStopCount - 1
 						|| w.m_stopTableWidget->item(originalStopCount - 1, 3)->text() != expected
 						|| w.m_document->isDirty() != dirtyBefore || w.m_moveStopDownButton->isEnabled()
@@ -3076,7 +3068,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				bool unknownPlatformShown = false;
 				if (!editStopDialog(0, [&](QDialog* dialog) {
 						auto* platform = dialog->findChild<QComboBox*>("stopEditorPlatformCombo");
-						unknownPlatformShown = platform->currentText() == "Invalid: unknown-platform"
+						unknownPlatformShown = platform->currentText() == "unknown-platform (not on the route)"
 							&& platform->currentData().toString() == "unknown-platform"
 							&& !platform->itemData(platform->currentIndex(), Qt::ToolTipRole).toString().isEmpty();
 					})
@@ -3523,7 +3515,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_incidentIdEdit->setText(QString::fromStdString(editedIncidentId));
 			w.m_incidentPanel->commitIdEdit();
 			if (w.m_incidentTypeCombo)
-				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
+				w.m_incidentTypeCombo->setCurrentIndex(w.m_incidentTypeCombo->findData(QStringLiteral("train_breakdown")));
 			if (!w.m_incidentHasReducedSpeedCheck || !w.m_incidentHasReducedSpeedCheck->isEnabled())
 				facetFailure(facetOk, "incident", "breakdown controls stayed disabled after the type change");
 			for (int index = 0; index < w.m_incidentTargetCombo->count(); ++index) {
@@ -3603,12 +3595,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			incident->occurrence = 1;
 			w.m_incidentPanel->updateDetail();
 			w.commitPendingEditorValues();
-			if (incident->hasOccurrence || !w.m_incidentTargetCombo->currentText().contains("Historical scope"))
+			if (incident->hasOccurrence || !w.m_incidentTargetCombo->currentText().startsWith("All runs of "))
 				facetFailure(facetOk, "incident", "historical all-occurrence scope was narrowed");
 			incident->hasOccurrence = true;
 			incident->occurrence = std::numeric_limits<int>::max();
 			w.m_incidentPanel->updateDetail();
-			if (!w.m_incidentTargetCombo->currentText().contains("Invalid removed target")
+			if (!w.m_incidentTargetCombo->currentText().endsWith(" (missing)")
 				|| w.m_incidentTargetCombo->currentData().toString().toStdString() != saved.target)
 				facetFailure(facetOk, "incident", "removed occurrence was silently retargeted");
 			*incident = saved;
@@ -3624,6 +3616,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (!reviewOk)
 			facetFailure(facetOk, "incident", "run review omitted complete incident or entrance-delay configuration");
 		// The dock names the selected scenario above three tabs, and a check box stands in front of the field it switches on.
+		const auto selectedScenarioName = [&w]() {
+			for (const SceneScenario& scenario : w.m_document->model().scenarios)
+				if (scenario.id == w.m_runSelection.scenarioId())
+					return QString::fromStdString(scenario.name.empty() ? scenario.id : scenario.name);
+			return QString();
+		};
 		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
 		auto* scenarioHeader = w.findChild<QLabel*>("scenarioHeaderLabel");
 		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 3 || scenarioTabs->tabText(0) != "Scenario"
@@ -3633,7 +3631,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents and Entrance delays tabs");
 		else if (scenarioHeader->parentWidget() != scenarioTabs->parentWidget()
 			|| scenarioHeader->text() != w.m_scenarioPanel->headerText()
-			|| !w.m_scenarioPanel->headerText().contains(QString::fromStdString(w.m_runSelection.scenarioId())))
+			|| w.m_scenarioPanel->headerText() != "Scenario: " + selectedScenarioName())
 			facetFailure(facetOk, "incident", "the header above the tabs does not name the selected scenario");
 		const auto checkBeforeField = [](QWidget* check, QWidget* field) {
 			QFormLayout* form = field && field->parentWidget() ? field->parentWidget()->findChild<QFormLayout*>() : nullptr;
@@ -3691,7 +3689,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				// head makes the incident, a breakdown by then, a signal failure of the block again. Esc ends a pick and clears its
 				// message.
 				w.m_inspector->handleDisableHighlight();
-				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
+				w.m_incidentTypeCombo->setCurrentIndex(w.m_incidentTypeCombo->findData(QStringLiteral("train_breakdown")));
 				QGraphicsItem* arc = nullptr;
 				for (QGraphicsItem* item : w.scene->items())
 					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
@@ -3865,7 +3863,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		SceneDiagnosticCounts counts = countDiagnostics(w.m_session->m_sceneDiagnostics);
 		if (!w.m_validation->table() || !w.m_validation->statusLabel() || counts.errors != 0
 			|| w.m_validation->table()->rowCount() != static_cast<int>(w.m_session->m_sceneDiagnostics.size())
-			|| !w.m_validation->statusLabel()->text().startsWith("Validation:"))
+			|| w.m_validation->statusLabel()->text() != ValidationPanel::statusText(counts, true))
 			facetFailure(facetOk, "validation", "refresh did not report a clean, complete result");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_VALIDATION_OK\n");

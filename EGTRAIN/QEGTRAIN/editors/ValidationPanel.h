@@ -29,6 +29,11 @@ public:
 	/// The item data role of the kind of scene item that a row of the tree stands for, such as "service" or
 	/// "train_unit". A row with a kind opens an editor or a view when it is activated.
 	static constexpr int kTargetTypeRole = Qt::UserRole;
+	/// The item data role of the scene file of a diagnostic, on the first cell of its row in the table.
+	static constexpr int kFileRole = Qt::UserRole;
+	/// The widest that the Category and Source columns of the tree grow to fit their rows, so that Count and Status stay
+	/// in view. The names of the categories fit within it.
+	static constexpr int kTreeTextColumnWidth = 360;
 
 	/// What the tree shows besides the scene: where the scene came from and the state of the run.
 	struct LoadedDataContext {
@@ -50,7 +55,9 @@ public:
 	/// refresh() writes the diagnostics to this vector, where the window and the other panels read them, and the panel shows
 	/// them. The panel uses its own until it is given another; null brings its own back. The vector must outlive the panel.
 	void setDiagnostics(std::vector<SceneDiagnostic>* diagnostics);
-	/// Tells whether the status gives the counts of every severity. Without it the status shows errors only.
+	/// Tells whether advanced details are on. They add the counts of the warnings and infos to the status, the code, file
+	/// and path columns to the table, and the format versions, the source files and the parsed objects to the tree.
+	/// Without it they are off.
 	void setAdvancedDetails(std::function<bool()> enabled);
 	/// Gives the duration in seconds that the next run uses in place of the one of the scene, if it has one. Without it
 	/// the scene is validated with its own duration.
@@ -58,7 +65,8 @@ public:
 	/// Gives the context of the tree whenever it is written. Without it the scene came from nowhere and no run was made.
 	void setLoadedDataContext(std::function<LoadedDataContext()> context);
 
-	/// The diagnostics, errors first: severity, code, message, file, path and suggested fix.
+	/// The diagnostics, errors first: severity, code, message, file, path and fix. The code, file and path columns show
+	/// only with advanced details; the tooltip of a row gives them.
 	QTableWidget* table() const { return m_table; }
 	/// The case, its source files and the state of the run.
 	QTreeWidget* tree() const { return m_tree; }
@@ -70,8 +78,11 @@ public:
 	void refresh();
 	/// Writes the tree again.
 	void refreshLoadedData();
-	/// Writes the status from the diagnostics again.
+	/// Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.
 	void updateStatus();
+	/// The status for these counts: "Cannot run: 2 errors" when there are errors, else nothing; with advanced details
+	/// the counts that are not zero, such as "1 error, 2 warnings".
+	static QString statusText(const SceneDiagnosticCounts& counts, bool advanced);
 	/// Emits targetActivated() for a row of the tree that has a kind.
 	void activateItem(QTreeWidgetItem* item);
 	/// Selects the first row of the table that belongs to this scene file.
@@ -87,6 +98,8 @@ Q_SIGNALS:
 
 private:
 	bool advancedDetails() const;
+	// Shows the code, file and path columns of the table only with advanced details.
+	void showAdvancedColumns();
 
 	QPointer<SceneDocument> m_document;
 	std::vector<SceneDiagnostic> m_ownDiagnostics;
@@ -94,6 +107,8 @@ private:
 	std::function<bool()> m_advancedDetails;
 	std::function<std::optional<double>()> m_durationOverride;
 	std::function<LoadedDataContext()> m_loadedDataContext;
+	// Whether the tree was written with advanced details; empty while it shows no scene.
+	std::optional<bool> m_treeAdvanced;
 
 	QTableWidget* m_table = nullptr;
 	QTreeWidget* m_tree = nullptr;

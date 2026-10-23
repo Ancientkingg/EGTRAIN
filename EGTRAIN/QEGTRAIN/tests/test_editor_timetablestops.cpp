@@ -450,8 +450,8 @@ int main(int argc, char** argv) {
 				&& panel.addButton()->isEnabled() && panel.insertAfterButton()->isEnabled() && panel.removeButton()->isEnabled()
 				&& !panel.moveUpButton()->isEnabled() && panel.moveDownButton()->isEnabled(),
 			"the first stop is selected and the buttons follow the selection");
-		ok &= expect(panel.timeBaseLabel()->text() == "Case base 08:00:00; planned times are elapsed seconds from this base"
-				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit\nStation A [station-a]"
+		ok &= expect(panel.timeBaseLabel()->text() == "Seconds after 08:00:00" && !panel.timeBaseLabel()->isHidden()
+				&& panel.table()->item(0, 0)->toolTip() == "Station A [station-a]"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole).toString() == "station-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 1).toString() == "platform-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 2).toInt() == 1,
@@ -464,7 +464,7 @@ int main(int argc, char** argv) {
 		// the time display
 		panel.timeModeCombo()->setCurrentIndex(1);
 		ok &= expect(column(panel.table(), 3) == QStringList({"08:00:00", "08:01:00", "08:02:00"}) && column(panel.table(), 4).front() == "08:00:30"
-				&& panel.timeBaseLabel()->text().contains("clock times include explicit day offsets") && panel.table()->currentRow() == 2,
+				&& panel.timeBaseLabel()->text().isEmpty() && panel.timeBaseLabel()->isHidden() && panel.table()->currentRow() == 2,
 			"the planned times can be shown as clock times and the selection stays");
 		panel.timeModeCombo()->setCurrentIndex(0);
 		ok &= expect(column(panel.table(), 3) == QStringList({"0", "60", "120"}), "the planned times can be shown as elapsed seconds again");
@@ -477,7 +477,7 @@ int main(int argc, char** argv) {
 				&& panel.table()->currentRow() == 0 && events.log == editLog && events.kinds == SceneDocument::Services
 				&& document.lastChangeLabel() == "Move timetable stop up" && document.isDirty(),
 			"a stop moves up and stays selected");
-		ok &= expect(panel.table()->item(1, 0)->toolTip().startsWith("Invalid: stop is before or at an already used route visit\nStation "),
+		ok &= expect(panel.table()->item(1, 0)->toolTip().startsWith("The route passes this station before the previous stop.\nStation "),
 			"a stop that no longer fits the route order says so");
 		events.log.clear();
 		panel.moveStopUp();
@@ -570,19 +570,29 @@ int main(int argc, char** argv) {
 		DialogRun run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				ok &= expect(dialog.windowTitle() == "Edit timetable stop" && !combo(dialog, "stopEditorPositionCombo"),
+				ok &= expect(dialog.windowTitle() == "Edit Timetable Stop" && !combo(dialog, "stopEditorPositionCombo"),
 					"editing a stop has no position to choose");
 				ok &= expect(combo(dialog, "stopEditorStationCombo")->currentData().toString() == "station-b"
 						&& combo(dialog, "stopEditorPlatformCombo")->currentData().toString() == "platform-b"
 						&& edit(dialog, "stopEditorDwellEdit")->text() == "30" && edit(dialog, "stopEditorArrivalEdit")->text() == "60"
 						&& edit(dialog, "stopEditorDepartureEdit")->text() == "90"
-						&& label(dialog, "stopEditorEligibilityLabel")->text() == "Reachable ordered route visit",
-					"the dialog shows the stop that is edited");
+						&& label(dialog, "stopEditorEligibilityLabel")->text().isEmpty()
+						&& label(dialog, "stopEditorEligibilityLabel")->isHidden() && !dialog.findChild<QLabel*>("dialogContext"),
+					"the dialog shows the stop that is edited, with no line for a stop that is on the route and no context line");
+				const auto* form = dialog.findChild<QFormLayout*>();
+				QWidget* arrivalEdit = edit(dialog, "stopEditorArrivalEdit");
+				QWidget* departureEdit = edit(dialog, "stopEditorDepartureEdit");
+				QWidget* dwellEdit = edit(dialog, "stopEditorDwellEdit");
+				ok &= expect(form && form->labelForField(arrivalEdit) == dialog.findChild<QCheckBox*>("stopEditorArrivalPresent")
+						&& form->labelForField(departureEdit) == dialog.findChild<QCheckBox*>("stopEditorDeparturePresent")
+						&& arrivalEdit->mapTo(&dialog, QPoint()).x() == dwellEdit->mapTo(&dialog, QPoint()).x()
+						&& departureEdit->mapTo(&dialog, QPoint()).x() == dwellEdit->mapTo(&dialog, QPoint()).x(),
+					"the box of a planned time is the label of its field, and the time fields line up with the other fields");
 				QLabel* error = label(dialog, "stopEditorErrorLabel");
 				ok &= expect(role(label(dialog, "stopEditorEligibilityLabel")) == "help" && role(label(dialog, "stopEditorBaseTimeLabel")) == "help"
-						&& label(dialog, "stopEditorBaseTimeLabel")->text() == "Case base time: 08:00:00" && !error->isVisible()
+						&& label(dialog, "stopEditorBaseTimeLabel")->text() == "Seconds after 08:00:00" && !error->isVisible()
 						&& error->styleSheet().isEmpty(),
-					"a reachable stop and the case base time are help, and the error label is hidden and takes its look from the stylesheet");
+					"a reachable stop and the base time are help, and the error label is hidden and takes its look from the stylesheet");
 				const QSize openSize = dialog.size();
 				const auto* openScroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
 				const QWidget* dwell = edit(dialog, "stopEditorDwellEdit");
@@ -605,7 +615,7 @@ int main(int argc, char** argv) {
 				edit(dialog, "stopEditorDwellEdit")->setText("45");
 				edit(dialog, "stopEditorArrivalEdit")->setText("no time");
 				click(dialog, "stopEditorAcceptButton");
-				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("Planned arrival is invalid"),
+				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text() == "Planned arrival must be seconds after the base time, such as 120.",
 					"a planned time that does not parse is refused with a message and the dialog stays open");
 				edit(dialog, "stopEditorArrivalEdit")->setText("70");
 				click(dialog, "stopEditorAcceptButton");
@@ -627,6 +637,13 @@ int main(int argc, char** argv) {
 				combo(dialog, "stopEditorTimeModeCombo")->setCurrentIndex(1);
 				ok &= expect(edit(dialog, "stopEditorArrivalEdit")->text() == "08:01:10" && edit(dialog, "stopEditorDepartureEdit")->text() == "08:01:30",
 					"the dialog converts the planned times when it shows clock times");
+				ok &= expect(label(dialog, "stopEditorBaseTimeLabel")->text().isEmpty() && label(dialog, "stopEditorBaseTimeLabel")->isHidden(),
+					"clock times need no line for the base time");
+				edit(dialog, "stopEditorArrivalEdit")->setText("eight");
+				click(dialog, "stopEditorAcceptButton");
+				ok &= expect(dialog.isVisible()
+						&& label(dialog, "stopEditorErrorLabel")->text() == "Planned arrival must be a time such as 08:15:00, or +1d 00:10:00 for the next day.",
+					"a clock time that does not parse is refused with an example of a clock time");
 				edit(dialog, "stopEditorArrivalEdit")->setText("08:01:20");
 				click(dialog, "stopEditorAcceptButton");
 			},
@@ -654,10 +671,16 @@ int main(int argc, char** argv) {
 				QComboBox* station = combo(dialog, "stopEditorStationCombo");
 				ok &= expect(station->currentData().toString() == "station-c", "clicking a row edits that stop");
 				ok &= expect(dialog.focusWidget() == station, "the stop dialog opened from a row does not focus its first field");
-				// The second click of a double click on the row lands on the dialog that the first click opened, here on its
-				// context line.
-				const QLabel* context = label(dialog, "dialogContext");
-				const QPoint point = context->mapTo(&dialog, context->rect().center());
+				// The second click of a double click on the row lands on the dialog that the first click opened, here on the
+				// label of its station field.
+				const QLabel* stationLabel = nullptr;
+				for (const QLabel* candidate : dialog.findChildren<QLabel*>())
+					if (candidate->buddy() == station)
+						stationLabel = candidate;
+				ok &= expect(stationLabel != nullptr, "the station field has a label");
+				if (!stationLabel)
+					return;
+				const QPoint point = stationLabel->mapTo(&dialog, stationLabel->rect().center());
 				int clickTime = 1000000;
 				for (const QEvent::Type type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease})
 					qt_handleMouseEvent(dialog.windowHandle(), point, dialog.mapToGlobal(point),
@@ -673,7 +696,7 @@ int main(int argc, char** argv) {
 		run = runDialog(
 			panel,
 			[&](QDialog& dialog) {
-				ok &= expect(dialog.windowTitle() == "Add timetable stop"
+				ok &= expect(dialog.windowTitle() == "Add Timetable Stop"
 						&& itemTexts(combo(dialog, "stopEditorPositionCombo"))
 							== QStringList({"At the start of the timetable", "After stop 1: A [platform-a]", "After stop 2: B [platform-b]",
 								"After stop 3: C [platform-c]"})
@@ -681,15 +704,15 @@ int main(int argc, char** argv) {
 					"adding a stop offers every position and starts at the last one that has a station");
 				ok &= expect(itemTexts(combo(dialog, "stopEditorStationCombo")) == QStringList({"D"})
 						&& combo(dialog, "stopEditorPlatformCombo")->currentData().toString() == "platform-d"
-						&& label(dialog, "stopEditorEligibilityLabel")->text() == "Reachable ordered route visit",
+						&& label(dialog, "stopEditorEligibilityLabel")->text().isEmpty(),
 					"only the stations that the route reaches after the neighbouring stop are offered, and a single platform is chosen");
 				combo(dialog, "stopEditorPositionCombo")->setCurrentIndex(1);
 				ok &= expect(!combo(dialog, "stopEditorStationCombo")->isEnabled()
 						&& combo(dialog, "stopEditorStationCombo")->currentText() == "(no reachable station here)"
-						&& label(dialog, "stopEditorEligibilityLabel")->text().startsWith("No station visit is available"),
+						&& label(dialog, "stopEditorEligibilityLabel")->text() == "The route has no station here between the stops before and after.",
 					"a position between stops with no station between them offers none and says why");
 				click(dialog, "stopEditorAcceptButton");
-				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("No station visit is available"),
+				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text() == "The route has no station here between the stops before and after.",
 					"a position with no station cannot be accepted");
 				ok &= expect(role(label(dialog, "stopEditorEligibilityLabel")) == "error" && role(label(dialog, "stopEditorErrorLabel")) == "error",
 					"a position with no station is shown as an error");
@@ -797,9 +820,8 @@ int main(int argc, char** argv) {
 		panel.setDocument(&document);
 		document.replace(scene, false);
 		panel.setServiceId("service-1");
-		const QString emDash(QChar(0x2014));
-		ok &= expect(panel.table()->item(0, 1)->text() == emDash && panel.table()->item(0, 3)->text() == emDash
-				&& panel.table()->item(0, 4)->text() == emDash && panel.table()->item(1, 3)->text() == "60",
+		ok &= expect(panel.table()->item(0, 1)->text() == "-" && panel.table()->item(0, 3)->text() == "-"
+				&& panel.table()->item(0, 4)->text() == "-" && panel.table()->item(1, 3)->text() == "60",
 			"a platform or a planned time that a stop does not have is shown as a dash");
 	}
 

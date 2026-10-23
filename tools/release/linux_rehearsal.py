@@ -17,8 +17,8 @@ the log of the script go to the evidence directory. A missing tool or display ex
 1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer the question about
    automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
 2. File > Open Case Study... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
-3. The network is drawn, and View > Loaded Data shows the identity, the versions, the category counts, the scenarios and
-   the result readiness.
+3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
+   readiness and, after View > Advanced / Developer details is ticked, the versions.
 4. Type a new description into a text field of the Case Settings editor and into the scenario editor, type into a table
    cell, and check that the run review names the scenario.
 5. File > Save Case Study As... to a working copy in another folder. The downloaded bundle stays as it was.
@@ -84,7 +84,15 @@ MIN_ICON_COLOURS = 2
 MIN_NETWORK_COLOURS = 16
 LOADED_DATA_COLUMNS = 4
 LOADED_DATA_CATEGORIES = ("Infrastructure", "Stations", "Timetable", "Rolling stock", "Signalling", "Scenarios")
-LOADED_DATA_VERSIONS = ("Canonical schema version", "Saved with app version", "Bundle format version")
+LOADED_DATA_CASE = "Case"
+LOADED_DATA_RUN = "Run"
+# The version rows show only with advanced details. The application stores that choice when its View entry is ticked, so
+# the rest of the rehearsal and the second start of step 9 keep it.
+LOADED_DATA_VERSIONS = ("Format version", "Saved with", "Bundle version")
+# The View entry that switches advanced details on, in any capitals.
+ADVANCED_DETAILS = r"(?i)^advanced\b.*details$"
+# The line of the run summary when the run has finished. With Advanced details the summary has more lines after it.
+RUN_COMPLETED = r"(?m)^Status: Completed$"
 TIMETABLE_COLUMNS = ("Planned arrival", "Planned departure", "Simulated arrival", "Simulated departure")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MIN_PNG_BYTES = 1000
@@ -186,8 +194,8 @@ def loaded_data_problems(rows, case_name: str) -> list:
     scenarios = by_category.get("Scenarios")
     if scenarios and scenarios[1].isdigit() and int(scenarios[1]) < 1:
         problems.append("a scenario")
-    if "Runtime and results" not in by_category:
-        problems.append("the row Runtime and results")
+    if LOADED_DATA_RUN not in by_category:
+        problems.append(f"the row {LOADED_DATA_RUN}")
     return problems
 
 
@@ -717,9 +725,16 @@ class Rehearsal:
                                 limit=MIN_NETWORK_COLOURS)
         if colours < MIN_NETWORK_COLOURS:
             raise StepFailed(f"the network view has only {colours} colours")
+        advanced = self.menu_item(pattern=ADVANCED_DETAILS)
+        if not has_state(advanced, Atspi.StateType.CHECKED):
+            self.press(advanced)
         tree = wait_until(lambda: find_first(dock, "tree", max_depth=4), UI_TIMEOUT_SECONDS, "the Loaded Data table")
-        _, cells = table_texts(tree)
-        rows = chunk(cells, LOADED_DATA_COLUMNS)
+        # The tree is written again with the version rows after the switch.
+        deadline = time.monotonic() + UI_TIMEOUT_SECONDS
+        rows = self.loaded_rows(tree)
+        while loaded_data_problems(rows, self.case_name) and time.monotonic() < deadline:
+            time.sleep(POLL_SECONDS)
+            rows = self.loaded_rows(tree)
         problems = loaded_data_problems(rows, self.case_name)
         if problems:
             raise StepFailed("Loaded Data lacks " + ", ".join(problems))
@@ -727,12 +742,17 @@ class Rehearsal:
         return (f"the network is drawn with at least {MIN_NETWORK_COLOURS} colours, Loaded Data lists {len(rows)} rows "
                 f"for {self.case_name}")
 
+    def loaded_rows(self, tree) -> list:
+        _, cells = table_texts(tree)
+        return chunk(cells, LOADED_DATA_COLUMNS)
+
     def loaded_value(self, label: str) -> str:
+        """The Source column of the first row of Loaded Data with this category. The row Case holds the path of the open
+        case."""
         dock = self.dock("Loaded Data")
         if dock is None:
             dock = self.show_dock("Loaded Data", "Loaded Data")
-        _, cells = table_texts(find_first(dock, "tree", max_depth=4))
-        for row in chunk(cells, LOADED_DATA_COLUMNS):
+        for row in self.loaded_rows(find_first(dock, "tree", max_depth=4)):
             if row[0] == label:
                 return row[1]
         raise StepFailed(f"Loaded Data has no row {label!r}")
@@ -834,14 +854,14 @@ class Rehearsal:
             raise StepFailed("the downloaded bundle has a new modification time")
 
     def step6(self) -> str:
-        source = self.loaded_value("Source path")
+        source = self.loaded_value(LOADED_DATA_CASE)
         if source != str(self.working_copy):
             raise StepFailed(f"the open case is {source}, not the working copy")
         self.choose("Run", modal=True)
         review = self.wait_window("Run simulation")
         self.press(self.button(review, "Run simulation"))
         self.wait_closed("Run simulation")
-        summary = wait_until(lambda: find_first(self.main_frame(), "label", pattern=r"Status: Completed$", max_depth=10),
+        summary = wait_until(lambda: find_first(self.main_frame(), "label", pattern=RUN_COMPLETED, max_depth=10),
                              RUN_TIMEOUT_SECONDS, "the finished run")
         return f"ran {name_of(summary)}"
 
@@ -932,7 +952,7 @@ class Rehearsal:
         self.press(self.button(dialog, "Open"))
         wait_until(lambda: name_of(self.main_frame()) == f"EGTRAIN - {self.case_name}", UI_TIMEOUT_SECONDS,
                    "the reopened case")
-        if self.loaded_value("Source path") != str(self.working_copy):
+        if self.loaded_value(LOADED_DATA_CASE) != str(self.working_copy):
             raise StepFailed("the reopened case is not the working copy")
         settings = self.show_dock("Case Settings", "Case Settings")
         description = wait_until(lambda: find_first(settings, "text", "Description", max_depth=8, showing=True),

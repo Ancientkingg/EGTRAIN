@@ -54,8 +54,11 @@ inline bool readJsonInt(const nlohmann::json& value, int min, int max, int& outp
 }
 
 std::string severityLabel(SceneSeverity s); ///< "error", "warning" or "info".
-/// One line for the log and the UI list: severity, code, file, item, path, message and suggested fix.
+/// One line for the log and the console: severity, code, file, item, path, message and suggested fix.
 std::string toDisplayText(const SceneDiagnostic& d);
+/// The text of a dialog that shows the diagnostic: the message, and the suggested fix as a second paragraph when there is
+/// one.
+std::string toDialogText(const SceneDiagnostic& d);
 /// An object with every field of the diagnostic, the severity as its label, for tools and tests.
 nlohmann::json toJson(const SceneDiagnostic& d);
 /// True when a diagnostic has severity Error.

@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 		linker.linkFile("u1", false, physicalPath);
 		const TrainUnitSourceLinker::Link* link = linker.linkOf("u1");
 		ok &= expect(link && link->dataPath == physicalPath && link->tractionPath.isEmpty()
-				&& link->dataStatus == "Linked; waiting for reload" && !link->dataDeferred,
+				&& link->dataStatus == "Linked" && !link->dataDeferred,
 			"a linked file is remembered with a status that says it waits for the reload");
 		ok &= expect(link && link->acceptedPhysical && link->acceptedPhysical->length_m == 60.0,
 			"the values of the unit when it was linked are the accepted ones");
@@ -225,10 +225,9 @@ int main(int argc, char** argv) {
 		writeFile(tractionPath, "0 40 220000 0 0\npartial\n");
 		linker.scheduleChange(tractionPath);
 		linker.processChanges();
-		ok &= expect(unitOf(document, 0).tractionCurve[0][2] == acceptedEffort && linker.linkOf("u1")->tractionStatus.startsWith("Rejected")
-				&& linker.linkOf("u1")->tractionStatus.endsWith("; Retry available"),
+		ok &= expect(unitOf(document, 0).tractionCurve[0][2] == acceptedEffort && linker.linkOf("u1")->tractionStatus.startsWith("Not loaded: "),
 			"a malformed file does not replace accepted values");
-		ok &= expect(events.messages.size() == 1 && events.messages[0].startsWith("Source reload rejected: "),
+		ok &= expect(events.messages.size() == 1 && events.messages[0].startsWith("Could not reload the file: "),
 			"a rejected file is reported to the user");
 		const quint64 revisionAfterRejected = document.revision();
 		linker.scheduleChange(tractionPath);
@@ -240,7 +239,7 @@ int main(int argc, char** argv) {
 		QFile::remove(tractionPath);
 		linker.scheduleChange(tractionPath);
 		linker.processChanges();
-		ok &= expect(unitOf(document, 0).tractionCurve[0][2] == acceptedEffort && linker.linkOf("u1")->tractionStatus.startsWith("Rejected"),
+		ok &= expect(unitOf(document, 0).tractionCurve[0][2] == acceptedEffort && linker.linkOf("u1")->tractionStatus.startsWith("Not loaded: "),
 			"a source that is gone leaves the accepted values and says it was rejected");
 		writeFile(tractionPath, tractionFile(230000.0));
 		linker.scheduleChange(tractionPath);
@@ -251,7 +250,7 @@ int main(int argc, char** argv) {
 		// a source that was never there
 		linker.linkFile("u2", false, otherPath);
 		linker.processChanges();
-		ok &= expect(linker.linkOf("u2")->dataStatus.startsWith("Rejected") && unitOf(document, 1).physical.length_m == 60.0,
+		ok &= expect(linker.linkOf("u2")->dataStatus.startsWith("Not loaded: ") && unitOf(document, 1).physical.length_m == 60.0,
 			"a linked file that does not exist is rejected and changes nothing");
 	}
 
@@ -268,7 +267,7 @@ int main(int argc, char** argv) {
 		ok &= expect(unitOf(document, 0).physical.length_m == 71.0, "the file is taken as the starting point");
 
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			writeFile(physicalPath, physicalFile(72.0));
 			linker.scheduleChange(physicalPath);
 			linker.processChanges();
@@ -278,18 +277,18 @@ int main(int argc, char** argv) {
 		document.mutableModel().trainUnits[0].physical.length_m = 99.0;
 		document.markChanged(SceneDocument::TrainUnits);
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			writeFile(physicalPath, physicalFile(74.0));
 			linker.scheduleChange(physicalPath);
 			linker.processChanges();
-			ok &= expect(answer.prompted && answer.text.contains("parameter source") && answer.text.contains("u1")
-					&& answer.informativeText.contains("Local edits conflict in u1"),
+			ok &= expect(answer.prompted && answer.text.contains("parameter file") && answer.text.contains("u1")
+					&& answer.informativeText.contains("You also edited u1 here"),
 				"a changed file that differs from a hand edit raises a question that names the unit");
-			ok &= expect(unitOf(document, 0).physical.length_m == 99.0 && linker.linkOf("u1")->dataStatus == "Kept local; Retry available",
-				"answering Keep local leaves the hand edit");
+			ok &= expect(unitOf(document, 0).physical.length_m == 99.0 && linker.linkOf("u1")->dataStatus == "Kept your edits",
+				"answering Keep Edits leaves the hand edit");
 		}
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			linker.scheduleChange(physicalPath);
 			linker.processChanges();
 			ok &= expect(!answer.prompted && unitOf(document, 0).physical.length_m == 99.0,
@@ -305,7 +304,7 @@ int main(int argc, char** argv) {
 		document.mutableModel().trainUnits[0].physical.length_m = 75.0;
 		document.markChanged(SceneDocument::TrainUnits);
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			writeFile(physicalPath, physicalFile(75.0));
 			linker.scheduleChange(physicalPath);
 			linker.processChanges();
@@ -350,7 +349,7 @@ int main(int argc, char** argv) {
 		document.setEditable(false);
 		writeFile(physicalPath, physicalFile(80.0));
 		linker.scheduleChange(physicalPath);
-		ok &= expect(linker.linkOf("u1")->dataStatus == "Changed during run; pending reload" && linker.linkOf("u1")->dataDeferred,
+		ok &= expect(linker.linkOf("u1")->dataStatus == "Changed. Reloads after the run" && linker.linkOf("u1")->dataDeferred,
 			"a change during a run is marked");
 		linker.processChanges();
 		linker.processFile(physicalPath, false);
@@ -362,7 +361,7 @@ int main(int argc, char** argv) {
 		writeFile(physicalPath, physicalFile(71.0));
 		document.setEditable(true);
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			linker.processChanges();
 			ok &= expect(!answer.prompted && unitOf(document, 0).physical.length_m == 71.0
 					&& linker.linkOf("u1")->dataStatus == "Up to date" && !linker.linkOf("u1")->dataDeferred,
@@ -379,10 +378,10 @@ int main(int argc, char** argv) {
 		document.setEditable(false);
 		writeFile(physicalPath, physicalFile(71.0));
 		linker.linkFile("u1", false, physicalPath);
-		ok &= expect(linker.linkOf("u1")->dataStatus == "Linked; pending reload after run" && linker.linkOf("u1")->dataDeferred,
+		ok &= expect(linker.linkOf("u1")->dataStatus == "Linked. Loads after the run" && linker.linkOf("u1")->dataDeferred,
 			"a file that is linked during a run waits for the end of the run");
 		linker.retry("u1", false);
-		ok &= expect(linker.linkOf("u1")->dataStatus == "Retry pending after run" && linker.linkOf("u1")->dataDeferred,
+		ok &= expect(linker.linkOf("u1")->dataStatus == "Retries after the run" && linker.linkOf("u1")->dataDeferred,
 			"a retry during a run waits for the end of the run");
 		linker.processChanges();
 		ok &= expect(unitOf(document, 0).physical.length_m == 60.0, "nothing is taken while a run uses the model");
@@ -409,10 +408,10 @@ int main(int argc, char** argv) {
 		linker.scheduleChange(physicalPath);
 		document.setEditable(true);
 		{
-			DialogAnswerer answer("Keep local");
+			DialogAnswerer answer("Keep Edits");
 			linker.processChanges();
-			ok &= expect(answer.prompted && answer.informativeText.contains("during a run") && unitOf(document, 0).physical.length_m == 71.0,
-				"a file that changed during a run raises a question, and Keep local leaves the unit");
+			ok &= expect(answer.prompted && answer.informativeText == "It changed during the run. Reload it or keep your edits?" && unitOf(document, 0).physical.length_m == 71.0,
+				"a file that changed during a run raises a question, and Keep Edits leaves the unit");
 		}
 		{
 			DialogAnswerer answer("Reload");

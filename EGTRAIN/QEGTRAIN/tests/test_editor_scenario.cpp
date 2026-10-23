@@ -109,11 +109,6 @@ struct Events {
 	}
 };
 
-// How the list names a scenario: the id, a dash, and then the rest of the label.
-static QString label(const char* id, const char* rest) {
-	return QStringLiteral("%1 \u2014 %2").arg(QString::fromLatin1(id), QString::fromLatin1(rest));
-}
-
 static QStringList items(const QListWidget* list) {
 	QStringList result;
 	for (int row = 0; row < list->count(); ++row)
@@ -177,8 +172,7 @@ int main(int argc, char** argv) {
 		// refresh
 		document.replace(scenarioScene(), false);
 		ok &= expect(items(panel.listWidget())
-					== QStringList({label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | default"),
-						label("alt", "Alternative\n1 incident(s) | 1 delay(s)")})
+					== QStringList({"Baseline (default)", "Alternative\n1 incident, 1 delay"})
 				&& panel.listWidget()->currentRow() == 0 && selection.scenarioId() == "base" && panel.listWidget()->isEnabled(),
 			"a new scene is listed, and its default scenario is selected");
 		ok &= expect(panel.idEdit()->text() == "base" && panel.nameEdit()->text() == "Baseline"
@@ -192,25 +186,25 @@ int main(int argc, char** argv) {
 		// the labels
 		advanced = true;
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | Ready | default")
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative\n1 incident(s) | 1 delay(s) | (no description) | Ready")
-				&& panel.listWidget()->item(1)->toolTip() == panel.listWidget()->item(1)->text(),
-			"the details add the description and the state of each scenario");
+		ok &= expect(panel.listWidget()->item(0)->text() == "Baseline (default)"
+				&& panel.listWidget()->item(1)->text() == "Alternative\n1 incident, 1 delay"
+				&& panel.listWidget()->item(0)->toolTip() == "ID: base\nno incidents" && panel.listWidget()->item(1)->toolTip() == "ID: alt",
+			"the details add nothing to a scenario without messages, and the tooltip gives the id and the description");
 		diagnostics = {diagnostic(SceneSeverity::Warning, "scenarios[0].incidents[0]"), diagnostic(SceneSeverity::Error, "scenarios[1]"),
 			diagnostic(SceneSeverity::Error, "scenarios[10]"), diagnostic(SceneSeverity::Error, "passengers[0]")};
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(0)->text().contains("| Warning | default")
-				&& panel.listWidget()->item(1)->text().endsWith("| Invalid"),
+		ok &= expect(panel.listWidget()->item(0)->text() == "Baseline (default)\nhas warnings"
+				&& panel.listWidget()->item(1)->text() == "Alternative\n1 incident, 1 delay, has errors",
 			"the state of a scenario follows the diagnostics under its path");
 		advanced = false;
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(0)->text() == label("base", "Baseline\n0 incident(s) | 0 delay(s) | no incidents | default")
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative\n1 incident(s) | 1 delay(s) | Invalid"),
+		ok &= expect(panel.listWidget()->item(0)->text() == "Baseline (default)"
+				&& panel.listWidget()->item(1)->text() == "Alternative\n1 incident, 1 delay, has errors",
 			"the short list names only a scenario that is invalid");
 		diagnostics.clear();
 		selection.markScenarioModified("alt");
 		panel.updatePresentation();
-		ok &= expect(panel.listWidget()->item(1)->text().endsWith("| 1 delay(s) | modified"), "an edited scenario is marked");
+		ok &= expect(panel.listWidget()->item(1)->text() == "Alternative (modified)\n1 incident, 1 delay", "an edited scenario is marked");
 		selection.clearModifiedScenarios();
 		panel.updatePresentation();
 
@@ -234,7 +228,7 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().scenarios[1].name == "Alternative route" && document.isDirty() && selection.isScenarioModified("alt")
 				&& events.log == Log({"documentChanged", "panelChanged"}) && events.kinds == SceneDocument::Scenarios
 				&& document.lastChangeLabel() == "Change scenario name"
-				&& panel.listWidget()->item(1)->text() == label("alt", "Alternative route\n1 incident(s) | 1 delay(s) | modified"),
+				&& panel.listWidget()->item(1)->text() == "Alternative route (modified)\n1 incident, 1 delay",
 			"a name is written to the document, the scenario counts as edited and the list shows the name");
 		events.log.clear();
 		panel.commitNameEdit();
@@ -252,7 +246,7 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().scenarios[1].id == "alt2" && selection.scenarioId() == "alt2" && selection.isScenarioModified("alt2")
 				&& !selection.isScenarioModified("alt") && document.model().defaultScenarioId == "base"
 				&& document.lastChangeLabel() == "Rename scenario" && events.log == Log({"documentChanged", "panelChanged"})
-				&& panel.listWidget()->item(1)->text().startsWith(label("alt2", "")),
+				&& panel.listWidget()->item(1)->toolTip().startsWith("ID: alt2"),
 			"a new id is written to the document, trimmed, and the selection follows it");
 		panel.listWidget()->setCurrentRow(0);
 		selection.markScenarioModified("base");
@@ -261,13 +255,13 @@ int main(int argc, char** argv) {
 		panel.commitIdEdit();
 		ok &= expect(document.model().scenarios[0].id == "baseline" && document.model().defaultScenarioId == "baseline"
 				&& selection.scenarioId() == "baseline" && selection.isScenarioModified("baseline") && !selection.isScenarioModified("base")
-				&& panel.listWidget()->item(0)->text().endsWith("| default | modified"),
+				&& panel.listWidget()->item(0)->text() == "Baseline (default, modified)",
 			"renaming the default scenario moves the default along with it");
 		prompts.errorCount = 0;
 		events.log.clear();
 		panel.idEdit()->setText("alt2");
 		panel.commitIdEdit();
-		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario ID already exists" && panel.idEdit()->text() == "baseline"
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Duplicate Scenario ID" && panel.idEdit()->text() == "baseline"
 				&& document.model().scenarios[0].id == "baseline" && events.log.empty(),
 			"an id that another scenario has is refused, and the field shows the old id again");
 		panel.idEdit()->setText("   ");
@@ -333,6 +327,11 @@ int main(int argc, char** argv) {
 		panel.addBlankScenario();
 		ok &= expect(document.model().scenarios.back().id == "new_scenario_2" && selection.scenarioId() == "new_scenario_2",
 			"the id of another blank scenario is unique");
+		ok &= expect(panel.listWidget()->item(2)->text() == "New scenario (new_scenario, modified)"
+				&& panel.listWidget()->item(3)->text() == "New scenario (new_scenario_2, modified)"
+				&& panel.listWidget()->item(1)->text().startsWith("Alternative\n")
+				&& panel.headerText() == "Scenario: New scenario (new_scenario_2)",
+			"two scenarios with one name show their IDs in the list and in the header, and the others do not");
 
 		// duplicate
 		panel.listWidget()->setCurrentRow(1);
@@ -389,7 +388,7 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().scenarios.size() == 5 && document.model().scenarios.back().id == "imported"
 				&& document.model().scenarios.back().incidents.size() == 1 && selection.scenarioId() == "imported"
 				&& selection.isScenarioModified("imported") && document.lastChangeLabel() == "Import scenario" && prompts.infoCount == 0
-				&& events.status == QStringList({"Imported scenario imported"})
+				&& events.status == QStringList({"Imported scenario imported."})
 				&& events.log == Log({"documentChanged", "selected:imported", "panelChanged"}),
 			"an imported scenario is added and selected, and nothing needs to be explained");
 
@@ -407,8 +406,8 @@ int main(int argc, char** argv) {
 				&& document.model().scenarios.back().incidents[0].id == "i9_2" && selection.scenarioId() == "imported_2"
 				&& document.model().scenarios[4].incidents[0].id == "i9",
 			"a scenario id and an incident id that are in use are made unique");
-		const QString explanation = "Imported scenario imported_2 (ID imported already existed; imported as imported_2) 1 incident ID(s) adjusted to remain globally unique.";
-		ok &= expect(events.status == QStringList({explanation}) && prompts.infoCount == 1 && prompts.infoTitle == "Scenario ID adjusted"
+		const QString explanation = "Imported scenario imported_2. imported was taken, so it is now imported_2. 1 incident ID was renamed to stay unique.";
+		ok &= expect(events.status == QStringList({explanation}) && prompts.infoCount == 1 && prompts.infoTitle == "Scenario ID Adjusted"
 				&& prompts.infoMessage == explanation,
 			"the user is told which ids were changed");
 
@@ -422,7 +421,7 @@ int main(int argc, char** argv) {
 		prompts.errorCount = 0;
 		events.log.clear();
 		panel.importScenario();
-		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario import rejected"
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario Import Failed"
 				&& prompts.errorMessage.contains("unknown service") && document.model().scenarios.size() == 6 && events.log.empty()
 				&& selection.scenarioId() == "imported_2",
 			"a scenario that does not validate against the scene is refused, and the scene stays as it is");
@@ -432,19 +431,21 @@ int main(int argc, char** argv) {
 		chosen = dir + "/meteor.json";
 		prompts.errorCount = 0;
 		panel.importScenario();
-		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario import rejected"
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario Import Failed"
 				&& prompts.errorMessage.contains("Unknown incident type") && document.model().scenarios.size() == 6,
 			"a scenario with an unknown incident type is refused");
+		ok &= expect(prompts.errorMessage == "Unknown incident type\n\nUse signal_failure or train_breakdown",
+			"the refusal gives the message and the fix as two paragraphs");
 		QFile broken(dir + "/broken.json");
 		ok &= expect(broken.open(QIODevice::WriteOnly) && broken.write("{ not json") > 0, "the broken file is written");
 		broken.close();
 		chosen = dir + "/broken.json";
 		panel.importScenario();
-		ok &= expect(prompts.errorCount == 2 && prompts.errorTitle == "Scenario import failed" && document.model().scenarios.size() == 6,
+		ok &= expect(prompts.errorCount == 2 && prompts.errorTitle == "Scenario Import Failed" && document.model().scenarios.size() == 6,
 			"a file that is not a scenario is refused");
 		chosen = dir + "/missing.json";
 		panel.importScenario();
-		ok &= expect(prompts.errorCount == 3 && prompts.errorTitle == "Scenario import failed" && document.model().scenarios.size() == 6,
+		ok &= expect(prompts.errorCount == 3 && prompts.errorTitle == "Scenario Import Failed" && document.model().scenarios.size() == 6,
 			"a file that is not there is refused");
 
 		// export
@@ -483,7 +484,7 @@ int main(int argc, char** argv) {
 		prompts.errorCount = 0;
 		target = dir + "/no such folder/exported.json";
 		panel.exportScenario();
-		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario export failed" && !reported.empty() && events.status.isEmpty(),
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Scenario Export Failed" && !reported.empty() && events.status.isEmpty(),
 			"a file that cannot be written is reported to the user and to the observer");
 		panel.setExportObserver({});
 		panel.exportScenario();
@@ -504,7 +505,7 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.deleteButton()->isEnabled(), "Delete is off while the scene names no default scenario");
 		panel.deleteScenario();
 		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Cannot Delete Scenario"
-				&& prompts.errorMessage.startsWith("The scene has no valid persisted default scenario") && document.model().scenarios.size() == 2,
+				&& prompts.errorMessage == "This case has no default scenario. Fix the validation errors first." && document.model().scenarios.size() == 2,
 			"a scenario is not deleted from a scene without a default scenario");
 	}
 
@@ -525,7 +526,7 @@ int main(int argc, char** argv) {
 		other.defaultScenarioId = "only";
 		selection.selectScenario("only");
 		document.replace(other, false);
-		ok &= expect(items(panel.listWidget()) == QStringList({label("only", "Only\n0 incident(s) | 0 delay(s) | default")}) && panel.nameEdit()->text() == "Only"
+		ok &= expect(items(panel.listWidget()) == QStringList({"Only (default)"}) && panel.nameEdit()->text() == "Only"
 				&& panel.listWidget()->currentRow() == 0 && !document.isDirty(),
 			"opening another scene replaces the scenarios and unfinished text without an edit");
 
@@ -565,7 +566,7 @@ int main(int argc, char** argv) {
 		const QListWidget* list = panel.listWidget();
 		const QFontMetrics metrics = list->fontMetrics();
 		ok &= expect(list->visualItemRect(list->item(1)).height() >= 2 * metrics.lineSpacing()
-				&& metrics.horizontalAdvance(QStringLiteral("1 incident(s) | 1 delay(s)")) <= list->viewport()->width(),
+				&& metrics.horizontalAdvance(QStringLiteral("1 incident, 1 delay")) <= list->viewport()->width(),
 			"each row shows its counts on a second line that the list has room for");
 	}
 
@@ -594,16 +595,16 @@ int main(int argc, char** argv) {
 		panel.setDocument(&document);
 		ok &= expect(panel.headerText() == "No scenario selected", "a panel without a scene names no scenario");
 		document.replace(scenarioScene(), false);
-		ok &= expect(panel.headerText() == "Scenario: base (Baseline)" && headers.last() == panel.headerText(),
+		ok &= expect(panel.headerText() == "Scenario: Baseline" && headers.last() == panel.headerText(),
 			"the header names the default scenario when the scene is loaded");
 		panel.listWidget()->setCurrentRow(1);
-		ok &= expect(headers.last() == "Scenario: alt (Alternative)", "selecting another scenario changes the header");
+		ok &= expect(headers.last() == "Scenario: Alternative", "selecting another scenario changes the header");
 		panel.nameEdit()->setText("Renamed");
 		panel.commitNameEdit();
-		ok &= expect(headers.last() == "Scenario: alt (Renamed)", "renaming the selected scenario changes the header");
+		ok &= expect(headers.last() == "Scenario: Renamed", "renaming the selected scenario changes the header");
 		panel.idEdit()->setText("other");
 		panel.commitIdEdit();
-		ok &= expect(headers.last() == "Scenario: other (Renamed)", "changing the id of the selected scenario changes the header");
+		ok &= expect(headers.last() == "Scenario: Renamed", "changing the id of a scenario with a name keeps the header");
 		panel.nameEdit()->setText("");
 		panel.commitNameEdit();
 		ok &= expect(panel.headerText() == "Scenario: other", "a scenario without a name is named by its id");

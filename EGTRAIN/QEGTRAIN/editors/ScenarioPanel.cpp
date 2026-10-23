@@ -1,6 +1,7 @@
 #include "editors/ScenarioPanel.h"
 
 #include "app/DialogFolders.h"
+#include "editors/CountText.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
@@ -22,16 +23,18 @@
 #include <cstddef>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 
+// The message and the fix of the first error, else of the first diagnostic, for a dialog.
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& diagnostic : diagnostics) {
 		if (diagnostic.severity == SceneSeverity::Error)
-			return QString::fromStdString(diagnostic.message);
+			return QString::fromStdString(toDialogText(diagnostic));
 	}
 	if (!diagnostics.empty())
-		return QString::fromStdString(diagnostics.front().message);
+		return QString::fromStdString(toDialogText(diagnostics.front()));
 	return QString();
 }
 
@@ -48,15 +51,15 @@ ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	layout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
-	m_blankButton = new QPushButton("Blank", this);
+	m_blankButton = new QPushButton("New", this);
 	m_blankButton->setObjectName("blankScenarioButton");
 	m_duplicateButton = new QPushButton("Duplicate", this);
 	m_duplicateButton->setObjectName("duplicateScenarioButton");
 	m_deleteButton = new QPushButton("Delete", this);
 	m_deleteButton->setObjectName("deleteScenarioButton");
-	m_importButton = new QPushButton("Import JSON...", this);
+	m_importButton = new QPushButton("Import...", this);
 	m_importButton->setObjectName("importScenarioButton");
-	m_exportButton = new QPushButton("Export JSON...", this);
+	m_exportButton = new QPushButton("Export...", this);
 	m_exportButton->setObjectName("exportScenarioButton");
 	const QList<QPushButton*> buttons{m_blankButton, m_duplicateButton, m_deleteButton, m_importButton, m_exportButton};
 	for (int index = 0; index < buttons.size(); ++index)
@@ -210,33 +213,34 @@ void ScenarioPanel::updatePresentation() {
 					++warnings;
 			}
 		}
-		return errors > 0 ? QStringLiteral("Invalid")
-						  : (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
+		return errors > 0 ? QStringLiteral("has errors") : (warnings > 0 ? QStringLiteral("has warnings") : QString());
 	};
 	for (std::size_t index = 0; index < model.scenarios.size() && index < static_cast<std::size_t>(m_listWidget->count()); ++index) {
 		const SceneScenario& scenario = model.scenarios[index];
-		const QString description = scenario.description.empty()
-			? QStringLiteral("(no description)")
-			: QString::fromStdString(scenario.description);
-		// Two lines: the id and name, then the counts first, so a narrow dock cuts only the description and the markers.
-		QString label = QStringLiteral("%1 \u2014 %2\n%3 incident(s) | %4 delay(s)")
-							.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name),
-								QString::number(scenario.incidents.size()), QString::number(scenario.entranceDelays.size()));
-		if (details) {
-			label += QString(" | %1 | %2").arg(description, validationStatus(index));
-		} else {
-			if (!scenario.description.empty())
-				label += QString(" | %1").arg(description);
-			if (validationStatus(index) == QStringLiteral("Invalid"))
-				label += QStringLiteral(" | Invalid");
-		}
+		// The name, or the id of a scenario without one, and its markers; below it the counts that are not zero and, when the
+		// scenario has errors, that it has. Advanced details also say when it has warnings.
+		std::vector<std::string> markers;
 		if (scenario.id == model.defaultScenarioId)
-			label += QStringLiteral(" | default");
+			markers.emplace_back("default");
 		if (m_runSelection->isScenarioModified(scenario.id))
-			label += QStringLiteral(" | modified");
+			markers.emplace_back("modified");
+		QString label = QString::fromStdString(sceneScenarioLabel(model, scenario, markers));
+		QStringList facts;
+		if (!scenario.incidents.empty())
+			facts << countText(static_cast<long long>(scenario.incidents.size()), QStringLiteral("incident"), QStringLiteral("incidents"));
+		if (!scenario.entranceDelays.empty())
+			facts << countText(static_cast<long long>(scenario.entranceDelays.size()), QStringLiteral("delay"), QStringLiteral("delays"));
+		const QString status = validationStatus(index);
+		if (status == QStringLiteral("has errors") || (details && !status.isEmpty()))
+			facts << status;
+		if (!facts.isEmpty())
+			label += QLatin1Char('\n') + facts.join(QStringLiteral(", "));
+		QString tooltip = QStringLiteral("ID: %1").arg(QString::fromStdString(scenario.id));
+		if (!scenario.description.empty())
+			tooltip += QLatin1Char('\n') + QString::fromStdString(scenario.description);
 		if (auto* item = m_listWidget->item(static_cast<int>(index))) {
 			item->setText(label);
-			item->setToolTip(label);
+			item->setToolTip(tooltip);
 		}
 	}
 	emit headerTextChanged(headerText());
@@ -281,9 +285,7 @@ QString ScenarioPanel::headerText() const {
 	const SceneScenario* scenario = selectedScenario();
 	if (!scenario)
 		return QStringLiteral("No scenario selected");
-	if (scenario->name.empty())
-		return QStringLiteral("Scenario: %1").arg(QString::fromStdString(scenario->id));
-	return QStringLiteral("Scenario: %1 (%2)").arg(QString::fromStdString(scenario->id), QString::fromStdString(scenario->name));
+	return QStringLiteral("Scenario: %1").arg(QString::fromStdString(sceneScenarioLabel(m_document->model(), *scenario)));
 }
 
 void ScenarioPanel::selectScenario(int row) {
@@ -335,7 +337,7 @@ void ScenarioPanel::deleteScenario() {
 		[&model](const SceneScenario& scenario) { return scenario.id == model.defaultScenarioId; });
 	if (!selected || model.defaultScenarioId.empty() || persistedDefault == model.scenarios.end()) {
 		m_prompts->showError(this, "Cannot Delete Scenario",
-			"The scene has no valid persisted default scenario; correct validation before deleting scenarios.", true);
+			"This case has no default scenario. Fix the validation errors first.", true);
 		return;
 	}
 	const std::string defaultId = model.defaultScenarioId;
@@ -378,7 +380,7 @@ void ScenarioPanel::exportScenario() {
 	if (!result.success()) {
 		if (reportFailure)
 			reportFailure(result.diagnostics);
-		m_prompts->showError(this, "Scenario export failed", firstDiagnosticMessage(result.diagnostics), true);
+		m_prompts->showError(this, "Scenario Export Failed", firstDiagnosticMessage(result.diagnostics), true);
 		return;
 	}
 	emit statusMessage(QString("Exported scenario %1").arg(scenarioContext()), 4000);
@@ -394,7 +396,7 @@ void ScenarioPanel::importScenario() {
 		return;
 	const ScenarioLoadResult loaded = loadScenarioJson(path.toStdString());
 	if (!loaded.success()) {
-		m_prompts->showError(this, "Scenario import failed", firstDiagnosticMessage(loaded.diagnostics), true);
+		m_prompts->showError(this, "Scenario Import Failed", firstDiagnosticMessage(loaded.diagnostics), true);
 		return;
 	}
 	SceneModel& model = m_document->mutableModel();
@@ -417,27 +419,33 @@ void ScenarioPanel::importScenario() {
 	candidate.scenarios.push_back(imported);
 	const std::size_t candidateIndex = candidate.scenarios.size() - 1;
 	const std::string prefix = "scenarios[" + std::to_string(candidateIndex) + "]";
-	QStringList errors;
+	// One error gives its message and its fix, several give their messages, one per line.
+	std::vector<SceneDiagnostic> errors;
 	for (const auto& diagnostic : validateScene(candidate)) {
 		if (diagnostic.severity == SceneSeverity::Error && diagnostic.path.rfind(prefix, 0) == 0)
-			errors << QString::fromStdString(diagnostic.message);
+			errors.push_back(diagnostic);
 	}
-	if (!errors.isEmpty()) {
-		m_prompts->showError(this, "Scenario import rejected", errors.join("\n"), true);
+	if (!errors.empty()) {
+		QStringList messages;
+		for (const auto& error : errors)
+			messages << QString::fromStdString(error.message);
+		m_prompts->showError(this, "Scenario Import Failed",
+			errors.size() == 1 ? QString::fromStdString(toDialogText(errors.front())) : messages.join("\n"), true);
 		return;
 	}
 	model.scenarios.push_back(std::move(imported));
 	m_runSelection->selectScenario(model.scenarios.back().id);
 	finishAddition("Import scenario");
 	const QString importedId = QString::fromStdString(m_runSelection->scenarioId());
-	QString message = QString("Imported scenario %1").arg(importedId);
+	QString message = QString("Imported scenario %1.").arg(importedId);
 	if (scenarioConflict)
-		message += QString(" (ID %1 already existed; imported as %2)").arg(QString::fromStdString(requestedId), importedId);
+		message += QString(" %1 was taken, so it is now %2.").arg(QString::fromStdString(requestedId), importedId);
 	if (adjustedIncidentCount > 0)
-		message += QString(" %1 incident ID(s) adjusted to remain globally unique.").arg(adjustedIncidentCount);
+		message += adjustedIncidentCount == 1 ? QStringLiteral(" 1 incident ID was renamed to stay unique.")
+											  : QString(" %1 incident IDs were renamed to stay unique.").arg(adjustedIncidentCount);
 	emit statusMessage(message, 7000);
 	if (scenarioConflict || adjustedIncidentCount > 0)
-		m_prompts->showInfo(this, "Scenario ID adjusted", message);
+		m_prompts->showInfo(this, "Scenario ID Adjusted", message);
 }
 
 void ScenarioPanel::commitIdEdit() {
@@ -454,7 +462,7 @@ void ScenarioPanel::commitIdEdit() {
 		return;
 	}
 	if (sceneUniqueScenarioId(model, newId) != newId) {
-		m_prompts->showError(this, "Scenario ID already exists", "Choose a unique scenario ID.", true);
+		m_prompts->showError(this, "Duplicate Scenario ID", "Choose a unique scenario ID.", true);
 		updateDetail();
 		return;
 	}

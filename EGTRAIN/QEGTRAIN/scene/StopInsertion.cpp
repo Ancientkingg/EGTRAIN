@@ -32,24 +32,30 @@ std::string stationLabel(const SceneModel& model, const std::string& stationId) 
 		if (station.id == stationId)
 			return station.name.empty() ? station.id : station.name;
 	}
-	return stationId.empty() ? "(missing station)" : stationId;
+	return stationId;
+}
+
+// The text followed by the station in brackets, or the text alone when the stop has no station.
+std::string withStation(const SceneModel& model, const std::string& text, const std::string& stationId) {
+	const std::string station = stationLabel(model, stationId);
+	return station.empty() ? text : text + " (" + station + ")";
 }
 
 std::string stopLabel(const SceneModel& model, const SceneService& service, std::size_t index) {
-	return "stop " + std::to_string(index + 1) + " ("
-		+ stationLabel(model, service.stops[index].stationId) + ")";
+	return withStation(model, "stop " + std::to_string(index + 1), service.stops[index].stationId);
 }
 
-const char* statusProblem(SceneStopResolutionStatus status) {
+const char* statusProblem(SceneStopResolutionStatus status, const std::string& stationId) {
 	switch (status) {
 		case SceneStopResolutionStatus::Resolved: return "";
 		case SceneStopResolutionStatus::AmbiguousPlatform:
-			return "has more than one reachable platform; choose a platform";
+			return "has no platform and the route reaches more than one here";
 		case SceneStopResolutionStatus::OffRouteContext: return "is not on the route";
-		case SceneStopResolutionStatus::OutOfOrder: return "is before or at an already used route visit";
+		case SceneStopResolutionStatus::OutOfOrder: return "comes before the previous stop on the route";
 		case SceneStopResolutionStatus::InvalidPlatform: return "uses a platform the route does not reach";
-		case SceneStopResolutionStatus::UnknownStation: return "uses a station that does not exist";
-		case SceneStopResolutionStatus::UnresolvedRoute: return "cannot be matched because the route is unresolved";
+		case SceneStopResolutionStatus::UnknownStation:
+			return stationId.empty() ? "has no station" : "uses a station that does not exist";
+		case SceneStopResolutionStatus::UnresolvedRoute: return "cannot be placed, because the route cannot be followed";
 	}
 	return "";
 }
@@ -93,14 +99,15 @@ SceneStopInsertionWindow sceneStopInsertionWindow(const SceneModel& model,
 	SceneRouteTraversal traversal = sceneServiceTraversal(model, service);
 	if (!traversal.resolved)
 		return failedWindow(SceneStopInsertionWindow::kNoStop,
-			"The route of this service cannot be resolved; choose a valid route first.");
+			"The route of this service cannot be followed. Choose a valid route first.");
 	const auto resolutions = resolveSceneServiceStops(model, service, traversal);
 	const LowerBound lower = lowerBound(resolutions, insertIndex);
 	if (lower.blockingStop != SceneStopInsertionWindow::kNoStop) {
 		const SceneStopResolution& resolution = resolutions[lower.blockingStop];
 		return failedWindow(lower.blockingStop,
 			"Cannot insert after " + stopLabel(model, service, lower.blockingStop) + ": it "
-				+ statusProblem(resolution.status) + ". Fix that stop first.");
+				+ statusProblem(resolution.status, service.stops[lower.blockingStop].stationId)
+				+ ". Fix that stop first.");
 	}
 	std::size_t upper = traversal.visits.size();
 	for (std::size_t index = insertIndex; index < resolutions.size(); ++index) {
@@ -126,7 +133,7 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 	}
 	const SceneRouteTraversal traversal = sceneServiceTraversal(model, service);
 	if (!traversal.resolved) {
-		result.error = "The route of this service cannot be resolved; choose a valid route first.";
+		result.error = "The route of this service cannot be followed. Choose a valid route first.";
 		return result;
 	}
 	const auto before = resolveSceneServiceStops(model, service, traversal);
@@ -136,9 +143,11 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 
 	const SceneStopResolutionStatus newStatus = after[insertIndex].status;
 	if (newStatus != SceneStopResolutionStatus::Resolved) {
-		result.error = "The new stop (" + stationLabel(model, stop.stationId) + ") "
-			+ statusProblem(newStatus) + ".";
-		if (newStatus != SceneStopResolutionStatus::AmbiguousPlatform)
+		result.error = withStation(model, "The new stop", stop.stationId) + " "
+			+ statusProblem(newStatus, stop.stationId) + ".";
+		if (newStatus == SceneStopResolutionStatus::AmbiguousPlatform)
+			result.error += " Choose a platform.";
+		else
 			result.error += " Choose another position, station or platform.";
 		return result;
 	}
@@ -154,7 +163,7 @@ SceneStopInsertionResult insertSceneStop(const SceneModel& model, SceneService& 
 	}
 	if (!damaged.empty()) {
 		result.error = "Inserting " + stationLabel(model, stop.stationId)
-			+ " here would move these stops to another route visit or leave them without one: "
+			+ " here would move these stops to another place on the route or off it: "
 			+ damaged + ". Choose an earlier position or another station.";
 		return result;
 	}

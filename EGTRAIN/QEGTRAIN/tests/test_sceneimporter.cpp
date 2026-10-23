@@ -502,7 +502,7 @@ int main() {
 					&& diagnostic.message.find("Guingamp 0 0.55 0") != std::string::npos
 					&& diagnostic.message.find("Lane two 1 2 2 track line 2") != std::string::npos
 					&& diagnostic.message.find("row 3 is not readable") != std::string::npos
-					&& diagnostic.message.find("E 3 4 0; and 2 more") != std::string::npos
+					&& diagnostic.message.find("E 3 4 0, and 2 more") != std::string::npos
 					&& diagnostic.message.find("F 4 5 0") == std::string::npos
 					&& diagnostic.file.find("AreasCaseStudy.txt") != std::string::npos && !diagnostic.suggestedFix.empty())
 					areasWarning = true;

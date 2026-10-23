@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 				&& panel.tabs()->isHidden(),
 			"a panel without a document shows no passengers and offers no action");
 		ok &= expect(panel.diagnosticLabel()->text()
-					== "Select a passenger, or use Add to create one or Import to read a legacy passenger folder."
+					== "Select a passenger or add one."
 				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden()
 				&& panel.journeyOriginCombo()->itemText(0) == "Select a journey or leg"
 				&& panel.legServiceCombo()->itemText(0) == "Select a leg",
@@ -239,14 +239,14 @@ int main(int argc, char** argv) {
 				&& panel.addPassengerButton()->isEnabled() && panel.importButton()->isEnabled()
 				&& !panel.tabs()->isHidden(),
 			"a new scene is shown in the passenger list with the first passenger selected");
-		ok &= expect(items(panel.journeyList()) == std::vector<std::string>({"J1 | commute", "J2"})
+		ok &= expect(items(panel.journeyList()) == std::vector<std::string>({"J1 (commute)", "J2"})
 				&& items(panel.legList()) == std::vector<std::string>({"L1", "L2"})
 				&& panel.journeyList()->currentRow() == 0 && panel.legList()->currentRow() == 0,
 			"the journeys of the passenger and the legs of its first journey are listed with the first of each selected");
 		ok &= expect(panel.passengerIdEdit()->text() == "P1" && panel.journeyIdEdit()->text() == "J1"
 				&& panel.journeyActivityEdit()->text() == "commute" && panel.legIdEdit()->text() == "L1",
 			"the id and activity fields show the selection");
-		ok &= expect(panel.journeyOriginCombo()->currentText() == "A | Station A"
+		ok &= expect(panel.journeyOriginCombo()->currentText() == "Station A (A)"
 				&& panel.journeyOriginCombo()->currentData().toString() == "A"
 				&& panel.journeyDestinationCombo()->currentData().toString() == "C",
 			"the journey stations are shown with their names");
@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
 				&& panel.tabs()->isHidden() && panel.passengerIdEdit()->text().isEmpty() && !panel.passengerIdEdit()->isEnabled()
 				&& !panel.deletePassengerButton()->isEnabled() && panel.journeyList()->count() == 0,
 			"a passenger list without a selection shows an empty passenger form");
-		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger, or use Add to create one or Import to read a legacy passenger folder."
+		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger or add one."
 				&& role(panel.diagnosticLabel()) == "help",
 			"a passenger list without a selection says what to select");
 		panel.commitPendingEditors();
@@ -312,7 +312,7 @@ int main(int argc, char** argv) {
 		ok &= expect(events.log == oneChange, "a rename is one change of the document and then of the panel");
 		events.log.clear();
 		typeAndLeave(panel.passengerIdEdit(), "P2");
-		ok &= expect(prompts.errors == std::vector<std::string>({"Passenger ID already exists: Choose a unique passenger ID."})
+		ok &= expect(prompts.errors == std::vector<std::string>({"Duplicate Passenger ID: Choose a unique passenger ID."})
 				&& panel.passengerIdEdit()->text() == "P9" && document.model().passengers[0].id == "P9"
 				&& document.revision() == 2 && events.log.empty(),
 			"a passenger id that exists is refused with the old text restored");
@@ -371,7 +371,7 @@ int main(int argc, char** argv) {
 			"Add appends a journey between the first station and itself and selects it");
 		typeAndLeave(panel.journeyActivityEdit(), "shopping");
 		ok &= expect(firstPassenger.journeys[2].activity == "shopping"
-				&& panel.journeyList()->item(2)->text() == "P1.journey | shopping",
+				&& panel.journeyList()->item(2)->text() == "P1.journey (shopping)",
 			"the activity is written to the journey and shown in the list");
 		choose(panel.journeyOriginCombo(), "B");
 		choose(panel.journeyDestinationCombo(), "C");
@@ -382,14 +382,14 @@ int main(int argc, char** argv) {
 			"a time window is written to the journey");
 		events.log.clear();
 		typeAndLeave(panel.journeyIdEdit(), "J1");
-		ok &= expect(prompts.errors.back() == "Journey ID already exists: Choose a unique journey ID."
+		ok &= expect(prompts.errors.back() == "Duplicate Journey ID: Choose a unique journey ID."
 				&& panel.journeyIdEdit()->text() == "P1.journey" && events.log.empty(),
 			"a journey id used by another journey, even of another passenger, is refused");
 		typeAndLeave(panel.journeyIdEdit(), "J3");
-		ok &= expect(prompts.errors.back() == "Journey ID already exists: Choose a unique journey ID.",
+		ok &= expect(prompts.errors.back() == "Duplicate Journey ID: Choose a unique journey ID.",
 			"a journey id of another passenger is refused");
 		typeAndLeave(panel.journeyIdEdit(), "J4");
-		ok &= expect(firstPassenger.journeys[2].id == "J4" && panel.journeyList()->item(2)->text() == "J4 | shopping"
+		ok &= expect(firstPassenger.journeys[2].id == "J4" && panel.journeyList()->item(2)->text() == "J4 (shopping)"
 				&& events.log == oneChange,
 			"a free journey id is written to the journey and shown in the list");
 		prompts.answer = false;
@@ -437,7 +437,7 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.legOccurrenceEdit()->maximum() == 4, "the occurrences are counted over the duration the window gives");
 		choose(panel.legServiceCombo(), "S2");
 		ok &= expect(added.serviceId == "S2" && panel.legDestinationCombo()->currentData().toString() == "B"
-				&& panel.legDestinationCombo()->currentText() == "Invalid: B" && comboData(panel.legDestinationCombo()).back() == "B",
+				&& panel.legDestinationCombo()->currentText() == "B (not a stop)" && comboData(panel.legDestinationCombo()).back() == "B",
 			"a station that the new service does not stop at stays selected and is marked invalid");
 		ok &= expect(panel.legDestinationCombo()->itemData(panel.legDestinationCombo()->currentIndex(), Qt::ToolTipRole).toString()
 				== "Station B is not a stop of the service of this leg.",
@@ -449,7 +449,7 @@ int main(int argc, char** argv) {
 			"choosing a stop and an occurrence writes them to the leg");
 		events.log.clear();
 		typeAndLeave(panel.legIdEdit(), "L1");
-		ok &= expect(prompts.errors.back() == "Leg ID already exists: Choose a unique leg ID." && panel.legIdEdit()->text() == "J1.leg"
+		ok &= expect(prompts.errors.back() == "Duplicate Leg ID: Choose a unique leg ID." && panel.legIdEdit()->text() == "J1.leg"
 				&& events.log.empty(),
 			"a leg id that exists is refused");
 		typeAndLeave(panel.legIdEdit(), "L9");
@@ -480,32 +480,31 @@ int main(int argc, char** argv) {
 		std::vector<SceneDiagnostic> diagnostics = {legError, journeyWarning, otherPassenger};
 		panel.setDiagnostics(&diagnostics);
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
+		ok &= expect(panel.diagnosticLabel()->text() == "Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
 				&& !panel.diagnosticLabel()->isHidden(),
 			"an error goes in the error callout");
-		ok &= expect(panel.warningLabel()->text() == "WARNING: Journey is odd" && role(panel.warningLabel()) == "warning"
+		ok &= expect(panel.warningLabel()->text() == "Warning: Journey is odd" && role(panel.warningLabel()) == "warning"
 				&& !panel.warningLabel()->isHidden(),
 			"a warning goes in the warning callout, apart from the error");
 		diagnostics = {legError, otherPassenger};
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
+		ok &= expect(panel.diagnosticLabel()->text() == "Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
 				&& panel.warningLabel()->isHidden(),
 			"an error alone leaves the warning callout hidden");
 		diagnostics = {journeyWarning, otherPassenger};
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->isHidden() && panel.warningLabel()->text() == "WARNING: Journey is odd"
+		ok &= expect(panel.diagnosticLabel()->isHidden() && panel.warningLabel()->text() == "Warning: Journey is odd"
 				&& role(panel.warningLabel()) == "warning" && !panel.warningLabel()->isHidden(),
 			"a warning alone leaves the error callout hidden");
 		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(panel.warningLabel()->text() == "INFO: Elsewhere" && role(panel.warningLabel()) == "neutral"
+		ok &= expect(panel.warningLabel()->text() == "Note: Elsewhere" && role(panel.warningLabel()) == "neutral"
 				&& panel.diagnosticLabel()->isHidden(),
 			"another passenger shows its own messages, a note as a neutral callout");
 		panel.passengerList()->setCurrentRow(0);
 		panel.setDiagnostics(nullptr);
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection."
-				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden() && panel.warningLabel()->isHidden(),
-			"a panel without diagnostics shows none, as help");
+		ok &= expect(panel.diagnosticLabel()->text().isEmpty() && panel.diagnosticLabel()->isHidden() && panel.warningLabel()->isHidden(),
+			"a panel without diagnostics shows no callout");
 
 		// a run closes the document
 		const quint64 revisionBeforeRun = document.revision();
@@ -532,7 +531,7 @@ int main(int argc, char** argv) {
 		// another scene
 		document.replace(passengerScene(), false);
 		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2"}) && panel.passengerList()->currentRow() == 0
-				&& items(panel.journeyList()) == std::vector<std::string>({"J1 | commute", "J2"}),
+				&& items(panel.journeyList()) == std::vector<std::string>({"J1 (commute)", "J2"}),
 			"opening another scene shows it");
 
 		// detach
@@ -616,15 +615,15 @@ int main(int argc, char** argv) {
 		}
 		const std::vector<std::string> fileRows = {
 			"DAS_FrenchCaseStudy.csv | 1 | imp1 | Accepted | Accepted",
-			"DAS_FrenchCaseStudy.csv | 2 | P2 | Rejected | Passenger ID collides with existing or earlier imported data",
+			"DAS_FrenchCaseStudy.csv | 2 | P2 | Rejected | Passenger ID already exists",
 			"DAS_FrenchCaseStudy.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved station reference",
 			"DAS_FrenchCaseStudy.csv | 4 | - | Rejected | Malformed passenger DAS row",
 			"RouteChoiceFC_EQ1.csv | 1 | imp1 | Accepted | Accepted",
-			"RouteChoiceFC_EQ1.csv | 2 | P2 | Rejected | Passenger ID collides with existing or earlier imported data",
+			"RouteChoiceFC_EQ1.csv | 2 | P2 | Rejected | Passenger ID already exists",
 			"RouteChoiceFC_EQ1.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved service or station reference",
 			"RouteChoiceFC_EQ1.csv | 4 | - | Rejected | Malformed passenger route-choice row"};
 		ok &= expect(asked == 1 && rows.size() == fileRows.size() + 1
-				&& rows[0].find(" (batch) | - | P2 | Rejected | Passenger, journey, or leg ID collides") != std::string::npos
+				&& rows[0].find(" (batch) | - | P2 | Rejected | Passenger, journey or leg ID already exists") != std::string::npos
 				&& std::vector<std::string>(rows.begin() + 1, rows.end()) == fileRows,
 			"the result table lists the rows of both files with their accepted, rejected and unresolved status, after the passenger that collides");
 		ok &= expect(!panel.importResultTable()->isHidden() && !panel.importResultHeading()->isHidden()
@@ -649,7 +648,7 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().importReport.size() > reportsBefore && document.isDirty()
 				&& document.lastChangeLabel() == "Import passengers" && events.log == oneChange,
 			"the import is recorded in the report and is one change");
-		ok &= expect(events.status == std::vector<std::string>({"Passenger import: 2 accepted, 1 rejected; unresolved rows remain visible"}),
+		ok &= expect(events.status == std::vector<std::string>({"Imported 2 passengers, 1 rejected"}),
 			"the status message counts the accepted and rejected passengers");
 		ok &= expect(prompts.errors.empty(), "an import that read its files reports no error");
 
@@ -667,8 +666,8 @@ int main(int argc, char** argv) {
 				&& document.revision() == revisionBefore && events.log.empty(),
 			"an import that fails leaves the scene alone");
 		ok &= expect(panel.importResultTable()->rowCount() == 1 && statusOf(0) == "Rejected" && prompts.errors.size() == 1
-				&& prompts.errors[0].rfind("Passenger Import Diagnostics: ", 0) == 0
-				&& events.status.back() == "Passenger import rejected; the scene was not changed",
+				&& prompts.errors[0].rfind("Passenger Import Failed: ", 0) == 0
+				&& events.status.back() == "Passenger import failed. Nothing was changed",
 			"an import that fails shows one rejected row and tells the user why");
 
 		// no folder
@@ -751,20 +750,20 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.legList()->count() == 0 && panel.journeyList()->currentRow() == 0,
 			"the first journey of the passenger is selected and has no leg");
 		const QStringList errorLines = panel.diagnosticLabel()->text().split('\n');
-		ok &= expect(errorLines.size() == 6 && errorLines.front() == "ERROR: Journey window is wrong" && errorLines.back() == "and 2 more"
+		ok &= expect(errorLines.size() == 6 && errorLines.front() == "Journey window is wrong" && errorLines.back() == "and 2 more"
 				&& !panel.diagnosticLabel()->text().contains("Scene") && !panel.diagnosticLabel()->text().contains("Other"),
 			"the errors are those of the passenger, five lines and the count of the rest");
 		ok &= expect(panel.diagnosticLabel()->toolTip().split('\n').size() == 7 && !panel.diagnosticLabel()->toolTip().contains("and 2 more"),
 			"the tooltip of the error callout lists all of them");
 		const QStringList noteLines = panel.warningLabel()->text().split('\n');
-		ok &= expect(noteLines.size() == 6 && noteLines.front() == "WARNING: Journey has no route-choice legs" && noteLines.back() == "and 3 more"
+		ok &= expect(noteLines.size() == 6 && noteLines.front() == "Warning: Journey has no route-choice legs" && noteLines.back() == "and 3 more"
 				&& !panel.warningLabel()->text().contains("Scene") && !panel.warningLabel()->text().contains("Other"),
 			"the warnings are those of the passenger, five lines and the count of the rest");
 		ok &= expect(panel.warningLabel()->toolTip().split('\n').size() == 8,
 			"the tooltip of the warning callout lists all of them");
 
 		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Other passenger error" && panel.diagnosticLabel()->toolTip().isEmpty()
+		ok &= expect(panel.diagnosticLabel()->text() == "Other passenger error" && panel.diagnosticLabel()->toolTip().isEmpty()
 				&& panel.warningLabel()->isHidden() && panel.warningLabel()->toolTip().isEmpty(),
 			"another passenger shows only its own message, without a tooltip when all of it is shown");
 
@@ -796,16 +795,16 @@ int main(int argc, char** argv) {
 		const auto tip = [](const QComboBox* combo) {
 			return combo->itemData(combo->currentIndex(), Qt::ToolTipRole).toString().toStdString();
 		};
-		ok &= expect(panel.journeyOriginCombo()->currentText() == "Invalid: ZZ"
-				&& tip(panel.journeyOriginCombo()) == "Station ZZ is not in this scene."
-				&& panel.journeyDestinationCombo()->currentText() == "Invalid: (empty)"
+		ok &= expect(panel.journeyOriginCombo()->currentText() == "ZZ (missing)"
+				&& tip(panel.journeyOriginCombo()) == "Station ZZ is not in this case."
+				&& panel.journeyDestinationCombo()->currentText() == "(none)"
 				&& tip(panel.journeyDestinationCombo()) == "No station is set.",
 			"a journey station that is unknown or empty is shown as invalid with its reason");
-		ok &= expect(panel.legServiceCombo()->currentText() == "Invalid: S9"
-				&& tip(panel.legServiceCombo()) == "Service S9 is not in this scene."
-				&& panel.legOriginCombo()->currentText() == "Invalid: C"
+		ok &= expect(panel.legServiceCombo()->currentText() == "S9 (missing)"
+				&& tip(panel.legServiceCombo()) == "Service S9 is not in this case."
+				&& panel.legOriginCombo()->currentText() == "C (not a stop)"
 				&& tip(panel.legOriginCombo()) == "Station C is not a stop of the service of this leg."
-				&& panel.legDestinationCombo()->currentText() == "Invalid: (empty)"
+				&& panel.legDestinationCombo()->currentText() == "(none)"
 				&& tip(panel.legDestinationCombo()) == "No station is set.",
 			"a leg service or station that is unknown, not served or empty is shown as invalid with its reason");
 		ok &= expect(panel.journeyOriginCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty()

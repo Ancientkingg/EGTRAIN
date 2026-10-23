@@ -4,7 +4,7 @@ This page describes the editors of a case and the rules for editing and validati
 
 ## Infrastructure
 
-The dock **Infrastructure** has a list **Entity** that chooses the table: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the scene has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "The scene cannot be edited while a run is in progress." **Delete** is off until a row is selected, and its tooltip says why it is off. **Delete** asks for confirmation. A row that other rows refer to is refused with **Cannot Delete Infrastructure Entity**, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful scene](tutorial-minimal-scene.md).
+The dock **Infrastructure** has a list above the table that chooses it: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the scene has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "Stop the run to edit." **Delete** is off until a row is selected. **Delete** asks for confirmation. A row that other rows refer to is refused with a message titled after the kind of row, such as Cannot Delete Track, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful scene](tutorial-minimal-scene.md).
 
 ## Services
 
@@ -16,7 +16,7 @@ visible until you choose a replacement. This label does not change train
 performance, composition or stops. It survives duplication and folder/bundle
 saves, but not legacy export.
 
-Service visualization colour, directly below Category, sets the colour of the
+Colour, directly below Category, sets the colour of the
 service's trains. Choose... opens a colour dialog; Default removes the colour.
 Without a colour, every train is drawn in the default yellow. The colour applies
 to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
@@ -117,9 +117,9 @@ that `views.json` hides, and is written only when it hides one. Route
 corridors, single-track restrictions and station boundaries go to
 `GUI/caseStudyRouteCorridors.txt`, `GUI/singleTrackLimits.txt` and
 `GUI/stationBoundarySections.txt` when the scene has them. The base time and
-the simulation settings go to `EGTRAINInitialParameters.json`. A scene without
-legacy files prints the information `scene.export.info` that the files were
-generated from canonical data. The export warns (`scene.export.compatibility`)
+the simulation settings go to `EGTRAINInitialParameters.json`. A case without
+original legacy files prints the information `scene.export.info` that the legacy
+files were generated from the case. The export warns (`scene.export.compatibility`)
 about a station name with a tab or line break, about an empty corridor name or
 one with a comma, tab or line break, and about the tracks that `views.json` draws
 as double switches, because the text files cannot hold them.

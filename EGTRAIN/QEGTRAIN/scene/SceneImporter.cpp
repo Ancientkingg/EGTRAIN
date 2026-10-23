@@ -407,7 +407,7 @@ SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& p
 		}
 		result.tractionCurve.push_back(row);
 		if (result.tractionCurve.size() > 20) {
-			result.error = "The traction source exceeds the runtime 20-band capacity";
+			result.error = "The traction file has more than 20 rows";
 			return result;
 		}
 	}
@@ -629,7 +629,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			result.report.skipped("passengers.route_choice", routeChoiceSource);
 		if (result.sources.hasDas || result.sources.hasRouteChoice) {
 			addDiag(SceneSeverity::Warning, "scene.import.passengers",
-				"Passenger import requires both exact DAS and route-choice files",
+				"Passenger import needs both the DAS and the RouteChoice file",
 				result.sources.directory, 0, "passengers", true);
 		}
 		return result;
@@ -1010,7 +1010,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		report.skipped("simulation_settings", settingsSource);
 		report.unresolved("simulation_settings", settingsSource);
 		addDiag(SceneSeverity::Warning, "scene.import.settings",
-			"No concrete InitialParameters mapping for case " + sceneName + "; simulation settings omitted",
+			"No base time or duration found for " + sceneName + ". Set them in Case Settings.",
 			sceneName, "simulation_settings");
 	}
 
@@ -1055,7 +1055,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		for (const auto& track : trackDirs)
 			if (!reconstructedTracks.insert(track.first).second) noncanonicalTrack = track.second;
 		if (!noncanonicalTrack.empty()) {
-			addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical area conversion requires unique track numbers in canonical decimal spelling", noncanonicalTrack.u8string());
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Track numbers must be unique whole numbers", noncanonicalTrack.u8string());
 			return result;
 		}
 	}
@@ -1285,9 +1285,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (firstMatches.size() != 1 || secondMatches.size() != 1) {
 				report.skipped("infrastructure.connections", connectionsSource);
 				addDiag(SceneSeverity::Warning, "scene.import.coordinate",
-					"Connection row " + std::to_string(rowIndex) + " has "
-						+ std::to_string(firstMatches.size()) + "/" + std::to_string(secondMatches.size())
-						+ " exact node matches; no connection guessed",
+					"Connection row " + std::to_string(rowIndex) + " was not imported: its ends match "
+						+ std::to_string(firstMatches.size()) + " and " + std::to_string(secondMatches.size())
+						+ " nodes, not one each",
 					connectionsPath.u8string(),
 					"infrastructure.connections", true);
 				++rowIndex;
@@ -1938,14 +1938,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		std::string content;
 		std::error_code sidecarEc;
 		if (!fs::is_regular_file(areaSidecar, sidecarEc) || !readFile(areaSidecar, content)) {
-			addDiag(SceneSeverity::Error, "scene.import.areas", "Cannot read canonical signalling area sidecar", areaSidecar.u8string());
+			addDiag(SceneSeverity::Error, "scene.import.areas", "Cannot read the signalling areas file", areaSidecar.u8string());
 			return result;
 		}
 		const json sidecar = json::parse(content, nullptr, false);
 		if (!sidecar.is_object() || !sidecar.contains("format_version")
 			|| !sidecar["format_version"].is_number_integer() || sidecar["format_version"] != 1
 			|| !sidecar.contains("signalling_areas")) {
-			addDiag(SceneSeverity::Error, "scene.import.areas", "Malformed or unsupported canonical signalling area sidecar", areaSidecar.u8string());
+			addDiag(SceneSeverity::Error, "scene.import.areas", "The signalling areas file is damaged or from an unsupported version", areaSidecar.u8string());
 			return result;
 		}
 		// An area is read as signalling.json holds it. The errors of that read are reported with the checks of the staged scene.
@@ -1995,7 +1995,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			int level = 0;
 			const bool readable = tokens.size() >= 4 && parseDoubleToken(tokens[1], startKm)
 				&& parseDoubleToken(tokens[2], endKm) && parseIntegerToken(tokens[3], level);
-			if (!shownRows.empty()) shownRows += "; ";
+			if (!shownRows.empty()) shownRows += ", ";
 			if (!readable) {
 				shownRows += "row " + std::to_string(rowCount) + " is not readable";
 				continue;
@@ -2006,9 +2006,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		if (rowCount > 0) {
 			std::string message = "TrackLines/AreasCaseStudy.txt holds " + std::to_string(rowCount) + " signalling area "
 				+ (rowCount == 1 ? "row" : "rows") + " and none was imported. Rows: " + shownRows;
-			if (rowCount > 5) message += "; and " + std::to_string(rowCount - 5) + " more";
+			if (rowCount > 5) message += ", and " + std::to_string(rowCount - 5) + " more";
 			addDiag(SceneSeverity::Warning, "scene.import.areas.skipped", message, areasPath.u8string());
-			result.diagnostics.back().suggestedFix = "Add the signalling areas in Infrastructure > Signalling area";
+			result.diagnostics.back().suggestedFix = "Add the signalling areas in Infrastructure > Signalling areas";
 		}
 	}
 
@@ -2057,7 +2057,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			if (arrival != -1.0 && departure != -1.0 && departure < arrival) {
 				departure = arrival;
 				addDiag(SceneSeverity::Warning, "scene.import.adjusted",
-					"Legacy departure preceded arrival at " + stationName + "; clamped to arrival",
+					"Departure before arrival at " + stationName + ". The departure is set to the arrival",
 					timetablePath.u8string());
 			}
 			SceneStop stop;
@@ -2168,7 +2168,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					retainedStart = validTractionRows.size();
 					if (!reportedRestart) {
 						addDiag(SceneSeverity::Warning, "scene.import.adjusted",
-							"Traction speed range restarted; retaining the final monotonic band",
+							"Traction speeds start again from a lower speed. Only the last increasing rows are kept",
 							tractionPath.u8string());
 						reportedRestart = true;
 					}
@@ -2235,9 +2235,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 						incidentsPath.u8string(), "scenarios.incidents", true);
 				} else if (targets.size() > 1) {
 					addDiag(SceneSeverity::Warning, "scene.import.expanded",
-						"Train-breakdown incident code " + tokens[1] + " matches "
+						"Train breakdown code " + tokens[1] + " matches "
 							+ std::to_string(targets.size())
-							+ " services; expanded to preserve legacy prefix-match semantics",
+							+ " services. The breakdown is added to each of them",
 						incidentsPath.u8string());
 				}
 			}

@@ -1,11 +1,9 @@
 #include "editors/CaseSettingsPanel.h"
 
 #include "widgets/CompactDoubleSpinBox.h"
-#include "widgets/DialogLayout.h"
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QSignalBlocker>
 
@@ -37,13 +35,9 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	m_durationSecondsEdit = makeSpinBox("caseDurationSecondsEdit");
 	m_bufferSecondsEdit = makeSpinBox("caseBufferSecondsEdit");
 	m_recoveryPercentEdit = makeSpinBox("caseRecoveryPercentEdit");
-	layout->addRow("Duration / horizon (s)", m_durationSecondsEdit);
+	layout->addRow("Duration (s)", m_durationSecondsEdit);
 	layout->addRow("Buffer (s)", m_bufferSecondsEdit);
 	layout->addRow("Recovery (%)", m_recoveryPercentEdit);
-	auto* note = new QLabel(this);
-	note->setObjectName("caseSettingsNote");
-	DialogLayout::setHelp(note, "Changes apply when editing finishes.");
-	layout->addRow(note);
 
 	connect(m_nameEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_descriptionEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);

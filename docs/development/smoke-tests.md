@@ -307,7 +307,7 @@ window. The script checks:
   file that holds the three edits, Save As starts in the folder of the bundle with its
   file name, and the bundle keeps its bytes and its modification time. The window
   closes after Save As, no recovery folder is left and the next start has no prompt.
-- New case: a case that was never saved is offered as `New case study, not saved` and
+- New case: a case that was never saved is offered as `Not saved yet` and
   recovered in the same way.
 - Changed original: an original that changed, is newer than the copy or is missing is
   named in the prompt, and Decide Later is the default button for the first two.

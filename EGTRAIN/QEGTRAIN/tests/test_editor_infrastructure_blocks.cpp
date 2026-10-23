@@ -217,7 +217,7 @@ struct Fixture {
 };
 
 static QString blocked(const char* kind, const char* id, const QStringList& consumers) {
-	return QString("Cannot delete %1 '%2' because it is still referenced by:\n\xE2\x80\xA2 %3\nRemove or rebind those consumers first.")
+	return QString("%1 '%2' is used by:\n\xE2\x80\xA2 %3\nRemove or change these first.")
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
@@ -321,7 +321,7 @@ static bool testBlockEdit() {
 	// ids that a block cannot have
 	f.type(0, 0, "block-b1");
 	ok &= expect(f.untouched() && f.model().blocks[0].id == "block-x" && f.cell(0, 0) == "block-x"
-			&& f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+			&& f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another block has is refused, with a message, and the table shows the model again");
 	f.type(0, 0, "  ");
 	ok &= expect(f.untouched() && f.model().blocks[0].id == "block-x" && f.messages.size() == 2, "an empty id is refused");
@@ -409,7 +409,7 @@ static bool testBlockDelete() {
 		"a block that others use cannot be deleted");
 	const std::string a1 = sectionOf(f.model(), "block-a1");
 	ok &= expect(f.prompts.errorMessage
-			== blocked("blocks", "block-a1",
+			== blocked("Block", "block-a1",
 				{QString::fromStdString("route 'route-1' section '" + a1 + "'"),
 					QString::fromStdString("signal 'signal-1' protected section '" + a1 + "'"),
 					QString::fromStdString("block dependency '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'"),
@@ -423,7 +423,7 @@ static bool testBlockDelete() {
 	f.entities.clear();
 	ok &= expect(f.panel.selectionId() == "block", "the new block is selected");
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete blocks 'block'?" && f.model().blocks.size() == 5 && f.untouched(),
+	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete block 'block'?" && f.model().blocks.size() == 5 && f.untouched(),
 		"nothing is deleted when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
@@ -437,7 +437,7 @@ static bool testRoutes() {
 	Fixture f;
 	f.choose("routes");
 	ok &= expect(f.headers() == QStringList({"ID", "Sections", "Has corridor", "Corridor", "Reversed"}) && f.table()->rowCount() == 2
-			&& f.rowTexts(0) == QStringList({"route-1", "2 section(s)", "false", "", "false"}),
+			&& f.rowTexts(0) == QStringList({"route-1", "2 sections", "false", "", "false"}),
 		"routes are listed with the number of their sections");
 	ok &= expect(!f.table()->item(0, 1)->flags().testFlag(Qt::ItemIsEditable), "the number of sections cannot be edited");
 	ok &= expect(f.untouched() && !f.document.isDirty(), "listing routes edits nothing");
@@ -461,7 +461,7 @@ static bool testRoutes() {
 			&& f.changedOnce("Rename route", "routes") && f.panel.selectionId() == "route-x" && f.table()->currentRow() == 0,
 		"a renamed route keeps its services, and stays selected");
 	f.type(0, 0, "route-2");
-	ok &= expect(f.untouched() && f.model().routes[0].id == "route-x" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().routes[0].id == "route-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another route has is refused");
 
 	// add
@@ -469,19 +469,19 @@ static bool testRoutes() {
 	const SceneRoute& added = f.model().routes.back();
 	ok &= expect(f.model().routes.size() == 3 && added.id == "route" && added.blocks.empty() && !added.hasCorridor && added.corridor.empty()
 			&& !added.reversed && f.changedOnce("Add route", "routes") && f.panel.selectionId() == "route" && f.table()->currentRow() == 2
-			&& f.cell(2, 1) == "0 sections",
+			&& f.cell(2, 1) == "-",
 		"a route is added with a new id and no sections, and selected");
 
 	// delete
 	f.select(0);
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.model().routes.size() == 3 && f.untouched()
-			&& f.prompts.errorMessage == blocked("routes", "route-x", {"service 'service-1'"}),
+			&& f.prompts.errorMessage == blocked("Route", "route-x", {"service 'service-1'"}),
 		"a route that a service uses cannot be deleted");
 	f.select(2);
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == "Delete routes 'route'?" && f.model().routes.size() == 2 && f.changedOnce("Delete route", "routes"),
+	ok &= expect(f.prompts.confirmQuestion == "Delete route 'route'?" && f.model().routes.size() == 2 && f.changedOnce("Delete route", "routes"),
 		"a route that nothing uses is deleted when the user answers yes");
 	return ok;
 }
@@ -511,7 +511,7 @@ static bool testRouteSections() {
 	catalog->setCurrentIndex(catalog->findData(QString::fromStdString(b1)));
 	f.panel.addRouteSectionButton()->click();
 	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a1, a2, b1}) && list->count() == 3 && list->currentRow() == 2
-			&& f.cell(0, 1) == "3 section(s)",
+			&& f.cell(0, 1) == "3 sections",
 		"a section is added at the end of the route, and selected");
 	ok &= expect(f.log == Log({"documentChanged", "panelChanged"}) && f.entities.isEmpty() && f.kinds == SceneDocument::Infrastructure
 			&& f.document.lastChangeLabel() == "Add route section" && f.panel.selectionId() == "route-1" && f.table()->currentRow() == 0,
@@ -537,13 +537,13 @@ static bool testRouteSections() {
 	// remove: the section at the start
 	f.panel.removeRouteSectionButton()->click();
 	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a2, b1}) && list->count() == 2 && list->currentRow() == 0
-			&& f.document.lastChangeLabel() == "Remove route section" && f.cell(0, 1) == "2 section(s)",
+			&& f.document.lastChangeLabel() == "Remove route section" && f.cell(0, 1) == "2 sections",
 		"a section is removed, and the one at its place is selected");
 	list->setCurrentRow(1);
 	f.panel.removeRouteSectionButton()->click();
 	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a2}) && list->currentRow() == 0, "the last section is removed, and the one before it is selected");
 	f.panel.removeRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks.empty() && list->count() == 0 && !f.panel.removeRouteSectionButton()->isEnabled() && f.cell(0, 1) == "0 sections",
+	ok &= expect(f.model().routes[0].blocks.empty() && list->count() == 0 && !f.panel.removeRouteSectionButton()->isEnabled() && f.cell(0, 1) == "-",
 		"a route without sections lists none");
 	f.log.clear();
 	f.panel.removeSection();
@@ -591,19 +591,19 @@ static bool testDependencies() {
 	ok &= expect(f.model().blockDependencies.size() == 2 && f.model().blockDependencies[1].block.empty() && f.model().blockDependencies[1].dependsOn.empty()
 			&& f.changedOnce("Add block dependency", "block_dependencies") && f.table()->currentRow() == 1 && f.panel.selectionId().isEmpty(),
 		"a dependency is added empty, and its row is selected");
-	ok &= expect(f.combo(1, 0)->currentText() == "Invalid: (empty)" && f.chosen(1, 0).isEmpty(), "an empty block shows as invalid");
+	ok &= expect(f.combo(1, 0)->currentText() == "(none)" && f.chosen(1, 0).isEmpty(), "an empty block shows as none");
 
 	// delete: nothing refers to a dependency
 	f.prompts.confirmAnswer = false;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete block dependencies 'incomplete row'?" && f.model().blockDependencies.size() == 2 && f.untouched(),
+	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete block dependency 'incomplete row'?" && f.model().blockDependencies.size() == 2 && f.untouched(),
 		"a dependency that has no block yet is named an incomplete row, and stays when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
 	ok &= expect(f.model().blockDependencies.size() == 1 && f.changedOnce("Delete block dependency", "block_dependencies"), "a dependency is deleted when the user answers yes");
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete block dependencies '" + sectionOf(f.model(), "block-b1") + "'?")
+	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete block dependency '" + sectionOf(f.model(), "block-b1") + "'?")
 			&& f.model().blockDependencies.empty(),
 		"a dependency is named by its block");
 	return ok;
@@ -641,12 +641,12 @@ static bool testRestrictions() {
 		"a restriction is added empty, and its row is selected");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == "Delete single-track restrictions 'incomplete row'?" && f.model().singleTrackRestrictions.size() == 1
+	ok &= expect(f.prompts.confirmQuestion == "Delete single-track restriction 'incomplete row'?" && f.model().singleTrackRestrictions.size() == 1
 			&& f.changedOnce("Delete single-track restriction", "single_track_restrictions"),
 		"a restriction is deleted when the user answers yes");
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete single-track restrictions '" + sectionOf(f.model(), "block-b2") + "'?")
+	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete single-track restriction '" + sectionOf(f.model(), "block-b2") + "'?")
 			&& f.model().singleTrackRestrictions.empty(),
 		"a restriction is named by its start");
 	return ok;

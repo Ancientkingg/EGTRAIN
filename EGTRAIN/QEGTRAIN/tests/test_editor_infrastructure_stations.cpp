@@ -244,7 +244,7 @@ struct Fixture {
 };
 
 static QString blocked(const char* kind, const char* id, const QStringList& consumers) {
-	return QString("Cannot delete %1 '%2' because it is still referenced by:\n\xE2\x80\xA2 %3\nRemove or rebind those consumers first.")
+	return QString("%1 '%2' is used by:\n\xE2\x80\xA2 %3\nRemove or change these first.")
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
@@ -309,7 +309,7 @@ static bool testStations() {
 	ok &= expect(f.changedOnce("Rename station", "stations") && f.panel.selectionId() == "station-x" && f.table()->currentRow() == 0,
 		"a rename marks the document once, and the renamed station stays selected");
 	f.type(0, 0, "station-2");
-	ok &= expect(f.untouched() && f.model().stations[0].id == "station-x" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().stations[0].id == "station-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another station has is refused");
 	f.type(0, 0, "");
 	ok &= expect(f.untouched() && f.model().stations[0].id == "station-x" && f.messages.size() == 2, "an empty id is refused");
@@ -323,19 +323,19 @@ static bool testStations() {
 
 	// delete
 	f.select(0);
-	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip().contains("cannot be deleted"),
-		"the delete button of a station that others use says that such a row cannot be deleted");
+	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip() == "Delete the selected row.",
+		"the delete button of a station that others use has its tooltip");
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations.size() == 3 && f.untouched(),
 		"a station that others use cannot be deleted");
 	ok &= expect(f.prompts.errorMessage
-			== blocked("stations", "station-x",
+			== blocked("Station", "station-x",
 				{"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'", "passenger 'passenger-1' journey 'journey-1'",
 					"passenger 'passenger-1' leg 'leg-1'"}),
 		"the message names the stops, entrance delays and passengers that use the station");
 	f.select(2);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete stations 'station'?" && f.model().stations.size() == 3 && f.untouched(),
+	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete station 'station'?" && f.model().stations.size() == 3 && f.untouched(),
 		"nothing is deleted when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
@@ -390,7 +390,7 @@ static bool testPlatformEdit() {
 	ok &= expect(f.changedOnce("Rename platform", "platforms") && f.panel.selectionId() == "station-1\nplatform-x" && f.table()->currentRow() == 1,
 		"a rename marks the document once, and the renamed platform stays selected");
 	f.type(0, 1, "platform-x");
-	ok &= expect(f.untouched() && f.model().stations[0].platforms[0].id == "platform-1" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().stations[0].platforms[0].id == "platform-1" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another platform of the station has is refused");
 	f.type(0, 1, "");
 	ok &= expect(f.untouched() && f.messages.size() == 2, "an empty id is refused");
@@ -489,11 +489,11 @@ static bool testPlatformAddAndDelete() {
 	f.select(0);
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations[0].platforms.size() == 3 && f.untouched()
-			&& f.prompts.errorMessage == blocked("platforms", "platform-1", {"service 'service-1' stop at station 'station-1'"}),
+			&& f.prompts.errorMessage == blocked("Platform", "platform-1", {"service 'service-1' stop at station 'station-1'"}),
 		"a platform that a stop uses cannot be deleted");
 	f.select(2);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete platforms 'platform'?" && f.model().stations[0].platforms.size() == 3 && f.untouched(),
+	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete platform 'platform'?" && f.model().stations[0].platforms.size() == 3 && f.untouched(),
 		"nothing is deleted when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
@@ -548,11 +548,11 @@ static bool testBoundaries() {
 	ok &= expect(f.model().stationBoundaries.size() == 2 && f.model().stationBoundaries[1].entranceBlock.empty() && !f.model().stationBoundaries[1].hasExitBlock
 			&& f.changedOnce("Add station boundary", "station_boundaries") && f.table()->currentRow() == 1 && f.panel.selectionId().isEmpty(),
 		"a station boundary is added empty, and its row is selected");
-	ok &= expect(f.combo(1, 0)->currentText() == "Invalid: (empty)" && f.combo(1, 1)->currentText() == "(none)", "an empty entrance shows as invalid, and an empty exit as none");
+	ok &= expect(f.combo(1, 0)->currentText() == "(none)" && f.combo(1, 1)->currentText() == "(none)", "an empty entrance and an empty exit show as none");
 
 	// delete: nothing refers to a station boundary
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete station boundaries 'incomplete row'?" && f.model().stationBoundaries.size() == 2
+	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete station boundary 'incomplete row'?" && f.model().stationBoundaries.size() == 2
 			&& f.untouched(),
 		"a station boundary that has no entrance yet is named an incomplete row, and stays when the user answers no");
 	f.prompts.confirmAnswer = true;
@@ -560,7 +560,7 @@ static bool testBoundaries() {
 	ok &= expect(f.model().stationBoundaries.size() == 1 && f.changedOnce("Delete station boundary", "station_boundaries"), "a station boundary is deleted when the user answers yes");
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete station boundaries '" + sectionOf(f.model(), "block-a2") + "'?")
+	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete station boundary '" + sectionOf(f.model(), "block-a2") + "'?")
 			&& f.model().stationBoundaries.empty(),
 		"a station boundary is named by its entrance");
 	return ok;

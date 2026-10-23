@@ -1,5 +1,6 @@
 #include "editors/infrastructure/BlockRouteFacets.h"
 
+#include "editors/CountText.h"
 #include "editors/infrastructure/ListFacet.h"
 #include "editors/infrastructure/SectionRowsFacet.h"
 #include "scene/SceneIds.h"
@@ -103,7 +104,7 @@ public:
 		if (edit == Edit::Changed)
 			panel.entityChanged(column == 0 ? QStringLiteral("Rename block") : QStringLiteral("Edit block"));
 		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("Infrastructure IDs must be non-empty and unique"));
+			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 		else if (edit == Edit::Refused)
 			panel.refuseEdit();
 	}
@@ -219,7 +220,9 @@ private:
 	void fillRow(QTableWidget& table, int row, const SceneRoute& route) const override {
 		setCell(table, row, 0, QString::fromStdString(route.id));
 		setCell(table, row, 1,
-			route.blocks.empty() ? QStringLiteral("0 sections") : QStringLiteral("%1 section(s)").arg(static_cast<int>(route.blocks.size())),
+			route.blocks.empty()
+				? QStringLiteral("-")
+				: countText(static_cast<long long>(route.blocks.size()), QStringLiteral("section"), QStringLiteral("sections")),
 			false);
 		setCell(table, row, 2, flagText(route.hasCorridor));
 		setCell(table, row, 3, QString::fromStdString(route.corridor));
@@ -263,10 +266,10 @@ private:
 	void fillRow(InfrastructurePanel& panel, const SceneSectionInventory& inventory, int row,
 		const SceneBlockDependency& dependency) const override {
 		addSectionCombo(panel, inventory, row, 0, dependency.block, "dependencyBlockCombo", storeIn(&SceneBlockDependency::block))
-			->setToolTip(QStringLiteral("Dependency block; catalog data is the exact section ID"));
+			->setToolTip(QStringLiteral("The block that depends on another section"));
 		addSectionCombo(panel, inventory, row, 1, dependency.dependsOn, "dependencyDependsOnCombo",
 			storeIn(&SceneBlockDependency::dependsOn))
-			->setToolTip(QStringLiteral("Depends-on section; catalog data is the exact section ID"));
+			->setToolTip(QStringLiteral("The section it depends on"));
 	}
 	std::string rowTitle(const SceneBlockDependency& dependency) const override { return dependency.block; }
 };
