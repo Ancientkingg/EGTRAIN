@@ -18,7 +18,7 @@ the log of the script go to the evidence directory. A missing tool or display ex
    automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
 2. File > Open Case Study... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
 3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
-   readiness and, after View > Advanced / Developer details is ticked, the versions.
+   readiness and, after View > Advanced Details is ticked, the versions.
 4. Type a new description into a text field of the Case Settings editor and into the scenario editor, type into a table
    cell, and check that the run review names the scenario.
 5. File > Save Case Study As... to a working copy in another folder. The downloaded bundle stays as it was.
@@ -790,7 +790,7 @@ class Rehearsal:
                                  UI_TIMEOUT_SECONDS, "the Description field of Case Settings")
         self.type_into_field(description, CASE_NOTE)
         wait_until(lambda: name_of(self.main_frame()).endswith("*"), UI_TIMEOUT_SECONDS, "the unsaved mark in the title")
-        scenarios = self.show_dock("Incidents", "Incidents")
+        scenarios = self.show_dock("Scenarios", "Scenarios")
         library = wait_until(lambda: find_first(scenarios, "list", "Scenario library", max_depth=8, showing=True),
                              UI_TIMEOUT_SECONDS, "the scenario library")
         entry = find_first(library, "list item", max_depth=2)
@@ -959,7 +959,7 @@ class Rehearsal:
                                  UI_TIMEOUT_SECONDS, "the Description field of Case Settings")
         if text_of(description) != CASE_NOTE:
             raise StepFailed(f"the case description is {text_of(description)!r}, not the edit {CASE_NOTE!r}")
-        scenarios = self.show_dock("Incidents", "Incidents")
+        scenarios = self.show_dock("Scenarios", "Scenarios")
         scenario_field = wait_until(lambda: find_first(scenarios, "text", "Description", max_depth=8, showing=True),
                                     UI_TIMEOUT_SECONDS, "the Description field of the scenario")
         if text_of(scenario_field) != SCENARIO_NOTE:

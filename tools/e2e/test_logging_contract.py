@@ -57,14 +57,14 @@ EXEMPT_FILES = {
 ALLOWED = {
     # The command line of the application, which prints what a user or a script reads before the
     # logging core takes over, and the lines that a run without a window prints itself:
-    #   cout: the notice that no arguments were given, the three questions of --interactive, the
+    #   cout: the three questions of --interactive, the
     #         lines "Graphical user interface (GUI): 0" and "1" that startup_launch_contract.py
     #         reads, the two statements of the --help text, and the line "End of Simulation" that
     #         scripts read.
     #   cerr: the errors of the options, the error of an unknown option, the
     #         diagnostics of a scene, the endpoint of the live stream and the problems that
     #         installConsoleLogging returns.
-    "app/main.cpp": {"cout": 9, "cerr": 14},
+    "app/main.cpp": {"cout": 8, "cerr": 14},
     # Marker lines of the profiling switches and of scripted runs. Each starts with a fixed word,
     # so no logging rule may hide it and no level or category may come in front of it.
     #   QEGTRAIN_NATIVE_DETAIL: the stage times of the preparation of a scene, written with

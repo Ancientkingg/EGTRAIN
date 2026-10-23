@@ -474,8 +474,8 @@ int main(int argc, char* argv[]) {
 		heads.removeDuplicates();
 		heads.sort();
 		const QStringList expected{
-			"Track B0 at 28 km; section B0 28.000 to 64.000 km; signal ID sig1 | @B0.block.2@ | B0 28.000 to 64.000 km",
-			"Track B1 at 136 km; section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
+			"Track B0 at 28 km, section B0 28.000 to 64.000 km (signal sig1) | @B0.block.2@ | B0 28.000 to 64.000 km",
+			"Track B1 at 136 km, section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
 		ok &= expect(heads == expected, "a head of the preview names its section by its label and keeps its id");
 		const TrackPreviewSignal* head = presenter.previewSignal("B0", "@B0.block.2@");
 		ok &= expect(head && head->label == "sig1 (B0 28.000 to 64.000 km)" && !presenter.previewSignal("B1", "@B0.block.2@"),

@@ -28,7 +28,7 @@ public:
 		Continue,	  ///< Continue, Cancel or the close button of the window.
 		OpenSelected, ///< Open, or a double click on a case; chosenPath() names it.
 		BrowseFolder, ///< "Open Scene Folder..." in the menu.
-		ImportLegacy, ///< "Import Legacy Case..." in the menu, confirmed in a question box.
+		ImportLegacy, ///< "Import Legacy Case..." in the menu.
 		NewCase		  ///< "New Case Study..." in the menu.
 	};
 

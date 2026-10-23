@@ -286,8 +286,7 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 		for (const QPushButton* button : shown.dialog.findChildren<QPushButton*>())
 			offersContinue = offersContinue || button->text() == QLatin1String("Continue");
 		check(!offersContinue, scenario, "a dialog with no case loaded offers Continue");
-		check(shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"))->text() == QLatin1String("Choose a case to open."),
-			scenario, "wrong context line");
+		check(!shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext")), scenario, "a dialog with no case loaded has a context line");
 		check(currentText(list) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled(), scenario,
 			"the first case is not selected with Open enabled");
 	}
@@ -300,7 +299,7 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 		Shown shown(scenario, loaded, screen);
 		check(shown.dialog.continueButton()->text() == QLatin1String("Continue"), scenario, "the left button is not Continue");
 		check(shown.dialog.continueButton()->width() < screen.width() / 4, scenario, "the Continue button is as wide as the name");
-		check(shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"))->text().contains(loaded.currentCaseName),
+		check(shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"))->text() == QStringLiteral("Current case: ") + loaded.currentCaseName,
 			scenario, "the context line does not name the loaded case");
 	}
 

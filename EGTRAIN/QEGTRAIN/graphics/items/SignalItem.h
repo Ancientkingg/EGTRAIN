@@ -37,9 +37,8 @@ public:
 	int groupedSignalCount() const { return static_cast<int>(m_groupedSignals.size()); }
 	/// Sets the text that names the head in its tooltip, the inspector and Find.
 	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
-	/// That text, or without one a text of the track line, the position in kilometres and the sections ahead
-	/// and behind: "Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km". The track is
-	/// named by sceneTrackId and a section by its label, or by the number and the id without them.
+	/// That text, or without one the track line and the position in kilometres: "Track B0 at 0.23 km". The track is
+	/// named by sceneTrackId, or by its number without one.
 	QString inspectionIdentity() const;
 	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;

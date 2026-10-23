@@ -93,7 +93,7 @@ private:
 	void writeMessage(eglog::Category category, eglog::Level level, const std::string& text);
 };
 
-/// The "Console Log" dock. It installs a ConsoleStreambuf for its lifetime and shows what is written to std::cout and
+/// The "Log" dock. It installs a ConsoleStreambuf for its lifetime and shows what is written to std::cout and
 /// std::cerr and the messages of the logging core, on the GUI thread. It keeps the last 10,000 lines.
 class ConsoleWidget : public QDockWidget {
 	Q_OBJECT

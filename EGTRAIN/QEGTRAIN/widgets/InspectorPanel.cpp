@@ -80,7 +80,7 @@ void setTrackText(QLineEdit* field, const NetworkPresenter& presenter, const std
 		numbers << QString::number(track);
 	}
 	setTextWithTip(field, names.join(QStringLiteral(", ")),
-		(tracks.size() == 1 ? QStringLiteral("Runtime track number: %1") : QStringLiteral("Runtime track numbers: %1")).arg(numbers.join(QStringLiteral(", "))));
+		(tracks.size() == 1 ? QStringLiteral("Track number: %1") : QStringLiteral("Track numbers: %1")).arg(numbers.join(QStringLiteral(", "))));
 }
 
 } // namespace
@@ -105,14 +105,14 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	arcConnectedSignalsText = new QLineEdit(arcInfoWidget);
 	arcConnectedSignalsText->setObjectName("arcConnectedSignalsText");
 	auto* arcFormLayout = new QFormLayout();
-	arcFormLayout->addRow("Arc ID", arcIDText);
-	arcFormLayout->addRow("First Node ID", arcFirstNodeIDText);
-	arcFormLayout->addRow("Second Node ID", arcSecondNodeIDText);
-	arcFormLayout->addRow("Track ID", arcTrackIDText);
+	arcFormLayout->addRow("Arc", arcIDText);
+	arcFormLayout->addRow("From node", arcFirstNodeIDText);
+	arcFormLayout->addRow("To node", arcSecondNodeIDText);
+	arcFormLayout->addRow("Track", arcTrackIDText);
 	arcFormLayout->addRow("Length (m)", arcLengthText);
-	arcFormLayout->addRow("Curvature (m)", arcCurvatureText);
+	arcFormLayout->addRow("Curve radius (m)", arcCurvatureText);
 	arcFormLayout->addRow("Gradient (rise/length)", arcGradientText);
-	arcFormLayout->addRow("Speed Limit (m/s)", arcSpeedLimitText);
+	arcFormLayout->addRow("Speed limit (m/s)", arcSpeedLimitText);
 	arcFormLayout->addRow("Operational state", arcOperationalStateText);
 	arcFormLayout->addRow("Connected signals", arcConnectedSignalsText);
 	arcInfoWidget->setLayout(arcFormLayout);
@@ -132,8 +132,8 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	nodeSignalledText = new QLineEdit(nodeInfoWidget);
 	nodeSignalledText->setObjectName("nodeSignalledText");
 	auto* nodeFormLayout = new QFormLayout();
-	nodeFormLayout->addRow("Node ID", nodeIDText);
-	nodeFormLayout->addRow("Track ID", nodeTrackIDText);
+	nodeFormLayout->addRow("Node", nodeIDText);
+	nodeFormLayout->addRow("Track", nodeTrackIDText);
 	nodeFormLayout->addRow("X (m)", nodeXText);
 	nodeFormLayout->addRow("Y (m)", nodeYText);
 	nodeFormLayout->addRow("Name", nodeStationNameText);
@@ -149,10 +149,10 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	connectionXFirstNodeText = new QLineEdit(connectionInfoWidget);
 	connectionXSecondNodeText = new QLineEdit(connectionInfoWidget);
 	auto* connectionFormLayout = new QFormLayout();
-	connectionFormLayout->addRow("First Track ID", connectionFirstTrackIDText);
-	connectionFormLayout->addRow("Second Track ID", connectionSecondTrackIDText);
-	connectionFormLayout->addRow("X First Node (m)", connectionXFirstNodeText);
-	connectionFormLayout->addRow("X Second Node (m)", connectionXSecondNodeText);
+	connectionFormLayout->addRow("First track", connectionFirstTrackIDText);
+	connectionFormLayout->addRow("Second track", connectionSecondTrackIDText);
+	connectionFormLayout->addRow("First node X (m)", connectionXFirstNodeText);
+	connectionFormLayout->addRow("Second node X (m)", connectionXSecondNodeText);
 	connectionInfoWidget->setLayout(connectionFormLayout);
 
 	// signalling info widget
@@ -174,10 +174,10 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	signallingGroupDetails->setLineWrapMode(QPlainTextEdit::WidgetWidth);
 	signallingGroupDetails->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 	auto* signallingFormLayout = new QFormLayout();
-	signallingFormLayout->addRow("Track ID", signallingTrackIDText);
+	signallingFormLayout->addRow("Track", signallingTrackIDText);
 	signallingFormLayout->addRow("X (m)", signallingXText);
-	signallingFormLayout->addRow("ID of Block Section", signallingIDSectionAheadText);
-	signallingFormLayout->addRow("Length of Block Section (m)", signallingLengthSectionAheadText);
+	signallingFormLayout->addRow("Block section", signallingIDSectionAheadText);
+	signallingFormLayout->addRow("Block section length (m)", signallingLengthSectionAheadText);
 	signallingFormLayout->addRow("Aspect", signallingAspectText);
 	signallingFormLayout->addRow("Protected section", signallingProtectedSectionText);
 	signallingFormLayout->addRow("Next track", signallingNextTrackText);
@@ -201,7 +201,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	trainFormLayout->addRow("ID", trainIDText);
 	trainFormLayout->addRow("Type", trainTypeText);
 	trainFormLayout->addRow("Length (m)", trainLengthText);
-	trainFormLayout->addRow("Number of wagons", trainWagonsText);
+	trainFormLayout->addRow("Wagons", trainWagonsText);
 	trainInfoWidget->setLayout(trainFormLayout);
 
 	// The button under the form of a signal or a train that adds an incident for it.
@@ -233,7 +233,7 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	}
 
 	// dock widget
-	infoDockWidget = new InfoDockWidget("Simulation Info");
+	infoDockWidget = new InfoDockWidget("Details");
 	auto* infoScroll = new QScrollArea(infoDockWidget);
 	infoScroll->setWidgetResizable(true);
 	infoScroll->setFrameShape(QFrame::NoFrame);
@@ -298,6 +298,9 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_previewSelectionKind.clear();
 	m_previewSelectionId.clear();
 	m_presenter->m_inspectedSignal = nullptr;
+	// Only a preview item marks the fields that need a run.
+	for (auto* field : infoDockWidget->findChildren<QLineEdit*>())
+		field->setPlaceholderText(QString());
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
 	m_selectedStationNodeId = 0.0;
@@ -377,8 +380,12 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 	const std::string id = item->data(PreviewGraphics::Id).toString().toStdString();
 	const auto text = [](const std::string& value) { return QString::fromStdString(value); };
 	const auto number = [](double value) { return QString::number(value, 'g', 12); };
-	const QString unavailable = QStringLiteral("Unavailable before Run");
-	// Resolve canonical values at interaction; no pointers survive an edit/rebuild.
+	// A field that only a run fills stays empty, with a placeholder that says so.
+	const auto afterRun = [](QLineEdit* field) {
+		field->clear();
+		field->setPlaceholderText(QStringLiteral("After a run"));
+	};
+	// Resolve the values of the case at interaction; no pointers survive an edit/rebuild.
 	clearPreviewInspection();
 	QString title;
 	if (kind == "node" || kind == "station-node" || kind == "station") {
@@ -406,17 +413,23 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		} else if (!node) {
 			return;
 		}
-		nodeIDText->setText(node ? text(node->id) : QStringLiteral("No node anchor"));
-		nodeXText->setText(node					  ? number(node->xKm * 1000)
-				: station && station->hasPosition ? number(station->positionKm * 1000)
-												  : unavailable);
-		nodeYText->setText(node ? number(node->yKm * 1000) : unavailable);
-		nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("No node anchor"));
+		nodeIDText->setText(node ? text(node->id) : QStringLiteral("None"));
+		if (node)
+			nodeXText->setText(number(node->xKm * 1000));
+		else if (station && station->hasPosition)
+			nodeXText->setText(number(station->positionKm * 1000));
+		else
+			afterRun(nodeXText);
+		if (node)
+			nodeYText->setText(number(node->yKm * 1000));
+		else
+			afterRun(nodeYText);
+		nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("None"));
 		nodeStationNameText->setText(station
 				? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
 				: QString());
-		nodeRegionText->setText(unavailable);
-		nodeSignalledText->setText(unavailable);
+		afterRun(nodeRegionText);
+		afterRun(nodeSignalledText);
 		QStringList connectedTracks;
 		if (node) {
 			connectedTracks << text(node->trackId);
@@ -434,7 +447,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 			m_previewSelectedStationId = text(station->id);
 		title = kind == "station" ? "Station " + text(id) : "Node " + text(id);
 		if (kind != "station" && membership != memberships.end() && !membership->second.platformId.empty())
-			title += " / platform " + text(membership->second.platformId);
+			title += ", platform " + text(membership->second.platformId);
 		nodeInfoWidget->show();
 	} else if (kind == "arc" || kind == "track") {
 		if (kind == "arc") {
@@ -452,9 +465,10 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 				if (node.id == arc->fromNodeId) from = &node;
 				if (node.id == arc->toNodeId) to = &node;
 			}
-			arcLengthText->setText(from && to
-					? number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000)
-					: unavailable);
+			if (from && to)
+				arcLengthText->setText(number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000));
+			else
+				afterRun(arcLengthText);
 			arcCurvatureText->setText(number(arc->curvatureRadiusM));
 			arcGradientText->setText(number(arc->gradientPercent));
 			arcSpeedLimitText->setText(number(arc->speedLimitMs));
@@ -462,11 +476,11 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 			if (std::none_of(model.tracks.begin(), model.tracks.end(),
 					[&](const SceneTrack& track) { return track.id == id; }))
 				return;
-			arcIDText->setText("No authored arc (fallback)");
+			arcIDText->setText("None");
 			arcTrackIDText->setText(text(id));
 		}
-		arcOperationalStateText->setText(unavailable);
-		arcConnectedSignalsText->setText(unavailable);
+		afterRun(arcOperationalStateText);
+		afterRun(arcConnectedSignalsText);
 		title = kind == "arc" ? "Arc " + text(id) : "Track " + text(id);
 		arcInfoWidget->show();
 	} else if (kind == "connection") {
@@ -493,24 +507,26 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 			return;
 		signallingTrackIDText->setText(text(track));
 		signallingXText->setText(number(head->rawX * 1000));
-		signallingAspectText->setText(unavailable);
+		afterRun(signallingAspectText);
 		setSectionText(signallingProtectedSectionText, id, head->sectionLabel);
-		signallingNextTrackText->setText(unavailable);
+		afterRun(signallingNextTrackText);
 		setSectionText(signallingIDSectionAheadText, id, head->sectionLabel);
-		signallingLengthSectionAheadText->setText(unavailable);
+		afterRun(signallingLengthSectionAheadText);
 		QStringList ids;
 		for (const auto& signal : sceneSignals(model))
 			if (signal.protectedSection == id)
 				ids << text(signal.id);
-		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
-				.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
-					ids.isEmpty() ? "None" : ids.join(", ")));
+		QString details = QStringLiteral("Track %1, section %2, %3")
+							  .arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward");
+		if (!ids.isEmpty())
+			details += QStringLiteral("\nSignals: %1").arg(ids.join(", "));
+		signallingGroupDetails->setPlainText(details);
 		title = "Signal " + text(head->label);
 		signallingInfoWidget->show();
 	} else {
 		return;
 	}
-	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
+	infoDockWidget->setWindowTitle(title);
 	infoDockWidget->show();
 	m_previewSelectionKind = kind;
 	m_previewSelectionId = text(id);
@@ -549,7 +565,7 @@ void InspectorPanel::displayNodeInfo(NodeItem* el) {
 	m_presenter->removePaxInfoIcon();
 
 	// show widget
-	infoDockWidget->setWindowTitle("Node Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Node %1").arg(nodeIDText->text()));
 	infoDockWidget->show();
 	nodeInfoWidget->show();
 
@@ -608,7 +624,7 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* re) {
 	m_presenter->removePaxInfoIcon();
 
 	// show widget
-	infoDockWidget->setWindowTitle("Station Node Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Station %1").arg(nodeStationNameText->text()).trimmed());
 	infoDockWidget->show();
 	nodeInfoWidget->show();
 
@@ -678,7 +694,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	if (sectionIds.isEmpty())
 		setTextWithTip(arcConnectedSignalsText, QStringLiteral("None"), QString());
 	else
-		setTextWithTip(arcConnectedSignalsText, sectionLabels.join(QStringLiteral("; ")),
+		setTextWithTip(arcConnectedSignalsText, sectionLabels.join(QStringLiteral(", ")),
 			(sectionIds.size() == 1 ? QStringLiteral("Section ID: %1") : QStringLiteral("Section IDs: %1")).arg(sectionIds.join(QStringLiteral(", "))));
 
 	// hide other widgets
@@ -690,7 +706,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 	m_presenter->removePaxInfoIcon();
 
 	// show widget
-	infoDockWidget->setWindowTitle("Arc Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Arc %1").arg(arcIDText->text()));
 	infoDockWidget->show();
 	arcInfoWidget->show();
 
@@ -722,7 +738,7 @@ void InspectorPanel::displayConnectionInfo(ConnectionItem* line) {
 	m_presenter->removePaxInfoIcon();
 
 	// show widget
-	infoDockWidget->setWindowTitle("Connection Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Connection"));
 	infoDockWidget->show();
 	connectionInfoWidget->show();
 
@@ -771,7 +787,7 @@ void InspectorPanel::displaySignallingInfo(SignalItem* signal) {
 	m_presenter->removePaxInfoIcon();
 
 	// show widget
-	infoDockWidget->setWindowTitle("Signalling Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Signal"));
 	infoDockWidget->show();
 	signallingInfoWidget->show();
 
@@ -811,7 +827,7 @@ void InspectorPanel::displayTrainDetails(TrainBodyItem* trainItem, bool changeFo
 		m_presenter->paintTrainPassengerInfo(groupItem);
 
 	// show widget
-	infoDockWidget->setWindowTitle("Train Info");
+	infoDockWidget->setWindowTitle(QStringLiteral("Train %1").arg(trainNameText->text()));
 	infoDockWidget->show();
 	trainInfoWidget->show();
 	if (changeFollowMode)

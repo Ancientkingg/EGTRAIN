@@ -216,8 +216,7 @@ void UpdateTelemetryController::setupUpdateActions(QMenu* helpMenu) {
 	connect(m_selfUpdater, &SelfUpdater::preparing, this, [this](const QString& version) {
 		if (!m_updateProgress)
 			return;
-		m_updateProgress->setLabelText(QStringLiteral("Verifying and preparing EGTRAIN %1...")
-				.arg(version));
+		m_updateProgress->setLabelText(QStringLiteral("Preparing EGTRAIN %1...").arg(version));
 		m_updateProgress->setCancelButton(nullptr);
 		m_updateProgress->setRange(0, 0);
 	});
@@ -362,11 +361,10 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
 			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
 	} else if (m_selfUpdater && m_selfUpdater->capability().usesInstaller) {
-		availability = QStringLiteral("\n\nUpdate and Restart runs the EGTRAIN installer. EGTRAIN closes while the installer "
-									  "updates this installation and starts again afterwards.");
+		availability = QStringLiteral("\n\nEGTRAIN closes while the update installs, then starts again.");
 	}
 	QMessageBox dialog(QMessageBox::Information,
-		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
+		QStringLiteral("EGTRAIN %1 Is Available").arg(formatSemanticVersion(release.version)),
 		update_prompt::availableText(formatSemanticVersion(release.version), formatSemanticVersion(*current)),
 		QMessageBox::NoButton, m_window);
 	setMarkdownInformativeText(dialog,

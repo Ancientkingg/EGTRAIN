@@ -21,6 +21,7 @@
 #include "widgets/FindDialog.h"
 #include "widgets/InfoDockWidget.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsScene>
@@ -132,6 +133,12 @@ static QString tip(const InspectorPanel& panel, const QString& label) {
 	return document.toPlainText();
 }
 
+// The grey text of the empty field of the row.
+static QString placeholder(const InspectorPanel& panel, const QString& label) {
+	auto* edit = qobject_cast<QLineEdit*>(field(panel, label));
+	return edit ? edit->placeholderText() : QStringLiteral("<no field>");
+}
+
 static QString text(const InspectorPanel& panel, const QString& label) {
 	QWidget* widget = field(panel, label);
 	if (auto* edit = qobject_cast<QLineEdit*>(widget))
@@ -184,24 +191,28 @@ int main(int argc, char* argv[]) {
 	window.show();
 
 	ok &= expect(window.dockWidgetArea(panel.dock()) == Qt::RightDockWidgetArea && !panel.dock()->isVisible()
-			&& panel.dock()->windowTitle() == "Simulation Info",
+			&& panel.dock()->windowTitle() == "Details" && panel.dock()->toggleViewAction()->text() == "Details",
 		"the dock is on the right and hidden until an item is selected");
 	ok &= expect(panel.selectedTrainIndex() == -1, "no train is selected at first");
 
 	QGraphicsEllipseItem* nodePreview = previewItem(scene, "node", "n1");
 	QGraphicsEllipseItem* arcPreview = previewItem(scene, "arc", "a1");
 	panel.displayPreviewInfo(nodePreview);
-	ok &= expect(panel.dock()->isVisible() && panel.dock()->windowTitle() == "Preview: Node n1 (not running)",
+	ok &= expect(panel.dock()->isVisible() && panel.dock()->windowTitle() == "Node n1",
 		"selecting a node of the preview shows the dock with its title");
-	ok &= expect(text(panel, "Node ID") == "n1" && text(panel, "Connected tracks") == "T1", "the node form shows the node of the scene");
-	ok &= expect(formShown(panel, "Node ID") && !formShown(panel, "Arc ID") && nodePreview->graphicsEffect(),
+	ok &= expect(panel.dock()->toggleViewAction()->text() == "Details",
+		"the menu entry of the dock keeps its name when the title names the item");
+	ok &= expect(text(panel, "Region").isEmpty() && placeholder(panel, "Region") == "After a run",
+		"a field that only a run fills is empty, with a placeholder that says so");
+	ok &= expect(text(panel, "Node") == "n1" && text(panel, "Connected tracks") == "T1", "the node form shows the node of the scene");
+	ok &= expect(formShown(panel, "Node") && !formShown(panel, "Arc") && nodePreview->graphicsEffect(),
 		"only the node form is shown and the node is highlighted");
 	ok &= expect(host.inspectionChanges > 0, "the window is told that the selection changed");
 	ok &= expect(host.contextMenuCloses > 0, "selecting an item of the preview closes the context menu");
 
 	panel.displayPreviewInfo(arcPreview);
-	ok &= expect(text(panel, "Arc ID") == "a1" && text(panel, "Speed Limit (m/s)") == "20", "the arc form shows the arc of the scene");
-	ok &= expect(formShown(panel, "Arc ID") && !formShown(panel, "Node ID"), "selecting an arc replaces the node form");
+	ok &= expect(text(panel, "Arc") == "a1" && text(panel, "Speed limit (m/s)") == "20", "the arc form shows the arc of the scene");
+	ok &= expect(formShown(panel, "Arc") && !formShown(panel, "Node"), "selecting an arc replaces the node form");
 	ok &= expect(!nodePreview->graphicsEffect() && arcPreview->graphicsEffect(), "the highlight moves to the arc");
 
 	ok &= expect(panel.resolvePreviewItem("node", "n1", QString(), false, 1) == nodePreview, "an item of the preview is found by kind and id");
@@ -224,29 +235,33 @@ int main(int argc, char* argv[]) {
 	panel.displayPreviewInfo(signalPreview);
 	ok &= expect(panel.previewSelectionKind() == "signal" && panel.previewSelectionId() == "@b1@",
 		"a selected signal head of the preview is known by the section it stands at");
-	ok &= expect(panel.dock()->windowTitle() == "Preview: Signal sig1 (T1 0.000 to 1.000 km) (not running)",
+	ok &= expect(panel.dock()->windowTitle() == "Signal sig1 (T1 0.000 to 1.000 km)",
 		"the title names a signal of the preview by its authored id and the label of its section");
-	ok &= expect(text(panel, "Protected section") == "T1 0.000 to 1.000 km" && text(panel, "ID of Block Section") == "T1 0.000 to 1.000 km",
+	ok &= expect(text(panel, "Protected section") == "T1 0.000 to 1.000 km" && text(panel, "Block section") == "T1 0.000 to 1.000 km",
 		"the fields of a signal of the preview name its section by its label");
 	ok &= expect(tip(panel, "Protected section") == "T1 0.000 to 1.000 km\nSection ID: @b1@"
-			&& tip(panel, "ID of Block Section") == "T1 0.000 to 1.000 km\nSection ID: @b1@",
+			&& tip(panel, "Block section") == "T1 0.000 to 1.000 km\nSection ID: @b1@",
 		"the tooltips of those fields give the id of the section");
-	ok &= expect(text(panel, "Signals at location") == "Track T1; section @b1@; forward; authored signal IDs: sig1",
-		"the details of a signal of the preview keep the id of its section");
+	ok &= expect(text(panel, "Signals at location") == "Track T1, section @b1@, forward\nSignals: sig1",
+		"the details of a signal of the preview keep the id of its section and name its signals on a line of their own");
+	sceneSignals(host.model).clear();
+	panel.displayPreviewInfo(signalPreview);
+	ok &= expect(text(panel, "Signals at location") == "Track T1, section @b1@, forward",
+		"the details of a signal of the preview leave out the line of signals when the section has none");
 	panel.displayPreviewInfo(previewItem(scene, "node", "n9"));
 	ok &= expect(panel.previewSelectionKind().isEmpty() && panel.previewSelectionId().isEmpty(),
 		"an item of the preview that the scene does not have leaves nothing selected");
 	panel.displayPreviewInfo(arcPreview);
 
 	panel.handleDisableHighlight();
-	ok &= expect(!panel.dock()->isVisible() && formHidden(panel, "Arc ID") && !arcPreview->graphicsEffect() && !presenter.effect,
+	ok &= expect(!panel.dock()->isVisible() && formHidden(panel, "Arc") && !arcPreview->graphicsEffect() && !presenter.effect,
 		"clearing the highlight hides the dock and the form and removes the highlight");
 	ok &= expect(panel.previewSelectionKind().isEmpty() && panel.previewSelectionId().isEmpty(),
 		"clearing the highlight forgets the selected item of the preview");
 
 	panel.displayPreviewInfo(nodePreview);
 	panel.clearPreviewInspection();
-	ok &= expect(!panel.dock()->isVisible() && text(panel, "Node ID").isEmpty(), "clearing the preview empties the fields");
+	ok &= expect(!panel.dock()->isVisible() && text(panel, "Node").isEmpty(), "clearing the preview empties the fields");
 
 	host.previewing = false;
 	presenter.setGeometrySource(std::make_unique<SixTracks>());
@@ -259,14 +274,15 @@ int main(int argc, char* argv[]) {
 	runNode.track = 2;
 	scene.addItem(&runNode);
 	panel.displayNodeInfo(&runNode);
-	ok &= expect(panel.dock()->windowTitle() == "Node Info" && text(panel, "Node ID") == "7" && text(panel, "Y (m)") == "2250.00",
+	ok &= expect(panel.dock()->windowTitle() == "Node 7" && text(panel, "Node") == "7" && text(panel, "Y (m)") == "2250.00",
 		"a node of a run is shown with its position in metres");
-	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Track ID") == "B10\nRuntime track number: 2",
-		"a node of a run names its track by its id in the scene, with the runtime number in the tooltip");
+	ok &= expect(placeholder(panel, "Region").isEmpty(), "a node of a run has no placeholder of the preview");
+	ok &= expect(text(panel, "Track") == "B10" && tip(panel, "Track") == "B10\nTrack number: 2",
+		"a node of a run names its track by its id in the scene, with its number in the tooltip");
 	ok &= expect(tip(panel, "Y (m)") == "2250.00", "the other fields keep their text as tooltip");
 	ok &= expect(panel.previewSelectionKind().isEmpty(), "an item of a run is no selected item of the preview");
 	panel.clearPreviewInspection();
-	ok &= expect(text(panel, "Node ID") == "7", "the fields of a run stay when the canvas shows no preview");
+	ok &= expect(text(panel, "Node") == "7", "the fields of a run stay when the canvas shows no preview");
 
 	StationNodeItem runStation(QRectF(0.0, 0.0, 4.0, 4.0));
 	Node stationData;
@@ -279,11 +295,11 @@ int main(int argc, char* argv[]) {
 	runStation.track = 2;
 	scene.addItem(&runStation);
 	panel.displayStationNodeInfo(&runStation);
-	ok &= expect(panel.dock()->windowTitle() == "Station Node Info" && text(panel, "Name") == "Alpha" && text(panel, "Region") == "12"
+	ok &= expect(panel.dock()->windowTitle() == "Station Alpha" && text(panel, "Name") == "Alpha" && text(panel, "Region") == "12"
 			&& text(panel, "Signalled") == "Yes" && text(panel, "Connected tracks") == "B10, B11",
 		"a station node shows its name, region, signalling and tracks");
-	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Connected tracks") == "B10, B11\nRuntime track numbers: 2, 5",
-		"a station node names its tracks by their ids in the scene, with the runtime numbers in the tooltip");
+	ok &= expect(text(panel, "Track") == "B10" && tip(panel, "Connected tracks") == "B10, B11\nTrack numbers: 2, 5",
+		"a station node names its tracks by their ids in the scene, with their numbers in the tooltip");
 	StationOverlayItem selectedOverlay("Alpha", QPointF(0.0, 0.0), classifyStation());
 	selectedOverlay.setSourceIdentities({{8.0, 2}});
 	StationOverlayItem otherOverlay("Beta", QPointF(0.0, 0.0), classifyStation());
@@ -335,18 +351,18 @@ int main(int argc, char* argv[]) {
 	QWidget* signallingBox = field(panel, "Signals at location");
 	ok &= expect(host.signalInspections == 1 && text(panel, "Aspect") == "Stop" && text(panel, "Signals at location") == "first",
 		"selecting a signal shows its aspect and its details");
-	ok &= expect(text(panel, "Track ID") == "B10" && tip(panel, "Track ID") == "B10\nRuntime track number: 2"
-			&& text(panel, "Next track") == "B10" && tip(panel, "Next track") == "B10\nRuntime track number: 2",
-		"Signalling Info names the tracks by their ids in the scene, with the runtime numbers in the tooltips");
-	ok &= expect(text(panel, "ID of Block Section") == "B10 1.000 to 2.000 km"
-			&& tip(panel, "ID of Block Section") == "B10 1.000 to 2.000 km\nSection ID: @a@"
+	ok &= expect(text(panel, "Track") == "B10" && tip(panel, "Track") == "B10\nTrack number: 2"
+			&& text(panel, "Next track") == "B10" && tip(panel, "Next track") == "B10\nTrack number: 2",
+		"the signal form names the tracks by their ids in the scene, with their numbers in the tooltips");
+	ok &= expect(text(panel, "Block section") == "B10 1.000 to 2.000 km"
+			&& tip(panel, "Block section") == "B10 1.000 to 2.000 km\nSection ID: @a@"
 			&& text(panel, "Protected section") == "B10 1.000 to 2.000 km"
 			&& tip(panel, "Protected section") == "B10 1.000 to 2.000 km\nSection ID: @a@",
-		"Signalling Info names the section ahead by its label, with its id in the tooltips");
-	ok &= expect(text(panel, "Length of Block Section (m)") == "1000.00" && tip(panel, "X (m)") == "1000.00",
-		"the other fields of Signalling Info keep their text as tooltip");
+		"the signal form names the section ahead by its label, with its id in the tooltips");
+	ok &= expect(text(panel, "Block section length (m)") == "1000.00" && tip(panel, "X (m)") == "1000.00",
+		"the other fields of the signal form keep their text as tooltip");
 
-	// Find names the head by its labels, and the ids of its sections find it too.
+	// Find names the head by its track and position, and the labels and the ids of its sections find it too.
 	{
 		QStringList labels;
 		QStringList keys;
@@ -354,9 +370,9 @@ int main(int argc, char* argv[]) {
 			labels << target.label;
 			keys << target.keys;
 		}
-		const QString signalLabel("Signal: Track B10 at 1 km; ahead B10 1.000 to 2.000 km; behind B10 0.000 to 1.000 km, right");
+		const QString signalLabel("Signal: track B10 at 1 km, facing right");
 		ok &= expect(labels.contains(signalLabel) && labels.contains("Station: Alpha (track B10)"),
-			"Find names a signal by its track id and section labels and a station node by its track id");
+			"Find names a signal by its track id, position and direction and a station node by its track id");
 		FindDialog find;
 		find.setLabels(labels, keys);
 		auto* findField = find.findChild<QLineEdit*>();
@@ -417,7 +433,7 @@ int main(int argc, char* argv[]) {
 	panel.displaySignallingInfo(&signal);
 	ok &= expect(text(panel, "Protected section") == "B10 0.000 to 1.000 km"
 			&& tip(panel, "Protected section") == "B10 0.000 to 1.000 km\nSection ID: @b@"
-			&& text(panel, "ID of Block Section") == "None" && tip(panel, "ID of Block Section") == "None",
+			&& text(panel, "Block section") == "None" && tip(panel, "Block section") == "None",
 		"a head without a section ahead protects the section behind it");
 
 	// An arc lists the sections of the signals on it by their labels, with the ids in the tooltip.
@@ -433,11 +449,11 @@ int main(int argc, char* argv[]) {
 	signal.sectionAheadLabel = "B10 1.000 to 2.000 km";
 	presenter.allSignals.append(&signal);
 	panel.displayArcInfo(&runArc);
-	ok &= expect(panel.dock()->windowTitle() == "Arc Info" && text(panel, "Track ID") == "B10"
-			&& tip(panel, "Track ID") == "B10\nRuntime track number: 2",
+	ok &= expect(panel.dock()->windowTitle() == "Arc 3" && text(panel, "Track") == "B10"
+			&& tip(panel, "Track") == "B10\nTrack number: 2",
 		"an arc of a run names its track by its id in the scene");
-	ok &= expect(text(panel, "Connected signals") == "B10 1.000 to 2.000 km; B10 0.000 to 1.000 km"
-			&& tip(panel, "Connected signals") == "B10 1.000 to 2.000 km; B10 0.000 to 1.000 km\nSection IDs: @a@, @b@",
+	ok &= expect(text(panel, "Connected signals") == "B10 1.000 to 2.000 km, B10 0.000 to 1.000 km"
+			&& tip(panel, "Connected signals") == "B10 1.000 to 2.000 km, B10 0.000 to 1.000 km\nSection IDs: @a@, @b@",
 		"an arc names the sections of its signals by their labels, with their ids in the tooltip");
 	presenter.allSignals.clear();
 
@@ -451,10 +467,10 @@ int main(int argc, char* argv[]) {
 	runConnection.connection = &connectionData;
 	scene.addItem(&runConnection);
 	panel.displayConnectionInfo(&runConnection);
-	ok &= expect(panel.dock()->windowTitle() == "Connection Info" && text(panel, "First Track ID") == "B10"
-			&& text(panel, "Second Track ID") == "B11" && tip(panel, "Second Track ID") == "B11\nRuntime track number: 5"
-			&& text(panel, "X First Node (m)") == "1000.00",
-		"a connection names its tracks by their ids in the scene, with the runtime numbers in the tooltips");
+	ok &= expect(panel.dock()->windowTitle() == "Connection" && text(panel, "First track") == "B10"
+			&& text(panel, "Second track") == "B11" && tip(panel, "Second track") == "B11\nTrack number: 5"
+			&& text(panel, "First node X (m)") == "1000.00",
+		"a connection names its tracks by their ids in the scene, with their numbers in the tooltips");
 	panel.handleCloseInfoDockWidget();
 	presenter.m_signalDecorations.clear();
 

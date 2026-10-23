@@ -843,8 +843,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			|| pixelsBetween(cameraBefore, staleItem->sceneBoundingRect().center()) <= 20.0)
 			return fail("before the entry, the train has no hidden item with the geometry of its run away from the view");
 		w.setFollowTrain(followedIndex);
-		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == name + " enters at " + scheduled
-			&& w.m_followStatusLabel->text() == w.statusBar()->currentMessage()
+		const bool waiting = stillFollowing() && w.m_followStatusLabel->text() == name + " enters at " + scheduled
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (scheduled " + scheduled + ")"
 			&& std::none_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
@@ -954,7 +953,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_AFTER_OK\n");
 		std::fflush(stdout);
 		w.setFollowTrain(-1);
-		if (w.m_followAction->isChecked() || sentence() != name + " is running. Follow can be switched on now.")
+		if (w.m_followAction->isChecked() || sentence() != name + " is running.")
 			return fail("after switching off");
 
 		// With Follow off, the arrow keys of the train list change the sentence and keep the identity.
@@ -1199,7 +1198,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// The trains of the run are gone, so Follow is off and says that the case has to run.
 		const QString runFirst = QStringLiteral("Run the case first, then you can follow a train.");
 		if (w.m_followTrainCombo->count() != 1 || w.m_followTrainCombo->currentData().toInt() != -1
-			|| w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
+			|| w.m_followTrainCombo->currentText() != "Run the case first" || w.m_followAction->isEnabled()
 			|| w.m_followAction->isChecked() || w.m_followStatusLabel->toolTip() != runFirst || w.m_followAction->toolTip() != runFirst) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: Follow after the scenario changed\n");
 			QCoreApplication::exit(2);
@@ -1229,16 +1228,16 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 }
 
 // Checks the replay row of a run that was kept whole, as the completion wrote it: the slider covers
-// 0 s to the last time, which is the end of the run, the row says so, the texts follow a selected
+// 0 s to the last time, which is the end of the run, the row has no second line, the texts follow a selected
 // frame, Start goes to 0 s and the row keeps its size while the selection moves.
 bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QString& failure) {
 	const int last = w.m_completedReplay.lastTime();
-	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
 	const auto fail = [&failure](const QString& why) {
 		failure = why;
 		return false;
 	};
-	const QString whole = QStringLiteral("Whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	// Nothing of the run is missing, so the line under the controls is empty and hidden.
+	const QString whole;
 	// The label names the selected time as the clock time of the progress bar.
 	const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 	if (w.m_completedReplay.firstTime() != 0 || w.m_completedReplay.truncated() || !replaySliderCovers(w, 0, last))
@@ -1249,7 +1248,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 				.arg(last)
 				.arg(finalFrame ? finalFrame->totalTimesteps : 0));
 	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole
-		|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
+		|| !w.m_replayCoverageLabel->isHidden() || w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replayStartButton->toolTip()));
 	w.m_replaySlider->setValue(middle);
@@ -1329,7 +1328,6 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		return false;
 	const int first = w.m_completedReplay.firstTime();
 	const int last = w.m_completedReplay.lastTime();
-	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
 	const auto fail = [&failure](const QString& why) {
 		failure = why;
 		return false;
@@ -1475,24 +1473,20 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	GuiReplayHistory run = std::move(w.m_completedReplay);
 	w.m_completedReplay = std::move(kept);
 	w.showReplayBar();
-	const auto droppedRow = [&w, last, &cadence]() -> QString {
+	const auto droppedRow = [&w, last]() -> QString {
 		const int from = w.m_completedReplay.firstTime();
-		const QString memory = QString::fromStdString(replayMemoryText(w.m_completedReplay.budgetBytes()));
 		// The second text and the tooltip of Start for a start clock.
-		const auto words = [from, last, &cadence, &memory](long long offset) {
-			const QString start = QString::fromStdString(formatSimTime(from, offset)) + QStringLiteral(" (%1 s)").arg(from);
-			const QString sentence = QStringLiteral("Starts at %1, ends at %2 s, a frame every %3 s. The earlier part was not kept because the run is "
-													"larger than the replay memory (%4).")
-										 .arg(start)
-										 .arg(last)
-										 .arg(cadence, memory);
-			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
+		const auto words = [from](long long offset) {
+			const QString start = QString::fromStdString(formatSimTime(from, offset));
+			const QString sentence = QStringLiteral("Replay starts at %1. Earlier times did not fit in memory.").arg(start);
+			return std::make_pair(sentence, QStringLiteral("Go to the start of the replay (%1)").arg(start));
 		};
 		const auto [dropped, tip] = words(w.m_runController->m_startOffsetSeconds);
 		const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 		if (!replaySliderCovers(w, from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
-		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped)
+		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped
+			|| w.m_replayCoverageLabel->isHidden())
 			return QStringLiteral("the row says '%1' and '%2'").arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text());
 		if (w.m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("Start says '%1'").arg(w.m_replayStartButton->toolTip());
@@ -1548,7 +1542,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		w.m_completedReplay = std::move(refused);
 		w.m_replayBar->hide();
 		w.showReplayBar();
-		const QString expected = QStringLiteral("One moment of this run needs more than the replay memory (1 MiB).");
+		const QString expected = QStringLiteral("This run is too large to replay.");
 		if (!w.m_completedReplay.oversize() || !w.m_completedReplay.empty() || !w.m_replayBar->isVisible() || w.m_replayLabel->text() != QStringLiteral("No replay")
 			|| w.m_replayCoverageLabel->text() != expected || w.m_replaySlider->isEnabled() || w.m_replayPlayButton->isEnabled()
 			|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))

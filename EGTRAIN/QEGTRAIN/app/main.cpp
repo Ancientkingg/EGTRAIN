@@ -121,15 +121,15 @@ struct CommandLineOption {
 static const CommandLineOption commandLineOptions[] = {
 	{"-n", "ID", "1", "Case study number, 1 to 5"},
 	{"--scene", "PATH", "the case study of -n", "Scene folder or .egscene file to load"},
-	{"-h", "SECONDS", "from the scene", "Simulation horizon; this is not help"},
+	{"-h", "SECONDS", "from the scene", "Length of the run in seconds (not help: use --help)"},
 	{"-b", "SECONDS", "from the scene", "Buffer time"},
 	{"-c", "PERCENT", "from the scene", "Recovery time"},
 	{"-g", "0|1", "1", "0 runs without a window and exits when the run ends"},
-	{"-pax", "0|1", "last choice of View > Show Passengers", "1 shows the passengers; read only when -g is 1"},
+	{"-pax", "0|1", "last choice of View > Passengers", "1 shows the passengers, read only when -g is 1"},
 	{"--interactive", nullptr, "off", "Asks on standard input for -n, -g and -pax when they are left out"},
 	{"-interactive", nullptr, "off", "Same as --interactive"},
 	{"--detailed-trajectories", nullptr, "off", "Also writes the per-train files"},
-	{"--live", "PORT", "off", "Publishes the run state on a ZeroMQ socket; 0 takes a free port"},
+	{"--live", "PORT", "off", "Publishes the run state on a ZeroMQ socket (0 takes a free port)"},
 	{"--live-every", "N", "1", "With --live: sends a state frame every N steps"},
 	{"--live-commands", nullptr, "off", "With --live: accepts pause, resume and stop commands"},
 	{"--seed", "N", "789350715", "Seed of the random draws, 1 to 2147483646"},
@@ -185,11 +185,6 @@ void parseCmdOptions(int argc, char* argv[]) {
 	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
 	const bool creatorAcceptance = creatorAcceptanceRun();
 
-	// no options entered
-	if (argc < 2) {
-		std::cout << "No arguments. Using defaults (GUI mode, case study 1).\n";
-	}
-
 	// select case study
 	if (creatorAcceptance) {
 		initial_variables.name.clear();
@@ -201,7 +196,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	} else if (promptForMissingOptions) {
 		int case_study;
-		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Milano-Brescia, 5: Assignment):";
+		std::cout << "Case study (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
 	} else {
@@ -242,7 +237,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 			initial_variables.GUI = std::atoi(argument);
 		}
 	} else if (promptForMissingOptions) {
-		std::cout << "It seems you have not selected if you need a GUI. Please insert your choice [1: GUI , 0: no GUI] :";
+		std::cout << "Open the window? (1 yes, 0 no): ";
 		std::cin >> initial_variables.GUI;
 	} else {
 		initial_variables.GUI = 1;
@@ -256,7 +251,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 				initial_variables.PAX_GUI = std::atoi(argument);
 			}
 		} else if (promptForMissingOptions) {
-			std::cout << "You have not selected if you want to use the Passenger GUI. Please insert your choice [1: Pax GUI on, 0: Pax GUI off]: ";
+			std::cout << "Show passengers? (1 yes, 0 no): ";
 			std::cin >> initial_variables.PAX_GUI;
 		} else {
 			initial_variables.PAX_GUI = MainWindow::savedShowPassengers();
@@ -351,16 +346,19 @@ void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
 
 // A scene that cannot be opened is reported on standard error and, in a window launch that no
 // script started, in a message box. A scene that could not be read gets the message that the window shows for it;
-// a scene of another version or one that cannot run keeps the plain error.
-static void reportCannotOpen(const QString& what, const QString& reason, bool showBox, bool damaged = false) {
+// a scene of another version or one that cannot run keeps the plain error. The box shows boxReason instead of reason
+// when it is given, so that the line on standard error keeps the code and the box does not.
+static void reportCannotOpen(const QString& what, const QString& reason, bool showBox, bool damaged = false,
+	const QString& boxReason = QString()) {
 	const QString message = QStringLiteral("Cannot open %1: %2").arg(what, reason);
 	std::cerr << "ERROR: " << message.toStdString() << '\n';
 	if (!showBox || updatesSuppressedByEnvironment())
 		return;
+	const QString shown = boxReason.isEmpty() ? reason : boxReason;
 	if (damaged)
-		QMessageBox::critical(nullptr, cannot_open::title(), cannot_open::text(what, reason));
+		QMessageBox::critical(nullptr, cannot_open::title(), cannot_open::text(what, shown));
 	else
-		QMessageBox::warning(nullptr, cannot_open::title(), message);
+		QMessageBox::warning(nullptr, cannot_open::title(), QStringLiteral("Cannot open %1: %2").arg(what, shown));
 }
 
 // The scene that the command line names. The arguments come from the application object, not
@@ -528,7 +526,8 @@ static int runMain(int argc, char* argv[]) {
 		if (openedFromFileName && hasErrors(loaded.diagnostics)) {
 			// A file name that does not load is reported and the usual start follows.
 			printSceneDiagnostics(loaded.diagnostics);
-			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, loadFailed);
+			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, loadFailed,
+				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
 			openedFromFileName = false;
 			scenePath = resolveScenePath(QString(), defaultName);
 			loaded = preload(scenePath);
@@ -536,7 +535,7 @@ static int runMain(int argc, char* argv[]) {
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
 			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
-				QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
+				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
 			return 1;
 		}
 		// An opened file counts as an explicit scene, so the chooser stays closed.

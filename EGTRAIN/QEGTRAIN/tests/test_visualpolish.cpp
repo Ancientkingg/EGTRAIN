@@ -281,8 +281,6 @@ int main(int argc, char* argv[]) {
 	ok &= expect(simulationSpeedLabel(0) == "Fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "4.0x", "delayed speed label");
 	ok &= expect(simulationSpeedLabel(10) == "100x", "fast factor speed label");
-	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
-	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
 	TrainBadgeItem badge;
 	badge.setIdentifier("1725");

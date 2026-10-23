@@ -199,7 +199,7 @@ public:
 	/// Shows the case chooser with the bundled and the recent scenes, and acts on the choice.
 	void showStartupChooser();
 
-	/// The last choice of View > Show Passengers, which the start uses when -pax is not given.
+	/// The last choice of View > Passengers, which the start uses when -pax is not given.
 	static bool savedShowPassengers();
 
 protected:

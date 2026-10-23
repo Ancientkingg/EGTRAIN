@@ -262,7 +262,7 @@ public:
 		QGraphicsItem* item;
 		/// The point of the scene to centre on.
 		QPointF center;
-		/// More text that finds the item without being shown: the section ids of a signal.
+		/// More text that finds the item without being shown: the section ids and labels of a signal.
 		QString keys;
 	};
 	/// The stations, the signals and the trains on the canvas, sorted by label, each label once. The items belong to

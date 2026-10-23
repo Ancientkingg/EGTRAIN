@@ -519,7 +519,7 @@ int main(int argc, char* argv[]) {
 				&& (presenter.allSignals[0] == head ? presenter.allSignals[1] : presenter.allSignals[0])->aspectCode() == kGuiSignalUnavailable,
 			"a head without a state shows nothing");
 		ok &= expect(track->operationalState() == TrackOperationalState::Occupied, "the track of an occupied arc shows as occupied");
-		ok &= expect(platform->passengerIcons.size() == 2 && platformText() == "Pax on platform: 2\nMax pax volume: 40",
+		ok &= expect(platform->passengerIcons.size() == 2 && platformText() == "2 of 40 passengers",
 			"the platform shows its passengers");
 		// The passengers on the platform show only where its bar shows, with the passenger layer.
 		const auto iconsShown = [platform](bool shown) {
@@ -564,7 +564,7 @@ int main(int argc, char* argv[]) {
 			"a train on the canvas is placed, and the host hears whether the camera moved");
 		ok &= expect(head->aspectCode() == kGuiSignalUnavailable, "a head keeps no earlier aspect");
 		ok &= expect(track->operationalState() == TrackOperationalState::Free, "a track that is no longer occupied is free again");
-		ok &= expect(platform->passengerIcons.size() == 1 && platformText() == "Pax on platform: 1\nMax pax volume: 40",
+		ok &= expect(platform->passengerIcons.size() == 1 && platformText() == "1 of 40 passengers",
 			"the platform shows the passengers that are left");
 		ok &= expect(presenter.m_vcMessageItems.contains(0) && presenter.m_vcMessageItems[0]->isVisible(),
 			"the message of a virtual coupling shows above the train");
@@ -736,8 +736,8 @@ int main(int argc, char* argv[]) {
 		presenter.updatePaxIconInfo(&snapshot, NetworkPresenter::Playback::Live);
 		ok &= expect(iconIds(*endPlatform) == Ids({"p9"}) && middlePlatform->passengerIcons.isEmpty(),
 			"the layer that is shown again has the icons of the current step");
-		ok &= expect(endPlatform->textIcon->toPlainText() == "Pax on platform: 1\nMax pax volume: 40"
-				&& middlePlatform->textIcon->toPlainText() == "Pax on platform: 0\nMax pax volume: 30",
+		ok &= expect(endPlatform->textIcon->toPlainText() == "1 of 40 passengers"
+				&& middlePlatform->textIcon->toPlainText() == "0 of 30 passengers",
 			"the layer that is shown again has the counters of the current step");
 		ok &= expect(presenter.paxIconItem == nullptr, "the selected icon is forgotten when its passenger has left");
 		ok &= expect(paintedIcons(scene) == Ids({"p9"}), "no icon of a passenger who left is left on the canvas");
@@ -1350,8 +1350,8 @@ int main(int argc, char* argv[]) {
 				&& forward->sectionAheadLabel == "T 5.000 to 10.000 km" && forward->sectionBehindId == "s0"
 				&& forward->sectionBehindLabel == "T 0.000 to 5.000 km",
 			"a head of a run keeps its track number and section ids and gets the track id and the section labels");
-		ok &= expect(forward && forward->inspectionIdentity() == "Track T at 5 km; ahead T 5.000 to 10.000 km; behind T 0.000 to 5.000 km",
-			"the tooltip of a head of a run names the track by its id and the sections by their labels");
+		ok &= expect(forward && forward->inspectionIdentity() == "Track T at 5 km",
+			"the tooltip of a head of a run names the track by its id");
 		const QList<NetworkPresenter::FindTarget> targets = labelPresenter.findTargets();
 		const auto target = [&targets](const QString& label) {
 			const auto found = std::find_if(targets.cbegin(), targets.cend(),
@@ -1359,9 +1359,10 @@ int main(int argc, char* argv[]) {
 			return found == targets.cend() ? nullptr : &*found;
 		};
 		const NetworkPresenter::FindTarget* signalTarget =
-			target("Signal: Track T at 5 km; ahead T 5.000 to 10.000 km; behind T 0.000 to 5.000 km, right");
-		ok &= expect(signalTarget && signalTarget->item == forward && signalTarget->keys == "s1 s0",
-			"Find names a head by its labels and keeps its section ids as keys");
+			target("Signal: track T at 5 km, facing right");
+		ok &= expect(signalTarget && signalTarget->item == forward
+				&& signalTarget->keys == "s1 s0 T 5.000 to 10.000 km T 0.000 to 5.000 km",
+			"Find names a head by its track, position and direction and keeps the ids and labels of its sections as keys");
 		ok &= expect(target("Station: B (track T)") != nullptr, "Find names the track of a station node by its id");
 		labelPresenter.clear();
 	}

@@ -49,7 +49,7 @@ The tables **Connections** (joins between two nodes), **Signals**, **Block depen
 
 ## 3. A rolling stock unit
 
-Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
+Open **Editors > Rolling Stock Units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
 
 On the tab **Physical**, enter these values, pressing Enter after each:
 
@@ -90,11 +90,11 @@ The planned times are seconds after the base time of the case, 08:00:00 (**Plann
 
 ## 6. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows "Ready to run" and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
+Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows no error under the name of the case, and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
 
 ## 7. Run
 
-Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, **Active incidents** 0) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
+Choose **Run**, check the dialog **Run simulation** (**Trains** 1, and no **Incidents** row) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
 
 ## 8. Save as a folder and as a bundle
 
@@ -105,7 +105,7 @@ Both are now listed under **File > Recent Scenes**.
 
 ## 9. Reopen and confirm
 
-1. Choose **File > Open Scene Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling stock units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
+1. Choose **File > Open Scene Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
 2. Choose **File > Recent Scenes** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
 ## 10. Check the saved scene outside the window

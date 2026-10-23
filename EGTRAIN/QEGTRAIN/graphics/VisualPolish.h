@@ -147,7 +147,5 @@ QIcon stationMarkIcon(StationClass cls);
 /// The playback speed for a delay of delayMs milliseconds per simulated second, as a factor of real time:
 /// 1000 / delayMs with an "x", whole from 10x and with one decimal below. "Fastest" for a delay of 0 or less.
 QString simulationSpeedLabel(int delayMs);
-/// The label of simulationSpeedLabel() followed by " real time", or "Fastest".
-QString simulationSpeedMode(int delayMs);
 
 #endif // VISUALPOLISH_H

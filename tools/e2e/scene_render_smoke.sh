@@ -18,7 +18,7 @@ else
 fi
 
 rm -f "$SHOT"
-# The check turns Show Passengers on and off, which the program remembers in its settings.
+# The check turns View > Passengers on and off, which the program remembers in its settings.
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render-settings.XXXXXX")"
 trap 'rm -rf "$SETTINGS_DIR"' EXIT
 cd "$ROOT/EGTRAIN/QEGTRAIN"
@@ -58,7 +58,7 @@ if [[ $# -gt 0 ]]; then
 else
 	grep -q "E2E_FOLLOW_NO_RUN_OK" "$OUT" || fail_render "E2E_FOLLOW_NO_RUN_OK is missing"
 fi
-# Show Passengers is disabled for a case without passengers, and turns the passenger display off and on for one with passengers.
+# View > Passengers is disabled for a case without passengers, and turns the passenger display off and on for one with passengers.
 if [[ -f "$SCENE/passengers.json" ]]; then
 	grep -q "E2E_PASSENGERS_TOGGLE_OK" "$OUT" || fail_render "E2E_PASSENGERS_TOGGLE_OK is missing"
 else

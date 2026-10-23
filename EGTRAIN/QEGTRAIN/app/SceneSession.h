@@ -142,8 +142,8 @@ public:
 	void newScene();
 	/// Imports a legacy case, which the user chooses, as a scene and opens it.
 	void actionLoad_Network();
-	/// The text of the box that reports an import: the counts of the diagnostics by severity, then the first four
-	/// lines, the most serious first, then the number of lines left out.
+	/// The text of the box that reports an import: the counts of the diagnostics by severity that are not zero, then the
+	/// first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics.
 	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics);
 	/// Imports the legacy case in `sourceDir` as a scene folder in `destinationDir` and opens it. The two folders must
 	/// not contain each other. Does nothing when either is empty.

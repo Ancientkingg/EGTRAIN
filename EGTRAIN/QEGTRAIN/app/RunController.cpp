@@ -9,6 +9,9 @@
 #include "app/SceneOutputDirectory.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
+#include "editors/CountText.h"
+#include "editors/ServicePanel.h"
+#include "editors/ValidationPanel.h"
 #include "simulation/SimulationRun.h"
 #include "util/PlaybackProfiler.h"
 #include "util/TimeFormat.h"
@@ -76,13 +79,6 @@ void RunController::markCaseNamed() {
 
 QString RunController::settingsCaseName() const {
 	return QString::fromStdString(initial_variables.name);
-}
-
-QString RunController::readyMessage() const {
-	return QString("Ready - %1 (%2 tracks, %3 routes)")
-		.arg(settingsCaseName())
-		.arg(initial_variables.numTrackLines)
-		.arg(initial_variables.N_Routes);
 }
 
 // The next run writes to the folder of the scene that the window holds. A folder from Choose
@@ -166,76 +162,71 @@ void RunController::runCurrent() {
 	if (m_document->isLoaded())
 		runScene();
 	else
-		m_window->statusBar()->showMessage("Open a canonical scene before running.", 5000);
+		m_window->statusBar()->showMessage("Open a case first", 5000);
 }
 
-QString RunController::runReviewText() const {
-	const SceneDiagnosticCounts counts = countDiagnostics(m_session->diagnostics());
-	QString incidentDetails;
-	for (const SceneIncident& incident : m_host.selectedScenarioIncidents()) {
-		const QString occurrence = incident.hasOccurrence || incident.occurrence != 1
-			? QString::number(incident.occurrence)
-			: QStringLiteral("all");
-		const QString window = incident.hasEndSeconds || incident.endSeconds != 0.0
-			? QString::number(incident.endSeconds, 'g', 12)
-			: QStringLiteral("until-destination");
-		QStringList options;
-		options << (incident.hasReducedSpeed
-				? QString("reduced-speed=%1 km/h").arg(QString::number(incident.reducedSpeedKmh, 'g', 12))
-				: QStringLiteral("reduced-speed=none"));
-		options << (incident.hasEndSeconds ? QStringLiteral("recovery-end=yes")
-										   : QStringLiteral("recovery-end=no"));
-		options << (incident.terminateAtDestination
-				? QStringLiteral("terminate-at-destination=yes")
-				: QStringLiteral("terminate-at-destination=no"));
-		QString detail = QString("id=%1 type=%2 target=%3 start=%4 window=%5 occurrence=%6 options=%7")
-							 .arg(QString::fromStdString(incident.id), QString::fromStdString(incident.type),
-								 incident.target.empty() ? QStringLiteral("(empty)") : QString::fromStdString(incident.target))
-							 .arg(QString::number(incident.startSeconds, 'g', 12), window, occurrence, options.join(","));
-		if (!incidentDetails.isEmpty())
-			incidentDetails += "; ";
-		incidentDetails += detail;
-	}
-	QString entranceDelayDetails;
-	const SceneScenario* scenario = m_host.selectedScenario();
-	if (scenario) {
+namespace {
+
+// One line of the run details for an incident, such as "Incident i1: train breakdown of svc.a #2, from 100 s, no end,
+// reduced speed 40 km/h".
+QString incidentLine(const SceneIncident& incident) {
+	const QString type = incident.type == "signal_failure" ? QStringLiteral("signal failure")
+		: incident.type == "train_breakdown"			   ? QStringLiteral("train breakdown")
+														   : QString::fromStdString(incident.type);
+	QString target = incident.target.empty() ? QStringLiteral("no target") : QString::fromStdString(incident.target);
+	if (incident.hasOccurrence || incident.occurrence != 1)
+		target += QStringLiteral(" #%1").arg(incident.occurrence);
+	const QString start = QString::number(incident.startSeconds, 'g', 12);
+	QString line = QStringLiteral("Incident %1: %2 of %3, ").arg(QString::fromStdString(incident.id), type, target)
+		+ (incident.hasEndSeconds || incident.endSeconds != 0.0
+				? QStringLiteral("%1 to %2 s").arg(start, QString::number(incident.endSeconds, 'g', 12))
+				: QStringLiteral("from %1 s, no end").arg(start));
+	if (incident.hasReducedSpeed)
+		line += QStringLiteral(", reduced speed %1 km/h").arg(QString::number(incident.reducedSpeedKmh, 'g', 12));
+	if (incident.terminateAtDestination)
+		line += QStringLiteral(", ends its run at the destination");
+	return line;
+}
+
+} // namespace
+
+QString RunController::runReviewText(bool advanced) const {
+	const SceneModel& model = m_document->model();
+	const double duration = m_host.serviceOccurrenceDuration();
+	const int total = m_host.totalServiceOccurrences();
+	const std::vector<SceneIncident>& incidents = m_host.selectedScenarioIncidents();
+	QStringList lines{QStringLiteral("Case: %1").arg(QString::fromStdString(model.name)),
+		QStringLiteral("Scenario: %1").arg(m_host.scenarioContext()),
+		QStringLiteral("Services: %1").arg(static_cast<int>(model.services.size())),
+		QStringLiteral("Run occurrences: ")
+			+ ServicePanel::occurrenceSummaryText(total, m_selection.selectedCount(model, duration),
+				m_selection.selectedInPeriodCount(model, duration), total),
+		QStringLiteral("Compositions: %1").arg(static_cast<int>(model.compositions.size()))};
+	if (!incidents.empty())
+		lines << QStringLiteral("Incidents: %1").arg(static_cast<int>(incidents.size()));
+	if (!advanced)
+		return lines.join('\n');
+	const QString validation = ValidationPanel::statusText(countDiagnostics(m_session->diagnostics()), true);
+	if (!validation.isEmpty())
+		lines << QStringLiteral("Validation: ") + validation;
+	for (const SceneIncident& incident : incidents)
+		lines << incidentLine(incident);
+	if (const SceneScenario* scenario = m_host.selectedScenario()) {
 		for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
-			const auto service = std::find_if(m_document->model().services.begin(), m_document->model().services.end(),
+			const auto service = std::find_if(model.services.begin(), model.services.end(),
 				[&delay](const SceneService& candidate) { return candidate.id == delay.serviceId; });
-			const QString operatingCode = service == m_document->model().services.end()
-				? QStringLiteral("(unavailable)")
+			const QString code = service == model.services.end()
+				? QString()
 				: QString::fromStdString(sceneServiceOccurrenceOperatingCode(*service, delay.occurrence));
-			QString detail = QString("service=%1 occurrence=%2 operating_code=%3 station=%4 seconds=%5")
-								 .arg(delay.serviceId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.serviceId))
-								 .arg(delay.occurrence)
-								 .arg(operatingCode.isEmpty() ? QStringLiteral("(unavailable)") : operatingCode)
-								 .arg(delay.stationId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.stationId))
-								 .arg(QString::number(delay.delaySeconds, 'g', 12));
-			if (!entranceDelayDetails.isEmpty())
-				entranceDelayDetails += "; ";
-			entranceDelayDetails += detail;
+			lines << QStringLiteral("Entrance delay: %1 s for %2 #%3%4 at %5")
+						 .arg(QString::number(delay.delaySeconds, 'g', 12),
+							 delay.serviceId.empty() ? QStringLiteral("no service") : QString::fromStdString(delay.serviceId))
+						 .arg(delay.occurrence)
+						 .arg(code.isEmpty() ? QString() : QStringLiteral(" (%1)").arg(code),
+							 delay.stationId.empty() ? QStringLiteral("no station") : QString::fromStdString(delay.stationId));
 		}
 	}
-	const double duration = m_host.serviceOccurrenceDuration();
-	QString summary = QString("Case study: %1\nScenario: %2\nService definitions: %3\nConfigured total: %4\nNumber of services in sim.: %5\nSelected: %6\nSelected in period: %7\nCompositions: %8\nIncidents: %9\nValidation: %10 error(s), %11 warning(s)")
-						  .arg(QString::fromStdString(m_document->model().name))
-						  .arg(m_host.scenarioContext())
-						  .arg(static_cast<int>(m_document->model().services.size()))
-						  .arg(m_host.totalServiceOccurrences())
-						  .arg(m_host.inPeriodServiceOccurrences())
-						  .arg(m_selection.selectedCount(m_document->model(), duration))
-						  .arg(m_selection.selectedInPeriodCount(m_document->model(), duration))
-						  .arg(static_cast<int>(m_document->model().compositions.size()))
-						  .arg(static_cast<int>(m_host.selectedScenarioIncidents().size()))
-						  .arg(counts.errors)
-						  .arg(counts.warnings);
-	summary += QString("\nCounting rule: scheduled entry ≥ 0 and < %1 s; these are configured identities, not observed trains.")
-				   .arg(QString::number(duration, 'g', 12));
-	if (!incidentDetails.isEmpty())
-		summary += "\nIncident configuration: " + incidentDetails;
-	if (!entranceDelayDetails.isEmpty())
-		summary += "\nEntrance delay configuration: " + entranceDelayDetails;
-	return summary;
+	return lines.join('\n');
 }
 
 bool RunController::showRunReview() {
@@ -253,27 +244,32 @@ bool RunController::showRunReview() {
 	const SceneDiagnosticCounts counts = countDiagnostics(m_session->diagnostics());
 	const double duration = m_host.serviceOccurrenceDuration();
 	const int selectedInPeriod = m_selection.selectedInPeriodCount(m_document->model(), duration);
+	const int incidents = static_cast<int>(m_host.selectedScenarioIncidents().size());
 	const long long baseSeconds = baseTimeToSeconds(m_document->model().baseTime);
 	auto* facts = new QGridLayout();
 	facts->setHorizontalSpacing(20);
 	facts->setVerticalSpacing(8);
-	const auto addFact = [&](int row, const QString& label, const QString& value) {
+	const auto addFact = [&](const QString& label, const QString& value) {
 		auto* name = new QLabel(label, body);
 		name->setObjectName("runReviewFactLabel");
 		auto* fact = new QLabel(value, body);
 		fact->setTextFormat(Qt::PlainText);
 		fact->setWordWrap(true);
 		fact->setObjectName("runReviewFactValue");
+		const int row = facts->rowCount();
 		facts->addWidget(name, row, 0);
 		facts->addWidget(fact, row, 1);
 	};
-	addFact(0, "Selected in period", QString::number(selectedInPeriod));
-	addFact(1, "Start clock", QString::fromStdString(formatSimTime(0, baseSeconds)));
-	addFact(2, "Duration",
-		QString("%1 (ends near %2)")
+	// A count of zero is left out; the status below says when no train starts.
+	if (selectedInPeriod > 0)
+		addFact("Trains", QString::number(selectedInPeriod));
+	addFact("Start time", QString::fromStdString(formatSimTime(0, baseSeconds)));
+	addFact("Duration",
+		QString("%1, until %2")
 			.arg(RunResultsDock::durationText(static_cast<long long>(duration)),
 				QString::fromStdString(formatSimTime(static_cast<long long>(duration), baseSeconds))));
-	addFact(3, "Active incidents", QString::number(static_cast<int>(m_host.selectedScenarioIncidents().size())));
+	if (incidents > 0)
+		addFact("Incidents", QString::number(incidents));
 	layout->addLayout(facts);
 
 	auto* status = new QLabel(body);
@@ -284,21 +280,21 @@ bool RunController::showRunReview() {
 	for (const SceneDiagnostic& diagnostic : m_session->diagnostics()) {
 		if (diagnostic.code == "scene.signalling.level.missing") {
 			unsignalledSections = QString::fromStdString(diagnostic.message);
-			unsignalledSections[0] = unsignalledSections[0].toLower();
 			break;
 		}
 	}
+	// Only something that needs attention has a line; the dialog and its Run button say that the case can run.
 	status->setText(noServicesInPeriod
-			? QStringLiteral("Ready to run, but no selected services enter during this period.")
+			? QStringLiteral("No selected trains start in this period.")
 			: !unsignalledSections.isEmpty()
-			? QString("Ready to run, but %1.").arg(unsignalledSections)
+			? unsignalledSections + QLatin1Char('.')
 			: detailsEnabled && counts.warnings > 0
-			? QString("Ready to run. Review %1 validation %2 if needed.")
-				  .arg(counts.warnings)
-				  .arg(counts.warnings == 1 ? "warning" : "warnings")
-			: QStringLiteral("Ready to run."));
-	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty() || (detailsEnabled && counts.warnings > 0));
+			? countText(counts.warnings, QStringLiteral("validation warning"), QStringLiteral("validation warnings"))
+				+ QStringLiteral(". See Scene Validation.")
+			: QString());
+	status->setProperty("warning", !status->text().isEmpty());
 	status->setWordWrap(true);
+	status->setVisible(!status->text().isEmpty());
 	layout->addWidget(status);
 
 	auto* detailsToggle = new QToolButton(body);
@@ -314,22 +310,9 @@ bool RunController::showRunReview() {
 	details->setTextFormat(Qt::PlainText);
 	details->setWordWrap(true);
 	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	const QString fullDetails = runReviewText();
-	const int incidentStart = fullDetails.indexOf("\nIncident configuration:");
-	const int delayStart = fullDetails.indexOf("\nEntrance delay configuration:");
-	const int firstConfiguration = incidentStart < 0 ? delayStart
-		: delayStart < 0							 ? incidentStart
-													 : std::min(incidentStart, delayStart);
-	QString displayedDetails = detailsEnabled || firstConfiguration < 0
-		? fullDetails
-		: fullDetails.left(firstConfiguration);
-	if (!detailsEnabled) {
-		const int validationStart = displayedDetails.indexOf("\nValidation:");
-		const int countingStart = displayedDetails.indexOf("\nCounting rule:");
-		if (validationStart >= 0 && countingStart > validationStart)
-			displayedDetails.remove(validationStart, countingStart - validationStart);
-	}
-	details->setText(displayedDetails);
+	details->setText(runReviewText(detailsEnabled));
+	details->setToolTip(QStringLiteral("An occurrence is in the run period when it enters from 0 up to %1 s.")
+			.arg(QString::number(duration, 'g', 12)));
 	details->hide();
 	connect(detailsToggle, &QToolButton::toggled, &review, [&review, detailsToggle, details](bool shown) {
 		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
@@ -447,57 +430,30 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 	state.canCompare = resultsShown && m_delayBaseline.has_value()
 		&& (current.hasIncidents || current.hasEntranceDelays);
 
-	QString& feedback = state.feedback;
-	if (!resultsShown) {
-		if (m_delayBaseline) {
-			feedback = QStringLiteral("Baseline: %1. Run the selected scenario to create completed results for comparison.")
-						   .arg(completedRunContext(m_delayBaseline->provenance));
-		} else if (!m_delayBaselineStatus.isEmpty()) {
-			feedback = m_delayBaselineStatus;
-		} else {
-			feedback = QStringLiteral("No completed run. Run the selected scenario; a run with no incidents or entrance delays can become the baseline.");
-		}
-	} else if (!m_delayBaseline) {
-		if (state.canSet) {
-			feedback = QStringLiteral("Completed run: %1. Set this run with no incidents or entrance delays as the delay baseline.")
-						   .arg(completedRunContext(current.provenance));
-		} else if (current.hasEntranceDelays) {
-			feedback = QStringLiteral("Completed run: %1. This run has entrance delays; run a scenario with no incidents or entrance delays to set the baseline.")
-						   .arg(completedRunContext(current.provenance));
-		} else {
-			feedback = QStringLiteral("Completed run: %1. This run has incidents; run a scenario with no incidents or entrance delays to set the baseline.")
-						   .arg(completedRunContext(current.provenance));
-		}
-	} else if (state.canCompare) {
-		feedback = QStringLiteral("Baseline: %1. Compare delays shows the additional delay of each call against it.")
-					   .arg(completedRunContext(m_delayBaseline->provenance));
-	} else {
-		feedback = QStringLiteral("Baseline: %1. Run a scenario with incidents or entrance delays, then compare.")
-					   .arg(completedRunContext(m_delayBaseline->provenance));
-	}
-	if (!current.scenarioId.empty() && !m_selection.scenarioId().empty()
-		&& current.scenarioId != m_selection.scenarioId()) {
-		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
-						.arg(QString::fromStdString(m_selection.scenarioId()));
-	}
+	// The tooltips of the two buttons say why one is disabled.
+	if (m_delayBaseline)
+		state.feedback = QStringLiteral("Baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
+	else if (!resultsShown && !m_delayBaselineStatus.isEmpty())
+		state.feedback = m_delayBaselineStatus;
+	else
+		state.feedback = QStringLiteral("No baseline set");
 	return state;
 }
 
 void RunController::setDelayBaseline() {
 	const DelayRunSnapshot snapshot = completedDelaySnapshot();
 	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
-		QMessageBox::warning(m_window, "Delay baseline unavailable",
+		QMessageBox::warning(m_window, "Delay Baseline Unavailable",
 			"Complete a run with no incidents or entrance delays first.");
 		return;
 	}
 	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
-		QMessageBox::warning(m_window, "Delay baseline rejected",
+		QMessageBox::warning(m_window, "Delay Baseline Rejected",
 			"The delay baseline must have no incidents and no entrance delays.");
 		return;
 	}
 	m_delayBaseline = snapshot;
-	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed scenario that has incidents or entrance delays.")
-								.arg(completedRunContext(snapshot.provenance));
+	m_delayBaselineStatus.clear();
 	m_window->statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
 	m_host.delayBaselineChanged();
 }
@@ -512,7 +468,7 @@ void RunController::clearDelayBaseline(const QString& reason) {
 
 DelayAnalysisWindow* RunController::openDelayAnalysis() {
 	if (!hasRunResults()) {
-		m_window->statusBar()->showMessage("Run a simulation to open the delay analysis", 5000);
+		m_window->statusBar()->showMessage("Run the case first", 5000);
 		return nullptr;
 	}
 	auto* window = new DelayAnalysisWindow(completedDelaySnapshot(), m_delayBaseline, m_window);
@@ -524,8 +480,7 @@ DelayAnalysisWindow* RunController::openDelayAnalysis() {
 
 bool RunController::sceneChanged() {
 	if (m_delayBaseline)
-		m_delayBaselineStatus = QStringLiteral(
-			"Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline.");
+		m_delayBaselineStatus = QStringLiteral("Baseline cleared: the case changed");
 	m_delayBaseline.reset();
 	if (!m_worker)
 		return false;
@@ -645,7 +600,7 @@ void RunController::runDeferredAction() {
 
 // handle simulation completion on the main thread
 void RunController::onSimulationFinished() {
-	const bool hadFollowTarget = m_host.endFollowing();
+	m_host.endFollowing();
 	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
 		PlaybackProfiler::instance().emitRecords(true);
 		clearSimulationWorker(false);
@@ -685,12 +640,11 @@ void RunController::onSimulationFinished() {
 
 	m_host.runProgressEnded();
 	const QString status = sceneChangedDuringRun
-		? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
+		? QStringLiteral("Results discarded: the case changed during the run")
 		: !failure.isEmpty()  ? QStringLiteral("Simulation failed")
 		: stopped			  ? QStringLiteral("Simulation stopped")
 		: !m_resultsAvailable ? QStringLiteral("Simulation ended without results")
-		: hadFollowTarget	  ? QStringLiteral("Simulation complete - Follow disabled")
-							  : QStringLiteral("Simulation complete - results in the Diagrams menu");
+							  : QStringLiteral("Simulation complete");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
@@ -701,12 +655,12 @@ void RunController::onSimulationFinished() {
 	else
 		simulation.resetReplayCandidate();
 	m_host.runEnded();
-	// The track preview that replaces a run without results wrote its own status message.
+	// The track preview that replaces a run without results cleared the status bar.
 	if (!m_resultsAvailable)
 		m_window->statusBar()->showMessage(status);
 	if (!failure.isEmpty())
 		showError(QStringLiteral("Simulation Failed"),
-			QStringLiteral("The run stopped because of an error:\n\n%1\n\nThe case is still open and unchanged.").arg(failure));
+			QStringLiteral("The run stopped because of an error:\n\n%1").arg(failure));
 
 	m_host.runSettled();
 }
@@ -753,9 +707,7 @@ void RunController::runScene() {
 	m_host.validateScene();
 	if (hasErrors(m_session->diagnostics())) {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(m_session->diagnostics()));
-		int errorCount = countDiagnostics(m_session->diagnostics()).errors;
-		showError("Cannot Run Scene",
-			QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount));
+		showError("Cannot Run Scene", ValidationPanel::statusText(countDiagnostics(m_session->diagnostics()), false) + QStringLiteral("\n\nFix the errors in Scene Validation."));
 		return;
 	}
 	m_selection.pruneExcluded(m_document->model(), m_host.serviceOccurrenceDuration());
@@ -764,7 +716,7 @@ void RunController::runScene() {
 	m_lastRunSelectedInPeriodOccurrences = m_selection.selectedInPeriodCount(m_document->model(), m_host.serviceOccurrenceDuration());
 	if (m_lastRunSelectedOccurrences <= 0) {
 		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
-		showError("Cannot Run Scene", "Select at least one generated service occurrence before running.");
+		showError("Cannot Run Scene", "Select at least one occurrence on the Run occurrences tab of Services.");
 		return;
 	}
 	if (!showRunReview())
@@ -855,5 +807,5 @@ void RunController::runScene() {
 	m_runtimeStatus = QStringLiteral("Running");
 	m_host.loadedDataChanged();
 	startSimulation(operation);
-	m_window->statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_document->model().name)));
+	m_window->statusBar()->showMessage(QStringLiteral("Running"));
 }

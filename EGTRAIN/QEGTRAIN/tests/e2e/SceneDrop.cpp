@@ -142,8 +142,12 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 			cancel->click();
 		});
 		cancelTimer.start();
-		deliver({QUrl::fromLocalFile(validPath)}, true, true, false, QStringLiteral("canceled"));
+		// The user canceled, so the status bar keeps what it said before.
+		const QString statusBeforeCancel = w.statusBar()->currentMessage();
+		deliver({QUrl::fromLocalFile(validPath)}, true, true, false, QString());
 		cancelTimer.stop();
+		if (w.statusBar()->currentMessage() != statusBeforeCancel)
+			fail(QStringLiteral("a canceled drop changed the status bar to: %1").arg(w.statusBar()->currentMessage()));
 		if (!canceledUnsavedPrompt)
 			fail(QStringLiteral("dirty-scene drop did not show the unsaved-scene prompt"));
 		if (!activatedBeforePrompt)
@@ -153,7 +157,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 
 		// A drop that is refused asks nothing, so it leaves the window as it is.
 		activations = 0;
-		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("folder"));
 		if (activations != 0)
 			fail(QStringLiteral("a refused drop raised the window"));
 		mainWindowTestHooks().windowBroughtToFront = nullptr;
@@ -164,21 +168,21 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		deliver({}, false, false, false, QStringLiteral("no file"));
 		unchanged(QStringLiteral("no-URL drop"));
 		deliver({QUrl::fromLocalFile(validPath), QUrl::fromLocalFile(validPath)}, true,
-			false, false, QStringLiteral("exactly one"));
+			false, false, QStringLiteral("more than one file"));
 		unchanged(QStringLiteral("multiple-file drop"));
 		deliver({QUrl(QStringLiteral("https://example.com/scene.egscene"))}, true,
-			false, false, QStringLiteral("local"));
+			false, false, QStringLiteral("not on this computer"));
 		unchanged(QStringLiteral("remote URL drop"));
-		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("folder"));
 		unchanged(QStringLiteral("directory drop"));
 		deliver({QUrl::fromLocalFile(wrongExtension.fileName())}, true,
-			false, false, QStringLiteral("extension"));
+			false, false, QStringLiteral("not an .egscene file"));
 		unchanged(QStringLiteral("wrong-extension drop"));
 		deliver({QUrl::fromLocalFile(temp.filePath(QStringLiteral("missing.egscene")))}, true,
 			false, false, QStringLiteral("does not exist"));
 		unchanged(QStringLiteral("nonexistent-file drop"));
 		deliver({QUrl::fromLocalFile(malformed.fileName())}, true,
-			true, false, QStringLiteral("could not be opened"));
+			true, false, QStringLiteral("could not open"));
 		unchanged(QStringLiteral("malformed-scene drop"));
 
 		// A recent scene that is deleted must show as unavailable when the menu opens, without another open.
