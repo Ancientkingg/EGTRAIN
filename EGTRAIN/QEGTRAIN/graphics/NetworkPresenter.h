@@ -159,18 +159,18 @@ public:
 	///
 	/// A live train glides along its route at an even speed from where it is drawn to its new place, drawn wagon by
 	/// wagon where it is at the moment, as getTrainPolygon() draws it at an update, with its badge and its callouts. The
-	/// glide lasts a little longer than the longest recent update interval, so that the next update, which starts the
-	/// next glide from where the train is then drawn, comes before it ends; the train trails its newest place by a
-	/// fraction of a glide, and without a new update, as at a pause, it stops there. A train that has just appeared, has
-	/// another route or direction, runs backwards, or would move further than the visible view is placed at once, and
-	/// so is every train of a replay. The positions are for the time at which the paint that shows them is expected to
-	/// end.
+	/// glide lasts several recent update intervals, up to a bound, so that the next update, which starts the next glide
+	/// from where the train is then drawn, changes its speed only a little, even when the updates come unevenly or bring
+	/// uneven steps of simulated time. The train trails its newest place by a few updates, and without a new update, as
+	/// at a pause, it goes on to that place and stops there. A train that has just appeared, has another route or
+	/// direction, runs backwards, or has moved further than the visible view since its last update is placed at once,
+	/// and so is every train of a replay.
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
 	/// Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one
 	/// is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A
-	/// timer of the presenter calls it right after each live update and then about once a frame while a train moves,
-	/// and every live update moves the trains too; a test calls it with the clock of setClock().
+	/// timer of the presenter calls it about once a frame while a train moves, at a pace that the updates do not
+	/// change, and every live update moves the trains too; a test calls it with the clock of setClock().
 	void stepTrains();
 	/// Whether the train moves towards the place of its last update, so that stepTrains() still moves it.
 	bool trainMoving(int train) const;
@@ -460,23 +460,12 @@ private:
 	std::vector<qint64> m_updateIntervals;
 	// The time of the last live update in milliseconds; negative before the first.
 	qint64 m_lastUpdateMs = -1;
-	// When the trains were last drawn, whether an update drew them since the last paint, and the time from the last
-	// drawing to the end of the paint that showed it, in the last paints after an update and in the others, in
-	// milliseconds.
-	qint64 m_drawnAtMs = -1;
-	bool m_updatedSincePaint = false;
-	std::vector<qint64> m_updateLeadsMs;
-	std::vector<qint64> m_stepLeadsMs;
-	// The last time for which the trains were drawn.
-	qint64 m_presentedMs = -1;
 	Clock m_clock;
 	QElapsedTimer m_elapsed;
 	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.
 	std::unordered_map<std::string, int> m_sectionIndexById;
 
 	qint64 nowMs() const;
-	qint64 presentationMs(bool update);
-	void notePaint();
 	void noteLiveUpdate();
 	qint64 glideDurationMs() const;
 	qreal longestGlide() const;

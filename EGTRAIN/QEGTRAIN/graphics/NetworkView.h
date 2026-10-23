@@ -120,8 +120,6 @@ signals:
 	void timingPaintCompleted(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	/// The playback profiler began its measurement after a paint.
 	void playbackProfileBegan();
-	/// The viewport has been painted.
-	void viewportPainted();
 };
 
 #endif // NETWORKVIEW_H
