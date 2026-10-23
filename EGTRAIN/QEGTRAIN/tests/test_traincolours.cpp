@@ -107,13 +107,13 @@ bool exerciseSceneColours() {
 	const QColor red(200, 30, 30);
 	const TrainColourPlan three = trainColourPlan(numberedTrains(3), {{"T1", red}, {"T2", QColor()}});
 	ok &= expect(three.colours.value("T0") == kPalette[0] && three.colours.value("T1") == red && three.colours.value("T2") == kPalette[2],
-		"a scene service colour wins over the palette, and the next train keeps its place in the palette");
+		"a service colour of the case wins over the palette, and the next train keeps its place in the palette");
 	QHash<QString, QColor> s19825;
 	for (int i = 1; i <= 6; ++i) s19825.insert(QString("S19825-%1").arg(i), red);
 	const TrainColourPlan assignment = trainColourPlan(assignmentTrains(), s19825);
 	ok &= expect(assignment.colours.value("S19825-1") == red && assignment.colours.value("S19825-6") == red
 			&& assignment.colours.value("IC2025-1") == kPalette[2],
-		"a scene service colour wins over the palette colour of its service");
+		"a service colour of the case wins over the palette colour of its service");
 	const TrainColourPlan many = trainColourPlan(numberedTrains(47), {{"T10", red}, {"T11", red}}, "T10");
 	ok &= expect(many.colours.value("T10") == red && many.colours.value("T11") == kGrey,
 		"among many grey trains the selected one takes the colour of its service in the case");
