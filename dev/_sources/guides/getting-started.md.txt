@@ -96,7 +96,7 @@ The other entries are listed in [How-to](how-to.md#results-and-exports). The ent
 1. In the dock **Run Results**, click **Export CSV...**. The dialog **Export Data** suggests the name `run_summary.csv`. Choose a folder of your own and save. The file has one row for each train and the row **Network total**.
 2. Click **Export PNG...**. The dialog **Export Table** suggests `run_summary.png`. Save it. The picture shows the whole table, with every row and column, also those the dock has to scroll to.
 
-Each chart window and the window **Timetable** have their own **Export CSV...** and **Export PNG...** for the data and the picture of that window. **Delay analysis**, **Capacity** and **Capacity by area** have only **Export CSV...**. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
+Each chart window has **CSV...** and **PNG...** in its panel, and the window **Timetable** has **Export CSV...** and **Export PNG...**, for the data and the picture of that window. **Delay analysis**, **Capacity** and **Capacity by area** have only **Export CSV...**. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
 
 An export dialog starts in your Documents folder, or in your home folder when there is none. Exports are not written to the output folder below.
 

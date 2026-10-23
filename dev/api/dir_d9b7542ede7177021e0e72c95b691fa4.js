@@ -22,6 +22,8 @@ var dir_d9b7542ede7177021e0e72c95b691fa4 =
     [ "DiagramWindow.h", "_diagram_window_8h.html", "_diagram_window_8h" ],
     [ "PositionScale.cpp", "_position_scale_8cpp.html", null ],
     [ "PositionScale.h", "_position_scale_8h.html", "_position_scale_8h" ],
+    [ "ResultFrame.cpp", "_result_frame_8cpp.html", null ],
+    [ "ResultFrame.h", "_result_frame_8h.html", "_result_frame_8h" ],
     [ "RouteDiagramCoordinates.cpp", "_route_diagram_coordinates_8cpp.html", "_route_diagram_coordinates_8cpp" ],
     [ "RouteDiagramCoordinates.h", "_route_diagram_coordinates_8h.html", "_route_diagram_coordinates_8h" ],
     [ "RouteReferenceChoice.cpp", "_route_reference_choice_8cpp.html", "_route_reference_choice_8cpp" ],

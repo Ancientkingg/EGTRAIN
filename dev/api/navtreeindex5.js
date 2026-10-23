@@ -1,5 +1,8 @@
 var NAVTREEINDEX5 =
 {
+"_signal_item_8h.html#a5973ce3c0f3fa3092a7e97a99b576e47":[3,0,4,0,15,1],
+"_signal_item_8h_source.html":[3,0,4,0,15],
+"_signal_item_roles_8h.html":[3,0,4,12],
 "_signal_item_roles_8h.html#a3655f423ec7bb0c4dc618cdc1c08b1b6":[3,0,4,12,3],
 "_signal_item_roles_8h.html#aa133f3e3e693051e679fa0ae6b2b12ac":[3,0,4,12,0],
 "_signal_item_roles_8h.html#ad3d8a9e4c600d8f9e7640a0a694133e0":[3,0,4,12,2],
@@ -160,8 +163,8 @@ var NAVTREEINDEX5 =
 "_simulation_8h.html#ab5bb7fca0dc9fe41b724f27d88e65ec6":[3,0,8,24,16],
 "_simulation_8h.html#ad326ac2cac03ef2e25b605f47184572c":[3,0,8,24,10],
 "_simulation_8h_source.html":[3,0,8,24],
-"_simulation_headers_8h.html":[3,0,1,30],
-"_simulation_headers_8h_source.html":[3,0,1,30],
+"_simulation_headers_8h.html":[3,0,1,32],
+"_simulation_headers_8h_source.html":[3,0,1,32],
 "_simulation_run_8cpp.html":[3,0,8,25],
 "_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d":[3,0,8,25,0],
 "_simulation_run_8h.html":[3,0,8,26],
@@ -246,8 +249,5 @@ var NAVTREEINDEX5 =
 "_time_progress_bar_8h_source.html":[3,0,12,31],
 "_timetable_stops_panel_8cpp.html":[3,0,3,21],
 "_timetable_stops_panel_8h.html":[3,0,3,22],
-"_timetable_stops_panel_8h_source.html":[3,0,3,22],
-"_timetable_table_window_8cpp.html":[3,0,1,31],
-"_timetable_table_window_8h.html":[3,0,1,32],
-"_timetable_table_window_8h_source.html":[3,0,1,32]
+"_timetable_stops_panel_8h_source.html":[3,0,3,22]
 };

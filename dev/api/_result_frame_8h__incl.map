@@ -1,0 +1,9 @@
+<map id="diagrams/ResultFrame.h" name="diagrams/ResultFrame.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="46,5,227,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,76,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,33,69,72,66,68,120,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="100,79,173,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,31,139,65,134,65,134,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,79,276,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,29,211,68,208,73,151,33"/>
+</map>

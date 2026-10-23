@@ -328,10 +328,10 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Chart title</p></td>
+<tr class="row-even"><td><p>Heading of an exported chart</p></td>
 <td><p>1.25 times</p></td>
 <td><p>bold</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">DiagramWindow::applyChartStyle</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DiagramWindow::figureImage</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Section heading, table caption</p></td>
 <td><p>1.1 times</p></td>
@@ -397,8 +397,8 @@
 </tr>
 <tr class="row-odd"><td><p>Secondary text</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#5b6871</span></code></p></td>
-<td><p>help, context lines, small titles</p></td>
-<td><p>5.1:1 on window, 4.7:1 on band</p></td>
+<td><p>help, context lines, small titles, the readout of a result window</p></td>
+<td><p>5.1:1 on window, 4.7:1 on band, 5.5:1 on surface</p></td>
 </tr>
 <tr class="row-even"><td><p>Status text</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#3f4d56</span></code></p></td>
@@ -412,8 +412,8 @@
 </tr>
 <tr class="row-even"><td><p>Accent</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#315a70</span></code></p></td>
-<td><p>focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About</p></td>
-<td><p>white on accent 7.4:1</p></td>
+<td><p>focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About, section headings of the panel of a result window</p></td>
+<td><p>white on accent 7.4:1, 7.1:1 on surface</p></td>
 </tr>
 <tr class="row-odd"><td><p>Accent dark</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#26495c</span></code></p></td>
@@ -422,8 +422,8 @@
 </tr>
 <tr class="row-even"><td><p>Action</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#2e7491</span></code></p></td>
-<td><p>default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus</p></td>
-<td><p>white on it 5.2:1, 5.2:1 on field, 3.4:1 on border</p></td>
+<td><p>default button fill, focus border of push buttons, toolbar buttons, the header buttons of a result window, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus; the text of Clear in the panel of a result window</p></td>
+<td><p>white on it 5.2:1, 5.2:1 on field, 5.0:1 on surface, 3.4:1 on border</p></td>
 </tr>
 <tr class="row-odd"><td><p>Action hover</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#296882</span></code></p></td>
@@ -452,12 +452,12 @@
 </tr>
 <tr class="row-even"><td><p>Band</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#e3eaee</span></code></p></td>
-<td><p>dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines</p></td>
+<td><p>dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines, the rule under the header of a result window</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p>Field</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#ffffff</span></code></p></td>
-<td><p>inputs, buttons, tables</p></td>
+<td><p>inputs, buttons, tables, the header of a result window</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>Alternate row</p></td>
@@ -477,12 +477,12 @@
 </tr>
 <tr class="row-odd"><td><p>Border</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code></p></td>
-<td><p>borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields</p></td>
+<td><p>borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields, the rules of the panel of a result window and its left edge</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p>Control border</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code></p></td>
-<td><p>border of push buttons, toolbar buttons and fields, and of the lists and tables of a dialog; slider groove</p></td>
+<td><p>border of push buttons, toolbar buttons, the header buttons of a result window and fields, and of the lists and tables of a dialog; slider groove</p></td>
 <td><p>3.5:1 on field, 3.4:1 on surface, 3.1:1 on window</p></td>
 </tr>
 <tr class="row-odd"><td><p>Control hover</p></td>
@@ -580,13 +580,14 @@
 <li><p><strong>Default button:</strong> the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.</p></li>
 <li><p><strong>Footer buttons:</strong> the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.</p></li>
 <li><p><strong>Links:</strong> the links of About EGTRAIN are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.</p></li>
+<li><p><strong>Result windows:</strong> a diagram window is a <code class="docutils literal notranslate"><span class="pre">ResultFrame</span></code>. A white header with a band rule below it lies over the chart, with the context in secondary text and icon buttons that have the face, border, radius and states of a push button, also while the panel button is checked. The panel at the right has the surface colour, a border rule at its left edge and between its sections, section headings in the accent colour, and the readout in secondary text. Clear of the selected train is action-coloured text without a face. The icons <code class="docutils literal notranslate"><span class="pre">zoom-out.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">zoom-in.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">fit.svg</span></code> and <code class="docutils literal notranslate"><span class="pre">panel.svg</span></code> are 16 px; without them, as in the unit tests, a header button shows its name.</p></li>
 </ul>
 </section>
 <section id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><strong>Network canvas and railway notation:</strong> drawn in code with their own colours and sizes, described in the <a class="reference internal" href="renderer-style-map.html"><span class="std std-doc">network renderer style map</span></a>. Canvas text uses a default <code class="docutils literal notranslate"><span class="pre">QFont</span></code>, not the sheet.</p></li>
-<li><p><strong>Chart text:</strong> Qt Charts draws axes and ticks with its own fonts; only the title, brushes and pens are set (<code class="docutils literal notranslate"><span class="pre">DiagramWindow::applyChartStyle</span></code>). The legend of line kinds below the plot uses the window font.</p></li>
+<li><p><strong>Chart text:</strong> Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (<code class="docutils literal notranslate"><span class="pre">DiagramWindow::applyChartStyle</span></code>). A chart has no title, since the window title names it. The legend of line kinds below the plot uses the window font.</p></li>
 <li><p><strong>Console:</strong> fixed-pitch text <code class="docutils literal notranslate"><span class="pre">#dde3e5</span></code> on <code class="docutils literal notranslate"><span class="pre">#12191f</span></code>, 13.7:1.</p></li>
 </ul>
 </section>

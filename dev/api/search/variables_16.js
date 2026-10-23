@@ -7,7 +7,7 @@ var searchData=
   ['waitingtime_4',['Waitingtime',['../class_journey.html#a84ede67228e23ca45ab20b4ebf2291f9',1,'Journey']]],
   ['walkingtime_5',['Walkingtime',['../class_journey.html#aa505e6396829578e1f40115c8ed2914b',1,'Journey']]],
   ['warnings_6',['warnings',['../struct_scene_diagnostic_counts.html#a7acf405632836eec12cf2dd7a0cb922c',1,'SceneDiagnosticCounts::warnings'],['../struct_track_preview_result.html#a2afbed622ec81e596169a0b912936d3d',1,'TrackPreviewResult::warnings']]],
-  ['width_7',['width',['../struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42',1,'TrackVisual::width'],['../struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620',1,'TrackStateVisual::width'],['../class_station_platform.html#abced6c849704079036f3c081cdcef95d',1,'StationPlatform::width']]],
+  ['width_7',['width',['../struct_figure_column.html#af64451c6a4a126691991ea7c8993656f',1,'FigureColumn::width'],['../struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42',1,'TrackVisual::width'],['../struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620',1,'TrackStateVisual::width'],['../class_station_platform.html#abced6c849704079036f3c081cdcef95d',1,'StationPlatform::width']]],
   ['widthm_8',['widthM',['../struct_scene_platform.html#aec2ff76b5264a4a135a37347f00c1732',1,'ScenePlatform']]],
   ['windowbroughttofront_9',['windowBroughtToFront',['../struct_main_window_test_hooks.html#a90f4af5176afe3a977103a031188a862',1,'MainWindowTestHooks']]],
   ['windowdestroyed_10',['windowDestroyed',['../struct_main_window_test_hooks.html#ad967c3a62bb701355d96f41adeb81a11',1,'MainWindowTestHooks']]],

@@ -56,6 +56,7 @@ var hierarchy =
     [ "telemetry::DiagnosticRecord", "structtelemetry_1_1_diagnostic_record.html", null ],
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
     [ "DispatchLive", "struct_dispatch_live.html", null ],
+    [ "FigureColumn", "struct_figure_column.html", null ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", null ],
     [ "FollowAvailability", "struct_follow_availability.html", null ],
     [ "FollowAvailabilityInput", "struct_follow_availability_input.html", null ],
@@ -261,6 +262,8 @@ var hierarchy =
       [ "ColorChoiceButton", "class_color_choice_button.html", null ],
       [ "ManualWindow", "class_manual_window.html", null ],
       [ "NetworkLegendWidget", "class_network_legend_widget.html", null ],
+      [ "ResultFrame", "class_result_frame.html", null ],
+      [ "ResultPanel", "class_result_panel.html", null ],
       [ "SceneEditorPanel", "class_scene_editor_panel.html", [
         [ "CaseSettingsPanel", "class_case_settings_panel.html", null ],
         [ "CompositionPanel", "class_composition_panel.html", null ],

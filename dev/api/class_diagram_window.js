@@ -3,6 +3,7 @@ var class_diagram_window =
     [ "DiagramWindow", "class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58", null ],
     [ "csvContent", "class_diagram_window.html#aeaf1a8a285ed78422cb00c04f7cc8a83", null ],
     [ "eventFilter", "class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a", null ],
+    [ "figureImage", "class_diagram_window.html#a66d6e64434954e6ba58990c584eef5b4", null ],
     [ "setBlockSections", "class_diagram_window.html#ae92dd3fc8e3084b289cb9ea8aa3ac000", null ],
     [ "setChart", "class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df", null ],
     [ "setColourKey", "class_diagram_window.html#a41015a50e26bb377d8bb556e2348ee7e", null ],

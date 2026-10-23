@@ -148,7 +148,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae92dd3fc8e3084b289cb9ea8aa3ac000" id="r_ae92dd3fc8e3084b289cb9ea8aa3ac000"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae92dd3fc8e3084b289cb9ea8aa3ac000">setBlockSections</a> (std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; sections, const QString &amp;referenceRouteId, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> *labels=nullptr)</td></tr>
 <tr class="memitem:a20f5084ae1945ad5ee9818d4958ef95a" id="r_a20f5084ae1945ad5ee9818d4958ef95a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20f5084ae1945ad5ee9818d4958ef95a">setStationAxis</a> (QCategoryAxis *axis, std::vector&lt; <a class="el" href="struct_station_tick.html">StationTick</a> &gt; stations)</td></tr>
 <tr class="memitem:aeaf1a8a285ed78422cb00c04f7cc8a83" id="r_aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aeaf1a8a285ed78422cb00c04f7cc8a83">csvContent</a> () const</td></tr>
-<tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that Export CSV writes, without opening a file dialog.  <br /></td></tr>
+<tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that the CSV export writes, without opening a file dialog.  <br /></td></tr>
+<tr class="memitem:a66d6e64434954e6ba58990c584eef5b4" id="r_a66d6e64434954e6ba58990c584eef5b4"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#a66d6e64434954e6ba58990c584eef5b4">figureImage</a> (const <a class="el" href="struct_figure_column.html">FigureColumn</a> &amp;column={}) const</td></tr>
 <tr class="memitem:a072ab92bbf800c9021108d0b1283078d" id="r_a072ab92bbf800c9021108d0b1283078d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a072ab92bbf800c9021108d0b1283078d">setProvenanceWriter</a> (std::function&lt; bool(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt; writer)</td></tr>
 <tr class="memitem:ada70cd96c57e022ae8e6bfd6c649f2d9" id="r_ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada70cd96c57e022ae8e6bfd6c649f2d9">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
@@ -156,10 +157,10 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:adf2416ba68c9e6bfd18c22e165864c1a" id="r_adf2416ba68c9e6bfd18c22e165864c1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adf2416ba68c9e6bfd18c22e165864c1a">eventFilter</a> (QObject *obj, QEvent *ev) override</td></tr>
-<tr class="memdesc:adf2416ba68c9e6bfd18c22e165864c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view.  <br /></td></tr>
+<tr class="memdesc:adf2416ba68c9e6bfd18c22e165864c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Reusable non-modal window that shows a chart with a train visibility dropdown, hover and click identification, rubber-band zoom with reset, PNG export, and optional CSV export.</p>
+<div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the train filter, the selected train, the exports and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
 <p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a02013e3da2fd785a63557a6f6db43d58" name="a02013e3da2fd785a63557a6f6db43d58"></a>
@@ -193,7 +194,7 @@ Protected Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="628" height="79"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="1556" height="2287"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -214,7 +215,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>The same provider/filter snapshot that Export CSV writes, without opening a file dialog. </p>
+<p>The same provider/filter snapshot that the CSV export writes, without opening a file dialog. </p>
 
 </div>
 </div>
@@ -245,7 +246,30 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view. </p>
+<p>Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. </p>
+
+</div>
+</div>
+<a id="a66d6e64434954e6ba58990c584eef5b4" name="a66d6e64434954e6ba58990c584eef5b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66d6e64434954e6ba58990c584eef5b4">&#9670;&#160;</a></span>figureImage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QImage DiagramWindow::figureImage </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_figure_column.html">FigureColumn</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>column</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The figure that the PNG export saves and Copy puts on the clipboard, at two image pixels per pixel of the window: the window title as its heading, the context below it, then the chart as the chart view shows it, without the rubber band, the tooltip or the readout, and <span class="tt">column</span> at the right of the chart. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a66d6e64434954e6ba58990c584eef5b4_cgraph.svg" width="450" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -290,7 +314,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. </p>
+<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -344,7 +368,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Supply raw source data for CSV export. The provider receives the ids of the trains currently visible so it can export only what the user is looking at. <span class="tt">trainIds</span> adds to the train filter the trains that have CSV rows but no plotted series. An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save names the file in the status bar of the main window that is the parent of this window. Export PNG suggests <span class="tt">suggestedFileName</span> with the suffix png, or diagram.png without a name. </p>
+<p>Supply raw source data for CSV export. The provider receives the ids of the trains currently visible so it can export only what the user is looking at. <span class="tt">trainIds</span> adds to the train filter the trains that have CSV rows but no plotted series. An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save names the file in the status bar of the main window that is the parent of this window. The PNG export suggests <span class="tt">suggestedFileName</span> with the suffix png, or diagram.png without a name. </p>
 
 </div>
 </div>
@@ -376,12 +400,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the window title to <span class="tt">heading</span> and shows <span class="tt">context</span> and <span class="tt">warning</span> in labels of their own; an empty text hides its label. The context label has <span class="tt">contextToolTip</span> as its tooltip, or the context itself when it is empty. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a60cb3e3e03a095be4ab508fa8697f55f_cgraph.svg" width="622" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>Sets the window title to <span class="tt">heading</span>, shows <span class="tt">context</span> in one line in the header, elided at the right, and <span class="tt">warning</span> in a label above the chart; an empty text hides its label. The tooltip of the context has the whole context, with <span class="tt">contextToolTip</span> on the lines below it when given. </p>
 
 </div>
 </div>

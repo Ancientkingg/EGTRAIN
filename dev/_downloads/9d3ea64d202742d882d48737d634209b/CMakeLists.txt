@@ -385,6 +385,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/PositionScale.cpp
+    ${SRC_DIR}/diagrams/ResultFrame.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
     ${SRC_DIR}/diagrams/RunExports.cpp

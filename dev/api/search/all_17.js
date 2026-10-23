@@ -21,7 +21,7 @@ var searchData=
   ['wholerun_18',['WholeRun',['../_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbfa4e75d4b3ca30edfba0370d59a6260b66',1,'ReplayCoverage.h']]],
   ['widgetstyle_2eh_19',['WidgetStyle.h',['../_widget_style_8h.html',1,'']]],
   ['widgetstylechosen_20',['widgetStyleChosen',['../_widget_style_8h.html#a402e3212deea5cf475cdbc282b777d06',1,'WidgetStyle.h']]],
-  ['width_21',['width',['../struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42',1,'TrackVisual::width'],['../struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620',1,'TrackStateVisual::width'],['../class_station_platform.html#abced6c849704079036f3c081cdcef95d',1,'StationPlatform::width']]],
+  ['width_21',['width',['../struct_figure_column.html#af64451c6a4a126691991ea7c8993656f',1,'FigureColumn::width'],['../struct_track_visual.html#a3cf0899f694cfc48bf6e1d10687bdb42',1,'TrackVisual::width'],['../struct_track_state_visual.html#ab44e05feeb0b8823e3eb398942de4620',1,'TrackStateVisual::width'],['../class_station_platform.html#abced6c849704079036f3c081cdcef95d',1,'StationPlatform::width']]],
   ['widthm_22',['widthM',['../struct_scene_platform.html#aec2ff76b5264a4a135a37347f00c1732',1,'ScenePlatform']]],
   ['window_23',['window',['../class_update_telemetry_controller.html#a138ffc7146cce2995fabc32ed6d61bfd',1,'UpdateTelemetryController']]],
   ['windowbroughttofront_24',['windowBroughtToFront',['../struct_main_window_test_hooks.html#a90f4af5176afe3a977103a031188a862',1,'MainWindowTestHooks']]],
