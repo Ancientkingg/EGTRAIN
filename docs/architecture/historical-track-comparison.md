@@ -64,7 +64,8 @@ requests that made the change, or the issue where none did.
   Caution and a short gray dash in the ring. The reference painted every head
   green, yellow or red and kept the colour for a code it did not know. Only a lit
   head, every state except the gray ring, has the hairline outline of the
-  reference. Heads in the preview before a run stay green.
+  reference; below 6 device pixels a lit or failed head is a disc in its lamp
+  colour without an outline. Heads in the preview before a run stay green.
 - Presentation scale (#422). Symbol sizes, text and offsets are converted from
   the historical construction units by the factor `k` described under
   [Measured presentation units](#measured-presentation-units).
@@ -130,7 +131,8 @@ not from the renderer, and are not on the list above.
 Normal Open now draws semantic track, connection, ordinary-node and station-node
 items before Run, using the same paint classes as prepared runtime. Preview and
 run draw the connections first and the track lines over them with the same pens,
-and a lit signal head has a hairline outline in both. Preview has canonical
+and a lit signal head has a hairline outline in both, or below 6 device pixels
+a disc in its lamp colour without one. Preview has canonical
 string identities and read-only inspectors, not native simulation objects.
 Preview and run draw the white platform bars of every platform outside the
 virtual stations; preview does not invent passenger counters. Inspection does

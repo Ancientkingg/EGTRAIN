@@ -47,7 +47,8 @@ public:
 	QRectF boundingRect() const override;
 
 	/// Draws the lamp and, when the head is at least 6 device pixels wide, the mark of a failed, Stop, Caution or
-	/// unavailable head; Proceed has no mark.
+	/// unavailable head; Proceed has no mark. A narrower lit or failed head is a disc in its lamp colour, 1.5 device
+	/// pixels wider than the head, without the outline of pen().
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	/// The index of the track line of the signal in the run; -1 in the preview.
