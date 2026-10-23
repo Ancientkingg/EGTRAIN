@@ -714,7 +714,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 				if (track && section.blocked && track->operationalState() != TrackOperationalState::Blocked)
 					return false;
 		}
-		return w.m_presenter->m_trainAnimations.isEmpty();
+		return !w.m_presenter->trainsMoving();
 	};
 	if (!coherent(expected)) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: middle replay incoherent\n");

@@ -2283,7 +2283,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		|| !m_presenter->allArcs.isEmpty() || !m_presenter->allSignals.isEmpty()
 		|| !m_presenter->allPlatforms.isEmpty() || !m_presenter->m_stationOverlays.isEmpty()
 		|| !m_presenter->m_stationDecorations.isEmpty() || !m_presenter->m_signalDecorations.isEmpty()
-		|| !m_presenter->m_vcMessageItems.isEmpty() || !m_presenter->m_trainAnimations.isEmpty()
+		|| !m_presenter->m_vcMessageItems.isEmpty() || m_presenter->trainsMoving()
 		|| !m_presenter->m_tracksBySectionId.empty() || !m_presenter->m_tracksByOccupiedArc.empty()
 		|| !m_presenter->m_activeTrackItems.empty();
 	if (hasRuntimeGraphics) {
@@ -3243,14 +3243,7 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 }
 
 TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
-	if (!scene)
-		return nullptr;
-	for (auto* item : scene->items()) {
-		auto* train = qgraphicsitem_cast<TrainItemGroup*>(item);
-		if (train && train->scene() == scene && train->index == trainIndex)
-			return train;
-	}
-	return nullptr;
+	return scene ? m_presenter->trainGroup(trainIndex) : nullptr;
 }
 
 bool MainWindow::replayTrainHasPosition(int trainIndex) const {
@@ -3329,7 +3322,7 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 void MainWindow::cutToFollowedTrain(const FollowAvailability& following) {
 	const TrainItemGroup* item = following.canAct ? resolveTrainItem(m_followTrainIndex) : nullptr;
 	if (item)
-		m_followCamera->follow(item->sceneBoundingRect().center(), true);
+		m_followCamera->follow(m_presenter->trainCenter(m_followTrainIndex), true);
 	else
 		m_followCamera->stop();
 }
@@ -4176,7 +4169,6 @@ void MainWindow::seekReplay(int requestedTime) {
 	m_presenter->removePaxInfoIcon();
 	m_presenter->paxIconItem = nullptr;
 	m_presenter->stopTrainAnimations();
-	m_presenter->m_prevTrainPositions.clear();
 	m_snapshot = frame;
 	{
 		const QSignalBlocker blocker(m_replaySlider);
@@ -4223,6 +4215,12 @@ bool MainWindow::trainPlaced(int trainIndex, const QPointF& center) {
 	return true;
 }
 
+// The view moves with each step of the motion of the followed train, in the same frame as the train.
+void MainWindow::trainMoved(int trainIndex, const QPointF& center) {
+	if (m_followTrainIndex == trainIndex && m_followCamera->hasTarget())
+		m_followCamera->follow(center, false);
+}
+
 void MainWindow::trainHidden(int trainIndex) {
 	if (m_followTrainIndex == trainIndex)
 		m_followCamera->stop();
@@ -4245,10 +4243,46 @@ void MainWindow::signalsApplied() {
 void MainWindow::trainsApplied(bool anyAdded, bool cameraMoved) {
 	if (anyAdded)
 		updateNetworkLegend();
-	// A move of the camera does not refresh the overlays, so the station of the followed train is refreshed here.
-	if (cameraMoved)
+	// A move of the camera does not refresh the overlays. A pan changes neither the overlays nor their names, which
+	// are placed in the scene and ranked without the position of the view, so they are refreshed only when the
+	// station nearest the followed train changes.
+	if (cameraMoved && followedStationChanged())
 		updateViewportOverlays();
 	updateFollowAvailability();
+}
+
+// The station nearest the followed train as it is drawn now, which updateViewportOverlays() marks as its station, or
+// null while no train is followed.
+const StationOverlayItem* MainWindow::followedStation() const {
+	const TrainItemGroup* train = m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
+			&& followAvailabilityOf(m_followTrainIndex).canAct
+		? resolveTrainItem(m_followTrainIndex)
+		: nullptr;
+	if (!train)
+		return nullptr;
+	const QPointF followedCenter = train->sceneBoundingRect().center();
+	const StationOverlayItem* nearest = nullptr;
+	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	for (const StationOverlayItem* overlay : m_presenter->m_stationOverlays) {
+		if (!overlay)
+			continue;
+		const QPointF delta = overlay->stableAnchor() - followedCenter;
+		const qreal distance = QPointF::dotProduct(delta, delta);
+		if (!nearest || distance < nearestDistance
+			|| (distance == nearestDistance && overlay->stationName() < nearest->stationName())) {
+			nearest = overlay;
+			nearestDistance = distance;
+		}
+	}
+	return nearest;
+}
+
+// Whether the stations that updateViewportOverlays() marks as the station of the followed train are not the station
+// nearest the train as it is drawn now.
+bool MainWindow::followedStationChanged() const {
+	const StationOverlayItem* nearest = followedStation();
+	return std::any_of(m_presenter->m_stationOverlays.cbegin(), m_presenter->m_stationOverlays.cend(),
+		[nearest](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed() != (overlay == nearest); });
 }
 
 // --- Zoom controls ---
@@ -4478,35 +4512,14 @@ bool MainWindow::isTrainOverlayPromoted(int trainIndex) const {
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
-	QPointF followedCenter;
-	bool hasFollowedCenter = false;
-	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0 && followAvailabilityOf(m_followTrainIndex).canAct) {
-		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
-			followedCenter = train->sceneBoundingRect().center();
-			hasFollowedCenter = true;
-		}
-	}
-	StationOverlayItem* nearestFollowed = nullptr;
-	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	const StationOverlayItem* nearestFollowed = followedStation();
 	for (auto* overlay : m_presenter->m_stationOverlays) {
 		if (!overlay)
 			continue;
 		overlay->setSelected(m_inspector->selectsStationOverlay(overlay));
 		overlay->setVisible(m_presenter->m_stationLayerVisible);
-		overlay->setFollowed(false);
-		if (!hasFollowedCenter)
-			continue;
-		const QPointF delta = overlay->stableAnchor() - followedCenter;
-		const qreal distance = QPointF::dotProduct(delta, delta);
-		if (!nearestFollowed || distance < nearestDistance
-			|| (distance == nearestDistance
-				&& overlay->stationName() < nearestFollowed->stationName())) {
-			nearestFollowed = overlay;
-			nearestDistance = distance;
-		}
+		overlay->setFollowed(overlay == nearestFollowed);
 	}
-	if (nearestFollowed)
-		nearestFollowed->setFollowed(true);
 	const qreal viewScale = std::abs(networkView->transform().m11());
 	if (m_presenter->effect)
 		m_presenter->effect->setViewScale(viewScale);

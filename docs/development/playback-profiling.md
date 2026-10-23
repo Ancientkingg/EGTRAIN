@@ -26,11 +26,11 @@ The recorded settings are Copenhagen, its default baseline scenario, passenger G
 
 Scene loading, native preparation, `setupGUI()`, `startSimulation()`, and waiting for the first visible train are outside the window. The requested view is applied before measurement. The first completed viewport paint after that view resets all aggregates and starts the monotonic window. At expiry, aggregates freeze before the worker is asked to stop. Records are emitted only after `simulationFinished` reaches the GUI thread.
 
-The profiler records these paths; animation is conditional, so a trial with no movement reports `gui/train_animation/value_changed` as an unobserved optional path while every other listed path remains mandatory.
+The profiler records these paths; the motion of the trains is conditional, so a trial in which no train moves reports `gui/train_motion/step` as an unobserved optional path while every other listed path remains mandatory.
 
 - Worker: `worker/playback_step/compute`; its direct children `passenger_entry_platform_refresh`, `train_movement`, `train_passenger_state_payload`, and `infrastructure_signalling_cleanup`; the `release_mixed_signalling` and `activate_mixed_signalling` children of `infrastructure_signalling_cleanup`; `worker/playback_step/snapshot_build_publish`; and its `build_gui_snapshot` and `mailbox_publish` children.
 - GUI: `gui/snapshot_delivery`, `timeline`, throttled `render_frame`, and its `signalling`, `train_position`, `platforms`, `passenger_icons`, and `train_passenger_info` children.
-- Animation: `gui/train_animation/value_changed`.
+- Train motion: `gui/train_motion/step`, one step of the trains that move between two updates, about once a frame.
 - Rendering: `render/viewport_paint` and `render/viewport_paint/background`.
 
 The worker compute scope starts after pause, stop, and step-delay handling and ends before snapshot publication. Its children are unconditional sequential scopes called once per compute step. `passenger_entry_platform_refresh` combines journey starts with the optional all-platform waiting-list refresh. `train_movement` covers trajectory calculation and per-train movement records. `train_passenger_state_payload` covers the train-passenger interaction. `infrastructure_signalling_cleanup` combines occupancy, failures, movement authorities, station protection, signalling activation and release, track unlocking, occupied-list cleanup, and operating-order detection. `release_mixed_signalling` covers `releaseMixedSignallingSystem()` and `activate_mixed_signalling` covers `activateMixedSignallingSystem()`. Both are unconditional scopes entered once per compute step, one after the other, and the self time of `infrastructure_signalling_cleanup` leaves them out.

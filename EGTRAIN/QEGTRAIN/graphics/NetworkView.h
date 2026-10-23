@@ -18,6 +18,7 @@
 #include <QDebug>
 #include <QScrollBar>
 #include <QElapsedTimer>
+#include <functional>
 #include <iostream>
 
 /// The view of the network canvas. Items have their positions and sizes in scene units. The view scale,
@@ -37,10 +38,20 @@ public:
 	void centerOn(const QPointF& scenePos);
 	/// Centres the view on the centre of the bounds of the item in the scene. Nothing happens for null.
 	void centerOn(QGraphicsItem* item);
+	/// Centres the view on a point in scene coordinates to a fraction of a pixel and emits viewportChanged() when the
+	/// centre moved. The scroll bars take the whole pixels and a translation of the transform the rest. An axis on
+	/// which the view cannot move that far, at the edge of the scene or with the whole scene in view, is centred to
+	/// the pixel as centerOn() does.
+	void centerOnExactly(const QPointF& scenePos);
 	/// Hands the press to QGraphicsView.
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
 	/// Hands the release to QGraphicsView and emits interactionFinished().
 	void mouseReleaseEvent(QMouseEvent* mouseEvent) override;
+	/// The user is moving the view: the left button, which drags the view, is held on it, or the last event of a scroll
+	/// or a pinch came less than interactionQuietMs ago.
+	bool interacting() const;
+	/// How long after the last event of a scroll or a pinch the view is no longer moved by the user, in milliseconds.
+	static constexpr int interactionQuietMs = 150;
 	/// Fits the view, as fitToBounds() does, to the ends of the track lines and connections in the scene.
 	void fitToTopology();
 	/// Fits the view to bounds in scene coordinates, with padding on each side of 24 logical pixels, or of an
@@ -84,6 +95,7 @@ private:
 	QRectF paintedTopologyBounds(bool* hasBounds) const;
 	void applyFit(const QRectF& bounds, bool hasBounds);
 	void centerOnScene(const QPointF& scenePos);
+	void moveCenter(const std::function<void()>& move);
 	qreal calculateFittedScale() const;
 	bool atFit() const;
 
@@ -94,6 +106,8 @@ private:
 	QPointF m_viewCenter;
 	bool m_hasViewCenter = false;
 	QElapsedTimer m_timingPaintTimer;
+	bool m_dragButtonHeld = false;
+	QElapsedTimer m_lastGesture;
 	QString m_timingPaintKind;
 	int m_timingPaintGeneration = -1;
 
@@ -106,6 +120,8 @@ signals:
 	void timingPaintCompleted(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	/// The playback profiler began its measurement after a paint.
 	void playbackProfileBegan();
+	/// The viewport has been painted.
+	void viewportPainted();
 };
 
 #endif // NETWORKVIEW_H

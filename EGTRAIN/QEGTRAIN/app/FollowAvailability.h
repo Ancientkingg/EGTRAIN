@@ -12,9 +12,9 @@
 // The window asks this unit whether the control is offered (controlEnabled), whether Follow
 // can be switched on for the train (canArm), whether it has to be switched off (switchOff),
 // whether the view and the station emphasis follow the train (canAct), whether the view
-// glides to the train or cuts to it (glide) and which text is shown (entryText, statusClause,
-// statusText). The status bar shows the one clause; the tooltips hold the whole explanation,
-// which is true whether Follow is on or off.
+// moves with the glide of the train or cuts to it (glide) and which text is shown (entryText,
+// statusClause, statusText). The status bar shows the one clause; the tooltips hold the whole
+// explanation, which is true whether Follow is on or off.
 
 /// Where the selected train stands, as far as Follow is concerned.
 enum class FollowPhase {
@@ -71,8 +71,8 @@ struct FollowAvailability {
 	bool switchOff = false;
 	/// Follow is on and the view moves to the train now.
 	bool canAct = false;
-	/// The view glides to the train. A live run delivers a position every step, so the view can
-	/// move between them. A replay holds a frame every few seconds, so the view cuts to the train.
+	/// The view moves with the train as it glides between the steps of a live run. A replay holds a
+	/// frame every few seconds and its trains do not glide, so the view cuts to the train.
 	bool glide = false;
 };
 

@@ -97,7 +97,6 @@ static void fill(NetworkPresenter& presenter, QGraphicsScene& scene) {
 	auto* badge = new TrainBadgeItem;
 	scene.addItem(badge);
 	presenter.m_trainBadges.insert(0, badge);
-	presenter.m_prevTrainPositions.insert(0, QPointF(1, 2));
 
 	auto* signal = new SignalItem(QRectF(0, 0, 4, 4));
 	scene.addItem(signal);
@@ -233,12 +232,11 @@ static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int c
 }
 
 static bool registriesEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
-		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
-		&& presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty() && presenter.m_tracksByOccupiedArc.empty()
-		&& presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty()
-		&& presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty() && presenter.m_stationPictures.isEmpty()
-		&& presenter.m_vcMessageItems.isEmpty();
+	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.allSignals.isEmpty()
+		&& presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty()
+		&& presenter.m_tracksBySectionId.empty() && presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty()
+		&& presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty()
+		&& presenter.m_stationLabels.isEmpty() && presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty();
 }
 
 static bool pointersNull(const NetworkPresenter& presenter) {
@@ -280,7 +278,7 @@ int main(int argc, char* argv[]) {
 	}
 	{
 		NetworkPresenter presenter(nullptr, nullptr);
-		presenter.m_prevTrainPositions.insert(0, QPointF());
+		presenter.m_trainBadges.insert(0, nullptr);
 		presenter.clear();
 		ok &= expect(registriesEmpty(presenter), "clear works without a scene");
 	}

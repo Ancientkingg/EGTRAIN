@@ -40,7 +40,7 @@ PATHS = {
     "gui/snapshot_delivery/render_frame/platforms",
     "gui/snapshot_delivery/render_frame/passenger_icons",
     "gui/snapshot_delivery/render_frame/train_passenger_info",
-    "gui/train_animation/value_changed",
+    "gui/train_motion/step",
     "render/viewport_paint",
     "render/viewport_paint/background",
 }
@@ -61,7 +61,7 @@ PARENTS = {
     "gui/snapshot_delivery/render_frame/platforms": ("gui", "gui/snapshot_delivery/render_frame"),
     "gui/snapshot_delivery/render_frame/passenger_icons": ("gui", "gui/snapshot_delivery/render_frame"),
     "gui/snapshot_delivery/render_frame/train_passenger_info": ("gui", "gui/snapshot_delivery/render_frame"),
-    "gui/train_animation/value_changed": ("gui", ""),
+    "gui/train_motion/step": ("gui", ""),
     "render/viewport_paint": ("render", ""),
     "render/viewport_paint/background": ("render", "render/viewport_paint"),
 }
@@ -91,7 +91,7 @@ INTEGER_KEYS = {
 BOOLEAN_KEYS = {"passenger_gui", "clean_stop"}
 FLOAT_KEYS = {"target_zoom", "actual_zoom"}
 STRING_KEYS = (RUN_KEYS | AGGREGATE_KEYS | COMPLETION_KEYS) - INTEGER_KEYS - BOOLEAN_KEYS - FLOAT_KEYS
-OPTIONAL_PATHS = {"gui/train_animation/value_changed"}
+OPTIONAL_PATHS = {"gui/train_motion/step"}
 MANDATORY_PATHS = PATHS - OPTIONAL_PATHS
 
 

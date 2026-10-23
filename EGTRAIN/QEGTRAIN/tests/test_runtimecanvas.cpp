@@ -4,6 +4,7 @@
 #include "graphics/NetworkPresenter.h"
 
 #include "app/GuiSimulationSnapshot.h"
+#include "graphics/NetworkView.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
@@ -16,9 +17,11 @@
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "scene/TrackPreview.h"
 #include "simulation/Signalling.h"
 
 #include <QApplication>
+#include <QEventLoop>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -27,11 +30,13 @@
 #include <QMap>
 #include <QObject>
 #include <QPixmap>
+#include <QTimer>
 #include <QtMath>
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -79,6 +84,8 @@ public:
 		m_sections[1].length = 5000.0;
 		m_sections[0].total_arcs = 0;
 		m_sections[1].total_arcs = 0;
+		m_sections[0].GeoXBegNode = 0.0;
+		m_sections[1].GeoXBegNode = 5000.0;
 
 		m_route.N_Block_Sections = 2;
 		m_route.sequence_of_block_sections = m_sections;
@@ -93,6 +100,34 @@ public:
 	}
 
 	bool passengers = false;
+
+	// Makes the line two parallel tracks, the scene tracks T and U, with a crossover from T at 4 km to U at 6 km, and the
+	// route one from the start of T to the end of U over it, in the sections that the simulation makes of it: on T up to
+	// 3 km, the section derived at the switch from 3 to 7 km, and on U. The positions along the route are its X.
+	void makeCrossover() {
+		m_tracks.resize(2);
+		m_tracks[0].sceneTrackId = "T";
+		m_tracks[1] = m_tracks[0];
+		m_tracks[1].sceneTrackId = "U";
+		m_tracks[1].member[1].endNode.stationName.clear();
+		m_tracks[1].member[1].endNode.stationPlatformId.clear();
+		m_sections.resize(3);
+		const auto section = [this](std::size_t index, const char* id, int track, double fromKm, double toKm) {
+			Section& made = m_sections[index];
+			made.ID = id;
+			made.trackLineId = track;
+			made.start_node.X = fromKm;
+			made.end_node.X = toKm;
+			made.length = (toKm - fromKm) * 1000.0;
+			made.total_arcs = 0;
+			made.GeoXBegNode = fromKm * 1000.0;
+		};
+		section(0, "@1-s0@", 0, 0.0, 3.0);
+		section(1, "@1-s0@-4.000/@2-u1@-6.000", -1, 3.0, 7.0);
+		section(2, "@2-u1@", 1, 7.0, 10.0);
+		m_route.N_Block_Sections = 3;
+		m_route.sequence_of_block_sections = m_sections;
+	}
 
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
 	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
@@ -154,19 +189,91 @@ static bool bodyAt(const NetworkPresenter& presenter, double headKm) {
 		&& near(polygon[3].x(), head) && near(polygon[3].y(), -half);
 }
 
-// Records what apply() asks of its host, in order.
+// The middle of the first body of a train as it is drawn, in scene coordinates.
+static QPointF drawnMiddle(const TrainItemGroup& train) {
+	const TrainBodyItem* body = train.trainPolygonItemList->at(0);
+	return body->mapToScene(body->polygon().boundingRect().center());
+}
+
+// A train of wagons of 100 m each with its head at headKm, on a route whose positions are its X.
+static GuiTrainState trainOfWagons(int wagons, double headKm) {
+	GuiTrainState train = trainAt(headKm);
+	train.wagonCount = wagons - 1;
+	train.length = 100.0 * wagons;
+	train.wagonHeadPositions.clear();
+	train.wagonTailPositions.clear();
+	for (int wagon = 0; wagon < wagons; ++wagon) {
+		train.wagonHeadPositions.push_back(headKm - 0.1 * wagon);
+		train.wagonTailPositions.push_back(headKm - 0.1 * (wagon + 1));
+	}
+	return train;
+}
+
+// The middle of the front of the first body of a train, where its head is drawn, in scene coordinates.
+static QPointF drawnFront(const TrainItemGroup& train) {
+	const TrainBodyItem* body = train.trainPolygonItemList->at(0);
+	const QPolygonF polygon = body->polygon();
+	return polygon.isEmpty() ? QPointF() : body->mapToScene((polygon.first() + polygon.last()) / 2);
+}
+
+// The drawn line of a track of the preview, segment by segment.
+static std::vector<QLineF> segmentsOf(const TrackPreviewLine& line) {
+	std::vector<QLineF> segments;
+	for (std::size_t i = 1; i < line.points.size(); ++i)
+		segments.emplace_back(line.points[i - 1].x, line.points[i - 1].y + line.displayOffset, line.points[i].x,
+			line.points[i].y + line.displayOffset);
+	return segments;
+}
+
+// The point of the drawn line of a track of the preview at X in kilometres.
+static QPointF linePointAt(const TrackPreviewLine& line, double xKm) {
+	TrackPreviewPoint point;
+	trackPreviewPointAtX(line, xKm, point);
+	return QPointF(point.x, point.y + line.displayOffset);
+}
+
+// The distance from a point to the nearest of the segments of a line.
+static qreal distanceTo(const std::vector<QLineF>& segments, const QPointF& point) {
+	qreal nearest = std::numeric_limits<qreal>::max();
+	for (const QLineF& segment : segments) {
+		const QPointF along = segment.p2() - segment.p1();
+		const qreal squared = QPointF::dotProduct(along, along);
+		const qreal t = squared > 0.0 ? std::clamp(QPointF::dotProduct(point - segment.p1(), along) / squared, 0.0, 1.0) : 0.0;
+		nearest = std::min(nearest, QLineF(point, segment.p1() + along * t).length());
+	}
+	return nearest;
+}
+
+// The distance from the line to the corner of a body of the train that is furthest from it; the largest distance when
+// a body has no shape.
+static qreal farthestCorner(const TrainItemGroup& train, const std::vector<QLineF>& segments) {
+	qreal farthest = 0.0;
+	for (const TrainBodyItem* body : *train.trainPolygonItemList) {
+		if (body->polygon().isEmpty())
+			return std::numeric_limits<qreal>::max();
+		for (const QPointF& corner : body->polygon())
+			farthest = std::max(farthest, distanceTo(segments, body->mapToScene(corner)));
+	}
+	return farthest;
+}
+
+// Records what apply() asks of its host, in order, and apart from that where the steps of a glide draw a train.
 class RecordingHost final : public NetworkPresenter::FrameHost {
 public:
 	std::vector<std::string> calls;
+	std::vector<QPointF> moves;
+	QPointF placedAt;
 	bool promoted = false;
 	bool cameraMoves = false;
 
 	bool isTrainOverlayPromoted(int) const override { return promoted; }
 	void trainWillUpdate(int train) override { calls.push_back("willUpdate " + std::to_string(train)); }
-	bool trainPlaced(int train, const QPointF&) override {
+	bool trainPlaced(int train, const QPointF& center) override {
 		calls.push_back("placed " + std::to_string(train));
+		placedAt = center;
 		return cameraMoves;
 	}
+	void trainMoved(int, const QPointF& center) override { moves.push_back(center); }
 	void trainHidden(int train) override { calls.push_back("hidden " + std::to_string(train)); }
 	bool trainAdded(int train, bool firstLiveTrain) override {
 		calls.push_back("added " + std::to_string(train) + (firstLiveTrain ? " first" : ""));
@@ -285,9 +392,9 @@ using Ids = std::vector<std::string>;
 
 // Whether the presenter holds no item and points to none, the way a new presenter does.
 static bool presenterEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
-		&& presenter.m_trainAnimations.isEmpty() && presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty()
-		&& presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
+	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && !presenter.trainsMoving()
+		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
+		&& presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
 		&& presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty()
 		&& presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty()
 		&& presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty() && !presenter.m_inspectedSignal
@@ -383,12 +490,14 @@ int main(int argc, char* argv[]) {
 		middle.stationPlatformId.clear();
 	}
 
-	// apply() shows the steps of a run on the items that showRuntime drew.
+	// apply() shows the steps of a run on the items that showRuntime drew, on the clock of the test.
 	{
 		source->passengers = true;
 		presenter.showRuntime(model);
 		RecordingHost host;
 		presenter.setFrameHost(&host);
+		qint64 now = 0;
+		presenter.setClock([&now]() { return now; });
 		SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
 		TrackLineItem* const track = presenter.m_tracksByOccupiedArc.at({0, 0.0});
 		PlatformItem* const platform = presenter.allPlatforms.value(0);
@@ -449,10 +558,10 @@ int main(int argc, char* argv[]) {
 		snapshot.virtualCouplingMessages = {GuiVirtualCouplingState{11, "T1", "message"}};
 		host.promoted = true;
 		host.cameraMoves = true;
+		now = 100;
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "placed 0", "trains moved"}),
 			"a train on the canvas is placed, and the host hears whether the camera moved");
-		ok &= expect(bodyAt(presenter, 8.0), "the body follows the train");
 		ok &= expect(head->aspectCode() == kGuiSignalUnavailable, "a head keeps no earlier aspect");
 		ok &= expect(track->operationalState() == TrackOperationalState::Free, "a track that is no longer occupied is free again");
 		ok &= expect(platform->passengerIcons.size() == 1 && platformText() == "Pax on platform: 1\nMax pax volume: 40",
@@ -467,14 +576,35 @@ int main(int argc, char* argv[]) {
 			"the message of a virtual coupling is stacked over the train and its speed and under the station names");
 		ok &= expect(presenter.m_trainBadges.value(0) && presenter.m_trainBadges.value(0)->isPromoted(),
 			"the host decides whether the badge of a train is promoted");
-		ok &= expect(!presenter.m_trainAnimations.isEmpty(), "a live train glides to its new place");
+		ok &= expect(presenter.trainMoving(0) && bodyAt(presenter, 7.5), "a live train glides to its new place, from where it was drawn");
+		// The badge goes to the centre of the train and the callouts to its front, as it is drawn at each step.
+		presenter.paintTrainPassengerInfo(presenter.allTrains[0]);
+		const auto onTrain = [&presenter](double headKm) {
+			const auto at = [](const QGraphicsItem* item, const QPointF& point) {
+				return item && QLineF(item->pos(), point).length() < 1e-6;
+			};
+			const QPointF front(headKm * 1000.0, 0.0);
+			return bodyAt(presenter, headKm) && at(presenter.m_trainBadges.value(0), presenter.allTrains[0]->sceneBoundingRect().center())
+				&& at(presenter.m_vcMessageItems.value(0), front) && at(presenter.trainPaxInfoItem, front);
+		};
+		bool withTrain = onTrain(7.5);
+		// half way through the glide of 150 ms, one and a half times the interval between the two updates
+		now += 75;
+		presenter.stepTrains();
+		withTrain &= onTrain(7.75) && presenter.trainMoving(0);
+		now += 75;
+		presenter.stepTrains();
+		withTrain &= onTrain(8.0) && !presenter.trainMoving(0);
+		ok &= expect(withTrain, "the badge, the message of a virtual coupling and the passengers on board move with the train");
+		presenter.removeTrainPaxInfoIcon();
+		presenter.trainPaxItem = nullptr;
 
 		snapshot.timestep = 12;
 		snapshot.trains = {trainAt(8.5)};
 		snapshot.virtualCouplingMessages.clear();
 		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
 		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "placed 0", "trains moved"}), "a replay step reports the same calls");
-		ok &= expect(presenter.m_trainAnimations.isEmpty() && bodyAt(presenter, 8.5), "a replay step places the train without gliding");
+		ok &= expect(!presenter.trainsMoving() && bodyAt(presenter, 8.5), "a replay step places the train without gliding");
 		ok &= expect(presenter.m_vcMessageItems.contains(0) && !presenter.m_vcMessageItems[0]->isVisible(),
 			"a message that the step does not carry is hidden");
 
@@ -489,8 +619,13 @@ int main(int argc, char* argv[]) {
 		ok &= expect(host.take().empty() && presenter.allTrains[0]->isVisible() && bodyAt(presenter, 7.5),
 			"a presenter without a host still shows the step");
 
+		snapshot.trains = {trainAt(8.0)};
+		now += 100;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(presenter.trainsMoving(), "the train glides on to its next place");
 		presenter.clear();
-		ok &= expect(presenter.m_trainAnimations.isEmpty() && scene.items().isEmpty(), "clear stops the movement of the trains");
+		ok &= expect(!presenter.trainsMoving() && scene.items().isEmpty(), "clear stops the motion of the trains");
+		presenter.setClock({});
 	}
 
 	// A step that changes nothing leaves the canvas as it is, and a step that changes a little touches only what it changes.
@@ -614,6 +749,472 @@ int main(int argc, char* argv[]) {
 		ok &= expect(scene.items().isEmpty(), "clear leaves nothing of the run");
 	}
 
+	// A live train glides along the drawn line of its track from where it is drawn, and every step draws it wagon by
+	// wagon where it is then, so every corner of every body stays on the line around a bend too. The host hears where it
+	// is drawn at every step.
+	{
+		QGraphicsScene bentScene;
+		NetworkView bentView;
+		bentView.setScene(&bentScene);
+		bentView.resize(400, 300);
+		NetworkPresenter bent(&bentScene, &bentView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->track(0).sceneTrackId = "T";
+		bent.setGeometrySource(std::move(geometry));
+		SceneModel bentModel;
+		bentModel.tracks = {{"T"}};
+		bentModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 4.8, 2.0}, {"T.c", "T", 10.0, 0.0}};
+		bentModel.arcs = {{"T.arc.1", "T", "T.a", "T.b", 0.0, 0.0, 12.0}, {"T.arc.2", "T", "T.b", "T.c", 0.0, 0.0, 12.0}};
+		bentModel.blocks = {{"s0", "T", 5.0}, {"s1", "T", 5.0}};
+		// The run draws the track with the line of the preview.
+		bent.showPreview(bentModel);
+		bent.showRuntime(bentModel);
+		bentView.fitToBounds(bentScene.itemsBoundingRect());
+		RecordingHost host;
+		host.promoted = true;
+		bent.setFrameHost(&host);
+		qint64 now = 0;
+		bent.setClock([&now]() { return now; });
+		const TrackPreviewLine* const line = bent.trackLine("T");
+		const auto turn = [line]() {
+			const QLineF first(line->points[0].x, line->points[0].y, line->points[1].x, line->points[1].y);
+			const QLineF second(line->points[1].x, line->points[1].y, line->points[2].x, line->points[2].y);
+			return first.angleTo(second);
+		};
+		ok &= expect(line && line->points.size() == 3 && turn() > 20.0 && turn() < 340.0, "the line of the track bends at its middle node");
+		// half the width of a body, and a hundredth of it
+		const qreal half = 0.10 * bent.track_separation * bent.presentationScale();
+		const qreal close = 0.01 * half;
+
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		const auto deliver = [&](double headKm) {
+			snapshot.timestep += 1;
+			snapshot.trains = {trainOfWagons(3, headKm)};
+			bent.apply(snapshot, NetworkPresenter::Playback::Live);
+		};
+		deliver(4.5);
+		TrainItemGroup* const train = bent.trainGroup(0);
+		ok &= expect(train && train->isVisible() && train->trainPolygonItemList->size() == 3 && line,
+			"the train of three wagons is drawn on the bent line");
+		if (train && line) {
+			const std::vector<QLineF> drawnLine = segmentsOf(*line);
+			// The furthest that a corner of a body gets from the line, whether the host heard the centre of the train as it
+			// is drawn and on the line, and whether every step moved the train.
+			qreal farthest = 0.0;
+			bool heard = true;
+			bool everyStep = true;
+			const auto stepBy = [&](qint64 ms) {
+				now += ms;
+				const QPointF before = bent.trainCenter(0);
+				host.moves.clear();
+				bent.stepTrains();
+				farthest = std::max(farthest, farthestCorner(*train, drawnLine));
+				const QPointF center = bent.trainCenter(0);
+				heard &= host.moves.size() == 1 && QLineF(host.moves.back(), center).length() <= close
+					&& distanceTo(drawnLine, center) <= close;
+				everyStep &= QLineF(center, before).length() > close;
+			};
+			const auto headAt = [&](double headKm) { return QLineF(drawnFront(*train), linePointAt(*line, headKm)).length() <= close; };
+
+			// The glide from 4.5 km to 5.7 km lasts one and a half update intervals, 375 ms, at an even speed, and starts
+			// where the train is drawn. Its first 150 ms take the head around the bend at 4.8 km.
+			now = 250;
+			deliver(5.7);
+			ok &= expect(bent.trainMoving(0) && headAt(4.5) && QLineF(host.placedAt, bent.trainCenter(0)).length() <= close
+					&& distanceTo(drawnLine, host.placedAt) <= close,
+				"the glide starts where the train is drawn, and the host hears that place");
+			bool even = true;
+			for (int ms = 5; ms <= 150; ms += 5) {
+				stepBy(5);
+				even &= headAt(4.5 + 1.2 * ms / 375.0);
+			}
+			ok &= expect(even, "the head of a gliding train moves along the line at an even speed");
+
+			// An update 150 ms after the last one, during the glide, starts the next glide where the train is drawn. Of the
+			// intervals of 250 and 150 ms the glide takes one and a half times the shorter one, 225 ms.
+			now = 400;
+			deliver(6.3);
+			ok &= expect(headAt(4.5 + 1.2 * 150.0 / 375.0), "a new update during a glide continues from where the train is drawn");
+			for (int ms = 5; ms <= 220; ms += 5)
+				stepBy(5);
+			const bool onItsWay = bent.trainMoving(0);
+			stepBy(5);
+			ok &= expect(onItsWay && !bent.trainMoving(0) && headAt(6.3), "the next glide lasts 225 ms and ends at the new place");
+			ok &= expect(farthest <= half + close, "every corner of every body stays on the drawn line at every step around the bend");
+			ok &= expect(heard, "the host hears the centre of the train as it is drawn, on the line, at every step");
+			ok &= expect(everyStep, "every step of a glide moves the train");
+
+			// Updates every 40 ms, as at Fastest. Once the longer intervals are no longer among the last eight but one, a
+			// glide lasts 60 ms, so every update finds the train on its way and every step moves it.
+			double head = 6.3;
+			bool eachUpdate = true;
+			for (int update = 0; update < 12; ++update) {
+				now += 10;
+				if (update > 0)
+					eachUpdate &= bent.trainMoving(0);
+				head += 0.1;
+				deliver(head);
+				for (int step = 0; step < 3; ++step)
+					stepBy(10);
+			}
+			now += 20;
+			bent.stepTrains();
+			eachUpdate &= bent.trainMoving(0);
+			now += 10;
+			bent.stepTrains();
+			ok &= expect(eachUpdate && everyStep && !bent.trainMoving(0) && headAt(head),
+				"at updates every 40 ms the train moves at every step, and a glide lasts 60 ms");
+
+			// A pause is not an update interval.
+			now += 3000;
+			head += 0.1;
+			deliver(head);
+			now += 59;
+			bent.stepTrains();
+			const bool beforeEnd = bent.trainMoving(0);
+			now += 1;
+			bent.stepTrains();
+			ok &= expect(beforeEnd && !bent.trainMoving(0), "the update after a pause glides as long as the ones before");
+
+			// An event loop too busy to run the steps does not hold the train back: the next update draws it where its
+			// glide is by the clock, two thirds of the way.
+			const double standing = head;
+			now += 40;
+			head += 0.1;
+			deliver(head);
+			now += 40;
+			deliver(head + 0.1);
+			ok &= expect(headAt(standing + 0.1 * 40.0 / 60.0) && QLineF(host.placedAt, bent.trainCenter(0)).length() <= close,
+				"an update after steps that did not run draws the train where its glide is by the clock");
+			head += 0.1;
+
+			// A train that runs backwards, and one that jumps further than the visible view, is placed at once.
+			now += 40;
+			deliver(head - 0.1);
+			ok &= expect(!bent.trainMoving(0) && headAt(head - 0.1), "a train that moves backwards is placed at once");
+			bentView.zoomBy(40.0);
+			now += 40;
+			deliver(head + 0.9);
+			ok &= expect(!bent.trainMoving(0) && headAt(head + 0.9), "a train that jumps further than the visible view is placed at once");
+
+			// The trains are drawn for the time at which the paint that shows them ends: after a step as long after it as
+			// the last paints after a step took, and after an update as long as the last paints after an update took.
+			// Here the paint after the update takes 10 ms, and the paints after a step 3 and 5 ms.
+			head += 0.9;
+			now += 40;
+			deliver(head + 0.1);
+			now += 10;
+			emit bentView.viewportPainted();
+			now += 5;
+			bent.stepTrains();
+			const bool firstStep = headAt(head + 0.1 * 15.0 / 60.0);
+			now += 3;
+			emit bentView.viewportPainted();
+			now += 7;
+			bent.stepTrains();
+			ok &= expect(firstStep && headAt(head + 0.1 * 28.0 / 60.0),
+				"a step draws the train where it is when the paint after a step ends, by the last of those paints");
+			now += 5;
+			emit bentView.viewportPainted();
+			now += 10;
+			deliver(head + 0.2);
+			ok &= expect(headAt(head + 0.1 * 50.0 / 60.0),
+				"an update draws the train where it is when the paint after an update ends, by the last of those paints");
+		}
+		bent.setFrameHost(nullptr);
+		bent.setClock({});
+	}
+
+	// Through a crossover from one track to another every step draws the train where it is too, and every corner of every
+	// body stays on the line it runs on: the first track up to the switch, the connection and the second track after it.
+	{
+		QGraphicsScene crossScene;
+		NetworkView crossView;
+		crossView.setScene(&crossScene);
+		crossView.resize(400, 300);
+		NetworkPresenter cross(&crossScene, &crossView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->makeCrossover();
+		cross.setGeometrySource(std::move(geometry));
+		SceneModel crossModel;
+		crossModel.tracks = {{"T"}, {"U"}};
+		crossModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 10.0, 0.0}, {"U.a", "U", 0.0, 1.0}, {"U.b", "U", 10.0, 1.0}};
+		crossModel.arcs = {{"T.arc", "T", "T.a", "T.b", 0.0, 0.0, 12.0}, {"U.arc", "U", "U.a", "U.b", 0.0, 0.0, 12.0}};
+		cross.showPreview(crossModel);
+		cross.showRuntime(crossModel);
+		crossView.fitToBounds(crossScene.itemsBoundingRect());
+		RecordingHost host;
+		host.promoted = true;
+		cross.setFrameHost(&host);
+		qint64 now = 0;
+		cross.setClock([&now]() { return now; });
+		const TrackPreviewLine* const first = cross.trackLine("T");
+		const TrackPreviewLine* const second = cross.trackLine("U");
+		const qreal half = 0.10 * cross.track_separation * cross.presentationScale();
+		const qreal close = 0.01 * half;
+		ok &= expect(first && second && QLineF(linePointAt(*first, 5.0), linePointAt(*second, 5.0)).length() > 20.0 * half,
+			"the two tracks of the crossover are drawn apart");
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.trains = {trainOfWagons(3, 3.2)};
+		cross.apply(snapshot, NetworkPresenter::Playback::Live);
+		TrainItemGroup* const train = cross.trainGroup(0);
+		ok &= expect(train && train->isVisible() && train->trainPolygonItemList->size() == 3, "the train of three wagons is drawn on the first track");
+		if (first && second && train) {
+			std::vector<QLineF> runsOn = segmentsOf(*first);
+			for (const QLineF& segment : segmentsOf(*second))
+				runsOn.push_back(segment);
+			runsOn.emplace_back(linePointAt(*first, 4.0), linePointAt(*second, 6.0));
+			qreal farthest = farthestCorner(*train, runsOn);
+			bool centred = true;
+			// Updates every 250 ms, 1.2 km apart, take the train from 3.2 km, on the first track, to 8 km, on the second.
+			for (int update = 1; update <= 4; ++update) {
+				for (int ms = 5; ms <= 250; ms += 5) {
+					now += 5;
+					if (ms == 250) {
+						snapshot.timestep += 1;
+						snapshot.trains = {trainOfWagons(3, 3.2 + 1.2 * update)};
+						cross.apply(snapshot, NetworkPresenter::Playback::Live);
+					} else {
+						cross.stepTrains();
+					}
+					farthest = std::max(farthest, farthestCorner(*train, runsOn));
+					centred &= distanceTo(runsOn, cross.trainCenter(0)) <= close;
+				}
+			}
+			while (cross.trainMoving(0)) {
+				now += 5;
+				cross.stepTrains();
+				farthest = std::max(farthest, farthestCorner(*train, runsOn));
+				centred &= distanceTo(runsOn, cross.trainCenter(0)) <= close;
+			}
+			ok &= expect(QLineF(drawnFront(*train), linePointAt(*second, 8.0)).length() <= close,
+				"the train runs over the crossover to its place on the second track");
+			ok &= expect(farthest <= half + close, "every corner of every body stays on the line through the crossover at every step");
+			ok &= expect(centred, "the centre of the train stays on the line through the crossover");
+		}
+		cross.setFrameHost(nullptr);
+		cross.setClock({});
+	}
+
+	// A train that the host does not follow is drawn again at a step only while it is near the visible scene, within as
+	// far again on every side.
+	{
+		QGraphicsScene farScene;
+		NetworkView farView;
+		farView.setScene(&farScene);
+		farView.resize(400, 300);
+		// The view is laid out, and no event loop runs, so no paint changes the clock of the trains.
+		farView.show();
+		NetworkPresenter far(&farScene, &farView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->track(0).sceneTrackId = "T";
+		far.setGeometrySource(std::move(geometry));
+		SceneModel farModel;
+		farModel.tracks = {{"T"}};
+		farModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 10.0, 0.0}};
+		farModel.arcs = {{"T.arc", "T", "T.a", "T.b", 0.0, 0.0, 12.0}};
+		far.showPreview(farModel);
+		far.showRuntime(farModel);
+		farView.fitToBounds(farScene.itemsBoundingRect());
+		RecordingHost host;
+		far.setFrameHost(&host);
+		qint64 now = 0;
+		far.setClock([&now]() { return now; });
+		const TrackPreviewLine* const line = far.trackLine("T");
+		const qreal close = 0.001 * far.track_separation * far.presentationScale();
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		const auto deliver = [&](double headKm) {
+			snapshot.timestep += 1;
+			snapshot.trains = {trainOfWagons(3, headKm)};
+			far.apply(snapshot, NetworkPresenter::Playback::Live);
+		};
+		// a glide of 150 ms from 4.5 km to 4.8 km
+		deliver(4.5);
+		now = 100;
+		deliver(4.8);
+		TrainItemGroup* const train = far.trainGroup(0);
+		ok &= expect(line && train && far.trainMoving(0), "the train that is not followed glides");
+		if (line && train) {
+			// The view shows about 0.5 km around 0.5 km.
+			farView.zoomBy(20.0);
+			farView.centerOnExactly(linePointAt(*line, 0.5));
+			const QPointF before = drawnFront(*train);
+			now += 50;
+			far.stepTrains();
+			ok &= expect(QLineF(drawnFront(*train), before).length() <= close && far.trainMoving(0),
+				"a step does not draw a train far outside the visible scene again");
+			farView.centerOnExactly(linePointAt(*line, 4.6));
+			now += 25;
+			far.stepTrains();
+			ok &= expect(QLineF(drawnFront(*train), linePointAt(*line, 4.65)).length() <= close,
+				"a step draws it where it is by the clock once it is near the visible scene");
+		}
+		far.setFrameHost(nullptr);
+		far.setClock({});
+	}
+
+	// The motion of a live train across updates, on the clock of the test, which runs the steps by hand. The track of
+	// this source runs along x in metres.
+	{
+		source->passengers = false;
+		source->track(0).member[0].endNode.stationName.clear();
+		source->track(0).member[0].endNode.stationPlatformId.clear();
+		qint64 now = 0;
+		presenter.setClock([&now]() { return now; });
+		GuiSimulationSnapshot snapshot;
+		const auto restart = [&]() {
+			presenter.clear();
+			presenter.showRuntime(model);
+			now = 0;
+			snapshot.timestep = 0;
+		};
+		// Delivers the train with its head at headKm. The tail of a train that is still entering its route has no
+		// position, as in a run.
+		const auto update = [&](double headKm) {
+			GuiTrainState state = trainAt(headKm);
+			if (headKm < 0.1)
+				state.wagonTailPositions = {-1.0};
+			snapshot.timestep += 1;
+			snapshot.trains = {state};
+			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		};
+		const auto drawnHead = [&presenter]() {
+			const TrainBodyItem* body = presenter.allTrains[0]->trainPolygonItemList->at(0);
+			return body->mapToScene(body->polygon().first()).x();
+		};
+
+		// A train enters at the start of its route, at 0 km, and runs 20 m in every update of 100 ms. Its middle reaches
+		// the start of the route between the second and the third update, and its tail at the fifth. Until then only
+		// its head is drawn.
+		restart();
+		update(0.0);
+		bool glides = true;
+		bool headSteady = true;
+		bool centreOnward = true;
+		double centre = presenter.trainCenter(0).x();
+		const auto centreMovesOn = [&]() {
+			const double next = presenter.trainCenter(0).x();
+			centreOnward &= next >= centre - 1e-9;
+			centre = next;
+		};
+		const auto stepFor = [&](int ms) {
+			for (int elapsed = 10; elapsed <= ms; elapsed += 10) {
+				now += 10;
+				presenter.stepTrains();
+				centreMovesOn();
+			}
+		};
+		for (int step = 1; step <= 8; ++step) {
+			stepFor(100);
+			const double head = drawnHead();
+			update(0.02 * step);
+			glides &= presenter.trainMoving(0);
+			headSteady &= std::fabs(drawnHead() - head) < 1e-6;
+			centreMovesOn();
+		}
+		stepFor(150);
+		ok &= expect(glides && headSteady, "a train that enters its route glides from where it is drawn at every update");
+		ok &= expect(centreOnward && near(centre, 110.0) && !presenter.trainMoving(0),
+			"the centre of a train that enters its route never moves back, also when its middle reaches the start");
+
+		// A glide that starts at the end of a section, where the next section begins, starts where the train is drawn
+		// and goes on into the next section: a third of the way through its 150 ms after 50 ms.
+		restart();
+		update(5.05);
+		const double boundary = drawnMiddle(*presenter.allTrains[0]).x();
+		now += 100;
+		update(5.15);
+		bool boundaryGlide = presenter.trainMoving(0) && near(boundary, 5000.0) && near(drawnMiddle(*presenter.allTrains[0]).x(), boundary);
+		now += 50;
+		presenter.stepTrains();
+		boundaryGlide &= near(drawnMiddle(*presenter.allTrains[0]).x(), 5000.0 + 100.0 / 3.0);
+		ok &= expect(boundaryGlide, "a glide that starts at the end of a section starts where the train is drawn");
+
+		// At a steady 200 ms between updates, steps of 10 ms move the drawn middle by about the same distance, from one
+		// glide to the next. The steps of the first two updates are left out.
+		restart();
+		std::vector<double> steps;
+		double previous = 0.0;
+		for (int tick = 0; tick <= 200; ++tick) {
+			now = tick * 10;
+			if (tick % 20 == 0)
+				update(1.0 + 0.04 * (tick / 20.0));
+			else
+				presenter.stepTrains();
+			const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+			if (tick > 40)
+				steps.push_back(middle - previous);
+			previous = middle;
+		}
+		const auto [smallest, largest] = std::minmax_element(steps.begin(), steps.end());
+		ok &= expect(!steps.empty() && *smallest > 0.0 && *largest <= 1.25 * *smallest,
+			"at a steady rhythm a gliding train moves at an even speed across the updates");
+
+		// With irregular gaps between the updates the drawn middle never moves back.
+		restart();
+		update(1.0);
+		bool onward = true;
+		previous = drawnMiddle(*presenter.allTrains[0]).x();
+		double headKm = 1.0;
+		for (const int gap : {100, 60, 250, 30, 170, 90, 400, 40, 120, 200, 20, 300}) {
+			for (int ms = 10; ms <= gap; ms += 10) {
+				now += 10;
+				if (ms == gap) {
+					headKm += 0.01;
+					update(headKm);
+				} else {
+					presenter.stepTrains();
+				}
+				const double middle = drawnMiddle(*presenter.allTrains[0]).x();
+				onward &= middle >= previous - 1e-9;
+				previous = middle;
+			}
+		}
+		ok &= expect(onward, "with irregular gaps between the updates a gliding train never moves back");
+
+		// One gap of 900 ms, after a slow frame, in a rhythm of 33 ms leaves the glides at one and a half times the
+		// rhythm, 50 ms. The glide after the gap starts at 1.04 km, where the train stands, and the next one where that
+		// glide is after 33 ms.
+		restart();
+		update(1.0);
+		for (int step = 1; step <= 4; ++step) {
+			now += 33;
+			update(1.0 + 0.01 * step);
+		}
+		now += 900;
+		update(1.05);
+		now += 10;
+		presenter.stepTrains();
+		const bool afterGap = near(drawnHead(), 1040.0 + 10.0 * 10.0 / 50.0);
+		now += 23;
+		update(1.06);
+		const double from = 1040.0 + 10.0 * 33.0 / 50.0;
+		now += 10;
+		presenter.stepTrains();
+		ok &= expect(afterGap && near(drawnHead(), from + (1060.0 - from) * 10.0 / 50.0),
+			"one long gap between updates does not slow the glides that follow it");
+
+		// The first step after a live update that starts a glide comes at once, before the paint that the update asks for,
+		// and not a whole step later. Its timer runs on the event loop; the clock of the test stands 10 ms into the glide.
+		restart();
+		update(1.0);
+		now += 100;
+		update(1.1);
+		now += 10;
+		const double atUpdate = drawnHead();
+		QEventLoop wait;
+		QTimer::singleShot(8, &wait, &QEventLoop::quit);
+		wait.exec();
+		ok &= expect(near(atUpdate, 1000.0) && near(drawnHead(), 1000.0 + 100.0 * 10.0 / 150.0),
+			"the first step after a live update comes at once");
+
+		presenter.setClock({});
+		presenter.clear();
+	}
+
 	// The trains of a snapshot are found by their index, whatever the order of the snapshot.
 	{
 		source->passengers = false;
@@ -625,6 +1226,8 @@ int main(int argc, char* argv[]) {
 			state.index = index;
 			return state;
 		};
+		qint64 now = 0;
+		presenter.setClock([&now]() { return now; });
 		GuiSimulationSnapshot snapshot;
 		snapshot.timestep = 10;
 		snapshot.trains = {train(3, 2.5), train(1, 5.5), train(2, 7.5)};
@@ -633,7 +1236,11 @@ int main(int argc, char* argv[]) {
 
 		snapshot.timestep = 11;
 		snapshot.trains = {train(2, 8.5), train(3, 3.5), train(1, 6.5)};
+		now = 100;
 		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		// past the end of the glides
+		now = 1000;
+		presenter.stepTrains();
 		const auto headOf = [&presenter](int index) {
 			for (const TrainItemGroup* group : presenter.allTrains)
 				if (group->index == index)
@@ -643,6 +1250,7 @@ int main(int argc, char* argv[]) {
 		ok &= expect(presenter.allTrains.size() == 3 && near(headOf(3), 3500.0) && near(headOf(1), 6500.0) && near(headOf(2), 8500.0),
 			"each train of the snapshot is moved and none is added twice");
 		presenter.clear();
+		presenter.setClock({});
 	}
 
 	// The canvas is built, filled with the steps of a run and of its replay, with a selection on it, and cleared again and
@@ -695,7 +1303,6 @@ int main(int argc, char* argv[]) {
 
 			// the replay of the run, forward and back
 			presenter.stopTrainAnimations();
-			presenter.m_prevTrainPositions.clear();
 			for (const int time : {20, 15, 25, 10}) {
 				snapshot.timestep = time;
 				snapshot.trains = {trainAt(7.5 + (time - 10) * 0.1)};
