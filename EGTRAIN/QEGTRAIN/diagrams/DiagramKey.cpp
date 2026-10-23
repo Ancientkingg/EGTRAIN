@@ -20,7 +20,7 @@ void paintKeySample(QPainter& painter, const QRectF& area, const DiagramKeyEntry
 	const QRectF sample(area.center().x() - kKeySampleWidth / 2, area.center().y() - kKeySampleHeight / 2, kKeySampleWidth,
 		kKeySampleHeight);
 	painter.save();
-	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	switch (entry.shape) {
 		case DiagramKeyEntry::Shape::Box:
 			painter.setPen(entry.pen);

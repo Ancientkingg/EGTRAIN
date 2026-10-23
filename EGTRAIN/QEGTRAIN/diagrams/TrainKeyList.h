@@ -19,13 +19,14 @@ class QTreeWidgetItem;
 
 /// The Trains section of a diagram window: the train filter and the colour key in one list. Each row has a check box
 /// that shows or hides the train, a line sample in its colour and its id. More than six trains in six services or fewer
-/// are grouped by service, with a group row whose check box shows and hides the trains of the group and is partly checked
-/// while some of them are shown; other lists are flat. The selected train comes first and is highlighted, then the
-/// shown trains, then the hidden ones, and groups follow the same order; while the pointer is over the list or the list
-/// has the focus the rows keep their places, and they move once it leaves. Above 6 trains All and None show or hide the
-/// trains of the rows in the list, and above 12 a search field beside them narrows the rows; a group then counts and
-/// acts on its trains that the search shows, and Escape in the field clears it. The count of shown trains, such as
-/// "2 of 2", is a label that the panel puts on the heading row of the section.
+/// are grouped by service, with a group row whose check box shows and hides the trains of the group and is partly
+/// checked while some of them are shown, and whose line sample has the colour that its shown trains share, or while
+/// none is shown the colour that all its trains share; other lists are flat. The selected train comes first and is
+/// highlighted, then the shown trains, then the hidden ones, and groups follow the same order; while the pointer is
+/// over the list or the list has the focus the rows keep their places, and they move once it leaves. Above 6 trains All
+/// and None show or hide the trains of the rows in the list, and above 12 a search field beside them narrows the rows;
+/// a group then counts and acts on its trains that the search shows, and Escape in the field clears it. The count of
+/// shown trains, such as "2 of 2", is a label that the panel puts on the heading row of the section.
 class TrainKeyList : public QWidget {
 	Q_OBJECT
 public:
@@ -40,6 +41,9 @@ public:
 	/// Lists `trains` in this order before the sorting. A train that the list already has keeps its check state, a new
 	/// one is shown, and the selected train stays selected while it is listed. Changes no check state, so emits nothing.
 	void setTrains(const QVector<Train>& trains);
+	/// Gives the listed trains the colours of their line samples, by id, and keeps the rows, their order, their check
+	/// states and the open groups as they are; a train that `colours` leaves out has no line sample. Emits nothing.
+	void setColours(const QHash<QString, QColor>& colours);
 	/// The ids of the listed trains, in the order setTrains gave them.
 	QStringList trainIds() const;
 	/// The ids of the shown trains, in the order setTrains gave them.
@@ -53,12 +57,13 @@ public:
 	void setTrainVisible(const QString& trainId, bool visible);
 	/// Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibilityChanged once.
 	void setSearchedVisible(bool visible);
-	/// Highlights the row of the train and brings it first; an empty id removes the highlight.
+	/// Highlights the row of the train and brings it first; an empty id removes the highlight. Emits nothing.
 	void setSelectedTrain(const QString& trainId);
 	/// True while the trains are grouped by service.
 	bool isGrouped() const { return m_grouped; }
 	/// The rows of the shown trains as an exported figure lists them: in a grouped list each service with a shown train,
-	/// with the colour that all its trains share or none, else each shown train with its colour.
+	/// with the colour that its shown trains share, or, where they differ, each of them; else each shown train with its
+	/// colour.
 	QVector<QPair<QString, QColor>> shownRows() const;
 	/// The label with the count of shown trains, "2 of 2", for the heading row of the section.
 	QLabel* countLabel() const { return m_count; }

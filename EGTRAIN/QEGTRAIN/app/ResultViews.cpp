@@ -39,6 +39,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -53,11 +54,6 @@ void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 
 // The layer of the outlines of the blocks.
 constexpr char kBlockingTimeLayer[] = "blocking time";
-const QColor kBlockingBlockColor(100, 160, 240, 150);
-const QColor kBlockingSwitchColor(240, 210, 40, 180);
-const QColor kBlockingCriticalColor(220, 50, 50, 200);
-const QColor kBlockingCapacityColor(235, 175, 20, 230);
-constexpr int kBlockingFillAlpha = 65; // the fill of a block; its outline is its colour, darker
 
 // The reference route in the header of a route chart: "route0", with ", right to left" when the route runs that way.
 QString referenceRouteText(const std::string& routeId, bool leftward) {
@@ -105,27 +101,15 @@ QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, co
 
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
 	bool useCapacityCriticalStyle, const SceneSectionLabels& labels, const PositionScale& scale) {
-	const auto colorFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
-		if (useCapacityCriticalStyle && segment.capacityCritical)
-			return kBlockingCapacityColor;
-		switch (segment.style) {
-			case BlockingTimeSegmentStyle::Station: return QColor(60, 110, 190, 180);
-			case BlockingTimeSegmentStyle::Switch: return kBlockingSwitchColor;
-			case BlockingTimeSegmentStyle::SwitchStation: return QColor(200, 160, 20, 190);
-			case BlockingTimeSegmentStyle::Critical: return kBlockingCriticalColor;
-			case BlockingTimeSegmentStyle::CriticalStation: return QColor(170, 30, 30, 220);
-			case BlockingTimeSegmentStyle::Default:
-			default: return kBlockingBlockColor;
-		}
-	};
-	// The kind of a block in the Key: a critical block of a compressed chart, a conflict, or a blocking time.
-	const auto keyKindFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
-		if (useCapacityCriticalStyle && segment.capacityCritical) return QStringLiteral("Critical block");
+	// The kind of a block, which gives its look: a critical block of a compressed chart, a conflict, or a blocking time.
+	// A station or switch block looks like any other; its hover names its type.
+	const auto kindFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
+		if (useCapacityCriticalStyle && segment.capacityCritical) return BlockingTimeKind::CriticalBlock;
 		if (segment.style == BlockingTimeSegmentStyle::Critical || segment.style == BlockingTimeSegmentStyle::CriticalStation)
-			return QStringLiteral("Conflict");
-		return QStringLiteral("Blocking time");
+			return BlockingTimeKind::Conflict;
+		return BlockingTimeKind::Ordinary;
 	};
-	// The type of a block that is not an ordinary one, as the colour shows it.
+	// The type of a block that is not an ordinary one, which its hover names.
 	const auto typeFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
 		if (useCapacityCriticalStyle && segment.capacityCritical)
 			return std::string("capacity critical block");
@@ -140,7 +124,7 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		const std::string type = typeFor(segment);
 		const std::string legendKey = segment.trainName + "\n" + type;
 		const QString name = QString::fromStdString(segment.trainName);
-		const QColor color = colorFor(segment);
+		QAreaSeries* fill = nullptr;
 		if (left != right) {
 			auto* lower = new QLineSeries();
 			auto* upper = new QLineSeries();
@@ -148,26 +132,20 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			lower->append(right, segment.startTime);
 			upper->append(left, segment.endTime);
 			upper->append(right, segment.endTime);
-			auto* fill = new QAreaSeries(upper, lower);
+			fill = new QAreaSeries(upper, lower);
 			fill->setName(name);
 			fill->setProperty("trainId", name);
-			fill->setProperty("keyKind", keyKindFor(segment));
-			QColor translucent = color;
-			translucent.setAlpha(kBlockingFillAlpha);
-			fill->setBrush(translucent);
-			fill->setPen(Qt::NoPen);
-			chart->addSeries(fill);
-			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
 		}
 		auto* outline = new QLineSeries();
 		outline->setName(name);
 		outline->setProperty("trainId", name);
 		outline->setProperty("layer", kBlockingTimeLayer);
-		outline->setProperty("keyKind", keyKindFor(segment));
 		outline->setProperty("inspectionFilled", left != right);
-		QPen pen(color.darker(135));
-		pen.setWidthF(2.0);
-		outline->setPen(pen);
+		styleBlockingTime(fill, outline, kindFor(segment));
+		if (fill) {
+			chart->addSeries(fill);
+			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
+		}
 		// The block, when it was blocked, how that time is made up and the section of the reference route, one per line.
 		QStringList lines = {"Block: " + QString::fromStdString(labels.labelWithId(segment.blockId))
 			+ (type.empty() ? QString() : ", " + QString::fromStdString(type))};
@@ -452,9 +430,8 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 		} else {
 			const QString event = QString::fromStdString(source.event);
 			series->setName(name + " (" + event + ")");
-			QPen pen(QColor::fromHsv((source.trainIndex * 71) % 360, 175, source.planned ? 170 : 235));
-			if (source.planned) pen.setStyle(Qt::DashLine);
-			series->setPen(pen);
+			// The window paints the stops and dwells in the colour of the train; planned ones are dashed.
+			series->setPen(QPen(QColor(20, 35, 45), 1.0, source.planned ? Qt::DashLine : Qt::SolidLine));
 			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
 			series->setPointsVisible(!dwell);
 			// In the Key a dwell is a kind of its own, and the points of an event are its stops.
@@ -579,21 +556,16 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 
 	addBlockingTimeSeries(chart, segments, compressed, run->sectionLabels, scale);
 
-	const QColor plannedColors[] = {
-		QColor(36, 117, 181), QColor(205, 92, 92), QColor(46, 139, 87),
-		QColor(138, 43, 226), QColor(210, 105, 30), QColor(0, 128, 128)};
-	std::map<std::string, int> plannedColorsByTrain;
+	// The window paints the planned and the simulated lines in the colour of the train: planned dashed, simulated solid.
+	std::set<std::string> plannedTrains;
 	for (const auto& group : plottedPlanned) {
 		const std::string& trainName = group.front().trainName;
-		const auto color = plannedColorsByTrain.emplace(trainName, static_cast<int>(plannedColorsByTrain.size()));
+		const bool first = plannedTrains.insert(trainName).second;
 		auto* series = new QLineSeries();
 		series->setName(QString::fromStdString(trainName));
 		series->setProperty("trainId", QString::fromStdString(trainName));
 		series->setProperty("planned", true);
-		QPen pen(plannedColors[color.first->second % (sizeof(plannedColors) / sizeof(plannedColors[0]))]);
-		pen.setStyle(Qt::DashLine);
-		pen.setWidthF(2.5);
-		series->setPen(pen);
+		series->setPen(QPen(QColor(20, 35, 45), 2.0, Qt::DashLine));
 		series->setPointsVisible(true);
 		for (const auto& reference : group)
 			appendInspectedPoint(series, reference.positionKm, reference.time,
@@ -601,7 +573,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 					? "Planned time at the section edge"
 					: QString("%1, planned %2").arg(QString::fromStdString(reference.stationName), QString::fromStdString(reference.eventType)));
 		chart->addSeries(series);
-		if (!color.second)
+		if (!first)
 			for (QLegendMarker* marker : chart->legend()->markers(series)) marker->setVisible(false);
 	}
 
@@ -611,7 +583,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 		line->setProperty("trainId", QString::fromStdString(trajectory.trainId));
 		line->setProperty("layer", "simulated");
 		if (compressed) line->setProperty("inspectionInterval", "Shifted with the train's blocking times");
-		line->setPen(QPen(QColor(20, 35, 45), 2.5));
+		line->setPen(QPen(QColor(20, 35, 45), 2.0));
 		line->setPointsVisible(trajectory.points.size() == 1);
 		for (const auto& point : trajectory.points)
 			line->append(point.first, point.second);
@@ -648,8 +620,8 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels,
 		blockSectionMarks(extents, segments, stationKm, compressed), diagram.routeSectionCount);
 	win->setPositionAxis(scale);
-	// The colours of the blocks show their type, so only the train list takes the service colours.
-	win->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
+	// The outlines and lines take the colours of the trains; critical blocks and conflicts keep their own.
+	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(trainServicesForRun(run->results));
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	// The header names the run before the scope of the chart.
