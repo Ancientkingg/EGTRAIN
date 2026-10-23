@@ -171,7 +171,7 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    in the installation folder is never overwritten: Save leads to `Save Case Study As...`.
 
 Messages go through the logging core in `util/Log`. Switch categories on with `EGTRAIN_LOG` and
-read them in the **Console Log** dock (`View > Console Log`); see
+read them in the **Log** dock (`View > Log`); see
 [Log output](../guides/command-line.md#log-output).
 
 ## Which checks to run

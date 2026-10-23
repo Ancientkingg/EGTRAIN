@@ -157,7 +157,7 @@ void ConsoleStreambuf::writeMessage(eglog::Category category, eglog::Level level
 // ---- ConsoleWidget ----
 
 ConsoleWidget::ConsoleWidget(QWidget* parent)
-	: QDockWidget("Console Log", parent) {
+	: QDockWidget("Log", parent) {
 	setAllowedAreas(Qt::BottomDockWidgetArea | Qt::TopDockWidgetArea | Qt::RightDockWidgetArea);
 	setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
 	setMinimumHeight(100);

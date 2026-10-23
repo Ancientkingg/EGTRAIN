@@ -935,7 +935,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_addServiceButton->click();
 		process();
 		// The first service changes why Follow is off: the case has trains to run but has not run.
-		if (!noServicesBefore || w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
+		if (!noServicesBefore || w.m_followTrainCombo->currentText() != "Run the case first" || w.m_followAction->isEnabled()
 			|| w.m_followStatusLabel->toolTip() != "Run the case first, then you can follow a train.") {
 			fail(QStringLiteral("Follow does not explain a case that has services and has not run"));
 			return;
@@ -1639,7 +1639,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| w.m_followAction->isChecked() || followButton->isChecked() || w.m_followTrainIndex != -1
 			|| w.progressBar->isVisible()
 			|| w.ui->actionSimulationPause->text() != "Pause"
-			|| !w.statusBar()->currentMessage().startsWith("Scene reloaded:")) {
+			|| !w.statusBar()->currentMessage().startsWith("Reloaded ")) {
 			fail(QStringLiteral("stopped run completion changed the replacement scene"));
 			return;
 		}
@@ -1651,8 +1651,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (w.m_setDelayBaselineButton->isEnabled() || w.m_compareDelayButton->isEnabled()
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
-			fail(QStringLiteral("delay controls did not expose a disabled no-results reason"));
+			|| w.m_delayFeedbackLabel->text() != QStringLiteral("No baseline set")) {
+			fail(QStringLiteral("delay controls are enabled, or the delay line names a baseline, before any run"));
 			return;
 		}
 		int baselineRow = -1;
@@ -1833,7 +1833,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		// The comparison accepts a scenario with entrance delays and shows the entrance delay as the input delay.
 		if (!w.m_delayFeedbackLabel || !w.m_compareDelayButton->isEnabled()
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("Compare delays shows"))) {
+			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline: "))) {
 			fail(QStringLiteral("entrance-delay result did not enable the delay comparison"));
 			return;
 		}
@@ -1893,7 +1893,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (!w.m_compareDelayButton->isEnabled() || !w.m_delayFeedbackLabel
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("Compare delays shows"))) {
+			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline: "))) {
 			fail(QStringLiteral("incident result did not expose an enabled delay comparison next step"));
 			return;
 		}
@@ -2578,14 +2578,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (action->objectName().startsWith("resultView_"))
 				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
 		if (w.m_runController->m_resultsAvailable || w.m_runController->m_delayBaseline || w.m_runResultsDock->isVisible() || !resultButtonsDisabled
-			|| !w.m_delayFeedbackLabel || !w.m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
+			|| !w.m_delayFeedbackLabel || w.m_delayFeedbackLabel->text() != QStringLiteral("Baseline cleared: the case changed")) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
 		if (!w.m_session->requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
 			|| !w.m_runController->m_delayBaselineStatus.isEmpty()
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
+			|| w.m_delayFeedbackLabel->text() != QStringLiteral("No baseline set")) {
 			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));
 			return;
 		}
@@ -2965,7 +2965,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 					&& std::fabs(w.m_inspector->arcLengthText->text().toDouble() - lengthM) < 1e-6
 					&& w.m_inspector->arcGradientText->text().toDouble() == arc.gradientPercent
 					&& w.m_inspector->arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
-					&& w.m_inspector->arcOperationalStateText->text() == "Unavailable before Run",
+					&& w.m_inspector->arcOperationalStateText->text().isEmpty()
+					&& w.m_inspector->arcOperationalStateText->placeholderText() == "After a run",
 				"arc event canonical fields")) return false;
 	}
 	auto* connection = qgraphicsitem_cast<ConnectionItem*>(find("connection", "creator-switch"));
@@ -3076,7 +3077,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 			"position-only artwork keeps its pin in the near look")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
-	if (!require(w.m_inspector->nodeIDText->text() == "No node anchor" && w.m_inspector->nodeXText->text().toDouble() == 1500
+	if (!require(w.m_inspector->nodeIDText->text() == "None" && w.m_inspector->nodeXText->text().toDouble() == 1500
 				&& w.m_inspector->nodeStationNameText->text() == "Duplicate [between]",
 			"position-only canonical inspection")) return false;
 	const bool oldLayer = w.m_presenter->m_stationLayerVisible, oldNames = w.m_presenter->m_stationNamesVisible;
@@ -3094,7 +3095,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(oldLayer);
 	w.updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
-	if (!require(w.m_inspector->arcIDText->text() == "No authored arc (fallback)" && w.m_inspector->arcFirstNodeIDText->text().isEmpty()
+	if (!require(w.m_inspector->arcIDText->text() == "None" && w.m_inspector->arcFirstNodeIDText->text().isEmpty()
 				&& w.m_inspector->nodeStationNameText->text().isEmpty(),
 			"fallback clears unrelated canonical fields")) return false;
 	const quint64 fixtureRevision = w.m_document->revision();
@@ -3103,7 +3104,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
 		click(head->sceneBoundingRect().center());
 		if (!require(w.m_inspector->signallingTrackIDText->text() == track && w.m_inspector->signallingXText->text().toDouble() == 1000
-					&& w.m_inspector->signallingLengthSectionAheadText->text() == "Unavailable before Run"
+					&& w.m_inspector->signallingLengthSectionAheadText->text().isEmpty()
+					&& w.m_inspector->signallingLengthSectionAheadText->placeholderText() == "After a run"
 					&& w.m_inspector->signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}

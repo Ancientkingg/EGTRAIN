@@ -142,8 +142,12 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 			cancel->click();
 		});
 		cancelTimer.start();
-		deliver({QUrl::fromLocalFile(validPath)}, true, true, false, QStringLiteral("canceled"));
+		// The user canceled, so the status bar keeps what it said before.
+		const QString statusBeforeCancel = w.statusBar()->currentMessage();
+		deliver({QUrl::fromLocalFile(validPath)}, true, true, false, QString());
 		cancelTimer.stop();
+		if (w.statusBar()->currentMessage() != statusBeforeCancel)
+			fail(QStringLiteral("a canceled drop changed the status bar to: %1").arg(w.statusBar()->currentMessage()));
 		if (!canceledUnsavedPrompt)
 			fail(QStringLiteral("dirty-scene drop did not show the unsaved-scene prompt"));
 		if (!activatedBeforePrompt)
@@ -178,7 +182,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 			false, false, QStringLiteral("does not exist"));
 		unchanged(QStringLiteral("nonexistent-file drop"));
 		deliver({QUrl::fromLocalFile(malformed.fileName())}, true,
-			true, false, QStringLiteral("could not be opened"));
+			true, false, QStringLiteral("could not open"));
 		unchanged(QStringLiteral("malformed-scene drop"));
 
 		// A recent scene that is deleted must show as unavailable when the menu opens, without another open.

@@ -15,7 +15,7 @@ enum class UpdateCheckState;
 constexpr const char* kRecentScenesKey = "recentScenes";
 /// The setting behind the Advanced Details switch.
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";
-/// The setting that remembers View > Show Passengers.
+/// The setting that remembers View > Passengers.
 constexpr const char* kShowPassengersKey = "showPassengers";
 
 /// The Settings window: every application setting in one place. Settings that belong to a case are in Case Settings.

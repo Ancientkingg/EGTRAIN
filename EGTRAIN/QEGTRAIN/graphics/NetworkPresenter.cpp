@@ -351,13 +351,17 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 		if (!m_signalLayerVisible || !signal)
 			continue;
 		QString identity = signal->inspectionIdentity();
+		if (!identity.isEmpty())
+			identity[0] = identity[0].toLower();
 		const auto ids = signal->sectionAheadId.empty() ? authoredIds.end() : authoredIds.find(signal->sectionAheadId);
-		if (ids != authoredIds.end())
-			identity += QStringLiteral("; signal ID %1").arg(ids->second.join(QStringLiteral(", ")));
-		// The label names the sections by their labels, and the ids find them too.
-		targets.append({QStringLiteral("Signal: %1, %2").arg(identity, signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right")),
+		const QString name = ids == authoredIds.end() ? QStringLiteral("Signal")
+													  : QStringLiteral("Signal %1").arg(ids->second.join(QStringLiteral(", ")));
+		// The labels and the ids of the sections find it too.
+		targets.append({QStringLiteral("%1: %2, facing %3").arg(name, identity, signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right")),
 			signal, signal->sceneBoundingRect().center(),
-			QString::fromStdString(signal->sectionAheadId + " " + signal->sectionBehindId).trimmed()});
+			QString::fromStdString(signal->sectionAheadId + " " + signal->sectionBehindId + " " + signal->sectionAheadLabel + " "
+				+ signal->sectionBehindLabel)
+				.simplified()});
 	}
 	for (TrainItemGroup* train : allTrains) {
 		if (!train || !train->isVisible() || !train->trainPolygonItemList || train->trainPolygonItemList->isEmpty())
@@ -802,11 +806,12 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			glyph->X = signal.rawX;
 			glyph->sectionAheadId = signal.sectionId;
 			glyph->sectionAheadLabel = signal.sectionLabel;
-			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km; section %3%4")
+			glyph->setInspectionIdentity(QStringLiteral("Track %1 at %2 km, section %3%4")
 					.arg(QString::fromStdString(signal.trackId))
 					.arg(signal.rawX, 0, 'g', 10)
 					.arg(QString::fromStdString(signal.sectionLabel))
-					.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
+					.arg(canonicalIds.isEmpty() ? QString()
+												: QStringLiteral(" (%1 %2)").arg(canonicalIds.size() == 1 ? "signal" : "signals", canonicalIds.join(", "))));
 			glyph->setPen(signalHeadPen());
 			glyph->setZValue(3.0);
 			glyph->setPos(head);
@@ -1294,8 +1299,7 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 
 	// string with pax counter
 	std::stringstream ss;
-	ss << "Pax on platform: " << (platform ? platform->Current_N_Passengers : 0)
-	   << "\n Max pax volume: " << platformItem->maxVolume;
+	ss << (platform ? platform->Current_N_Passengers : 0) << " of " << platformItem->maxVolume << " passengers";
 
 	// convert string
 	QString text = QString::fromStdString(ss.str());
@@ -1357,8 +1361,7 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 
 	// string to display
 	std::stringstream ss;
-	ss << "Current onboard pax: " << trainItem->currentOnboardPassengers
-	   << "\nMax onboard pax: " << trainItem->maxOnboardPassengers;
+	ss << trainItem->currentOnboardPassengers << " of " << trainItem->maxOnboardPassengers << " on board";
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -1426,7 +1429,7 @@ void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiP
 
 	// string to display
 	std::stringstream ss;
-	ss << "Pax ID: " << passenger.id << "\nStatus: " << passenger.status
+	ss << "Passenger " << passenger.id << "\nStatus: " << passenger.status
 	   << " (" << passenger.waitingPlatform << ")"
 	   << "\nNext train: " << passenger.nextTrain;
 
@@ -1434,7 +1437,7 @@ void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiP
 		ss << "\nNext destination: " << passenger.nextDestination;
 	}
 	if (replayActive)
-		ss << "\nReplay: journey details unavailable";
+		ss << "\nJourney not shown in the replay";
 
 	// paint text
 	QGraphicsTextItem* text = new QGraphicsTextItem;
@@ -2962,7 +2965,7 @@ void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformS
 
 	// string with pax counter
 	std::stringstream ss;
-	ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << state.maxVolume;
+	ss << nPaxIcons << " of " << state.maxVolume << " passengers";
 
 	// convert string
 	QString text = QString::fromStdString(ss.str());

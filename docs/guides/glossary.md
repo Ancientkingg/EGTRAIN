@@ -6,7 +6,7 @@ This page says what the words of the program and of its documents mean. Every en
 
 ### Case study
 
-A case study is what the program opens, edits, runs and saves: everything a run needs, that is infrastructure, signalling, rolling stock, services with timetables, scenarios and, optionally, passengers. It is stored as a scene folder or as a bundle, and "case" alone means the same. You meet it in **File > New Case Study...**, **File > Open Case Study...** (which opens a bundle), **File > Save Case Study As...**, the dock **Case and Layers** (the line "Current case study") and the command-line option `-n` ([case study numbers](command-line.md#case-study-numbers)). The toolbar button **Open Case** shows the chooser **Open a Case**, which lists "Bundled cases" and "Recent cases" and has the button **Other ways to open...**.
+A case study is what the program opens, edits, runs and saves: everything a run needs, that is infrastructure, signalling, rolling stock, services with timetables, scenarios and, optionally, passengers. It is stored as a scene folder or as a bundle, and "case" alone means the same. You meet it in **File > New Case Study...**, **File > Open Case Study...** (which opens a bundle), **File > Save Case Study As...**, the dock **Case and Layers**, which names the open case, and the command-line option `-n` ([case study numbers](command-line.md#case-study-numbers)). The toolbar button **Open Case** shows the chooser **Open a Case**, which lists "Bundled cases" and "Recent cases" and has the button **Other ways to open...**.
 
 ### Scene
 
@@ -48,7 +48,7 @@ Validation is the program's check of a case; each finding is a diagnostic with a
 
 ### Run
 
-A run is a simulation of the open case with the selected scenario and the ticked occurrences. You start it with the toolbar button **Run**, **Simulation > Run** (Ctrl+R) or **File > Run Scene**. They are disabled while no case is loaded, while a run is active and while validation reports an error; with no occurrence ticked, starting a run shows the message `Select at least one generated service occurrence before running.`, titled **Cannot Run Scene** on Windows and Linux. Otherwise the dialog **Run simulation** shows **Selected in period**, **Start clock**, **Duration** and **Active incidents**, and its button **Run simulation** starts the run. A run uses the case as it is in the window, including unsaved edits.
+A run is a simulation of the open case with the selected scenario and the ticked occurrences. You start it with the toolbar button **Run**, **Simulation > Run** (Ctrl+R) or **File > Run Scene**. They are disabled while no case is loaded, while a run is active and while validation reports an error; with no occurrence ticked, starting a run shows the message `Select at least one occurrence on the Run occurrences tab of Services.`, titled **Cannot Run Scene** on Windows and Linux. Otherwise the dialog **Run simulation** shows **Trains**, **Start time**, **Duration** and, when the scenario has any, **Incidents**, and its button **Run simulation** starts the run. A run uses the case as it is in the window, including unsaved edits.
 
 ### Runtime
 
@@ -56,7 +56,7 @@ The runtime is the working data that a run builds in memory from the case: the i
 
 ### Playback
 
-Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider, with the speed shown next to it, control it, and the tooltip of the slider reads "Simulation speed: fastest; right is faster" or names a factor. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Replay a completed run](how-to.md#replay-a-completed-run) says what a stopped run leaves.
+Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider, with the speed shown next to it, control it, and the tooltip of the slider reads "Simulation speed", and the readout beside it shows **Fastest** or a factor such as `4.0x`. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Replay a completed run](how-to.md#replay-a-completed-run) says what a stopped run leaves.
 
 ### Replay
 
@@ -64,11 +64,11 @@ The replay is the row under the network that appears after a successful run. It 
 
 ### Results
 
-Results are what a completed run leaves in memory: the dock **Run Results** (one row per train and a last row **Network total**, with the buttons **Open result view...**, **Export CSV...**, **Export PNG...**, **Set delay baseline** and **Compare delays**) and the result windows, which open from the **Diagrams** menu or from **Open result view...**. The line `Occurrences` at the top of the dock counts the ticked occurrences against all configured ones, as in `Occurrences: 196/196 selected`. When some ticked occurrences enter outside the run period, it adds the number that are inside, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. The entries that open them stay disabled until a run has completed. Results are not part of the case, so saving the case does not save them; any edit of the case, creating or opening a case and selecting another scenario discard them, and only a new run rebuilds them. A run also writes text files to the output folder ([scenario library and student loop](scenarios.md), [what this guide covers](delay-analysis.md#what-this-guide-covers)).
+Results are what a completed run leaves in memory: the dock **Run Results** (one row per train and a last row **Network total**, with the buttons **Open result view...**, **Export CSV...**, **Export PNG...**, **Set delay baseline** and **Compare delays**) and the result windows, which open from the **Diagrams** menu or from **Open result view...**. The line `Occurrences` at the top of the dock counts the ticked occurrences against all configured ones, as in `Occurrences: 196/196 selected`. When some ticked occurrences enter outside the run period, it adds the number that are inside, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Trains** of the dialog **Run simulation**. The entries that open them stay disabled until a run has completed. Results are not part of the case, so saving the case does not save them; any edit of the case, creating or opening a case and selecting another scenario discard them, and only a new run rebuilds them. A run also writes text files to the output folder ([scenario library and student loop](scenarios.md), [what this guide covers](delay-analysis.md#what-this-guide-covers)).
 
 ### Normal mode and advanced mode
 
-**View > Advanced / Developer details** (a check mark that the program remembers) switches between normal mode and advanced mode. Advanced mode adds technical inventories, validation details, non-blocking warnings and, after a case opens, the dock **Loaded Data**. It changes the presentation only: not what **Run** requires, what **Save Scene** writes or what a run produces.
+**View > Advanced Details** (a check mark that the program remembers) switches between normal mode and advanced mode. Advanced mode adds technical inventories, validation details, non-blocking warnings and, after a case opens, the dock **Loaded Data**. It changes the presentation only: not what **Run** requires, what **Save Scene** writes or what a run produces.
 
 ## Scenarios and incidents
 
@@ -132,7 +132,7 @@ Performance and speed cap are two settings of a service. **Performance (%)** (`p
 
 ### Rolling stock unit and composition
 
-A rolling stock unit (`train_units[]`; the files and the schema call it a train unit) has physical values, a traction curve of rows `v_lower`, `v_upper`, `c0`, `c1`, `c2` and descriptive source references. A composition is an ordered list of units, and a service names one composition. You meet them in the docks **Rolling stock units** and **Compositions** (**Editors > Rolling stock units**, **Editors > Compositions**). The traction curve is input: the button **Plot Traction Curve** draws it, and that plot shows rolling stock input, not simulated effort, while the result view **Tractive effort / distance** shows what the run applied ([rolling_stock.json](scene-schema.md#rolling_stockjson), which lists the keys).
+A rolling stock unit (`train_units[]`; the files and the schema call it a train unit) has physical values, a traction curve of rows `v_lower`, `v_upper`, `c0`, `c1`, `c2` and descriptive source references. A composition is an ordered list of units, and a service names one composition. You meet them in the docks **Rolling Stock Units** and **Compositions** (**Editors > Rolling Stock Units**, **Editors > Compositions**). The traction curve is input: the button **Plot Traction Curve** draws it, and that plot shows rolling stock input, not simulated effort, while the result view **Tractive effort / distance** shows what the run applied ([rolling_stock.json](scene-schema.md#rolling_stockjson), which lists the keys).
 
 ### Passenger
 
@@ -177,7 +177,7 @@ The scene names tracks, blocks and sections by ids. Where the program lists or n
 | Label | `B0 0.000 to 0.230 km`, `B0 21.010 to 21.235, B1 21.252 to 21.450 km` | The track and the kilometres of the two ends of a block section, or the piece on each track of a switch section, with three decimals. |
 | Runtime track number | `0` | The number that a run gives a track: its place in the list of track ids sorted as text. It matches the digits of the track id only in scenes with at most ten tracks: in Netherlands, B10 is track 2. The information panels of a run show the track id, with this number in the tooltip. |
 
-The section choices of the dock **Infrastructure**, the **Target** list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the runtime track number or the section id. The tooltip of a signal head and its entry in **Edit > Find...** name the sections by their labels, and the ids find it in **Find** too; **Copy section ID** in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.
+The section choices of the dock **Infrastructure**, the **Target** list of a signal failure and the result windows show labels, with the id as the tooltip of an entry. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the runtime track number or the section id. The tooltip of a signal head names its track and position, and in the preview the label of its section; **Edit > Find...** lists a signal by its track and position and finds it by the labels and the ids of its sections too; **Copy section ID** in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The scene files, the exports and the tables of the capacity windows keep the ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.
 
 ### Signalling area
 
@@ -193,7 +193,7 @@ An end of authority is, in the model, a point on a route that a train takes as a
 
 ### Signal head
 
-A signal head is the mark that the canvas draws for a signal. It shows what the simulation holds for the displayed time: the code that the program writes on the section ahead (a section has a code and a state, and each of its arcs has a signal speed limit). The **Map key** (**View > Map key**, in the dock **Case and Layers**) lists, when the case has signals, "Stop signal", "Caution signal", "Proceed signal", "Unavailable signal" and "Failed signal". A head is unavailable when its section has no level, and failed while a signal failure is active ([codes and what they do to a following train](signalling-levels.md#codes-and-what-they-do-to-a-following-train)).
+A signal head is the mark that the canvas draws for a signal. It shows what the simulation holds for the displayed time: the code that the program writes on the section ahead (a section has a code and a state, and each of its arcs has a signal speed limit). The **Map Key** (**View > Map Key**, in the dock **Case and Layers**) lists, when the case has signals, "Stop signal", "Caution signal", "Proceed signal", "Unavailable signal" and "Failed signal". A head is unavailable when its section has no level, and failed while a signal failure is active ([codes and what they do to a following train](signalling-levels.md#codes-and-what-they-do-to-a-following-train)).
 
 ## Delay, blocking time and capacity
 

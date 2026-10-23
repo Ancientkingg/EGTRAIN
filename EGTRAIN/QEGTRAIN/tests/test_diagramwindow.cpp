@@ -2257,8 +2257,8 @@ int main(int argc, char* argv[]) {
 			&& stairY->isReverse(),
 		"recorded layer draws over the downward-time area fill");
 	const QString authoredId = QStringLiteral("Unit | ") + QString(120, QLatin1Char('Q'));
-	const QString scientificWarning = QStringLiteral("Curve contains negative effort below the default 0 kN view");
-	DiagramWindow input("Input traction characteristic: " + authoredId);
+	const QString scientificWarning = QStringLiteral("Part of the curve is below 0 kN and is not shown.");
+	DiagramWindow input("Traction Curve");
 	QFont scaled = input.font();
 	scaled.setPointSizeF(18);
 	input.setFont(scaled);
@@ -2270,10 +2270,7 @@ int main(int argc, char* argv[]) {
 	inputLine->append(20, 30);
 	inputChart->addSeries(inputLine);
 	inputChart->createDefaultAxes();
-	inputChart->setTitle(QStringLiteral("Input traction characteristic: ") + authoredId
-		+ QStringLiteral("<br>") + scientificWarning);
-	input.setPresentation("Input traction characteristic", "Case A / Scenario B | " + authoredId,
-		scientificWarning);
+	input.setPresentation("Traction Curve", authoredId + ", from traction.txt", scientificWarning);
 	input.setChart(inputChart);
 	input.show();
 	app.processEvents();
@@ -2287,8 +2284,8 @@ int main(int argc, char* argv[]) {
 	ok &= expect(input.width() <= screenArea.width() * 9 / 10 && input.height() <= screenArea.height() * 4 / 5,
 		"scaled diagram fits available screen with application QSS");
 	ok &= expect(
-		input.windowTitle() == "Input traction characteristic"
-			&& input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B")
+		input.windowTitle() == "Traction Curve"
+			&& input.findChild<QLabel*>("diagramContext")->text().contains(", from traction.txt")
 			&& inputChart->title().isEmpty()
 			&& input.findChild<QLabel*>("diagramContext")->isVisible()
 			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,

@@ -67,14 +67,13 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	clearRecent->setObjectName(QStringLiteral("settingsClearRecentCases"));
 	clearRecent->setAutoDefault(false);
 	general->addWidget(clearRecent, 0, Qt::AlignLeft);
-	addHelp(general, QStringLiteral("File > Recent Scenes and Open a Case at start offer these cases."));
 	connect(clearRecent, &QPushButton::clicked, m_recentCases, &QListWidget::clear);
 
 	QVBoxLayout* display = addSection(layout, QStringLiteral("Display"));
 	m_showPassengers = addCheckBox(display, QStringLiteral("Show passengers"), "settingsShowPassengers",
 		settings.value(kShowPassengersKey, false).toBool());
-	addHelp(display, QStringLiteral("The same switch as View > Show Passengers. Turning it on shows passengers from the next run."));
-	m_advancedDetails = addCheckBox(display, QStringLiteral("Advanced / Developer details"), "settingsAdvancedDetails",
+	addHelp(display, QStringLiteral("Takes effect from the next run."));
+	m_advancedDetails = addCheckBox(display, QStringLiteral("Show advanced details"), "settingsAdvancedDetails",
 		settings.value(kAdvancedDetailsKey, false).toBool());
 
 	QVBoxLayout* updates = addSection(layout, QStringLiteral("Updates and privacy"));
@@ -104,8 +103,7 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	connect(actions, &QDialogButtonBox::accepted, this, &SettingsDialog::accept);
 	connect(actions, &QDialogButtonBox::rejected, this, &SettingsDialog::reject);
 	connect(actions->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &SettingsDialog::restoreDefaults);
-	DialogLayout::install(*this, QStringLiteral("Settings"),
-		QStringLiteral("These settings apply to every case. The settings of the open case are in Case Settings."), body, actions);
+	DialogLayout::install(*this, QStringLiteral("Settings"), QString(), body, actions);
 	DialogLayout::fitWidthToContent(*this);
 }
 

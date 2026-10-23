@@ -29,7 +29,7 @@
 // Opens the scene named by QEGTRAIN_E2E_SCENE if none is open, runs it, and checks that the network view
 // draws real geometry inside the viewport instead of a collapsed point. It runs again every 500 ms,
 // at most 40 times, until a train is drawn. QEGTRAIN_E2E_SCREENSHOT names a file for a picture of the view. A case without
-// passengers must have Show Passengers disabled, with a reason; for a case with passengers the run starts with them turned on,
+// passengers must have View > Passengers disabled, with a reason; for a case with passengers the run starts with them turned on,
 // and the check turns them off and on again with the two controls.
 void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (scenarioStarted)
@@ -51,7 +51,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		const QString reason = services ? QStringLiteral("Run the case first, then you can follow a train.")
 										: QStringLiteral("This case has no trains to follow.");
 		const bool explained = w.m_followTrainCombo->count() == 1 && w.m_followTrainCombo->currentData().toInt() == -1
-			&& w.m_followTrainCombo->currentText() == (services ? QStringLiteral("Run the case to follow trains") : QStringLiteral("No trains to follow"))
+			&& w.m_followTrainCombo->currentText() == (services ? QStringLiteral("Run the case first") : QStringLiteral("No trains to follow"))
 			&& !w.m_followAction->isEnabled() && !w.m_followAction->isChecked() && w.m_followAction->toolTip() == reason
 			&& w.m_followTrainCombo->toolTip() == reason && w.m_followTrainCombo->accessibleDescription() == reason
 			&& w.m_followStatusLabel->toolTip() == reason
@@ -69,7 +69,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		const bool reasoned = hasPassengers
 			|| (w.m_showPassengersAction->toolTip().contains("no passengers") && w.m_passengerLayerCheck->toolTip().contains("no passengers"));
 		if (w.m_showPassengersAction->isChecked() || w.m_passengerLayerCheck->isChecked() || controlsEnabled != hasPassengers || !reasoned) {
-			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: Show Passengers is not off, or not disabled for a case without passengers\n");
+			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: View > Passengers is not off, or not disabled for a case without passengers\n");
 			std::fflush(stderr);
 			QCoreApplication::exit(2);
 			return;
@@ -78,7 +78,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			// The run starts with passengers on. The display data comes with the run, so a preview says so.
 			w.m_showPassengersAction->setChecked(true);
 			if (!w.m_passengerLayerCheck->isChecked() || !w.statusBar()->currentMessage().contains("next run")) {
-				std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: Show Passengers did not turn the check box on and say when it takes effect\n");
+				std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: View > Passengers did not turn the check box on and say when it takes effect\n");
 				std::fflush(stderr);
 				QCoreApplication::exit(2);
 				return;
@@ -115,7 +115,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 
 	// The platform bars are drawn with or without passengers and show with the stations in the near look. The counters
 	// and icons on them are the passenger items of a run with passengers, which show only where the bars show and which
-	// Show Passengers turns off and on.
+	// View > Passengers turns off and on.
 	const QList<PlatformItem*>& platforms = w.m_presenter->allPlatforms;
 	const auto barsShown = [&platforms](bool shown) {
 		return !platforms.isEmpty() && std::all_of(platforms.cbegin(), platforms.cend(), [shown](const PlatformItem* platform) {
@@ -169,7 +169,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			&& QSettings().value(kShowPassengersKey).toBool();
 		if (!toggled) {
 			ok = false;
-			failures << "Show Passengers did not turn the passenger display off and on, or turned the platform bars off";
+			failures << "View > Passengers did not turn the passenger display off and on, or turned the platform bars off";
 		}
 	}
 	w.fitView();

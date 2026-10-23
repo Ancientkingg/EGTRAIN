@@ -171,9 +171,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		ok = false;
 		failures << "missing speed controls";
 	} else {
-		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+		if (w.m_speedSlider->toolTip() != "Simulation speed") {
 			ok = false;
-			failures << "speed slider startup tooltip does not name its direction";
+			failures << "speed slider startup tooltip does not name the slider";
 		}
 		w.m_speedSlider->setValue(250);
 		QApplication::processEvents();
@@ -452,7 +452,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 		mnemonics += key;
 	}
-	if (!w.m_speedSlider || !w.m_speedSlider->accessibleDescription().contains("right is faster")) {
+	if (!w.m_speedSlider || w.m_speedSlider->accessibleDescription() != "Simulation speed, faster to the right") {
 		ok = false;
 		failures << "speed slider does not describe its direction";
 	} else {
@@ -464,9 +464,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "speed slider right-is-faster mapping changed";
 		}
-		if (!w.m_speedSlider->toolTip().contains("right is faster")) {
+		// The readout beside the slider shows the speed, so the tooltip stays the same at every speed.
+		if (w.m_speedSlider->toolTip() != "Simulation speed") {
 			ok = false;
-			failures << "speed slider tooltip does not name its direction";
+			failures << "speed slider tooltip changed with the speed";
 		}
 	}
 	if (!w.m_followAction || !w.m_followTrainCombo || w.m_followTrainCombo->minimumWidth() != 180
@@ -982,11 +983,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const QString trackId = QString::fromStdString(w.m_presenter->sceneTrackId(inspectorSignal->trackID));
 		const std::string& aheadLabel = inspectorSignal->sectionAheadLabel;
 		if (trackId.isEmpty() || w.m_inspector->signallingTrackIDText->text() != trackId
-			|| !w.m_inspector->signallingTrackIDText->toolTip().contains(QStringLiteral("Runtime track number: %1").arg(inspectorSignal->trackID))
+			|| !w.m_inspector->signallingTrackIDText->toolTip().contains(QStringLiteral("Track number: %1").arg(inspectorSignal->trackID))
 			|| (!inspectorSignal->sectionAheadId.empty()
 				&& (aheadLabel.empty() || w.m_inspector->signallingIDSectionAheadText->text() != QString::fromStdString(aheadLabel)
 					|| !w.m_inspector->signallingIDSectionAheadText->toolTip().contains(QString::fromStdString(inspectorSignal->sectionAheadId))))
-			|| !inspectorSignal->toolTip().startsWith(QStringLiteral("Track %1 at ").arg(trackId))) {
+			|| !inspectorSignal->toolTip().contains(QStringLiteral("\nTrack %1 at ").arg(trackId))) {
 			ok = false;
 			failures << QStringLiteral("signal inspector does not name track %1 and section %2 by id and label: %3 / %4")
 							.arg(inspectorSignal->trackID)
@@ -1528,26 +1529,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		failures << QString("context menu missing action %1").arg(text);
 		return nullptr;
 	};
-	const auto checkDeferredAction = [&findMenuAction, &ok, &failures](QMenu* menu, const QString& text,
-										 const QString& explanation) {
-		QAction* action = findMenuAction(menu, text);
-		if (!action)
+	// The menus offer only entries that work: no dimmed placeholder, and no separator at the end.
+	const auto checkNoPlaceholder = [&ok, &failures](QMenu* menu, const QString& text) {
+		if (!menu)
 			return;
-		if (action->isEnabled() || action->toolTip() != explanation || action->statusTip() != explanation) {
+		const QList<QAction*> actions = menu->actions();
+		const bool listed = std::any_of(actions.begin(), actions.end(), [&text](const QAction* action) { return action->text() == text; });
+		if (listed || actions.isEmpty() || actions.last()->isSeparator()) {
 			ok = false;
-			failures << QString("deferred context action explanation mismatch: %1").arg(text);
+			failures << QString("context menu offers the placeholder %1 or ends with a separator").arg(text);
 		}
 	};
-	const QString trainRouteExplanation = QStringLiteral(
-		"Requires the train-to-route association and an infrastructure query.");
-	const QString stationTimetableExplanation = QStringLiteral(
-		"Requires the station timetable association and an arrivals/departures query.");
-	const QString trackOccupancyExplanation = QStringLiteral(
-		"Requires the track-occupancy association and an active-train query.");
-	const QString trackIncidentExplanation = QStringLiteral(
-		"Requires the track-incident association and an incident query.");
-	const QString signalApproachExplanation = QStringLiteral(
-		"Requires the signal route association and an approaching-train query.");
 
 	selectedTrain = nullptr;
 	selectedTrainBody = nullptr;
@@ -1603,7 +1595,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << "train context follow action did not activate follow mode";
 			}
 		}
-		checkDeferredAction(menu, "Planned route and related infrastructure", trainRouteExplanation);
+		checkNoPlaceholder(menu, "Planned route and related infrastructure");
 		const QString contextPath = qEnvironmentVariable("QEGTRAIN_E2E_CONTEXT_SCREENSHOT");
 		if (contextPath.isEmpty() || !menu || !menu->grab().save(contextPath)) {
 			ok = false;
@@ -1692,7 +1684,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << "station context copy action did not preserve node precision";
 			}
 		}
-		checkDeferredAction(menu, "Filtered station arrivals and departures", stationTimetableExplanation);
+		checkNoPlaceholder(menu, "Filtered station arrivals and departures");
 		closeContextMenu();
 	} else {
 		ok = false;
@@ -1737,8 +1729,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << "track context copy action did not preserve arc precision";
 			}
 		}
-		checkDeferredAction(trackMenu, "Trains currently using this track", trackOccupancyExplanation);
-		checkDeferredAction(trackMenu, "Incidents affecting this track", trackIncidentExplanation);
+		checkNoPlaceholder(trackMenu, "Trains currently using this track");
+		checkNoPlaceholder(trackMenu, "Incidents affecting this track");
 		closeContextMenu();
 	}
 
@@ -1788,7 +1780,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "signal context menu did not copy the section id of the head";
 		}
-		checkDeferredAction(menu, "Next train approaching this signal", signalApproachExplanation);
+		checkNoPlaceholder(menu, "Next train approaching this signal");
 		closeContextMenu();
 	} else {
 		ok = false;
@@ -2072,17 +2064,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const QString scheduled = QString::fromStdString(formatSimTime(futureDeparture, w.m_runController->m_startOffsetSeconds));
 				const QString notEntered = futureName + " is scheduled to enter at " + scheduled + ". ";
 				const QToolButton* followButton = w.findChild<QToolButton*>("actionFollowButton");
-				// Choosing the train with Follow off says that Follow can be switched on now. The
+				// Choosing the train with Follow off says when it enters, without promising that Follow starts. The
 				// list says that the time is the schedule. The train has no item yet, so there is nothing for the
 				// view to move to: E2E_FOLLOW_REPLAY_BEFORE_OK checks that the view stays for a train whose item exists.
 				w.m_followTrainCombo->setCurrentIndex(futureComboIndex);
 				const bool offSentence = w.m_followStatusLabel->toolTip()
-						== notEntered + "Follow can be switched on now and starts when it enters."
+						== futureName + " is scheduled to enter at " + scheduled + "."
 					&& w.m_followAction->isEnabled();
 				w.m_followAction->setChecked(true);
 				QApplication::processEvents();
 				if (!w.m_followAction->isChecked() || w.m_followTrainIndex != futureFollowIndex
-					|| w.statusBar()->currentMessage() != futureName + " enters at " + scheduled) {
+					|| w.m_followStatusLabel->text() != futureName + " enters at " + scheduled) {
 					ok = false;
 					failures << "future train follow activation was ignored or did not report waiting";
 				}
@@ -2267,7 +2259,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					// The toolbar button switches Follow off: the sentence stops saying that the view follows the train.
 					// Switching it on again restores the sentence.
 					if (QToolButton* toggleButton = w.findChild<QToolButton*>("actionFollowButton")) {
-						const QString switchedOff = futureName + " is running. Follow can be switched on now.";
+						const QString switchedOff = futureName + " is running.";
 						toggleButton->click();
 						QApplication::processEvents();
 						const bool offShown = !w.m_followAction->isChecked() && w.m_followTrainIndex == -1 && !toggleButton->isChecked()
@@ -2940,7 +2932,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "viewport reselection did not highlight and promote the exact moved train";
 		}
 		if (!w.m_inspector->dock() || !w.m_inspector->dock()->isVisible()
-			|| w.m_inspector->dock()->windowTitle() != QStringLiteral("Train Info")
+			|| w.m_inspector->dock()->windowTitle() != QStringLiteral("Train ") + w.m_inspector->trainNameText->text()
+			|| w.m_inspector->dock()->toggleViewAction()->text() != QStringLiteral("Details")
 			|| !w.m_inspector->trainInfoWidget || !w.m_inspector->trainInfoWidget->isVisible()) {
 			ok = false;
 			failures << "viewport reselection did not restore train info state";
@@ -3248,7 +3241,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 	w.activateWindow();
 	QApplication::processEvents();
 	bool viaShortcut = true;
-	for (const QString& kind : {QStringLiteral("Station: "), QStringLiteral("Signal: "), QStringLiteral("Train: ")}) {
+	for (const QString& kind : {QStringLiteral("Station: "), QStringLiteral("Signal"), QStringLiteral("Train: ")}) {
 		const NetworkPresenter::FindTarget target = targetLabelled(kind);
 		if (!target.item) {
 			if (kind != QStringLiteral("Train: ") || expectTrain) {
@@ -3276,7 +3269,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 			return false;
 		}
 		const QString label = results->currentItem()->text();
-		key(kind == QStringLiteral("Signal: ") ? static_cast<QObject*>(results) : field, Qt::Key_Return);
+		key(kind == QStringLiteral("Signal") ? static_cast<QObject*>(results) : field, Qt::Key_Return);
 		const NetworkPresenter::FindTarget shown = targetLabelled(label);
 		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
 		// The ring of a train is on its group.
@@ -3296,8 +3289,8 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 		}
 	}
 	w.m_findAction->trigger();
-	// A signal is listed with the labels of its sections, and the label as well as the id of a section finds it.
-	const NetworkPresenter::FindTarget signalTarget = targetLabelled(QStringLiteral("Signal: "));
+	// The label as well as the id of a section finds its signal.
+	const NetworkPresenter::FindTarget signalTarget = targetLabelled(QStringLiteral("Signal"));
 	const auto* head = qgraphicsitem_cast<const SignalItem*>(signalTarget.item);
 	if (!head || head->sectionAheadId.empty()) {
 		failure = QStringLiteral("Find lists no signal with a section ahead");
@@ -3309,8 +3302,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 		field->setText(QString::fromStdString(words));
 		return !results->findItems(signalTarget.label, Qt::MatchExactly).isEmpty();
 	};
-	if (!signalTarget.label.contains(QString::fromStdString(head->sectionAheadLabel)) || !lists(head->sectionAheadLabel)
-		|| !lists(head->sectionAheadId)) {
+	if (head->sectionAheadLabel.empty() || !lists(head->sectionAheadLabel) || !lists(head->sectionAheadId)) {
 		failure = QStringLiteral("Find does not list \"%1\" by the label and the id of section %2")
 					  .arg(signalTarget.label, QString::fromStdString(head->sectionAheadId));
 		return false;

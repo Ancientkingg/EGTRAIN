@@ -22,7 +22,7 @@ void require(bool condition, const char* message) {
 int main() {
 	// macOS shows no window title, so the main text alone has to carry the question and the versions.
 	requireText(update_prompt::automaticChecksQuestion(), "Check for EGTRAIN updates automatically?", "question of the first start");
-	require(update_prompt::automaticChecksDetail().contains("GitHub Releases") && update_prompt::automaticChecksDetail().endsWith("from Help."),
+	require(update_prompt::automaticChecksDetail().contains("GitHub") && update_prompt::automaticChecksDetail().endsWith("in the Help menu."),
 		"detail of the first start does not say what the check does and where to change it");
 	requireText(update_prompt::availableText("1.0.2", "1.0.0"), "EGTRAIN 1.0.2 is available. You are using 1.0.0.", "text of the update dialog");
 	return 0;

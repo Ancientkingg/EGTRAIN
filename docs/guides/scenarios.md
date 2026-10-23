@@ -92,11 +92,12 @@ switching the Trains layer off stop the view where it is.
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens, or for a passenger a box of its details above it, and a light
-blue ring marks the item. Its title reads
-`Preview: <kind> <id> (not running)` in the preview and Node Info, Station Node
-Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+blue ring marks the item. Its title names the item: `Node <id>`, `Station <id>`,
+`Arc <id>`, `Track <id>`, `Connection <id>` or `Signal <label>` in the preview, and
+`Node <id>`, `Station <name>`, `Arc <id>`, `Connection`, `Signal` or `Train <name>`
+during a run. A field that only a run fills reads `After a run` in the preview. A
 signal of the preview is named by the label of its section, as in
-`Preview: Signal B0 0.230 to 0.310 km (not running)` in Paimpol. A signal that
+`Signal B0 0.230 to 0.310 km` in Paimpol. A signal that
 `signalling.json` lists for the section comes first: `sig1 (B0 0.230 to 0.310 km)`.
 During a run the inspector names tracks by their scene ids and sections by their
 labels, and the tooltip of a field gives the runtime track number or the section
@@ -118,9 +119,9 @@ section for as long as a signal failure incident is active. The marks appear whe
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
-inspector name the state, and the Map key lists all five. The tooltip also names
-the track and the sections ahead of and behind the head, as in
-`Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km`.
+inspector name the state, and the Map Key lists all five. The tooltip also names
+the direction and the place of the head, as in `Proceed, facing right` over
+`Track B0 at 0.23 km`.
 
 ## Delay baseline
 
@@ -129,10 +130,10 @@ delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline, discards the results and closes
 the dock **Run Results**. Opened again from the menu **View**, the dock reads
-`No completed run | Scenario: <scenario>` and `Baseline: <case> / <scenario>. Run the selected scenario
-to create completed results for comparison.` A canonical scene edit, **File > New Case Study...**, or
-opening another case clears the baseline and explains that a new run without incidents or
-entrance delays is needed. **Compare delays** requires a run with incidents or
+`No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
+baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case Study...**
+and opening another case give `Baseline cleared: another case was opened`. A new run without
+incidents or entrance delays can then be set as the baseline. **Compare delays** requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
 on its tab Against baseline. The window reports the difference and the recorded
 direct incident evidence, and never states a cause. What it shows, how to read

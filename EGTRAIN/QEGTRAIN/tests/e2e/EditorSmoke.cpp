@@ -648,7 +648,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_session->m_sceneDiagnostics.clear();
 			applyPresentation();
 			if (!w.m_validation->statusLabel()->text().isEmpty()
-				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+				|| !w.m_caseReadinessLabel->text().isEmpty() || !w.m_caseReadinessLabel->isHidden()
 				|| firstScenarioText().contains("has warnings")
 				|| firstScenarioText().contains("has errors"))
 				failures << "presentation: clean normal mode exposed diagnostic warnings";
@@ -657,7 +657,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				"E2E non-blocking warning")};
 			applyPresentation();
 			if (!w.m_validation->statusLabel()->text().isEmpty()
-				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
+				|| !w.m_caseReadinessLabel->text().isEmpty() || !w.m_caseReadinessLabel->isHidden()
 				|| firstScenarioText().contains("has warnings"))
 				failures << "presentation: normal mode exposed a non-blocking warning";
 
@@ -665,7 +665,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				"E2E invalid scenario")};
 			applyPresentation();
 			if (w.m_validation->statusLabel()->text() != QStringLiteral("Cannot run: 1 error")
-				|| w.m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
+				|| w.m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario") || w.m_caseReadinessLabel->isHidden()
 				|| !firstScenarioText().contains("has errors"))
 				failures << "presentation: normal mode hid an actionable invalid scenario";
 
@@ -2010,8 +2010,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const QLabel* tractionWarning = window->findChild<QLabel*>("diagramWarning");
 			// The warning above the chart says that the curve goes below 0 kN; the chart itself has no title.
-			plotOk = plotOk && chart->title().isEmpty()
-				&& tractionWarning && tractionWarning->text().contains("Negative") == fixture.second
+			plotOk = plotOk && chart->title().isEmpty() && tractionWarning
+				&& (tractionWarning->text() == QStringLiteral("Part of the curve is below 0 kN and is not shown.")) == fixture.second
 				&& !window->findChild<QWidget*>("diagramDetailsPanel");
 			if (axis) {
 				const double maximum = axis->max();
@@ -3586,7 +3586,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| w.m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
 				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
 		}
-		const QString review = w.m_runController->runReviewText();
+		const QString review = w.m_runController->runReviewText(true);
 		if (editedRow >= 0) {
 			w.m_incidentListWidget->setCurrentRow(editedRow);
 			SceneIncident* incident = w.m_incidentPanel->selectedIncident();
@@ -3607,12 +3607,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_incidentPanel->updateDetail();
 		}
 		const bool reviewOk = review.contains(QString("Scenario: %1").arg(w.scenarioContext()))
-			&& review.contains(QString("id=%1 type=train_breakdown target=%2 start=100")
+			&& review.contains(QString("Incident %1: train breakdown of %2 #2, from 100 s, no end")
 					.arg(QString::fromStdString(editedIncidentId), QString::fromStdString(editedServiceId)))
-			&& review.contains("window=until-destination occurrence=2 options=")
-			&& review.contains(QString("Entrance delay configuration: service=%1 occurrence=2 operating_code=1725 station=%2 seconds=%3")
-					.arg(QString::fromStdString(entranceDelayServiceId), QString::fromStdString(entranceDelayStationId),
-						QString::number(entranceDelaySeconds, 'g', 12)));
+			&& review.contains(", ends its run at the destination")
+			&& review.contains(QString("Entrance delay: %1 s for %2 #2 (1725) at %3")
+					.arg(QString::number(entranceDelaySeconds, 'g', 12), QString::fromStdString(entranceDelayServiceId),
+						QString::fromStdString(entranceDelayStationId)));
 		if (!reviewOk)
 			facetFailure(facetOk, "incident", "run review omitted complete incident or entrance-delay configuration");
 		// The dock names the selected scenario above three tabs, and a check box stands in front of the field it switches on.
@@ -4954,7 +4954,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							.arg(dock->objectName())
 							.arg(shown));
 			}
-			// Choosing Case Settings in the Editors menu while it is open behind Rolling stock units brings it to the front.
+			// Choosing Case Settings in the Editors menu while it is open behind Rolling Stock Units brings it to the front.
 			QAction* caseSettingsAction = w.m_editorActions.value(w.m_caseSettingsDock);
 			caseSettingsAction->trigger();
 			QApplication::processEvents();
@@ -4962,11 +4962,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(ok, "presentation", "choosing Case Settings behind another editor tab in the Editors menu does not bring it to the front");
 
 			// In a window of 1280 by 800 or 1024 by 768 pixels, beside Case and Layers and with Run Results as high as it opens after
-			// a run, Rolling stock units shows its list, its buttons in one row, the ID field, its tabs and three rows of fields on
+			// a run, Rolling Stock Units shows its list, its buttons in one row, the ID field, its tabs and three rows of fields on
 			// each tab without a vertical scroll, and Services shows its list, its buttons in one row, its tabs, room for three rows
 			// of fields and on the Timetable tab the table header and two stops. Run Results keeps its buttons and the header and a
 			// row of its table in view. In a window of 819 by 614 pixels (1024 by 768 at 125 percent) the taller controls of this
-			// test leave room for the list, the buttons and the ID field of Rolling stock units and for one row of Services fields.
+			// test leave room for the list, the buttons and the ID field of Rolling Stock Units and for one row of Services fields.
 			// At each size Run Results is at most as high as the network view, and the Timetable tab leaves the height of the
 			// Services list as it is. How many fields fill that room, and whether the narrower dock scrolls sideways, depends on the
 			// width of the font.
@@ -5023,7 +5023,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					unitParts << units->tabs()->tabBar() << units->sourceTractionEdit() << units->linkButton(true) << units->unlinkButton(true);
 				for (const QWidget* part : unitParts)
 					if (!inView(part, unitsView))
-						facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(part), where));
+						facetFailure(ok, "presentation", QString("%1 of Rolling Stock Units is not in view%2").arg(partName(part), where));
 				if (fullSize) {
 					units->tabs()->setCurrentIndex(1);
 					QApplication::processEvents();
@@ -5031,11 +5031,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const auto& physical = units->physicalEdits();
 					for (const QDoubleSpinBox* edit : {physical[0], physical[1], physical[2]})
 						if (!inView(edit, unitsView))
-							facetFailure(ok, "presentation", QString("%1 of Rolling stock units is not in view%2").arg(partName(edit), where));
+							facetFailure(ok, "presentation", QString("%1 of Rolling Stock Units is not in view%2").arg(partName(edit), where));
 					units->tabs()->setCurrentIndex(0);
 				}
 				if (units->addButton()->y() != units->deleteButton()->y() || units->duplicateButton()->y() != units->deleteButton()->y())
-					facetFailure(ok, "presentation", "the buttons under the list of Rolling stock units are not in one row");
+					facetFailure(ok, "presentation", "the buttons under the list of Rolling Stock Units are not in one row");
 
 				w.m_serviceDock->raise();
 				services->pages()->setCurrentIndex(0);
@@ -5776,7 +5776,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			return expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable,
 				QStringLiteral("the run in %1 did not complete").arg(folder));
 		};
-		// An edit ends a replay, and the Train Info dock of a train that is selected in it closes.
+		// An edit ends a replay, and the inspector dock of a train that is selected in it closes.
 		if (!completeRun("replay_run_output"))
 			return finish();
 		w.seekReplay(500);
@@ -5791,7 +5791,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				w.commitPendingCaseSettings();
 			}))
 			return finish();
-		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the Train Info dock open");
+		expect(!w.m_replayActive && !w.m_inspector->dock()->isVisible(), "an edit in a replay left the inspector dock open");
 		// An edit after a run replaces the message that the run is complete. It hides the Run Results dock, and the network
 		// view takes the focus that was in the dock, which the next widget in the tab chain, the first layer check box, would
 		// take otherwise. A save refuses an incident without a target, so Undo takes the new incident away again.
@@ -5851,7 +5851,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				&& added->target == trainState.serviceId && added->hasOccurrence && added->occurrence == trainState.occurrence,
 			"the menu of a train did not add a breakdown of its occurrence");
 		const QString occurrence = QString("%1 #%2").arg(QString::fromStdString(trainState.serviceId)).arg(trainState.occurrence);
-		expect(!w.m_runController->m_resultsAvailable && !w.m_replayActive && message == "Added a breakdown of " + occurrence + "; run results discarded."
+		expect(!w.m_runController->m_resultsAvailable && !w.m_replayActive && message == "Added a breakdown of " + occurrence + ". Run results discarded."
 				&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(pickHint),
 			"a breakdown from the menu of a train did not discard the results with a short message: " + message);
 		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");

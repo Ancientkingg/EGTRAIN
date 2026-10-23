@@ -20,8 +20,8 @@ Colour, directly below Category, sets the colour of the
 service's trains. Choose... opens a colour dialog; Default removes the colour.
 Without a colour, every train is drawn in the default yellow. The colour applies
 to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
-replay, and the Map key lists it with the service id. The colour applies from
-the next run: the Map key keeps the colour of the last run until then, also
+replay, and the Map Key lists it with the service id. The colour applies from
+the next run: the Map Key keeps the colour of the last run until then, also
 after Default. In the result windows of
 a run, the lines of those trains in the speed, time, distance and tractive
 effort diagrams, the delay diagram, the timetable graph and the train-path

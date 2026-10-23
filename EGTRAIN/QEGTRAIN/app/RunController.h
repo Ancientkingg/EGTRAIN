@@ -56,7 +56,7 @@ public:
 		bool canSet = false;
 		/// The results are shown, a baseline exists, and the completed run has incidents or entrance delays to compare.
 		bool canCompare = false;
-		/// One or two sentences on the baseline and what the user can do next.
+		/// One line on the baseline: "Baseline: <run>", why it was cleared, or "No baseline set".
 		QString feedback;
 	};
 
@@ -169,8 +169,6 @@ public:
 	void markCaseNamed();
 	/// The name of the case that the settings describe.
 	QString settingsCaseName() const;
-	/// The line of the status bar that tells that the case is ready, with its numbers of tracks and routes.
-	QString readyMessage() const;
 	/// The next run writes to the folder of the scene `sceneName`, unless the user chose a folder.
 	void selectSceneOutputFolder(const std::string& sceneName);
 
@@ -230,8 +228,9 @@ public:
 	/// The scene is about to be replaced by another.
 	void sceneWillBeReplaced();
 
-	/// The facts of the run review for the scene as it is now, as plain text with one fact per line.
-	QString runReviewText() const;
+	/// The facts of the run review for the scene as it is now, as plain text with one fact per line. With `advanced` it adds
+	/// the validation counts that are not zero and a line for each incident and entrance delay of the scenario.
+	QString runReviewText(bool advanced) const;
 	/// What the completed run records about its input: the case, the saved scene, the scenario, the settings of the
 	/// process and the occurrences in the prepared run.
 	RunProvenance captureRunProvenance() const;

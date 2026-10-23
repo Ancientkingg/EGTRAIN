@@ -22,11 +22,11 @@ A tooltip names the shortcut of its button as the platform writes it, such as Ct
 
 The closed train list ends a name that does not fit its 180 px with an ellipsis; the open list and the tooltip show the whole text.
 
-The status bar shows the zoom of the network view as **Zoom: Fit** for the whole network and as a factor such as **Zoom: 2x** otherwise. The Follow label beside it shows one clause, such as **Rail-1 enters at 08:25:50** or **Following Rail-1**, at most 400 px wide and elided with an ellipsis beyond that; its tooltip gives the whole explanation. Follow messages on the left of the status bar are the same clause, and a run that ends says **Simulation complete - results in the Diagrams menu**. A message wider than the room left of the fields on the right ends in an ellipsis.
+The status bar shows the zoom of the network view as **Zoom: Fit** for the whole network and as a factor such as **Zoom: 2x** otherwise. The Follow label beside it shows one clause, such as **Rail-1 enters at 08:25:50** or **Following Rail-1**, at most 400 px wide and elided with an ellipsis beyond that; its tooltip gives the whole explanation. The left of the status bar does not repeat that clause: it names a change, such as **Follow off** when Follow switches off, and a run that ends says **Simulation complete**. A message wider than the room left of the fields on the right ends in an ellipsis.
 
 ## Run results header
 
-The dialog **Run simulation** shows the duration of the run as H:MM:SS, the format of the **Travel time** column of Run Results, followed by the clock time at which the run ends, as in `2:30:00 (ends near 09:40:40)`.
+The dialog **Run simulation** shows the duration of the run as H:MM:SS, the format of the **Travel time** column of Run Results, followed by the clock time at which the run ends, as in `2:30:00, until 09:40:40`.
 
 The text at the top of Run Results puts each entry on a line of its own: `Run: <case> / <scenario>`, `Occurrences: ...` and `Status: Completed`. With advanced details on, the direct incident evidence and `Destination terminations: <count>` follow, and `Delay baseline: <run>` comes last when a baseline is set. A long entry wraps inside its own line.
 
@@ -40,7 +40,7 @@ The editor docks share one group of tabs on the right of the window. The group t
 
 The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.
 
-The lists of Rolling stock units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling stock units and the list of Services. The list of Services keeps its height on the Timetable tab.
+The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.
 
 ## Light look
 

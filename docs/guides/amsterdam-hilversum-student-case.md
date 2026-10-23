@@ -48,7 +48,7 @@ Explain the difference between the one service definition and the four generated
 Run 1 alone at 100 % performance.
 
 1. On **Run occurrences**, click **Select None**, then tick **Run** in the first row, operating code `IC_ASD_HVS_DEMO-1`. The text above the table reads "1 of 4 selected". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
-2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Selected in period**, **Start clock**, **Duration** and **Active incidents**; **Run details** shows more. Check that **Selected in period** is 1, then click **Run simulation**.
+2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Trains**, **Start time** and **Duration**; **Run details** shows more. Check that **Trains** is 1, then click **Run simulation**.
 3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the lines at its top include "Status: Completed".
 4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **Export CSV...** in that window and save `baseline-timetable.csv` in your own folder. Close the window.
 5. Choose **Open result view...** > **Speed / distance**, click **PNG...** in the panel of that window and save `baseline-speed-distance.png`. Close the window.
@@ -87,7 +87,7 @@ Explain whether the changed delay comes from faster movement, a changed target o
 ### 5. Check the repetition
 
 1. On **Run occurrences**, click **Select All**. The text reads "4 of 4 selected". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
-2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
+2. Run as in steps 2 and 3 of task 2. **Trains** in **Run simulation** is 4.
 3. Open **Timetable**. Its train filter button reads `Trains (4/4)` while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
 4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
@@ -119,6 +119,6 @@ Each export also writes a file with the same name plus `.provenance.json` next t
 
 ## Limits of the exercise
 
-The case has no validation errors. With **View > Advanced / Developer details** checked, the status bar shows "26 warnings". All 26 warnings have the code `scene.route.region_jump` (a route jumps between two parts of the network that no connection joins). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
+The case has no validation errors. With **View > Advanced Details** checked, the status bar shows "26 warnings". All 26 warnings have the code `scene.route.region_jump` (a route jumps between two parts of the network that no connection joins). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
 
 If a train meets planned times that you set yourself, that does not prove the plan is feasible in real operation.

@@ -20,9 +20,9 @@ from startup_benchmark import validate_records
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 SCENE = RUN_DIR / "Scenes/Paimpol"
 PROMPT_MARKERS = (
-    "No arguments inserted",
-    "Please enter",
-    "Please insert",
+    "Case study (1 Netherlands",
+    "Open the window?",
+    "Show passengers?",
     "Do you want to change it",
 )
 READY_MARKERS = (
@@ -149,13 +149,12 @@ def assert_no_argument_chooser_continuation(
             key, value = line.split("=", 1)
             values[key] = value
     expected = {
-        "E2E_STARTUP_CHOOSER_PROMPT": (
-            "Current case: Netherlands. Choose another or continue."
-        ),
+        "E2E_STARTUP_CHOOSER_PROMPT": "Current case: Netherlands",
         "E2E_STARTUP_CHOOSER_ACTION": "Continue",
         "E2E_STARTUP_CHOOSER_MODEL": "Netherlands",
         "E2E_STARTUP_CHOOSER_CASE_LABEL": "Netherlands",
-        "E2E_STARTUP_CHOOSER_READINESS": "Ready to run",
+        # The line under the case name is empty while nothing blocks a run.
+        "E2E_STARTUP_CHOOSER_READINESS": "",
         "E2E_STARTUP_CHOOSER_UNCHANGED": "yes",
     }
     mismatches = [
@@ -164,9 +163,9 @@ def assert_no_argument_chooser_continuation(
         if values.get(key) != value
     ]
     status = values.get("E2E_STARTUP_CHOOSER_STATUS", "")
-    if status != "Ready - Netherlands":
+    if status != "Ready":
         mismatches.append(
-            f"E2E_STARTUP_CHOOSER_STATUS={status!r}, expected 'Ready - Netherlands'"
+            f"E2E_STARTUP_CHOOSER_STATUS={status!r}, expected 'Ready'"
         )
     if rejection is not None and not any(
         line.startswith(REJECTION_LINE) and rejection in line for line in output.splitlines()
@@ -370,12 +369,12 @@ def assert_interactive_questions(app: Path) -> None:
         root = Path(root_name)
         run = root / "run-asked"
         returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch", answers="2\n0\n")
-        if (returncode != 0 or "Please enter" not in output or "Please insert" not in output
+        if (returncode != 0 or "Case study (1 Netherlands" not in output or "Open the window?" not in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"--interactive exited with {returncode}, did not ask for -n and -g or did not run Paimpol\n{tail(output)}")
         run = root / "run-given"
         returncode, output = run_app(app, ["-interactive", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="2\n")
-        if (returncode != 0 or "Please enter" not in output or "Please insert" in output
+        if (returncode != 0 or "Case study (1 Netherlands" not in output or "Open the window?" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
         print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
@@ -571,7 +570,7 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
     if not problem and request is not None and "E2E_OPEN_REQUEST_SENT" not in text:
         problem = f"{label} did not send the open event"
     status = next((line for line in text.splitlines() if line.startswith(STATUS_PREFIX)), "")
-    if not problem and request is not None and ("could not be opened" in status) != bool(refused):
+    if not problem and request is not None and ("Could not open" in status) != bool(refused):
         problem = f"{label} shows the status line {status[len(STATUS_PREFIX):]!r} after the open event"
     if not problem and "E2E_STARTUP_CHOOSER_" in text:
         problem = f"{label} opened the chooser"

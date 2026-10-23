@@ -8,7 +8,7 @@ class InfoDockWidget : public QDockWidget {
 	Q_OBJECT
 
 public:
-	/// A dock with this window title.
+	/// A dock with this window title. Its entry in the menus keeps this title when the window title changes with the item.
 	InfoDockWidget(const QString& title, QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 	~InfoDockWidget() override;
 
@@ -18,6 +18,13 @@ public:
 signals:
 	/// The dock is about to close.
 	void closed();
+
+protected:
+	/// QDockWidget names its toggle action after the window title; this puts the first title back.
+	void changeEvent(QEvent* event) override;
+
+private:
+	const QString m_menuName;
 };
 
 #endif // INFODOCKWIDGET_H

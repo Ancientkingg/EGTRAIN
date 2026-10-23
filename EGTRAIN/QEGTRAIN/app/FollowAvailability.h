@@ -106,8 +106,8 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			out.statusText = "This case has no trains to follow.";
 			break;
 		case FollowPhase::NoRun:
-			out.entryText = "Run the case to follow trains";
-			out.statusClause = "Run the case to follow trains";
+			out.entryText = "Run the case first";
+			out.statusClause = "Run the case first";
 			out.statusText = "Run the case first, then you can follow a train.";
 			break;
 		case FollowPhase::NotEntered: {
@@ -115,17 +115,17 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			// A train that is scheduled after the end of a completed run has no position at any time of its replay, so the
 			// sentence does not say that Follow starts.
 			const bool afterRun = in.train && in.replayEndTime >= 0 && in.train->departureTime > in.replayEndTime;
-			const std::string tail = in.followOn ? "Follow starts when it enters." : "Follow can be switched on now and starts when it enters.";
+			const std::string tail = in.followOn ? " Follow starts when it enters." : "";
 			if (in.train) {
 				const std::string entry = formatSimTime(in.train->departureTime, in.clockOffsetSeconds);
 				out.entryText = name + " (scheduled " + entry + ")";
 				out.statusClause = name + (afterRun ? " enters after this run" : " enters at " + entry);
 				out.statusText = name + " is scheduled to enter at " + entry
-					+ (afterRun ? std::string(", after the end of this run, so the view cannot follow it.") : ". " + tail);
+					+ (afterRun ? std::string(", after the end of this run, so the view cannot follow it.") : "." + tail);
 			} else {
 				out.entryText = name + " (not entered yet)";
 				out.statusClause = name + " has not entered yet";
-				out.statusText = name + " has not entered the network yet. " + tail;
+				out.statusText = name + " has not entered the network yet." + tail;
 			}
 			break;
 		}
@@ -133,16 +133,15 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 			out.canArm = true;
 			out.entryText = name + " (running)";
 			out.statusClause = in.followOn ? "Following " + name : name + " is running";
-			out.statusText = name + " is running. " + (in.followOn ? "The view follows it." : "Follow can be switched on now.");
+			out.statusText = name + " is running." + (in.followOn ? " The view follows it." : "");
 			break;
 		case FollowPhase::Finished:
 			out.entryText = name + " (finished)";
 			out.statusClause = name + " has left the network";
 			if (in.replay) {
 				out.canArm = true;
-				out.statusText = name + " has left the network at this time. "
-					+ (in.followOn ? "Follow stays on and continues when you go back in the replay."
-								   : "Follow can be switched on now and continues when you go back in the replay.");
+				out.statusText = name + " has left the network at this time."
+					+ (in.followOn ? " Follow stays on and continues when you go back in the replay." : "");
 			} else {
 				out.statusText = name + " has left the network. " + (in.followOn ? "Follow is switched off." : "Follow cannot be switched on for it.");
 			}
@@ -150,10 +149,10 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 		case FollowPhase::HiddenByLayer:
 			out.canArm = true;
 			out.entryText = name + " (hidden)";
-			out.statusClause = name + " is hidden by the Trains layer";
+			out.statusClause = name + " is hidden (Trains layer off)";
 			out.statusText = name + " is running, but the Trains layer is switched off"
 				+ (in.followOn ? ", so the view does not follow it."
-							   : ". Follow can be switched on now and moves the view when the layer is switched on.");
+							   : ". Turn on the Trains layer to follow it.");
 			break;
 		case FollowPhase::NotDrawable:
 			out.canArm = true;

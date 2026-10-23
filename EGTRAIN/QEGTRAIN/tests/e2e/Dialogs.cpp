@@ -214,7 +214,9 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 	chooserContract.insert("loadedAfter", w.m_session->m_sceneDir);
 	chooserContract.insert("loaded", w.m_document->isLoaded());
 	printMarker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
-	printMarker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
+	// The chooser has no context line when no case is open.
+	const QLabel* context = dialog.findChild<QLabel*>("dialogContext");
+	printMarker("E2E_STARTUP_CHOOSER_PROMPT", context ? context->text() : QString());
 	printMarker("E2E_STARTUP_CHOOSER_ACTION", dialog.continueButton()->text());
 	printMarker("E2E_STARTUP_CHOOSER_GROUP", list->item(0)->text());
 	printMarker("E2E_STARTUP_CHOOSER_GROUP_SELECTABLE", list->item(0)->flags() & Qt::ItemIsEnabled ? "yes" : "no");
@@ -313,6 +315,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 			summary.insert(factLabels[row]->text(), factValues[row]->text());
 		reviewDiagnostic.insert("summary", summary);
 		reviewDiagnostic.insert("status", status->text());
+		reviewDiagnostic.insert("statusVisible", !status->isHidden());
 		reviewDiagnostic.insert("warning", status->property("warning").toBool());
 		reviewDiagnostic.insert("runEnabled", runButton->isEnabled());
 		reviewDiagnostic.insert("collapsed", detailState());
@@ -386,18 +389,14 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 
 // Prints what the review showed and whether the window is as it was before, and ends the run.
 void MainWindowTestAccess::reviewClosed(MainWindow& w, QDialog& review) {
-	const QList<QLabel*> factValues = review.findChildren<QLabel*>("runReviewFactValue");
 	const QString details = review.findChild<QLabel*>("runReviewDetails")->text();
 	const bool cancelled = review.result() == QDialog::Rejected;
 	reviewDiagnostic.insert("rejected", cancelled);
 	reviewDiagnostic.insert("workerStarted", w.m_runController->m_worker != nullptr);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_RENDERED=%s\n", QJsonDocument(reviewDiagnostic).toJson(QJsonDocument::Compact).constData());
-	std::fprintf(stdout, "E2E_RUN_REVIEW_SUMMARY=%s\n", factValues[0]->text().toUtf8().constData());
-	std::fprintf(stdout, "E2E_RUN_REVIEW_START=%s\n", factValues[1]->text().toUtf8().constData());
-	std::fprintf(stdout, "E2E_RUN_REVIEW_DURATION=%s\n", factValues[2]->text().toUtf8().constData());
 	std::fprintf(stdout, "E2E_RUN_REVIEW_DETAILS=%d\n",
-		details.contains("Service definitions:") && details.contains("Configured total:") && details.contains("Selected:")
-				&& details.contains("Compositions:") && details.contains("Counting rule:")
+		details.contains("Case:") && details.contains("Services:") && details.contains("Run occurrences:")
+				&& details.contains("Compositions:")
 			? 1
 			: 0);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_ADVANCED=%d\n", reviewAdvanced ? 1 : 0);
