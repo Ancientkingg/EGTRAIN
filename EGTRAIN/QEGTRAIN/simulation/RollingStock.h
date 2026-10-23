@@ -539,7 +539,9 @@ public:
 	/// The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m).
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
-	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks);
+	/// When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead.
+	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks,
+		double cutoff = std::numeric_limits<double>::infinity());
 
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
 	/// movement could pass the last point where it can still brake for the entry.
