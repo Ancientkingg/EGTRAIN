@@ -19,6 +19,7 @@ class QVBoxLayout;
 class ResultPanel : public QWidget {
 	Q_OBJECT
 public:
+	/// An empty panel with its readout.
 	explicit ResultPanel(QWidget* parent = nullptr);
 	/// Adds a section below the others: a heading with `title` and, at its right, `headingWidget` when given, and
 	/// `content` below the heading. The panel owns both widgets. Returns the section, which setSectionVisible takes.
@@ -62,12 +63,15 @@ public:
 	QToolButton* addHeaderButton(const QString& objectName, const QString& text, const QString& iconPath, const QString& toolTip);
 	/// Adds `widget` between the header and the main widget, such as a warning.
 	void addAboveMain(QWidget* widget);
-	/// The panel and its button.
+	/// The panel at the right of the splitter.
 	ResultPanel* panel() const { return m_panel; }
+	/// The checkable header button that shows and hides the panel.
 	QToolButton* panelButton() const { return m_panelButton; }
 
 protected:
+	/// Fits the width of the panel to the new width of the window.
 	void resizeEvent(QResizeEvent* event) override;
+	/// Fits the width of the panel to the width the window opens with.
 	void showEvent(QShowEvent* event) override;
 
 private:
