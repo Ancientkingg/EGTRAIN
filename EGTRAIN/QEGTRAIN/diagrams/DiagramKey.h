@@ -31,8 +31,9 @@ struct DiagramKeyEntry {
 	bool marker = false;	   ///< A line sample with a dot in its middle, for a series that shows its points
 };
 
-/// The size of the sample of a key row or a train row, in pixels.
+/// The width of the sample of a key row or a train row, in pixels.
 constexpr double kKeySampleWidth = 22;
+/// The height of the sample of a key row or a train row, in pixels.
 constexpr double kKeySampleHeight = 14;
 /// The room between a sample and its name, in pixels.
 constexpr double kKeySampleGap = 8;

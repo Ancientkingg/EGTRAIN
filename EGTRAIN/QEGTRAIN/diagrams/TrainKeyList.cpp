@@ -7,6 +7,7 @@
 #include <QHeaderView>
 #include <QIcon>
 #include <QItemSelectionModel>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPainter>
@@ -23,6 +24,7 @@ constexpr int kIdRole = Qt::UserRole;		  // the id of the train of a row; empty 
 constexpr int kOrderRole = Qt::UserRole + 1;  // the place of the train or the service in the order setTrains gave
 constexpr int kColourRole = Qt::UserRole + 2; // the colour of the sample of a row
 constexpr int kSearchAbove = 12;			  // the number of trains above which the search shows
+constexpr int kAllNoneAbove = 6;			  // the number of trains above which All and None show
 constexpr int kGroupAbove = 6;				  // the number of trains above which services group them
 constexpr int kMaxGroups = 6;				  // the number of services up to which they group the trains
 constexpr int kVisibleRows = 12;			  // the rows the list shows before it scrolls
@@ -91,6 +93,7 @@ TrainKeyList::TrainKeyList(QWidget* parent)
 	m_search->setPlaceholderText("Search trains");
 	m_search->setAccessibleName("Search trains");
 	m_search->setClearButtonEnabled(true);
+	m_search->installEventFilter(this);
 	connect(m_search, &QLineEdit::textChanged, this, [this] { applySearch(); });
 	m_all = new QPushButton("All", m_searchRow);
 	m_all->setObjectName("trainKeyAll");
@@ -214,7 +217,8 @@ void TrainKeyList::setTrains(const QVector<Train>& trains) {
 	}
 	m_updating = false;
 	const bool searchable = m_order.size() > kSearchAbove;
-	m_searchRow->setVisible(searchable);
+	m_searchRow->setVisible(m_order.size() > kAllNoneAbove);
+	m_search->setVisible(searchable);
 	// A search that the list no longer offers hides no row.
 	if (!searchable) m_search->clear();
 	sortRows();
@@ -289,11 +293,21 @@ QVector<QPair<QString, QColor>> TrainKeyList::shownRows() const {
 	std::sort(groups.begin(), groups.end(),
 		[](const QTreeWidgetItem* a, const QTreeWidgetItem* b) { return a->data(0, kOrderRole).toInt() < b->data(0, kOrderRole).toInt(); });
 	for (const QTreeWidgetItem* group : groups)
-		if (group->checkState(0) != Qt::Unchecked) rows.append({group->text(0), group->data(0, kColourRole).value<QColor>()});
+		for (int i = 0; i < group->childCount(); ++i)
+			if (group->child(i)->checkState(0) == Qt::Checked) {
+				rows.append({group->text(0), group->data(0, kColourRole).value<QColor>()});
+				break;
+			}
 	return rows;
 }
 
 bool TrainKeyList::eventFilter(QObject* watched, QEvent* event) {
+	// Escape clears a search before it reaches the window, which it would close.
+	if (watched == m_search && event->type() == QEvent::KeyPress && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape
+		&& !m_search->text().isEmpty()) {
+		m_search->clear();
+		return true;
+	}
 	if (m_tree && watched == m_tree->viewport()) {
 		if (event->type() == QEvent::Enter) {
 			m_hovered = true;
@@ -351,6 +365,10 @@ void TrainKeyList::applySearch() {
 			m_openedBySearch.insert(row->text(0));
 			row->setExpanded(true);
 		}
+		const bool updating = m_updating;
+		m_updating = true;
+		updateGroupState(row);
+		m_updating = updating;
 	}
 	fitHeight();
 }
@@ -412,12 +430,20 @@ void TrainKeyList::sortSoon() {
 		sortRows();
 }
 
+// A group counts its trains that the search shows, as a click on it acts on those, else all of them.
 void TrainKeyList::updateGroupState(QTreeWidgetItem* group) {
-	int shown = 0;
-	for (int i = 0; i < group->childCount(); ++i) shown += group->child(i)->checkState(0) == Qt::Checked ? 1 : 0;
+	int counted = 0, shown = 0;
+	for (const bool searched : {true, false}) {
+		for (int i = 0; i < group->childCount(); ++i) {
+			if (searched && group->child(i)->isHidden()) continue;
+			++counted;
+			shown += group->child(i)->checkState(0) == Qt::Checked ? 1 : 0;
+		}
+		if (counted > 0) break;
+	}
 	Qt::CheckState state = Qt::PartiallyChecked;
 	if (shown == 0) state = Qt::Unchecked;
-	if (shown == group->childCount()) state = Qt::Checked;
+	if (shown == counted) state = Qt::Checked;
 	group->setCheckState(0, state);
 }
 

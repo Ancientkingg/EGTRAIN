@@ -22,9 +22,10 @@ class QTreeWidgetItem;
 /// are grouped by service, with a group row whose check box shows and hides the trains of the group and is partly checked
 /// while some of them are shown; other lists are flat. The selected train comes first and is highlighted, then the
 /// shown trains, then the hidden ones, and groups follow the same order; while the pointer is over the list or the list
-/// has the focus the rows keep their places, and they move once it leaves. Above 12 trains a search field narrows the
-/// rows, with All and None beside it, which show or hide the trains of the rows the search shows. The count of shown
-/// trains, such as "2 of 2", is a label that the panel puts on the heading row of the section.
+/// has the focus the rows keep their places, and they move once it leaves. Above 6 trains All and None show or hide the
+/// trains of the rows in the list, and above 12 a search field beside them narrows the rows; a group then counts and
+/// acts on its trains that the search shows, and Escape in the field clears it. The count of shown trains, such as
+/// "2 of 2", is a label that the panel puts on the heading row of the section.
 class TrainKeyList : public QWidget {
 	Q_OBJECT
 public:
@@ -63,7 +64,7 @@ public:
 	QLabel* countLabel() const { return m_count; }
 	/// The tree of the rows.
 	QTreeWidget* tree() const { return m_tree; }
-	/// The search field, shown above 12 trains.
+	/// The search field, shown above 12 trains. All and None show above 6.
 	QLineEdit* searchField() const { return m_search; }
 	/// The widgets of the list that take the focus, in the order Tab goes through them: the search field, All, None and
 	/// the rows. Tab passes over those that are hidden.
@@ -75,7 +76,7 @@ signals:
 
 protected:
 	/// Keeps the rows in place while the pointer is over the list or the list has the focus, and sorts them once both
-	/// have left.
+	/// have left. Escape in a search field with text clears it.
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:

@@ -27,7 +27,6 @@
 #include <functional>
 #include <vector>
 
-class DiagramKey;
 class QGraphicsObject;
 class QKeyEvent;
 class QLabel;

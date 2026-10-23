@@ -1018,7 +1018,7 @@ QPushButton#diagramClearSelection:pressed, QPushButton#trainKeyAll:pressed, QPus
     background: #e3eaee;
 }
 
-/* All and None beside the search of the Trains list read as links too. */
+/* All and None of the Trains list read as links too. */
 QPushButton#trainKeyAll, QPushButton#trainKeyNone {
     background: transparent;
     border: 2px solid transparent;

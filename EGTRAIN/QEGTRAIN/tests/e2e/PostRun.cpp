@@ -231,6 +231,30 @@ DiagramWindow* newestWindow(const MainWindow& w) {
 	return windows.isEmpty() ? nullptr : windows.last();
 }
 
+// The Trains list of a result window knows the service of each train of the run, `services` by train id, and groups more
+// than six trains in six services or fewer.
+bool trainServicesShown(DiagramWindow* window, const QHash<QString, QString>& services) {
+	auto* list = window ? window->findChild<TrainKeyList*>() : nullptr;
+	if (!list)
+		return false;
+	bool ok = true;
+	QSet<QString> shared;
+	for (const QString& id : list->trainIds()) {
+		shared.insert(services.value(id, id));
+		if (list->serviceOf(id) != services.value(id, id)) {
+			std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: the Trains list has service %s for %s\n", qPrintable(window->windowTitle()),
+				qPrintable(list->serviceOf(id)), qPrintable(id));
+			ok = false;
+		}
+	}
+	if (list->isGrouped() != (list->trainIds().size() > 6 && shared.size() <= 6)) {
+		std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: %lld trains in %lld services, grouped %d\n", qPrintable(window->windowTitle()),
+			static_cast<long long>(list->trainIds().size()), static_cast<long long>(shared.size()), list->isGrouped() ? 1 : 0);
+		ok = false;
+	}
+	return ok;
+}
+
 // Writes the dump of the chart of a result window.
 bool exportChart(DiagramWindow* window, const QString& dir, const QString& name) {
 	if (!window)
@@ -388,7 +412,9 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			const double end = diagram ? diagram->referencePath.nodes.back().positionKm : 0.0;
 			const double low = std::min(origin, end), high = std::max(low + 0.02, std::max(origin, end));
 			const QString route = QStringLiteral(" \u00b7 ") + QString::fromStdString(diagram ? diagram->referencePath.id : std::string());
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			for (DiagramWindow* window : windows) {
+				ok &= trainServicesShown(window, services);
 				auto* view = window->findChild<QChartView*>();
 				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
 				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
@@ -463,6 +489,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		bool ok = w.m_runController->m_resultsAvailable;
 		if (ok) {
 			const QStringList ids = trainIdsFrom(*w.m_runController->m_completedRun);
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_runController->m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_runController->m_completedRun, ids));
 			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_runController->m_completedRun, ids);
@@ -475,21 +502,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
-				// The Trains list knows the service of each train, which groups more than six trains in six services or fewer.
-				const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
-				QSet<QString> shared;
-				for (const QString& id : list->trainIds()) {
-					shared.insert(services.value(id, id));
-					if (list->serviceOf(id) != services.value(id, id)) {
-						std::fprintf(stderr, "E2E_BLOCKING_TRAINS_FAIL: the Trains list has service %s for %s\n", qPrintable(list->serviceOf(id)), qPrintable(id));
-						ok = false;
-					}
-				}
-				if (list->isGrouped() != (list->trainIds().size() > 6 && shared.size() <= 6)) {
-					std::fprintf(stderr, "E2E_BLOCKING_TRAINS_FAIL: %lld trains in %lld services, grouped %d\n",
-						static_cast<long long>(list->trainIds().size()), static_cast<long long>(shared.size()), list->isGrouped() ? 1 : 0);
-					ok = false;
-				}
+				ok &= trainServicesShown(blocking, services);
 				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
@@ -526,6 +539,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			}
 			w.showDelayDiagram();
 			DiagramWindow* delay = newestWindow(w);
+			ok &= trainServicesShown(delay, services);
 			ok &= exportWindow(delay, dir, "delay_diagram", dump);
 			if (delay)
 				delay->close();
@@ -542,6 +556,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			for (int mode = 0; mode < 4; ++mode) {
 				w.buildPerTrainDiagram(mode);
 				DiagramWindow* perTrain = newestWindow(w);
+				ok &= trainServicesShown(perTrain, services);
 				ok &= mode == 0 ? exportWindow(perTrain, dir, perTrainNames[mode], dump)
 								: exportChart(perTrain, dir, perTrainNames[mode]);
 				if (perTrain)

@@ -1568,7 +1568,8 @@ static QRect treeCheckBoxRect(const QTreeWidget* tree, const QTreeWidgetItem* it
 
 // A group row checks and unchecks all of its trains and is partly checked while some are shown, which the style sheet
 // draws filled. Above 12 trains a search hides rows and leaves the check states alone, and All and None act on the rows
-// it shows; a group then acts on its trains that the search shows.
+// it shows; a group then counts and acts on its trains that the search shows, and Escape clears the search. All and None
+// show above 6 trains, the search above 12.
 static bool exerciseTrainKeyChecks() {
 	bool ok = true;
 	TrainKeyList list;
@@ -1630,18 +1631,41 @@ static bool exerciseTrainKeyChecks() {
 	list.findChild<QPushButton*>("trainKeyNone")->click();
 	ok &= expect(list.countLabel()->text() == "17 of 22" && changes == 1 && list.isTrainVisible("IC1723-1"),
 		"None hides the trains of the rows the search shows, and only those");
+	list.setTrainVisible("IC1723-1", false);
 	list.searchField()->setText("IC1723-3");
+	ok &= expect(rowNamed(&list, "IC1723")->checkState(0) == Qt::Checked, "a partly shown group counts its trains that the search shows");
 	rowNamed(&list, "IC1723")->setCheckState(0, Qt::Unchecked);
-	ok &= expect(!list.isTrainVisible("IC1723-3") && list.isTrainVisible("IC1723-1")
+	ok &= expect(!list.isTrainVisible("IC1723-3") && list.isTrainVisible("IC1723-2")
+			&& rowNamed(&list, "IC1723")->checkState(0) == Qt::Unchecked && list.shownRows().first().first == "IC1723",
+		"a group acts on its trains that the search shows, and its service keeps its place in an exported figure");
+	pressKey(list.searchField(), Qt::Key_Escape);
+	ok &= expect(list.searchField()->text().isEmpty() && shownRowTexts(&list).size() >= 4 && list.countLabel()->text() == "15 of 22"
 			&& rowNamed(&list, "IC1723")->checkState(0) == Qt::PartiallyChecked,
-		"a group acts on its trains that the search shows");
-	list.searchField()->clear();
-	ok &= expect(shownRowTexts(&list).size() >= 4 && list.countLabel()->text() == "16 of 22",
-		"clearing the search shows every row and keeps the check states");
+		"Escape clears the search, which shows every row and keeps the check states");
 	ok &= expect(!rowNamed(&list, "IC2025")->isExpanded() && !rowNamed(&list, "IC1723")->isExpanded() && rowNamed(&list, "S9827")->isExpanded(),
 		"clearing the search closes the groups it opened and leaves a group opened by hand open");
 	list.findChild<QPushButton*>("trainKeyAll")->click();
 	ok &= expect(list.countLabel()->text() == "22 of 22", "All shows every train");
+
+	// All and None show above 6 trains, the search above 12.
+	for (const int count : {6, 7, 12, 13}) {
+		QStringList ids;
+		for (int i = 1; i <= count; ++i) ids << QString("T-%1").arg(i);
+		TrainKeyList sized;
+		sized.setTrains(trainsOf(ids));
+		sized.show();
+		QApplication::processEvents();
+		const bool allNone = sized.findChild<QPushButton*>("trainKeyAll")->isVisible() && sized.findChild<QPushButton*>("trainKeyNone")->isVisible();
+		ok &= expect(allNone == (count > 6) && sized.searchField()->isVisible() == (count > 12),
+			qPrintable(QString("a list of %1 trains has All and None %2 and a search field %3")
+					.arg(count)
+					.arg(allNone ? "shown" : "hidden")
+					.arg(sized.searchField()->isVisible() ? "shown" : "hidden")));
+		if (count == 7) {
+			sized.findChild<QPushButton*>("trainKeyNone")->click();
+			ok &= expect(sized.visibleTrainIds().isEmpty(), "None hides every train of a list without a search");
+		}
+	}
 	return ok;
 }
 
@@ -2472,8 +2496,11 @@ static bool exerciseCopy() {
 	const QImage copied = clipboard->image();
 	bool ok = expect(!copied.isNull() && copied.size() == window.exportedFigure().size() && copied.width() > window.figureImage().width(),
 		"Copy puts the figure with the column of the trains on the clipboard");
-	// Only the chart in focus takes Copy, not the rest of the window.
+	// Without a CSV export, PNG... keeps its half of the row.
 	auto* png = window.findChild<QPushButton*>("diagramExportPng");
+	ok &= expect(png->width() <= png->parentWidget()->width() / 2 + 2,
+		qPrintable(QString("PNG... keeps half of the row: %1 of %2 px").arg(png->width()).arg(png->parentWidget()->width())));
+	// Only the chart in focus takes Copy, not the rest of the window.
 	png->setFocus();
 	clipboard->clear();
 	QKeyEvent buttonPress(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
@@ -3161,9 +3188,8 @@ int main(int argc, char* argv[]) {
 	rectangle->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	auto* emptyTooltip = empty.findChild<QLabel*>("diagramTooltip");
-	ok &= expect(
-		emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") && !emptyTooltip->text().contains("150.00"),
-		"block interior reports plotted corner and context");
+	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text() == "Block occupation\nResource: B12 | Type: block | Start: 20 s | End: 60 s",
+		qPrintable("block interior reports its name and context, not the values of a corner: " + emptyTooltip->text()));
 	auto* events = new QScatterSeries;
 	events->setName("Arrival");
 	events->append(100, 300);

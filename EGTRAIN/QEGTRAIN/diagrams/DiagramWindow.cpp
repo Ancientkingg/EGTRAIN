@@ -1905,7 +1905,7 @@ void DiagramWindow::clearTooltip() {
 
 // What the chart shows at a point, without showing it: the hover of the section strip, the whole text of a shortened
 // axis title, the nearest sample of a shown line within 10 px, else the box that holds the point, else the hover of a
-// section boundary.
+// section boundary. A sample gives its values, a box its name and context lines only.
 DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	ChartHit hit;
 	QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1996,7 +1996,8 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	hit.series = selected;
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
-	hit.lines = sampleLines(sample, identity);
+	// The corner of a box nearest the pointer says nothing about the box, so a box gives only its own lines.
+	hit.lines = hit.inside ? QStringList{identity} : sampleLines(sample, identity);
 	const QStringList contexts = selected->property("inspectionPoints").toStringList();
 	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
 		hit.lines << contexts[sampleIndex].split('\n');
