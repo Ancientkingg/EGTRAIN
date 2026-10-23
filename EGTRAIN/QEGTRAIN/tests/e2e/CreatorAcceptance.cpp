@@ -58,6 +58,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
 #include <QGuiApplication>
+#include <QHash>
 #include <QIODevice>
 #include <QImage>
 #include <QInputDialog>
@@ -81,6 +82,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSet>
 #include <QStatusBar>
 #include <QString>
 #include <QTabWidget>
@@ -2352,6 +2354,45 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !has(compressedKinds, "Blocking time") || !has(compressedKinds, "Critical block") || has(compressedKinds, "Conflict")) {
 			fail(QStringLiteral("the Keys do not explain the blocks of each chart: ") + blockingKinds.join(QStringLiteral(", "))
 				+ QStringLiteral(" / ") + compressedKinds.join(QStringLiteral(", ")));
+			return;
+		}
+		// The outline of a blocking time takes the colour of its train from the palette, one colour for each train, while a
+		// critical block keeps its amber-brown outline, and its sample in the Key has the hatch.
+		const QList<QRgb> palette{qRgb(0x2a, 0x78, 0xd6), qRgb(0xc2, 0x44, 0x8a), qRgb(0x4c, 0x8a, 0x12), qRgb(0x61, 0x27, 0xb1),
+			qRgb(0xe3, 0x5b, 0x6b), qRgb(0x84, 0x2a, 0x65)};
+		QHash<QString, QRgb> outlineColours;
+		bool oneColourEach = true;
+		int criticalOutlines = 0;
+		bool criticalKept = true;
+		for (QAbstractSeries* series : compressedView->chart()->series()) {
+			const auto* outline = qobject_cast<const QXYSeries*>(series);
+			if (!outline || !outline->property("inspectionFilled").toBool()) continue;
+			const QString kind = outline->property("keyKind").toString();
+			const QRgb colour = outline->pen().color().rgb();
+			if (kind == QStringLiteral("Critical block")) {
+				++criticalOutlines;
+				criticalKept &= colour == qRgb(0x8f, 0x62, 0x00);
+			} else if (kind == QStringLiteral("Blocking time")) {
+				const QString train = outline->property("trainId").toString();
+				oneColourEach &= palette.contains(colour) && outlineColours.value(train, colour) == colour;
+				outlineColours.insert(train, colour);
+			}
+		}
+		QSet<QRgb> distinct;
+		for (const QRgb colour : std::as_const(outlineColours)) distinct.insert(colour);
+		bool keyHatched = false;
+		if (const auto* key = compressedView->window()->findChild<DiagramKey*>(QStringLiteral("diagramKey")))
+			for (const DiagramKeyEntry& entry : key->entries())
+				keyHatched = keyHatched || (entry.name == QStringLiteral("Critical block") && entry.brush.style() == Qt::TexturePattern);
+		if (!oneColourEach || outlineColours.size() < 2 || distinct.size() != outlineColours.size() || criticalOutlines == 0 || !criticalKept
+			|| !keyHatched) {
+			fail(QString("the compressed blocks do not have the colours of their trains and the critical look: %1 trains in %2 colours, "
+						 "%3 critical outlines, kept %4, hatched key %5")
+					.arg(outlineColours.size())
+					.arg(distinct.size())
+					.arg(criticalOutlines)
+					.arg(criticalKept)
+					.arg(keyHatched));
 			return;
 		}
 		capacity->close();

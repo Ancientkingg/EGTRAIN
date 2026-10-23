@@ -1,6 +1,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "app/DialogFolders.h"
 #include "diagrams/ResultFrame.h"
+#include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
@@ -61,25 +62,6 @@ QPen mutedPen(const QPen& base) {
 	color.setAlpha(60);
 	pen.setColor(color);
 	return pen;
-}
-
-// Takes the colour of a train for a line or area series and keeps its widths,
-// dash patterns and the alpha of an area fill.
-void paintSeries(QAbstractSeries* series, const QColor& color) {
-	if (auto* xy = qobject_cast<QXYSeries*>(series)) {
-		QPen pen = xy->pen();
-		pen.setColor(color);
-		xy->setPen(pen);
-	} else if (auto* area = qobject_cast<QAreaSeries*>(series)) {
-		QBrush brush = area->brush();
-		QColor fill = color;
-		fill.setAlpha(brush.color().alpha());
-		brush.setColor(fill);
-		area->setBrush(brush);
-		QPen pen = area->pen();
-		pen.setColor(color);
-		area->setPen(pen);
-	}
 }
 
 bool writeArtifact(const QString& path, const std::string& bytes) {
@@ -763,7 +745,8 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	resize(qMin(1200, maximumWidth()), qMin(720, maximumHeight()));
 
 	m_view = new QChartView(this);
-	m_view->setRenderHint(QPainter::Antialiasing);
+	// The hatches are textures at twice the pixels, which a screen of one pixel per pixel scales down smoothly.
+	m_view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	m_view->setMouseTracking(true);
 	m_view->viewport()->setMouseTracking(true);
 	m_view->viewport()->installEventFilter(this);
@@ -972,8 +955,10 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		DiagramKeyEntry entry;
 		entry.name = name;
 		if (one->property("inspectionFilled").toBool()) {
+			// The "keyPen" of the outline, when it has one, draws the kind alike for every train.
+			const QVariant keyPen = one->property("keyPen");
 			entry.shape = DiagramKeyEntry::Shape::Box;
-			entry.pen = pen;
+			entry.pen = keyPen.canConvert<QPen>() ? keyPen.value<QPen>() : pen;
 			entry.brush = fills.value(name, QBrush(Qt::NoBrush));
 		} else {
 			// The colour of a line belongs to its train, so the sample takes the text colour.
@@ -1015,25 +1000,47 @@ void DiagramWindow::refreshKey() {
 }
 
 void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {
-	applyTrainColors(colors, true);
-}
-
-void DiagramWindow::setTrainListColors(const QHash<QString, QColor>& colors) {
-	applyTrainColors(colors, false);
-}
-
-void DiagramWindow::applyTrainColors(const QHash<QString, QColor>& colors, bool paintSeries) {
-	m_trainColors = colors;
-	m_paintTrainSeries = paintSeries;
-	if (!m_view || !m_view->chart())
-		return;
-	rebuildFilterGroups();
-	applyTrainVisibility();
+	m_serviceColours = colors;
+	applyColourPlan();
 }
 
 void DiagramWindow::setTrainServices(const QHash<QString, QString>& services) {
 	m_trainServices = services;
 	refreshTrainList();
+	applyColourPlan();
+}
+
+// The colour rule needs the trains that the list shows, so the list keeps its check states and takes the colours of the
+// rule in its line samples only.
+void DiagramWindow::applyColourPlan() {
+	if (m_trainList && !m_rollingStockSubject) {
+		QVector<TrainColourInput> trains;
+		trains.reserve(m_groups.size());
+		for (const SeriesGroup& group : m_groups)
+			trains.append({group.trainId, m_trainServices.value(group.trainId), m_trainList->isTrainVisible(group.trainId)});
+		m_planColours = trainColourPlan(trains, m_serviceColours, m_pinnedTrainId).colours;
+		// The base look of a series takes the colour of its train and keeps its widths, dash patterns and the alpha of an
+		// area fill.
+		for (const SeriesGroup& group : m_groups) {
+			const QColor colour = m_planColours.value(group.trainId);
+			for (QAbstractSeries* series : group.members) {
+				if (!colour.isValid() || series->property("ownColour").toBool()) continue;
+				if (qobject_cast<QXYSeries*>(series) && m_basePens.contains(series)) {
+					m_basePens[series].setColor(colour);
+				} else if (auto* area = qobject_cast<QAreaSeries*>(series); area && m_baseBrushes.contains(series)) {
+					QBrush& brush = m_baseBrushes[series];
+					QColor fill = colour;
+					fill.setAlpha(brush.color().alpha());
+					brush.setColor(fill);
+					QPen pen = area->pen();
+					pen.setColor(colour);
+					area->setPen(pen);
+				}
+			}
+		}
+		m_trainList->setColours(m_planColours);
+	}
+	refreshEmphasis();
 }
 
 void DiagramWindow::setChart(QChart* chart) {
@@ -1262,7 +1269,8 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 			if (isPlannedSeries(series))
 				pen.setStyle(Qt::DashLine);
 			xy->setPen(pen);
-			if (pen.widthF() < 2.0) {
+			// A line is at least 2 px wide; the outline of a box keeps its width.
+			if (pen.widthF() < 2.0 && !series->property("inspectionFilled").toBool()) {
 				pen.setWidthF(2.0);
 				xy->setPen(pen);
 			}
@@ -1458,9 +1466,6 @@ void DiagramWindow::rebuildFilterGroups() {
 	const auto seriesList = chart->series();
 	for (QAbstractSeries* series : seriesList) {
 		const QString trainId = groupIdForSeries(series);
-		const QColor trainColor = m_trainColors.value(trainId);
-		if (m_paintTrainSeries && trainColor.isValid())
-			paintSeries(series, trainColor);
 		if (auto* xy = qobject_cast<QXYSeries*>(series))
 			m_basePens.insert(series, xy->pen());
 		if (auto* area = qobject_cast<QAreaSeries*>(series))
@@ -1488,19 +1493,13 @@ void DiagramWindow::rebuildFilterGroups() {
 	refreshTrainList();
 }
 
-// The line sample of a train is its colour, else the pen colour of its first line series.
+// The line sample of a train has the colour that the colour rule gave it last; applyColourPlan gives the new colours.
 void DiagramWindow::refreshTrainList() {
 	if (!m_trainList) return;
 	QVector<TrainKeyList::Train> trains;
 	trains.reserve(m_groups.size());
-	for (const SeriesGroup& group : m_groups) {
-		QColor sample = m_trainColors.value(group.trainId);
-		for (QAbstractSeries* series : group.members) {
-			if (sample.isValid()) break;
-			if (qobject_cast<QXYSeries*>(series)) sample = m_basePens.value(series).color();
-		}
-		trains.append({group.trainId, sample, m_trainServices.value(group.trainId)});
-	}
+	for (const SeriesGroup& group : m_groups)
+		trains.append({group.trainId, m_planColours.value(group.trainId), m_trainServices.value(group.trainId)});
 	m_trainList->setTrains(trains);
 }
 
@@ -1513,11 +1512,11 @@ void DiagramWindow::applyTrainVisibility() {
 		for (QAbstractSeries* series : group.members)
 			series->setVisible(visible);
 	}
-	// Hiding the selected train ends the selection.
+	// Hiding the selected train ends the selection. The trains that are shown give the colours.
 	if (!m_pinnedTrainId.isEmpty() && !m_trainList->isTrainVisible(m_pinnedTrainId))
 		clearPin();
 	else
-		refreshEmphasis();
+		applyColourPlan();
 	refreshKey();
 }
 
@@ -1534,7 +1533,8 @@ void DiagramWindow::select(const ChartHit& hit) {
 	if (m_selectedBox) m_selectionOutline = new SelectionOutline(chart, m_selectedBox);
 	if (m_trainList) m_trainList->setSelectedTrain(trainId);
 	refreshSelected();
-	refreshEmphasis();
+	// Among many trains in grey the selected train takes a colour.
+	applyColourPlan();
 	emit trainSelected(trainId);
 }
 
@@ -1545,7 +1545,7 @@ void DiagramWindow::clearPin() {
 	delete m_selectionOutline.data();
 	if (m_trainList) m_trainList->setSelectedTrain(QString());
 	refreshSelected();
-	refreshEmphasis();
+	applyColourPlan();
 }
 
 // Selected shows the lines of the click, the first in bold, while something is selected in a chart with trains.

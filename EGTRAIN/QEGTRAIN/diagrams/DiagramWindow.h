@@ -63,8 +63,9 @@ struct FigureColumn {
 /// belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a
 /// dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as
 /// "Stop". Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch
-/// section and Block boundary. The Key follows the trains that are shown. A chart of rolling stock input lists its
-/// series by name, in their own colours.
+/// section and Block boundary. The Key follows the trains that are shown. A box takes the pen of the "keyPen" property
+/// of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input
+/// lists its series by name, in their own colours.
 ///
 /// Series are grouped by the dynamic property "trainId" when the caller sets it
 /// (the same train can own several series, such as planned and simulated lines);
@@ -75,6 +76,15 @@ struct FigureColumn {
 /// "inspectionFilled" explicitly opts a closed QLineSeries into interior hits.
 /// A line hit always reports its nearest actual plotted sample, not an
 /// interpolated value at the cursor.
+///
+/// One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette
+/// for each train while six trains or fewer are shown, else one for each service while those trains run in six services
+/// or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a
+/// service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again
+/// and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its
+/// brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series whose
+/// "ownColour" property is true keeps the colours of its builder, as do the series of a chart of rolling stock input.
+/// The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey.
 class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
@@ -84,31 +94,23 @@ public:
 	/// figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range
 	/// widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose
 	/// "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned"
-	/// property is true or its name holds "planned"; a planned series is drawn dashed. A new chart ends the selection.
+	/// property is true or its name holds "planned"; a planned series is drawn dashed. A line narrower than 2 px is drawn
+	/// 2 px wide, and the outline of a box ("inspectionFilled") keeps its width. A new chart ends the selection.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading`, shows `context` in one line in the header, elided at the right, and `warning`
 	/// in a label above the chart; an empty text hides its label. The tooltip of the context has the whole context,
 	/// with `contextToolTip` on the lines below it when given.
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString(), const QString& contextToolTip = QString());
-	/// True for a chart of rolling stock input, which has no trains: hides the train filter and the selection.
+	/// True for a chart of rolling stock input, which has no trains: hides the train filter and the selection, and the
+	/// curves of the next chart keep their colours.
 	void setRollingStockSubject(bool on);
-	/// Paints the series of each listed train in its colour: the pen colour of a
-	/// line series, the brush colour (alpha kept) and pen colour of an area series.
-	/// Width and dash pattern stay as the chart builder set them. Train ids are the
-	/// group ids (the "trainId" property, or the series name); a train that is not
-	/// listed, or has an invalid colour, keeps its chart colours. The colours become
-	/// the base look of the series, so selecting and clearing a train keeps them,
-	/// and the line sample of the train in the Trains list shows them. Set before or
-	/// after setChart. A later call does not undo colours an earlier call applied, and
-	/// keeps which trains are shown and which is selected.
+	/// The colour that the case gives the service of each train, by its group id (trainColorsForRun), which wins over the
+	/// palette of the colour rule. Set before or after setChart. Keeps which trains are shown and which is selected.
 	void setTrainColors(const QHash<QString, QColor>& colors);
-	/// Shows the colour of each listed train in the train filter only and leaves
-	/// the series as the chart builder painted them, for a chart whose series
-	/// colours have a meaning of their own.
-	void setTrainListColors(const QHash<QString, QColor>& colors);
 	/// The service of each train, by its group id, which groups the Trains list by service when it has more than six
-	/// trains in six services or fewer. A train without a service is a service of its own. Keeps which trains are shown.
+	/// trains in six services or fewer and gives the trains their colours by service when more than six are shown. A
+	/// train without a service is a service of its own. Keeps which trains are shown.
 	void setTrainServices(const QHash<QString, QString>& services);
 	/// Labels the Y axis as clock time, titled "Time (hh:mm)": the axis value in seconds plus `startOffsetSeconds`, the
 	/// clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is
@@ -216,7 +218,7 @@ private:
 	void clearTooltip();
 	void showTooltip(const QPoint& viewportPosition);
 	void navigate(double factor, const QPointF& chartPosition, const QPointF& pan = {});
-	void applyTrainColors(const QHash<QString, QColor>& colors, bool paintSeries);
+	void applyColourPlan();
 	void rebuildFilterGroups();
 	void refreshTrainList();
 	void select(const ChartHit& hit);
@@ -256,9 +258,9 @@ private:
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;
 	QHash<QAbstractSeries*, QBrush> m_baseBrushes;
-	QHash<QString, QColor> m_trainColors;
+	QHash<QString, QColor> m_serviceColours; // the colour of the service of a train in the case, by group id
+	QHash<QString, QColor> m_planColours;	 // the colour that the colour rule gave each train last, by group id
 	QHash<QString, QString> m_trainServices;
-	bool m_paintTrainSeries = true;
 	QPoint m_pressPosition;
 	QPointer<QCategoryAxis> m_stationAxis;
 	std::vector<StationTick> m_stations;

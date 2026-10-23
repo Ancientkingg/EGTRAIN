@@ -71,6 +71,24 @@ bool isGroup(const QTreeWidgetItem* item) {
 	return item->data(0, kIdRole).toString().isEmpty();
 }
 
+// A group shows the colour that its shown trains share, else, while none is shown, the colour that all its trains share,
+// else no line sample.
+void showSharedColour(QTreeWidgetItem* group) {
+	QList<QColor> colours;
+	for (const bool shownOnly : {true, false}) {
+		for (int i = 0; i < group->childCount(); ++i)
+			if (!shownOnly || group->child(i)->checkState(0) == Qt::Checked) colours << group->child(i)->data(0, kColourRole).value<QColor>();
+		if (!colours.isEmpty()) break;
+	}
+	const bool shared = !colours.isEmpty() && std::all_of(colours.cbegin(), colours.cend(), [&colours](const QColor& colour) {
+		return colour == colours.first();
+	});
+	const QColor colour = shared ? colours.first() : QColor();
+	if (!group->icon(0).isNull() && group->data(0, kColourRole).value<QColor>() == colour) return;
+	group->setData(0, kColourRole, colour);
+	group->setIcon(0, lineSample(colour));
+}
+
 // The row and its group, if it has one, are not hidden by the search.
 bool searchShows(const QTreeWidgetItem* item) {
 	return !item->isHidden() && (!item->parent() || !item->parent()->isHidden());
@@ -193,12 +211,6 @@ void TrainKeyList::setTrains(const QVector<Train>& trains) {
 			group->setText(1, QString::number(members.size()));
 			group->setTextAlignment(1, Qt::AlignRight | Qt::AlignVCenter);
 			group->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-			// The group shows the colour that all its trains share, if they do.
-			QColor shared = members.first()->colour;
-			for (const Train* member : members)
-				if (member->colour != shared) shared = QColor();
-			group->setData(0, kColourRole, shared);
-			group->setIcon(0, lineSample(shared));
 			for (const Train* member : members) addTrain(*member, group);
 			updateGroupState(group);
 			group->setExpanded(expanded.contains(service));
@@ -223,6 +235,22 @@ void TrainKeyList::setTrains(const QVector<Train>& trains) {
 	if (!searchable) m_search->clear();
 	sortRows();
 	updateCount();
+}
+
+void TrainKeyList::setColours(const QHash<QString, QColor>& colours) {
+	// A new icon changes the row, which the list must not take for a click on its check box.
+	const bool updating = m_updating;
+	m_updating = true;
+	for (auto it = m_items.cbegin(); it != m_items.cend(); ++it) {
+		const QColor colour = colours.value(it.key());
+		m_colours.insert(it.key(), colour);
+		if (it.value()->data(0, kColourRole).value<QColor>() == colour) continue;
+		it.value()->setData(0, kColourRole, colour);
+		it.value()->setIcon(0, lineSample(colour));
+	}
+	for (int i = 0; i < m_tree->topLevelItemCount(); ++i)
+		if (isGroup(m_tree->topLevelItem(i))) showSharedColour(m_tree->topLevelItem(i));
+	m_updating = updating;
 }
 
 QList<QWidget*> TrainKeyList::focusChain() const {
@@ -266,6 +294,9 @@ void TrainKeyList::setSearchedVisible(bool visible) {
 }
 
 void TrainKeyList::setSelectedTrain(const QString& trainId) {
+	// A new band changes the row, which the list must not take for a click on its check box.
+	const bool updating = m_updating;
+	m_updating = true;
 	if (QTreeWidgetItem* old = m_items.value(m_selected)) {
 		old->setBackground(0, QBrush());
 		old->setBackground(1, QBrush());
@@ -277,6 +308,7 @@ void TrainKeyList::setSelectedTrain(const QString& trainId) {
 		item->setBackground(1, kSelectedRow);
 		if (item->parent()) item->parent()->setExpanded(true);
 	}
+	m_updating = updating;
 	sortSoon();
 	if (item) m_tree->scrollToItem(item);
 }
@@ -292,12 +324,19 @@ QVector<QPair<QString, QColor>> TrainKeyList::shownRows() const {
 	for (int i = 0; i < m_tree->topLevelItemCount(); ++i) groups << m_tree->topLevelItem(i);
 	std::sort(groups.begin(), groups.end(),
 		[](const QTreeWidgetItem* a, const QTreeWidgetItem* b) { return a->data(0, kOrderRole).toInt() < b->data(0, kOrderRole).toInt(); });
-	for (const QTreeWidgetItem* group : groups)
+	for (const QTreeWidgetItem* group : groups) {
+		QVector<QPair<QString, QColor>> shown;
 		for (int i = 0; i < group->childCount(); ++i)
-			if (group->child(i)->checkState(0) == Qt::Checked) {
-				rows.append({group->text(0), group->data(0, kColourRole).value<QColor>()});
-				break;
-			}
+			if (const QTreeWidgetItem* child = group->child(i); child->checkState(0) == Qt::Checked)
+				shown.append({child->data(0, kIdRole).toString(), child->data(0, kColourRole).value<QColor>()});
+		if (shown.isEmpty()) continue;
+		// A group whose shown trains differ in colour lists them, so that the figure still keys each line.
+		const QColor colour = shown.first().second;
+		if (std::all_of(shown.cbegin(), shown.cend(), [&colour](const auto& row) { return row.second == colour; }))
+			rows.append({group->text(0), colour});
+		else
+			rows += shown;
+	}
 	return rows;
 }
 
@@ -430,7 +469,8 @@ void TrainKeyList::sortSoon() {
 		sortRows();
 }
 
-// A group counts its trains that the search shows, as a click on it acts on those, else all of them.
+// A group counts its trains that the search shows, as a click on it acts on those, else all of them. Its line sample
+// follows the trains it shows.
 void TrainKeyList::updateGroupState(QTreeWidgetItem* group) {
 	int counted = 0, shown = 0;
 	for (const bool searched : {true, false}) {
@@ -445,6 +485,7 @@ void TrainKeyList::updateGroupState(QTreeWidgetItem* group) {
 	if (shown == 0) state = Qt::Unchecked;
 	if (shown == counted) state = Qt::Checked;
 	group->setCheckState(0, state);
+	showSharedColour(group);
 }
 
 void TrainKeyList::updateCount() {

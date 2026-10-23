@@ -2,6 +2,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
 #include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
@@ -509,15 +510,53 @@ static QColor swatchAt(const TrainKeyList* list, int row) {
 	return item ? lineSampleColour(item) : QColor();
 }
 
+// A blocking time of train `id` from `left` to `right` km and from `start` to `end` s, as the blocking-time windows draw
+// one of `kind`: an area series for its fill and a closed outline.
+static void addBlockingBox(QChart* chart, const QString& id, BlockingTimeKind kind, double left, double right, double start, double end) {
+	auto* lower = new QLineSeries;
+	auto* upper = new QLineSeries;
+	lower->append(left, start);
+	lower->append(right, start);
+	upper->append(left, end);
+	upper->append(right, end);
+	auto* fill = new QAreaSeries(upper, lower);
+	fill->setProperty("trainId", id);
+	auto* outline = new QLineSeries;
+	outline->setName(id);
+	outline->setProperty("trainId", id);
+	outline->setProperty("inspectionFilled", true);
+	styleBlockingTime(fill, outline, kind);
+	outline->setProperty("inspectionInterval",
+		QString("Block: %1\nBlocked %2 to %3 s").arg(outline->property("keyKind").toString()).arg(start).arg(end));
+	for (const QPointF& point : {QPointF(left, start), QPointF(right, start), QPointF(right, end), QPointF(left, end), QPointF(left, start)})
+		outline->append(point);
+	chart->addSeries(fill);
+	chart->addSeries(outline);
+}
+
+// Clicks the chart of a window at `value` of `series`.
+static void clickChart(QChartView* view, const QPointF& value, QAbstractSeries* series) {
+	const QPoint point = view->mapFromScene(view->chart()->mapToScene(view->chart()->mapToPosition(value, series)));
+	QMouseEvent press(QEvent::MouseButtonPress, point, view->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, point, view->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &press);
+	QApplication::sendEvent(view->viewport(), &release);
+}
+
+// The colour rule paints the trains of a window: two trains take the first two colours of the palette in the order of
+// the chart, and the colour that the case gives a service wins over the palette. A series keeps the width and dash
+// pattern of its builder and an area series the alpha of its fill; a series whose "ownColour" property is set keeps its
+// colours, and so does a chart of rolling stock input. The line samples of the Trains list follow, light grey for a
+// hidden train.
 static bool exerciseTrainColors() {
-	const QColor green(60, 180, 75);
+	const QColor blue(0x2a, 0x78, 0xd6), pink(0xc2, 0x44, 0x8a), green(60, 180, 75), hiddenGrey(0xc3, 0xcb, 0xd1);
 	bool ok = true;
 	for (const bool beforeChart : {false, true}) {
 		const char* when = beforeChart ? " (map set before the chart)" : " (map set after the chart)";
 		const auto note = [&](const char* text) { return (std::string(text) + when); };
 		DiagramWindow window("Train colours");
 		const ColoredChart built = makeColoredChart();
-		const QHash<QString, QColor> colors{{"A", green}, {"Z", QColor(1, 2, 3)}, {"B", QColor()}};
+		const QHash<QString, QColor> colors{{"B", green}, {"Z", QColor(1, 2, 3)}, {"A", QColor()}};
 		if (beforeChart) window.setTrainColors(colors);
 		window.setChart(built.chart);
 		if (!beforeChart) window.setTrainColors(colors);
@@ -527,68 +566,227 @@ static bool exerciseTrainColors() {
 		auto* view = window.findChild<QChartView*>();
 		if (!expect(list && view && list->trainIds().size() == 2, "the coloured chart lists two trains"))
 			return false;
-		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
-				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], blue)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], blue)
 				&& built.solid[0]->pen().widthF() == 3.0 && built.dashed[0]->pen().widthF() == 2.0
 				&& built.solid[0]->pen().style() == Qt::SolidLine && built.dashed[0]->pen().style() == Qt::DashLine,
-			note("the line series of a coloured train take its colour and keep width and dash pattern").c_str());
-		ok &= expect(built.fill->brush().color() == QColor(green.red(), green.green(), green.blue(), 65)
-				&& built.fill->pen().color() == green && built.fill->pen().widthF() == 1.5,
-			note("the area series of a coloured train takes its colour and keeps the fill alpha").c_str());
-		ok &= expect(built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1],
-			note("the series of a train with an invalid colour keep their pens").c_str());
-		ok &= expect(swatchAt(list, 0) == green && swatchAt(list, 1) == built.solidPen[1].color(),
-			note("each line sample of the Trains list is the colour of the first line of its train").c_str());
+			note("the line series of the first train take the first colour of the palette and keep width and dash pattern").c_str());
+		ok &= expect(built.fill->brush().color() == QColor(blue.red(), blue.green(), blue.blue(), 65)
+				&& built.fill->pen().color() == blue && built.fill->pen().widthF() == 1.5,
+			note("the area series of a train takes its colour and keeps the fill alpha").c_str());
+		ok &= expect(isRecoloured(built.solid[1]->pen(), built.solidPen[1], green) && isRecoloured(built.dashed[1]->pen(), built.dashedPen[1], green),
+			note("the colour of the service of a train in the case wins over the palette").c_str());
+		ok &= expect(swatchAt(list, 0) == blue && swatchAt(list, 1) == green,
+			note("each line sample of the Trains list has the colour of its train").c_str());
 
-		// Pin train A by clicking its solid line, then clear the pin.
-		const QPoint sample = view->mapFromScene(built.chart->mapToScene(
-			built.chart->mapToPosition(QPointF(10, 10), built.solid[0])));
-		QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QMouseEvent release(QEvent::MouseButtonRelease, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-		QApplication::sendEvent(view->viewport(), &press);
-		QApplication::sendEvent(view->viewport(), &release);
-		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == green
+		// Select train A by clicking its solid line.
+		clickChart(view, QPointF(10, 10), built.solid[0]);
+		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == blue
 				&& built.solid[1]->pen().color().alpha() < 255,
-			note("pinning a coloured train emphasises it in its colour and mutes the other train").c_str());
-		// New colours keep which trains are shown and which is selected.
+			note("selecting a train emphasises it in its colour and mutes the other train").c_str());
 		list->setTrainVisible("B", false);
+		ok &= expect(swatchAt(list, 1) == hiddenGrey && built.solid[0]->pen().color() == blue,
+			note("a hidden train has a light grey line sample, and a train of two keeps its colour").c_str());
+		// New colours keep which trains are shown and which is selected.
 		window.setTrainColors(colors);
 		ok &= expect(list->visibleTrainIds() == QStringList({"A"}) && !built.solid[1]->isVisible() && built.solid[0]->pen().widthF() > 3.0
 				&& window.findChild<QLabel*>("diagramSelectedTitle")->text() == "Train A (simulated)",
 			note("setting the colours again keeps a hidden train hidden and the selected train selected").c_str());
 		list->setTrainVisible("B", true);
 		QMetaObject::invokeMethod(&window, "clearPin");
-		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
-				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
-				&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], blue)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], blue)
+				&& isRecoloured(built.solid[1]->pen(), built.solidPen[1], green) && swatchAt(list, 1) == green
 				&& built.fill->brush().color().alpha() == 65,
-			note("clearing the pin leaves the colour of the coloured train").c_str());
+			note("clearing the selection and showing the train again leave the colours of the trains").c_str());
 	}
 
-	// A map that names no train of the chart, or only invalid colours, changes nothing.
-	DiagramWindow window("Unchanged colours");
+	// Without colours of the case, and with an unknown train or an invalid colour, the palette colours the trains. A series
+	// whose ownColour property is set keeps its colours.
+	DiagramWindow window("Own colours");
 	const ColoredChart built = makeColoredChart();
+	built.fill->setProperty("ownColour", true);
+	built.dashed[1]->setProperty("ownColour", true);
 	window.setChart(built.chart);
-	window.setTrainColors({{"Z", green}, {"A", QColor()}, {"B", QColor()}});
+	window.setTrainColors({{"Z", green}, {"A", QColor()}});
 	TrainKeyList* list = trainListOf(window);
-	ok &= expect(built.solid[0]->pen() == built.solidPen[0] && built.dashed[0]->pen() == built.dashedPen[0]
-			&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
-			&& built.fill->pen() == built.fillPen && built.fill->brush() == built.fillBrush
-			&& list && swatchAt(list, 0) == built.solidPen[0].color() && swatchAt(list, 1) == built.solidPen[1].color(),
-		"an unknown train id and an invalid colour change nothing");
+	ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], blue) && isRecoloured(built.solid[1]->pen(), built.solidPen[1], pink)
+			&& list && swatchAt(list, 0) == blue && swatchAt(list, 1) == pink,
+		"an unknown train id and an invalid colour leave the colours of the palette");
+	ok &= expect(built.fill->pen() == built.fillPen && built.fill->brush() == built.fillBrush && built.dashed[1]->pen() == built.dashedPen[1],
+		"a series whose ownColour property is set keeps the colours of its builder");
 
-	// Colours for the train list only: the swatch changes, every series keeps its look.
-	DiagramWindow listOnly("List colours");
-	const ColoredChart kept = makeColoredChart();
-	listOnly.setChart(kept.chart);
-	listOnly.setTrainListColors({{"A", green}});
-	TrainKeyList* keptList = trainListOf(listOnly);
-	ok &= expect(kept.solid[0]->pen() == kept.solidPen[0] && kept.dashed[0]->pen() == kept.dashedPen[0]
-			&& kept.solid[1]->pen() == kept.solidPen[1] && kept.dashed[1]->pen() == kept.dashedPen[1]
-			&& kept.fill->pen() == kept.fillPen && kept.fill->brush() == kept.fillBrush,
-		"list colours leave the series of a coloured train as they were");
-	ok &= expect(keptList && swatchAt(keptList, 0) == green && swatchAt(keptList, 1) == kept.solidPen[1].color(),
-		"list colours give the coloured train its swatch and leave the other swatch");
+	// A chart of rolling stock input keeps the colours of its curves.
+	DiagramWindow input("Rolling stock colours");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	const ColoredChart curves = makeColoredChart();
+	input.setChart(curves.chart);
+	ok &= expect(curves.solid[0]->pen() == curves.solidPen[0] && curves.solid[1]->pen() == curves.solidPen[1],
+		"a chart of rolling stock input keeps the colours of its curves");
+	return ok;
+}
+
+// The colour rule follows the trains that are shown and changes no check state. 47 trains in as many services are grey,
+// and the selected train is blue; with 41 of them hidden each of the six shown trains takes a colour of the palette and
+// the 41 stay hidden, also when the colours and the services are set again; a seventh shown train makes them grey again.
+static bool exerciseColourRule() {
+	const QColor grey(0x8a, 0x97, 0xa1), hiddenGrey(0xc3, 0xcb, 0xd1);
+	const QColor palette[] = {QColor(0x2a, 0x78, 0xd6), QColor(0xc2, 0x44, 0x8a), QColor(0x4c, 0x8a, 0x12), QColor(0x61, 0x27, 0xb1),
+		QColor(0xe3, 0x5b, 0x6b), QColor(0x84, 0x2a, 0x65)};
+	const auto rgb = [](const QColor& colour) { return colour.rgb(); };
+	DiagramWindow window("Colour rule");
+	auto* chart = new QChart;
+	QVector<QLineSeries*> lines;
+	for (int i = 0; i < 47; ++i) {
+		auto* line = new QLineSeries;
+		line->setName(QString("T%1").arg(i));
+		line->append(0, i * 10);
+		line->append(50, i * 10 + 2);
+		line->append(100, i * 10 + 4);
+		chart->addSeries(line);
+		lines.append(line);
+	}
+	chart->createDefaultAxes();
+	window.setChart(chart);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	TrainKeyList* list = trainListOf(window);
+	auto* view = window.findChild<QChartView*>();
+	if (!expect(list && view && list->trainIds().size() == 47, "the window lists 47 trains")) return false;
+	bool ok = true;
+	ok &= expect(std::all_of(lines.begin(), lines.end(), [&](const QLineSeries* line) { return line->pen().color() == grey; })
+			&& swatchAt(list, 10) == grey,
+		"47 trains in 47 services are grey");
+	clickChart(view, QPointF(50, 102), lines[10]);
+	ok &= expect(window.findChild<QLabel*>("diagramSelectedTitle")->text() == "T10" && rgb(lines[10]->pen().color()) == rgb(palette[0])
+			&& rgb(lines[11]->pen().color()) == rgb(grey) && swatchAt(list, 10) == palette[0],
+		"the selected train of 47 is blue and the others stay grey");
+	QMetaObject::invokeMethod(&window, "clearPin");
+	ok &= expect(lines[10]->pen().color() == grey, "a train that is no longer selected is grey again");
+
+	for (int i = 6; i < 47; ++i) list->setTrainVisible(QString("T%1").arg(i), false);
+	QStringList six;
+	bool coloured = true;
+	for (int i = 0; i < 6; ++i) {
+		six << QString("T%1").arg(i);
+		coloured &= lines[i]->pen().color() == palette[i] && swatchAt(list, i) == palette[i];
+	}
+	const auto hiddenStay = [&] {
+		bool hidden = list->visibleTrainIds() == six;
+		for (int i = 6; i < 47; ++i) hidden &= !lines[i]->isVisible() && swatchAt(list, i) == hiddenGrey;
+		return hidden;
+	};
+	ok &= expect(coloured && hiddenStay(), "hiding 41 of 47 trains gives each of the six shown a colour of the palette, and the 41 stay hidden");
+	window.setTrainColors({});
+	window.setTrainServices({});
+	ok &= expect(hiddenStay() && lines[5]->pen().color() == palette[5], "setting the colours and the services again keeps the 41 hidden");
+	list->setTrainVisible("T6", true);
+	ok &= expect(lines[0]->pen().color() == grey && lines[6]->pen().color() == grey && list->visibleTrainIds().size() == 7,
+		"a seventh shown train in a seventh service makes the trains grey");
+	return ok;
+}
+
+// Blocking times have the look of their kind. An ordinary one has a neutral grey fill and an outline 1.4 px wide in the
+// colour of its train, and its sample in the Key is the grey box with a neutral outline. A critical block is amber with a
+// hatch and an amber-brown outline, and a conflict is dark red with a cross hatch; both keep their colours whatever the
+// train, and their samples in the Key have the hatch. A figure at twice the size of the window draws the hatch sharp.
+static bool exerciseBlockingTimeLook() {
+	const QColor blue(0x2a, 0x78, 0xd6), pink(0xc2, 0x44, 0x8a), neutral(0x5b, 0x68, 0x71);
+	DiagramWindow window("Blocking time look");
+	auto* chart = new QChart;
+	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 0, 2, 0, 40);
+	addBlockingBox(chart, "B", BlockingTimeKind::Ordinary, 0, 2, 50, 90);
+	addBlockingBox(chart, "B", BlockingTimeKind::CriticalBlock, 2, 6, 10, 90);
+	addBlockingBox(chart, "A", BlockingTimeKind::Conflict, 6, 8, 10, 50);
+	chart->createDefaultAxes();
+	chart->axes(Qt::Horizontal).first()->setRange(0, 10);
+	chart->axes(Qt::Vertical).first()->setRange(0, 100);
+	window.setChart(chart);
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	const auto series = chart->series();
+	const auto* fillA = qobject_cast<QAreaSeries*>(series[0]);
+	const auto* outlineA = qobject_cast<QXYSeries*>(series[1]);
+	const auto* outlineB = qobject_cast<QXYSeries*>(series[3]);
+	const auto* criticalFill = qobject_cast<QAreaSeries*>(series[4]);
+	auto* critical = qobject_cast<QXYSeries*>(series[5]);
+	const auto* conflictFill = qobject_cast<QAreaSeries*>(series[6]);
+	const auto* conflict = qobject_cast<QXYSeries*>(series[7]);
+	auto* key = window.findChild<DiagramKey*>("diagramKey");
+	if (!expect(fillA && outlineA && outlineB && criticalFill && critical && conflictFill && conflict && key, "the chart has four blocking times"))
+		return false;
+	bool ok = true;
+	ok &= expect(outlineA->pen() == QPen(blue, 1.4) && outlineB->pen() == QPen(pink, 1.4) && fillA->brush().style() == Qt::SolidPattern
+			&& fillA->brush().color().rgba() == qRgba(neutral.red(), neutral.green(), neutral.blue(), 26),
+		qPrintable("an ordinary blocking time has a neutral fill and an outline 1.4 px wide in the colour of its train: "
+			+ outlineA->pen().color().name() + QString(" %1 px").arg(outlineA->pen().widthF())));
+	ok &= expect(critical->pen() == QPen(QColor(0x8f, 0x62, 0x00), 1.3) && conflict->pen() == QPen(QColor(0x9e, 0x1b, 0x1b), 1.4),
+		qPrintable("the outlines of a critical block and a conflict keep their colours: " + critical->pen().color().name() + ", "
+			+ conflict->pen().color().name()));
+	ok &= expect(criticalFill->brush().style() == Qt::TexturePattern && conflictFill->brush().style() == Qt::TexturePattern
+			&& criticalFill->brush().textureImage().devicePixelRatio() == 2.0,
+		"critical blocks and conflicts are hatched with textures at two pixels per pixel");
+	const QVector<DiagramKeyEntry> entries = key->entries();
+	const auto entryNamed = [&entries](const QString& name) {
+		const auto found = std::find_if(entries.begin(), entries.end(), [&name](const DiagramKeyEntry& entry) { return entry.name == name; });
+		return found == entries.end() ? DiagramKeyEntry() : *found;
+	};
+	const DiagramKeyEntry ordinary = entryNamed("Blocking time");
+	ok &= expect(ordinary.shape == DiagramKeyEntry::Shape::Box && ordinary.pen.color().rgb() == neutral.rgb() && ordinary.pen.widthF() == 1.4
+			&& ordinary.brush == fillA->brush(),
+		qPrintable("the Key shows a blocking time as the grey box with a neutral outline: " + ordinary.pen.color().name()));
+	ok &= expect(entryNamed("Critical block").brush.style() == Qt::TexturePattern && entryNamed("Critical block").pen == critical->pen()
+			&& entryNamed("Conflict").brush.style() == Qt::TexturePattern && entryNamed("Conflict").pen == conflict->pen(),
+		"the Key shows a critical block and a conflict with their hatch and outline");
+	// The hatch of a critical block runs up to the right, that of a conflict both ways: in the tile of 14 pixels, the pixel
+	// (2, 11) lies on the line up to the right, (2, 2) on the line down to the right and (7, 2) on neither.
+	const auto inked = [](const QImage& tile, int x, int y) { return qAlpha(tile.pixel(x, y)) > qAlpha(tile.pixel(7, 2)) + 40; };
+	const QImage criticalTile = criticalFill->brush().textureImage();
+	const QImage conflictTile = conflictFill->brush().textureImage();
+	ok &= expect(inked(criticalTile, 2, 11) && !inked(criticalTile, 2, 2) && inked(conflictTile, 2, 11) && inked(conflictTile, 2, 2),
+		"a critical block is hatched up to the right and a conflict both ways");
+
+	// Along a row through the middle of the critical block the hatch repeats every 7 px, 14 pixels of the figure, and each
+	// line has a sharp edge: a step of the grey value of 45 or more between two pixels, where a texture at one pixel per
+	// pixel, scaled up, steps by 12 at most.
+	auto* view = window.findChild<QChartView*>();
+	const QImage figure = window.figureImage();
+	const double top = figure.height() / figure.devicePixelRatio() - view->viewport()->height();
+	const auto pixelOf = [&](const QPointF& value) {
+		const QPoint at = view->mapFromScene(chart->mapToScene(chart->mapToPosition(value, critical)));
+		return QPoint(at.x() * 2, qRound((at.y() + top) * 2));
+	};
+	const int row = pixelOf(QPointF(4, 50)).y();
+	const int from = pixelOf(QPointF(2.5, 50)).x();
+	const int to = pixelOf(QPointF(5.5, 50)).x();
+	QVector<int> darkest;
+	int sharpest = 0;
+	for (int x = from + 1; x < to - 1; ++x) {
+		const int grey = qGray(figure.pixel(x, row));
+		sharpest = std::max(sharpest, std::abs(grey - qGray(figure.pixel(x + 1, row))));
+		if (grey < qGray(figure.pixel(x - 1, row)) && grey <= qGray(figure.pixel(x + 1, row)) && grey < 170) darkest << x;
+	}
+	bool period = darkest.size() >= 4;
+	for (int i = 1; i < darkest.size(); ++i) period &= std::abs(darkest[i] - darkest[i - 1] - 14) <= 1;
+	ok &= expect(period && sharpest >= 45,
+		qPrintable(QString("the figure at twice the size draws the hatch sharp, every 14 px: %1 lines, steps up to %2")
+				.arg(darkest.size())
+				.arg(sharpest)));
+
+	// The window draws the hatch at one pixel per pixel, scaled down smoothly from the texture, so that each of the lines
+	// in 80 px of a row, one every 7 px, keeps a grey of 170 or darker; scaled without smoothing they fade to 179.
+	const QImage screen = view->grab().toImage();
+	const QPoint middle = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(4, 50), critical)));
+	int screenLines = 0;
+	for (int x = middle.x() - 40; x < middle.x() + 40; ++x) {
+		const int grey = qGray(screen.pixel(x, middle.y()));
+		if (grey < 170 && grey < qGray(screen.pixel(x - 1, middle.y())) && grey <= qGray(screen.pixel(x + 1, middle.y()))) ++screenLines;
+	}
+	ok &= expect(screenLines >= 10 && screenLines <= 12,
+		qPrintable(QString("the window draws the hatch smoothly at one pixel per pixel: %1 lines in 80 px").arg(screenLines)));
 	return ok;
 }
 
@@ -1286,36 +1484,6 @@ static bool exerciseStationAxis() {
 	return ok;
 }
 
-// A blocking time of train `id` from `left` to `right` km and from `start` to `end` s: an area series for its fill and a
-// closed outline, both of the Key kind `kind`.
-static void addBlockingBox(QChart* chart, const QString& id, const QString& kind, double left, double right, double start, double end,
-	const QColor& colour) {
-	auto* lower = new QLineSeries;
-	auto* upper = new QLineSeries;
-	lower->append(left, start);
-	lower->append(right, start);
-	upper->append(left, end);
-	upper->append(right, end);
-	auto* fill = new QAreaSeries(upper, lower);
-	fill->setProperty("trainId", id);
-	fill->setProperty("keyKind", kind);
-	QColor translucent = colour;
-	translucent.setAlpha(65);
-	fill->setBrush(translucent);
-	fill->setPen(Qt::NoPen);
-	chart->addSeries(fill);
-	auto* outline = new QLineSeries;
-	outline->setName(id);
-	outline->setProperty("trainId", id);
-	outline->setProperty("keyKind", kind);
-	outline->setProperty("inspectionFilled", true);
-	outline->setProperty("inspectionInterval", QString("Block: %1\nBlocked %2 to %3 s").arg(kind).arg(start).arg(end));
-	outline->setPen(QPen(colour.darker(135), 2.0));
-	for (const QPointF& point : {QPointF(left, start), QPointF(right, start), QPointF(right, end), QPointF(left, end), QPointF(left, start)})
-		outline->append(point);
-	chart->addSeries(outline);
-}
-
 // The Key lists the kinds of mark of the shown series, each with the pen and brush of its series, in a fixed order: the
 // kind of a series is its "keyKind" property, else its layer, else planned or simulated. Simulated is left out while it
 // is the only kind of line, and the Key hides while it has no row.
@@ -1376,9 +1544,9 @@ static bool exerciseLegend() {
 
 	// Blocking times of three kinds, a planned line with its points, a simulated line and a series the Key leaves out.
 	auto* blocking = new QChart;
-	addBlockingBox(blocking, "A", "Blocking time", 1, 2, 10, 40, QColor(100, 160, 240));
-	addBlockingBox(blocking, "B", "Conflict", 2, 3, 20, 50, QColor(220, 50, 50));
-	addBlockingBox(blocking, "B", "Critical block", 3, 4, 30, 60, QColor(235, 175, 20));
+	addBlockingBox(blocking, "A", BlockingTimeKind::Ordinary, 1, 2, 10, 40);
+	addBlockingBox(blocking, "B", BlockingTimeKind::Conflict, 2, 3, 20, 50);
+	addBlockingBox(blocking, "B", BlockingTimeKind::CriticalBlock, 3, 4, 30, 60);
 	auto* plannedRun = new QLineSeries;
 	plannedRun->setName("A");
 	plannedRun->setProperty("trainId", "A");
@@ -1413,8 +1581,8 @@ static bool exerciseLegend() {
 		return found == rows.end() ? DiagramKeyEntry() : *found;
 	};
 	const DiagramKeyEntry conflict = rowNamedKind("Conflict");
-	ok &= expect(conflict.shape == DiagramKeyEntry::Shape::Box && conflict.brush.color() == QColor(220, 50, 50, 65)
-			&& conflict.pen == QPen(QColor(220, 50, 50).darker(135), 2.0),
+	ok &= expect(conflict.shape == DiagramKeyEntry::Shape::Box && conflict.brush.style() == Qt::TexturePattern
+			&& conflict.pen == QPen(QColor(0x9e, 0x1b, 0x1b), 1.4),
 		"a blocking time is a box with the brush of its fill and the pen of its outline");
 	ok &= expect(rowNamedKind("Planned").marker && !rowNamedKind("Simulated").marker,
 		"a line that shows its points has a dot in its sample");
@@ -1525,6 +1693,21 @@ static bool exerciseTrainKeyGroups() {
 	const auto rows = list.shownRows();
 	ok &= expect(rows.size() == 4 && rows[0].first == "IC1723" && rows[0].second == QColor(200, 40, 40),
 		"an exported figure lists the services with a shown train, in the colour all their trains share");
+	// A group has the colour that its shown trains share. While they differ, the figure lists them instead.
+	QHash<QString, QColor> colours;
+	for (const TrainKeyList::Train& train : assignmentTrains()) colours.insert(train.id, QColor(200, 40, 40));
+	colours.insert("IC1723-1", QColor(20, 90, 200));
+	list.setColours(colours);
+	const auto mixed = list.shownRows();
+	ok &= expect(mixed.size() == 9 && mixed[0] == qMakePair(QString("IC1723-1"), QColor(20, 90, 200))
+			&& mixed[1] == qMakePair(QString("IC1723-2"), QColor(200, 40, 40)) && mixed[6].first == "S19825" && changes == 2,
+		"an exported figure lists the shown trains of a group of two colours, each in its colour");
+	list.setTrainVisible("IC1723-1", false);
+	ok &= expect(list.shownRows().first().first == "IC1723" && list.shownRows().first().second == QColor(200, 40, 40),
+		"a group has the colour that its shown trains share");
+	list.setSelectedTrain("IC2025-3");
+	list.setSelectedTrain(QString());
+	ok &= expect(changes == 3, qPrintable(QString("selecting a train reports no change of the shown trains: %1 changes").arg(changes)));
 
 	TrainKeyList six;
 	QStringList ids;
@@ -1729,8 +1912,8 @@ static bool exerciseSelection() {
 	DiagramWindow window("Selection");
 	auto* chart = new QChart;
 	const QString longId = QString(70, QLatin1Char('X'));
-	addBlockingBox(chart, "A", "Blocking time", 2, 4, 20, 60, QColor(100, 160, 240));
-	addBlockingBox(chart, longId, "Conflict", 5, 7, 30, 70, QColor(220, 50, 50));
+	addBlockingBox(chart, "A", BlockingTimeKind::Ordinary, 2, 4, 20, 60);
+	addBlockingBox(chart, longId, BlockingTimeKind::Conflict, 5, 7, 30, 70);
 	auto* run = new QLineSeries;
 	run->setName("B run");
 	run->setProperty("trainId", "B");
@@ -3448,6 +3631,8 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseMenuSeparator();
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
+	ok &= exerciseColourRule();
+	ok &= exerciseBlockingTimeLook();
 	ok &= exerciseKeySamples();
 	ok &= exerciseLegend();
 	ok &= exerciseTrainKeyGroups();
