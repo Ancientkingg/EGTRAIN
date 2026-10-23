@@ -118,8 +118,8 @@ constexpr qint64 kMaxUpdateIntervalMs = 1000;
 constexpr std::size_t kMeasuredIntervals = 8;
 // The time between two steps of the motion of the trains, about one frame.
 constexpr int kMotionStepMs = 16;
-// The first step after a live update comes this soon. It runs outside the event that delivered the update, so its
-// flushSceneUpdates() hands the view what the update changed before the view is painted.
+// Each live update starts the timer of the steps again, with its first step this soon, so that updates that come more
+// often than kMotionStepMs do not hold the steps off.
 constexpr int kStepAfterUpdateMs = 1;
 
 // The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
@@ -241,7 +241,10 @@ NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view)
 		if (m_motionTimer.interval() != kMotionStepMs)
 			m_motionTimer.setInterval(kMotionStepMs);
 		stepTrains();
+#ifndef Q_OS_WIN
+		// On Windows a timer this short arrives in a posted event, inside which the flush must not run.
 		flushSceneUpdates();
+#endif
 	});
 	if (view)
 		QObject::connect(view, &NetworkView::viewportPainted, &m_motionTimer, [this]() { notePaint(); });
@@ -1753,7 +1756,7 @@ QPointF NetworkPresenter::trainCenter(int train) const {
 		const GuiTrainState& state = found->second.newest;
 		if (routePoint(state.routeIndex, state.reversedDirection,
 				middleOnRoute(state.routeIndex, found->second.drawnHead, state.length), center))
-			return center + group->pos();
+			return center;
 	}
 	return group->sceneBoundingRect().center();
 }
@@ -3224,7 +3227,6 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				}
 				TrainMotion& motion = m_trainMotions[train];
 				startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
-				trainItem->setPos(QPointF(0, 0));
 				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, moves ? drawnHead : state.routeAxisPosition);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
 				if (TrainBadgeItem* badge = m_trainBadges.value(train, nullptr)) {

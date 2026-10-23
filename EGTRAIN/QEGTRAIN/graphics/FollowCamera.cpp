@@ -75,6 +75,7 @@ void FollowCamera::moveTo(const QPointF& desired) {
 void FollowCamera::cut() {
 	m_timer.stop();
 	m_adopted = false;
+	m_snapPending = false;
 	moveTo(m_target);
 }
 
@@ -83,13 +84,15 @@ void FollowCamera::follow(const QPointF& target, bool snap) {
 		return;
 	m_target = target;
 	m_hasTarget = true;
+	// A snap while the user moves the view cuts at the first target after the user has finished.
+	m_snapPending = m_snapPending || snap;
 	if (holdForUser())
 		return;
 
 	const QPointF center = viewCenter();
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
 	const bool jump = QLineF(center, target).length() > kSnapFraction * std::max(visible.width(), visible.height());
-	if (snap || jump) {
+	if (m_snapPending || jump) {
 		cut();
 		return;
 	}
@@ -113,6 +116,7 @@ void FollowCamera::stop() {
 	m_timer.stop();
 	m_hasTarget = false;
 	m_adopted = false;
+	m_snapPending = false;
 }
 
 void FollowCamera::tick() {

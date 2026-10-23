@@ -172,13 +172,6 @@ public:
 	/// timer of the presenter calls it right after each live update and then about once a frame while a train moves,
 	/// and every live update moves the trains too; a test calls it with the clock of setClock().
 	void stepTrains();
-	/// Lets the scene give the view the areas of the items that changed now, rather than from the event loop. When the
-	/// camera has moved the view in the same frame, the view can otherwise be painted first and then those areas again,
-	/// a second paint on which no train moves. The timer of the steps calls it after each step, the first of which
-	/// comes right after each live update. It must not run inside a posted event, such as the one that delivers an
-	/// update: a nested sendPostedEvents() lets the outer one go on with the events posted meanwhile, so a busy run
-	/// would keep the event loop from timers and input.
-	void flushSceneUpdates();
 	/// Whether the train moves towards the place of its last update, so that stepTrains() still moves it.
 	bool trainMoving(int train) const;
 	/// Whether a train moves.
@@ -492,6 +485,13 @@ private:
 	void startGlide(TrainMotion& motion, const GuiTrainState& state, qint64 now, double drawnHead, qint64 glideMs);
 	bool drawTrain(TrainItemGroup& trainItem, TrainMotion& motion, double head);
 	void moveTrainCallouts(const TrainItemGroup& trainItem);
+	// Lets the scene give the view the areas of the items that changed now, rather than from the event loop. When the
+	// camera has moved the view in the same frame, the view can otherwise be painted first and then those areas again,
+	// a second paint on which no train moves. The timer of the steps calls it after each step, except on Windows. It
+	// must not run inside a posted event, such as the one that delivers an update or, on Windows, a short timer: a nested
+	// sendPostedEvents() lets the outer one go on with the events posted meanwhile, so a busy run would keep the event
+	// loop from timers and input.
+	void flushSceneUpdates();
 	bool switchSectionEnds(const Section& section, const Section*& first, const Section*& second, double& firstX,
 		double& secondX) const;
 	bool sectionPointAt(const Section& section, double x, QPointF& point) const;

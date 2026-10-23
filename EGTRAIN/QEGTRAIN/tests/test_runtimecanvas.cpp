@@ -998,6 +998,64 @@ int main(int argc, char* argv[]) {
 		cross.setClock({});
 	}
 
+	// A train that the host does not follow is drawn again at a step only while it is near the visible scene, within as
+	// far again on every side.
+	{
+		QGraphicsScene farScene;
+		NetworkView farView;
+		farView.setScene(&farScene);
+		farView.resize(400, 300);
+		// The view is laid out, and no event loop runs, so no paint changes the clock of the trains.
+		farView.show();
+		NetworkPresenter far(&farScene, &farView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->track(0).sceneTrackId = "T";
+		far.setGeometrySource(std::move(geometry));
+		SceneModel farModel;
+		farModel.tracks = {{"T"}};
+		farModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 10.0, 0.0}};
+		farModel.arcs = {{"T.arc", "T", "T.a", "T.b", 0.0, 0.0, 12.0}};
+		far.showPreview(farModel);
+		far.showRuntime(farModel);
+		farView.fitToBounds(farScene.itemsBoundingRect());
+		RecordingHost host;
+		far.setFrameHost(&host);
+		qint64 now = 0;
+		far.setClock([&now]() { return now; });
+		const TrackPreviewLine* const line = far.trackLine("T");
+		const qreal close = 0.001 * far.track_separation * far.presentationScale();
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		const auto deliver = [&](double headKm) {
+			snapshot.timestep += 1;
+			snapshot.trains = {trainOfWagons(3, headKm)};
+			far.apply(snapshot, NetworkPresenter::Playback::Live);
+		};
+		// a glide of 150 ms from 4.5 km to 4.8 km
+		deliver(4.5);
+		now = 100;
+		deliver(4.8);
+		TrainItemGroup* const train = far.trainGroup(0);
+		ok &= expect(line && train && far.trainMoving(0), "the train that is not followed glides");
+		if (line && train) {
+			// The view shows about 0.5 km around 0.5 km.
+			farView.zoomBy(20.0);
+			farView.centerOnExactly(linePointAt(*line, 0.5));
+			const QPointF before = drawnFront(*train);
+			now += 50;
+			far.stepTrains();
+			ok &= expect(QLineF(drawnFront(*train), before).length() <= close && far.trainMoving(0),
+				"a step does not draw a train far outside the visible scene again");
+			farView.centerOnExactly(linePointAt(*line, 4.6));
+			now += 25;
+			far.stepTrains();
+			ok &= expect(QLineF(drawnFront(*train), linePointAt(*line, 4.65)).length() <= close,
+				"a step draws it where it is by the clock once it is near the visible scene");
+		}
+		far.setFrameHost(nullptr);
+		far.setClock({});
+	}
+
 	// The motion of a live train across updates, on the clock of the test, which runs the steps by hand. The track of
 	// this source runs along x in metres.
 	{

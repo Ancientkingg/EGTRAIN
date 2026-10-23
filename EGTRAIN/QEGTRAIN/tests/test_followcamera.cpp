@@ -430,6 +430,22 @@ static bool checkHoldForUser() {
 	const qreal afterScroll = distance(centerOf(rig.view) - target, scrolledLeft) / pixel;
 	ok &= expect(rig.camera.running() && afterScroll < 5.0, "the first target after the scroll starts a catch-up from where it left the view",
 		measured({{"firstMove", afterScroll}}));
+
+	// A snap while the user holds the view, as when Follow is turned on, cuts at the first target after the user has
+	// finished. A move of the pointer without the button ends a drag whose release went elsewhere.
+	sendLeftButton(rig.view, QEvent::MouseButtonPress);
+	target += QPointF(200.0, 0.0);
+	rig.camera.follow(target, true);
+	ok &= expect(offInPixels(rig.view, target) > 30.0 && !rig.camera.running(), "a snap while the button is held does not move the view");
+	const QPoint inView = rig.view.viewport()->rect().center();
+	QMouseEvent move(QEvent::MouseMove, QPointF(inView), QPointF(rig.view.viewport()->mapToGlobal(inView)), Qt::NoButton,
+		Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(rig.view.viewport(), &move);
+	ok &= expect(!rig.view.interacting(), "a move of the pointer without the button ends the drag");
+	rig.now += 16;
+	target += QPointF(2.0 * pixel, 0.0);
+	rig.camera.follow(target, false);
+	ok &= expect(!rig.camera.running() && offInPixels(rig.view, target) <= 0.01, "the first target after the drag cuts to it for the snap");
 	return ok;
 }
 
