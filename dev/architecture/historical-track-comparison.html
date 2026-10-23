@@ -369,7 +369,8 @@ draws a mark: a white cross on a failed head, a dark bar on Stop, a dark dot on
 Caution and a short gray dash in the ring. The reference painted every head
 green, yellow or red and kept the colour for a code it did not know. Only a lit
 head, every state except the gray ring, has the hairline outline of the
-reference. Heads in the preview before a run stay green.</p></li>
+reference; below 6 device pixels a lit or failed head is a disc in its lamp
+colour without an outline. Heads in the preview before a run stay green.</p></li>
 <li><p>Presentation scale (#422). Symbol sizes, text and offsets are converted from
 the historical construction units by the factor <code class="docutils literal notranslate"><span class="pre">k</span></code> described under
 <a class="reference internal" href="#measured-presentation-units">Measured presentation units</a>.</p></li>
@@ -437,7 +438,8 @@ case without trains and draws only part of the polyline, so the pair uses
 <p>Normal Open now draws semantic track, connection, ordinary-node and station-node
 items before Run, using the same paint classes as prepared runtime. Preview and
 run draw the connections first and the track lines over them with the same pens,
-and a lit signal head has a hairline outline in both. Preview has canonical
+and a lit signal head has a hairline outline in both, or below 6 device pixels
+a disc in its lamp colour without one. Preview has canonical
 string identities and read-only inspectors, not native simulation objects.
 Preview and run draw the white platform bars of every platform outside the
 virtual stations; preview does not invent passenger counters. Inspection does
