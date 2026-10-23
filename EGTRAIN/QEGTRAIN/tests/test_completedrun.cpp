@@ -1484,7 +1484,7 @@ void forbidMessageBox() {
 	});
 }
 
-// The three choosers of a run of Paimpol name the blocks of route0 by their labels, with the ids as tooltips.
+// The three choosers of a run of Paimpol name the blocks of route0 by their labels, with the short ids of the section strip as tooltips.
 void checkLabelledChoosers(const CapturedRun& run) {
 	if (run.scene != "Paimpol")
 		return;
@@ -1502,9 +1502,9 @@ void checkLabelledChoosers(const CapturedRun& run) {
 		if (combos.size() != 3)
 			return;
 		combos[0]->setCurrentIndex(combos[0]->findData(routeIndex));
-		check(combos[1]->itemText(0) == "1: B0 0.000 to 0.230 km" && combos[1]->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@"
+		check(combos[1]->itemText(0) == "1: B0 0.000 to 0.230 km" && combos[1]->itemData(0, Qt::ToolTipRole).toString() == "0-B0"
 				&& combos[1]->itemText(71) == "72: B0 21.010 to 21.235, B1 21.252 to 21.450 km"
-				&& combos[1]->itemData(71, Qt::ToolTipRole).toString() == "@71-B0@-21.235000/@0-B1@-21.252000",
+				&& combos[1]->itemData(71, Qt::ToolTipRole).toString() == "71-B0/0-B1",
 			"Paimpol: the blocking-time chooser names the blocks of route0 by their labels");
 		dialog.reject();
 	});
@@ -1529,7 +1529,7 @@ void checkLabelledChoosers(const CapturedRun& run) {
 			return;
 		routes->setCurrentIndex(routes->findData(routeIndex));
 		check(blocks->currentText() == "36: B0 10.210 to 10.510 km through 72: B0 21.010 to 21.235, B1 21.252 to 21.450 km (37 blocks)"
-				&& blocks->currentData(Qt::ToolTipRole).toString() == "36:@35-B0@ to 72:@71-B0@-21.235000/@0-B1@-21.252000 (37 blocks)",
+				&& blocks->currentData(Qt::ToolTipRole).toString() == "36: 35-B0 to 72: 71-B0/0-B1 (37 blocks)",
 			"Paimpol: the capacity chooser names the analysed blocks of route0 by their labels");
 		dialog.reject();
 	});
@@ -1539,7 +1539,7 @@ void checkLabelledChoosers(const CapturedRun& run) {
 	if (routes)
 		routes->setCurrentIndex(routes->findData(routeIndex));
 	const auto* first = area.findChild<QComboBox*>("areaCapacityFirstBlock");
-	check(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@",
+	check(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "0-B0",
 		"Paimpol: the capacity by area chooser names the blocks of route0 by their labels");
 }
 
@@ -1573,7 +1573,7 @@ void testCapacityDialog() {
 			"c runs over B only, so B is the analysed block and there is no other section to choose");
 		check(combos[2]->count() == 5 && combos[2]->itemText(3) == "c (OC-c)", "the closing occurrence can be any listed train");
 		list->item(2)->setCheckState(Qt::Unchecked);
-		check(blocks->currentText() == "1: B through 2: C (2 blocks)" && blocks->itemData(0, Qt::ToolTipRole).toString() == "1:B to 2:C (2 blocks)",
+		check(blocks->currentText() == "1: B through 2: C (2 blocks)" && blocks->itemData(0, Qt::ToolTipRole).toString() == "1: B to 2: C (2 blocks)",
 			"without c the analysed blocks run on over C, and the tooltip names the blocks by their ids");
 		const auto spin = dialog.findChild<QDoubleSpinBox*>();
 		if (spin)
@@ -1718,7 +1718,7 @@ void testCapacityDialog() {
 			return;
 		check(blocks->count() == 2 && blocks->itemText(0) == "1: A (1 block)" && blocks->currentIndex() == 1
 				&& blocks->currentText() == "3: C through 5: E (3 blocks)" && blocks->isEnabled()
-				&& blocks->itemData(1, Qt::ToolTipRole).toString() == "3:C to 5:E (3 blocks)",
+				&& blocks->itemData(1, Qt::ToolTipRole).toString() == "3: C to 5: E (3 blocks)",
 			"p and q share A and C to E, and the longer section is selected");
 		list->item(2)->setCheckState(Qt::Checked);
 		check(blocks->count() == 2 && blocks->currentText() == "3: C (1 block)", "with s the section from C stays selected");

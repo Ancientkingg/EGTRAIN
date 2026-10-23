@@ -752,9 +752,9 @@ bool exerciseLabels() {
 
 	AreaCapacityScopeDialog dialog(data);
 	const QComboBox* first = combo(dialog, "areaCapacityFirstBlock");
-	ok &= expect(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@"
+	ok &= expect(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "0-B0"
 			&& combo(dialog, "areaCapacityLastBlock")->currentText() == "8: B0 1.610 to 1.840 km",
-		"the options name the blocks by their labels, with the id as tooltip");
+		"the options name the blocks by their labels, with the short id as tooltip");
 
 	const AreaCapacityScope one = lineScope({"F1", "F2"});
 	AreaCapacityWindow window(analyze(data, one), areaCapacityLabel(data, one), data.provenance, nullptr, areaCapacityText(data, one),
@@ -798,8 +798,8 @@ bool exerciseLabels() {
 	AreaCapacityWindow notedWindow(noted, areaCapacityLabel(data, one), data.provenance, nullptr, QString(), data.sectionLabels);
 	const QTableWidget* notes = table(notedWindow, "areaCapacityNotes");
 	ok &= expect(notes && notes->rowCount() == 1 && cell(notes, 0, 3) == "7-B0" && notes->item(0, 3)->toolTip() == "B0 1.610 to 1.840 km"
-			&& cell(notes, 0, 4).contains("resource 7-B0 ") && !cell(notes, 0, 4).contains("@"),
-		qPrintable("a note names its resource by its short id and has its label as tooltip: " + cell(notes, 0, 4)));
+			&& cell(notes, 0, 4).contains("resource 7-B0 ") && !cell(notes, 0, 4).contains("@") && notes->item(0, 4)->toolTip() == cell(notes, 0, 4),
+		qPrintable("a note names its resource by its short id with its label as tooltip, and its details are their own tooltip: " + cell(notes, 0, 4)));
 	ok &= expect(tabTitle(notedWindow, 2) == "Excluded traffic" && tabTitle(notedWindow, 3) == "Notes (1)", "a tab title gives its count only when it is not 0");
 
 	QTemporaryDir directory;

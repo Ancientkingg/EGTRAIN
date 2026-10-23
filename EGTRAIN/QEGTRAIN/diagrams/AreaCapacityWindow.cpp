@@ -292,6 +292,9 @@ QWidget* notesTab(const std::vector<QStringList>& rows, const std::vector<std::s
 	QTableWidget* table = makeTable(page, {"Status", "Train", "Other train", "Resource", "Details"}, rows);
 	table->setObjectName(tableName);
 	setLabelTips(table, 3, resources, labels);
+	// A detail can be longer than its column.
+	for (int row = 0; row < table->rowCount(); ++row)
+		table->item(row, 4)->setToolTip(table->item(row, 4)->text());
 	layout->addWidget(table, 1);
 	return page;
 }
@@ -699,7 +702,7 @@ void AreaCapacityScopeDialog::refillBlocks(QComboBox* routes, QComboBox* first, 
 		const QString text = QString("%1: %2").arg(index + 1).arg(QString::fromStdString(readableSectionLabel(blocks[index].id, m_data.sectionLabels)));
 		for (QComboBox* combo : {first, last}) {
 			combo->addItem(text);
-			combo->setItemData(combo->count() - 1, QString::fromStdString(blocks[index].id), Qt::ToolTipRole);
+			combo->setItemData(combo->count() - 1, QString::fromStdString(shortBlockId(blocks[index].id)), Qt::ToolTipRole);
 		}
 	}
 	if (last->count() > 0)

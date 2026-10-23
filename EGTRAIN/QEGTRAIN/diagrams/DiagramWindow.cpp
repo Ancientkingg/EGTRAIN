@@ -56,12 +56,18 @@
 #include <limits>
 namespace {
 
-// Reduced-opacity pen for lines that are not the pinned train.
-QPen mutedPen(const QPen& base) {
+// A colour of something that is not the pinned train: mixed with the background as an alpha of 60 would show it, and
+// opaque, because a chart draws a solid line in short pieces, and on a dense line their overlaps would add a
+// transparent colour up to nearly the full colour.
+QColor mutedColour(const QColor& color, const QColor& background) {
+	const auto mix = [](int line, int back) { return (line * 60 + back * 195 + 127) / 255; };
+	return QColor(mix(color.red(), background.red()), mix(color.green(), background.green()), mix(color.blue(), background.blue()));
+}
+
+// Pen for lines that are not the pinned train.
+QPen mutedPen(const QPen& base, const QColor& background) {
 	QPen pen = base;
-	QColor color = pen.color();
-	color.setAlpha(60);
-	pen.setColor(color);
+	pen.setColor(mutedColour(base.color(), background));
 	return pen;
 }
 
@@ -110,19 +116,19 @@ bool isPlannedSeries(const QAbstractSeries* series) {
 // The planned points of a series are open circles, as wide as this, in the colour of its pen on white.
 constexpr double kPlannedMarkerSize = 7;
 
-// The open circle that a planned series draws at its points: a ring of 1.4 px in the colour of `pen` around white, both
-// with the alpha of the pen, so that a faint line has faint circles. At two pixels per pixel, for a screen of two.
-QImage plannedMarker(const QPen& pen) {
+// The open circle that a planned series draws at its points: a ring of 1.4 px in the colour of `pen` around `fill`, both
+// with the alpha of the pen. At two pixels per pixel, for a screen of two.
+QImage plannedMarker(const QPen& pen, const QColor& fill = Qt::white) {
 	constexpr qreal ratio = 2;
 	QImage image(QSize(qRound(kPlannedMarkerSize * ratio), qRound(kPlannedMarkerSize * ratio)), QImage::Format_ARGB32_Premultiplied);
 	image.setDevicePixelRatio(ratio);
 	image.fill(Qt::transparent);
 	QPainter painter(&image);
 	painter.setRenderHint(QPainter::Antialiasing);
-	QColor fill(Qt::white);
-	fill.setAlpha(pen.color().alpha());
+	QColor inside = fill;
+	inside.setAlpha(pen.color().alpha());
 	painter.setPen(QPen(pen.color(), 1.4));
-	painter.setBrush(fill);
+	painter.setBrush(inside);
 	painter.drawEllipse(QRectF(0.7, 0.7, kPlannedMarkerSize - 1.4, kPlannedMarkerSize - 1.4));
 	return image;
 }
@@ -1738,8 +1744,13 @@ void DiagramWindow::refreshEmphasis() {
 				xy->setPen(base);
 			else if (isPinned)
 				xy->setPen(emphasisedPen(base));
-			else
-				xy->setPen(mutedPen(base));
+			else {
+				const QColor background = m_view && m_view->chart() ? m_view->chart()->backgroundBrush().color() : palette().color(QPalette::Base);
+				xy->setPen(mutedPen(base, background));
+				// The circles of a muted planned line fade with it, their white too.
+				if (isPlannedSeries(series) && xy->pointsVisible())
+					xy->setLightMarker(plannedMarker(xy->pen(), mutedColour(Qt::white, background)));
+			}
 		}
 	}
 }

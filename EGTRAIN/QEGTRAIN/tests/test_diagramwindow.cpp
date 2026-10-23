@@ -62,6 +62,7 @@
 #include <array>
 #include <functional>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <tuple>
@@ -516,6 +517,17 @@ static bool isRecoloured(const QPen& pen, const QPen& before, const QColor& colo
 	return pen == expected;
 }
 
+// A pen of a muted train: opaque, in a colour between the colour of the train and the background, nearer the
+// background. A transparent pen adds up where a chart draws the pieces of a dense line over each other.
+static bool isMuted(const QPen& pen, const QColor& color, const QColor& background) {
+	const QColor muted = pen.color();
+	const auto channel = [](int value, int line, int back) {
+		return (value - back) * (line - back) >= 0 && 2 * std::abs(value - back) <= std::abs(line - back) + 1;
+	};
+	return muted.alpha() == 255 && muted != color && channel(muted.red(), color.red(), background.red())
+		&& channel(muted.green(), color.green(), background.green()) && channel(muted.blue(), color.blue(), background.blue());
+}
+
 static QColor swatchAt(const TrainKeyList* list, int row) {
 	const QTreeWidgetItem* item = rowNamed(list, list->trainIds().value(row));
 	return item ? lineSampleColour(item) : QColor();
@@ -593,8 +605,8 @@ static bool exerciseTrainColors() {
 		// Select train A by clicking its solid line.
 		clickChart(view, QPointF(10, 10), built.solid[0]);
 		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == blue
-				&& built.solid[1]->pen().color().alpha() < 255,
-			note("selecting a train emphasises it in its colour and mutes the other train").c_str());
+				&& isMuted(built.solid[1]->pen(), green, view->chart()->backgroundBrush().color()),
+			note("selecting a train emphasises it in its colour and mutes the other train in an opaque faded colour").c_str());
 		list->setTrainVisible("B", false);
 		ok &= expect(swatchAt(list, 1) == hiddenGrey && built.solid[0]->pen().color() == blue,
 			note("a hidden train has a light grey line sample, and a train of two keeps its colour").c_str());
@@ -671,8 +683,8 @@ static bool exerciseColourRule() {
 		"47 trains in 47 services are grey");
 	clickChart(view, QPointF(50, 102), lines[10]);
 	ok &= expect(window.findChild<QLabel*>("diagramSelectedTitle")->text() == "T10" && rgb(lines[10]->pen().color()) == rgb(palette[0])
-			&& rgb(lines[11]->pen().color()) == rgb(grey) && swatchAt(list, 10) == palette[0],
-		"the selected train of 47 is blue and the others stay grey");
+			&& isMuted(lines[11]->pen(), grey, view->chart()->backgroundBrush().color()) && swatchAt(list, 10) == palette[0],
+		"the selected train of 47 is blue and the others stay grey, faded");
 	QMetaObject::invokeMethod(&window, "clearPin");
 	ok &= expect(lines[10]->pen().color() == grey, "a train that is no longer selected is grey again");
 
@@ -2035,7 +2047,7 @@ static bool exerciseSelection() {
 	QApplication::processEvents();
 
 	click(QPointF(9, 50), run);
-	ok &= expect(title->isVisible() && title->text() == "B run" && run->pen().widthF() > outlinePen.widthF() && outlineA->pen().color().alpha() < 255
+	ok &= expect(title->isVisible() && title->text() == "B run" && run->pen().widthF() > outlinePen.widthF() && isMuted(outlineA->pen(), outlinePen.color(), chart->backgroundBrush().color())
 			&& !chart->findChild<QGraphicsObject*>("diagramSelectionOutline") && rowNamed(list, "B")->background(0).style() != Qt::NoBrush,
 		"a click on a line selects its train, emphasises it and highlights its row");
 	clear->click();
@@ -3284,6 +3296,49 @@ static bool exerciseExportKeepsWindowInFront() {
 
 // A chart without series says so in the middle of its plot with the text of setEmptyText, and the panel leaves out
 // Trains, Key and Selected, which have nothing to show; Export stays. A chart with series has no such text.
+// On a dark background, the open circles of a planned line of a train that is not selected fade with the line: their
+// white is mixed with the background too, and comes back when the selection ends.
+static bool exerciseMutedPlannedMarkers() {
+	DiagramWindow window("Muted circles");
+	QPalette dark = window.palette();
+	dark.setColor(QPalette::Base, QColor(30, 30, 30));
+	window.setPalette(dark);
+	auto* chart = new QChart;
+	auto* planned = new QLineSeries;
+	planned->setName("A (planned)");
+	planned->setProperty("trainId", "A");
+	planned->setPointsVisible(true);
+	planned->append(0, 10);
+	planned->append(100, 20);
+	chart->addSeries(planned);
+	auto* other = new QLineSeries;
+	other->setName("B");
+	other->setProperty("trainId", "B");
+	other->append(0, 50);
+	other->append(100, 50);
+	chart->addSeries(other);
+	chart->createDefaultAxes();
+	window.setChart(chart);
+	window.resize(900, 600);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	if (!expect(view && !planned->lightMarker().isNull(), "the planned line draws open circles")) return false;
+	const auto middle = [planned]() {
+		const QImage marker = planned->lightMarker();
+		return marker.pixelColor(marker.width() / 2, marker.height() / 2);
+	};
+	const QColor background = view->chart()->backgroundBrush().color();
+	bool ok = expect(middle() == QColor(Qt::white), "an open circle is white inside");
+	clickChart(view, QPointF(50, 50), other);
+	const QColor faded = middle();
+	ok &= expect(faded.alpha() == 255 && std::abs(faded.red() - background.red()) < std::abs(255 - background.red()) / 2,
+		qPrintable("a circle of a train that is not selected fades towards the background: " + faded.name()));
+	QMetaObject::invokeMethod(&window, "clearPin");
+	ok &= expect(middle() == QColor(Qt::white), "a circle is white again when the selection ends");
+	return ok;
+}
+
 static bool exerciseEmptyChart() {
 	const auto shownHeadings = [](const DiagramWindow& window) {
 		QStringList texts;
@@ -3922,6 +3977,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseSectionStrip();
 	ok &= exerciseClockMinutes();
 	ok &= exerciseExportKeepsWindowInFront();
+	ok &= exerciseMutedPlannedMarkers();
 	ok &= exerciseEmptyChart();
 	ok &= exerciseBoxPrecedence();
 	if (!ok) return 1;
