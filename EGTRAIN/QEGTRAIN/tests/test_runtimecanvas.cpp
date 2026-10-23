@@ -107,12 +107,7 @@ public:
 	// route one from the start of T to the end of U over it, in the sections that the simulation makes of it: on T up to
 	// 3 km, the section derived at the switch from 3 to 7 km, and on U. The positions along the route are its X.
 	void makeCrossover() {
-		m_tracks.resize(2);
-		m_tracks[0].sceneTrackId = "T";
-		m_tracks[1] = m_tracks[0];
-		m_tracks[1].sceneTrackId = "U";
-		m_tracks[1].member[1].endNode.stationName.clear();
-		m_tracks[1].member[1].endNode.stationPlatformId.clear();
+		makeTwoTracks();
 		m_sections.resize(3);
 		const auto section = [this](std::size_t index, const char* id, int track, double fromKm, double toKm) {
 			Section& made = m_sections[index];
@@ -128,6 +123,14 @@ public:
 		section(1, "@1-s0@-4.000/@2-u1@-6.000", -1, 3.0, 7.0);
 		section(2, "@2-u1@", 1, 7.0, 10.0);
 		m_route.N_Block_Sections = 3;
+		m_route.sequence_of_block_sections = m_sections;
+	}
+
+	// Makes the line two parallel tracks, the scene tracks T and U, and puts the second section of the route on U, so
+	// that the route runs on T up to 5 km and on U after it. The positions along the route are its X.
+	void makeJoin() {
+		makeTwoTracks();
+		m_sections[1].trackLineId = 1;
 		m_route.sequence_of_block_sections = m_sections;
 	}
 
@@ -151,6 +154,16 @@ public:
 	bool passengerGui() const override { return passengers; }
 
 private:
+	// Makes the line two parallel tracks, the scene tracks T and U, with the station B at the end of T only.
+	void makeTwoTracks() {
+		m_tracks.resize(2);
+		m_tracks[0].sceneTrackId = "T";
+		m_tracks[1] = m_tracks[0];
+		m_tracks[1].sceneTrackId = "U";
+		m_tracks[1].member[1].endNode.stationName.clear();
+		m_tracks[1].member[1].endNode.stationPlatformId.clear();
+	}
+
 	mutable std::vector<BlockSet> m_tracks;
 	mutable std::vector<Stations> m_stations;
 	mutable Connections m_noConnection;
@@ -219,6 +232,14 @@ static QPointF drawnFront(const TrainItemGroup& train) {
 	return polygon.isEmpty() ? QPointF() : body->mapToScene((polygon.first() + polygon.last()) / 2);
 }
 
+// The middle of the back of the last body of a train, where its tail is drawn, in scene coordinates.
+static QPointF drawnBack(const TrainItemGroup& train) {
+	const TrainBodyItem* body = train.trainPolygonItemList->last();
+	const QPolygonF polygon = body->polygon();
+	const int corners = static_cast<int>(polygon.size());
+	return corners < 2 ? QPointF() : body->mapToScene((polygon[corners / 2 - 1] + polygon[corners / 2]) / 2);
+}
+
 // The drawn line of a track of the preview, segment by segment.
 static std::vector<QLineF> segmentsOf(const TrackPreviewLine& line) {
 	std::vector<QLineF> segments;
@@ -258,6 +279,25 @@ static qreal farthestCorner(const TrainItemGroup& train, const std::vector<QLine
 			farthest = std::max(farthest, distanceTo(segments, body->mapToScene(corner)));
 	}
 	return farthest;
+}
+
+// The centre of the middle line of the drawn bodies of a train, each piece weighted by its length, in scene coordinates.
+// The first half of the corners of a body runs along one side from the front and the second half back along the other.
+static QPointF drawnCentre(const TrainItemGroup& train) {
+	QPointF sum;
+	qreal drawn = 0.0;
+	for (const TrainBodyItem* body : *train.trainPolygonItemList) {
+		const QPolygonF polygon = body->mapToScene(body->polygon());
+		const int corners = static_cast<int>(polygon.size());
+		for (int i = 1; i < corners / 2; ++i) {
+			const QPointF from = (polygon[i - 1] + polygon[corners - i]) / 2.0;
+			const QPointF to = (polygon[i] + polygon[corners - 1 - i]) / 2.0;
+			const qreal length = QLineF(from, to).length();
+			sum += (from + to) * (length / 2.0);
+			drawn += length;
+		}
+	}
+	return drawn > 0.0 ? sum / drawn : QPointF();
 }
 
 // Records what apply() asks of its host, in order, and apart from that where the steps of a glide draw a train.
@@ -831,7 +871,10 @@ int main(int argc, char* argv[]) {
 		if (train && line) {
 			const std::vector<QLineF> drawnLine = segmentsOf(*line);
 			// The furthest that a corner of a body gets from the line, whether the host heard the centre of the train as it
-			// is drawn and on the line, and whether every step moved the train.
+			// is drawn, and whether every step moved the train. While the whole train is on one leg of the line, that centre
+			// is on the line at the middle of its bodies. Around the bend it is the centre of the two pieces of line from the
+			// tail to the bend and from the bend to the head, inside the bend and off the line, as the middle of the bodies
+			// is, no further than half the width of a body from it.
 			qreal farthest = 0.0;
 			bool heard = true;
 			bool everyStep = true;
@@ -842,8 +885,18 @@ int main(int argc, char* argv[]) {
 				bent.stepTrains();
 				farthest = std::max(farthest, farthestCorner(*train, drawnLine));
 				const QPointF center = bent.trainCenter(0);
+				const QPointF back = drawnBack(*train);
+				const QPointF front = drawnFront(*train);
+				const auto onLeg = [&](const QLineF& leg) { return distanceTo({leg}, front) <= close && distanceTo({leg}, back) <= close; };
+				const bool oneLeg = onLeg(drawnLine[0]) || onLeg(drawnLine[1]);
+				const qreal fromBodies = QLineF(drawnCentre(*train), center).length();
+				const QPointF bend = drawnLine[0].p2();
+				const qreal toBend = QLineF(back, bend).length();
+				const qreal fromBend = QLineF(bend, front).length();
+				const QPointF bendCentre = ((back + bend) * toBend + (bend + front) * fromBend) / (2.0 * (toBend + fromBend));
 				heard &= host.moves.size() == 1 && QLineF(host.moves.back(), center).length() <= close
-					&& distanceTo(drawnLine, center) <= close;
+					&& (oneLeg ? distanceTo(drawnLine, center) <= close && fromBodies <= close
+							   : QLineF(bendCentre, center).length() <= close && fromBodies <= half);
 				everyStep &= QLineF(center, before).length() > close;
 			};
 			const auto headAt = [&](double headKm) { return QLineF(drawnFront(*train), linePointAt(*line, headKm)).length() <= close; };
@@ -873,7 +926,9 @@ int main(int argc, char* argv[]) {
 			stepBy(5);
 			ok &= expect(onItsWay && !bent.trainMoving(0) && headAt(6.3), "the next glide lasts 500 ms and ends at the new place");
 			ok &= expect(farthest <= half + close, "every corner of every body stays on the drawn line at every step around the bend");
-			ok &= expect(heard, "the host hears the centre of the train as it is drawn, on the line, at every step");
+			ok &= expect(heard,
+				"the host hears the centre of the train as it is drawn at every step: on the line on one leg, and at the "
+				"centre of the line under it around the bend");
 			ok &= expect(everyStep, "every step of a glide moves the train");
 
 			// Updates every 40 ms, as at Fastest, each 10 ms after a step. Once the longer intervals are no longer among
@@ -1005,22 +1060,87 @@ int main(int argc, char* argv[]) {
 						cross.stepTrains();
 					}
 					farthest = std::max(farthest, farthestCorner(*train, runsOn));
-					centred &= distanceTo(runsOn, cross.trainCenter(0)) <= close;
+					centred &= QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
 				}
 			}
 			while (cross.trainMoving(0)) {
 				now += 5;
 				cross.stepTrains();
 				farthest = std::max(farthest, farthestCorner(*train, runsOn));
-				centred &= distanceTo(runsOn, cross.trainCenter(0)) <= close;
+				centred &= QLineF(drawnCentre(*train), cross.trainCenter(0)).length() <= close;
 			}
 			ok &= expect(QLineF(drawnFront(*train), linePointAt(*second, 8.0)).length() <= close,
 				"the train runs over the crossover to its place on the second track");
 			ok &= expect(farthest <= half + close, "every corner of every body stays on the line through the crossover at every step");
-			ok &= expect(centred, "the centre of the train stays on the line through the crossover");
+			ok &= expect(centred, "the centre of the train is the centre of its drawn bodies through the crossover");
 		}
 		cross.setFrameHost(nullptr);
 		cross.setClock({});
+	}
+
+	// Where two sections of a route lie on two tracks drawn side by side, the drawn path steps from one track to the other
+	// at the single position where the sections meet. The centre of a train that runs over that join in steps of 5 m
+	// moves at every step about as far as the train, without a jump to the other track, and stays at the centre of its
+	// drawn bodies.
+	{
+		QGraphicsScene joinScene;
+		NetworkView joinView;
+		joinView.setScene(&joinScene);
+		joinView.resize(400, 300);
+		NetworkPresenter join(&joinScene, &joinView);
+		auto geometry = std::make_unique<FakeGeometry>();
+		geometry->makeJoin();
+		join.setGeometrySource(std::move(geometry));
+		SceneModel joinModel;
+		joinModel.tracks = {{"T"}, {"U"}};
+		// U runs 40 m beside T: further than the width of a body, and less than half a wagon.
+		joinModel.nodes = {{"T.a", "T", 0.0, 0.0}, {"T.b", "T", 10.0, 0.0}, {"U.a", "U", 0.0, 0.04}, {"U.b", "U", 10.0, 0.04}};
+		joinModel.arcs = {{"T.arc", "T", "T.a", "T.b", 0.0, 0.0, 12.0}, {"U.arc", "U", "U.a", "U.b", 0.0, 0.0, 12.0}};
+		join.showPreview(joinModel);
+		join.showRuntime(joinModel);
+		joinView.fitToBounds(joinScene.itemsBoundingRect());
+		const TrackPreviewLine* const first = join.trackLine("T");
+		const TrackPreviewLine* const second = join.trackLine("U");
+		const qreal half = 0.10 * join.track_separation * join.presentationScale();
+		const qreal close = 0.01 * half;
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		// A replay frame that places the train of three wagons, 300 m long, with its head the given metres past 4.8 km.
+		const auto place = [&](int metres) {
+			snapshot.timestep += 1;
+			snapshot.trains = {trainOfWagons(3, 4.8 + metres / 1000.0)};
+			join.apply(snapshot, NetworkPresenter::Playback::Replay);
+		};
+		place(0);
+		const TrainItemGroup* const train = join.trainGroup(0);
+		ok &= expect(first && second && train && train->isVisible(), "the train of three wagons is drawn before the join");
+		if (first && second && train) {
+			// A step of 5 m moves the centre 5 m along the tracks and, while the join is under the train, sideways by 5/300
+			// of the distance between the tracks, as 5 m of the 300 m of the train pass from one track to the other. A jump
+			// to the other track would move it the whole distance at once.
+			const qreal step = QLineF(linePointAt(*first, 4.8), linePointAt(*first, 4.805)).length();
+			const qreal side = QLineF(linePointAt(*first, 5.0), linePointAt(*second, 5.0)).length();
+			const qreal length = QLineF(linePointAt(*first, 4.8), linePointAt(*first, 5.1)).length();
+			const qreal most = step * (1.0 + side / length) + close;
+			ok &= expect(side > 2.0 * half && side > 5.0 * most,
+				"the tracks of the join are drawn further apart than a body is wide and than the train moves in a step");
+			qreal farthestMove = 0.0;
+			qreal farthestFromBodies = 0.0;
+			QPointF center = join.trainCenter(0);
+			for (int metres = 5; metres <= 600; metres += 5) {
+				place(metres);
+				const QPointF next = join.trainCenter(0);
+				farthestMove = std::max(farthestMove, QLineF(center, next).length());
+				farthestFromBodies = std::max(farthestFromBodies, QLineF(drawnCentre(*train), next).length());
+				center = next;
+			}
+			ok &= expect(QLineF(drawnFront(*train), linePointAt(*second, 5.4)).length() <= close,
+				"the train runs over the join onto the second track");
+			ok &= expect(farthestMove <= most, "the centre of the train moves about as far as the train at every step over the join");
+			// Only the wagon over the join is drawn across from one track to the other, so the middle of the bodies is off
+			// the track under the train by about a sixth of the distance between the tracks.
+			ok &= expect(farthestFromBodies <= half, "the centre of the train stays at the middle of its drawn bodies over the join");
+		}
 	}
 
 	// A train that the host does not follow is drawn again at a step only while it is near the visible scene, within as

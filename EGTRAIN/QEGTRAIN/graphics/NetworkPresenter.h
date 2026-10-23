@@ -226,10 +226,11 @@ public:
 	void paintTrain(const GuiTrainState& train, const SceneModel& sceneModel, bool promoted);
 	/// The train group of the run with this index, or null.
 	TrainItemGroup* trainGroup(int train) const;
-	/// The centre of the train as it is drawn, in scene coordinates: on the drawn track, the middle of the part of the
-	/// train that is on its route, so half way between the start of the route and the head while the train enters it,
-	/// or the centre of its bodies when it has no place on its route. It moves along the track with the train, without
-	/// a jump, and never back while the train runs forward. A null point for a train that is not on the canvas.
+	/// The centre of the train as it is drawn, in scene coordinates: the centre of the drawn track under the part of the
+	/// train that is on its route, each piece of track weighted by its drawn length, or the centre of its bodies when it
+	/// has no place on its route. Where the track under the train bends, that centre lies inside the bend, off the track.
+	/// It moves with the train without a jump, also where the drawn track under it steps from one track to another
+	/// between two sections. A null point for a train that is not on the canvas.
 	QPointF trainCenter(int train) const;
 
 	/// Gives each body of the list the shape of its wagon at the present position of the train, and
@@ -496,7 +497,6 @@ private:
 		double& secondX) const;
 	bool sectionPointAt(const Section& section, double x, QPointF& point) const;
 	void addSectionCorners(const Section& section, double fromX, double toX, std::vector<double>& xs) const;
-	bool routePoint(int routeIndex, bool reversed, double position, QPointF& point) const;
 	bool routePath(int routeIndex, bool reversed, double from, double to, RoutePath& path) const;
 
 	QPointF Coord2ScreenPoint(double x, double y, double factor) const;

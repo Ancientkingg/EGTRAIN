@@ -2007,8 +2007,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			w.setFollowTrain(activeFollowIndex);
 			QApplication::processEvents();
 			const TrainItemGroup* followed = w.resolveTrainItem(activeFollowIndex);
-			// The view centres on the middle of the train along its track, which is off the middle of its bounds where
-			// the train runs through a bend.
+			// The view centres on the centre of the drawn track under the train, which is off the middle of its bounds
+			// where the train runs through a bend.
 			const QPointF expectedCenter = followed ? w.m_presenter->trainCenter(activeFollowIndex) : QPointF();
 			const QPointF expectedCameraCenter = clampedCameraCenter(expectedCenter);
 			const QPointF cameraCenter = w.networkView->mapToScene(w.networkView->viewport()->rect().center());

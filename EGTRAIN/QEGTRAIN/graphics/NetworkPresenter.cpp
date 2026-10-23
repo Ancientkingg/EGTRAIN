@@ -1747,12 +1747,28 @@ QPointF NetworkPresenter::trainCenter(int train) const {
 	if (!group)
 		return QPointF();
 	const auto found = m_trainMotions.find(train);
-	QPointF center;
 	if (found != m_trainMotions.end()) {
 		const GuiTrainState& state = found->second.newest;
-		if (routePoint(state.routeIndex, state.reversedDirection,
-				middleOnRoute(state.routeIndex, found->second.drawnHead, state.length), center))
-			return center;
+		const double head = found->second.drawnHead;
+		double start = 0.0;
+		double end = 0.0;
+		RoutePath path;
+		if (routeExtent(m_source ? m_source->route(state.routeIndex) : nullptr, start, end)
+			&& routePath(state.routeIndex, state.reversedDirection, std::clamp(head - state.length, start, end),
+				std::clamp(head, start, end), path)) {
+			QPointF sum;
+			qreal drawn = 0.0;
+			for (std::size_t i = 1; i < path.points.size(); ++i) {
+				// Where two sections meet, the path can step from one drawn track to another at a single position.
+				// That step is not part of the train.
+				if (path.positions[i] <= path.positions[i - 1] + 1e-6)
+					continue;
+				const qreal length = path.lengths[i] - path.lengths[i - 1];
+				sum += (path.points[i - 1] + path.points[i]) * (length / 2.0);
+				drawn += length;
+			}
+			return drawn > 0.0 ? sum / drawn : path.points.back();
+		}
 	}
 	return group->sceneBoundingRect().center();
 }
@@ -2130,16 +2146,6 @@ void NetworkPresenter::addSectionCorners(const Section& section, double fromX, d
 	for (const double end : {firstX, secondX})
 		if (end > low && end < high)
 			xs.push_back(end);
-}
-
-// The point of the drawn track at a position along a route, in metres along the route; at the end of a section, the
-// point of that section. Returns false when the position is on no section of the route or has no point on the canvas.
-bool NetworkPresenter::routePoint(int routeIndex, bool reversed, double position, QPointF& point) const {
-	RoutePath path;
-	if (!routePath(routeIndex, reversed, position, position, path))
-		return false;
-	point = path.points.back();
-	return true;
 }
 
 // The drawn track along a route, run in reverse when reversed, from the position from to the position to, in metres
