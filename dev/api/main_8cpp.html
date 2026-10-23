@@ -182,7 +182,7 @@ Functions</h2></td></tr>
 <tr class="memitem:ab13d1f8855e80edeffbcd6e0c3818eb6" id="r_ab13d1f8855e80edeffbcd6e0c3818eb6"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ab13d1f8855e80edeffbcd6e0c3818eb6">resolveScenePath</a> (const QString &amp;requested, const std::string &amp;defaultName)</td></tr>
 <tr class="memitem:ae6ca41b4597eb4b15649b894f99ba7dd" id="r_ae6ca41b4597eb4b15649b894f99ba7dd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ae6ca41b4597eb4b15649b894f99ba7dd">resolveOutputDirectory</a> (const std::string &amp;sceneName)</td></tr>
 <tr class="memitem:a35a15b86b10c598868367a9f2c9ead2f" id="r_a35a15b86b10c598868367a9f2c9ead2f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a35a15b86b10c598868367a9f2c9ead2f">printSceneDiagnostics</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
-<tr class="memitem:a7d6f46c0f2bd16f29457baf398a1605f" id="r_a7d6f46c0f2bd16f29457baf398a1605f"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a7d6f46c0f2bd16f29457baf398a1605f">reportCannotOpen</a> (const QString &amp;what, const QString &amp;reason, bool showBox, bool damaged=false)</td></tr>
+<tr class="memitem:ad47a6cebbd1a41c709a8c3cf60e92337" id="r_ad47a6cebbd1a41c709a8c3cf60e92337"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ad47a6cebbd1a41c709a8c3cf60e92337">reportCannotOpen</a> (const QString &amp;what, const QString &amp;reason, bool showBox, bool damaged=false, const QString &amp;boxReason=QString())</td></tr>
 <tr class="memitem:a79a98a2b14abc8a0e41e6f8e5b6fd24c" id="r_a79a98a2b14abc8a0e41e6f8e5b6fd24c"><td class="memItemLeft">static <a class="el" href="struct_scene_request.html">SceneRequest</a>&#160;</td><td class="memItemRight"><a class="el" href="#a79a98a2b14abc8a0e41e6f8e5b6fd24c">readSceneRequest</a> (bool sceneOption, bool showBox)</td></tr>
 <tr class="memitem:aed07f9620734e5f118b11140cf0f35dd" id="r_aed07f9620734e5f118b11140cf0f35dd"><td class="memItemLeft">static int&#160;</td><td class="memItemRight"><a class="el" href="#aed07f9620734e5f118b11140cf0f35dd">runMain</a> (int argc, char *argv[])</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
@@ -624,8 +624,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7d6f46c0f2bd16f29457baf398a1605f" name="a7d6f46c0f2bd16f29457baf398a1605f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d6f46c0f2bd16f29457baf398a1605f">&#9670;&#160;</a></span>reportCannotOpen()</h2>
+<a id="ad47a6cebbd1a41c709a8c3cf60e92337" name="ad47a6cebbd1a41c709a8c3cf60e92337"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad47a6cebbd1a41c709a8c3cf60e92337">&#9670;&#160;</a></span>reportCannotOpen()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -651,7 +651,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>damaged</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>damaged</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>boxReason</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -663,7 +668,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a7d6f46c0f2bd16f29457baf398a1605f_cgraph.svg" width="878" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_ad47a6cebbd1a41c709a8c3cf60e92337_cgraph.svg" width="878" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -745,7 +750,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_aed07f9620734e5f118b11140cf0f35dd_cgraph.svg" width="926" height="3018"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_aed07f9620734e5f118b11140cf0f35dd_cgraph.svg" width="899" height="3088"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -837,15 +842,15 @@ Here is the call graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><div class="line">                                                  = {</div>
 <div class="line">    {<span class="stringliteral">&quot;-n&quot;</span>, <span class="stringliteral">&quot;ID&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;Case study number, 1 to 5&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--scene&quot;</span>, <span class="stringliteral">&quot;PATH&quot;</span>, <span class="stringliteral">&quot;the case study of -n&quot;</span>, <span class="stringliteral">&quot;Scene folder or .egscene file to load&quot;</span>},</div>
-<div class="line">    {<span class="stringliteral">&quot;-h&quot;</span>, <span class="stringliteral">&quot;SECONDS&quot;</span>, <span class="stringliteral">&quot;from the scene&quot;</span>, <span class="stringliteral">&quot;Simulation horizon; this is not help&quot;</span>},</div>
+<div class="line">    {<span class="stringliteral">&quot;-h&quot;</span>, <span class="stringliteral">&quot;SECONDS&quot;</span>, <span class="stringliteral">&quot;from the scene&quot;</span>, <span class="stringliteral">&quot;Length of the run in seconds (not help: use --help)&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;-b&quot;</span>, <span class="stringliteral">&quot;SECONDS&quot;</span>, <span class="stringliteral">&quot;from the scene&quot;</span>, <span class="stringliteral">&quot;Buffer time&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;-c&quot;</span>, <span class="stringliteral">&quot;PERCENT&quot;</span>, <span class="stringliteral">&quot;from the scene&quot;</span>, <span class="stringliteral">&quot;Recovery time&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;-g&quot;</span>, <span class="stringliteral">&quot;0|1&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;0 runs without a window and exits when the run ends&quot;</span>},</div>
-<div class="line">    {<span class="stringliteral">&quot;-pax&quot;</span>, <span class="stringliteral">&quot;0|1&quot;</span>, <span class="stringliteral">&quot;last choice of View &gt; Show Passengers&quot;</span>, <span class="stringliteral">&quot;1 shows the passengers; read only when -g is 1&quot;</span>},</div>
+<div class="line">    {<span class="stringliteral">&quot;-pax&quot;</span>, <span class="stringliteral">&quot;0|1&quot;</span>, <span class="stringliteral">&quot;last choice of View &gt; Passengers&quot;</span>, <span class="stringliteral">&quot;1 shows the passengers, read only when -g is 1&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--interactive&quot;</span>, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;Asks on standard input for -n, -g and -pax when they are left out&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;-interactive&quot;</span>, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;Same as --interactive&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--detailed-trajectories&quot;</span>, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;Also writes the per-train files&quot;</span>},</div>
-<div class="line">    {<span class="stringliteral">&quot;--live&quot;</span>, <span class="stringliteral">&quot;PORT&quot;</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;Publishes the run state on a ZeroMQ socket; 0 takes a free port&quot;</span>},</div>
+<div class="line">    {<span class="stringliteral">&quot;--live&quot;</span>, <span class="stringliteral">&quot;PORT&quot;</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;Publishes the run state on a ZeroMQ socket (0 takes a free port)&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--live-every&quot;</span>, <span class="stringliteral">&quot;N&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;With --live: sends a state frame every N steps&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--live-commands&quot;</span>, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;off&quot;</span>, <span class="stringliteral">&quot;With --live: accepts pause, resume and stop commands&quot;</span>},</div>
 <div class="line">    {<span class="stringliteral">&quot;--seed&quot;</span>, <span class="stringliteral">&quot;N&quot;</span>, <span class="stringliteral">&quot;789350715&quot;</span>, <span class="stringliteral">&quot;Seed of the random draws, 1 to 2147483646&quot;</span>},</div>

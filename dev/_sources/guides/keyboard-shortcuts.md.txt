@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-This page lists the keys that EGTRAIN sets, grouped as the menus are. The other pages write a shortcut as Windows and Linux show it, such as Ctrl+0 for **Fit**. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. **Preferences...** has a shortcut only on macOS, and the other pages write it with the Command key (Command+,). A key that the table shows once works the same on every system.
+This page lists the keys that EGTRAIN sets, grouped as the menus are. The other pages write a shortcut as Windows and Linux show it, such as Ctrl+0 for **Fit**. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. **Settings...** has a shortcut only on macOS, and the other pages write it with the Command key (Command+,). A key that the table shows once works the same on every system.
 
 ## File
 
@@ -18,7 +18,7 @@ This page lists the keys that EGTRAIN sets, grouped as the menus are. The other 
 | **Edit > Undo** | Ctrl+Z | ⌘Z |
 | **Edit > Redo** | Windows: Ctrl+Y, Ctrl+Shift+Z or Alt+Shift+Backspace. Linux: Ctrl+Shift+Z | ⇧⌘Z |
 | **Edit > Find...** | Ctrl+F | ⌘F |
-| **Edit > Preferences...** | none | ⌘, as **EGTRAIN > Preferences...** |
+| **Edit > Settings...** | none | ⌘, in the **EGTRAIN** menu |
 
 ## View
 
@@ -27,7 +27,7 @@ This page lists the keys that EGTRAIN sets, grouped as the menus are. The other 
 | **View > Zoom In** | Ctrl++ | ⌘+ |
 | **View > Zoom Out** | Ctrl+- | ⌘- |
 | **View > Fit** | Ctrl+0 | ⌘0 |
-| **View > Console Log** | Ctrl+Shift+L | ⇧⌘L |
+| **View > Log** | Ctrl+Shift+L | ⇧⌘L |
 | **View > Scene Validation** | Ctrl+Shift+V | ⇧⌘V |
 
 **Follow** has no shortcut.
@@ -74,9 +74,9 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Reference route** | **OK** | **Cancel** |
 | **About EGTRAIN** | **Close** | **Close** |
 | **Unsaved Scene** | **Save** | **Cancel** |
-| **Save Scene As Folder**, **Import Legacy Case**, and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
+| **Save Scene As Folder** and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
-| EGTRAIN *version* is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
+| EGTRAIN *version* Is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
 | **Linked File Changed** | **Keep Edits** | **Keep Edits** |
 
 ## Result windows
@@ -94,8 +94,8 @@ The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **T
 
 In the table of stops on the tab **Timetable** of **Editors > Services**, Return or Enter opens **Edit Timetable Stop** for the selected row, as a click does.
 
-In the traction curve on the tab **Traction** of **Editors > Rolling stock units**, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.
+In the traction curve on the tab **Traction** of **Editors > Rolling Stock Units**, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.
 
 The tables on the tabs **Run occurrences** and **Timetable** of **Editors > Services** and the table **Import results** of **Editors > Passengers** open no field in a cell: the arrow keys move in the table, and Tab leaves it. In the table of **Editors > Infrastructure**, the arrow keys move between the cells, and moving to a cell that can be changed opens its field. Tab leaves the table, but while a field is open, Tab keeps its value and moves to the next cell. Tab passes over an editor whose dock is behind the tab of another dock.
 
-While the icon button **Pick** beside **Target** on the tab **Incidents** of **Editors > Incidents** is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.
+While the icon button **Pick** beside **Target** on the tab **Incidents** of **Editors > Scenarios** is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.

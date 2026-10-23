@@ -1,8 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"struct_main_window_test_hooks.html#a0b475b64be61d9da7982759c6cecd655":[2,0,120,15],
-"struct_main_window_test_hooks.html#a1b1491197035f326045c06ccf6f4b9d2":[2,0,120,5],
-"struct_main_window_test_hooks.html#a28af0247c95e3da875e26da7f2e8ab73":[2,0,120,13],
 "struct_main_window_test_hooks.html#a3c2b73a1562ab82518217bca0d8cf47f":[2,0,120,10],
 "struct_main_window_test_hooks.html#a4566b7e5a66d0a3ebd208e9363d97184":[2,0,120,2],
 "struct_main_window_test_hooks.html#a55e996b61c2bcaa3045854d3f7295d07":[2,0,120,4],
@@ -120,12 +117,10 @@ var NAVTREEINDEX21 =
 "struct_replay_bar_text.html#a8ea6b6e212c04c0193f3bd6e854ac3f8":[2,0,153,1],
 "struct_replay_bar_text.html#ae34cbc61ce6fc8e13ac2c3ff0a5ac4ba":[2,0,153,2],
 "struct_replay_coverage.html":[2,0,154],
-"struct_replay_coverage.html#a58fd4f4fa552a6b183fa7ebf94828648":[2,0,154,3],
-"struct_replay_coverage.html#a5a7e59a18a3c7ce8f6ba2537962550f4":[2,0,154,2],
-"struct_replay_coverage.html#a7ea81a7ad32b7c6e2d6808e1b1563a1e":[2,0,154,5],
-"struct_replay_coverage.html#ab8e17bf9fb088caf3ea4a6e6026a701a":[2,0,154,0],
-"struct_replay_coverage.html#ac141b84fbd27619ba691aee44697162f":[2,0,154,1],
-"struct_replay_coverage.html#afcca23e33187863e2e84432e4766599d":[2,0,154,4],
+"struct_replay_coverage.html#a58fd4f4fa552a6b183fa7ebf94828648":[2,0,154,1],
+"struct_replay_coverage.html#a5a7e59a18a3c7ce8f6ba2537962550f4":[2,0,154,0],
+"struct_replay_coverage.html#a7ea81a7ad32b7c6e2d6808e1b1563a1e":[2,0,154,3],
+"struct_replay_coverage.html#afcca23e33187863e2e84432e4766599d":[2,0,154,2],
 "struct_report_builder.html":[2,0,155],
 "struct_report_builder.html#a53209906bc123c7ba8b53a0110d826f8":[2,0,155,4],
 "struct_report_builder.html#a60e70f928ea8243be9aa012a1e8a6535":[2,0,155,1],
@@ -249,5 +244,10 @@ var NAVTREEINDEX21 =
 "struct_scene_arc.html#a1c7d8fe14000dd3a37347fd1cc7fcf9d":[2,0,182,6],
 "struct_scene_arc.html#a2d88b96c9c4f33042ecf7a30fcd2b448":[2,0,182,5],
 "struct_scene_arc.html#a41083882cd3d8f6f34fd735a2c19c293":[2,0,182,0],
-"struct_scene_arc.html#a4ea82e066fc5cb142df89c6a8765b583":[2,0,182,3]
+"struct_scene_arc.html#a4ea82e066fc5cb142df89c6a8765b583":[2,0,182,3],
+"struct_scene_arc.html#a54120fcd4cc2bf4d4c4a0587748b669b":[2,0,182,1],
+"struct_scene_arc.html#a6bea178f940d5b5b550341d20d827f83":[2,0,182,4],
+"struct_scene_arc.html#adfb1e440a94c313c229f2464d4f77835":[2,0,182,2],
+"struct_scene_area_signalling.html":[2,0,183],
+"struct_scene_area_signalling.html#a2844fbdbf6fc90dcf7790d52ebf96326":[2,0,183,3]
 };

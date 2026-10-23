@@ -712,7 +712,7 @@ the sink <code class="docutils literal notranslate"><span class="pre">consoleLog
 with <code class="docutils literal notranslate"><span class="pre">eglog::configureFromEnvironment()</span></code> and opens the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code>. It
 returns a warning for <code class="docutils literal notranslate"><span class="pre">main()</span></code> to print on <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> when a rule is malformed or the file
 cannot be opened. The sink writes the text unchanged, with no prefix, to the same streams as
-the default sink, except that <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> goes to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> while the Console Log dock is not
+the default sink, except that <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> goes to <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> while the Log dock is not
 installed, because Qt’s own handler writes there. The dock shows <code class="docutils literal notranslate"><span class="pre">level</span> <span class="pre">category:</span> </code> in front of
 each message that comes through the core, taken from the values the core passes; text written
 to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> or <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> directly shows as written. The log file gets the same lines

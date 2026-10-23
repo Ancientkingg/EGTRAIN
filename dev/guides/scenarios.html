@@ -310,7 +310,7 @@
 <p>This page describes the scenario library, the student loop of a case, and what the network view shows while a run plays and after it.</p>
 <section id="scenarios">
 <h2>Scenarios<a class="headerlink" href="#scenarios" title="Link to this heading">¶</a></h2>
-<p>Open the <strong>Incidents</strong> dock to choose the default or another named scenario.
+<p>Open the <strong>Scenarios</strong> dock to choose the default or another named scenario.
 The dock has the tabs <strong>Scenario</strong>, <strong>Incidents</strong> and <strong>Entrance delays</strong>, and a
 line above them names the selected scenario. Each row of the library on the
 <strong>Scenario</strong> tab shows the name of a scenario, marked “default” for the default
@@ -396,14 +396,15 @@ switching the Trains layer off stop the view where it is.</p>
 <p>Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens, or for a passenger a box of its details above it, and a light
-blue ring marks the item. Its title reads
-<code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">&lt;kind&gt;</span> <span class="pre">&lt;id&gt;</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in the preview and Node Info, Station Node
-Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+blue ring marks the item. Its title names the item: <code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;id&gt;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span> <span class="pre">&lt;id&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">&lt;label&gt;</span></code> in the preview, and
+<code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;name&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span></code>, <code class="docutils literal notranslate"><span class="pre">Signal</span></code> or <code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">&lt;name&gt;</span></code>
+during a run. A field that only a run fills reads <code class="docutils literal notranslate"><span class="pre">After</span> <span class="pre">a</span> <span class="pre">run</span></code> in the preview. A
 signal of the preview is named by the label of its section, as in
-<code class="docutils literal notranslate"><span class="pre">Preview:</span> <span class="pre">Signal</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km</span> <span class="pre">(not</span> <span class="pre">running)</span></code> in Paimpol. A signal that
+<code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km</span></code> in Paimpol. A signal that
 <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> lists for the section comes first: <code class="docutils literal notranslate"><span class="pre">sig1</span> <span class="pre">(B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km)</span></code>.
 During a run the inspector names tracks by their scene ids and sections by their
-labels, and the tooltip of a field gives the runtime track number or the section
+labels, and the tooltip of a field gives the track number or the section
 id (<a class="reference internal" href="glossary.html#ids-and-labels"><span class="std std-ref">ids and labels</span></a>). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
@@ -422,9 +423,9 @@ section for as long as a signal failure incident is active. The marks appear whe
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
-inspector name the state, and the Map key lists all five. The tooltip also names
-the track and the sections ahead of and behind the head, as in
-<code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km;</span> <span class="pre">ahead</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km;</span> <span class="pre">behind</span> <span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>.</p>
+inspector name the state, and the Map Key lists all five. The tooltip also names
+the direction and the place of the head, as in <code class="docutils literal notranslate"><span class="pre">Proceed,</span> <span class="pre">facing</span> <span class="pre">right</span></code> over
+<code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km</span></code>.</p>
 </section>
 <section id="delay-baseline">
 <h2>Delay baseline<a class="headerlink" href="#delay-baseline" title="Link to this heading">¶</a></h2>
@@ -433,9 +434,11 @@ delay baseline</strong>. The results panel confirms the completed run identity a
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline, discards the results and closes
 the dock <strong>Run Results</strong>. Opened again from the menu <strong>View</strong>, the dock reads
-<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">completed</span> <span class="pre">run</span> <span class="pre">|</span> <span class="pre">Scenario:</span> <span class="pre">&lt;scenario&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;.</span> <span class="pre">Run</span> <span class="pre">the</span> <span class="pre">selected</span> <span class="pre">scenario</span> <span class="pre">to</span> <span class="pre">create</span> <span class="pre">completed</span> <span class="pre">results</span> <span class="pre">for</span> <span class="pre">comparison.</span></code> A canonical scene edit, <strong>File &gt; New Case Study…</strong>, or
-opening another case clears the baseline and explains that a new run without incidents or
-entrance delays is needed. <strong>Compare delays</strong> requires a run with incidents or
+<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">results</span> <span class="pre">yet</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;</span></code>. An edit of the case clears the
+baseline, and the line then reads <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed</span></code>; <strong>File &gt; New Case Study…</strong>
+gives <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">a</span> <span class="pre">new</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">created</span></code> and opening another case gives
+<code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">another</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">opened</span></code>. A new run without
+incidents or entrance delays can then be set as the baseline. <strong>Compare delays</strong> requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
 on its tab Against baseline. The window reports the difference and the recorded
 direct incident evidence, and never states a cause. What it shows, how to read

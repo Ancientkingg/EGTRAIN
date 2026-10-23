@@ -1,10 +1,5 @@
 var NAVTREEINDEX25 =
 {
-"structtelemetry_1_1_diagnostic_record.html#a4e1c1292b4a8711e1e4d54c2db587d30":[2,0,3,2,0],
-"structtelemetry_1_1_diagnostic_record.html#af756b21ea915eaedee6ac072cbe02541":[1,0,13,2,1],
-"structtelemetry_1_1_diagnostic_record.html#af756b21ea915eaedee6ac072cbe02541":[2,0,3,2,1],
-"structtelemetry_1_1_prepared_batch.html":[1,0,13,4],
-"structtelemetry_1_1_prepared_batch.html":[2,0,3,4],
 "structtelemetry_1_1_prepared_batch.html#a6b393736f041de827e7b4c0140966b04":[1,0,13,4,0],
 "structtelemetry_1_1_prepared_batch.html#a6b393736f041de827e7b4c0140966b04":[2,0,3,4,0],
 "structtelemetry_1_1_prepared_batch.html#a993234dd45a85112ae30b3ff0e488c5c":[1,0,13,4,1],

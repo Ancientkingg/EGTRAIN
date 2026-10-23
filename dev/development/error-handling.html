@@ -446,7 +446,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>A run, on the simulation <code class="docutils literal notranslate"><span class="pre">QThread</span></code> or with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns normally, so <code class="docutils literal notranslate"><span class="pre">SimulationWorker::simulationFinished</span></code> is still emitted. <code class="docutils literal notranslate"><span class="pre">lastRunError()</span></code> holds the text, <code class="docutils literal notranslate"><span class="pre">app.run</span></code> logs “The run stopped because of an error: <what>”, and the live stream gets <code class="docutils literal notranslate"><span class="pre">run_cancelled</span></code> once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows <strong>Simulation Failed</strong> (“The run stopped because of an error: … The case is still open and unchanged.”), the status bar says “Simulation failed”, Run Results says “Failed” and the case stays open and editable. Without a window the exit code is 1.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns normally, so <code class="docutils literal notranslate"><span class="pre">SimulationWorker::simulationFinished</span></code> is still emitted. <code class="docutils literal notranslate"><span class="pre">lastRunError()</span></code> holds the text, <code class="docutils literal notranslate"><span class="pre">app.run</span></code> logs “The run stopped because of an error: <what>”, and the live stream gets <code class="docutils literal notranslate"><span class="pre">run_cancelled</span></code> once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows <strong>Simulation Failed</strong> (“The run stopped because of an error:” and the reason), the status bar says “Simulation failed”, Run Results says “Failed” and the case stays open and editable. Without a window the exit code is 1.</p></td>
 </tr>
 <tr class="row-odd"><td><p>A slot or event handler on the GUI thread</p></td>
 <td><p>Linux and Windows: <code class="docutils literal notranslate"><span class="pre">GuardedApplication</span></code> logs it, the event counts as not handled, and an <strong>Unexpected Error</strong> box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: <code class="docutils literal notranslate"><span class="pre">std::terminate</span></code> at the throw, because an exception cannot pass the frames of QtWidgets.</p></td>
@@ -532,7 +532,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Scene cannot be read, in the window</p></td>
-<td><p>“Cannot Open Case Study” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Scene unchanged: … could not be opened.” The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
+<td><p>“Cannot Open Case Study” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Could not open <file name>”. The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Scene of another version</p></td>
@@ -552,7 +552,7 @@
 <td><p>Yes, except those three</p></td>
 </tr>
 <tr class="row-odd"><td><p>Legacy import fails</p></td>
-<td><p>Status bar “Legacy import failed. Scene unchanged.” and a box with the summary</p></td>
+<td><p>Status bar “Legacy import failed” and a box with the summary</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
@@ -564,7 +564,7 @@
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Run with zero trains</p></td>
-<td><p>Nothing visible: one error line in the Console Log dock (<code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>)</p></td>
+<td><p>Nothing visible: one error line in the Log dock (<code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>)</p></td>
 <td><p>Dock</p></td>
 </tr>
 <tr class="row-odd"><td><p>Run ends without results and was not stopped</p></td>
@@ -612,7 +612,7 @@
 <h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">util/Log.h</span></code> has the categories <code class="docutils literal notranslate"><span class="pre">sim.setup</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.step</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.events</span></code>, <code class="docutils literal notranslate"><span class="pre">sim.pax</span></code>, <code class="docutils literal notranslate"><span class="pre">io.railml</span></code>, <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>, <code class="docutils literal notranslate"><span class="pre">app.run</span></code>, <code class="docutils literal notranslate"><span class="pre">app.ui</span></code> and <code class="docutils literal notranslate"><span class="pre">update</span></code>, and the levels debug to error. <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code> sets the rules.</p></li>
-<li><p>In the application the sink (<code class="docutils literal notranslate"><span class="pre">consoleLogSink</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>) writes to the Console Log dock, to standard output or standard error, and to the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code>. Without that variable nothing is written to disk.</p></li>
+<li><p>In the application the sink (<code class="docutils literal notranslate"><span class="pre">consoleLogSink</span></code>, <code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>) writes to the Log dock, to standard output or standard error, and to the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code>. Without that variable nothing is written to disk.</p></li>
 <li><p>The dock is hidden at start (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>, View menu or Ctrl+Shift+L), keeps its text in memory only and does not draw attention to an error.</p></li>
 </ul>
 </section>

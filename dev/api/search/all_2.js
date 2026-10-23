@@ -99,7 +99,7 @@ var searchData=
   ['browsefolder_96',['BrowseFolder',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a5a4ed5ce8094d5a091471fc51d60b552',1,'CaseChooserDialog']]],
   ['bs_97',['Bs',['../class_train.html#a0e36c50be567928ddce0ef03c752a832',1,'Train']]],
   ['bsid_98',['BSID',['../class_movement_authority.html#a94fdf8106c266654dfd79e368c0aadb0',1,'MovementAuthority']]],
-  ['budgetbytes_99',['budgetBytes',['../struct_replay_coverage.html#ab8e17bf9fb088caf3ea4a6e6026a701a',1,'ReplayCoverage::budgetBytes'],['../class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a',1,'GuiReplayHistory::budgetBytes()']]],
+  ['budgetbytes_99',['budgetBytes',['../class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a',1,'GuiReplayHistory']]],
   ['buffer_100',['buffer',['../struct_capacity_pair_row.html#a0155d2ed5750f688b1844cad734fc2f6',1,'CapacityPairRow']]],
   ['bufferseconds_101',['bufferSeconds',['../struct_run_provenance.html#a18ebc7bf037574de25ea85e9b02a88d5',1,'RunProvenance']]],
   ['buffersecondsedit_102',['bufferSecondsEdit',['../class_case_settings_panel.html#a0f0584a419b0399016fe1804c9813a2c',1,'CaseSettingsPanel']]],

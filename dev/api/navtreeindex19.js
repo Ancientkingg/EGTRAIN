@@ -1,8 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"struct_area_capacity_train.html#a8b65d8dbe36cc1a65e666abb4ca31fac":[2,0,13,0],
-"struct_baseline_call.html":[2,0,15],
-"struct_baseline_call.html#a0b547b39d98a4c0456196eddf4cada1f":[2,0,15,7],
 "struct_baseline_call.html#a2528f6f607918c05dd73a62ebd4d69ce":[2,0,15,3],
 "struct_baseline_call.html#a3ac52c1544889abdbf8377caa8715dd5":[2,0,15,6],
 "struct_baseline_call.html#a82539c64b3d2eacab964a145cf2bdc63":[2,0,15,2],
@@ -249,5 +246,8 @@ var NAVTREEINDEX19 =
 "struct_completed_train.html#a4ab95037812b825ae41364d8f50fd51a":[2,0,49,8],
 "struct_completed_train.html#ab1bd6c302afa4af43392761370ed9804":[2,0,49,10],
 "struct_completed_train.html#ac179c4509c472cc03cb9aabe6dc5bef6":[2,0,49,2],
-"struct_completed_train.html#ac1a42580594f586aeaefdeb080894cb7":[2,0,49,1]
+"struct_completed_train.html#ac1a42580594f586aeaefdeb080894cb7":[2,0,49,1],
+"struct_completed_train.html#ad9ec4f68b31222a24b13bd6e2301342d":[2,0,49,4],
+"struct_completed_train.html#afde401a9bc9ca5732d840bdaa6c69b67":[2,0,49,6],
+"struct_completed_trajectory.html":[2,0,50]
 };

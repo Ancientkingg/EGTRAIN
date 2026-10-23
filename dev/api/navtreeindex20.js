@@ -1,8 +1,5 @@
 var NAVTREEINDEX20 =
 {
-"struct_completed_train.html#ad9ec4f68b31222a24b13bd6e2301342d":[2,0,49,4],
-"struct_completed_train.html#afde401a9bc9ca5732d840bdaa6c69b67":[2,0,49,6],
-"struct_completed_trajectory.html":[2,0,50],
 "struct_completed_trajectory.html#a0ea59247c03b5d92a0999be2b58f8aea":[2,0,50,7],
 "struct_completed_trajectory.html#a18c1f905983652fe0b58f235bebff17e":[2,0,50,4],
 "struct_completed_trajectory.html#a226e6bfe52d5462831eb28f6c2b3c509":[2,0,50,2],
@@ -249,5 +246,8 @@ var NAVTREEINDEX20 =
 "struct_live_stream_guard.html#a45d101ad0737d23410192159e11d3601":[2,0,117,0],
 "struct_main_window_test_hooks.html":[2,0,120],
 "struct_main_window_test_hooks.html#a030fe1f7bf4a928721bfe463109b186a":[2,0,120,9],
-"struct_main_window_test_hooks.html#a08dfaa657732586e6f67aa3df1ee7df2":[2,0,120,0]
+"struct_main_window_test_hooks.html#a08dfaa657732586e6f67aa3df1ee7df2":[2,0,120,0],
+"struct_main_window_test_hooks.html#a0b475b64be61d9da7982759c6cecd655":[2,0,120,15],
+"struct_main_window_test_hooks.html#a1b1491197035f326045c06ccf6f4b9d2":[2,0,120,5],
+"struct_main_window_test_hooks.html#a28af0247c95e3da875e26da7f2e8ab73":[2,0,120,13]
 };

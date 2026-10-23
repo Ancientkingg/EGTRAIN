@@ -69,8 +69,8 @@ draw no track in it unless the user selected a row. The cue colour is reserved: 
 it; a service colour chosen by the user is not checked. The map key shows only visible track styles. Layer/Follow/replay controls are
 unchanged.
 
-Preview uses canonical read-only fields and marks runtime-only information
-unavailable before Run. Signal head identity is the rendered canonical track,
+Preview uses canonical read-only fields and shows the placeholder "After a run"
+in the fields that only a run fills. Signal head identity is the rendered canonical track,
 section and direction, plus any authored signal IDs, not a numeric runtime
 placeholder. Runtime numeric inspection remains separate. Expanded hit shapes
 do not determine preview topology bounds or Fit. These implementation and

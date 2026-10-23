@@ -1,8 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb":[1,0,13,11,11],
-"classtelemetry_1_1_telemetry_sender.html#acb1b449e3a4de6b4c11ef128f35e9beb":[2,0,3,11,11],
-"classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3":[1,0,13,11,6],
 "classtelemetry_1_1_telemetry_sender.html#ad14231c3f113cab1b3cf965471a6dda3":[2,0,3,11,6],
 "classtelemetry_1_1_telemetry_sender.html#ad6e408d86dd8adedca19e37864ea2dca":[1,0,13,11,12],
 "classtelemetry_1_1_telemetry_sender.html#ad6e408d86dd8adedca19e37864ea2dca":[2,0,3,11,12],
@@ -249,5 +246,8 @@ var NAVTREEINDEX17 =
 "globals_v.html":[3,1,0,22],
 "globals_vars.html":[3,1,2],
 "globals_w.html":[3,1,0,23],
-"hierarchy.html":[2,2]
+"hierarchy.html":[2,2],
+"index.html":[],
+"index.html":[0],
+"main_8cpp.html":[3,0,0,12]
 };

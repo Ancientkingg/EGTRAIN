@@ -378,7 +378,7 @@
 <p>Run 1 alone at 100 % performance.</p>
 <ol class="arabic simple">
 <li><p>On <strong>Run occurrences</strong>, click <strong>Select None</strong>, then tick <strong>Run</strong> in the first row, operating code <code class="docutils literal notranslate"><span class="pre">IC_ASD_HVS_DEMO-1</span></code>. The text above the table reads “1 of 4 selected”. Highlighting a row is not enough; the box must be ticked. <strong>Run</strong> refuses to start while no run is selected.</p></li>
-<li><p>Click <strong>Run</strong> in the toolbar. The dialog <strong>Run simulation</strong> shows <strong>Selected in period</strong>, <strong>Start clock</strong>, <strong>Duration</strong> and <strong>Active incidents</strong>; <strong>Run details</strong> shows more. Check that <strong>Selected in period</strong> is 1, then click <strong>Run simulation</strong>.</p></li>
+<li><p>Click <strong>Run</strong> in the toolbar. The dialog <strong>Run simulation</strong> shows <strong>Trains</strong>, <strong>Start time</strong> and <strong>Duration</strong>; <strong>Run details</strong> shows more. Check that <strong>Trains</strong> is 1, then click <strong>Run simulation</strong>.</p></li>
 <li><p>Move the speed slider to the right to shorten the wait. Do not click <strong>Stop</strong>: a run you stop before it ends leaves no results. When the run has ended, the dock <strong>Run Results</strong> appears and the lines at its top include “Status: Completed”.</p></li>
 <li><p>In the dock, click <strong>Open result view…</strong> and choose <strong>Timetable</strong>. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click <strong>Export CSV…</strong> in that window and save <code class="docutils literal notranslate"><span class="pre">baseline-timetable.csv</span></code> in your own folder. Close the window.</p></li>
 <li><p>Choose <strong>Open result view…</strong> &gt; <strong>Speed / distance</strong>, click <strong>PNG…</strong> in the panel of that window and save <code class="docutils literal notranslate"><span class="pre">baseline-speed-distance.png</span></code>. Close the window.</p></li>
@@ -415,7 +415,7 @@
 <h3>5. Check the repetition<a class="headerlink" href="#check-the-repetition" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>On <strong>Run occurrences</strong>, click <strong>Select All</strong>. The text reads “4 of 4 selected”. Keep the performance at 60 and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times at 1620 and 1680.</p></li>
-<li><p>Run as in steps 2 and 3 of task 2. <strong>Selected in period</strong> in <strong>Run simulation</strong> is 4.</p></li>
+<li><p>Run as in steps 2 and 3 of task 2. <strong>Trains</strong> in <strong>Run simulation</strong> is 4.</p></li>
 <li><p>Open <strong>Timetable</strong>. Its train filter button reads <code class="docutils literal notranslate"><span class="pre">Trains</span> <span class="pre">(4/4)</span></code> while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the <strong>End time (hh:mm:ss)</strong> of every run in <strong>Run Results</strong> is before 08:41:40, the base time plus the duration of 8000 s. The row <strong>Duration</strong> in <strong>Run simulation</strong> shows the same end.</p></li>
 <li><p>Click <strong>Export CSV…</strong> in the timetable window and save <code class="docutils literal notranslate"><span class="pre">revised-four-runs-timetable.csv</span></code>.</p></li>
 </ol>
@@ -451,7 +451,7 @@
 </section>
 <section id="limits-of-the-exercise">
 <h2>Limits of the exercise<a class="headerlink" href="#limits-of-the-exercise" title="Link to this heading">¶</a></h2>
-<p>The case has no validation errors. With <strong>View &gt; Advanced / Developer details</strong> checked, the status bar shows “26 warnings”. All 26 warnings have the code <code class="docutils literal notranslate"><span class="pre">scene.route.region_jump</span></code> (a route jumps between two parts of the network that no connection joins). They concern routes other than <code class="docutils literal notranslate"><span class="pre">route32</span></code> and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.</p>
+<p>The case has no validation errors. With <strong>View &gt; Advanced Details</strong> checked, the status bar shows “26 warnings”. All 26 warnings have the code <code class="docutils literal notranslate"><span class="pre">scene.route.region_jump</span></code> (a route jumps between two parts of the network that no connection joins). They concern routes other than <code class="docutils literal notranslate"><span class="pre">route32</span></code> and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.</p>
 <p>If a train meets planned times that you set yourself, that does not prove the plan is feasible in real operation.</p>
 </section>
 </section>

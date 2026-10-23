@@ -114,13 +114,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_replay_covera
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_gui_replay_history_8h_source.html">app/GuiReplayHistory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_time_format_8h_source.html">util/TimeFormat.h</a>&quot;</code><br />
-<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ReplayCoverage.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h__incl.svg" width="1172" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h__incl.svg" width="1128" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -148,8 +147,6 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a605a7452ae58f7c9aa50c218afc4354c" id="r_a605a7452ae58f7c9aa50c218afc4354c"><td class="memItemLeft"><a class="el" href="struct_replay_coverage.html">ReplayCoverage</a>&#160;</td><td class="memItemRight"><a class="el" href="#a605a7452ae58f7c9aa50c218afc4354c">replayCoverageOf</a> (const <a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a> &amp;history, long long clockOffsetSeconds)</td></tr>
-<tr class="memitem:a92a86dabec9dc9bf0ab1fc9995e95781" id="r_a92a86dabec9dc9bf0ab1fc9995e95781"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a92a86dabec9dc9bf0ab1fc9995e95781">replayMemoryText</a> (std::size_t bytes)</td></tr>
-<tr class="memdesc:a92a86dabec9dc9bf0ab1fc9995e95781"><td class="mdescLeft">&#160;</td><td class="mdescRight">The size of the replay memory: whole mebibytes as "128 MiB", otherwise one decimal as "2.5 MiB".  <br /></td></tr>
 <tr class="memitem:ad8ed59c9b48e7a3ea98a701608c7fc17" id="r_ad8ed59c9b48e7a3ea98a701608c7fc17"><td class="memItemLeft"><a class="el" href="struct_replay_bar_text.html">ReplayBarText</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad8ed59c9b48e7a3ea98a701608c7fc17">replayBarText</a> (const <a class="el" href="struct_replay_coverage.html">ReplayCoverage</a> &amp;coverage, std::optional&lt; int &gt; shownTime=std::nullopt)</td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
@@ -216,7 +213,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h_ad8ed59c9b48e7a3ea98a701608c7fc17_cgraph.svg" width="315" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h_ad8ed59c9b48e7a3ea98a701608c7fc17_cgraph.svg" width="295" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -251,39 +248,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h_a605a7452ae58f7c9aa50c218afc4354c_cgraph.svg" width="404" height="250"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a92a86dabec9dc9bf0ab1fc9995e95781" name="a92a86dabec9dc9bf0ab1fc9995e95781"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92a86dabec9dc9bf0ab1fc9995e95781">&#9670;&#160;</a></span>replayMemoryText()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string replayMemoryText </td>
-          <td>(</td>
-          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>bytes</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The size of the replay memory: whole mebibytes as "128 MiB", otherwise one decimal as "2.5 MiB". </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h_a92a86dabec9dc9bf0ab1fc9995e95781_cgraph.svg" width="155" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_replay_coverage_8h_a605a7452ae58f7c9aa50c218afc4354c_cgraph.svg" width="404" height="184"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

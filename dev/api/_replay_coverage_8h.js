@@ -8,6 +8,5 @@ var _replay_coverage_8h =
       [ "Unavailable", "_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbfa453e6aa38d87b28ccae545967c53004f", null ]
     ] ],
     [ "replayBarText", "_replay_coverage_8h.html#ad8ed59c9b48e7a3ea98a701608c7fc17", null ],
-    [ "replayCoverageOf", "_replay_coverage_8h.html#a605a7452ae58f7c9aa50c218afc4354c", null ],
-    [ "replayMemoryText", "_replay_coverage_8h.html#a92a86dabec9dc9bf0ab1fc9995e95781", null ]
+    [ "replayCoverageOf", "_replay_coverage_8h.html#a605a7452ae58f7c9aa50c218afc4354c", null ]
 ];

@@ -136,10 +136,15 @@ Signals</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac27adee9004df5d97b994806f3f2f816" id="r_ac27adee9004df5d97b994806f3f2f816"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget</a> (const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</td></tr>
-<tr class="memdesc:ac27adee9004df5d97b994806f3f2f816"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dock with this window title.  <br /></td></tr>
+<tr class="memdesc:ac27adee9004df5d97b994806f3f2f816"><td class="mdescLeft">&#160;</td><td class="mdescRight">A dock with this window title. Its entry in the menus keeps this title when the window title changes with the item.  <br /></td></tr>
 <tr class="memitem:ab032dafce234d7b94ec180663dfe24df" id="r_ab032dafce234d7b94ec180663dfe24df"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ab032dafce234d7b94ec180663dfe24df">~InfoDockWidget</a> () override</td></tr>
 <tr class="memitem:a99e76e4143aa82b589c8eff768ae6866" id="r_a99e76e4143aa82b589c8eff768ae6866"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a99e76e4143aa82b589c8eff768ae6866">closeEvent</a> (QCloseEvent *event) override</td></tr>
 <tr class="memdesc:a99e76e4143aa82b589c8eff768ae6866"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emits <a class="el" href="#aef6ebf64e4e2d72b80e4c8250c69e7f4" title="The dock is about to close.">closed()</a> and then closes the dock.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a7c103fad05fe3fbf25b4f3ed7ecfccee" id="r_a7c103fad05fe3fbf25b4f3ed7ecfccee"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7c103fad05fe3fbf25b4f3ed7ecfccee">changeEvent</a> (QEvent *event) override</td></tr>
+<tr class="memdesc:a7c103fad05fe3fbf25b4f3ed7ecfccee"><td class="mdescLeft">&#160;</td><td class="mdescRight">QDockWidget names its toggle action after the window title; this puts the first title back.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The dock of the inspector, which tells when the user closes it. </p>
@@ -168,7 +173,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>A dock with this window title. </p>
+<p>A dock with this window title. Its entry in the menus keeps this title when the window title changes with the item. </p>
 
 </div>
 </div>
@@ -198,6 +203,33 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a7c103fad05fe3fbf25b4f3ed7ecfccee" name="a7c103fad05fe3fbf25b4f3ed7ecfccee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c103fad05fe3fbf25b4f3ed7ecfccee">&#9670;&#160;</a></span>changeEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void InfoDockWidget::changeEvent </td>
+          <td>(</td>
+          <td class="paramtype">QEvent *</td>          <td class="paramname"><span class="paramname"><em>event</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>QDockWidget names its toggle action after the window title; this puts the first title back. </p>
+
+</div>
+</div>
 <a id="aef6ebf64e4e2d72b80e4c8250c69e7f4" name="aef6ebf64e4e2d72b80e4c8250c69e7f4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef6ebf64e4e2d72b80e4c8250c69e7f4">&#9670;&#160;</a></span>closed</h2>
 
@@ -222,6 +254,11 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The dock is about to close. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_info_dock_widget_aef6ebf64e4e2d72b80e4c8250c69e7f4_cgraph.svg" width="454" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -252,7 +289,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_info_dock_widget_a99e76e4143aa82b589c8eff768ae6866_cgraph.svg" width="440" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_info_dock_widget_a99e76e4143aa82b589c8eff768ae6866_cgraph.svg" width="707" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

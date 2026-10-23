@@ -67,8 +67,7 @@ what is in the way:
   whose buttons are **Save**, **Cancel** and **Don't Save**. **Save** saves the
   open case and **Discard** (**Don't Save** on macOS) drops the changes, and the
   file opens after either. **Cancel** keeps the open case and its changes and
-  does not open the file; the status bar then reads `Open canceled. Current
-  scene retained.`
+  does not open the file.
 - A simulation that is running stops before the file opens.
 - If the **Open a Case** window is open, it closes. If another dialog is open,
   such as a question at the first start, the file waits until you close it.

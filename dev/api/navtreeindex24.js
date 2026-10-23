@@ -1,10 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"struct_simulation_run.html#adc132f81dade594bc983b8a8ba642666":[2,0,271,15],
-"struct_simulation_run.html#adcbb6fa5a060698b2d6975a85610ae90":[2,0,271,8],
-"struct_simulation_run.html#ae2a5df5cc93ca9fd692cc1b43ac8eece":[2,0,271,0],
-"struct_simulation_run.html#af01751101de231c201b00a07de62caf0":[2,0,271,2],
-"struct_simulation_run.html#af6d9f8972b6a63879e8ce3febf96b073":[2,0,271,21],
 "struct_simulation_run.html#afce9337337bae03e14d1cf509f5a9e3f":[2,0,271,19],
 "struct_single_track_reservation.html":[2,0,273],
 "struct_single_track_reservation.html#a1302e899157f286fb6c1e8de1963d2e8":[2,0,273,6],
@@ -249,5 +244,10 @@ var NAVTREEINDEX24 =
 "structtelemetry_1_1_batch_token.html#afce8a788f6aef56633f50c2b363dbb7b":[2,0,3,1,3],
 "structtelemetry_1_1_diagnostic_record.html":[1,0,13,2],
 "structtelemetry_1_1_diagnostic_record.html":[2,0,3,2],
-"structtelemetry_1_1_diagnostic_record.html#a4e1c1292b4a8711e1e4d54c2db587d30":[1,0,13,2,0]
+"structtelemetry_1_1_diagnostic_record.html#a4e1c1292b4a8711e1e4d54c2db587d30":[1,0,13,2,0],
+"structtelemetry_1_1_diagnostic_record.html#a4e1c1292b4a8711e1e4d54c2db587d30":[2,0,3,2,0],
+"structtelemetry_1_1_diagnostic_record.html#af756b21ea915eaedee6ac072cbe02541":[1,0,13,2,1],
+"structtelemetry_1_1_diagnostic_record.html#af756b21ea915eaedee6ac072cbe02541":[2,0,3,2,1],
+"structtelemetry_1_1_prepared_batch.html":[1,0,13,4],
+"structtelemetry_1_1_prepared_batch.html":[2,0,3,4]
 };

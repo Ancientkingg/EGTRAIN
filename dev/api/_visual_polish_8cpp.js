@@ -15,7 +15,6 @@ var _visual_polish_8cpp =
     [ "paintStationMark", "_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc", null ],
     [ "resolveTrainVisual", "_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db", null ],
     [ "simulationSpeedLabel", "_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13", null ],
-    [ "simulationSpeedMode", "_visual_polish_8cpp.html#aa804be580241cfa9cdccbe40f94779f4", null ],
     [ "stationAreaColor", "_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8", null ],
     [ "stationAreaShape", "_visual_polish_8cpp.html#aad6e3639cb92ebdb855e80911a082344", null ],
     [ "stationFootprintRect", "_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674", null ],

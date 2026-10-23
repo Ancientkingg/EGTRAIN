@@ -46,7 +46,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Where it is thrown | Outcome |
 | --- | --- |
-| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error: ... The case is still open and unchanged."), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window the exit code is 1. |
+| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error:" and the reason), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window the exit code is 1. |
 | A slot or event handler on the GUI thread | Linux and Windows: `GuardedApplication` logs it, the event counts as not handled, and an **Unexpected Error** box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: `std::terminate` at the throw, because an exception cannot pass the frames of QtWidgets. |
 | Startup, before `application.exec()` | `main` logs "EGTRAIN stopped because of an unexpected error: <what>" in `app.ui` and exits with 70. |
 | `scene_tool` | `error: <what>` on standard error and exit code 1. |
@@ -84,15 +84,15 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 
 | Failure | User sees | Logged |
 | --- | --- | --- |
-| Scene cannot be read, in the window | "Cannot Open Case Study" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Scene unchanged: ... could not be opened." The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
+| Scene cannot be read, in the window | "Cannot Open Case Study" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Could not open <file name>". The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
 | Scene of another version | Question box with Check for Updates or the upgrade offer | No |
 | Scene named on the command line cannot be read | Box, then the default case opens (`main.cpp`) | Standard error |
 | Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`) | Standard error |
 | Save fails | "Cannot Save Scene" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
-| Legacy import fails | Status bar "Legacy import failed. Scene unchanged." and a box with the summary | Yes |
+| Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
 | Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Scene" box with the first diagnostic; Run Results status "Failed" | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
-| Run with zero trains | Nothing visible: one error line in the Console Log dock (`DispatchController.cpp`) | Dock |
+| Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |
 | Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
@@ -108,7 +108,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 ## Logging
 
 - `util/Log.h` has the categories `sim.setup`, `sim.step`, `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`, and the levels debug to error. `EGTRAIN_LOG` sets the rules.
-- In the application the sink (`consoleLogSink`, `widgets/ConsoleWidget.cpp`) writes to the Console Log dock, to standard output or standard error, and to the file named by `EGTRAIN_LOG_FILE`. Without that variable nothing is written to disk.
+- In the application the sink (`consoleLogSink`, `widgets/ConsoleWidget.cpp`) writes to the Log dock, to standard output or standard error, and to the file named by `EGTRAIN_LOG_FILE`. Without that variable nothing is written to disk.
 - The dock is hidden at start (`app/MainWindow.cpp`, View menu or Ctrl+Shift+L), keeps its text in memory only and does not draw attention to an error.
 
 ## Safety nets
