@@ -111,7 +111,7 @@ signals:
 private:
 	// Opens a window on a blocking-time diagram of the run, with `context` as its context line and `contextToolTip` as
 	// its tooltip. The compressed diagram of a capacity result has its own title, CSV name and manual section, draws the
-	// capacity-critical blocks amber and has amber in place of red in its colour key.
+	// capacity-critical blocks amber and has Critical block in place of Conflict in its Key.
 	void showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run, const BlockingTimeDiagramData& diagram,
 		bool compressed, const QString& context, const QString& contextToolTip);
 	// The runtime index of the route that the user picks from the routes the run used, -1 when there is none or the user

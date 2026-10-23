@@ -3,7 +3,7 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowTestHooks.h"
 #include "diagrams/DiagramWindow.h"
-#include "diagrams/TrainFilterButton.h"
+#include "diagrams/TrainKeyList.h"
 #include "editors/TimetableStopsPanel.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
@@ -597,12 +597,12 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			return failCaptures(QStringLiteral("Speed / distance did not open"));
 		// The window would keep to the offscreen screen, which is 800 by 600 pixels.
 		DiagramWindow* diagram = diagrams.last();
-		auto* filter = diagram->findChild<TrainFilterButton*>();
-		QListWidget* trains = filter && filter->menu() ? filter->menu()->findChild<QListWidget*>() : nullptr;
+		auto* trains = diagram->findChild<TrainKeyList*>();
 		if (!trains)
 			return failCaptures(QStringLiteral("Speed / distance has no list of trains"));
-		for (int row = kShownTrains; row < trains->count(); ++row)
-			trains->item(row)->setCheckState(Qt::Unchecked);
+		const QStringList ids = trains->trainIds();
+		for (int row = kShownTrains; row < ids.size(); ++row)
+			trains->setTrainVisible(ids[row], false);
 		diagram->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 		diagram->resize(kWindowSize);
 		settle();

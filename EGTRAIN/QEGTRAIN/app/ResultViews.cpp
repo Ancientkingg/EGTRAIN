@@ -51,20 +51,13 @@ void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	});
 }
 
-// The layer of the outlines of the blocks; the legend shows the colour key in its place.
+// The layer of the outlines of the blocks.
 constexpr char kBlockingTimeLayer[] = "blocking time";
 const QColor kBlockingBlockColor(100, 160, 240, 150);
 const QColor kBlockingSwitchColor(240, 210, 40, 180);
 const QColor kBlockingCriticalColor(220, 50, 50, 200);
 const QColor kBlockingCapacityColor(235, 175, 20, 230);
 constexpr int kBlockingFillAlpha = 65; // the fill of a block; its outline is its colour, darker
-
-// The colour key entry of a block colour, a box drawn as the chart draws the block.
-ColourKeyEntry blockingKeyEntry(const char* name, const QColor& color) {
-	QColor fill = color;
-	fill.setAlpha(kBlockingFillAlpha);
-	return {name, fill, color.darker(135)};
-}
 
 // The reference route in the header of a route chart: "route0", with ", right to left" when the route runs that way.
 QString referenceRouteText(const std::string& routeId, bool leftward) {
@@ -125,6 +118,13 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			default: return kBlockingBlockColor;
 		}
 	};
+	// The kind of a block in the Key: a critical block of a compressed chart, a conflict, or a blocking time.
+	const auto keyKindFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
+		if (useCapacityCriticalStyle && segment.capacityCritical) return QStringLiteral("Critical block");
+		if (segment.style == BlockingTimeSegmentStyle::Critical || segment.style == BlockingTimeSegmentStyle::CriticalStation)
+			return QStringLiteral("Conflict");
+		return QStringLiteral("Blocking time");
+	};
 	// The type of a block that is not an ordinary one, as the colour shows it.
 	const auto typeFor = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
 		if (useCapacityCriticalStyle && segment.capacityCritical)
@@ -151,6 +151,7 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			auto* fill = new QAreaSeries(upper, lower);
 			fill->setName(name);
 			fill->setProperty("trainId", name);
+			fill->setProperty("keyKind", keyKindFor(segment));
 			QColor translucent = color;
 			translucent.setAlpha(kBlockingFillAlpha);
 			fill->setBrush(translucent);
@@ -162,6 +163,7 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		outline->setName(name);
 		outline->setProperty("trainId", name);
 		outline->setProperty("layer", kBlockingTimeLayer);
+		outline->setProperty("keyKind", keyKindFor(segment));
 		outline->setProperty("inspectionFilled", left != right);
 		QPen pen(color.darker(135));
 		pen.setWidthF(2.0);
@@ -333,6 +335,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
+	win->setTrainServices(trainServicesForRun(run->results));
 	win->setCsvProvider(csvProviderFrom(run, &trajectoryCsvFrom), "trajectory.csv");
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
@@ -401,6 +404,8 @@ void ResultViews::showDelayDiagram() {
 	chart->createDefaultAxes();
 	if (!chart->axes(Qt::Horizontal).isEmpty()) {
 		chart->axes(Qt::Horizontal).first()->setTitleText("Stop number");
+		// The readout names the stop nearest the pointer.
+		chart->axes(Qt::Horizontal).first()->setProperty("readoutName", QStringLiteral("stop"));
 	}
 	if (!chart->axes(Qt::Vertical).isEmpty()) {
 		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
@@ -412,6 +417,7 @@ void ResultViews::showDelayDiagram() {
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
+	win->setTrainServices(trainServicesForRun(run->results));
 	win->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv");
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
@@ -451,6 +457,13 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 			series->setPen(pen);
 			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
 			series->setPointsVisible(!dwell);
+			// In the Key a dwell is a kind of its own, and the points of an event are its stops.
+			if (dwell) {
+				series->setProperty("keyKind", QStringLiteral("Dwell"));
+				series->setProperty("keyUpright", true);
+			} else {
+				series->setProperty("keyMarker", QStringLiteral("Stop"));
+			}
 			for (const RouteDiagramPoint& point : source.points) {
 				const QString station = QString::fromStdString(point.station);
 				const QString context = dwell
@@ -508,6 +521,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	win->setChart(chart);
 	if (stationAxis) win->setStationAxis(stationAxis, std::move(stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
+	win->setTrainServices(trainServicesForRun(run->results));
 	const auto graphCsv = [csvRows = diagram->csvRows](const QStringList& visible) {
 		std::vector<std::string> ids;
 		for (const QString& id : visible) ids.push_back(id.toStdString());
@@ -636,11 +650,7 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setPositionAxis(scale);
 	// The colours of the blocks show their type, so only the train list takes the service colours.
 	win->setTrainListColors(trainColorsForRun(run->results, m_host.sceneModel()));
-	// A compressed chart has no conflict, as its trains are moved apart until their blocks only touch.
-	const ColourKeyEntry lastKey = compressed ? blockingKeyEntry("Capacity critical", kBlockingCapacityColor)
-											  : blockingKeyEntry("Conflict", kBlockingCriticalColor);
-	const ColourKeyEntry blockKey = blockingKeyEntry("Block or station", kBlockingBlockColor);
-	win->setColourKey(kBlockingTimeLayer, {blockKey, blockingKeyEntry("Switch", kBlockingSwitchColor), lastKey});
+	win->setTrainServices(trainServicesForRun(run->results));
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	// The header names the run before the scope of the chart.
 	win->setPresentation(title, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + context,

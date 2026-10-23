@@ -225,6 +225,13 @@ QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicato
     image: url(:/icons/check-mark.svg);
 }
 
+/* A group row whose trains are partly shown. */
+QTreeView::indicator:indeterminate {
+    background: #315a70;
+    border-color: #315a70;
+    image: url(:/icons/check-partial.svg);
+}
+
 QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
     background: #eceeec;
     border-color: #c9d3db;
@@ -1007,6 +1014,38 @@ QPushButton#diagramClearSelection:focus {
     padding: 0 1px;
 }
 
-QPushButton#diagramClearSelection:pressed {
+QPushButton#diagramClearSelection:pressed, QPushButton#trainKeyAll:pressed, QPushButton#trainKeyNone:pressed {
     background: #e3eaee;
+}
+
+/* All and None beside the search of the Trains list read as links too. */
+QPushButton#trainKeyAll, QPushButton#trainKeyNone {
+    background: transparent;
+    border: 2px solid transparent;
+    color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#trainKeyAll:focus, QPushButton#trainKeyNone:focus {
+    border-color: #2e7491;
+    padding: 0 1px;
+}
+
+/* The Trains list lies on the panel without a frame. A row has no selection of its own, as the highlight belongs to the
+   train the chart selects, and its 1 px border shows only on the row with keyboard focus. */
+QTreeWidget#trainKeyTree {
+    background: transparent;
+    border: 0;
+}
+
+QTreeWidget#trainKeyTree::item {
+    border: 1px solid transparent;
+}
+
+QTreeWidget#trainKeyTree::item:focus {
+    border-color: #2e7491;
+}
+
+QLabel#trainKeyCount {
+    color: #5b6871;
 }

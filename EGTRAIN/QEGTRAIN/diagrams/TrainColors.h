@@ -14,4 +14,8 @@ struct SceneModel;
 // Trains of a service without a colour, or with an invalid one, have no entry.
 QHash<QString, QColor> trainColorsForRun(const RunResults& run, const SceneModel& scene);
 
+// The service of every train of a completed run that has one, keyed by the train id of the run results, which groups
+// the Trains list of a diagram window.
+QHash<QString, QString> trainServicesForRun(const RunResults& run);
+
 #endif // TRAINCOLORS_H
