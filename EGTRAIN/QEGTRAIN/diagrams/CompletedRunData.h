@@ -122,7 +122,8 @@ struct CompletedRunData {
 
 /// The route as the nodes of its path, with the stations of the scene when it is given.
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
-/// The block sections of the route in route order, with their ends in km.
+/// The block sections of the route in route order, with their ends in km on the route and in geo X, and whether each
+/// holds a diverging switch.
 std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 
 /// Copies the finished run out of the simulation. The scene gives the route nodes their station names and the sections

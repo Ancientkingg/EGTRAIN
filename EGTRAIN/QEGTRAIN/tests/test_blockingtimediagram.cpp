@@ -168,14 +168,23 @@ static bool blockSectionTests() {
 	ok &= expect(tiny[0].referenceSection == 0 && tiny[0].referenceNote == "Not on route0",
 		"a section without geometry is not a candidate");
 
-	// Rows of the export.
+	// The geo X of the ends and the switch flag pass through as the route holds them. Without the geo X of an end the
+	// section takes its route distance.
+	const auto geo = buildBlockSectionExtents({{"@w@", 4.0, 5.0, 36.5, 35.5, true}, {"@p@", 5.0, 6.0}, {"@h@", 6.0, 7.0, 34.5, nan}});
+	ok &= expect(geo.size() == 3 && geo[0].geoStartKm == 36.5 && geo[0].geoEndKm == 35.5 && geo[0].isSwitch
+			&& geo[1].geoStartKm == 5.0 && geo[1].geoEndKm == 6.0 && !geo[1].isSwitch
+			&& geo[2].geoStartKm == 6.0 && geo[2].geoEndKm == 7.0,
+		"sections keep their geo X and switch flag, and fall back to the route distance without geo X");
+
+	// Rows of the export. The times named "Original" are those that a compression does not move.
 	const std::vector<std::string> header = {"Train", "Block", "Occupation start[s]", "Occupation end[s]", "Position[km]",
 		"Segment type", "Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]", "Original start[s]",
-		"Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]", "Clearance[s]", "Setup[s]", "Sight reaction[s]",
-		"Release[s]", "Run margin[s]", "Layer", "Reference section"};
-	ok &= expect(blockingTimeCsvHeader() == header, "the export header has the 23 columns in order");
+		"Original end[s]", "Original approach[s]", "Original run start[s]", "Original run end[s]", "Original clearance[s]",
+		"Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section", "Geo position[km]",
+		"Start geo X[km]", "End geo X[km]"};
+	ok &= expect(blockingTimeCsvHeader() == header, "the export header has the 26 columns in order");
 
-	const auto exported = buildBlockSectionExtents({{"@0-B0@", 0.0, 2.0}, {"@bad@", 2.0, nan}, {"@fall@", 0.5, 0.23}});
+	const auto exported = buildBlockSectionExtents({{"@0-B0@", 0.0, 2.0}, {"@bad@", 2.0, nan}, {"@fall@", 0.5, 0.23, 36.5, 35.5}});
 	const auto rows = blockSectionCsvRows(exported);
 	ok &= expect(rows.size() == 3 && rows[0].size() == header.size() && rows[1].size() == header.size()
 			&& rows[2].size() == header.size(),
@@ -183,21 +192,25 @@ static bool blockSectionTests() {
 	if (rows.size() == 3 && rows[0].size() == header.size() && rows[1].size() == header.size()
 		&& rows[2].size() == header.size()) {
 		ok &= expect(rows[0][1] == "@0-B0@" && rows[0][4] == "1" && rows[0][5] == "block section" && rows[0][9] == "0"
-				&& rows[0][10] == "2" && rows[0][21] == "block section extent" && rows[0][22] == "1",
-			"a section row holds its id, midpoint, ends, layer and order");
+				&& rows[0][10] == "2" && rows[0][21] == "block section extent" && rows[0][22] == "1"
+				&& rows[0][23] == "1" && rows[0][24] == "0" && rows[0][25] == "2",
+			"a section row holds its id, midpoint, ends, layer, order and geo X");
 		bool emptyElsewhere = true;
 		for (std::size_t column = 0; column < header.size(); ++column)
-			if (column != 1 && column != 4 && column != 5 && column != 9 && column != 10 && column != 21 && column != 22)
+			if (column != 1 && column != 4 && column != 5 && column != 9 && column != 10 && column != 21 && column != 22
+				&& column < 23)
 				emptyElsewhere = emptyElsewhere && rows[0][column].empty() && rows[1][column].empty()
 					&& rows[2][column].empty();
 		ok &= expect(emptyElsewhere, "a section row leaves train, times and components empty");
 		ok &= expect(rows[1][1] == "@bad@" && rows[1][4].empty() && rows[1][9].empty() && rows[1][10].empty()
 				&& rows[1][5] == "block section" && rows[1][21] == "block section extent (geometry missing)"
-				&& rows[1][22] == "2",
+				&& rows[1][22] == "2" && rows[1][23].empty() && rows[1][24].empty() && rows[1][25].empty(),
 			"a section without geometry has no coordinates and its own layer");
 		ok &= expect(rows[2][9] == csv::formatDouble(0.5) && rows[2][10] == csv::formatDouble(0.23)
 				&& rows[2][4] == csv::formatDouble((0.5 + 0.23) / 2.0) && rows[2][22] == "3",
 			"a falling section is written as the route holds it");
+		ok &= expect(rows[2][23] == "36" && rows[2][24] == "36.5" && rows[2][25] == "35.5",
+			"a section against the coordinate gives its geo X from start to end");
 	}
 	ok &= expect(blockSectionCsvRows({}).empty(), "no sections give no rows");
 

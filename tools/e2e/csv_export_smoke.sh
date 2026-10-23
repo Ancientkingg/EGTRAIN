@@ -262,7 +262,8 @@ def check_export(label, scene, output):
     with open(os.path.join(output, "blocking_time.csv"), newline="", encoding="utf-8") as stream:
         table = list(csv.reader(stream))
     header = table[0]
-    assert header[-1] == "Reference section", f"{label}: header does not end with Reference section"
+    assert header[-4:] == ["Reference section", "Geo position[km]", "Start geo X[km]", "End geo X[km]"], \
+        f"{label}: header does not end with Reference section and the three geo X columns"
     assert all(len(record) == len(header) for record in table), f"{label}: a row is not as wide as the header"
     rows = [dict(zip(header, record)) for record in table[1:]]
     blocks = service_route(scene, 0)[1]
@@ -278,6 +279,13 @@ def check_export(label, scene, output):
     for before, after in zip(sections, sections[1:]):
         assert abs(float(before["End X[km]"]) - float(after["Start X[km]"])) < 1e-6, \
             f"{label}: sections {before['Reference section']} and {after['Reference section']} do not touch"
+        # Neither reference route jumps between display regions, so the geo X of its sections meets as well.
+        assert abs(float(before["End geo X[km]"]) - float(after["Start geo X[km]"])) <= 0.001, \
+            f"{label}: the geo X of sections {before['Reference section']} and {after['Reference section']} does not meet"
+    for row in sections:
+        start, end = float(row["Start geo X[km]"]), float(row["End geo X[km]"])
+        assert abs(float(row["Geo position[km]"]) - (start + end) / 2) < 1e-6, \
+            f"{label}: section {row['Reference section']} has its geo position off its middle"
     envelopes = [row for row in rows if row["Layer"] == ENVELOPE]
     assert envelopes, f"{label}: no calculated envelopes"
     for row in envelopes:
@@ -290,6 +298,15 @@ def check_export(label, scene, output):
             assert abs(float(row["Start X[km]"]) - float(section["Start X[km]"])) < 1e-6 \
                 and abs(float(row["End X[km]"]) - float(section["End X[km]"])) < 1e-6, \
                 f"{label}: envelope of {row['Block']} differs from its section"
+            assert abs(float(row["Start geo X[km]"]) - float(section["Start geo X[km]"])) < 1e-6 \
+                and abs(float(row["End geo X[km]"]) - float(section["End geo X[km]"])) < 1e-6, \
+                f"{label}: envelope of {row['Block']} has other geo X than its section"
+    assert all(row["Geo position[km]"] and row["Start geo X[km]"] and row["End geo X[km]"] for row in envelopes), \
+        f"{label}: an envelope lacks its geo X"
+    planned = [row for row in rows if row["Segment type"] == "planned reference"]
+    assert planned and all(bool(row["Geo position[km]"]) == bool(row["Position[km]"]) and not row["Start geo X[km]"]
+                           and not row["End geo X[km]"] for row in planned), \
+        f"{label}: a planned reference lacks the geo X of its position"
     return sections, envelopes, rows
 
 
@@ -303,8 +320,11 @@ track = next(block["track"] for block in infrastructure["blocks"] if block["id"]
 position = min(node["x_km"] for node in infrastructure["nodes"] if node["track"] == track)
 for block, row in zip(blocks, sections):
     assert abs(float(row["Start X[km]"]) - position) < 1e-6, f"{block} starts at {row['Start X[km]']}, not {position}"
+    # route0 runs forward in one display region, so its geo X is the node X of the scene, as its route distance is.
+    assert abs(float(row["Start geo X[km]"]) - position) < 1e-6, f"{block} starts at geo X {row['Start geo X[km]']}, not {position}"
     position += lengths[block]
     assert abs(float(row["End X[km]"]) - position) < 1e-6, f"{block} ends at {row['End X[km]']}, not {position}"
+    assert abs(float(row["End geo X[km]"]) - position) < 1e-6, f"{block} ends at geo X {row['End geo X[km]']}, not {position}"
 assert not [row for row in rows if row["Layer"] == UNMAPPED], "Assignment has an unmapped envelope"
 assert len({row["Train"] for row in envelopes}) >= 2, "Assignment export has envelopes for fewer than two trains"
 order_of = {row["Block"]: row["Reference section"] for row in sections}
@@ -318,7 +338,8 @@ assert any(row["Reference section"] for row in envelopes), "no Paimpol envelope 
 express_id, express = service_route(paimpol_scene, 1)
 unmapped = [row for row in rows if row["Layer"] == UNMAPPED]
 assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"] and not row["Start X[km]"]
-           and not row["End X[km]"] and not row["Reference section"] for row in unmapped), \
+           and not row["End X[km]"] and not row["Reference section"] and not row["Geo position[km]"]
+           and not row["Start geo X[km]"] and not row["End geo X[km]"] for row in unmapped), \
     "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
 # The projection does not extrapolate: these express blocks lie before the first or after the last node both routes share.
 assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@1-B0@", "@122-B0@", "@123-B0@", "@124-B0@"], \
@@ -351,7 +372,12 @@ for output in sys.argv[1:]:
     assert len({row["Train"] for row in documents["all"] if row["Train"]}) >= 2, "multi-train window export"
     for row in sections:
         if row["Layer"] == "block section extent (geometry missing)":
-            assert not row["Start X[km]"] and not row["End X[km]"] and not row["Position[km]"]
+            assert not row["Start X[km]"] and not row["End X[km]"] and not row["Position[km]"] \
+                and not row["Geo position[km]"] and not row["Start geo X[km]"] and not row["End geo X[km]"]
+    # The recorded samples of the window give the geo X of their position.
+    recorded = [row for row in documents["all"] if row["Layer"] == "recorded trajectory"]
+    assert recorded and all(row["Position[km]"] and row["Geo position[km]"] and not row["Start geo X[km]"] for row in recorded), \
+        f"{output}: a recorded sample lacks the geo X of its position"
 # With no chart series or planned events for the unrelated train, its id must still
 # reach the actual provider from the train filter. Compare with the retained raw rows.
 output = sys.argv[3]

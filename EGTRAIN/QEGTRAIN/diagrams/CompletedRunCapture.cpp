@@ -49,7 +49,8 @@ std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route) {
 	inputs.reserve(count);
 	for (std::size_t i = 0; i < count; ++i) {
 		const Section& section = route.sequence_of_block_sections[i];
-		inputs.push_back({section.ID, section.start_node.X, section.end_node.X});
+		inputs.push_back({section.ID, section.start_node.X, section.end_node.X, section.GeoXBegNode / 1000.0,
+			section.GeoXEndNode / 1000.0, section.withSwitchDiv});
 	}
 	return inputs;
 }

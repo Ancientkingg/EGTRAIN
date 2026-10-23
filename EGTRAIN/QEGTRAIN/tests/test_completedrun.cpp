@@ -3,7 +3,7 @@
 // Two committed scenes run in this process, one after the other. The data captured from the run of the simulation must
 // agree with it, the exports and diagram inputs must follow from it, and none of it may change when the next scene
 // replaces the run. A result window opened for a scene must keep exporting that scene. Hand-made data then pins
-// the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the order of the
+// the adapters on cases that the scenes do not hold: missing times, repeated stops, the order of the
 // capacity trains and shared resources.
 //
 //   test_completedrun SCENE_DIR...
@@ -242,7 +242,8 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 		std::cerr << sceneDir << " ran no train\n";
 		return false;
 	}
-	// No committed scene has a reversed route. Marking every other route shows the capture both ways.
+	// Assignment_Gvc_Gdg_Ut has no reversed route. Paimpol has 8 of its 15, those that run against the geo X coordinate.
+	// Marking every other route instead shows the capture both ways.
 	std::vector<Route>& routes = simulation.mutableRun().infra.routes;
 	for (std::size_t r = 0; r < routes.size(); ++r)
 		routes[r].reversed_direction = r % 2 == 0;
@@ -1181,11 +1182,11 @@ void testCapacitySections() {
 }
 
 // b follows a at the minimum headway, which C governs, so the compressed diagram moves its envelopes and its recorded
-// samples 100 s later.
+// samples 100 s later. The route runs against the geo X coordinate, from 36.5 km to 34.5 km.
 void testCompressedDiagram() {
 	CompletedRunData data;
 	data.settings.timestepSeconds = 1.0;
-	data.routes = {routeOf("r", {{"n0", 0.0}, {"n1", 1.0}, {"n2", 2.0}}, {{"B", 0.0, 1.0}, {"C", 1.0, 2.0}})};
+	data.routes = {routeOf("r", {{"n0", 0.0}, {"n1", 1.0}, {"n2", 2.0}}, {{"B", 0.0, 1.0, 36.5, 35.5}, {"C", 1.0, 2.0, 35.5, 34.5}})};
 	CompletedTrain a = trainOn("a", 0);
 	a.blockTimes = {occupation("B", 500.0, 600.0, 0.0, 1000.0, 505.0), occupation("C", 550.0, 700.0, 1000.0, 2000.0, 555.0)};
 	CompletedTrain b = trainOn("b", 0);
@@ -1212,6 +1213,9 @@ void testCompressedDiagram() {
 			&& diagram->trajectories[0].points == std::vector<std::pair<double, double>>({{0.5, 700.0}, {1.5, 701.0}}),
 		"the samples of b move with its envelopes, and the one beyond them is left out");
 	check(diagram->trajectoryRows.size() == 2 && diagram->trajectoryRows[1][8] == f(701.0), "the export rows of the samples have the moved times");
+	check(diagram->trajectoryRows.size() == 2 && diagram->trajectoryRows[0].size() == 24 && diagram->trajectoryRows[0][23] == f(36.0)
+			&& diagram->trajectoryRows[1][23] == f(35.0),
+		"the export rows of the samples have the geo X of their position");
 	check(std::abs(diagram->timeRange.first - 480.0) < 1e-9 && std::abs(diagram->timeRange.second - 920.0) < 1e-9,
 		"the time axis spans the compressed envelopes, 500 s to 900 s, with a margin of 5 %");
 	check(!compressedBlockingTimeDiagramData(data, CapacityAnalysisScope(), result), "no diagram without a route");
