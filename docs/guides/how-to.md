@@ -28,7 +28,7 @@ Use one of these:
 - Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case...**, **Open Case Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Case Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Cases**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The example cases of the package are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
+- Choose **File > Recent Cases**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The bundled cases are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Cannot open the dropped file: <reason>` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a case folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
@@ -43,10 +43,10 @@ Normal mode keeps the network view and the editors uncluttered. **View > Advance
 
 ## Copy and save a case
 
-An example case of the package is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
+A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
 
 1. Choose **File > Save As...**.
-2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for an example case.
+2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.
 3. Save.
 
 You should see `Case saved` in the status bar. Your file is now the open case, and it appears in **File > Recent Cases**. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.
@@ -93,7 +93,7 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 
 After an edit the case is unsaved. EGTRAIN then asks (`Save the changes to <case name>?`) before it replaces the case, which happens when you open another case, choose **New Case...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Case** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
 
-- **Save** saves the case first. For an example case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
+- **Save** saves the case first. For a bundled case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
 - **Discard** (**Don't Save** on macOS) drops the edits.
 - **Cancel** keeps the case and its edits.
 
@@ -128,7 +128,7 @@ A scenario is a named set of incidents and entrance delays. **Set delay baseline
 
 1. Choose **Editors > Scenarios**. The list **Scenarios** holds each scenario. Click **New**, or select a scenario and click **Duplicate**, to create the scenario to test.
 2. In the incident editor of the dock, click **Add Incident** and fill its fields. A signal head or a train that is selected on the network view becomes the target of the new incident. The icon button **Pick** beside **Target** waits for the next one that you click and takes it as the target; Esc or a second click on **Pick** stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence. You can also start on the network view: right-click a signal head and choose **Add signal failure**, or right-click a train after a run and choose **Add train breakdown**. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab **Incidents** with the new incident selected and puts the cursor in **Start (s)**. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so. For an entrance delay, open the tab **Entrance delays** and click **Add**. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change **Service**, **Occurrence**, **Station** and **Delay (s)**; the line in the list follows each change, and **Delay (s)** takes effect when you press Enter or leave the field.
-3. Select the scenario without incidents and entrance delays (the example cases have one, `baseline`). Click **Run**, and **Run simulation**. When the run has ended, click **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** names the baseline.
+3. Select the scenario without incidents and entrance delays (the bundled cases have one, `baseline`). Click **Run**, and **Run simulation**. When the run has ended, click **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** names the baseline.
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.
 

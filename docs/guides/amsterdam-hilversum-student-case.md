@@ -25,8 +25,8 @@ The minimum dwell is 60 s at both stops and the running performance is 100 %. Th
 ## Open the case and keep your own copy
 
 1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case...** instead; see [Opening an `.egscene` case](opening-a-case-study.md).
-2. Choose **File > Save As...** and save a `.egscene` file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Case saved** and your file is the open case.
-3. From then on **File > Save** saves to your file. If you edit an installed case before making a copy, **Save** asks for a new `.egscene` file instead of overwriting the installed case. Cancelling keeps the edit and the current case.
+2. Choose **File > Save As...** and save a `.egscene` file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Case saved** and your file is the open case.
+3. From then on **File > Save** saves to your file. If you edit a bundled case before making a copy, **Save** asks for a new `.egscene` file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.
 
 The saved file holds the inputs of the case. It holds neither results nor the selection of runs.
 
