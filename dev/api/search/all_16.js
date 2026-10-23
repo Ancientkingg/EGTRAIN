@@ -15,7 +15,7 @@ var searchData=
   ['validtrajectorysegments_12',['validTrajectorySegments',['../_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751',1,'validTrajectorySegments(const std::vector&lt; double &gt; &amp;positionsMeters, int activeFirst, int activeLast):&#160;TrajectoryUtil.cpp'],['../_trajectory_util_8h.html#a3628a4e34ea58c9a4584537a7a605751',1,'validTrajectorySegments(const std::vector&lt; double &gt; &amp;positionsMeters, int activeFirst, int activeLast):&#160;TrajectoryUtil.cpp']]],
   ['validutc_13',['validUtc',['../namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e',1,'telemetry']]],
   ['validuuid_14',['validUuid',['../namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea',1,'telemetry']]],
-  ['value_15',['value',['../struct_command_line_option.html#aa245262c66adf2b01fb7d53cd8790cac',1,'CommandLineOption::value'],['../struct_run_result_value.html#a8f1c98b3749fd3ea40353585971350e4',1,'RunResultValue::value']]],
+  ['value_15',['value',['../struct_command_line_option.html#aa245262c66adf2b01fb7d53cd8790cac',1,'CommandLineOption::value'],['../struct_run_result_value.html#a8f1c98b3749fd3ea40353585971350e4',1,'RunResultValue::value'],['../class_result_figure.html#ae3ab2f1266b72f09db848c5f0fffbdd5',1,'ResultFigure::value()']]],
   ['valuefromtext_16',['valueFromText',['../class_compact_double_spin_box.html#ad5aa1a83412eea311a0fb1f4d4cfbe08',1,'CompactDoubleSpinBox']]],
   ['valueoptionnames_17',['valueOptionNames',['../main_8cpp.html#a6caecec5e4df584d32201962a4d4f2c6',1,'main.cpp']]],
   ['valuetext_18',['valueText',['../class_color_choice_button.html#a086d45c115db1003a0ff99b360dcf622',1,'ColorChoiceButton']]],

@@ -4,6 +4,7 @@ var class_result_frame =
     [ "addAboveMain", "class_result_frame.html#ab1262feebe0a38b23a56ab2f5c10526a", null ],
     [ "addHeaderButton", "class_result_frame.html#af8360796f81428353b36e177e46b14aa", null ],
     [ "contextLabel", "class_result_frame.html#aec547ac1a01bd0b099b04c913351f916", null ],
+    [ "installInDialog", "class_result_frame.html#a98f6f902726840fe7e9f876191f10a62", null ],
     [ "panel", "class_result_frame.html#a6bba4eee75de56f38e51e92b7f83fb33", null ],
     [ "panelButton", "class_result_frame.html#a712407328cf57f6bbf40c7cb119c7b76", null ],
     [ "resizeEvent", "class_result_frame.html#aa3fae4a6dde442b8396e0d5e099a74e7", null ],

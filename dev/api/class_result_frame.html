@@ -138,6 +138,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a6bba4eee75de56f38e51e92b7f83fb33"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel at the right of the splitter.  <br /></td></tr>
 <tr class="memitem:a712407328cf57f6bbf40c7cb119c7b76" id="r_a712407328cf57f6bbf40c7cb119c7b76"><td class="memItemLeft">QToolButton *&#160;</td><td class="memItemRight"><a class="el" href="#a712407328cf57f6bbf40c7cb119c7b76">panelButton</a> () const</td></tr>
 <tr class="memdesc:a712407328cf57f6bbf40c7cb119c7b76"><td class="mdescLeft">&#160;</td><td class="mdescRight">The checkable header button that shows and hides the panel.  <br /></td></tr>
+<tr class="memitem:a98f6f902726840fe7e9f876191f10a62" id="r_a98f6f902726840fe7e9f876191f10a62"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98f6f902726840fe7e9f876191f10a62">installInDialog</a> (QDialog &amp;dialog, const QString &amp;heading, QDialogButtonBox *buttons)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -249,6 +250,38 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The label of the context, a plain-text label whose text() is the whole text. </p>
+
+</div>
+</div>
+<a id="a98f6f902726840fe7e9f876191f10a62" name="a98f6f902726840fe7e9f876191f10a62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98f6f902726840fe7e9f876191f10a62">&#9670;&#160;</a></span>installInDialog()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultFrame::installInDialog </td>
+          <td>(</td>
+          <td class="paramtype">QDialog &amp;</td>          <td class="paramname"><span class="paramname"><em>dialog</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>heading</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QDialogButtonBox *</td>          <td class="paramname"><span class="paramname"><em>buttons</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Lays out <span class="tt">dialog</span> with <a class="el" href="namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874">DialogLayout::install</a>, with the frame as its body from edge to edge and <span class="tt">buttons</span> as the footer, which keeps the margins of the dialog. The heading becomes the window title. The panel keeps its sections whole, so that the body scrolls when the window is shorter than the panel. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_frame_a98f6f902726840fe7e9f876191f10a62_cgraph.svg" width="867" height="186"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

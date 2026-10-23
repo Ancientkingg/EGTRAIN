@@ -1,8 +1,8 @@
 var _capacity_scope_8cpp =
 [
-    [ "capacityDetailsText", "_capacity_scope_8cpp.html#a62c99b76d89924c576c2d5779369660e", null ],
     [ "capacityInputFrom", "_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2", null ],
     [ "capacityInputsFrom", "_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c", null ],
+    [ "capacityPeriodText", "_capacity_scope_8cpp.html#a62eed2b24d01769f5963ceca7ef4d972", null ],
     [ "capacityReferenceOf", "_capacity_scope_8cpp.html#aef6bf25092ffd019abf81b3d7b3eda4a", null ],
     [ "capacityReferenceText", "_capacity_scope_8cpp.html#aa7a97579ac684fb18ca368d029471b60", null ],
     [ "capacityScopeBlocksText", "_capacity_scope_8cpp.html#a74ebcc2ef0c4497ef2216e9acfd788e7", null ],

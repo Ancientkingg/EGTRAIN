@@ -152,6 +152,7 @@ var hierarchy =
       [ "AboutDialog", "class_about_dialog.html", null ],
       [ "AreaCapacityScopeDialog", "class_area_capacity_scope_dialog.html", null ],
       [ "AreaCapacityWindow", "class_area_capacity_window.html", null ],
+      [ "CapacityWindow", "class_capacity_window.html", null ],
       [ "CaseChooserDialog", "class_case_chooser_dialog.html", null ],
       [ "DelayAnalysisWindow", "class_delay_analysis_window.html", null ],
       [ "DiagramWindow", "class_diagram_window.html", null ],
@@ -263,6 +264,7 @@ var hierarchy =
       [ "ColorChoiceButton", "class_color_choice_button.html", null ],
       [ "ManualWindow", "class_manual_window.html", null ],
       [ "NetworkLegendWidget", "class_network_legend_widget.html", null ],
+      [ "ResultFigure", "class_result_figure.html", null ],
       [ "ResultFrame", "class_result_frame.html", null ],
       [ "ResultPanel", "class_result_panel.html", null ],
       [ "SceneEditorPanel", "class_scene_editor_panel.html", [

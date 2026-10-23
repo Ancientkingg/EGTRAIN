@@ -134,6 +134,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ac233c43579130ef6e940d7389a313ab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides a section of the panel, with its rule.  <br /></td></tr>
 <tr class="memitem:a6e83119b05deb18527df27a9715bbfcc" id="r_a6e83119b05deb18527df27a9715bbfcc"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a6e83119b05deb18527df27a9715bbfcc">readout</a> () const</td></tr>
 <tr class="memdesc:a6e83119b05deb18527df27a9715bbfcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The plain-text label at the bottom of the panel, below the column of sections; empty until a window sets it.  <br /></td></tr>
+<tr class="memitem:ad1386d933caa218398b654d2395344ae" id="r_ad1386d933caa218398b654d2395344ae"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad1386d933caa218398b654d2395344ae">keepSectionsWhole</a> ()</td></tr>
+<tr class="memitem:a9c5289e05209efcdfc056cb2a1ae87dd" id="r_a9c5289e05209efcdfc056cb2a1ae87dd"><td class="memItemLeft">QSize&#160;</td><td class="memItemRight"><a class="el" href="#a9c5289e05209efcdfc056cb2a1ae87dd">minimumSizeHint</a> () const override</td></tr>
+<tr class="memdesc:a9c5289e05209efcdfc056cb2a1ae87dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minimum size of the layout; after keepSectionsWhole, at least the height of the sections and the readout.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:af94f8c79839f25073bd6dd60b115d457" id="r_af94f8c79839f25073bd6dd60b115d457"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af94f8c79839f25073bd6dd60b115d457">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:af94f8c79839f25073bd6dd60b115d457"><td class="mdescLeft">&#160;</td><td class="mdescRight">Measures the panel again when the sections change their size after keepSectionsWhole.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The side panel of a result window: titled sections in a column that scrolls when it is taller than the window, with a rule between the sections that are shown, and a cursor readout below the column. </p>
@@ -189,12 +197,88 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Adds a section below the others: a heading with <span class="tt">title</span> and, at its right, <span class="tt">headingWidget</span> when given, and <span class="tt">content</span> below the heading. The panel owns both widgets. Returns the section, which setSectionVisible takes. </p>
+<p>Adds a section below the others: a heading with <span class="tt">title</span> and, at its right, <span class="tt">headingWidget</span> when given, and <span class="tt">content</span> below the heading. A section without a title and without a heading widget has no heading. The panel owns both widgets. Returns the section, which setSectionVisible takes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_panel_a0210189bbf2b1bd46143959ed1ff199b_cgraph.svg" width="702" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="af94f8c79839f25073bd6dd60b115d457" name="af94f8c79839f25073bd6dd60b115d457"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af94f8c79839f25073bd6dd60b115d457">&#9670;&#160;</a></span>eventFilter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ResultPanel::eventFilter </td>
+          <td>(</td>
+          <td class="paramtype">QObject *</td>          <td class="paramname"><span class="paramname"><em>watched</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QEvent *</td>          <td class="paramname"><span class="paramname"><em>event</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Measures the panel again when the sections change their size after keepSectionsWhole. </p>
+
+</div>
+</div>
+<a id="ad1386d933caa218398b654d2395344ae" name="ad1386d933caa218398b654d2395344ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1386d933caa218398b654d2395344ae">&#9670;&#160;</a></span>keepSectionsWhole()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultPanel::keepSectionsWhole </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Makes the panel at least as tall as its sections, so that it does not scroll them itself. A panel in a body that scrolls as a whole, such as the body of a dialog of <a class="el" href="namespace_dialog_layout.html">DialogLayout</a>, needs it, so that the body scrolls to the sections. </p>
+
+</div>
+</div>
+<a id="a9c5289e05209efcdfc056cb2a1ae87dd" name="a9c5289e05209efcdfc056cb2a1ae87dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c5289e05209efcdfc056cb2a1ae87dd">&#9670;&#160;</a></span>minimumSizeHint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QSize ResultPanel::minimumSizeHint </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The minimum size of the layout; after keepSectionsWhole, at least the height of the sections and the readout. </p>
 
 </div>
 </div>

@@ -1,9 +1,11 @@
 <map id="diagrams/ResultFrame.h" name="diagrams/ResultFrame.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="46,5,227,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,76,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,33,69,72,66,68,120,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="100,79,173,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,31,139,65,134,65,134,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,79,276,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,29,211,68,208,73,151,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="77,5,258,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,60,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,33,68,74,66,70,144,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="84,79,155,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,33,137,69,132,66,157,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="179,79,252,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,30,202,66,198,69,173,33"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="276,79,355,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="192,28,280,70,278,75,190,33"/>
 </map>

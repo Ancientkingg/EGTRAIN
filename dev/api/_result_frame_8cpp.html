@@ -113,10 +113,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_frame_
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_result_frame_8h_source.html">diagrams/ResultFrame.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_editor_layout_8h_source.html">widgets/EditorLayout.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_elided_label_8h_source.html">widgets/ElidedLabel.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_plain_tool_tip_8h_source.html">widgets/PlainToolTip.h</a>&quot;</code><br />
+<code>#include &lt;QDialog&gt;</code><br />
+<code>#include &lt;QDialogButtonBox&gt;</code><br />
+<code>#include &lt;QEvent&gt;</code><br />
 <code>#include &lt;QFile&gt;</code><br />
+<code>#include &lt;QFont&gt;</code><br />
 <code>#include &lt;QFrame&gt;</code><br />
 <code>#include &lt;QHBoxLayout&gt;</code><br />
 <code>#include &lt;QIcon&gt;</code><br />
@@ -128,9 +133,38 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_frame_
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ResultFrame.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8cpp__incl.svg" width="3312" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8cpp__incl.svg" width="3136" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div></div><!-- contents -->
+</div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad8be196188f3833116df03e38f65eb6e" id="r_ad8be196188f3833116df03e38f65eb6e"><td class="memItemLeft">QWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ad8be196188f3833116df03e38f65eb6e">resultTableArea</a> (const QList&lt; QWidget * &gt; &amp;widgets)</td></tr>
+</table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ad8be196188f3833116df03e38f65eb6e" name="ad8be196188f3833116df03e38f65eb6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8be196188f3833116df03e38f65eb6e">&#9670;&#160;</a></span>resultTableArea()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QWidget * resultTableArea </td>
+          <td>(</td>
+          <td class="paramtype">const QList&lt; QWidget * &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>widgets</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The main widget of a table window, for <a class="el" href="class_result_frame.html">ResultFrame</a>: <span class="tt">widgets</span> in a column on white, inside the margins of the main area, the last one taking the height that is left, such as a status above tabs. Takes the widgets. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8cpp_ad8be196188f3833116df03e38f65eb6e_cgraph.svg" width="134" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
 <div id="page-nav-resize-handle"></div>

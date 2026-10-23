@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" title=" " alt="" coords="5,31,124,56"/>
 <area shape="rect" id="Node000001" href="$class_station_overlay_item.html" title=" " alt="" coords="172,5,321,31"/>
-<area shape="poly" id="edge31_Node000000_Node000001" title=" " alt="" coords="137,31,171,26,172,31,138,36"/>
+<area shape="poly" id="edge32_Node000000_Node000001" title=" " alt="" coords="137,31,171,26,172,31,138,36"/>
 <area shape="rect" id="Node000002" href="$class_train_badge_item.html" title=" " alt="" coords="185,55,309,80"/>
-<area shape="poly" id="edge32_Node000000_Node000002" title=" " alt="" coords="138,50,185,57,184,62,137,56"/>
+<area shape="poly" id="edge33_Node000000_Node000002" title=" " alt="" coords="138,50,185,57,184,62,137,56"/>
 </map>
