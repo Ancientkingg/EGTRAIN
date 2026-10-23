@@ -290,6 +290,8 @@ void NetworkView::armTimingPaint(const QString& kind, int generation) {
 	m_timingPaintKind = kind;
 	m_timingPaintGeneration = generation;
 	m_timingPaintTimer.start();
+	// Reopening the same case can leave the scene unchanged, and then nothing else asks for a paint.
+	viewport()->update();
 }
 
 bool NetworkView::viewportEvent(QEvent* event) {
