@@ -25,7 +25,8 @@ var searchData=
   ['viewportpainted_22',['viewportPainted',['../class_network_view.html#ae2ced58ea56ff385bf067bfaafc81937',1,'NetworkView']]],
   ['viewscale_23',['viewScale',['../class_selection_cue_item.html#a2f5a51a3248c6752c393d0fd0320884e',1,'SelectionCueItem']]],
   ['virtualarcitem_24',['VirtualArcItem',['../class_virtual_arc_item.html#a1c9b987a38271108cf6600377e939c32',1,'VirtualArcItem']]],
-  ['visibletrainids_25',['visibleTrainIds',['../class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e',1,'TrainFilterButton']]],
-  ['visual_26',['visual',['../class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb',1,'StationOverlayItem']]],
-  ['visualscale_27',['visualScale',['../class_station_overlay_item.html#a44a17e0bbf56813795e67b0d0f539dd9',1,'StationOverlayItem']]]
+  ['visibilitychanged_25',['visibilityChanged',['../class_train_key_list.html#a72ce9eb6454f9676364e59040582f633',1,'TrainKeyList']]],
+  ['visibletrainids_26',['visibleTrainIds',['../class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e',1,'TrainFilterButton::visibleTrainIds()'],['../class_train_key_list.html#a8bc8737a80382bdea1ad7b396bef81d9',1,'TrainKeyList::visibleTrainIds()']]],
+  ['visual_27',['visual',['../class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb',1,'StationOverlayItem']]],
+  ['visualscale_28',['visualScale',['../class_station_overlay_item.html#a44a17e0bbf56813795e67b0d0f539dd9',1,'StationOverlayItem']]]
 ];

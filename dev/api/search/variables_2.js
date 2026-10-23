@@ -34,7 +34,7 @@ var searchData=
   ['cls_31',['cls',['../struct_station_visual.html#a2e3e565349d31331589d00f49ec7528b',1,'StationVisual']]],
   ['code_32',['code',['../struct_gui_signal_state.html#ae5eb6c8d9d1488352138159d4f6d92ec',1,'GuiSignalState::code'],['../struct_scene_diagnostic.html#af71ca1f3e7bd46b63f2f728111a5e0c1',1,'SceneDiagnostic::code'],['../class_section.html#afbdae80fc7c0bcae32e9befa321775e8',1,'Section::code']]],
   ['color_33',['color',['../struct_track_visual.html#abb38c6ee6a6aeae4e144482f5dc0e09b',1,'TrackVisual::color'],['../struct_track_state_visual.html#a423c5557b0f44543037ef4a56b778438',1,'TrackStateVisual::color'],['../struct_network_legend_entry.html#a3163b034e9c1e8d4df31417c6cb9ade3',1,'NetworkLegendEntry::color']]],
-  ['colour_34',['colour',['../struct_colour_key_entry.html#aa66390a7f73cd83d4f41c0235f08c04f',1,'ColourKeyEntry']]],
+  ['colour_34',['colour',['../struct_train_key_list_1_1_train.html#a69e2a9692c1754b888b2cdc7a2dfedc3',1,'TrainKeyList::Train']]],
   ['combinedrect_35',['combinedRect',['../struct_station_overlay_item_1_1_viewport_placement.html#a3e396fed304e8e3d668605b348fa6697',1,'StationOverlayItem::ViewportPlacement']]],
   ['command_36',['command',['../struct_live_request.html#a6325a8e88947d0e4c898e1aa5ab7a9cc',1,'LiveRequest']]],
   ['commandendpoint_37',['commandEndpoint',['../struct_live_server_state.html#afe6cffa56aa11d63327d463aad7a01ff',1,'LiveServerState']]],

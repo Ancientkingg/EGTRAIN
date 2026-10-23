@@ -384,6 +384,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DelayAnalysis.cpp
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
+    ${SRC_DIR}/diagrams/DiagramKey.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/PositionScale.cpp
     ${SRC_DIR}/diagrams/ResultFrame.cpp
@@ -394,7 +395,8 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/diagrams/TrainColors.cpp
-    ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
+    ${SRC_DIR}/diagrams/TrainFilterButton.cpp
+    ${SRC_DIR}/diagrams/TrainKeyList.cpp)
 target_link_libraries(egtrain_diagrams
     PUBLIC Qt::Core Qt::Gui Qt::Network Qt::Widgets Qt::Charts egtrain_sim)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)

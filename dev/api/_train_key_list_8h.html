@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.18.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>EGTRAIN: ColourKeyEntry Struct Reference</title>
+<title>EGTRAIN: diagrams/TrainKeyList.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
 <script type="text/javascript" src="clipboard.js"></script>
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', codefold.init);
   </div>
 </div>
 <script type="text/javascript">
-document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_colour_key_entry.html','','struct_colour_key_entry-members'); });
+document.addEventListener('DOMContentLoaded',() => { initNavTree('_train_key_list_8h.html','',''); });
 </script>
 <div id="container">
 <div id="doc-content">
@@ -109,78 +109,37 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_colour_
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">ColourKeyEntry Struct Reference</div></div>
+  <div class="headertitle"><div class="title">TrainKeyList.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>What a colour of the series of a chart means, for the legend below the plot.  
- <a href="#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="_diagram_window_8h_source.html">diagrams/DiagramWindow.h</a>&gt;</code></p>
+<div class="textblock"><code>#include &lt;QColor&gt;</code><br />
+<code>#include &lt;QHash&gt;</code><br />
+<code>#include &lt;QList&gt;</code><br />
+<code>#include &lt;QPair&gt;</code><br />
+<code>#include &lt;QSet&gt;</code><br />
+<code>#include &lt;QString&gt;</code><br />
+<code>#include &lt;QStringList&gt;</code><br />
+<code>#include &lt;QVector&gt;</code><br />
+<code>#include &lt;QWidget&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for TrainKeyList.h:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_train_key_list_8h__incl.svg" width="819" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+This graph shows which files directly or indirectly include this file:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_train_key_list_8h__dep__incl.svg" width="448" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="_train_key_list_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr class="memitem:aab44981bd9ee3f53281c257bbf03a071" id="r_aab44981bd9ee3f53281c257bbf03a071"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aab44981bd9ee3f53281c257bbf03a071">name</a></td></tr>
-<tr class="memdesc:aab44981bd9ee3f53281c257bbf03a071"><td class="mdescLeft">&#160;</td><td class="mdescRight">In sentence case, such as "Switch".  <br /></td></tr>
-<tr class="memitem:aa66390a7f73cd83d4f41c0235f08c04f" id="r_aa66390a7f73cd83d4f41c0235f08c04f"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#aa66390a7f73cd83d4f41c0235f08c04f">colour</a></td></tr>
-<tr class="memdesc:aa66390a7f73cd83d4f41c0235f08c04f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fill of the series, with its alpha.  <br /></td></tr>
-<tr class="memitem:ae990251c4021ee9686fdb33790b283d8" id="r_ae990251c4021ee9686fdb33790b283d8"><td class="memItemLeft">QColor&#160;</td><td class="memItemRight"><a class="el" href="#ae990251c4021ee9686fdb33790b283d8">outline</a> {}</td></tr>
-<tr class="memdesc:ae990251c4021ee9686fdb33790b283d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outline of the series; invalid for the fill colour, darker.  <br /></td></tr>
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:TrainKeyList" id="r_TrainKeyList"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_train_key_list.html">TrainKeyList</a></td></tr>
+<tr class="memitem:TrainKeyList_3A_3ATrain" id="r_TrainKeyList_3A_3ATrain"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_train_key_list_1_1_train.html">TrainKeyList::Train</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One train of the list.  <a href="struct_train_key_list_1_1_train.html#details">More...</a><br /></td></tr>
 </table>
-<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>What a colour of the series of a chart means, for the legend below the plot. </p>
-</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="aa66390a7f73cd83d4f41c0235f08c04f" name="aa66390a7f73cd83d4f41c0235f08c04f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa66390a7f73cd83d4f41c0235f08c04f">&#9670;&#160;</a></span>colour</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QColor ColourKeyEntry::colour</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The fill of the series, with its alpha. </p>
-
-</div>
-</div>
-<a id="aab44981bd9ee3f53281c257bbf03a071" name="aab44981bd9ee3f53281c257bbf03a071"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab44981bd9ee3f53281c257bbf03a071">&#9670;&#160;</a></span>name</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QString ColourKeyEntry::name</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>In sentence case, such as "Switch". </p>
-
-</div>
-</div>
-<a id="ae990251c4021ee9686fdb33790b283d8" name="ae990251c4021ee9686fdb33790b283d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae990251c4021ee9686fdb33790b283d8">&#9670;&#160;</a></span>outline</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QColor ColourKeyEntry::outline {}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The outline of the series; invalid for the fill colour, darker. </p>
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>diagrams/<a class="el" href="_diagram_window_8h_source.html">DiagramWindow.h</a></li>
-</ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
@@ -194,7 +153,7 @@ Public Attributes</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="struct_colour_key_entry.html">ColourKeyEntry</a></li>
+    <li class="navelem"><a href="dir_d9b7542ede7177021e0e72c95b691fa4.html">diagrams</a></li><li class="navelem"><a href="_train_key_list_8h.html">TrainKeyList.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.18.0 </li>
   </ul>
 </div>

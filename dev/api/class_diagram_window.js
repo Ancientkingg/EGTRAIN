@@ -3,10 +3,11 @@ var class_diagram_window =
     [ "DiagramWindow", "class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58", null ],
     [ "csvContent", "class_diagram_window.html#aeaf1a8a285ed78422cb00c04f7cc8a83", null ],
     [ "eventFilter", "class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a", null ],
+    [ "exportedFigure", "class_diagram_window.html#aeef7b61d77e6b996f1a859e2ce8ccb9f", null ],
     [ "figureImage", "class_diagram_window.html#a66d6e64434954e6ba58990c584eef5b4", null ],
+    [ "keyPressEvent", "class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939", null ],
     [ "setBlockSections", "class_diagram_window.html#a96fc99c6db7318229f03cb98fa7afec2", null ],
     [ "setChart", "class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df", null ],
-    [ "setColourKey", "class_diagram_window.html#a41015a50e26bb377d8bb556e2348ee7e", null ],
     [ "setCsvProvider", "class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d", null ],
     [ "setPositionAxis", "class_diagram_window.html#a793d3c53f037ce0694f78db0295866fd", null ],
     [ "setPresentation", "class_diagram_window.html#a60cb3e3e03a095be4ab508fa8697f55f", null ],
@@ -18,5 +19,6 @@ var class_diagram_window =
     [ "setTimeAxisY", "class_diagram_window.html#afd09f9c58ae3e9b01f2b8b14610c9e75", null ],
     [ "setTrainColors", "class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2", null ],
     [ "setTrainListColors", "class_diagram_window.html#a6212e347794f75549187d4dbe96f679d", null ],
+    [ "setTrainServices", "class_diagram_window.html#ab408ce4b95e0ba9ab73fdbe8f4efbd62", null ],
     [ "trainSelected", "class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc", null ]
 ];

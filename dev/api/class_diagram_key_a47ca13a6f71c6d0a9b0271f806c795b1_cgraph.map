@@ -1,0 +1,11 @@
+<map id="DiagramKey::minimumSizeHint" name="DiagramKey::minimumSizeHint">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,232,92"/>
+<area shape="rect" id="Node000002" href="$class_diagram_key.html#a6a109ae74bf2dec857a541e47c08714a" title="As high as the rows, as wide as the widest row." alt="" coords="280,67,443,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,77,266,77,266,82,232,82"/>
+<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="491,29,661,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,64,489,54,490,60,435,69"/>
+<area shape="rect" id="Node000004" href="$_diagram_key_8cpp.html#a0c7228d0bdd3028082478ef9ff1707c0" title="The width of the widest row of entries in font, sample and name." alt="" coords="507,103,645,128"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="438,89,494,99,493,104,437,95"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="541,31,534,21,537,11,552,5,576,3,606,6,617,15,614,20,604,11,576,8,553,10,541,15,539,20,545,28"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="541,104,534,94,537,84,552,78,576,76,606,80,617,89,614,93,604,85,576,81,553,83,541,88,539,94,545,101"/>
+</map>

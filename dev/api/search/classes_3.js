@@ -14,8 +14,10 @@ var searchData=
   ['delaysummary_11',['DelaySummary',['../struct_delay_summary.html',1,'']]],
   ['diagnosticrecord_12',['DiagnosticRecord',['../structtelemetry_1_1_diagnostic_record.html',1,'telemetry']]],
   ['diagnosticsobservation_13',['DiagnosticsObservation',['../struct_telemetry_consent_1_1_diagnostics_observation.html',1,'TelemetryConsent']]],
-  ['diagramwindow_14',['DiagramWindow',['../class_diagram_window.html',1,'']]],
-  ['dispatchcontroller_15',['DispatchController',['../class_dispatch_controller.html',1,'']]],
-  ['dispatchlive_16',['DispatchLive',['../struct_dispatch_live.html',1,'']]],
-  ['dockscrollarea_17',['DockScrollArea',['../class_editor_layout_1_1_dock_scroll_area.html',1,'EditorLayout']]]
+  ['diagramkey_14',['DiagramKey',['../class_diagram_key.html',1,'']]],
+  ['diagramkeyentry_15',['DiagramKeyEntry',['../struct_diagram_key_entry.html',1,'']]],
+  ['diagramwindow_16',['DiagramWindow',['../class_diagram_window.html',1,'']]],
+  ['dispatchcontroller_17',['DispatchController',['../class_dispatch_controller.html',1,'']]],
+  ['dispatchlive_18',['DispatchLive',['../struct_dispatch_live.html',1,'']]],
+  ['dockscrollarea_19',['DockScrollArea',['../class_editor_layout_1_1_dock_scroll_area.html',1,'EditorLayout']]]
 ];

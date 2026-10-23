@@ -136,11 +136,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a02013e3da2fd785a63557a6f6db43d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty window with the given title.  <br /></td></tr>
 <tr class="memitem:a6a0470e83e6f726a252b1b7b308842df" id="r_a6a0470e83e6f726a252b1b7b308842df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a0470e83e6f726a252b1b7b308842df">setChart</a> (QChart *chart)</td></tr>
 <tr class="memitem:a60cb3e3e03a095be4ab508fa8697f55f" id="r_a60cb3e3e03a095be4ab508fa8697f55f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a60cb3e3e03a095be4ab508fa8697f55f">setPresentation</a> (const QString &amp;heading, const QString &amp;context, const QString &amp;warning=QString(), const QString &amp;contextToolTip=QString())</td></tr>
-<tr class="memitem:a41015a50e26bb377d8bb556e2348ee7e" id="r_a41015a50e26bb377d8bb556e2348ee7e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a41015a50e26bb377d8bb556e2348ee7e">setColourKey</a> (const QString &amp;layer, std::vector&lt; <a class="el" href="struct_colour_key_entry.html">ColourKeyEntry</a> &gt; key)</td></tr>
 <tr class="memitem:a0365f0d7bf7ae2dd09e3f7933f9d5b1a" id="r_a0365f0d7bf7ae2dd09e3f7933f9d5b1a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0365f0d7bf7ae2dd09e3f7933f9d5b1a">setRollingStockSubject</a> (bool on)</td></tr>
 <tr class="memdesc:a0365f0d7bf7ae2dd09e3f7933f9d5b1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a chart of rolling stock input, which has no trains: hides the train filter and the selection.  <br /></td></tr>
 <tr class="memitem:ae62313eba188517867e611dfa3a6f3b2" id="r_ae62313eba188517867e611dfa3a6f3b2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae62313eba188517867e611dfa3a6f3b2">setTrainColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
 <tr class="memitem:a6212e347794f75549187d4dbe96f679d" id="r_a6212e347794f75549187d4dbe96f679d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6212e347794f75549187d4dbe96f679d">setTrainListColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
+<tr class="memitem:ab408ce4b95e0ba9ab73fdbe8f4efbd62" id="r_ab408ce4b95e0ba9ab73fdbe8f4efbd62"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab408ce4b95e0ba9ab73fdbe8f4efbd62">setTrainServices</a> (const QHash&lt; QString, QString &gt; &amp;services)</td></tr>
 <tr class="memitem:afd09f9c58ae3e9b01f2b8b14610c9e75" id="r_afd09f9c58ae3e9b01f2b8b14610c9e75"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afd09f9c58ae3e9b01f2b8b14610c9e75">setTimeAxisY</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memitem:a6d991a03ac97993a7dc5fc9b8a67f281" id="r_a6d991a03ac97993a7dc5fc9b8a67f281"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d991a03ac97993a7dc5fc9b8a67f281">setTimeAxisX</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memdesc:a6d991a03ac97993a7dc5fc9b8a67f281"><td class="mdescLeft">&#160;</td><td class="mdescRight">As setTimeAxisY, for the X axis.  <br /></td></tr>
@@ -151,6 +151,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aeaf1a8a285ed78422cb00c04f7cc8a83" id="r_aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aeaf1a8a285ed78422cb00c04f7cc8a83">csvContent</a> () const</td></tr>
 <tr class="memdesc:aeaf1a8a285ed78422cb00c04f7cc8a83"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same provider/filter snapshot that the CSV export writes, without opening a file dialog.  <br /></td></tr>
 <tr class="memitem:a66d6e64434954e6ba58990c584eef5b4" id="r_a66d6e64434954e6ba58990c584eef5b4"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#a66d6e64434954e6ba58990c584eef5b4">figureImage</a> (const <a class="el" href="struct_figure_column.html">FigureColumn</a> &amp;column={}) const</td></tr>
+<tr class="memitem:aeef7b61d77e6b996f1a859e2ce8ccb9f" id="r_aeef7b61d77e6b996f1a859e2ce8ccb9f"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#aeef7b61d77e6b996f1a859e2ce8ccb9f">exportedFigure</a> () const</td></tr>
 <tr class="memitem:a072ab92bbf800c9021108d0b1283078d" id="r_a072ab92bbf800c9021108d0b1283078d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a072ab92bbf800c9021108d0b1283078d">setProvenanceWriter</a> (std::function&lt; bool(const QString &amp;artifactPath, const char *artifactKind, const std::string &amp;artifactBytes)&gt; writer)</td></tr>
 <tr class="memitem:ada70cd96c57e022ae8e6bfd6c649f2d9" id="r_ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada70cd96c57e022ae8e6bfd6c649f2d9">setTelemetryCapture</a> (<a class="el" href="namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7">telemetry::CaptureOperation</a> capture)</td></tr>
 <tr class="memdesc:ada70cd96c57e022ae8e6bfd6c649f2d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the function that gives the telemetry observation of an export; empty for none.  <br /></td></tr>
@@ -158,10 +159,12 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:adf2416ba68c9e6bfd18c22e165864c1a" id="r_adf2416ba68c9e6bfd18c22e165864c1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adf2416ba68c9e6bfd18c22e165864c1a">eventFilter</a> (QObject *obj, QEvent *ev) override</td></tr>
-<tr class="memdesc:adf2416ba68c9e6bfd18c22e165864c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view.  <br /></td></tr>
+<tr class="memitem:abe3380e3fe58e9421d64ea14fbef3939" id="r_abe3380e3fe58e9421d64ea14fbef3939"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abe3380e3fe58e9421d64ea14fbef3939">keyPressEvent</a> (QKeyEvent *event) override</td></tr>
+<tr class="memdesc:abe3380e3fe58e9421d64ea14fbef3939"><td class="mdescLeft">&#160;</td><td class="mdescRight">Escape ends a selection, and closes the window only while nothing is selected.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the train filter, the selected train, the exports and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
+<div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the sections Trains (the train filter and colour key in one list, a <a class="el" href="class_train_key_list.html">TrainKeyList</a>), Key (the kinds of mark in view, a <a class="el" href="class_diagram_key.html">DiagramKey</a>), Selected and Export, and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
+<p>The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind, else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as "Stop". Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A chart of rolling stock input lists its series by name, in their own colours.</p>
 <p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a02013e3da2fd785a63557a6f6db43d58" name="a02013e3da2fd785a63557a6f6db43d58"></a>
@@ -195,7 +198,7 @@ Protected Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="1556" height="2287"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="1556" height="2144"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -246,8 +249,30 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. A new size of the chart, as when the panel shows or hides or the window resizes, clears the tooltip and the readout. </p>
 
-<p>Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. </p>
+</div>
+</div>
+<a id="aeef7b61d77e6b996f1a859e2ce8ccb9f" name="aeef7b61d77e6b996f1a859e2ce8ccb9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeef7b61d77e6b996f1a859e2ce8ccb9f">&#9670;&#160;</a></span>exportedFigure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QImage DiagramWindow::exportedFigure </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The figure that the PNG export saves and Copy puts on the clipboard: figureImage with the Trains and Key of the panel in a column at the right, the shown trains with their line samples and without check boxes. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_aeef7b61d77e6b996f1a859e2ce8ccb9f_cgraph.svg" width="732" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -265,12 +290,39 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The figure that the PNG export saves and Copy puts on the clipboard, at two image pixels per pixel of the window: the window title as its heading, the context below it, then the chart as the chart view shows it, without the rubber band, the tooltip or the readout, and <span class="tt">column</span> at the right of the chart. </p>
+<p>A figure at two image pixels per pixel of the window: the window title as its heading, the context below it, then the chart as the chart view shows it, without the rubber band, the tooltip, the readout or the outline of a selected blocking time, and <span class="tt">column</span> at the right of the chart. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a66d6e64434954e6ba58990c584eef5b4_cgraph.svg" width="450" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="abe3380e3fe58e9421d64ea14fbef3939" name="abe3380e3fe58e9421d64ea14fbef3939"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe3380e3fe58e9421d64ea14fbef3939">&#9670;&#160;</a></span>keyPressEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::keyPressEvent </td>
+          <td>(</td>
+          <td class="paramtype">QKeyEvent *</td>          <td class="paramname"><span class="paramname"><em>event</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Escape ends a selection, and closes the window only while nothing is selected. </p>
 
 </div>
 </div>
@@ -307,7 +359,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears it. The strip above the plot names each section by its short id (shortBlockId), centred in its cell, in one row when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and last section, then switch and station sections are placed first. A switch section is hatched, and <span class="tt">marks</span>, one per section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The hover of a cell or a boundary gives the id, the label from <span class="tt">labels</span>, the kind, "Section N of M" with M <span class="tt">routeSectionCount</span> (the number of sections when 0), the geo extent and the route distance. </p>
+<p>Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A chart-owned physical layer, not train series, with its entries in the Key. Chart replacement clears it. The strip above the plot names each section by its short id (shortBlockId), centred in its cell, in one row when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and last section, then switch and station sections are placed first. A switch section is hatched, and <span class="tt">marks</span>, one per section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict. The hover of a cell or a boundary gives the id, the label from <span class="tt">labels</span>, the kind, "Section N of M" with M <span class="tt">routeSectionCount</span> (the number of sections when 0), the geo extent and the route distance. </p>
 
 </div>
 </div>
@@ -325,34 +377,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose "exactRange" property is true keeps its range and still gets round ticks. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. </p>
+<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. A new chart ends the selection. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a6a0470e83e6f726a252b1b7b308842df_cgraph.svg" width="455" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="a41015a50e26bb377d8bb556e2348ee7e" name="a41015a50e26bb377d8bb556e2348ee7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41015a50e26bb377d8bb556e2348ee7e">&#9670;&#160;</a></span>setColourKey()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DiagramWindow::setColourKey </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>layer</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="struct_colour_key_entry.html">ColourKeyEntry</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>key</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Explains the colours of the series whose "layer" property is <span class="tt">layer</span>: the legend below the plot shows a filled swatch for each entry of <span class="tt">key</span> in place of the entry of that layer. Set after setChart; a new chart clears it. </p>
 
 </div>
 </div>
@@ -578,7 +608,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Paints the series of each listed train in its colour: the pen colour of a line series, the brush colour (alpha kept) and pen colour of an area series. Width and dash pattern stay as the chart builder set them. <a class="el" href="class_train.html">Train</a> ids are the group ids (the "trainId" property, or the series name); a train that is not listed, or has an invalid colour, keeps its chart colours. The colours become the base look of the series, so selecting and clearing a train keeps them, and the train filter swatch shows them. Set before or after setChart. A later call does not undo colours an earlier call applied and resets the train filter to all trains visible. </p>
+<p>Paints the series of each listed train in its colour: the pen colour of a line series, the brush colour (alpha kept) and pen colour of an area series. Width and dash pattern stay as the chart builder set them. <a class="el" href="class_train.html">Train</a> ids are the group ids (the "trainId" property, or the series name); a train that is not listed, or has an invalid colour, keeps its chart colours. The colours become the base look of the series, so selecting and clearing a train keeps them, and the line sample of the train in the Trains list shows them. Set before or after setChart. A later call does not undo colours an earlier call applied, and keeps which trains are shown and which is selected. </p>
 
 </div>
 </div>
@@ -597,6 +627,24 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Shows the colour of each listed train in the train filter only and leaves the series as the chart builder painted them, for a chart whose series colours have a meaning of their own. </p>
+
+</div>
+</div>
+<a id="ab408ce4b95e0ba9ab73fdbe8f4efbd62" name="ab408ce4b95e0ba9ab73fdbe8f4efbd62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab408ce4b95e0ba9ab73fdbe8f4efbd62">&#9670;&#160;</a></span>setTrainServices()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::setTrainServices </td>
+          <td>(</td>
+          <td class="paramtype">const QHash&lt; QString, QString &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>services</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The service of each train, by its group id, which groups the Trains list by service when it has more than six trains in six services or fewer. A train without a service is a service of its own. Keeps which trains are shown. </p>
 
 </div>
 </div>
@@ -627,7 +675,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a223a88f35d30e0508c02eba4ea4228bc_cgraph.svg" width="488" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a223a88f35d30e0508c02eba4ea4228bc_cgraph.svg" width="514" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

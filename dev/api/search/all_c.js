@@ -64,7 +64,7 @@ var searchData=
   ['lightpalette_2eh_61',['LightPalette.h',['../_light_palette_8h.html',1,'']]],
   ['lightpalettekeeper_62',['LightPaletteKeeper',['../class_light_palette_keeper.html',1,'']]],
   ['limits_63',['limits',['../class_scene_history.html#aeb95604a81a0c03866d4358311192af0',1,'SceneHistory']]],
-  ['line_64',['Line',['../classeglog_1_1_line.html',1,'eglog::Line'],['../classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa',1,'eglog::Line::Line(Category category, Level level)'],['../classeglog_1_1_line.html#ad9d4174a53815fc21a53e87ab5d22305',1,'eglog::Line::Line(const Line &amp;)=delete']]],
+  ['line_64',['Line',['../classeglog_1_1_line.html',1,'eglog::Line'],['../classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa',1,'eglog::Line::Line(Category category, Level level)'],['../classeglog_1_1_line.html#ad9d4174a53815fc21a53e87ab5d22305',1,'eglog::Line::Line(const Line &amp;)=delete'],['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a4803e6b9e63dabf04de980788d6a13c4',1,'DiagramKeyEntry::Line']]],
   ['line_5fwidth_65',['line_width',['../class_network_presenter.html#a44e0e898ec940e3fc2da8aed24507ca3',1,'NetworkPresenter']]],
   ['lines_66',['lines',['../struct_track_preview_result.html#a59e7876cb379102399bbb8497897ebae',1,'TrackPreviewResult']]],
   ['linewidth_67',['lineWidth',['../struct_network_legend_entry.html#aade2872f9dcf07fd1d2e8506035f096c',1,'NetworkLegendEntry']]],

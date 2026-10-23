@@ -34,7 +34,6 @@ var hierarchy =
     [ "CapacityCriticalBlock", "struct_capacity_critical_block.html", null ],
     [ "CapacityHeadwayEvidence", "struct_capacity_headway_evidence.html", null ],
     [ "CapacityPairRow", "struct_capacity_pair_row.html", null ],
-    [ "ColourKeyEntry", "struct_colour_key_entry.html", null ],
     [ "CommandLineOption", "struct_command_line_option.html", null ],
     [ "CompletedRoute", "struct_completed_route.html", null ],
     [ "CompletedRunData", "struct_completed_run_data.html", null ],
@@ -56,6 +55,7 @@ var hierarchy =
     [ "DelaySummary", "struct_delay_summary.html", null ],
     [ "telemetry::DiagnosticRecord", "structtelemetry_1_1_diagnostic_record.html", null ],
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
+    [ "DiagramKeyEntry", "struct_diagram_key_entry.html", null ],
     [ "DispatchLive", "struct_dispatch_live.html", null ],
     [ "FigureColumn", "struct_figure_column.html", null ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", null ],
@@ -262,6 +262,7 @@ var hierarchy =
     ] ],
     [ "QWidget", null, [
       [ "ColorChoiceButton", "class_color_choice_button.html", null ],
+      [ "DiagramKey", "class_diagram_key.html", null ],
       [ "ManualWindow", "class_manual_window.html", null ],
       [ "NetworkLegendWidget", "class_network_legend_widget.html", null ],
       [ "ResultFigure", "class_result_figure.html", null ],
@@ -278,7 +279,8 @@ var hierarchy =
         [ "ServicePanel", "class_service_panel.html", null ],
         [ "TimetableStopsPanel", "class_timetable_stops_panel.html", null ],
         [ "TrainUnitPanel", "class_train_unit_panel.html", null ]
-      ] ]
+      ] ],
+      [ "TrainKeyList", "class_train_key_list.html", null ]
     ] ],
     [ "RecoveryCandidate", "struct_recovery_candidate.html", null ],
     [ "RecoveryResult", "struct_recovery_result.html", null ],
@@ -430,6 +432,7 @@ var hierarchy =
     [ "Train", "class_train.html", [
       [ "Regional", "class_regional.html", null ]
     ] ],
+    [ "TrainKeyList::Train", "struct_train_key_list_1_1_train.html", null ],
     [ "TrainEvent", "class_train_event.html", null ],
     [ "TrainRunResult", "struct_train_run_result.html", null ],
     [ "TrainVisual", "struct_train_visual.html", null ],

@@ -34,7 +34,7 @@ var searchData=
   ['othertraffic_31',['otherTraffic',['../struct_area_capacity_input.html#a16f00238417c9c152f5ad722b3372577',1,'AreaCapacityInput']]],
   ['othertrainid_32',['otherTrainId',['../struct_area_capacity_note.html#a9c25915f169f93c3d03b14adc7c2dbf0',1,'AreaCapacityNote']]],
   ['outcome_33',['outcome',['../struct_update_record.html#a550e87cf5c396b184c34b334160e824b',1,'UpdateRecord']]],
-  ['outline_34',['outline',['../struct_colour_key_entry.html#ae990251c4021ee9686fdb33790b283d8',1,'ColourKeyEntry::outline'],['../struct_train_visual.html#a77eb1da1a94c31bfb83a3af4c95f139c',1,'TrainVisual::outline'],['../struct_station_visual.html#ae8a9c0dedcf84ad037232139b9a5fdef',1,'StationVisual::outline'],['../struct_network_legend_train.html#a59d595593d64144f9e786e7bda7e6767',1,'NetworkLegendTrain::outline']]],
+  ['outline_34',['outline',['../struct_train_visual.html#a77eb1da1a94c31bfb83a3af4c95f139c',1,'TrainVisual::outline'],['../struct_station_visual.html#ae8a9c0dedcf84ad037232139b9a5fdef',1,'StationVisual::outline'],['../struct_network_legend_train.html#a59d595593d64144f9e786e7bda7e6767',1,'NetworkLegendTrain::outline']]],
   ['outlinecolor_35',['outlineColor',['../class_train_item_group.html#ad5aec26ad0081552d4c01cfe22dcdd09',1,'TrainItemGroup::outlineColor'],['../struct_network_legend_entry.html#ac4fc72c8ba5289de5299d5f721ce6bab',1,'NetworkLegendEntry::outlineColor']]],
   ['outofsimulation_36',['OutOfSimulation',['../class_train.html#a50392258ec1d9df8950485979567324d',1,'Train']]],
   ['outofsimulation_37',['outOfSimulation',['../struct_gui_train_state.html#aeae500dd776cdd09d319f20d97ded0f7',1,'GuiTrainState::outOfSimulation'],['../class_train_item_group.html#aeb70c9aaeabba7d84c2c64285d266e6f',1,'TrainItemGroup::outOfSimulation']]],

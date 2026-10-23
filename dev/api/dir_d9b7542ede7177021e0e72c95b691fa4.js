@@ -20,6 +20,8 @@ var dir_d9b7542ede7177021e0e72c95b691fa4 =
     [ "DelayAnalysis.h", "_delay_analysis_8h.html", "_delay_analysis_8h" ],
     [ "DelayAnalysisWindow.cpp", "_delay_analysis_window_8cpp.html", "_delay_analysis_window_8cpp" ],
     [ "DelayAnalysisWindow.h", "_delay_analysis_window_8h.html", "_delay_analysis_window_8h" ],
+    [ "DiagramKey.cpp", "_diagram_key_8cpp.html", "_diagram_key_8cpp" ],
+    [ "DiagramKey.h", "_diagram_key_8h.html", "_diagram_key_8h" ],
     [ "DiagramWindow.cpp", "_diagram_window_8cpp.html", null ],
     [ "DiagramWindow.h", "_diagram_window_8h.html", "_diagram_window_8h" ],
     [ "PositionScale.cpp", "_position_scale_8cpp.html", null ],
@@ -42,5 +44,7 @@ var dir_d9b7542ede7177021e0e72c95b691fa4 =
     [ "TrainColors.cpp", "_train_colors_8cpp.html", "_train_colors_8cpp" ],
     [ "TrainColors.h", "_train_colors_8h.html", "_train_colors_8h" ],
     [ "TrainFilterButton.cpp", "_train_filter_button_8cpp.html", null ],
-    [ "TrainFilterButton.h", "_train_filter_button_8h.html", "_train_filter_button_8h" ]
+    [ "TrainFilterButton.h", "_train_filter_button_8h.html", "_train_filter_button_8h" ],
+    [ "TrainKeyList.cpp", "_train_key_list_8cpp.html", null ],
+    [ "TrainKeyList.h", "_train_key_list_8h.html", "_train_key_list_8h" ]
 ];
