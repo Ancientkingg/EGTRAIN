@@ -87,8 +87,8 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	pngButton->setToolTip("Save the table as an image");
 	connect(pngButton, &QPushButton::clicked, this, &TimetableTableWindow::exportPng);
 
-	// No button of the window is a default button, so Enter presses none.
-	for (QPushButton* button : findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+	// No button of the window is a default button, so Enter presses none, including a button inside another widget.
+	for (QPushButton* button : findChildren<QPushButton*>())
 		button->setAutoDefault(false);
 
 	QHBoxLayout* topBar = new QHBoxLayout();

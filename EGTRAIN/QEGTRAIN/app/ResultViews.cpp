@@ -295,7 +295,6 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 		ResultViewName::kTractiveEffortDistance};
 	const QString heading = titles[mode];
 	QChart* chart = new QChart();
-	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 
 	// one series per contiguous segment; legend distinguishes trains
 	for (const CompletedTrain& train : run->trains) {
@@ -329,6 +328,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setPresentation(heading, completedRunContext(run->provenance));
 	win->setProperty("manualSection", QStringLiteral("train-diagram"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
@@ -378,7 +378,6 @@ void ResultViews::showDelayDiagram() {
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	QChart* chart = new QChart();
 	const QString heading = ResultViewName::kDelays;
-	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 
 	for (const CompletedTrain& train : run->trains) {
 		QLineSeries* series = new QLineSeries();
@@ -408,6 +407,7 @@ void ResultViews::showDelayDiagram() {
 	}
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setPresentation(heading, completedRunContext(run->provenance));
 	win->setProperty("manualSection", QStringLiteral("timetable-results"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
@@ -435,7 +435,6 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	const double end = referencePath.nodes.back().positionKm;
 	const QString heading = timetable ? ResultViewName::kTimetableGraph : ResultViewName::kTrainPaths;
 	auto* chart = new QChart();
-	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 	for (const RouteDiagramSeries& source : diagram->series) {
 		const QString name = QString::fromStdString(source.trainId);
 		auto* series = new QLineSeries();
@@ -500,6 +499,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
+	win->setPresentation(heading, completedRunContext(run->provenance));
 	win->setProperty("manualSection", QStringLiteral("train-paths"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
@@ -558,7 +558,6 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	const auto& trajectoryRows = diagram.trajectoryRows;
 
 	QChart* chart = new QChart();
-	chart->setTitle(QString("%1 [%2]").arg(title, completedRunContext(run->provenance)));
 
 	addBlockingTimeSeries(chart, segments, compressed, run->sectionLabels);
 
@@ -633,7 +632,8 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	const ColourKeyEntry blockKey = blockingKeyEntry("Block or station", kBlockingBlockColor);
 	win->setColourKey(kBlockingTimeLayer, {blockKey, blockingKeyEntry("Switch", kBlockingSwitchColor), lastKey});
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
-	win->setPresentation(title, context,
+	// The header names the run before the scope of the chart.
+	win->setPresentation(title, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + context,
 		QString::fromStdString(blockingTimeNote(diagram.omitted, nothingPlotted, !unmapped.empty(), referencePath.id)), contextToolTip);
 	const std::function<std::string(const QStringList&)> scopedCsv =
 		[segments, plannedReferences, trajectoryRows, extents, unmapped](const QStringList& visibleTrainIds) {

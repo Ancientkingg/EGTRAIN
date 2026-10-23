@@ -2009,16 +2009,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					&& series->at(i).y() <= axis->max();
 			}
 			const QLabel* tractionWarning = window->findChild<QLabel*>("diagramWarning");
-			plotOk = plotOk && chart->title().contains("negative") == fixture.second
+			// The warning above the chart says that the curve goes below 0 kN; the chart itself has no title.
+			plotOk = plotOk && chart->title().isEmpty()
 				&& tractionWarning && tractionWarning->text().contains("Negative") == fixture.second
 				&& !window->findChild<QWidget*>("diagramDetailsPanel");
 			if (axis) {
 				const double maximum = axis->max();
 				chart->zoom(2.0);
 				plotOk = plotOk && axis->min() > 0.0;
-				for (QPushButton* button : window->findChildren<QPushButton*>())
-					if (button->text() == "Reset zoom")
-						button->click();
+				if (auto* fit = window->findChild<QToolButton*>("diagramFit"))
+					fit->click();
 				plotOk = plotOk && axis->min() == 0.0 && axis->max() == maximum;
 			}
 			const QString plotPath = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))

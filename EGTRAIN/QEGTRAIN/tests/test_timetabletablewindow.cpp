@@ -77,7 +77,7 @@ static QPushButton* topButton(QDialog& window, const QString& text) {
 
 static bool buttonFlags(QDialog& window, const QString& prefix) {
 	bool ok = true;
-	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+	for (auto* button : window.findChildren<QPushButton*>()) {
 		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
 		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
 	}

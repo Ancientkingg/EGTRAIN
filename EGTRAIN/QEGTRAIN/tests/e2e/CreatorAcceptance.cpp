@@ -115,7 +115,7 @@ struct CreatorAcceptanceState {
 	int polls = 0;
 	QPointer<DiagramWindow> baselineDiagram;
 	std::string baselineCsv; // What the baseline diagram exported when it opened
-	QString baselineTitle;	 // What the chart title of the baseline diagram said when it opened
+	QString baselineTitle;	 // What the header of the baseline diagram said when it opened
 };
 
 CreatorAcceptanceState creatorAcceptance;
@@ -174,21 +174,23 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };
-	// The chart title of a result chart names its run in brackets. Every creator run applies a scenario (baseline,
-	// entrance or incident), so the run has both parts.
-	auto chartRunTitle = [](const QString& view, const RunProvenance& run) {
-		return QStringLiteral("%1 [%2 / %3]").arg(view, QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
+	// The header of a result chart names its run. Every creator run applies a scenario (baseline, entrance or incident), so
+	// the run has both parts.
+	auto runContext = [](const RunProvenance& run) {
+		return QStringLiteral("%1 / %2").arg(QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
 	};
-	// The chart title of a diagram window, or "no chart" when it has none. A chart that names its run in the title has no
-	// context line, so this also says "context line shown" when the context label is visible.
-	auto chartTitleOf = [](const DiagramWindow* diagram) {
+	// The context in the header of a diagram window, or "no chart" when it has none. The window title names the view, so
+	// the chart has no title; this says "chart title shown" when it has one and "no context" when the header shows none.
+	auto contextOf = [](const DiagramWindow* diagram) {
 		const auto* view = diagram ? diagram->findChild<QChartView*>() : nullptr;
 		const auto* context = diagram ? diagram->findChild<QLabel*>("diagramContext") : nullptr;
 		if (!view || !view->chart())
 			return QStringLiteral("no chart");
-		if (context && !context->isHidden())
-			return QStringLiteral("context line shown: ") + context->text();
-		return view->chart()->title();
+		if (!view->chart()->title().isEmpty())
+			return QStringLiteral("chart title shown: ") + view->chart()->title();
+		if (!context || context->isHidden())
+			return QStringLiteral("no context");
+		return context->text();
 	};
 	auto editLine = [process](QLineEdit* edit, const QString& value) {
 		if (!edit)
@@ -1721,11 +1723,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("baseline result diagram did not open"));
 			return;
 		}
-		// The window title names the view. The chart title names the run, and there is no context line.
-		creatorAcceptance.baselineTitle = chartRunTitle(QStringLiteral("Time / distance"), w.m_runController->m_completedRun->provenance);
-		if (chartTitleOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle) {
-			fail(QStringLiteral("baseline result diagram does not name its run in the chart title: ")
-				+ chartTitleOf(creatorAcceptance.baselineDiagram));
+		// The window title names the view and the header names the run.
+		creatorAcceptance.baselineTitle = runContext(w.m_runController->m_completedRun->provenance);
+		if (contextOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle) {
+			fail(QStringLiteral("baseline result diagram does not name its run in the header: ")
+				+ contextOf(creatorAcceptance.baselineDiagram));
 			return;
 		}
 		creatorAcceptance.baselineCsv = creatorAcceptance.baselineDiagram->csvContent();
@@ -1952,7 +1954,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		};
 
 		if (!creatorAcceptance.baselineDiagram
-			|| !exportButton(creatorAcceptance.baselineDiagram, QStringLiteral("Export CSV..."),
+			|| !exportButton(creatorAcceptance.baselineDiagram, QStringLiteral("CSV..."),
 				path("baseline_time_distance.csv"))) {
 			fail(QStringLiteral("baseline diagram CSV export was not driven through its public button"));
 			return;
@@ -1964,10 +1966,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		const RunProvenance& currentRun = w.m_runController->m_completedRun->provenance;
-		if (chartTitleOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle
-			|| chartRunTitle(QStringLiteral("Time / distance"), currentRun) == creatorAcceptance.baselineTitle) {
+		if (contextOf(creatorAcceptance.baselineDiagram) != creatorAcceptance.baselineTitle
+			|| runContext(currentRun) == creatorAcceptance.baselineTitle) {
 			fail(QStringLiteral("the baseline diagram did not keep naming the baseline run after later runs: ")
-				+ chartTitleOf(creatorAcceptance.baselineDiagram));
+				+ contextOf(creatorAcceptance.baselineDiagram));
 			return;
 		}
 		QAction* speedButton = findResultAction(QStringLiteral("Speed / distance"));
@@ -1979,13 +1981,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed / distance"));
 		if (!speedDiagram
-			|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
-			|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
+			|| !exportButton(speedDiagram, QStringLiteral("CSV..."), path("trajectory.csv"))
+			|| !exportButton(speedDiagram, QStringLiteral("PNG..."), path("trajectory.png"))) {
 			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
 			return;
 		}
-		if (chartTitleOf(speedDiagram) != chartRunTitle(QStringLiteral("Speed / distance"), currentRun)) {
-			fail(QStringLiteral("the speed diagram does not name the current run in its chart title: ") + chartTitleOf(speedDiagram));
+		if (contextOf(speedDiagram) != runContext(currentRun)) {
+			fail(QStringLiteral("the speed diagram does not name the current run in its header: ") + contextOf(speedDiagram));
 			return;
 		}
 		QAction* tractiveButton = findResultAction(QStringLiteral("Tractive effort / distance"));
@@ -1997,18 +1999,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Tractive effort / distance"));
 		if (!tractiveDiagram
-			|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
-			|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
+			|| !exportButton(tractiveDiagram, QStringLiteral("CSV..."), path("tractive_effort.csv"))
+			|| !exportButton(tractiveDiagram, QStringLiteral("PNG..."), path("tractive_effort.png"))) {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
 			return;
 		}
-		if (chartTitleOf(tractiveDiagram) != chartRunTitle(QStringLiteral("Tractive effort / distance"), currentRun)) {
-			fail(QStringLiteral("the tractive-effort diagram does not name the current run in its chart title: ")
-				+ chartTitleOf(tractiveDiagram));
+		if (contextOf(tractiveDiagram) != runContext(currentRun)) {
+			fail(QStringLiteral("the tractive-effort diagram does not name the current run in its header: ")
+				+ contextOf(tractiveDiagram));
 			return;
 		}
 		// A run with 300-character names: the window title stays the name of the chart, the window keeps its size, and the
-		// chart title that a PNG shows has the run in brackets, with no context line.
+		// header holds the whole run in its context, while the chart has no title.
 		{
 			const std::shared_ptr<const CompletedRunData> kept = w.m_runController->m_completedRun;
 			auto longRun = std::make_shared<CompletedRunData>(*kept);
@@ -2034,11 +2036,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					problem = title + QStringLiteral(" did not open");
 				else if (window->windowTitle() != title)
 					problem = title + QStringLiteral(" has the window title ") + window->windowTitle();
-				else if (!context->isHidden())
-					problem = title + QStringLiteral(" shows a context line: ") + context->text();
+				else if (context->isHidden() || context->text() != run)
+					problem = title + QStringLiteral(" does not name the run in its header: ") + context->text();
 				else if (window->width() > window->screen()->availableGeometry().width() * 9 / 10)
 					problem = title + QStringLiteral(" does not keep its size with a long run");
-				else if (view->chart()->title() != title + QStringLiteral(" [") + run + QStringLiteral("]"))
+				else if (!view->chart()->title().isEmpty())
 					problem = title + QStringLiteral(" has the chart title ") + view->chart()->title();
 				if (window)
 					window->close();
@@ -2077,10 +2079,15 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time"));
 		if (!blocking
-			|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
-			|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
+			|| !exportButton(blocking, QStringLiteral("CSV..."), path("blocking_time.csv"))
+			|| !exportButton(blocking, QStringLiteral("PNG..."), path("blocking_time.png"))) {
 			fail(QString("blocking-time exports were not driven through the public diagram (window %1)")
 					.arg(blocking ? "present" : "absent"));
+			return;
+		}
+		// The header names the run before the scope of the chart.
+		if (!contextOf(blocking).startsWith(runContext(w.m_runController->m_completedRun->provenance) + QStringLiteral(" \u00b7 "))) {
+			fail(QStringLiteral("the blocking-time header does not lead with the run: ") + contextOf(blocking));
 			return;
 		}
 		QPushButton* summaryCsv = w.findChild<QPushButton*>("resultView_ExportCSV");
@@ -2243,8 +2250,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		DiagramWindow* compressed = findDiagram(QStringLiteral("Compressed blocking time"));
 		if (!compressed
-			|| !exportButton(compressed, QStringLiteral("Export CSV..."), path("capacity_compressed_blocking_time.csv"))
-			|| !exportButton(compressed, QStringLiteral("Export PNG..."), path("capacity_compressed_blocking_time.png"))) {
+			|| !exportButton(compressed, QStringLiteral("CSV..."), path("capacity_compressed_blocking_time.csv"))
+			|| !exportButton(compressed, QStringLiteral("PNG..."), path("capacity_compressed_blocking_time.png"))) {
 			fail(QStringLiteral("compressed capacity diagram did not export"));
 			return;
 		}

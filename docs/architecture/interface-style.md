@@ -13,7 +13,7 @@ Sizes are relative to the font of the widget, so they follow a larger platform f
 
 | Role | Size | Weight | Where |
 | --- | --- | --- | --- |
-| Chart title | 1.25 times | bold | `DiagramWindow::applyChartStyle` |
+| Heading of an exported chart | 1.25 times | bold | `DiagramWindow::figureImage` |
 | Section heading, table caption | 1.1 times | bold | `EditorLayout::sectionHeading` |
 | Case name | 14 px | 600 | `QLabel#caseNameLabel` |
 | Dock title, Open Case, run review values, group title in a dialog | body | 600 | style sheet |
@@ -37,24 +37,24 @@ Contrast ratios follow the WCAG formula for the pair named in the last column.
 | Token | Value | Role | Contrast |
 | --- | --- | --- | --- |
 | Text | `#24313a` | body text, headings, header text | 11.8:1 on window, 13.3:1 on field, 11.0:1 on band |
-| Secondary text | `#5b6871` | help, context lines, small titles | 5.1:1 on window, 4.7:1 on band |
+| Secondary text | `#5b6871` | help, context lines, small titles, the readout of a result window | 5.1:1 on window, 4.7:1 on band, 5.5:1 on surface |
 | Status text | `#3f4d56` | neutral status label | 7.2:1 on band |
 | Disabled text | `#64717a` | disabled controls and menu items | 4.3:1 on disabled fill, 4.5:1 on window |
-| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About | white on accent 7.4:1 |
+| Accent | `#315a70` | focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About, section headings of the panel of a result window | white on accent 7.4:1, 7.1:1 on surface |
 | Accent dark | `#26495c` | hover of the slider handle | white on it 9.6:1 |
-| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus | white on it 5.2:1, 5.2:1 on field, 3.4:1 on border |
+| Action | `#2e7491` | default button fill, focus border of push buttons, toolbar buttons, the header buttons of a result window, the Run details and Calculation details toggles, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus; the text of Clear in the panel of a result window | white on it 5.2:1, 5.2:1 on field, 5.0:1 on surface, 3.4:1 on border |
 | Action hover | `#296882` | default button under the pointer | white on it 6.2:1 |
 | Action pressed | `#23566c` | default button while pressed | white on it 8.0:1 |
 | Action focus | `#0b2430` | focus border of the default button and of the selected tab of a tab bar with the focus | 3.1:1 on action, 15:1 on surface |
 | Window | `#eef2f5` | main window and panel background | |
 | Surface | `#f8fafb` | toolbar, docks, menus, and a dialog with everything in it that is not a field | |
-| Band | `#e3eaee` | dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines | |
-| Field | `#ffffff` | inputs, buttons, tables | |
+| Band | `#e3eaee` | dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines, the rule under the header of a result window | |
+| Field | `#ffffff` | inputs, buttons, tables, the header of a result window | |
 | Alternate row | `#f4f7f9` | every second table row | |
 | Disabled fill | `#eceeec` | disabled and read-only fields, progress groove | |
 | Selected | `#d8e1e5` | selected menu item, chosen case, selected row of a list, table or tree without the focus | text 10.0:1 |
-| Border | `#c9d3db` | borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields | |
-| Control border | `#7b8b96` | border of push buttons, toolbar buttons and fields, and of the lists and tables of a dialog; slider groove | 3.5:1 on field, 3.4:1 on surface, 3.1:1 on window |
+| Border | `#c9d3db` | borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields, the rules of the panel of a result window and its left edge | |
+| Control border | `#7b8b96` | border of push buttons, toolbar buttons, the header buttons of a result window and fields, and of the lists and tables of a dialog; slider groove | 3.5:1 on field, 3.4:1 on surface, 3.1:1 on window |
 | Control hover | `#5b6871` | border of a push button, toolbar button or field under the pointer; the secondary text colour | 5.7:1 on field, 5.5:1 on surface |
 | Warning | `#f5eadc`, border `#d8b98e`, text `#74451c` | warning status label | 6.8:1 |
 | Error | `#f7e8e6`, border `#c98f88`, text `#81352d` | error status label | 7.1:1 |
@@ -96,11 +96,12 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 - **Default button:** the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.
 - **Footer buttons:** the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.
 - **Links:** the links of About EGTRAIN are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.
+- **Result windows:** a diagram window is a `ResultFrame`. A white header with a band rule below it lies over the chart, with the context in secondary text and icon buttons that have the face, border, radius and states of a push button, also while the panel button is checked. The panel at the right has the surface colour, a border rule at its left edge and between its sections, section headings in the accent colour, and the readout in secondary text. Clear of the selected train is action-coloured text without a face. The icons `zoom-out.svg`, `zoom-in.svg`, `fit.svg` and `panel.svg` are 16 px; without them, as in the unit tests, a header button shows its name.
 
 ## Exceptions
 
 - **Network canvas and railway notation:** drawn in code with their own colours and sizes, described in the [network renderer style map](renderer-style-map.md). Canvas text uses a default `QFont`, not the sheet.
-- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the title, brushes and pens are set (`DiagramWindow::applyChartStyle`). The legend of line kinds below the plot uses the window font.
+- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (`DiagramWindow::applyChartStyle`). A chart has no title, since the window title names it. The legend of line kinds below the plot uses the window font.
 - **Console:** fixed-pitch text `#dde3e5` on `#12191f`, 13.7:1.
 
 ## The #409 decision
