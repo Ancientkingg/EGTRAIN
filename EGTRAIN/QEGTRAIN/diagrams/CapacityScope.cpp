@@ -259,7 +259,7 @@ QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnal
 	if (scope.blockIds.empty())
 		return {};
 	const auto block = [&data, &scope](std::size_t index) {
-		const QString label = QString::fromStdString(data.sectionLabels.label(scope.blockIds[index]));
+		const QString label = QString::fromStdString(readableSectionLabel(scope.blockIds[index], data.sectionLabels));
 		return numbered(scope) ? QString("%1: %2").arg(scope.sectionIndices[index] + 1).arg(label) : label;
 	};
 	if (scope.blockIds.size() == 1)
@@ -413,7 +413,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 				return QString("%1:%2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(section.blockIds[index]));
 			};
 			const auto label = [&run, &section](std::size_t index) {
-				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(run.sectionLabels.label(section.blockIds[index])));
+				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(readableSectionLabel(section.blockIds[index], run.sectionLabels)));
 			};
 			const QString text = count == 1 ? QString("%1 (1 block)").arg(label(0))
 											: QString("%1 through %2 (%3 blocks)").arg(label(0), label(count - 1)).arg(count);

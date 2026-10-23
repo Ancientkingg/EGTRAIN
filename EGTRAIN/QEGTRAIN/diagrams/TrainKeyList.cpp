@@ -126,6 +126,8 @@ TrainKeyList::TrainKeyList(QWidget* parent)
 	searchLayout->addWidget(m_search, 1);
 	searchLayout->addWidget(m_all);
 	searchLayout->addWidget(m_none);
+	// Without the search field All and None keep their own width at the left; the search field takes the room first.
+	searchLayout->addStretch(0);
 	m_searchRow->hide();
 
 	m_tree = new TrainTree(this);
@@ -351,8 +353,9 @@ bool TrainKeyList::eventFilter(QObject* watched, QEvent* event) {
 		if (event->type() == QEvent::Enter) {
 			m_hovered = true;
 		} else if (event->type() == QEvent::Leave || event->type() == QEvent::Hide) {
+			// A click on a row gives the list the focus, which keeps it after the pointer has left, so the rows move then.
 			m_hovered = false;
-			if (m_sortPending && !m_tree->hasFocus()) sortRows();
+			if (m_sortPending) sortRows();
 		}
 	} else if (m_tree && watched == m_tree && event->type() == QEvent::FocusOut) {
 		if (m_sortPending && !m_hovered) sortRows();

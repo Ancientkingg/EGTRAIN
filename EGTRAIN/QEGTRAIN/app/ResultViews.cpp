@@ -14,6 +14,7 @@
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
@@ -72,10 +73,10 @@ void appendInspectedPoint(QLineSeries* series, double x, double y, const QString
 	series->setProperty("inspectionPoints", points);
 }
 
-// "Approach from 10 s, run 12 to 30 s, clearance to 33 s" and "Setup 2 s, sight and reaction 9 s, release 1 s, run
-// margin 0 s" for the hover of a block, without the parts that are not available. The times line starts with
-// timesPrefix, for the blocks of a compressed chart whose times are not moved with the block.
-QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, const QString& timesPrefix) {
+// "Approach from 10 s", "Run 12 to 30 s", "Clearance to 33 s", "Setup 2 s", "Sight and reaction 9 s", "Release 1 s" and
+// "Run margin 0 s" for the hover of a block, one per line, without the parts that are not available. In a compressed
+// chart, whose blocks move and whose times do not, each time starts with "Simulated".
+QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, bool compressed) {
 	const auto known = [](double value) { return value >= 0; };
 	const auto seconds = [](double value) { return QString::number(value); };
 	QStringList times;
@@ -87,14 +88,12 @@ QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, co
 	else if (known(segment.endRunTime))
 		times << "run to " + seconds(segment.endRunTime) + " s";
 	if (known(segment.endClearTime)) times << "clearance to " + seconds(segment.endClearTime) + " s";
-	QStringList durations;
+	QStringList lines;
+	for (const QString& time : times) lines << (compressed ? "Simulated " + time : time);
 	const std::pair<double, const char*> parts[] = {{segment.setupTime, "setup"}, {segment.sightReactionTime, "sight and reaction"},
 		{segment.releaseTime, "release"}, {segment.runTimeMargin, "run margin"}};
 	for (const auto& part : parts)
-		if (known(part.first)) durations << QString("%1 %2 s").arg(part.second, seconds(part.first));
-	QStringList lines;
-	if (!times.isEmpty()) lines << timesPrefix + times.join(", ");
-	if (!durations.isEmpty()) lines << durations.join(", ");
+		if (known(part.first)) lines << QString("%1 %2 s").arg(part.second, seconds(part.first));
 	for (QString& line : lines) line[0] = line[0].toUpper();
 	return lines;
 }
@@ -116,6 +115,19 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		if (segment.style == BlockingTimeSegmentStyle::Default)
 			return std::string();
 		return std::string(blockingSegmentTypeName(segment.style));
+	};
+	// The same type in the hover, such as "Conflict at a station"; empty for an ordinary block.
+	const auto kindText = [useCapacityCriticalStyle](const BlockingTimeDiagramSegment& segment) {
+		if (useCapacityCriticalStyle && segment.capacityCritical) return QStringLiteral("Critical block");
+		switch (segment.style) {
+			case BlockingTimeSegmentStyle::Station: return QStringLiteral("Station block");
+			case BlockingTimeSegmentStyle::Switch: return QStringLiteral("Switch block");
+			case BlockingTimeSegmentStyle::SwitchStation: return QStringLiteral("Switch block at a station");
+			case BlockingTimeSegmentStyle::Critical: return QStringLiteral("Conflict");
+			case BlockingTimeSegmentStyle::CriticalStation: return QStringLiteral("Conflict at a station");
+			case BlockingTimeSegmentStyle::Default: break;
+		}
+		return QString();
 	};
 	std::map<std::string, bool> legendEntries;
 	for (const BlockingTimeDiagramSegment& segment : segments) {
@@ -146,21 +158,25 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			chart->addSeries(fill);
 			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
 		}
-		// The block, when it was blocked, how that time is made up and the section of the reference route, one per line.
-		QStringList lines = {"Block: " + QString::fromStdString(labels.labelWithId(segment.blockId))
-			+ (type.empty() ? QString() : ", " + QString::fromStdString(type))};
+		// The train on the block by its short id, as the section strip names it, then one fact per line: the kind, the label
+		// of the block, where and when it was blocked, how that time is made up and the section of the reference route.
+		const QString blockText = QString::fromStdString(shortBlockId(segment.blockId));
+		outline->setProperty("inspectionTitle", name + " on " + blockText);
+		QStringList lines;
+		if (const QString kind = kindText(segment); !kind.isEmpty()) lines << kind;
+		if (const QString label = QString::fromStdString(readableSectionLabel(segment.blockId, labels)); label != blockText) lines << label;
 		// The geo X of the block's own ends, also where they stick out of the sections of the chart.
 		if (!scale.empty())
 			lines << QString("Position %1 to %2 km")
 						 .arg(scale.geoAt(segment.startPositionKm, segment.endPositionKm), 0, 'f', 3)
 						 .arg(scale.geoAt(segment.endPositionKm, segment.startPositionKm), 0, 'f', 3);
-		QString blocked = QString("Blocked %1 to %2 s").arg(QString::number(segment.startTime), QString::number(segment.endTime));
+		lines << QString("Blocked %1 to %2 s").arg(QString::number(segment.startTime), QString::number(segment.endTime));
 		if (std::abs(segment.originalStartTime - segment.startTime) > kBlockingTimeToleranceSeconds
 			|| std::abs(segment.originalEndTime - segment.endTime) > kBlockingTimeToleranceSeconds)
-			blocked += QString(useCapacityCriticalStyle ? " (as simulated: %1 to %2 s)" : " (whole: %1 to %2 s)")
-						   .arg(QString::number(segment.originalStartTime), QString::number(segment.originalEndTime));
-		lines << blocked << blockingComponentLines(segment, useCapacityCriticalStyle ? QStringLiteral("as simulated: ") : QString());
-		if (!segment.referenceNote.empty()) lines << QString::fromStdString(segment.referenceNote);
+			lines << QString(useCapacityCriticalStyle ? "Simulated %1 to %2 s" : "Whole %1 to %2 s")
+						 .arg(QString::number(segment.originalStartTime), QString::number(segment.originalEndTime));
+		lines << blockingComponentLines(segment, useCapacityCriticalStyle);
+		if (!segment.referenceNote.empty()) lines << QString::fromStdString(segment.referenceNote).split('\n');
 		outline->setProperty("inspectionInterval", lines.join('\n'));
 		outline->append(left, segment.startTime);
 		outline->append(right, segment.startTime);
@@ -196,6 +212,8 @@ QStringList blockingTimeTrainIds(const std::vector<BlockingTimeDiagramSegment>& 
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
 	const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(parent);
 	const std::string content = provider();
 	if (content.empty()) {
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
@@ -397,6 +415,9 @@ void ResultViews::showDelayDiagram() {
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(trainServicesForRun(run->results));
 	win->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv");
+	win->setFigureFileName(QStringLiteral("delays.png"));
+	// A run whose timetable has no planned arrivals, as Netherlands, has no arrival delay to draw.
+	win->setEmptyText(QStringLiteral("No arrival delays in this run"));
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(false, run->settings.startOffsetSeconds);
@@ -476,8 +497,8 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	QCategoryAxis* stationAxis = nullptr;
 	std::vector<StationTick> stationTicks;
 	if (!stationLabels.empty()) {
+		// The station names say what the axis is, so it has no title.
 		stationAxis = new QCategoryAxis();
-		stationAxis->setTitleText("Stations");
 		stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
 		auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
 		stationAxis->setStartValue(distanceAxis->min() - 1);
@@ -709,10 +730,12 @@ void ResultViews::showCapacityAnalysis() {
 		const std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
 		if (!diagram)
 			return;
-		showBlockingTimeWindow(run, *diagram, true,
-			QString("%1, cycle %2 to %3")
-				.arg(sectionText, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity)),
-			sectionTip);
+		// The header has the key figures of the Capacity window; the tooltip names the trains of the cycle.
+		showBlockingTimeWindow(run, *diagram, true, sectionText + QStringLiteral(" \u00b7 ") + capacityCycleText(result),
+			QStringList({QString("Cycle from %1 to %2").arg(QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity)),
+							sectionTip})
+				.join('\n')
+				.trimmed());
 	});
 	showWindow(dialog);
 }

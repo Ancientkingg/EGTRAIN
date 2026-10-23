@@ -16,7 +16,8 @@ class QPaintEvent;
 struct DiagramKeyEntry {
 	/// How the sample of the kind is drawn.
 	enum class Shape {
-		Line,	///< A short horizontal line in the pen, with a dot in its middle when `marker` is set
+		Line,	///< A short horizontal line in the pen, with a dot in its middle when `marker` is set, filled with the brush, or
+				///< white without one, as an open circle
 		Box,	///< A box filled with the brush and outlined with the pen
 		Marker, ///< A dot filled with the brush and outlined with the pen
 		Tick,	///< A short vertical line in the pen, such as a boundary or a dwell

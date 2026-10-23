@@ -5,6 +5,7 @@
 #include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
+#include "widgets/DialogLayout.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
@@ -106,7 +107,31 @@ bool isPlannedSeries(const QAbstractSeries* series) {
 	return series->property("planned").toBool() || series->name().contains("planned", Qt::CaseInsensitive);
 }
 
+// The planned points of a series are open circles, as wide as this, in the colour of its pen on white.
+constexpr double kPlannedMarkerSize = 7;
+
+// The open circle that a planned series draws at its points: a ring of 1.4 px in the colour of `pen` around white, both
+// with the alpha of the pen, so that a faint line has faint circles. At two pixels per pixel, for a screen of two.
+QImage plannedMarker(const QPen& pen) {
+	constexpr qreal ratio = 2;
+	QImage image(QSize(qRound(kPlannedMarkerSize * ratio), qRound(kPlannedMarkerSize * ratio)), QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(ratio);
+	image.fill(Qt::transparent);
+	QPainter painter(&image);
+	painter.setRenderHint(QPainter::Antialiasing);
+	QColor fill(Qt::white);
+	fill.setAlpha(pen.color().alpha());
+	painter.setPen(QPen(pen.color(), 1.4));
+	painter.setBrush(fill);
+	painter.drawEllipse(QRectF(0.7, 0.7, kPlannedMarkerSize - 1.4, kPlannedMarkerSize - 1.4));
+	return image;
+}
+
 constexpr QMargins kChartMargins(12, 8, 12, 8);
+
+// Inside a box a click selects a line rather than the box only within this many pixels of the line: the half width of an
+// emphasised line of 3.5 px and room for the pointer. Further from the line the click is on the box.
+constexpr double kLineOverBox = 4;
 
 // Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
 // into at most eight steps, labelled with as many decimals as the step has.
@@ -170,9 +195,33 @@ constexpr double kStripMarkHeight = 3; // the bars of a station, a critical bloc
 constexpr double kStripGap = 4;		   // below the strip
 constexpr double kBreakMarkReach = 7;  // how near the pointer must be to a break mark for its hover
 
+// The layer under the series of a chart that `paint` draws in, inside the plot. QChart stacks its grid at 2, its axes at 3
+// and its series at 4.
+class UnderSeriesLayer : public QGraphicsObject {
+public:
+	UnderSeriesLayer(QChart* chart, QObject* owner, const QString& name, std::function<void(QPainter*)> paint)
+		: QGraphicsObject(chart), m_chart(chart), m_paint(std::move(paint)) {
+		QObject::setParent(owner);
+		setObjectName(name);
+		setAcceptedMouseButtons(Qt::NoButton);
+		setZValue(3.5);
+		connect(chart, &QChart::plotAreaChanged, this, [this] {
+			prepareGeometryChange();
+			update();
+		});
+	}
+	QRectF boundingRect() const override { return m_chart->plotArea(); }
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override { m_paint(painter); }
+
+private:
+	QChart* m_chart;
+	std::function<void(QPainter*)> m_paint;
+};
+
 // One chart-owned item, outside the train series/filter identity space. Geometry is mapped from the live distance axis,
 // which may be the position axis; font sizes and the strip stay in chart pixels. It draws the strip of the sections above
-// the plot, their boundaries in the plot and the break marks of the position axis on the bottom edge of the plot.
+// the plot and the break marks of the position axis on the bottom edge of the plot over the series, and the boundaries of
+// the sections in the plot under the series, in a layer of its own.
 class BlockSectionOverlay : public QGraphicsObject {
 public:
 	BlockSectionOverlay(QChart* chart, std::vector<BlockSectionExtent> sections, std::vector<BlockSectionMarks> marks,
@@ -197,9 +246,9 @@ public:
 		setAcceptedMouseButtons(Qt::NoButton);
 		setZValue(100);
 		setProperty("sectionCount", static_cast<int>(m_sections.size()));
-		m_notice = m_sections.empty() ? "No section boundaries for this route"
-									  : QString::fromStdString(blockSectionGeometryNote(m_sections, labels ? &m_labels : nullptr));
+		m_notice = m_sections.empty() ? "No section boundaries for this route" : QString::fromStdString(blockSectionGeometryNote(m_sections));
 		setProperty("geometryNotice", m_notice);
+		m_boundaries = new UnderSeriesLayer(chart, this, QStringLiteral("blockBoundaryLines"), [this](QPainter* painter) { paintBoundaries(painter); });
 		connect(chart, &QChart::plotAreaChanged, this, [this] {
 			prepareGeometryChange();
 			m_bounds = m_chart->boundingRect();
@@ -218,19 +267,24 @@ public:
 				// Time-axis replacement changes chart layout as well as ranges.
 				if (m_axes.contains(value)) continue;
 				m_axes.insert(value);
-				connect(value, &QValueAxis::rangeChanged, this, [this] { update(); });
-				connect(value, &QAbstractAxis::reverseChanged, this, [this] { update(); });
+				connect(value, &QValueAxis::rangeChanged, this, [this] { refresh(); });
+				connect(value, &QAbstractAxis::reverseChanged, this, [this] { refresh(); });
 				connect(value, &QObject::destroyed, this, [this, value] { m_axes.remove(value); });
 			}
 		}
+		refresh();
+	}
+	// Paints the strip and the layer of the boundaries again.
+	void refresh() {
 		update();
+		m_boundaries->update();
 	}
 	// The range of the distance axis at the full view of the chart, which decides the rows of the strip.
 	void setFullRange(double low, double high) {
 		m_fullLow = low;
 		m_fullHigh = high;
 		chooseRows();
-		update();
+		refresh();
 	}
 	// The jumps of the position axis, each drawn as a break mark; none without a position axis.
 	void setJumps(std::vector<PositionScale::Jump> jumps) {
@@ -299,24 +353,31 @@ public:
 			details << m_notice;
 			for (const auto& section : m_sections)
 				if (!section.geometryValid)
-					details << QString("%1%2: not drawn, %3").arg(section.order).arg(sectionText(section), QString::fromStdString(section.issue));
+					details << QString("Section %1, %2: %3").arg(section.order).arg(shortId(section), QString::fromStdString(section.issue));
 		}
 		return details.join('\n');
+	}
+	// The dotted boundaries of the sections in the plot, under the series.
+	void paintBoundaries(QPainter* painter) const {
+		const QRectF plot = m_chart->plotArea();
+		const auto* axis = distanceAxis();
+		if (!axis) return;
+		painter->save();
+		painter->setClipRect(plot);
+		painter->setPen(boundaryPen());
+		for (const auto& section : m_sections) {
+			if (!section.geometryValid) continue;
+			for (double position : {section.startKm, section.endKm}) {
+				const double x = pixelX(position, axis);
+				painter->drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()));
+			}
+		}
+		painter->restore();
 	}
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
 		const QRectF plot = m_chart->plotArea();
 		const auto* axis = distanceAxis();
 		painter->save();
-		painter->setClipRect(plot);
-		painter->setPen(boundaryPen());
-		if (axis)
-			for (const auto& section : m_sections) {
-				if (!section.geometryValid) continue;
-				for (double position : {section.startKm, section.endKm}) {
-					const double x = pixelX(position, axis);
-					painter->drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()));
-				}
-			}
 		const QRectF header = headerRect();
 		painter->setClipRect(header);
 		painter->fillRect(header, m_palette.brush(QPalette::Base));
@@ -388,22 +449,15 @@ private:
 		QString text;
 		bool strong; // a critical or conflict section, drawn in bold
 	};
-	// What follows the order number of a section in the notice: ": label (id)", or ":id" without labels.
-	QString sectionText(const BlockSectionExtent& section) const {
-		if (m_labels.byReference.empty())
-			return ":" + QString::fromStdString(section.id);
-		return ": " + QString::fromStdString(m_labels.labelWithId(section.id));
-	}
 	// The dotted line of a section boundary in the plot.
 	QPen boundaryPen() const {
 		QColor stroke = m_palette.color(QPalette::Text);
 		stroke.setAlpha(100);
 		return QPen(stroke, 1, Qt::DotLine);
 	}
-	// The short id that the strip shows, or the whole id when it has no short form.
+	// The short id that the strip shows.
 	static QString shortId(const BlockSectionExtent& section) {
-		const std::string text = shortBlockId(section.id);
-		return QString::fromStdString(text.empty() ? section.id : text);
+		return QString::fromStdString(shortBlockId(section.id));
 	}
 	// The hover of a section, one fact per line: the id, the label, the kind, the marks, its place in the route, the geo
 	// extent and the route distance.
@@ -412,8 +466,9 @@ private:
 		const BlockSectionMarks& marks = m_marks[index];
 		const QString id = shortId(section);
 		QStringList lines{id};
-		// A section without a label of its own gets none: label() gives its id back.
-		if (const std::string label = m_labels.label(section.id); !label.empty() && label != section.id) lines << QString::fromStdString(label);
+		// A section without a label of its own gets none.
+		if (const std::string label = readableSectionLabel(section.id, m_labels); !label.empty() && label != id.toStdString())
+			lines << QString::fromStdString(label);
 		lines << (section.isSwitch && marks.station ? QStringLiteral("Switch section at a station")
 				: section.isSwitch					? QStringLiteral("Switch section")
 				: marks.station						? QStringLiteral("Station section")
@@ -422,7 +477,7 @@ private:
 		if (marks.conflict) lines << QStringLiteral("Conflict");
 		lines << QString("Section %1 of %2").arg(section.order).arg(m_routeSectionCount);
 		lines << QString("Position %1 to %2 km").arg(section.geoStartKm, 0, 'f', 3).arg(section.geoEndKm, 0, 'f', 3);
-		lines << QString("%1 to %2 km along %3").arg(section.startKm, 0, 'g', 12).arg(section.endKm, 0, 'g', 12).arg(m_route);
+		lines << QString("%1 to %2 km along %3").arg(section.startKm, 0, 'f', 3).arg(section.endKm, 0, 'f', 3).arg(m_route);
 		return lines.join('\n');
 	}
 	QRectF headerRect() const {
@@ -548,6 +603,7 @@ private:
 	QSizeF m_rowsChartSize; ///< The size of the chart when the rows were chosen
 	std::vector<PositionScale::Jump> m_jumps;
 	std::function<void()> m_rowsChanged;
+	UnderSeriesLayer* m_boundaries = nullptr; ///< A child of the overlay
 };
 
 // The window header cannot name the file-local overlay type, so it keeps the item as a QGraphicsObject.
@@ -591,6 +647,38 @@ public:
 private:
 	QChart* m_chart;
 	QPointer<QXYSeries> m_series;
+};
+
+// The line that a chart without series shows in the middle of its plot, such as "No arrival delays in this run". Its text
+// is in the dynamic property "text", for the tests.
+class EmptyChartNote : public QGraphicsObject {
+public:
+	EmptyChartNote(QChart* chart, const QString& text, const QFont& font, const QColor& colour)
+		: QGraphicsObject(chart), m_chart(chart), m_text(text), m_font(font), m_colour(colour) {
+		QObject::setParent(chart);
+		setObjectName("diagramEmptyNote");
+		setProperty("text", text);
+		setAcceptedMouseButtons(Qt::NoButton);
+		setZValue(100);
+		connect(chart, &QChart::plotAreaChanged, this, [this] {
+			prepareGeometryChange();
+			update();
+		});
+	}
+	QRectF boundingRect() const override { return m_chart->plotArea(); }
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
+		painter->save();
+		painter->setFont(m_font);
+		painter->setPen(m_colour);
+		painter->drawText(m_chart->plotArea(), Qt::AlignCenter, m_text);
+		painter->restore();
+	}
+
+private:
+	QChart* m_chart;
+	QString m_text;
+	QFont m_font;
+	QColor m_colour;
 };
 
 // The order of the kinds in the Key; a kind that is not listed comes after these, in the order of the series.
@@ -810,17 +898,23 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 		"Show the whole chart (Home or 0)\nScroll or the arrow keys to pan");
 	connect(fit, &QToolButton::clicked, this, &DiagramWindow::resetZoom);
 
-	m_warningLabel = new QLabel(this);
+	// A warning, such as a curve cut off at 0 kN, has the look of a warning of the table windows, inside the margins of
+	// the main area.
+	m_warningArea = new QWidget(this);
+	m_warningArea->setObjectName("diagramWarningArea");
+	auto* warningLayout = new QVBoxLayout(m_warningArea);
+	warningLayout->setContentsMargins(16, 8, 12, 0);
+	m_warningLabel = new QLabel(m_warningArea);
 	m_warningLabel->setObjectName("diagramWarning");
-	m_warningLabel->setTextFormat(Qt::PlainText);
-	m_warningLabel->setWordWrap(true);
 	m_warningLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	m_warningLabel->setContentsMargins(16, 8, 16, 0);
-	QSizePolicy warningPolicy(QSizePolicy::Ignored, QSizePolicy::Minimum);
+	warningLayout->addWidget(m_warningLabel);
+	DialogLayout::setStatus(m_warningLabel, DialogLayout::Severity::Warning, QString());
+	QSizePolicy warningPolicy = m_warningLabel->sizePolicy();
+	warningPolicy.setVerticalPolicy(QSizePolicy::Minimum);
 	warningPolicy.setHeightForWidth(true);
 	m_warningLabel->setSizePolicy(warningPolicy);
-	m_warningLabel->hide();
-	m_frame->addAboveMain(m_warningLabel);
+	m_warningArea->hide();
+	m_frame->addAboveMain(m_warningArea);
 
 	// The panel: the trains, the key, the selected item, the exports and the readout.
 	ResultPanel* panel = m_frame->panel();
@@ -903,16 +997,40 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
 	const QString& warning, const QString& contextToolTip) {
 	setWindowTitle(heading);
-	m_warningLabel->setText(warning);
-	m_warningLabel->setVisible(!warning.isEmpty());
+	DialogLayout::setStatus(m_warningLabel, DialogLayout::Severity::Warning, warning);
+	m_warningArea->setVisible(!warning.isEmpty());
 	m_frame->setContext(context, contextToolTip);
+}
+
+void DiagramWindow::setEmptyText(const QString& text) {
+	m_emptyText = text;
+	refreshEmptyNote();
+}
+
+// The note of an empty chart is shown while the chart has no series.
+void DiagramWindow::refreshEmptyNote() {
+	delete m_emptyNote.data();
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!chart || !chart->series().isEmpty() || m_emptyText.isEmpty()) return;
+	QColor colour = palette().color(QPalette::WindowText);
+	colour.setAlpha(170);
+	m_emptyNote = new EmptyChartNote(chart, m_emptyText, font(), colour);
+}
+
+void DiagramWindow::setFigureFileName(const QString& fileName) {
+	m_figureFileName = fileName;
 }
 
 void DiagramWindow::setRollingStockSubject(bool on) {
 	m_rollingStockSubject = on;
-	m_frame->panel()->setSectionVisible(m_trainsSection, !on);
+	refreshTrainsSection();
 	refreshSelected();
 	refreshKey();
+}
+
+// The Trains section is shown while the chart has trains, and never for rolling stock input.
+void DiagramWindow::refreshTrainsSection() {
+	if (m_trainsSection) m_frame->panel()->setSectionVisible(m_trainsSection, !m_rollingStockSubject && !m_groups.isEmpty());
 }
 
 // The kinds of mark that the shown series draw, as the class comment describes them, and those of the section strip.
@@ -946,9 +1064,16 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		const QVariant keyKind = one->property("keyKind");
 		QString name = keyKind.isValid() ? keyKind.toString() : one->property("layer").toString();
 		if (!keyKind.isValid() && name.isEmpty()) name = isPlannedSeries(one) ? QStringLiteral("planned") : QStringLiteral("simulated");
+		// The points of a planned series are open circles, as the chart draws them, and those of another series dots.
+		const bool planned = isPlannedSeries(one);
 		const QString marker = xy->pointsVisible() ? one->property("keyMarker").toString() : QString();
-		if (!marker.isEmpty() && entryNamed(marker) == entries.end())
-			entries.push_back({marker, DiagramKeyEntry::Shape::Marker, QPen(text, 1.5), QBrush(Qt::white)});
+		if (!marker.isEmpty()) {
+			const auto known = entryNamed(marker);
+			if (known == entries.end())
+				entries.push_back({marker, DiagramKeyEntry::Shape::Marker, QPen(text, 1.5), planned ? QBrush(Qt::white) : QBrush(text)});
+			else if (!planned)
+				known->brush = QBrush(text); // a kind with dots draws as a dot, also when its first series is planned
+		}
 		if (name.isEmpty()) continue;
 		name[0] = name[0].toUpper();
 		const QPen pen = m_basePens.value(one, xy->pen());
@@ -964,7 +1089,9 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 			// The colour of a line belongs to its train, so the sample takes the text colour.
 			entry.shape = one->property("keyUpright").toBool() ? DiagramKeyEntry::Shape::Tick : DiagramKeyEntry::Shape::Line;
 			entry.pen = QPen(text, pen.widthF(), pen.style());
-			entry.marker = xy->pointsVisible() && marker.isEmpty();
+			// A planned line shows its points as open circles, also those that the Key names as a kind of their own.
+			entry.marker = xy->pointsVisible() && (marker.isEmpty() || planned);
+			if (entry.marker && !planned) entry.brush = QBrush(text);
 		}
 		const auto known = entryNamed(name);
 		if (known == entries.end())
@@ -1058,8 +1185,9 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_clockAxis = nullptr;
 	m_stationAxis = nullptr;
 	m_stations.clear();
-	// A new chart ends the selection; the old chart deletes the outline.
+	// A new chart ends the selection; the old chart deletes the outline and the note of an empty chart.
 	m_selectionOutline = nullptr;
+	m_emptyNote = nullptr;
 	m_selectedBox = nullptr;
 	m_pinnedTrainId.clear();
 	m_selectedLines.clear();
@@ -1105,6 +1233,7 @@ void DiagramWindow::setChart(QChart* chart) {
 			if (auto* value = qobject_cast<QValueAxis*>(axis)) m_fullBounds.insert(axis, {value->min(), value->max()});
 	}
 	applyTimeAxis();
+	refreshEmptyNote();
 }
 
 void DiagramWindow::setTimeAxisX(bool on, long long startOffsetSeconds) {
@@ -1273,6 +1402,13 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 			if (pen.widthF() < 2.0 && !series->property("inspectionFilled").toBool()) {
 				pen.setWidthF(2.0);
 				xy->setPen(pen);
+			}
+			// The points of a planned series are open circles in the colour of its pen, which the colour rule and the
+			// emphasis change.
+			if (isPlannedSeries(series) && xy->pointsVisible()) {
+				xy->setMarkerSize(kPlannedMarkerSize);
+				xy->setLightMarker(plannedMarker(pen));
+				connect(xy, &QXYSeries::penChanged, xy, [xy](const QPen& changed) { xy->setLightMarker(plannedMarker(changed)); });
 			}
 		}
 	}
@@ -1501,6 +1637,7 @@ void DiagramWindow::refreshTrainList() {
 	for (const SeriesGroup& group : m_groups)
 		trains.append({group.trainId, m_planColours.value(group.trainId), m_trainServices.value(group.trainId)});
 	m_trainList->setTrains(trains);
+	refreshTrainsSection();
 }
 
 void DiagramWindow::applyTrainVisibility() {
@@ -1532,10 +1669,29 @@ void DiagramWindow::select(const ChartHit& hit) {
 	delete m_selectionOutline.data();
 	if (m_selectedBox) m_selectionOutline = new SelectionOutline(chart, m_selectedBox);
 	if (m_trainList) m_trainList->setSelectedTrain(trainId);
+	raiseTrain(trainId);
 	refreshSelected();
 	// Among many trains in grey the selected train takes a colour.
 	applyColourPlan();
 	emit trainSelected(trainId);
+}
+
+// QChart draws its series in the order it has them, so the series of the train go to the end, with the axes they had.
+void DiagramWindow::raiseTrain(const QString& trainId) {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	const auto group = std::find_if(m_groups.cbegin(), m_groups.cend(), [&trainId](const SeriesGroup& one) { return one.trainId == trainId; });
+	if (!chart || group == m_groups.cend()) return;
+	const QList<QAbstractSeries*> series = chart->series();
+	if (series.size() >= group->members.size()
+		&& std::equal(group->members.cbegin(), group->members.cend(), series.cend() - group->members.size()))
+		return;
+	for (QAbstractSeries* member : group->members) {
+		if (!series.contains(member)) continue;
+		const QList<QAbstractAxis*> axes = member->attachedAxes();
+		chart->removeSeries(member);
+		chart->addSeries(member);
+		for (QAbstractAxis* axis : axes) member->attachAxis(axis);
+	}
 }
 
 void DiagramWindow::clearPin() {
@@ -1605,13 +1761,17 @@ QStringList DiagramWindow::sampleLines(const QPointF& value, const QString& seri
 		: vertical.isEmpty() || vertical.first()->titleText().isEmpty()	   ? QString("y")
 																		   : vertical.first()->titleText();
 	const bool positionX = m_positionAxis && !horizontal.isEmpty() && horizontal.first() == m_positionAxis.data();
+	// An axis with a readout name counts, such as the stops of the delays, so its values read as the numbers they are.
+	const auto counted = [](const QList<QAbstractAxis*>& axes) { return !axes.isEmpty() && !axes.first()->property("readoutName").toString().isEmpty(); };
 	const QString xText = m_timeAxis && m_timeOrientation == Qt::Horizontal
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.x()), m_startOffset))
-		: positionX ? QString::number(m_positionScale.geoAt(value.x()), 'f', 3)
-					: QString::number(value.x(), 'f', 2);
+		: positionX			  ? QString::number(m_positionScale.geoAt(value.x()), 'f', 3)
+		: counted(horizontal) ? QString::number(value.x(), 'g', 12)
+							  : QString::number(value.x(), 'f', 2);
 	const QString yText = m_timeAxis && m_timeOrientation == Qt::Vertical
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.y()), m_startOffset))
-		: QString::number(value.y(), 'f', 2);
+		: counted(vertical) ? QString::number(value.y(), 'g', 12)
+							: QString::number(value.y(), 'f', 2);
 	return {seriesName, QString("%1: %2").arg(xLabel, xText), QString("%1: %2").arg(yLabel, yText)};
 }
 
@@ -1707,11 +1867,9 @@ QImage DiagramWindow::figureImage(const FigureColumn& column) const {
 		? QRect()
 		: fontMetrics().boundingRect(textArea.adjusted(0, headingMetrics.height() + 4, 0, 0), Qt::TextWordWrap, context);
 	const int contextBottom = contextArea.isEmpty() ? margin + headingMetrics.height() : contextArea.bottom() + 1;
-	// The warning of the window, such as a curve cut off at 0 kN, goes with the figure under the context.
-	const QString warning = !m_warningLabel->isHidden() ? withBreakOpportunities(m_warningLabel->text()) : QString();
-	const QRect warningArea = warning.isEmpty()
-		? QRect()
-		: fontMetrics().boundingRect(QRect(margin, contextBottom + 4, textArea.width(), 100000), Qt::TextWordWrap, warning);
+	// The warning of the window, such as a curve cut off at 0 kN, goes with the figure under the context, with its look.
+	const bool warning = !m_warningArea->isHidden() && !m_warningLabel->text().isEmpty();
+	const QRect warningArea = warning ? QRect(QPoint(margin, contextBottom + 8), m_warningLabel->size()) : QRect();
 	const int top = (warningArea.isEmpty() ? contextBottom : warningArea.bottom() + 1) + margin / 2;
 
 	QImage image(QSize(width, top + chartSize.height()) * ratio, QImage::Format_ARGB32_Premultiplied);
@@ -1729,11 +1887,7 @@ QImage DiagramWindow::figureImage(const FigureColumn& column) const {
 		painter.setPen(m_contextLabel->palette().color(m_contextLabel->foregroundRole()));
 		painter.drawText(contextArea, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, context);
 	}
-	if (!warning.isEmpty()) {
-		painter.setFont(font());
-		painter.setPen(m_warningLabel->palette().color(m_warningLabel->foregroundRole()));
-		painter.drawText(warningArea, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
-	}
+	if (warning) m_warningLabel->render(&painter, warningArea.topLeft(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
 	// The scene of the chart, without the widgets over it, the rubber band and the tooltip, and without the outline of a
 	// selected blocking time.
 	const bool outline = m_selectionOutline && m_selectionOutline->isVisible();
@@ -1843,8 +1997,12 @@ void DiagramWindow::resetZoom() {
 }
 
 void DiagramWindow::exportPng() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("diagram.png") : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
+	const QString suggested = !m_figureFileName.isEmpty() ? m_figureFileName
+		: m_csvSuggestedName.isEmpty()					  ? QString("diagram.png")
+														  : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
 	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath(suggested), "PNG Image (*.png)");
 	if (path.isEmpty())
 		return; // cancelled: no file is written
@@ -1870,6 +2028,8 @@ void DiagramWindow::exportPng() {
 }
 
 void DiagramWindow::exportCsv() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
@@ -1904,8 +2064,9 @@ void DiagramWindow::clearTooltip() {
 }
 
 // What the chart shows at a point, without showing it: the hover of the section strip, the whole text of a shortened
-// axis title, the nearest sample of a shown line within 10 px, else the box that holds the point, else the hover of a
-// section boundary. A sample gives its values, a box its name and context lines only.
+// axis title, inside a box the nearest sample of a shown line within kLineOverBox px, else the box, outside the boxes the
+// nearest sample of a shown line within 10 px, else the hover of a section boundary. A sample gives its values, a box its
+// title, or else its name, and its context lines only.
 DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	ChartHit hit;
 	QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1927,6 +2088,11 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	QPointF sample;
 	int sampleIndex = -1;
 	double best = 10;
+	// The nearest sample of a line that is not the outline of a box, which inside a box wins only when it is this near.
+	QXYSeries* line = nullptr;
+	QPointF lineSample;
+	int lineIndex = -1;
+	double lineBest = kLineOverBox;
 	QXYSeries* filled = nullptr;
 	QPointF filledSample;
 	int filledIndex = -1;
@@ -1935,8 +2101,9 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
 		const auto points = xy->points();
+		const bool outline = xy->property("inspectionFilled").toBool();
 		bool inside = false;
-		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
+		if (outline && points.size() >= 4
 			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
 			QPolygonF polygon;
 			for (const auto& point : points) polygon.append(chart->mapToPosition(point, xy));
@@ -1962,6 +2129,12 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 					sample = points[i];
 					sampleIndex = i;
 				}
+				if (!outline && distance < lineBest) {
+					lineBest = distance;
+					line = xy;
+					lineSample = points[i];
+					lineIndex = i;
+				}
 			}
 			if (i == 0 || qobject_cast<QScatterSeries*>(xy)) continue;
 			const QPointF previous = chart->mapToPosition(points[i - 1], xy);
@@ -1971,20 +2144,26 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 			const double length2 = QPointF::dotProduct(delta, delta);
 			const double t = length2 > 0 ? std::clamp(QPointF::dotProduct(cursor - previous, delta) / length2, first, last) : first;
 			const double distance = QLineF(cursor, previous + t * delta).length();
+			const int nearest = t < 0.5 ? i - 1 : i;
 			if (distance < best) {
 				best = distance;
-				const int nearest = t < 0.5 ? i - 1 : i;
 				selected = xy;
 				sample = points[nearest];
 				sampleIndex = nearest;
 			}
+			if (!outline && distance < lineBest) {
+				lineBest = distance;
+				line = xy;
+				lineSample = points[nearest];
+				lineIndex = nearest;
+			}
 		}
 	}
-	if (!selected && filled) {
-		selected = filled;
-		sample = filledSample;
-		sampleIndex = filledIndex;
-		hit.inside = true;
+	if (filled) {
+		hit.inside = !line;
+		selected = line ? line : filled;
+		sample = line ? lineSample : filledSample;
+		sampleIndex = line ? lineIndex : filledIndex;
 	}
 	if (!selected) {
 		if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) {
@@ -1996,8 +2175,11 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	hit.series = selected;
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
+	// A box can name itself, such as "IC1723-2 on 12-B0", also near its outline.
+	const QString title = selected->property("inspectionTitle").toString();
+	if (!title.isEmpty()) identity = title;
 	// The corner of a box nearest the pointer says nothing about the box, so a box gives only its own lines.
-	hit.lines = hit.inside ? QStringList{identity} : sampleLines(sample, identity);
+	hit.lines = hit.inside || !title.isEmpty() ? QStringList{identity} : sampleLines(sample, identity);
 	const QStringList contexts = selected->property("inspectionPoints").toStringList();
 	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
 		hit.lines << contexts[sampleIndex].split('\n');
@@ -2070,6 +2252,9 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 		// A new size of the chart, as when the panel shows or hides, moves the plot from under the pointer.
 		clearTooltip();
 		m_readout->clear();
+	} else if (ev->type() == QEvent::Enter) {
+		// The pointer that comes into the plot reads its value at once, before it moves there.
+		updateCursorReadout(chartPosition(static_cast<QEnterEvent*>(ev)->position().toPoint()));
 	} else if (ev->type() == QEvent::MouseMove) {
 		auto* mouse = static_cast<QMouseEvent*>(ev);
 		updateCursorReadout(chartPosition(mouse->pos()));
@@ -2080,8 +2265,17 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 		clearTooltip();
 	} else if (ev->type() == QEvent::MouseButtonRelease) {
 		auto* mouse = static_cast<QMouseEvent*>(ev);
-		if (mouse->button() == Qt::LeftButton && (mouse->pos() - m_pressPosition).manhattanLength() < QApplication::startDragDistance())
+		if (mouse->button() == Qt::LeftButton && (mouse->pos() - m_pressPosition).manhattanLength() < QApplication::startDragDistance()) {
 			if (const ChartHit hit = inspectAt(mouse->pos()); hit.series) select(hit);
+		} else if (mouse->button() == Qt::LeftButton) {
+			// The chart view zooms into the dragged rectangle once it has the release, which changes the value under the pointer.
+			QMetaObject::invokeMethod(
+				this,
+				[this, position = mouse->pos()] {
+					if (m_view && m_view->chart()) updateCursorReadout(m_view->chart()->mapFromScene(m_view->mapToScene(position)));
+				},
+				Qt::QueuedConnection);
+		}
 	} else if (ev->type() == QEvent::Wheel) {
 		auto* wheel = static_cast<QWheelEvent*>(ev);
 		const QPoint pixels = wheel->pixelDelta();

@@ -92,10 +92,6 @@ static bool blockSectionTests() {
 	matchBlockingSegmentsToSections(same, route, "route0");
 	ok &= expect(same[0].referenceSection == 3 && same[0].referenceNote.empty(),
 		"same id and interval gives the section and no note, as the hover names the block");
-	SceneSectionLabels routeLabels;
-	routeLabels.byReference = {{"@2-B0@", "B0 4.000 to 6.000 km"}};
-	matchBlockingSegmentsToSections(same, route, "route0", &routeLabels);
-	ok &= expect(same[0].referenceSection == 3 && same[0].referenceNote.empty(), "with labels the same section has no note either");
 
 	std::vector<BlockingTimeDiagramSegment> opposite = {envelope("@1-B0@", 4.0, 2.0)};
 	matchBlockingSegmentsToSections(opposite, route, "route0");
@@ -124,23 +120,16 @@ static bool blockSectionTests() {
 	std::vector<BlockingTimeDiagramSegment> overlapping = {envelope("@x@", 0.5, 1.5), envelope("@x@", 5.5, 8.0)};
 	matchBlockingSegmentsToSections(overlapping, twice, "route0");
 	ok &= expect(overlapping[0].referenceSection == 1
-			&& overlapping[0].referenceNote == "Section 1 of 2: @x@" && overlapping[1].referenceSection == 2
-			&& overlapping[1].referenceNote == "Section 2 of 2: @x@",
+			&& overlapping[0].referenceNote == "Section 1 of 2: x" && overlapping[1].referenceSection == 2
+			&& overlapping[1].referenceNote == "Section 2 of 2: x",
 		"an envelope of the same id between the intervals shares a block with the first section it overlaps");
 
 	const auto duplicated = buildBlockSectionExtents({{"@d@", 0.0, 1.0}, {"@d@", 0.0, 1.0}});
 	std::vector<BlockingTimeDiagramSegment> first = {envelope("@d@", 0.0, 1.0)};
 	matchBlockingSegmentsToSections(first, duplicated, "route0");
-	ok &= expect(first[0].referenceSection == 0 && first[0].referenceNote == "Matches several sections of route0: 1:@d@, 2:@d@"
-			&& duplicated.size() == 2,
-		"coincident occurrences are retained but cannot identify one envelope occurrence");
-	SceneSectionLabels switchLabels;
-	switchLabels.byReference = {{"@d@", "D 0.000 to 0.500, E 2.000 to 2.500 km"}};
-	matchBlockingSegmentsToSections(first, duplicated, "route0", &switchLabels);
-	ok &= expect(first[0].referenceNote
-			== "Matches several sections of route0: 1: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@); "
-			   "2: D 0.000 to 0.500, E 2.000 to 2.500 km (@d@)",
-		"with labels the ambiguous sections are named by label and id, apart by semicolons");
+	ok &= expect(first[0].referenceSection == 0
+			&& first[0].referenceNote == "Matches several sections of route0\nSection 1 of 2: d\nSection 2 of 2: d" && duplicated.size() == 2,
+		"coincident occurrences are retained but cannot identify one envelope occurrence, and the note names them one per line");
 	std::vector<BlockingTimeDiagramSegment> sharedMany = {envelope("@d@", 0.2, 0.8)};
 	matchBlockingSegmentsToSections(sharedMany, duplicated, "route0");
 	ok &= expect(sharedMany[0].referenceSection == 0 && sharedMany[0].referenceNote.find("Matches several sections") == 0,
@@ -155,7 +144,7 @@ static bool blockSectionTests() {
 	std::vector<BlockingTimeDiagramSegment> plain = {envelope("@34-B88@", 10.0, 10.5)};
 	matchBlockingSegmentsToSections(plain, composite, "route32");
 	ok &= expect(plain[0].referenceSection == 1
-			&& plain[0].referenceNote == "Section 1 of 1: @3-B157@-59.120000/@34-B88@-59.130000",
+			&& plain[0].referenceNote == "Section 1 of 1: 3-B157/34-B88",
 		"a plain id matches the composite section that holds its block");
 	std::vector<BlockingTimeDiagramSegment> apart = {envelope("@34-B88@", 11.0, 12.0)};
 	matchBlockingSegmentsToSections(apart, composite, "route32");
@@ -223,19 +212,15 @@ static bool blockSectionTests() {
 	};
 	ok &= expect(blockSectionGeometryNote(sections(4, 0)).empty() && blockSectionGeometryNote({}).empty(),
 		"usable extents give no note");
-	ok &= expect(blockSectionGeometryNote(sections(4, 1)) == "Sections not drawn (no valid length): @s0@",
-		"one section without geometry is named");
-	ok &= expect(blockSectionGeometryNote(sections(4, 3)) == "Sections not drawn (no valid length): @s0@, @s1@, @s2@",
+	ok &= expect(blockSectionGeometryNote(sections(4, 1)) == "Sections not drawn (no valid length): s0",
+		"one section without geometry is named by its short id");
+	ok &= expect(blockSectionGeometryNote(sections(4, 3)) == "Sections not drawn (no valid length): s0, s1, s2",
 		"three sections without geometry are all named");
-	ok &= expect(blockSectionGeometryNote(sections(5, 4)) == "Sections not drawn (no valid length): @s0@, @s1@, @s2@ and 1 more",
+	ok &= expect(blockSectionGeometryNote(sections(5, 4)) == "Sections not drawn (no valid length): s0, s1, s2 and 1 more",
 		"more than three sections without geometry end with the number left out");
 	const auto mixed = buildBlockSectionExtents({{"@a@", 0.0, 1.0}, {"@b@", 1.0, 1.0}, {"@c@", 1.0, 2.0}, {"@d@", 2.0, nan}});
-	ok &= expect(blockSectionGeometryNote(mixed) == "Sections not drawn (no valid length): @b@, @d@",
+	ok &= expect(blockSectionGeometryNote(mixed) == "Sections not drawn (no valid length): b, d",
 		"the note lists the sections without geometry in route order and no others");
-	SceneSectionLabels mixedLabels;
-	mixedLabels.byReference = {{"@b@", "T 1.000 km"}};
-	ok &= expect(blockSectionGeometryNote(mixed, &mixedLabels) == "Sections not drawn (no valid length): T 1.000 km (@b@); @d@",
-		"with labels the note names the sections by label and id, apart by semicolons");
 
 	// The note above the chart has only the parts that apply, and no count of 0.
 	ok &= expect(blockingTimeNote(0, false, false, "route0").empty(), "nothing missing gives no note");
@@ -316,6 +301,14 @@ static bool blockSectionTests() {
 // The short ids of the section strip, and its station, critical and conflict marks.
 static bool stripTests() {
 	bool ok = true;
+	// A label for user text has no internal id: a shared label ends with the short id, and a block without a label is
+	// its short id.
+	SceneSectionLabels readable;
+	readable.byReference = {{"@12-B0@", "B0 24.000 to 26.000 km"}, {"@4-B13@-33.570000/@3-B14@-33.620000", "B13 33.570 km (@4-B13@-33.570000/@3-B14@-33.620000)"}};
+	ok &= expect(readableSectionLabel("@12-B0@", readable) == "B0 24.000 to 26.000 km"
+			&& readableSectionLabel("@4-B13@-33.570000/@3-B14@-33.620000", readable) == "B13 33.570 km (4-B13/3-B14)"
+			&& readableSectionLabel("@5-B11@", readable) == "5-B11",
+		"a readable label holds no internal id");
 	ok &= expect(shortBlockId("@71-B0@-21.235000/@0-B1@-21.252000") == "71-B0/0-B1" && shortBlockId("@35-B0@") == "35-B0"
 			&& shortBlockId("plain") == "plain" && shortBlockId("").empty(),
 		"the short id joins the blocks of a switch section with a slash and keeps a plain id");

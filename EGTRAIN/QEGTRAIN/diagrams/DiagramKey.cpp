@@ -61,7 +61,7 @@ void paintKeySample(QPainter& painter, const QRectF& area, const DiagramKeyEntry
 				outline.setStyle(Qt::SolidLine);
 				outline.setWidthF(std::min(outline.widthF(), 1.5));
 				painter.setPen(outline);
-				painter.setBrush(Qt::white);
+				painter.setBrush(entry.brush.style() == Qt::NoBrush ? QBrush(Qt::white) : entry.brush);
 				painter.drawEllipse(sample.center(), 3, 3);
 			}
 			break;

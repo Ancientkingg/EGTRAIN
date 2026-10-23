@@ -9,6 +9,10 @@
 
 class QPushButton;
 
+/// The key figures of a chain for a header, as the panel of CapacityWindow gives them: "cycle 3097.5 s, 86.0% of 1 h", or
+/// "cycle 3097.5 s" without a valid period.
+QString capacityCycleText(const CapacityAnalysisResult& result);
+
 /// The window of the capacity analysis of a chain of trains (diagrams/CapacityAnalysis.h). The pairs, the compression and
 /// the critical blocks lie in tabs at the left. A panel at the right holds the cycle, its share of the period and the
 /// critical block, the button that opens the compressed blocking time and the export. Not modal; the caller connects

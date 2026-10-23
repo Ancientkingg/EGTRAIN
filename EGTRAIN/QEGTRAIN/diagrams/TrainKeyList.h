@@ -23,10 +23,11 @@ class QTreeWidgetItem;
 /// checked while some of them are shown, and whose line sample has the colour that its shown trains share, or while
 /// none is shown the colour that all its trains share; other lists are flat. The selected train comes first and is
 /// highlighted, then the shown trains, then the hidden ones, and groups follow the same order; while the pointer is
-/// over the list or the list has the focus the rows keep their places, and they move once it leaves. Above 6 trains All
-/// and None show or hide the trains of the rows in the list, and above 12 a search field beside them narrows the rows;
-/// a group then counts and acts on its trains that the search shows, and Escape in the field clears it. The count of
-/// shown trains, such as "2 of 2", is a label that the panel puts on the heading row of the section.
+/// over the list the rows keep their places, and they move once it leaves, also when the list keeps the focus. A change
+/// made with the keyboard while the pointer is elsewhere moves them once the focus leaves. Above 6 trains All and None,
+/// at their own width, show or hide the trains of the rows in the list, and above 12 a search field beside them narrows
+/// the rows; a group then counts and acts on its trains that the search shows, and Escape in the field clears it. The
+/// count of shown trains, such as "2 of 2", is a label that the panel puts on the heading row of the section.
 class TrainKeyList : public QWidget {
 	Q_OBJECT
 public:
@@ -80,8 +81,8 @@ signals:
 	void visibilityChanged();
 
 protected:
-	/// Keeps the rows in place while the pointer is over the list or the list has the focus, and sorts them once both
-	/// have left. Escape in a search field with text clears it.
+	/// Keeps the rows in place while the pointer is over the list, and sorts them once it leaves; a change made while
+	/// only the focus is on the list waits until the focus leaves. Escape in a search field with text clears it.
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:

@@ -396,7 +396,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
 	result.routeSectionCount = static_cast<int>(allExtents.size());
-	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id, &data.sectionLabels);
+	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
 								  [&result](const auto& segment) { return !blockingSegmentInSections(segment, result.extents); }),
@@ -423,7 +423,7 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
 	diagram.routeSectionCount = static_cast<int>(allExtents.size());
-	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id, &data.sectionLabels);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
 	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
 	std::map<std::string, double> shifts;
 	for (const CapacityCompressionRow& row : result.compression)
@@ -447,8 +447,8 @@ std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evi
 	QStringList values;
 	for (const auto& item : evidence)
 		values << QString(labels ? "%1 / %2: leader offset %3 s, follower offset %4 s, headway %5 s" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
-						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
+					  .arg(QString::fromStdString(labels ? readableSectionLabel(item.leaderBlockId, *labels) : item.leaderBlockId),
+						  QString::fromStdString(labels ? readableSectionLabel(item.followerBlockId, *labels) : item.followerBlockId),
 						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
 						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
@@ -458,7 +458,7 @@ std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evi
 std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& evidence) {
 	QStringList values;
 	for (const auto& item : evidence)
-		values << QString::fromStdString(item.leaderBlockId + "/" + item.followerBlockId);
+		values << QString::fromStdString(shortBlockId(item.leaderBlockId) + " / " + shortBlockId(item.followerBlockId));
 	return values.join(", ").toStdString();
 }
 

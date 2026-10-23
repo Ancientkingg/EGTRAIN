@@ -429,6 +429,12 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				for (QAbstractAxis* axis : view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>())
 					if (axis->alignment() == Qt::AlignBottom) distance = qobject_cast<QValueAxis*>(axis);
 				ok &= distance && distance->titleText() == QStringLiteral("Distance (km)") && distance->min() == low && distance->max() == high;
+				// The station names above the plot say what that axis is, so it has no title.
+				for (QAbstractAxis* axis : view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>())
+					if (axis->alignment() == Qt::AlignTop && !axis->titleText().isEmpty()) {
+						std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_STATION_TITLE %s\n", axis->titleText().toStdString().c_str());
+						ok = false;
+					}
 				const auto* context = window->findChild<QLabel*>(QStringLiteral("diagramContext"));
 				ok &= context && (context->text().endsWith(route) || context->text().endsWith(route + QStringLiteral(", right to left")));
 				if (!ok)

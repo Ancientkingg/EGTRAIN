@@ -20,8 +20,8 @@
 
 namespace {
 
-// Numbers are aligned to the right, as in the other analysis tables. A cell that names blocks by their ids has their
-// labels as its tooltip.
+// Numbers are aligned to the right, as in the other analysis tables. A cell that names blocks by their short ids has
+// their labels as its tooltip.
 QTableWidgetItem* cell(const QString& text, bool number, const QString& tooltip = QString()) {
 	auto* item = new QTableWidgetItem(text);
 	if (number)
@@ -40,7 +40,18 @@ QString number(double value) {
 	return QString::fromStdString(csv::formatDouble(value));
 }
 
+// A block by its short id, as the section strip names it.
+QString blockText(const std::string& id) {
+	return QString::fromStdString(shortBlockId(id));
+}
+
 } // namespace
+
+QString capacityCycleText(const CapacityAnalysisResult& result) {
+	QString cycle = "cycle " + QString::number(result.cycleTime, 'f', 1) + " s";
+	if (result.cyclePercentage < 0.0 || !(result.periodSeconds > 0.0)) return cycle;
+	return cycle + ", " + QString::number(result.cyclePercentage, 'f', 1) + "% of " + capacityPeriodText(result.periodSeconds);
+}
 
 CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QString& context, const QString& contextTip,
 	const SceneSectionLabels& labels, QWidget* parent)
@@ -111,9 +122,9 @@ CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QStri
 	for (int row = 0; row < criticalTable->rowCount(); ++row) {
 		const CapacityCriticalBlock& critical = result.criticalBlocks[static_cast<std::size_t>(row)];
 		const QStringList values = {QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
-			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId), number(critical.gap)};
-		const QStringList tips = {QString(), QString(), QString::fromStdString(labels.label(critical.leaderBlockId)),
-			QString::fromStdString(labels.label(critical.followerBlockId)), QString()};
+			blockText(critical.leaderBlockId), blockText(critical.followerBlockId), number(critical.gap)};
+		const QStringList tips = {QString(), QString(), QString::fromStdString(readableSectionLabel(critical.leaderBlockId, labels)),
+			QString::fromStdString(readableSectionLabel(critical.followerBlockId, labels)), QString()};
 		for (int column = 0; column < values.size(); ++column)
 			criticalTable->setItem(row, column, cell(values[column], column == 4, tips[column]));
 	}
@@ -141,7 +152,7 @@ CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QStri
 	auto* share = new ResultFigure("capacityShare", figures);
 	share->setFigure(QString::number(result.cyclePercentage, 'f', 1) + "%", "of " + capacityPeriodText(result.periodSeconds));
 	// The blocks of the leaders where two trains touch after the compression, each once, in the order of the tab, by their
-	// short ids as the section strip names them; the tooltip gives the whole id and the label.
+	// short ids as the section strip names them; the tooltip gives the label of each.
 	QStringList criticalIds;
 	QStringList criticalShortIds;
 	QStringList criticalTips;
@@ -150,9 +161,8 @@ CapacityWindow::CapacityWindow(const CapacityAnalysisResult& result, const QStri
 		if (criticalIds.contains(id))
 			continue;
 		criticalIds << id;
-		const std::string shortId = shortBlockId(critical.leaderBlockId);
-		criticalShortIds << QString::fromStdString(shortId.empty() ? critical.leaderBlockId : shortId);
-		criticalTips << id + ": " + QString::fromStdString(labels.label(critical.leaderBlockId));
+		criticalShortIds << blockText(critical.leaderBlockId);
+		criticalTips << criticalShortIds.last() + ": " + QString::fromStdString(readableSectionLabel(critical.leaderBlockId, labels));
 	}
 	auto* critical = new ResultFigure("capacityCriticalBlock", figures);
 	critical->setFigure(criticalShortIds.isEmpty() ? QStringLiteral("-") : criticalShortIds.join(", "),

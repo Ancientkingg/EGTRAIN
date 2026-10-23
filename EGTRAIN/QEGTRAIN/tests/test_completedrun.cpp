@@ -1520,8 +1520,8 @@ void checkLabelledChoosers(const CapturedRun& run) {
 	check(capacityEvidenceText(evidence, &data.sectionLabels)
 				== "B0 10.210 to 10.510 km / B0 0.000 to 0.230 km: leader offset 12 s, follower offset 2 s, headway 10 s"
 			&& capacityEvidenceText(evidence) == "@35-B0@/@0-B0@ (leader=12 s; follower=2 s; candidate=10 s)"
-			&& capacityEvidenceBlocks(evidence) == "@35-B0@/@0-B0@",
-		"Paimpol: the evidence names its blocks by labels in the tooltip, by ids in the table and with its figures in the export");
+			&& capacityEvidenceBlocks(evidence) == "35-B0 / 0-B0",
+		"Paimpol: the evidence names its blocks by labels in the tooltip, by short ids in the table and by ids with its figures in the export");
 	askCapacityScope(data, capacity, [routeIndex](QDialog& dialog) {
 		QComboBox* routes = dialog.findChildren<QComboBox*>().value(0);
 		const auto* blocks = dialog.findChild<QComboBox*>("capacityBlocks");

@@ -736,6 +736,8 @@ bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
 }
 
 void DelayAnalysisWindow::exportCsv() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggestedFileName()), "CSV File (*.csv)");
 	if (path.isEmpty())

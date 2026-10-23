@@ -30,14 +30,9 @@ bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
 }
 
-// A section in a note: its label and id, or its id without labels.
-std::string sectionName(const std::string& id, const SceneSectionLabels* labels) {
-	return labels ? labels->labelWithId(id) : id;
-}
-
-// The section of the reference route that shares a block with the envelope of another section.
-std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const SceneSectionLabels* labels) {
-	return "Section " + std::to_string(extent.order) + " of " + std::to_string(count) + ": " + sectionName(extent.id, labels);
+// A section of the reference route that shares a block with the envelope of another section.
+std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count) {
+	return "Section " + std::to_string(extent.order) + " of " + std::to_string(count) + ": " + shortBlockId(extent.id);
 }
 
 bool overlaps(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
@@ -78,6 +73,18 @@ std::string shortBlockId(const std::string& blockId) {
 	std::string text;
 	for (const std::string& token : comparableBlockTokens(blockId))
 		text += (text.empty() ? "" : "/") + token;
+	return text.empty() ? blockId : text;
+}
+
+std::string readableSectionLabel(const std::string& reference, const SceneSectionLabels& labels) {
+	std::string text = labels.label(reference);
+	if (text == reference) return shortBlockId(reference);
+	// A label that two sections share ends with the id of its section in round brackets.
+	const auto open = text.rfind(" (");
+	if (open != std::string::npos && text.back() == ')') {
+		const std::string id = text.substr(open + 2, text.size() - open - 3);
+		if (id.find('@') != std::string::npos) text = text.substr(0, open + 2) + shortBlockId(id) + ")";
+	}
 	return text;
 }
 
@@ -302,7 +309,7 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 }
 
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId, const SceneSectionLabels* labels) {
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId) {
 	for (BlockingTimeDiagramSegment& segment : segments) {
 		segment.referenceSection = 0;
 		segment.referenceNote.clear();
@@ -323,15 +330,10 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 		if (candidates.size() == 1) {
 			segment.referenceSection = candidates.front()->order;
 			// The hover names the block, so a block that is the section needs no note.
-			if (exact.empty()) segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(), labels);
+			if (exact.empty()) segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size());
 		} else if (candidates.size() > 1) {
-			segment.referenceNote = "Matches several sections of " + referenceRouteId + ": ";
-			// A switch label holds a comma, so labelled sections are listed with semicolons.
-			for (const auto* candidate : candidates) {
-				if (candidate != candidates.front())
-					segment.referenceNote += labels ? "; " : ", ";
-				segment.referenceNote += std::to_string(candidate->order) + (labels ? ": " : ":") + sectionName(candidate->id, labels);
-			}
+			segment.referenceNote = "Matches several sections of " + referenceRouteId;
+			for (const auto* candidate : candidates) segment.referenceNote += "\n" + referenceSectionNote(*candidate, extents.size());
 		} else {
 			segment.referenceNote = "Not on " + referenceRouteId;
 		}
@@ -459,18 +461,17 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 	return rows;
 }
 
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels) {
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents) {
 	constexpr std::size_t kListedIds = 3;
 	std::vector<std::string> ids;
 	for (const BlockSectionExtent& extent : extents)
 		if (!extent.geometryValid)
-			ids.push_back(sectionName(extent.id, labels));
+			ids.push_back(shortBlockId(extent.id));
 	if (ids.empty())
 		return std::string();
 	std::string note = "Sections not drawn (no valid length): ";
-	// A switch label holds a comma, so labelled sections are listed with semicolons.
 	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
-		note += (i > 0 ? (labels ? "; " : ", ") : "") + ids[i];
+		note += (i > 0 ? ", " : "") + ids[i];
 	if (ids.size() > kListedIds)
 		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
 	return note;

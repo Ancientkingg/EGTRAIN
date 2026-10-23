@@ -9,6 +9,8 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QFrame>
 #include <QFontMetrics>
 #include <QHeaderView>
@@ -16,19 +18,25 @@
 #include <QScreen>
 #include <QLabel>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QMenu>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionHeader>
 #include <QTableWidget>
+#include <QTemporaryDir>
+#include <QThread>
+#include <QTimer>
 #include <QTextDocument>
 #include <QToolButton>
 #include <QToolTip>
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iostream>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
@@ -390,6 +398,59 @@ static bool exerciseTableImageHeaders() {
 	return ok;
 }
 
+// Handles events until `done` holds, for at most about a second.
+static bool waitFor(const std::function<bool()>& done) {
+	for (int round = 0; round < 200 && !done(); ++round) {
+		QApplication::processEvents(QEventLoop::AllEvents, 5);
+		QThread::msleep(5);
+	}
+	return done();
+}
+
+// After the save dialog of an export closes, cancelled or saved, the window is raised and active again, also when the
+// main window took the activation while the dialog was open, as AppKit gives it on macOS.
+static bool exerciseExportKeepsWindowInFront() {
+	QTemporaryDir directory;
+	QMainWindow mainWindow;
+	mainWindow.resize(500, 400);
+	mainWindow.show();
+	auto* window = new TimetableTableWindow(twoTrainRows(), 0, [](const QStringList&) { return std::string("csv"); }, &mainWindow);
+	window->show();
+	window->activateWindow();
+	bool ok = expect(directory.isValid() && waitFor([window] { return QApplication::activeWindow() == window; }),
+		"the window is active before the export");
+	if (!ok) return false;
+	for (const auto& [name, file] : {std::pair("timetableExportCsv", "front.csv"), std::pair("timetableExportPng", "front.png")}) {
+		QPushButton* button = panelButton(*window, name);
+		const QString saved = QDir(directory.path()).filePath(file);
+		for (const QString& path : {QString(), saved}) {
+			bool mainActive = false;
+			QTimer::singleShot(0, window, [&mainWindow, &mainActive, &path] {
+				for (QWidget* widget : QApplication::topLevelWidgets())
+					if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+						mainWindow.activateWindow();
+						mainActive = waitFor([&mainWindow] { return QApplication::activeWindow() == &mainWindow; });
+						if (path.isEmpty()) {
+							dialog->reject();
+						} else {
+							dialog->setDirectory(QFileInfo(path).absolutePath());
+							dialog->selectFile(QFileInfo(path).fileName());
+							// Through QDialog, as QFileDialog::accept is protected.
+							static_cast<QDialog*>(dialog)->accept();
+						}
+					}
+			});
+			if (button) button->click();
+			const bool active = waitFor([window] { return QApplication::activeWindow() == window; });
+			ok &= expect(button && mainActive && active,
+				qPrintable(QString("%1 %2 leaves the window active, though the main window took the activation")
+						.arg(path.isEmpty() ? "a cancelled" : "a saved", name)));
+		}
+		ok &= expect(QFile::exists(saved), qPrintable(QString("the saved export of %1 is written").arg(name)));
+	}
+	return ok;
+}
+
 // The text that the tooltip of `widget` shows once the pointer rests on it.
 static QString shownTip(QWidget* widget) {
 	const QPoint point(4, 4);
@@ -453,6 +514,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseFrame();
 	ok &= exerciseDelayColors();
+	ok &= exerciseExportKeepsWindowInFront();
 	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
 			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
 		window.setPresentation("Timetable", text);

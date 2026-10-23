@@ -53,6 +53,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QGraphicsItem>
+#include <QGraphicsObject>
 #include <QGraphicsLineItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneMouseEvent>
@@ -261,6 +262,25 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					fileName->setText(target.fileName());
 				QMetaObject::invokeMethod(fileDialog, "accept", Qt::DirectConnection);
 			}
+			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, &w, [poll]() { (*poll)(); });
+	};
+	// Hands the file dialog that the next action opens to `act` once it is shown, looking for it every 25 ms, as the dialog
+	// can show after the first pass of the event loop on a busy machine.
+	auto handleFileDialog = [&w, fail](const std::function<void(QFileDialog*)>& act) {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [&w, act, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("file dialog did not appear"));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets())
+				if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+					act(dialog);
+					return;
+				}
 			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
 		};
 		QTimer::singleShot(0, &w, [poll]() { (*poll)(); });
@@ -2046,6 +2066,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					problem = title + QStringLiteral(" does not keep its size with a long run");
 				else if (!view->chart()->title().isEmpty())
 					problem = title + QStringLiteral(" has the chart title ") + view->chart()->title();
+				// The PNG of the delays has a name of its own.
+				if (problem.isEmpty() && chart == 4) {
+					auto suggested = std::make_shared<QString>();
+					handleFileDialog([suggested](QFileDialog* dialog) {
+						*suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+						dialog->reject();
+					});
+					for (QPushButton* button : window->findChildren<QPushButton*>())
+						if (button->text() == QStringLiteral("PNG...")) button->click();
+					process();
+					if (*suggested != QStringLiteral("delays.png")) problem = title + QStringLiteral(" suggests the PNG name ") + *suggested;
+				}
 				if (window)
 					window->close();
 			}
@@ -2053,6 +2085,31 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			process();
 			if (!problem.isEmpty()) {
 				fail(QStringLiteral("result chart with a long run identity: ") + problem);
+				return;
+			}
+		}
+		// A run without planned arrivals, as Netherlands, has no arrival delay to draw, and its Delays chart says so.
+		{
+			const std::shared_ptr<const CompletedRunData> kept = w.m_runController->m_completedRun;
+			auto unplanned = std::make_shared<CompletedRunData>(*kept);
+			for (TimetableResultRow& row : unplanned->timetable) {
+				row.plannedArrivalSeconds = RunResultValue();
+				row.arrivalDelaySeconds = RunResultValue();
+			}
+			w.m_runController->m_completedRun = unplanned;
+			w.showDelayDiagram();
+			process();
+			const auto windows = w.findChildren<DiagramWindow*>();
+			DiagramWindow* delays = windows.isEmpty() ? nullptr : windows.last();
+			const auto* view = delays ? delays->findChild<QChartView*>() : nullptr;
+			const auto* note = view ? view->chart()->findChild<QGraphicsObject*>(QStringLiteral("diagramEmptyNote")) : nullptr;
+			const QString emptyText = note ? note->property("text").toString() : QString();
+			if (delays)
+				delays->close();
+			w.m_runController->m_completedRun = kept;
+			process();
+			if (emptyText != QStringLiteral("No arrival delays in this run")) {
+				fail(QStringLiteral("the Delays chart of a run without planned arrivals does not say so: ") + emptyText);
 				return;
 			}
 		}
@@ -2263,6 +2320,33 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the capacity header does not lead with the run: ") + capacityContext);
 			return;
 		}
+		// After the save dialog of its export closes, the Capacity window is active again, also when the main window took the
+		// activation while the dialog was open, as AppKit gives it on macOS.
+		{
+			// Activation arrives through the event loop, which may take more than one pass on a busy machine.
+			const auto activeWithin = [](const QWidget* window) {
+				QElapsedTimer wait;
+				wait.start();
+				while (QApplication::activeWindow() != window && wait.elapsed() < 1000)
+					QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+				return QApplication::activeWindow() == window;
+			};
+			capacity->activateWindow();
+			const bool activeBefore = activeWithin(capacity);
+			auto mainActive = std::make_shared<bool>(false);
+			handleFileDialog([&w, mainActive, activeWithin](QFileDialog* dialog) {
+				w.activateWindow();
+				*mainActive = activeWithin(&w);
+				dialog->reject();
+			});
+			capacityExport->click();
+			if (!activeBefore || !*mainActive || !activeWithin(capacity)) {
+				fail(QStringLiteral("the Capacity window is not active again after its export dialog closes (before %1, main %2)")
+						.arg(activeBefore)
+						.arg(*mainActive));
+				return;
+			}
+		}
 		auto* compressedButton = capacity->findChild<QPushButton*>(QStringLiteral("capacityOpenDiagram"));
 		if (!compressedButton || compressedButton->text() != QStringLiteral("Open Diagram")
 			|| !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))->isAncestorOf(compressedButton)) {
@@ -2276,6 +2360,15 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !exportButton(compressed, QStringLiteral("CSV..."), path("capacity_compressed_blocking_time.csv"))
 			|| !exportButton(compressed, QStringLiteral("PNG..."), path("capacity_compressed_blocking_time.png"))) {
 			fail(QStringLiteral("compressed capacity diagram did not export"));
+			return;
+		}
+		// The header of the compressed diagram carries the key figures of the Capacity window.
+		const ResultFrame* compressedFrame = compressed->findChild<ResultFrame*>();
+		const QString compressedContext = compressedFrame ? compressedFrame->contextLabel()->text() : QString();
+		const QString cycleFigures = QStringLiteral(" \u00b7 cycle ") + capacityCycle->value() + QStringLiteral(", ") + capacityPercentage + QStringLiteral(" ")
+			+ capacityShare->caption();
+		if (!compressedContext.endsWith(cycleFigures)) {
+			fail(QStringLiteral("the compressed header does not end with the cycle of the Capacity window: ") + compressedContext);
 			return;
 		}
 		const auto* compressedView = compressed->findChild<QChartView*>();
@@ -2319,20 +2412,28 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(latestEnvelope));
 			return;
 		}
-		// A moved block keeps its simulated approach, run and clearance times, so its hover says so. The hover also gives the
-		// position of the block's own ends.
+		// A moved block keeps its simulated approach, run and clearance times, so its hover says so, one time per line. The
+		// hover also gives the position of the block's own ends, and names the train on the block without internal ids.
 		int simulatedTimeLines = 0;
 		int positionLines = 0;
-		for (QAbstractSeries* series : compressedView->chart()->series())
+		for (QAbstractSeries* series : compressedView->chart()->series()) {
+			const QString title = series->property("inspectionTitle").toString();
+			if (title.contains(QLatin1Char('@')) || series->property("inspectionInterval").toString().contains(QLatin1Char('@'))
+				|| (series->property("layer").toString() == QStringLiteral("blocking time") && !title.contains(QStringLiteral(" on ")))) {
+				fail(QStringLiteral("a compressed block hover is not named as the strip names it: ") + title + QStringLiteral(" / ")
+					+ series->property("inspectionInterval").toString());
+				return;
+			}
 			for (const QString& line : series->property("inspectionInterval").toString().split('\n')) {
 				if (line.startsWith(QStringLiteral("Position ")) && line.endsWith(QStringLiteral(" km"))) ++positionLines;
-				if (!line.contains(QStringLiteral("clearance to "))) continue;
-				if (!line.startsWith(QStringLiteral("As simulated: "))) {
+				if (!line.contains(QStringLiteral("learance to "))) continue;
+				if (!line.startsWith(QStringLiteral("Simulated clearance to "))) {
 					fail(QStringLiteral("a compressed block gives its times without saying they are simulated: ") + line);
 					return;
 				}
 				++simulatedTimeLines;
 			}
+		}
 		if (simulatedTimeLines == 0) {
 			fail(QStringLiteral("no compressed block hover gives the simulated times"));
 			return;
