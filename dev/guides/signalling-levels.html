@@ -507,6 +507,10 @@ speed against the braking point. A live, force-valid cached successor is the
 default proposal, including gradient recovery. The selector examines all collected
 targets against that actual successor before retaining it; a competing stop or
 speed restriction can interrupt the plan from the previous actual state.
+Without a cached successor, the selector refines the braking point of a target
+only when the bracket of its inverse pass starts before the earliest point found
+so far, because a later point cannot be chosen. A signalled stop within one
+step is always refined.
 A retained stop ends before farther targets, so those cannot invalidate its
 stopping prefix. They are reconsidered when that stop is no longer retained.
 Satisfied positive ceilings do not reclaim an already compliant continuation.

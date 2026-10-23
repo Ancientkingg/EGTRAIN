@@ -595,7 +595,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_train.html#a7db162f3326726463763a63d6190bd9f" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_train.html#a86fe06b963d9fe57ec35dae0764265aa" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1019,-368.5 899,-368.5 899,-349.5 1019,-349.5 1019,-368.5"/>
 <text text-anchor="middle" x="959" y="-356.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::BrakDist_Block</text>
 </a>
