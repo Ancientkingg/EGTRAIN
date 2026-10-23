@@ -49,7 +49,7 @@ Optional keys:
 
 Inside a bundle, `format` is the required string `"egscene"` and
 `bundle_version` is the required integer `1`. They are optional transport
-metadata for directory scenes and do not change the V1 data schema.
+metadata for case folders and do not change the V1 data schema.
 
 An `import_report` row has `category`, `source_count`, `converted_count`,
 `skipped_count`, and `unresolved_references`; `source_file` is optional. The
@@ -401,7 +401,7 @@ the scenario-only contract. Infrastructure, services, rolling stock, and
 results are deliberately excluded. The same scenario serializer is used for
 the entries inside `scenarios.json`, so incident and entrance-delay values do
 not diverge between the two forms. The editor checks incident types/targets
-and entrance-delay references against the open scene before importing. A
+and entrance-delay references against the open case before importing. A
 conflicting scenario or incident ID is never used as-is; the imported object
 is added with a reported unique ID.
 
@@ -454,7 +454,7 @@ importer recognizes passenger data only when both exact source files
 `Passengers/RouteChoiceFC_EQ1.csv` exist. Once converted, the native runtime
 uses `passengers.json` and does not reopen those CSVs. The passenger editor can
 append records from the same exact file pair. Its transient result table reports
-accepted, unresolved, malformed, and ID-collision rows before the scene is saved.
+accepted, unresolved, malformed, and ID-collision rows before the case is saved.
 
 ## `views.json` and runtime metadata
 
@@ -494,7 +494,7 @@ integers; region IDs are unique non-negative integers; `visible` and
 Invalid rows are skipped with load warnings. The legacy importer creates this
 file from `GUI/caseStudyTrackData.txt`, `GUI/unusedTracks.txt`, and
 `GUI/StationsCoord.txt`. For the Copenhagen case, which it recognises by the
-scene or folder name, it also sets `double_switch` on the views of the tracks
+case or folder name, it also sets `double_switch` on the views of the tracks
 with four nodes, which the original drew as double switches. Legacy export omits
 `double_switch`, because the legacy files have no field for it, and warns.
 Directory saves and V2 bundles preserve the file when present.
@@ -550,7 +550,7 @@ scenario selection and passengers execute directly from [`SceneModel`].
 [`Train::computePaxDependentDwellTimeAtStations`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
 [`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
 
-## Scene directory
+## Case folder
 
 The application loads the six required JSON files, accepts optional scenarios,
 passengers, display metadata in `views.json`, and historical
@@ -586,7 +586,7 @@ sections above.
 
 ## Links between records
 
-Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
+Edit canonical JSON or use the editors. Keep IDs unique and keep service
 links consistent:
 
 ```text
@@ -611,23 +611,23 @@ require a newer app.
 An `.egscene` file packages the canonical JSON files of a scene in a deterministic ZIP archive.
 The bundle version describes the container; `schema_version` still describes
 the canonical data. Bundles include `scenarios.json`, omit generated results
-and legacy input, and do not replace editable directory scenes.
+and legacy input, and do not replace editable case folders.
 
 Use `scene_tool` to pack, inspect, or unpack a bundle:
 
 ```bash
-./build/scene_tool pack path/to/scene case-study.egscene
-./build/scene_tool validate case-study.egscene
-./build/scene_tool unpack case-study.egscene path/to/unpacked-scene
+./build/scene_tool pack path/to/case case.egscene
+./build/scene_tool validate case.egscene
+./build/scene_tool unpack case.egscene path/to/unpacked-case
 ```
 
-See [Opening an `.egscene` case study](opening-a-case-study.md) for the student
+See [Opening an `.egscene` case](opening-a-case-study.md) for the student
 workflow and [Scene bundle format](scene-bundle.md) for the
 entry allowlist and size limits.
 
 ## Convert a legacy case
 
-Use the GUI's `File > Load Legacy Case...` or `scene_tool import`. Select a
+Use the GUI's `File > Import Legacy Case...` or `scene_tool import`. Select a
 separate destination; the importer never modifies the source. A legacy train
 definition is seven whitespace tokens:
 
@@ -667,7 +667,7 @@ with the scene for repair.
 
 ## Editing examples
 
-Use these examples when editing a scene by hand. Keys are case-sensitive and the
+Use these examples when editing a case by hand. Keys are case-sensitive and the
 preferred spellings are the ones shown here. The complete type and validation
 reference is in the sections above.
 
@@ -966,7 +966,7 @@ The loader accepts these historical forms when the preferred key is absent;
 
 ### Save, load, and run
 
-`Save Scene` writes the canonical files and removes stale flat incident data.
+`Save` writes the canonical files and removes stale flat incident data.
 `loaded_data` is runtime metadata, not an editable source section. `views.json`
 is display-only.
 

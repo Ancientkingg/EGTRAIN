@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -314,7 +314,7 @@ choices, not copy OpenTrack menus or target the model-answer timestamps.</p>
 <p>The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
-in the editor. The committed <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> scene is a synthetic smoke
+in the editor. The bundled <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> case is a synthetic smoke
 fixture with three stations, no signals and four services that all use one
 placeholder <code class="docutils literal notranslate"><span class="pre">SLT_Sprinter</span></code> composition. It validates, runs and packs as
 <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, but its railway data are not authoritative: do not use it for model
@@ -328,7 +328,7 @@ work to add a source-backed example dataset.</p>
 <h2>Instructor preparation<a class="headerlink" href="#instructor-preparation" title="Link to this heading">¶</a></h2>
 <p>An instructor can build the case through the normal application workflow:</p>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; New Case Study…</strong> and enter the case name, base time,
+<li><p>Choose <strong>File &gt; New Case…</strong> and enter the case name, base time,
 duration, buffer, and recovery settings in <strong>Case Settings</strong>.</p></li>
 <li><p>Use the <strong>Infrastructure</strong> table and network preview to add tracks, nodes,
 arcs, blocks, connections, stations, platforms, signals, routes, dependencies,
@@ -370,7 +370,7 @@ enters their sourced physical and traction records through the train-unit editor
 <p>The alternative-composition exercise uses 1xICM3 for IC 1723. The
 rolling-stock comparison replaces SGM with sourced Plan V data without changing
 the service pattern.</p>
-<p>An incomplete scene remains editable and saveable. <strong>Run</strong> remains unavailable
+<p>An incomplete case remains editable and saveable. <strong>Run</strong> remains unavailable
 when validation reports an error. Missing signalling coverage is never replaced
 with an implicit conventional or ETCS setting.</p>
 </section>
@@ -508,7 +508,7 @@ with an implicit conventional or ETCS setting.</p>
 </tr>
 <tr class="row-even"><td><p>25</p></td>
 <td><p>Save and distribute</p></td>
-<td><p>Save the canonical folder, use <strong>File &gt; Save Case Study As…</strong> for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, reopen it, and rerun representative exercises.</p></td>
+<td><p>Save the canonical folder, use <strong>File &gt; Save As…</strong> for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>, reopen it, and rerun representative exercises.</p></td>
 <td><p>Work from a copy of the distributed bundle.</p></td>
 </tr>
 </tbody>
@@ -518,7 +518,7 @@ with an implicit conventional or ETCS setting.</p>
 <section id="calculation-boundaries">
 <h2>Calculation boundaries<a class="headerlink" href="#calculation-boundaries" title="Link to this heading">¶</a></h2>
 <p>Capacity analysis uses complete native block occupations from the selected run.
-If the scene has no sourced signalling coverage or the run produced no complete
+If the case has no sourced signalling coverage or the run produced no complete
 occupations, EGTRAIN reports the analysis as unavailable. It does not create
 blocking times from a default signalling system.</p>
 <p>Minimum headway, compression, critical blocks, buffer, and capacity consumption

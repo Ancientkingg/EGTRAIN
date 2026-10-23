@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -311,7 +311,7 @@
 <section id="download-and-start">
 <h2>Download and start<a class="headerlink" href="#download-and-start" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>: <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> (Apple silicon Macs with macOS 26 or later; <a class="reference internal" href="#macos-disk-image">details</a>), <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> (64-bit Windows; <a class="reference internal" href="#windows-installer-and-portable-archive">choose one</a>) or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-linux-x86_64.AppImage</span></code> (64-bit Linux). <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> is the version of the release. Download a case study file from the same page too, such as <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>.</p></li>
+<li><p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>: <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> (Apple silicon Macs with macOS 26 or later; <a class="reference internal" href="#macos-disk-image">details</a>), <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> (64-bit Windows; <a class="reference internal" href="#windows-installer-and-portable-archive">choose one</a>) or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-linux-x86_64.AppImage</span></code> (64-bit Linux). <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> is the version of the release. Download a case file from the same page too, such as <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>.</p></li>
 <li><p>Start the application.</p>
 <ul class="simple">
 <li><p>macOS: open the disk image, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code> in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the <a class="reference internal" href="#macos-disk-image">first start</a> below says what to do.</p></li>
@@ -328,10 +328,10 @@
 <li><p><strong>Install.</strong> Open the image and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, then eject the image. The app is self-contained and needs no installer, so a copy in any other folder that you can write to works the same way. Run EGTRAIN from a copy and not from the image: an app on the image is read-only and cannot update itself.</p></li>
 <li><p><strong>First start.</strong> Unless the release notes say that the app is notarized, expect that it is not notarized by Apple and that macOS refuses the first start with <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>, which offers <strong>Move to Trash</strong> and <strong>Done</strong>. To allow the app, choose <strong>Done</strong>, open <strong>System Settings &gt; Privacy &amp; Security</strong> and, in the section <strong>Security</strong>, choose <strong>Open Anyway</strong> for <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> Choose <strong>Open Anyway</strong> again in <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code>. macOS then asks for the name and password of an administrator. These are the dialogs of macOS 26.6; other versions may word them differently. This is the normal macOS override. Do not turn Gatekeeper off or remove the download mark with a command.</p></li>
 <li><p><strong>Notarized releases.</strong> When the release notes say that the app is signed with a Developer ID and notarized, macOS is expected to ask only for the usual confirmation for an app that was downloaded. <a class="reference internal" href="#first-start-of-a-notarized-build">First start of a notarized build</a> has the details.</p></li>
-<li><p><strong>Open a case study.</strong> Double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder to open it in EGTRAIN, or Control-click it and choose <strong>Open With</strong> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. When EGTRAIN is open, the file opens in its window. <a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a> has the details.</p></li>
+<li><p><strong>Open a case.</strong> Double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder to open it in EGTRAIN, or Control-click it and choose <strong>Open With</strong> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. When EGTRAIN is open, the file opens in its window. <a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a> has the details.</p></li>
 <li><p><strong>Update.</strong> For a copy outside the image, <strong>Help &gt; Check for Updates…</strong> offers <strong>Update and Restart</strong> when a newer release exists.</p></li>
-<li><p><strong>Remove.</strong> Quit EGTRAIN and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay; <a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a> has the details.</p></li>
-<li><p><strong>Inside the app.</strong> The case studies are in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/Resources/Scenes</span></code> and the command-line tool is <code class="docutils literal notranslate"><span class="pre">Contents/MacOS/scene_tool</span></code> (see <a class="reference internal" href="command-line.html"><span class="std std-doc">Command-line options and scene_tool</span></a>). The image shows no other file.</p></li>
+<li><p><strong>Remove.</strong> Quit EGTRAIN and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> to the Trash. Your cases, your exported files and the settings of EGTRAIN stay; <a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a> has the details.</p></li>
+<li><p><strong>Inside the app.</strong> The bundled cases are in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/Resources/Scenes</span></code> and the command-line tool is <code class="docutils literal notranslate"><span class="pre">Contents/MacOS/scene_tool</span></code> (see <a class="reference internal" href="command-line.html"><span class="std std-doc">Command-line options and scene_tool</span></a>). The image shows no other file.</p></li>
 </ul>
 <section id="first-start-of-an-ad-hoc-build">
 <h3>First start of an ad hoc build<a class="headerlink" href="#first-start-of-an-ad-hoc-build" title="Link to this heading">¶</a></h3>
@@ -465,7 +465,7 @@ signed. Until signing is enabled and a release is built with it, the Windows dow
 </tbody>
 </table>
 </div>
-<p>Case studies and exported files that you saved elsewhere are yours, and they stay where you saved them.</p>
+<p>Cases and exported files that you saved elsewhere are yours, and they stay where you saved them.</p>
 </section>
 </section>
 

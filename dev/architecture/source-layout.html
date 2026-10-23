@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -316,7 +316,7 @@ application and how to find the code behind a screen.</p>
 <section id="repository-layout">
 <h2>Repository layout<a class="headerlink" href="#repository-layout" title="Link to this heading">¶</a></h2>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
-EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
+EGTRAIN/QEGTRAIN/Scenes/  The bundled cases
 EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
 installer/                Inno Setup script of the Windows installer and its README
 tools/e2e/                Smoke tests and Python tests
@@ -391,7 +391,7 @@ docs/                     Guides and architecture, development, product, telemet
 <td><p>Icons (<code class="docutils literal notranslate"><span class="pre">icons/</span></code>), the application icons for each system (<code class="docutils literal notranslate"><span class="pre">app/</span></code>) and the style sheet (<code class="docutils literal notranslate"><span class="pre">styles/egtrain.qss</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Scenes/</span></code></p></td>
-<td><p>The committed case studies, one folder each</p></td>
+<td><p>The bundled cases, one folder each</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tests/</span></code></p></td>
 <td><p>One <code class="docutils literal notranslate"><span class="pre">test_&lt;name&gt;.cpp</span></code> for each test executable, with <code class="docutils literal notranslate"><span class="pre">fixtures/</span></code> (test data), <code class="docutils literal notranslate"><span class="pre">characterization/</span></code> (the characterization tests with their <code class="docutils literal notranslate"><span class="pre">expected/</span></code> files), <code class="docutils literal notranslate"><span class="pre">e2e/</span></code> (the runner of the scripted window scenarios), <code class="docutils literal notranslate"><span class="pre">live/</span></code> and the helper programs <code class="docutils literal notranslate"><span class="pre">update_probe*.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">live_client.cpp</span></code></p></td>

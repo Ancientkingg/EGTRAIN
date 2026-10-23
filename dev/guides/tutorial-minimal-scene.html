@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Editing and validating a case" href="editing-a-case.html"><link rel="prev" title="Tutorial: modify a supplied case" href="tutorial-modify-a-case.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Editing and validating a case" href="editing-a-case.html"><link rel="prev" title="Tutorial: modify a bundled case" href="tutorial-modify-a-case.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Tutorial: the smallest useful scene - EGTRAIN documentation</title>
+        <title>Tutorial: the smallest useful case - EGTRAIN documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -305,10 +305,10 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="tutorial-the-smallest-useful-scene">
-<h1>Tutorial: the smallest useful scene<a class="headerlink" href="#tutorial-the-smallest-useful-scene" title="Link to this heading">¶</a></h1>
-<p>This tutorial builds a complete case study from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.</p>
-<p>You need EGTRAIN running, and you should have done <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> once. To change a case that already exists, see <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">Tutorial: modify a supplied case</span></a>. The words case study, scene, bundle and validation are in the <a class="reference internal" href="glossary.html"><span class="std std-doc">glossary</span></a>.</p>
+          <section id="tutorial-the-smallest-useful-case">
+<h1>Tutorial: the smallest useful case<a class="headerlink" href="#tutorial-the-smallest-useful-case" title="Link to this heading">¶</a></h1>
+<p>This tutorial builds a complete case from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.</p>
+<p>You need EGTRAIN running, and you should have done <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> once. To change a case that already exists, see <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">Tutorial: modify a bundled case</span></a>. The words case, case folder, bundle and validation are in the <a class="reference internal" href="glossary.html"><span class="std std-doc">glossary</span></a>.</p>
 <section id="what-the-editors-do-not-do">
 <h2>What the editors do not do<a class="headerlink" href="#what-the-editors-do-not-do" title="Link to this heading">¶</a></h2>
 <p>The editors are tables, lists and dialogs. They are not a drawing tool: there is no drag-and-drop track drawing, route painting or automatic signal placement. Numbers are typed into cells. For anything larger than this tutorial, or for many similar rows, the supported route is JSON: save the case as a folder, edit the files, and validate them with <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> (<a class="reference internal" href="scene-schema.html#editing-examples"><span class="std std-ref">editing examples</span></a>, <a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">command-line tools</span></a>). The window has no JSON text editor.</p>
@@ -349,7 +349,7 @@
 <section id="create-the-case">
 <h2>1. Create the case<a class="headerlink" href="#create-the-case" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; New Case Study…</strong> (Ctrl+N). The docks <strong>Case Settings</strong> and <strong>Infrastructure</strong> open as tabs on the right, with <strong>Infrastructure</strong> in front. If you have unsaved changes, EGTRAIN asks first.</p></li>
+<li><p>Choose <strong>File &gt; New Case…</strong> (Ctrl+N). The docks <strong>Case Settings</strong> and <strong>Infrastructure</strong> open as tabs on the right, with <strong>Infrastructure</strong> in front. If you have unsaved changes, EGTRAIN asks first.</p></li>
 <li><p>Click the tab <strong>Case Settings</strong> and replace <strong>Name</strong> (<code class="docutils literal notranslate"><span class="pre">Untitled</span> <span class="pre">case</span></code>) with <code class="docutils literal notranslate"><span class="pre">Minimal</span> <span class="pre">line</span></code> and press Enter. Leave <strong>Base time</strong> at <code class="docutils literal notranslate"><span class="pre">08:00:00</span></code>, <strong>Duration (s)</strong> at 3600, <strong>Buffer (s)</strong> at 0 and <strong>Recovery (%)</strong> at 0.</p></li>
 </ol>
 <p>A new case holds one scenario, <code class="docutils literal notranslate"><span class="pre">baseline</span></code>, and nothing else. <strong>Run</strong> stays disabled while validation reports errors for the railway data that is still missing, such as “Add a track to run this case”. The status bar counts them after “Cannot run:”, and the title bar shows the mark for unsaved changes.</p>
@@ -464,7 +464,7 @@
 </section>
 <section id="validate">
 <h2>6. Validate<a class="headerlink" href="#validate" title="Link to this heading">¶</a></h2>
-<p>Choose <strong>View &gt; Scene Validation</strong> (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock <strong>Case and Layers</strong> shows no error under the name of the case, and <strong>Run</strong> is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after “Cannot run:” while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.</p>
+<p>Choose <strong>View &gt; Case Validation</strong> (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock <strong>Case and Layers</strong> shows no error under the name of the case, and <strong>Run</strong> is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after “Cannot run:” while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.</p>
 </section>
 <section id="run">
 <h2>7. Run<a class="headerlink" href="#run" title="Link to this heading">¶</a></h2>
@@ -473,20 +473,20 @@
 <section id="save-as-a-folder-and-as-a-bundle">
 <h2>8. Save as a folder and as a bundle<a class="headerlink" href="#save-as-a-folder-and-as-a-bundle" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; Save Scene As Folder…</strong>. In the dialog <strong>Save Scene As Folder</strong>, make or choose an empty folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> and confirm. The folder holds <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>, <code class="docutils literal notranslate"><span class="pre">stations.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code>, <code class="docutils literal notranslate"><span class="pre">services.json</span></code> and <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> (<a class="reference internal" href="scene-schema.html#version-and-files"><span class="std std-ref">files of a scene</span></a>).</p></li>
-<li><p>Choose <strong>File &gt; Save Case Study As…</strong>. In the dialog <strong>Save Case Study As</strong>, name the file <code class="docutils literal notranslate"><span class="pre">minimal-line.egscene</span></code> and save it. Type the extension too: the folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, <strong>File &gt; Save Scene</strong> writes to this bundle.</p></li>
+<li><p>Choose <strong>File &gt; Save As Folder…</strong>. In the dialog <strong>Save Case As Folder</strong>, make or choose an empty folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> and confirm. The folder holds <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>, <code class="docutils literal notranslate"><span class="pre">stations.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code>, <code class="docutils literal notranslate"><span class="pre">services.json</span></code> and <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> (<a class="reference internal" href="scene-schema.html#version-and-files"><span class="std std-ref">files of a case</span></a>).</p></li>
+<li><p>Choose <strong>File &gt; Save As…</strong>. In the dialog <strong>Save Case As</strong>, name the file <code class="docutils literal notranslate"><span class="pre">minimal-line.egscene</span></code> and save it. Type the extension too: the folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, <strong>File &gt; Save</strong> writes to this bundle.</p></li>
 </ol>
-<p>Both are now listed under <strong>File &gt; Recent Scenes</strong>.</p>
+<p>Both are now listed under <strong>File &gt; Recent Cases</strong>.</p>
 </section>
 <section id="reopen-and-confirm">
 <h2>9. Reopen and confirm<a class="headerlink" href="#reopen-and-confirm" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Choose <strong>File &gt; Open Scene Folder…</strong>, choose the folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code>, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">-</span> <span class="pre">Minimal</span> <span class="pre">line</span></code>.</p></li>
-<li><p>Choose <strong>File &gt; Recent Scenes</strong> and the entry <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> for the bundle (the folder is listed as <code class="docutils literal notranslate"><span class="pre">Minimal</span> <span class="pre">line</span></code>). The case is the same, and <strong>Run</strong> completes with the same arrival.</p></li>
+<li><p>Choose <strong>File &gt; Open Case Folder…</strong>, choose the folder <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code>, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">-</span> <span class="pre">Minimal</span> <span class="pre">line</span></code>.</p></li>
+<li><p>Choose <strong>File &gt; Recent Cases</strong> and the entry <code class="docutils literal notranslate"><span class="pre">minimal-line</span></code> for the bundle (the folder is listed as <code class="docutils literal notranslate"><span class="pre">Minimal</span> <span class="pre">line</span></code>). The case is the same, and <strong>Run</strong> completes with the same arrival.</p></li>
 </ol>
 </section>
-<section id="check-the-saved-scene-outside-the-window">
-<h2>10. Check the saved scene outside the window<a class="headerlink" href="#check-the-saved-scene-outside-the-window" title="Link to this heading">¶</a></h2>
+<section id="check-the-saved-case-outside-the-window">
+<h2>10. Check the saved case outside the window<a class="headerlink" href="#check-the-saved-case-outside-the-window" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> reads the folder and the bundle (<a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">command-line tools</span></a>). The programs are not on the search path. Use their full paths. In the macOS app they are <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code>. In the Windows installation or the unzipped portable folder they are <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code> next to each other. In a build from source, run from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> and use <code class="docutils literal notranslate"><span class="pre">../../build/scene_tool</span></code> and <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> (on Linux <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN</span></code>). With the macOS app and the folder and bundle in the current folder:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">APP</span><span class="o">=</span>/Applications/QEGTRAIN.app/Contents/MacOS
 <span class="s2">"</span><span class="nv">$APP</span><span class="s2">/scene_tool"</span><span class="w"> </span>validate<span class="w"> </span>--runnable<span class="w"> </span>minimal-line
@@ -514,7 +514,7 @@
 <li><p><strong>Add</strong> in Platforms leaves the table as it is and the status bar reads “Add a station before adding a platform”: add the stations first.</p></li>
 <li><p><strong>Add Stop</strong> shows the message “No Reachable Stop: No station on the route is left to stop at. Check the route and the stop order.”: the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.</p></li>
 <li><p>A refused edit says “IDs must be unique and not empty”: choose another name.</p></li>
-<li><p><strong>Run</strong> is disabled: the dock <strong>Case and Layers</strong> names the first error, and the dock <strong>Scene Validation</strong> lists all of them.</p></li>
+<li><p><strong>Run</strong> is disabled: the dock <strong>Case and Layers</strong> names the first error, and the dock <strong>Case Validation</strong> lists all of them.</p></li>
 </ul>
 </section>
 </section>
@@ -540,7 +540,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Tutorial: modify a supplied case</div>
+                <div class="title">Tutorial: modify a bundled case</div>
                 
               </div>
             </a>
@@ -574,7 +574,7 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Tutorial: the smallest useful scene</a><ul>
+<li><a class="reference internal" href="#">Tutorial: the smallest useful case</a><ul>
 <li><a class="reference internal" href="#what-the-editors-do-not-do">What the editors do not do</a></li>
 <li><a class="reference internal" href="#what-you-build">What you build</a></li>
 <li><a class="reference internal" href="#create-the-case">1. Create the case</a></li>
@@ -586,7 +586,7 @@
 <li><a class="reference internal" href="#run">7. Run</a></li>
 <li><a class="reference internal" href="#save-as-a-folder-and-as-a-bundle">8. Save as a folder and as a bundle</a></li>
 <li><a class="reference internal" href="#reopen-and-confirm">9. Reopen and confirm</a></li>
-<li><a class="reference internal" href="#check-the-saved-scene-outside-the-window">10. Check the saved scene outside the window</a></li>
+<li><a class="reference internal" href="#check-the-saved-case-outside-the-window">10. Check the saved case outside the window</a></li>
 <li><a class="reference internal" href="#limits-and-the-json-route">Limits and the JSON route</a></li>
 <li><a class="reference internal" href="#if-something-does-not-work">If something does not work</a></li>
 </ul>

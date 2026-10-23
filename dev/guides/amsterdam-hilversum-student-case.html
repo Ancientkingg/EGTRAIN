@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -353,9 +353,9 @@
 <section id="open-the-case-and-keep-your-own-copy">
 <h2>Open the case and keep your own copy<a class="headerlink" href="#open-the-case-and-keep-your-own-copy" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>File &gt; Open Case Study…</strong> instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</span></a>.</p></li>
-<li><p>Choose <strong>File &gt; Save Case Study As…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Scene saved</strong> and your file is the open case.</p></li>
-<li><p>From then on <strong>File &gt; Save Scene</strong> saves to your file. If you edit an installed case before making a copy, <strong>Save Scene</strong> asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead of overwriting the installed case. Cancelling keeps the edit and the current case.</p></li>
+<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>File &gt; Open Case…</strong> instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a>.</p></li>
+<li><p>Choose <strong>File &gt; Save As…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Case saved</strong> and your file is the open case.</p></li>
+<li><p>From then on <strong>File &gt; Save</strong> saves to your file. If you edit a bundled case before making a copy, <strong>Save</strong> asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.</p></li>
 </ol>
 <p>The saved file holds the inputs of the case. It holds neither results nor the selection of runs.</p>
 </section>
@@ -425,8 +425,8 @@
 <h3>6. Recommend and hand in<a class="headerlink" href="#recommend-and-hand-in" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Choose a configuration: the performance, the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> planned times and the number of runs.</p></li>
-<li><p>Set the open case to that configuration and choose <strong>File &gt; Save Case Study As…</strong> with a new file name. The file keeps <strong>Repeat count</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
-<li><p>To check your file, choose <strong>File &gt; Open Case Study…</strong> and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
+<li><p>Set the open case to that configuration and choose <strong>File &gt; Save As…</strong> with a new file name. The file keeps <strong>Repeat count</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
+<li><p>To check your file, choose <strong>File &gt; Open Case…</strong> and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
 </ol>
 <p>Hand in:</p>
 <ul class="simple">

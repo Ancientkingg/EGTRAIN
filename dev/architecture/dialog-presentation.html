@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -339,7 +339,7 @@
 <tbody>
 <tr class="row-even"><td><p>Open a Case</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">CaseChooserDialog</span></code> in <code class="docutils literal notranslate"><span class="pre">widgets/CaseChooserDialog.cpp</span></code>, opened by <code class="docutils literal notranslate"><span class="pre">MainWindow::showStartupChooser</span></code></p></td>
-<td><p>A list of cases in groups and an “Other ways to open…” menu button. The group headings are bold, and the Unavailable rows and the message row are italic. A selected row has dark text on a light face, as a selected menu item has, also for an Unavailable row. The Recent cases group appears only when there is a recent case to list. With no case at all the list holds one message row, which points to the menu. A name wider than the list has its middle elided and the list has no horizontal scroll bar; the tooltip of a row holds the whole name and the path, written with the separators of the system (<code class="docutils literal notranslate"><span class="pre">widgets/DisplayPath.h</span></code>), which are backslashes on Windows. The Recent Scenes menu shows a path the same way, and so does the Cannot Open Case Study text when the path has no file name. The stored path is unchanged. Two spellings of one path list one row, also when the case is missing; Windows compares paths without regard to case. The left button reads Continue while a case is loaded and Cancel otherwise. An inline warning under the list gives the reason while an Unavailable row is selected, and Open is disabled then. No help label.</p></td>
+<td><p>A list of cases in groups and an “Other ways to open…” menu button. The group headings are bold, and the Unavailable rows and the message row are italic. A selected row has dark text on a light face, as a selected menu item has, also for an Unavailable row. The Recent cases group appears only when there is a recent case to list. With no case at all the list holds one message row, which points to the menu. A name wider than the list has its middle elided and the list has no horizontal scroll bar; the tooltip of a row holds the whole name and the path, written with the separators of the system (<code class="docutils literal notranslate"><span class="pre">widgets/DisplayPath.h</span></code>), which are backslashes on Windows. The Recent Cases menu shows a path the same way, and so does the Cannot Open Case text when the path has no file name. The stored path is unchanged. Two spellings of one path list one row, also when the case is missing; Windows compares paths without regard to case. The left button reads Continue while a case is loaded and Cancel otherwise. An inline warning under the list gives the reason while an Unavailable row is selected, and Open is disabled then. No help label.</p></td>
 <td><p>Open. Other ways to open… is not an auto default, so Open stays the default while the menu button has the focus.</p></td>
 <td><p>The dialog contract (the chooser launch), <code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code> and <code class="docutils literal notranslate"><span class="pre">test_casechooserdialog</span></code>.</p></td>
 <td><p>The group headings and the message row are disabled list items, not labels, and the arrow keys skip them. An Unavailable row can be selected, by click or arrow key, so that its reason shows; Enter and a double click on it open nothing.</p></td>
@@ -467,7 +467,7 @@
 <td><p>Called directly, so the E2E dialog suppression does not hide them.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::copyScenePassthroughFiles</span></code> (Cannot Save Scene)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::copyScenePassthroughFiles</span></code> (Cannot Save Case)</p></td>
 <td><p>Called directly, so the E2E dialog suppression does not hide it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::information</span></code></p></td>
@@ -500,7 +500,7 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> and <code class="docutils literal notranslate"><span class="pre">QMessageBox::warning</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">reportCannotOpen</span></code> in <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code></p></td>
-<td><p>Titled Cannot Open Case Study. A file name that does not load shows the title and text of <code class="docutils literal notranslate"><span class="pre">cannot_open</span></code> in <code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>, which <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code> also uses, with a critical icon. A folder gets a sentence of its own: it holds no EGTRAIN scene (no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>), or a damaged or incomplete one. A file name that is rejected before it loads shows <code class="docutils literal notranslate"><span class="pre">Cannot</span> <span class="pre">open</span> <span class="pre">&lt;names&gt;:</span> <span class="pre">&lt;reason&gt;</span></code> with a warning icon. Neither box is shown when the environment suppresses updates.</p></td>
+<td><p>Titled Cannot Open Case. A file name that does not load shows the title and text of <code class="docutils literal notranslate"><span class="pre">cannot_open</span></code> in <code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>, which <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code> also uses, with a critical icon. A folder gets a sentence of its own: it holds no EGTRAIN case (no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>), or a damaged or incomplete one. A file name that is rejected before it loads shows <code class="docutils literal notranslate"><span class="pre">Cannot</span> <span class="pre">open</span> <span class="pre">&lt;names&gt;:</span> <span class="pre">&lt;reason&gt;</span></code> with a warning icon. Neither box is shown when the environment suppresses updates.</p></td>
 </tr>
 </tbody>
 </table>
@@ -520,21 +520,21 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Unsaved Scene</p></td>
+<tr class="row-even"><td><p>Unsaved Case</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::maybeSaveScene</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::warning</span></code> that asks <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code> (<code class="docutils literal notranslate"><span class="pre">this</span> <span class="pre">case</span></code> when the case has no name), with Save, Discard and Cancel. Save is the default. macOS shows no title and names the buttons Save, Cancel and Don’t Save.</p></td>
 <td><p>Closing the window, creating a case, opening a scene, importing a legacy case and starting a self update ask first when the scene has unsaved changes.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_scene_drop</span></code> marks the scene changed, drops a file and presses Cancel. The editor smoke answers Discard and Cancel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Older Scene</p></td>
+<tr class="row-odd"><td><p>Older Case</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code></p></td>
 <td><p>Question icon. The text is <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;</span> <span class="pre">was</span> <span class="pre">saved</span> <span class="pre">by</span> <span class="pre">an</span> <span class="pre">older</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">EGTRAIN.</span></code> and <code class="docutils literal notranslate"><span class="pre">Upgrade</span> <span class="pre">a</span> <span class="pre">copy</span> <span class="pre">to</span> <span class="pre">open</span> <span class="pre">it.</span> <span class="pre">The</span> <span class="pre">original</span> <span class="pre">stays</span> <span class="pre">as</span> <span class="pre">it</span> <span class="pre">is.</span></code>; the details give the scene schema, and for a bundle the bundle layout, against the numbers of this version. Upgrade a Copy… (accept role) and Cancel (reject role). No default is set.</p></td>
 <td><p>The compatibility probe classifies the scene as OlderMigratable: its schema or bundle layout number is below the current one and the migration registry has a path. The production registry has no step and both current numbers are 1, so no scene reaches the box. While the E2E dialog suppression is active, the box is replaced by a status bar message.</p></td>
 <td><p>No test opens it.</p></td>
 </tr>
-<tr class="row-even"><td><p>Newer Scene</p></td>
+<tr class="row-even"><td><p>Newer Case</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code></p></td>
-<td><p>Question icon. The text is <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">saved</span> <span class="pre">by</span> <span class="pre">a</span> <span class="pre">newer</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">EGTRAIN.</span></code> and <code class="docutils literal notranslate"><span class="pre">Update</span> <span class="pre">EGTRAIN</span> <span class="pre">to</span> <span class="pre">open</span> <span class="pre">it.</span></code>, with the numbers in the details as for Older Scene. Check for Updates… (accept role) and Cancel (reject role). No default is set.</p></td>
+<td><p>Question icon. The text is <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">saved</span> <span class="pre">by</span> <span class="pre">a</span> <span class="pre">newer</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">EGTRAIN.</span></code> and <code class="docutils literal notranslate"><span class="pre">Update</span> <span class="pre">EGTRAIN</span> <span class="pre">to</span> <span class="pre">open</span> <span class="pre">it.</span></code>, with the numbers in the details as for Older Case. Check for Updates… (accept role) and Cancel (reject role). No default is set.</p></td>
 <td><p>The probe classifies the scene as Newer: the schema number is above the current one or, for a bundle, the bundle layout number is. While the E2E dialog suppression is active, the box is replaced by a status bar message.</p></td>
 <td><p>No test opens it.</p></td>
 </tr>
@@ -553,7 +553,7 @@
 <tr class="row-odd"><td><p>EGTRAIN <version> Is Available</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UpdateTelemetryController::handleUpdateCheckFinished</span></code></p></td>
 <td><p>Information icon. The main text is <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;version&gt;</span> <span class="pre">is</span> <span class="pre">available.</span> <span class="pre">You</span> <span class="pre">are</span> <span class="pre">using</span> <span class="pre">&lt;installed</span> <span class="pre">version&gt;.</span></code>, so that the offered version shows on macOS, which draws no title. Update and Restart (accept role, offered only when the self updater can install the release), Open Release Page (accept role), Later (reject role) and Stop Checking (destructive role). Update and Restart is the default when it is offered and Open Release Page otherwise, so that Enter never stops the checks; macOS makes the destructive button the default when none is set. The informative text is the release notes, shown as Markdown. <code class="docutils literal notranslate"><span class="pre">releaseNotes</span></code> in <code class="docutils literal notranslate"><span class="pre">update/ReleaseInfo.cpp</span></code> keeps the lines of the release body and cuts a body of more than 360 characters at the end of a word, outside code spans and links, with the sentence that the full notes are on the release page. <code class="docutils literal notranslate"><span class="pre">releaseNotesMarkdown</span></code> in <code class="docutils literal notranslate"><span class="pre">app/ReleaseNotesText.h</span></code> keeps the line breaks. For an installed Windows copy it ends with <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">closes</span> <span class="pre">while</span> <span class="pre">the</span> <span class="pre">update</span> <span class="pre">installs,</span> <span class="pre">then</span> <span class="pre">starts</span> <span class="pre">again.</span></code></p></td>
-<td><p>An update check finishes with a release that is newer than the installed version. The check runs at startup when automatic checks are on, and on request from the Help menu or from the Newer Scene box. After a manual check the function also shows OK boxes when the check fails, when the installed version is invalid and when EGTRAIN is up to date.</p></td>
+<td><p>An update check finishes with a release that is newer than the installed version. The check runs at startup when automatic checks are on, and on request from the Help menu or from the Newer Case box. After a manual check the function also shows OK boxes when the check fails, when the installed version is invalid and when EGTRAIN is up to date.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code> opens it with and without an update package and reads the default button. <code class="docutils literal notranslate"><span class="pre">test_updateprompttext</span></code> reads the main text. <code class="docutils literal notranslate"><span class="pre">test_releasenotes</span></code> takes a release JSON through the parser into the label of the notes.</p></td>
 </tr>
 <tr class="row-even"><td><p>EGTRAIN Update (progress)</p></td>
@@ -592,7 +592,7 @@
 <td><p>A save, export or analysis step fails or has nothing to show.</p></td>
 <td><p>No test opens them. The E2E dialog suppression does not hide them.</p></td>
 </tr>
-<tr class="row-even"><td><p>Save Scene As Folder (overwrite)</p></td>
+<tr class="row-even"><td><p>Save Case As Folder (overwrite)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SceneSession::saveSceneAsToDirectory</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">QMessageBox::question</span></code>. Yes and No. No is the default.</p></td>
 <td><p>The folder chosen in the file chooser exists, is not empty and holds no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>.</p></td>

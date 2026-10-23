@@ -1,6 +1,6 @@
 # EGTRAIN documentation
 
-EGTRAIN is a railway micro-simulation desktop application. The manual is for people who run and edit case studies.
+EGTRAIN is a railway micro-simulation desktop application. The manual is for people who run and edit cases.
 
 ```{toctree}
 :caption: Run existing cases

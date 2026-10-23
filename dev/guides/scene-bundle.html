@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -307,7 +307,7 @@
         <article role="main" id="furo-main-content">
           <section id="v2-transparent-scene-bundle">
 <h1>V2 Transparent Scene Bundle<a class="headerlink" href="#v2-transparent-scene-bundle" title="Link to this heading">¶</a></h1>
-<p>EGTRAIN identifies portable case studies by the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> extension. The
+<p>EGTRAIN identifies portable cases by the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> extension. The
 payload is an ordinary ZIP archive, so external tools may report
 <code class="docutils literal notranslate"><span class="pre">application/zip</span></code>; EGTRAIN does not rely on a registered MIME type. ZIP entries
 use deflate or store compression. Encryption and passwords are not supported.
@@ -316,9 +316,9 @@ The archive is a transport container only: it loads into the existing V1
 <p>The name V2 refers to the container. The container’s own number is
 <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> 1, and the data inside has <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> 1. A higher
 version needs a newer EGTRAIN.</p>
-<p>A scene folder is the editable source of truth. An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle packages
+<p>A case folder is the editable source of truth. An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle packages
 its files for transport. Legacy import and export remain explicit
-interoperability actions; normal scene loading and simulation use the
+interoperability actions; normal case loading and simulation use the
 canonical model.</p>
 <section id="root-layout">
 <h2>Root layout<a class="headerlink" href="#root-layout" title="Link to this heading">¶</a></h2>
@@ -351,7 +351,7 @@ passthrough files are not part of bundle version 1.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">format</span></code> identifies the container and <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> versions the container
 independently from the data schema. Both fields are required in a bundle;
-directory scenes may omit them. A reader rejects another marker, bundle
+case folders may omit them. A reader rejects another marker, bundle
 version, or schema version before extracting files.</p>
 <p>Compatibility probing reads the bounded <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> manifest after generic ZIP
 safety checks. It can classify a newer layout without extracting unknown

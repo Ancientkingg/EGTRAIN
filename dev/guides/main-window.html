@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Updating EGTRAIN" href="updates.html"><link rel="prev" title="Opening an .egscene case study" href="opening-a-case-study.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Updating EGTRAIN" href="updates.html"><link rel="prev" title="Opening an .egscene case" href="opening-a-case-study.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Main window - EGTRAIN documentation</title>
@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -334,7 +334,7 @@ runtime and displays speed in km/h and effort in kN.</p>
 <p>The rolling-stock editor also has a <strong>Link File…</strong> button on the tabs
 <strong>Physical</strong> and <strong>Traction</strong>, for the parameter file and the traction file. These links are session-only absolute local
 paths, separate from the descriptive provenance fields, and are cleared when a
-scene is reopened or replaced; Save As does not relocate or persist them.
+case is reopened or replaced; Save As does not relocate or persist them.
 Parameter files contain exactly nine whitespace-separated finite values:
 traction-unit mass (kg), wagon mass (kg), wagon count, maximum speed (m/s),
 maximum deceleration (m/s²), frontal area (m²), resistance coefficient, jerk
@@ -354,7 +354,7 @@ available. A conflict between local edits and a changed file is a question, not
 a label: it asks for Reload or Keep Edits.</p>
 <p>Each linked update is applied only after the complete candidate validates.
 Malformed or missing content leaves accepted values unchanged and keeps
-<strong>Retry</strong> available. A valid change marks the scene dirty only when values
+<strong>Retry</strong> available. A valid change marks the case dirty only when values
 differ and refreshes open input traction plots. Conflicting local edits require
 a Keep Edits/Reload decision, grouped for all units sharing the file. Updates
 observed during a run are offered after the run completes. Completed result
@@ -383,7 +383,7 @@ charts do not change.</p>
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</div>
+                <div class="title">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</div>
                 
               </div>
             </a>

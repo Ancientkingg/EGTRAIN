@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -575,12 +575,12 @@ copies keep their settings in the profile of the account, not in their folder,
 so the question of R7 is asked at the first start in W2 and not again in W6.</p>
 <p><strong>Before step 2.</strong> Make a byte-for-byte copy of the downloaded bundle in another
 folder and note the modification time of the original. While the downloaded
-bundle is the open case, <strong>File &gt; Save Scene</strong> and the <strong>Save</strong> button of the
-<strong>Unsaved Scene</strong> message write into the open bundle. The edit of step 4 is
-therefore saved only through step 5, <strong>Save Case Study As…</strong>.</p>
-<p>Installed examples are protected separately: Save asks for a new bundle in a
+bundle is the open case, <strong>File &gt; Save</strong> and the <strong>Save</strong> button of the
+<strong>Unsaved Case</strong> message write into the open bundle. The edit of step 4 is
+therefore saved only through step 5, <strong>Save As…</strong>.</p>
+<p>Bundled cases are protected separately: Save asks for a new bundle in a
 user folder. This does not protect an ordinary downloaded bundle from an
-in-place save. Row R11 checks the installed-example path.</p>
+in-place save. Row R11 checks the bundled-case path.</p>
 <ol class="arabic">
 <li><p>Launch the downloaded application through the platform’s normal GUI path.
 On macOS that path is: open the disk image, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto
@@ -612,14 +612,14 @@ executable. Note what the chooser lists. Close it before step 2 with the
 button that keeps the current case: <strong>Continue</strong> when a case is loaded and
 <strong>Cancel</strong> when none is.</p>
 </li>
-<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case Study…</strong>.</p></li>
+<li><p>Open a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> through <strong>File &gt; Open Case…</strong>.</p></li>
 <li><p>Confirm the network renders. Show Loaded Data with <strong>View &gt; Loaded Data</strong>
 (the entry is checked while the dock is shown) and tick
 <strong>View &gt; Advanced Details</strong>, which adds the versions. Confirm
 that it shows identity, versions, category counts, scenarios, validation,
 runtime, and result readiness.</p></li>
 <li><p>Select or edit a scenario and confirm the run review names that scenario.</p></li>
-<li><p>Use <strong>Save Case Study As…</strong> to write a working copy outside the package.
+<li><p>Use <strong>Save As…</strong> to write a working copy outside the package.
 The dialog proposes the downloaded bundle itself: give the copy a new name
 in another folder.
 Confirm the downloaded source bundle is unchanged. Compare the original with
@@ -665,16 +665,16 @@ text, which is the same on every platform.</p>
 </tr>
 <tr class="row-odd"><td><p>R2 Drop a bundle onto the open window</p></td>
 <td><p>Drag one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file from the file manager onto the open main window.</p></td>
-<td><p>It opens like <strong>File &gt; Open Case Study…</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
+<td><p>It opens like <strong>File &gt; Open Case…</strong>. The application accepts exactly one local <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-even"><td><p>R3 Unsaved changes</p></td>
-<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case Study…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Scene</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
+<td><p>Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose <strong>File &gt; Open Case…</strong>. In the file dialog choose another copy of a bundle, never the downloaded bundle. The <strong>Unsaved Case</strong> message follows the choice of a file. Then repeat with <strong>File &gt; Quit</strong> (on macOS, <strong>Quit</strong> in the application menu). Make the change again before each repeat, and reopen the working copy after <strong>Discard</strong>.</p></td>
 <td><p>The message offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it has no title and reads <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>, and its buttons are <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which are Qt’s native names for Save, Cancel and Discard. Answer <strong>Cancel</strong> first and record that the edit and the open case stay, and that the status bar adds no message. Then answer <strong>Save</strong> and <strong>Discard</strong> once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R4 Damaged file</p></td>
-<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>File &gt; Open Case Study…</strong>.</p></td>
+<td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code> and open it with <strong>File &gt; Open Case…</strong>.</p></td>
 <td><p>Record the message title and text, and whether the case that was open before is still shown. The application must not crash and must not change the file.</p></td>
 <td><p>All</p></td>
 </tr>
@@ -708,13 +708,13 @@ text, which is the same on every platform.</p>
 <td><p>The update dialog has no <strong>Update and Restart</strong> button. Its text says <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">packaged</span> <span class="pre">installation</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">writable.</span> <span class="pre">Use</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page</span> <span class="pre">to</span> <span class="pre">update</span> <span class="pre">manually.</span></code> On macOS, a copy that runs from a mounted disk image shows <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">is</span> <span class="pre">running</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">read-only</span> <span class="pre">location,</span> <span class="pre">such</span> <span class="pre">as</span> <span class="pre">a</span> <span class="pre">disk</span> <span class="pre">image.</span> <span class="pre">Move</span> <span class="pre">EGTRAIN</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">Applications</span> <span class="pre">folder</span> <span class="pre">first.</span> <span class="pre">Use</span> <span class="pre">the</span> <span class="pre">release</span> <span class="pre">page</span> <span class="pre">to</span> <span class="pre">update</span> <span class="pre">manually.</span></code> instead.</p></td>
 <td><p>All</p></td>
 </tr>
-<tr class="row-even"><td><p>R11 Save an installed example</p></td>
-<td><p>Copy the installed scene folder before testing, then open the installed example through <strong>Open Case</strong>, edit it, and choose <strong>Save Scene</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the installed example before repeating through <strong>Save</strong> in <strong>Unsaved Scene</strong>. Try an installed folder as the destination of <strong>Save Scene As Folder…</strong>, and a file inside it through <strong>Save Case Study As…</strong>.</p></td>
+<tr class="row-even"><td><p>R11 Save a bundled case</p></td>
+<td><p>Copy the installed case folder before testing, then open the bundled case through <strong>Open Case</strong>, edit it, and choose <strong>Save</strong>. Cancel once, then save a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> outside the installation. Reopen and edit the bundled case before repeating through <strong>Save</strong> in <strong>Unsaved Case</strong>. Try an installed folder as the destination of <strong>Save As Folder…</strong>, and a file inside it through <strong>Save As…</strong>.</p></td>
 <td><p>The dialog starts in the Documents folder, or in the home folder when there is none, and not in the installation. Cancel retains the edit and current case; a successful save makes the new bundle current. Installed destinations are rejected. The original folder’s file paths and bytes remain unchanged. A later edit saves in place to the external bundle.</p></td>
 <td><p>All</p></td>
 </tr>
 <tr class="row-odd"><td><p>R12 Bundle of the previous release</p></td>
-<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>File &gt; Open Case Study…</strong> and run a short simulation as in step 6.</p></td>
+<td><p>Download one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle from the assets of the latest stable release before the candidate, for example <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>. Open it in the application under test with <strong>File &gt; Open Case…</strong> and run a short simulation as in step 6.</p></td>
 <td><p>The bundle opens without a version message, and the simulation runs to its end. Record the tag of the release. A message that the scene is older, newer or unsupported is a finding, unless the candidate deliberately drops support for that format.</p></td>
 <td><p>All</p></td>
 </tr>
@@ -792,17 +792,17 @@ did, and go on with <strong>Open With</strong>.</p>
 <tbody>
 <tr class="row-even"><td><p>M1 File type in Finder</p></td>
 <td><p>Quit EGTRAIN. In Finder select a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file and choose <strong>File &gt; Get Info</strong>. Note the <strong>Kind</strong> and the application under <strong>Open with</strong>. Do the same for a <code class="docutils literal notranslate"><span class="pre">.zip</span></code> file. Then Control-click the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file and open <strong>Open With</strong>.</p></td>
-<td><p><strong>Kind</strong> reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">Case</span> <span class="pre">Study</span></code> and <strong>Open with</strong> names <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, which the <strong>Open With</strong> menu lists. Record the icon that Finder shows for the file. The <code class="docutils literal notranslate"><span class="pre">.zip</span></code> file keeps the application it had, and EGTRAIN is not the one that opens it. If Finder shows another Kind or application, record it, and whether choosing <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> under <strong>Open with</strong> and <strong>Change All…</strong> corrects it.</p></td>
+<td><p><strong>Kind</strong> reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">Case</span></code> and <strong>Open with</strong> names <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, which the <strong>Open With</strong> menu lists. Record the icon that Finder shows for the file. The <code class="docutils literal notranslate"><span class="pre">.zip</span></code> file keeps the application it had, and EGTRAIN is not the one that opens it. If Finder shows another Kind or application, record it, and whether choosing <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code> under <strong>Open with</strong> and <strong>Change All…</strong> corrects it.</p></td>
 <td><p>macOS</p></td>
 </tr>
-<tr class="row-odd"><td><p>M2 Open a case study by double-click</p></td>
+<tr class="row-odd"><td><p>M2 Open a case by double-click</p></td>
 <td><p>With EGTRAIN closed, double-click a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder. Then change a value and double-click a second <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file: answer <strong>Cancel</strong>, double-click again and answer <strong>Don’t Save</strong>, which is Discard, and never <strong>Save</strong>. Last, quit EGTRAIN, start it from the Applications folder, leave <strong>Open a Case</strong> open and double-click a file.</p></td>
-<td><p>The first file opens in EGTRAIN, and <strong>Open a Case</strong> does not open first; record it if it does. The second double-click brings the open window to the front and asks about the unsaved changes. The box has no title on macOS and reads <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>, and its buttons are <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, Qt’s native names for Save, Cancel and Discard. No second EGTRAIN icon appears in the Dock and no second window opens. <strong>Cancel</strong> keeps the open case and the edit, and the status bar adds no message. After <strong>Don’t Save</strong> the second file is open, and both files are in <strong>File &gt; Recent Scenes</strong>. With <strong>Open a Case</strong> open, that window closes and the file opens. Record any question that macOS asks, with its text.</p></td>
+<td><p>The first file opens in EGTRAIN, and <strong>Open a Case</strong> does not open first; record it if it does. The second double-click brings the open window to the front and asks about the unsaved changes. The box has no title on macOS and reads <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>, and its buttons are <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, Qt’s native names for Save, Cancel and Discard. No second EGTRAIN icon appears in the Dock and no second window opens. <strong>Cancel</strong> keeps the open case and the edit, and the status bar adds no message. After <strong>Don’t Save</strong> the second file is open, and both files are in <strong>File &gt; Recent Cases</strong>. With <strong>Open a Case</strong> open, that window closes and the file opens. Record any question that macOS asks, with its text.</p></td>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-even"><td><p>M3 Double-click a damaged file and a special path</p></td>
 <td><p>Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code>. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, quit EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle.</p></td>
-<td><p>Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under <strong>File &gt; Recent Scenes</strong>. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time.</p></td>
+<td><p>Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under <strong>File &gt; Recent Cases</strong>. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time.</p></td>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M4 First start of an ad hoc build</p></td>
@@ -816,7 +816,7 @@ did, and go on with <strong>Open With</strong>.</p>
 <td><p>macOS</p></td>
 </tr>
 <tr class="row-odd"><td><p>M6 Folder access questions</p></td>
-<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong> and choose <strong>File &gt; Open Case Study…</strong>. Cancel, choose <strong>File &gt; New Case Study…</strong> and choose <strong>File &gt; Open Case Study…</strong> again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
+<td><p>On an account that has never run EGTRAIN, start the app from the Applications folder, close <strong>Open a Case</strong> and choose <strong>File &gt; Open Case…</strong>. Cancel, choose <strong>File &gt; New Case…</strong> and choose <strong>File &gt; Open Case…</strong> again. Last, in the file dialog choose <strong>lume</strong> or your home folder in the sidebar and write down what macOS asks.</p></td>
 <td><p>The first two file dialogs open in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app without any question about Desktop, Documents or Downloads. The question <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">would</span> <span class="pre">like</span> <span class="pre">to</span> <span class="pre">access</span> <span class="pre">files</span> <span class="pre">in</span> <span class="pre">your</span> <span class="pre">Desktop</span> <span class="pre">folder.</span></code>, and the same for Documents and Downloads, appears only when the file dialog lists your home folder, which it does in the last step. Record each question with its text and the step that caused it. Any question in the first two dialogs is a finding.</p></td>
 <td><p>macOS</p></td>
 </tr>
@@ -878,9 +878,9 @@ list of installed apps shows only what the archive itself adds.</p>
 <td><p>No prompt asks for administrator rights. Record any warning at the first start, with its text. The list of installed apps and the Start Menu show no EGTRAIN, and no shortcut was made. The folder has no <code class="docutils literal notranslate"><span class="pre">installed-by-setup.ini</span></code> and no uninstaller. Deleting the folder after closing EGTRAIN removes the copy.</p></td>
 <td><p>Windows</p></td>
 </tr>
-<tr class="row-even"><td><p>W7 Open a case study by double-click</p></td>
+<tr class="row-even"><td><p>W7 Open a case by double-click</p></td>
 <td><p>Run it right after W2. Close EGTRAIN and double-click a downloaded <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Explorer. With EGTRAIN open, change a value and double-click a second <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></td>
-<td><p>Explorer shows the type name <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">case</span> <span class="pre">study</span></code> and the EGTRAIN icon for the file. The first file opens in EGTRAIN. The second opens in the window that is already open, after the question about unsaved changes, and no second window appears. If Windows asks which program to use, record the question.</p></td>
+<td><p>Explorer shows the type name <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">case</span></code> and the EGTRAIN icon for the file. The first file opens in EGTRAIN. The second opens in the window that is already open, after the question about unsaved changes, and no second window appears. If Windows asks which program to use, record the question.</p></td>
 <td><p>Windows</p></td>
 </tr>
 <tr class="row-odd"><td><p>W8 In-app update of an installed copy</p></td>
@@ -890,7 +890,7 @@ list of installed apps shows only what the archive itself adds.</p>
 </tr>
 <tr class="row-even"><td><p>W9 Double-click a damaged file and a special path</p></td>
 <td><p>Run it right after W7, on the installed copy. Rename a plain text file to <code class="docutils literal notranslate"><span class="pre">something.egscene</span></code>. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, close EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle.</p></td>
-<td><p>Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under <strong>File &gt; Recent Scenes</strong>. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time.</p></td>
+<td><p>Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under <strong>File &gt; Recent Cases</strong>. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time.</p></td>
 <td><p>Windows</p></td>
 </tr>
 </tbody>

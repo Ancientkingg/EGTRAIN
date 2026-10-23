@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title="Fills the Recent Scenes menu again from the settings.">
+<g id="a_Node000001"><a xlink:title="Fills the Recent Cases menu again from the settings.">
 <polygon fill="#999999" stroke="#666666" points="157,-115.5 0,-115.5 0,-85.5 157,-85.5 157,-115.5"/>
 <text text-anchor="start" x="8" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSession::rebuildRecent</text>
 <text text-anchor="middle" x="78.5" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenesMenu</text>

@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -326,7 +326,7 @@ without guessing.</p>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> base time, duration, buffer, recovery</p></td>
 <td><p>canonical</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> use <code class="docutils literal notranslate"><span class="pre">base_time</span></code> plus the three <code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code> values. The native operations builder applies these values and derives service-line/station reporting maps; UI switches, output paths, and network flags remain runtime configuration. Numeric case shortcuts now choose scene directories, not compiled input-folder tables. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, which <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> reads before the compiled case table.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> use <code class="docutils literal notranslate"><span class="pre">base_time</span></code> plus the three <code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code> values. The native operations builder applies these values and derives service-line/station reporting maps; UI switches, output paths, and network flags remain runtime configuration. Numeric case shortcuts now choose case folders, not compiled input-folder tables. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, which <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> reads before the compiled case table.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NodiCumPari</span></code>, <code class="docutils literal notranslate"><span class="pre">ArchiCumPari</span></code>, <code class="docutils literal notranslate"><span class="pre">BlockCumPari</span></code></p></td>
 <td><p>canonical</p></td>
@@ -362,7 +362,7 @@ without guessing.</p>
 </tr>
 <tr class="row-odd"><td><p>Copenhagen four-node track drawing</p></td>
 <td><p>canonical display metadata</p></td>
-<td><p>The original drew only the middle arc of each four-node track of <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code>, the double switches of the case. <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the four-node tracks of the Copenhagen case, which it recognises by scene or folder name, and the native preview and runtime leave out the first and last arc and the ordinary node dots of such a track. The simulation keeps every arc. The legacy files have no field for it: the exporter omits it with a warning, and an import of the export as the Copenhagen case sets it again.</p></td>
+<td><p>The original drew only the middle arc of each four-node track of <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code>, the double switches of the case. <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the four-node tracks of the Copenhagen case, which it recognises by case or folder name, and the native preview and runtime leave out the first and last arc and the ordinary node dots of such a track. The simulation keeps every arc. The legacy files have no field for it: the exporter omits it with a warning, and an import of the export as the Copenhagen case sets it again.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code></p></td>
 <td><p>canonical when populated</p></td>
@@ -426,7 +426,7 @@ without guessing.</p>
 </tr>
 <tr class="row-odd"><td><p>generated <code class="docutils literal notranslate"><span class="pre">TrackandStations</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualizeConnections</span></code>, <code class="docutils literal notranslate"><span class="pre">ShowElements</span></code>, <code class="docutils literal notranslate"><span class="pre">List_of_Blocks</span></code></p></td>
 <td><p>derived/output</p></td>
-<td><p>Infrastructure and signalling produce these display and route-authoring aids from topology. They are not additional authoritative scene inputs.</p></td>
+<td><p>Infrastructure and signalling produce these display and route-authoring aids from topology. They are not additional authoritative case inputs.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> and historical <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code></p></td>
 <td><p>dead/inert in the current source</p></td>
@@ -450,7 +450,7 @@ without guessing.</p>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAINOutput</span></code>, ROMA/TDS artifacts, <code class="docutils literal notranslate"><span class="pre">FolderEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">OL_LastEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledOrder</span></code></p></td>
 <td><p>output/interoperability</p></td>
-<td><p>Simulation and integration code write these artifacts. They are not case-scene input.</p></td>
+<td><p>Simulation and integration code write these artifacts. They are not case input.</p></td>
 </tr>
 <tr class="row-even"><td><p>Other GUI coordinate/display files</p></td>
 <td><p>derived/output</p></td>
@@ -471,10 +471,10 @@ without guessing.</p>
 <h2>Resolved source corrections and remaining ambiguities<a class="headerlink" href="#resolved-source-corrections-and-remaining-ambiguities" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Copenhagen source service <code class="docutils literal notranslate"><span class="pre">E-Holte-Koge_2</span></code> records Koge Nord arrival at 4660
-seconds and departure at 4460 seconds. The prior canonical scene corrected
+seconds and departure at 4460 seconds. The prior canonical case corrected
 departure to 4660; the native conversion retains and documents that correction.</p></li>
 <li><p>Paimpol’s <code class="docutils literal notranslate"><span class="pre">Draisy-traction.txt</span></code> contains two overlapping three-band alternatives.
-The prior validated scene retained the second group; the native conversion does
+The prior validated case retained the second group; the native conversion does
 the same and records three converted plus three skipped rows.</p></li>
 <li><p>Paimpol B4 arc 108 incorrectly restarts at node 1 after the source’s ordered
 1→2→…→9 chain. V1 corrects it to 9→10, consistent with the ordered nodes,
@@ -501,7 +501,7 @@ reliable timing association. Their V1 timing fields remain absent and the
 import report records the unresolved mapping, unless the folder holds the
 <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> that <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes.</p></li>
 </ul>
-<p>The committed scenes no longer contain compatibility <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> trees, and the
+<p>The bundled cases no longer contain compatibility <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> trees, and the
 obsolete committed <code class="docutils literal notranslate"><span class="pre">Input/</span></code> cases are removed after conversion parity. Their
 filenames remain only as compact provenance in the import reports.</p>
 </section>

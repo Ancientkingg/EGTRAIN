@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -461,7 +461,7 @@ ls<span class="w"> </span>/tmp/egtrain-out/Output/Paimpol
 progress as one long line.</p>
 <p>The files are listed in <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a>. On Windows a run without a window prints
 nothing to a terminal; see <a class="reference internal" href="testing.html#windows-headless-runs"><span class="std std-ref">Windows headless runs</span></a>.
-The bundled cases and their <code class="docutils literal notranslate"><span class="pre">-n</span></code> numbers are in <a class="reference internal" href="../guides/command-line.html#case-study-numbers"><span class="std std-ref">Case study numbers</span></a>.</p>
+The bundled cases and their <code class="docutils literal notranslate"><span class="pre">-n</span></code> numbers are in <a class="reference internal" href="../guides/command-line.html#bundled-case-numbers"><span class="std std-ref">Bundled case numbers</span></a>.</p>
 </section>
 <section id="source-map">
 <h2>Source map<a class="headerlink" href="#source-map" title="Link to this heading">¶</a></h2>
@@ -512,7 +512,7 @@ of folders, the libraries and the renames.</p>
 <tr class="row-odd"><td><p>Tests</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tests/</span></code> (C++), <code class="docutils literal notranslate"><span class="pre">tools/e2e/</span></code> (scripts)</p></td>
 </tr>
-<tr class="row-even"><td><p>Committed case studies</p></td>
+<tr class="row-even"><td><p>Bundled cases</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Scenes/</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Release, memory and performance scripts</p></td>
@@ -528,7 +528,7 @@ of folders, the libraries and the renames.</p>
 into <code class="docutils literal notranslate"><span class="pre">MainWindow.cpp</span></code>. <a class="reference internal" href="../architecture/scene-editor-flow.html"><span class="std std-doc">Scene editor flow</span></a> describes the same
 path from the user’s side, and <a class="reference internal" href="../architecture/scene-model.html"><span class="std std-doc">Scene model</span></a> describes the data.</p>
 <ol class="arabic simple">
-<li><p><strong>Open.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Study...</span></code> (a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle), <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Scene</span> <span class="pre">Folder...</span></code> or the
+<li><p><strong>Open.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case...</span></code> (a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle), <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code> or the
 case chooser lead to <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code>. It probes the scene format, and the window
 loads the scene with <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> into a <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and hands it to its <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>.</p></li>
 <li><p><strong>Edit.</strong> An editor panel changes the model in place and calls <code class="docutils literal notranslate"><span class="pre">SceneDocument::markChanged</span></code>.
@@ -536,7 +536,7 @@ loads the scene with <code class="docutils literal notranslate"><span class="pre
 earlier run and schedules the recovery copy.</p></li>
 <li><p><strong>Validate.</strong> <code class="docutils literal notranslate"><span class="pre">MainWindow::refreshValidationPanel</span></code> asks <code class="docutils literal notranslate"><span class="pre">ValidationPanel::refresh</span></code>, which calls
 <code class="docutils literal notranslate"><span class="pre">validateRunnableScene</span></code> and fills the validation table. Error diagnostics block Run; warnings do not.</p></li>
-<li><p><strong>Run.</strong> <code class="docutils literal notranslate"><span class="pre">Run</span></code> in the toolbar (Ctrl+R) or <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Run</span> <span class="pre">Scene</span></code> reaches <code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>, which
+<li><p><strong>Run.</strong> <code class="docutils literal notranslate"><span class="pre">Run</span></code> in the toolbar (Ctrl+R) or <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Run</span></code> reaches <code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>, which
 validates again and opens the review window <strong>Run simulation</strong>. Its button goes on to
 <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code>, which validates, builds the infrastructure and the operations
 with <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code> and <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>, and then to
@@ -546,9 +546,9 @@ with <code class="docutils literal notranslate"><span class="pre">buildInfrastru
 need into one <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code> with <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> and fills the <strong>Run Results</strong> dock.
 <strong>Open result view…</strong> in that dock opens the charts and tables, including the Delay analysis
 window. The output files are written to the <a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">output folder</span></a>.</p></li>
-<li><p><strong>Save.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Save</span> <span class="pre">Scene</span></code> goes through <code class="docutils literal notranslate"><span class="pre">SceneSession::saveSceneToCurrentDir</span></code> to <code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code>
+<li><p><strong>Save.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Save</span></code> goes through <code class="docutils literal notranslate"><span class="pre">SceneSession::saveSceneToCurrentDir</span></code> to <code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code>
 or <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneWriter</span></code>), and <code class="docutils literal notranslate"><span class="pre">SceneSession::finishSceneSave</span></code> marks the scene saved. A bundled case
-in the installation folder is never overwritten: Save leads to <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">Case</span> <span class="pre">Study</span> <span class="pre">As...</span></code>.</p></li>
+in the installation folder is never overwritten: Save leads to <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As...</span></code>.</p></li>
 </ol>
 <p>Messages go through the logging core in <code class="docutils literal notranslate"><span class="pre">util/Log</span></code>. Switch categories on with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code> and
 read them in the <strong>Log</strong> dock (<code class="docutils literal notranslate"><span class="pre">View</span> <span class="pre">&gt;</span> <span class="pre">Log</span></code>); see

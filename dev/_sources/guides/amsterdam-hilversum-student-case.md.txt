@@ -24,9 +24,9 @@ The minimum dwell is 60 s at both stops and the running performance is 100 %. Th
 
 ## Open the case and keep your own copy
 
-1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
-2. Choose **File > Save Case Study As...** and save a `.egscene` file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Scene saved** and your file is the open case.
-3. From then on **File > Save Scene** saves to your file. If you edit an installed case before making a copy, **Save Scene** asks for a new `.egscene` file instead of overwriting the installed case. Cancelling keeps the edit and the current case.
+1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case...** instead; see [Opening an `.egscene` case](opening-a-case-study.md).
+2. Choose **File > Save As...** and save a `.egscene` file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Case saved** and your file is the open case.
+3. From then on **File > Save** saves to your file. If you edit a bundled case before making a copy, **Save** asks for a new `.egscene` file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.
 
 The saved file holds the inputs of the case. It holds neither results nor the selection of runs.
 
@@ -96,8 +96,8 @@ Report results per run. The **Network total** row spans from the earliest start 
 ### 6. Recommend and hand in
 
 1. Choose a configuration: the performance, the `Hvs` planned times and the number of runs.
-2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The file keeps **Repeat count** from **Service**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
-3. To check your file, choose **File > Open Case Study...** and select it. Check the performance on **Service** and the `Hvs` times on **Timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
+2. Set the open case to that configuration and choose **File > Save As...** with a new file name. The file keeps **Repeat count** from **Service**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
+3. To check your file, choose **File > Open Case...** and select it. Check the performance on **Service** and the `Hvs` times on **Timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
 
 Hand in:
 

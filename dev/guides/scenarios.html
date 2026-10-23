@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -329,7 +329,7 @@ scenario or incident.</p>
 <section id="the-student-loop">
 <h2>The student loop<a class="headerlink" href="#the-student-loop" title="Link to this heading">¶</a></h2>
 <p>The completed student loop is: open a case, optionally review <strong>Loaded Data</strong>
-and <strong>Validation</strong>, choose or edit a scenario, save (or <strong>Save Case Study As…</strong>),
+and <strong>Validation</strong>, choose or edit a scenario, save (or <strong>Save As…</strong>),
 review the run summary, run the selected scenario, then use <strong>Run Results</strong> to
 open the existing timetable, delay, speed, and blocking-time views. Results
 are cleared when the case or scenario changes and are rebuilt only by a new
@@ -403,7 +403,7 @@ during a run. A field that only a run fills reads <code class="docutils literal 
 signal of the preview is named by the label of its section, as in
 <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km</span></code> in Paimpol. A signal that
 <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> lists for the section comes first: <code class="docutils literal notranslate"><span class="pre">sig1</span> <span class="pre">(B0</span> <span class="pre">0.230</span> <span class="pre">to</span> <span class="pre">0.310</span> <span class="pre">km)</span></code>.
-During a run the inspector names tracks by their scene ids and sections by their
+During a run the inspector names tracks by their case ids and sections by their
 labels, and the tooltip of a field gives the track number or the section
 id (<a class="reference internal" href="glossary.html#ids-and-labels"><span class="std std-ref">ids and labels</span></a>). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
@@ -417,7 +417,7 @@ Dragging the canvas pans the view and keeps the selection.</p>
 <p>Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
 (green), Unavailable (a gray ring with a short gray bar) or Failed (a red lamp
-with a white cross). A head is unavailable when its section has no signalling area, so a scene
+with a white cross). A head is unavailable when its section has no signalling area, so a case
 without one shows rings for the whole run. A head is failed on every signal of a
 section for as long as a signal failure incident is active. The marks appear when
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
@@ -435,7 +435,7 @@ places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline, discards the results and closes
 the dock <strong>Run Results</strong>. Opened again from the menu <strong>View</strong>, the dock reads
 <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">results</span> <span class="pre">yet</span></code> and <code class="docutils literal notranslate"><span class="pre">Baseline:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;</span></code>. An edit of the case clears the
-baseline, and the line then reads <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed</span></code>; <strong>File &gt; New Case Study…</strong>
+baseline, and the line then reads <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed</span></code>; <strong>File &gt; New Case…</strong>
 gives <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">a</span> <span class="pre">new</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">created</span></code> and opening another case gives
 <code class="docutils literal notranslate"><span class="pre">Baseline</span> <span class="pre">cleared:</span> <span class="pre">another</span> <span class="pre">case</span> <span class="pre">was</span> <span class="pre">opened</span></code>. A new run without
 incidents or entrance delays can then be set as the baseline. <strong>Compare delays</strong> requires a run with incidents or

@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -351,7 +351,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Occupation</p></td>
-<td><p>The blocking time of one train on one block, from <code class="docutils literal notranslate"><span class="pre">StartOccTime</span></code> to <code class="docutils literal notranslate"><span class="pre">EndOccTime</span></code>. It starts at the start of the approach minus the setup time and the sight reaction time. It ends at the end of clearing plus the release time and the run-time margin. The blocking-time paragraph of <a class="reference internal" href="diagram-navigation.html#timetable-graphs-and-train-paths"><span class="std std-ref">Using EGTRAIN and authoring scenes</span></a> says the same. <a class="reference internal" href="#inputs">Inputs</a> gives the values</p></td>
+<td><p>The blocking time of one train on one block, from <code class="docutils literal notranslate"><span class="pre">StartOccTime</span></code> to <code class="docutils literal notranslate"><span class="pre">EndOccTime</span></code>. It starts at the start of the approach minus the setup time and the sight reaction time. It ends at the end of clearing plus the release time and the run-time margin. The blocking-time paragraph of <a class="reference internal" href="diagram-navigation.html#timetable-graphs-and-train-paths"><span class="std std-ref">Inspecting diagrams</span></a> says the same. <a class="reference internal" href="#inputs">Inputs</a> gives the values</p></td>
 </tr>
 <tr class="row-odd"><td><p>Resource</p></td>
 <td><p>A block. Two occupations share a resource when a component of their block ids is equal. An id is split at “&#64;” and its first and third non-empty parts are compared. An id without “&#64;” is compared whole. An id has no direction of travel (<code class="docutils literal notranslate"><span class="pre">shareBlockingTimeResource</span></code>)</p></td>
@@ -369,7 +369,7 @@
 <td><p>The order of the checked rows of the list. The user can drag rows. The first order is the order in which the run holds its trains, not the order of time. The program never sorts</p></td>
 </tr>
 <tr class="row-even"><td><p>Period</p></td>
-<td><p>A number of seconds entered in the chooser: default 3600, minimum 0.001, step 60. It is not read from the scene or the run, and it is not checked against the length of the run. There is no selection of a timetable window: every valid occupation of a selected train on the analysed blocks is used</p></td>
+<td><p>A number of seconds entered in the chooser: default 3600, minimum 0.001, step 60. It is not read from the case or the run, and it is not checked against the length of the run. There is no selection of a timetable window: every valid occupation of a selected train on the analysed blocks is used</p></td>
 </tr>
 <tr class="row-odd"><td><p>Profile reference</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">StartRunTime</span></code> of the train on the first analysed block, in seconds. The result window calls it “Original reference”</p></td>
@@ -384,7 +384,7 @@
 <section id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading">¶</a></h2>
 <ol class="arabic">
-<li><p>Occupations exist only for sections of level 0, 2, 3 and 4 (<code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingAreas</span></code>). A section of level 1 or 5, or without a level, gives none. A scene gives input only for the sections that a signalling area of level 0, 2, 3 or 4 contains. <a class="reference internal" href="signalling-levels.html#the-committed-scenes"><span class="std std-ref">The committed scenes</span></a> lists the areas of each committed scene. At levels 3 and 4 the run builds occupations per infrastructure element, and the line fixture of the characterization tests lists none at those levels; <a class="reference internal" href="signalling-levels.html#what-is-not-established"><span class="std std-ref">What is not established</span></a> says so.</p></li>
+<li><p>Occupations exist only for sections of level 0, 2, 3 and 4 (<code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingAreas</span></code>). A section of level 1 or 5, or without a level, gives none. A case gives input only for the sections that a signalling area of level 0, 2, 3 or 4 contains. <a class="reference internal" href="signalling-levels.html#the-bundled-cases"><span class="std std-ref">The bundled cases</span></a> lists the areas of each bundled case. At levels 3 and 4 the run builds occupations per infrastructure element, and the line fixture of the characterization tests lists none at those levels; <a class="reference internal" href="signalling-levels.html#what-is-not-established"><span class="std std-ref">What is not established</span></a> says so.</p></li>
 <li><p>An occupation is used only when it is complete, has a block id, has finite times and positions, starts at 0 or later, ends after it starts and has positions of 0 or more (<code class="docutils literal notranslate"><span class="pre">validBlockingTimeDiagramInput</span></code>). The window leaves other records out without a message.</p></li>
 <li><p>The setup time, the sight reaction time and the release time are not inputs of the window. The run passes fixed values and two settings of the case to the occupation routines (the call of <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingForAllTrains</span></code> in <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>): a setup time of 5 s, a release time of 3 s plus the buffer time, a sight reaction time of 0.5 s, a safety margin of 50 that the routines of levels 0 and 2 do not take, an absolute running-time supplement of 0 and the recovery percentage. For a section of level 0 or 2, <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimeForSingleLocation</span></code> sets:</p>
 <ul class="simple">
@@ -605,7 +605,7 @@
 <td><p>A second block range. The area is the resources of both ranges. A resource that both ranges name counts once. “No second route” is the default</p></td>
 </tr>
 <tr class="row-even"><td><p>Analysis period</p></td>
-<td><p>Seconds, default 3600, minimum 0.001, step 60. It is the denominator of every percentage. It is not read from the scene or the run, and occupations are not cut to it: the user chooses the trains that belong to the period</p></td>
+<td><p>Seconds, default 3600, minimum 0.001, step 60. It is the denominator of every percentage. It is not read from the case or the run, and occupations are not cut to it: the user chooses the trains that belong to the period</p></td>
 </tr>
 <tr class="row-odd"><td><p>Trains in the area</p></td>
 <td><p>Every train of the run that has an occupation on a resource of the area, usable or not, with a check box. All are checked at first. The order is the order of the reference time (the scheduled reference, else the profile reference; a train without either comes last, and equal times keep the order of the run). The user can drag rows. An entry reads “runtime id (operating code)”, or the runtime id alone when the train has no operating code or its code is the id, and ends with “, no reference time” for a train without one. Its tooltip gives the reference time, such as “Reference time: planned departure at Guingamp”</p></td>
@@ -616,7 +616,7 @@
 </tbody>
 </table>
 </div>
-<p>The scope can be one block, a stretch of one route, the whole route, or a stretch of each of two routes. A signalling area of the scene is not a scope, and no scope is stored.</p>
+<p>The scope can be one block, a stretch of one route, the whole route, or a stretch of each of two routes. A signalling area of the case is not a scope, and no scope is stored.</p>
 <p>The reference time of a train is taken at the first resource of the first range, by the rules of step 2 of <a class="reference internal" href="#the-calculation">The calculation</a>. A train with no valid occupation there has no reference time, and its entry in the list says so. It still counts in the resource rows. The chain reports it with the status “Invalid reference”.</p>
 <p>Under the list the dialog shows a message. <strong>OK</strong> is disabled, with the reason, when the run has no route (“The run has no route.”), or when the cycle-closing train is not a checked row after the first checked one (“The cycle-closing train must be a checked row below the first.”). A warning that does not disable <strong>OK</strong> says “The cycle-closing train runs in the other direction and is left out of the chain.” or “No train is checked.” (the window then reports no selected traffic).</p>
 </section>
@@ -844,7 +844,7 @@
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p></p></th>
-<th class="head"><p>Signalling area (scene)</p></th>
+<th class="head"><p>Signalling area (case)</p></th>
 <th class="head"><p>Scope of the Capacity window</p></th>
 <th class="head"><p>Area of the Capacity by area window</p></th>
 <th class="head"><p>Area of the removed program</p></th>
@@ -897,7 +897,7 @@
 </table>
 </div>
 <p>An analysis area is not a stored object. The scope of either window can cross the edges of signalling areas and does not follow them. A block of level 1 or 5, or without a level, has no occupation and drops out without a message.</p>
-<p>No simulation code reads <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> today. The legacy export writes the signalling areas of the scene to it. The legacy import never converts its TXT rows. Without a sidecar it reports them as skipped; with one it restores the authoritative canonical signalling assignment from the sidecar, not capacity areas (see <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">Signalling levels</span></a> and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>).</p>
+<p>No simulation code reads <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> today. The legacy export writes the signalling areas of the case to it. The legacy import never converts its TXT rows. Without a sidecar it reports them as skipped; with one it restores the authoritative canonical signalling assignment from the sidecar, not capacity areas (see <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">Signalling levels</span></a> and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>).</p>
 </section>
 <section id="the-area-calculation-the-program-no-longer-contains">
 <h2>The area calculation the program no longer contains<a class="headerlink" href="#the-area-calculation-the-program-no-longer-contains" title="Link to this heading">¶</a></h2>
@@ -987,7 +987,7 @@
 <tbody>
 <tr class="row-even"><td><p>Reading the area file</p></td>
 <td><p>Read one row per area from the area file</p></td>
-<td><p>Superseded: no code reads the file; the signalling areas of the scene replace it</p></td>
+<td><p>Superseded: no code reads the file; the signalling areas of the case replace it</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">NetworkArea</span></code>, <code class="docutils literal notranslate"><span class="pre">InitializeAllNetworkAreas</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Level assignment by area rows</p></td>

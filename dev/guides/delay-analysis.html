@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -307,7 +307,7 @@
         <article role="main" id="furo-main-content">
           <section id="how-delays-are-calculated">
 <h1>How delays are calculated<a class="headerlink" href="#how-delays-are-calculated" title="Link to this heading">¶</a></h1>
-<p>This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. <a class="reference internal" href="#definitions">Definitions</a> fixes the words, <a class="reference internal" href="#supported-scope">Supported scope</a> says what the figures cover and <a class="reference internal" href="#limits">Limits</a> what they do not. The scene fields it mentions are in the <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">scene schema</span></a>.</p>
+<p>This guide says what the delay figures of EGTRAIN mean: the formula, the unit, the reference timetable, which calls are counted and what is shown when a value is missing. It describes the program as it is, including its limits. <a class="reference internal" href="#definitions">Definitions</a> fixes the words, <a class="reference internal" href="#supported-scope">Supported scope</a> says what the figures cover and <a class="reference internal" href="#limits">Limits</a> what they do not. The case fields it mentions are in the <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">scene schema</span></a>.</p>
 <section id="what-this-guide-covers">
 <h2>What this guide covers<a class="headerlink" href="#what-this-guide-covers" title="Link to this heading">¶</a></h2>
 <p>A run produces delay figures in four places. The Delay analysis window (Diagrams &gt; Delay analysis and Run Results &gt; Open result view &gt; Delay analysis) shows the first and the third of them. The figures of the four places are not the same quantity: they start from different arrivals, count different populations and use different thresholds.</p>
@@ -354,10 +354,10 @@
 <section id="units-and-the-reference-timetable">
 <h2>Units and the reference timetable<a class="headerlink" href="#units-and-the-reference-timetable" title="Link to this heading">¶</a></h2>
 <p>All values are seconds. One simulation step is one second: <code class="docutils literal notranslate"><span class="pre">timestep</span></code> is the constant 1.</p>
-<p>Planned times are the <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> of the stops of a service, in seconds from the base-time origin of the scene. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.</p>
+<p>Planned times are the <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> of the stops of a service, in seconds from the base-time origin of the case. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.</p>
 <p>A scenario entrance delay adds its seconds to the planned departure of the named stop of that occurrence, records the seconds as the entrance delay of the train, and leaves every planned arrival as authored. The stop needs a planned departure: without one, validation reports the error <code class="docutils literal notranslate"><span class="pre">scene.entrance.timetable</span></code> and the case does not run. When the service stops more than once at the named station, the first of those stops is the one that is shifted. So the departure delay at that stop in the timetable results is measured against the shifted planned departure, and arrival delays are not shifted (see <a class="reference internal" href="#where-delays-are-calculated">Where delays are calculated</a> and <a class="reference internal" href="#early-missing-and-repeated-cases">Early, missing and repeated cases</a>). The Delay analysis window takes the shift back, so that the departure shows the entrance delay (<a class="reference internal" href="#the-delay-analysis-window">the window</a>). The entrance delay is a field of a scenario in <a class="reference internal" href="scene-schema.html#scenarios-json"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code></span></a>.</p>
 <p>A train that stands at a stop it has reached does not leave before the planned departure of that stop, when the stop has one, and not before its dwell time has passed (the <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code> of the stop, or longer when boarding and alighting passengers need longer; <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">the rule</span></a>). It also stays while a red signal at the platform or an end of authority applies, and at a node with a train order until the order allows it to leave (<code class="docutils literal notranslate"><span class="pre">trajectoryComputationIncludingMovingBlock</span></code>). For a station that a train serves more than once, the planned departure of the last stop of that name applies at every call of the station. In the line fixture of the tests a train with a planned departure of 660 s at its middle stop leaves at 660 s.</p>
-<p>The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands scene has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.</p>
+<p>The last stop of a service ends the service when it has no planned departure: the train leaves after its dwell, drives on and is removed from the run when its head passes the end node of its route. A planned departure at the last stop holds the train there until that time, so a planned departure after the end of the run keeps it at the stop to the end of the run. The Netherlands case has no planned time at any stop, so its trains leave the network after their dwell at the last stop unless the run ends first.</p>
 <p>A train that begins its route at a stop is not held there: it enters at the entry time of its service (<code class="docutils literal notranslate"><span class="pre">entry_time_seconds</span></code>, or the planned departure of the first stop when the service has no entry time, or 0 when that stop has none), shifted like the other times of a repeated service. In the same fixture a train enters at 60 s although its planned departure at the first stop is 120 s. An entrance delay does not change the entry time; at the first stop it shifts the planned departure that the results show.</p>
 </section>
 <section id="arrival-and-departure-of-a-call">
@@ -703,17 +703,17 @@
 <section id="delay-comparison-against-a-baseline">
 <h2>Delay comparison against a baseline<a class="headerlink" href="#delay-comparison-against-a-baseline" title="Link to this heading">¶</a></h2>
 <p>The comparison reports how much later or earlier each call of a run with incidents or entrance delays is than in a run without them. It reports the difference and the recorded direct evidence, and it never states a cause. <a class="reference internal" href="#against-baseline">Reading the tab</a> shows two examples.</p>
-<p><strong>Set delay baseline</strong> freezes the completed run as the baseline. The run must have no incidents and no entrance delays in its scenario. The baseline is kept in memory only, and it is cleared when the case changes: creating a new case study, opening another one, or editing the case in any way, including adding an incident. So the incident scenario has to exist before the baseline is set. Selecting another scenario keeps it.</p>
+<p><strong>Set delay baseline</strong> freezes the completed run as the baseline. The run must have no incidents and no entrance delays in its scenario. The baseline is kept in memory only, and it is cleared when the case changes: creating a new case, opening another one, or editing the case in any way, including adding an incident. So the incident scenario has to exist before the baseline is set. Selecting another scenario keeps it.</p>
 <p><strong>Compare delays</strong> needs a baseline and a completed run whose scenario has at least one incident or at least one entrance delay. The line above the buttons says why a button is disabled. The button opens the Delay analysis window on the tab Against baseline. The window compares the run with the baseline (<code class="docutils literal notranslate"><span class="pre">compareAgainstBaseline</span></code>) when all of these hold:</p>
 <ul class="simple">
 <li><p>the two runs have different scenario ids;</p></li>
-<li><p>they have the same scene revision, base time, duration and timestep;</p></li>
+<li><p>they have the same case revision, base time, duration and timestep;</p></li>
 <li><p>they have the same set of (service, occurrence) pairs;</p></li>
 <li><p>each occurrence has the same calls in both runs: the same stations, journey order and call numbers;</p></li>
 <li><p>the baseline has no incident and no entrance delay.</p></li>
 </ul>
 <p>When a check fails, the tab lists every reason that applies and shows no difference.</p>
-<p>For each call the comparison takes the simulated arrival and the simulated departure in both runs and reports the <a class="reference internal" href="#definitions">additional delay</a>, scenario minus baseline, with the change Later, Same, Earlier or Not available. The final call of an occurrence is its last authored call. For each occurrence it also reports the entrance delay as the input delay, the direct incident evidence and the <a class="reference internal" href="#definitions">secondary delay</a>. The comparison uses simulated times only, no planned times, so it works for a scene without planned arrivals.</p>
+<p>For each call the comparison takes the simulated arrival and the simulated departure in both runs and reports the <a class="reference internal" href="#definitions">additional delay</a>, scenario minus baseline, with the change Later, Same, Earlier or Not available. The final call of an occurrence is its last authored call. For each occurrence it also reports the entrance delay as the input delay, the direct incident evidence and the <a class="reference internal" href="#definitions">secondary delay</a>. The comparison uses simulated times only, no planned times, so it works for a case without planned arrivals.</p>
 <p>The totals count the occurrences that are later, the same, earlier or not available at their final arrival, and give the sum of the positive additional delays and the net sum. An occurrence whose final arrival is missing in either run has no difference. It is counted as not available, the sums leave it out, and the tab says so. A difference that cannot be computed is never 0. In the line of totals, “Added delay” is the sum of the positive additional delays and “net” the sum of all of them; a count of 0 is left out.</p>
 <p>An occurrence has direct evidence when the scenario run recorded a speed cap, a breakdown hold, a stop at the end of authority of a signal failure, or a stop at the red aspect before a failed section (<a class="reference internal" href="#limits">which cases</a>, item 7). The tab shows “None recorded” or “Yes” with the incident ids. An occurrence without recorded evidence is not shown to be delayed by propagation, and no part of a difference is attributed to a cause. The line “Incidents acted on k of n trains” of the Run Results dock counts the trains with at least one recorded incident id. It shows only when View &gt; Advanced Details is checked.</p>
 <p>The tab exports <code class="docutils literal notranslate"><span class="pre">delay_comparison.csv</span></code> (<a class="reference internal" href="#export">export</a>).</p>
@@ -771,7 +771,7 @@
 <td><p>Not involved</p></td>
 <td><p>The tab lists every reason that applies, shows no difference and offers no export</p></td>
 </tr>
-<tr class="row-even"><td><p>Scene with no planned arrival at all</p></td>
+<tr class="row-even"><td><p>Case with no planned arrival at all</p></td>
 <td><p>Arrival delay unavailable at every stop; departure delay exists where a planned departure exists</p></td>
 <td><p>No station has a sample: rows hold -1, <code class="docutils literal notranslate"><span class="pre">TOTALS</span></code> -1 and 0</p></td>
 <td><p>Works; it needs no planned time</p></td>
@@ -779,7 +779,7 @@
 </tbody>
 </table>
 </div>
-<p>The Netherlands scene has no <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and no <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> at any stop, so no event of that scene has a delay in the timetable results or the Delay analysis window.</p>
+<p>The Netherlands case has no <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code> and no <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> at any stop, so no event of that case has a delay in the timetable results or the Delay analysis window.</p>
 </section>
 <section id="calculations-the-program-no-longer-contains">
 <h2>Calculations the program no longer contains<a class="headerlink" href="#calculations-the-program-no-longer-contains" title="Link to this heading">¶</a></h2>
@@ -832,9 +832,9 @@
 <p>The window does not support:</p>
 <ul class="simple">
 <li><p>events at stations where a train passes without a stop;</p></li>
-<li><p>a delay for a scene or a stop without planned times: the Netherlands scene has none, and an arrival delay needs a planned arrival and a departure delay a planned departure;</p></li>
+<li><p>a delay for a case or a stop without planned times: the Netherlands case has none, and an arrival delay needs a planned arrival and a departure delay a planned departure;</p></li>
 <li><p>another set of thresholds, more than one baseline, or a baseline that is saved with the case;</p></li>
-<li><p>a baseline with incidents or entrance delays, or two runs that differ in scene revision, base time, duration, timestep, occurrences or calls;</p></li>
+<li><p>a baseline with incidents or entrance delays, or two runs that differ in case revision, base time, duration, timestep, occurrences or calls;</p></li>
 <li><p>the delay of passenger journeys, which is another quantity (<a class="reference internal" href="#limits">limit 9</a>);</p></li>
 <li><p>a cause for a delay: the window states the entrance delay, which is an input, and the direct incident evidence that the run recorded, and nothing more.</p></li>
 </ul>
@@ -845,7 +845,7 @@
 <li><p>The figures cover arrival and departure events of authored stops. Passing a station without a stop is not a call.</p></li>
 <li><p>Four sets of thresholds are in use. The statistics files count calls later than 0, 180 and 300 s. The Timetable view colours at 0 and 60 s. The chart is in minutes with no threshold. The Delay analysis window counts events later than 0, 60, 180 and 300 s and its thresholds are fixed. All of them mean strictly later. The statistics files have no 1 minute threshold; only the Timetable view and the Delay analysis window have a threshold at 60 s.</p></li>
 <li><p>Early arrivals are 0 in <code class="docutils literal notranslate"><span class="pre">Stats_Stations.txt</span></code> and negative in <code class="docutils literal notranslate"><span class="pre">Pos&amp;Neg_Stats_Stations.txt</span></code> (the <code class="docutils literal notranslate"><span class="pre">stats</span></code> and <code class="docutils literal notranslate"><span class="pre">signed_stats</span></code> lines of <code class="docutils literal notranslate"><span class="pre">follow-level-0.txt</span></code>, as in the example above).</p></li>
-<li><p>A scene or a stop without a planned arrival gives no arrival delay in the timetable results, the Delay analysis window or the statistics files. A stop without a planned departure gives no departure delay in the timetable results or the window; the statistics files use arrivals only. The baseline comparison does not need planned times, and the passenger journey delay uses the planned arrival of the journey.</p></li>
+<li><p>A case or a stop without a planned arrival gives no arrival delay in the timetable results, the Delay analysis window or the statistics files. A stop without a planned departure gives no departure delay in the timetable results or the window; the statistics files use arrivals only. The baseline comparison does not need planned times, and the passenger journey delay uses the planned arrival of the journey.</p></li>
 <li><p>The comparison refuses a baseline that has incidents or entrance delays. A scenario may have either. One baseline exists at a time and it is not saved with the case: any edit of the case, a new case or opening another one clears it.</p></li>
 <li><p>An entrance delay moves the planned departure of its stop only. The departure delay at that stop in the timetable results is against the moved planned departure. The Delay analysis window measures it against the authored one.</p></li>
 <li><p>Direct incident evidence is recorded for a speed cap (<code class="docutils literal notranslate"><span class="pre">effectiveIncidentSpeedLimit</span></code>), a breakdown hold, and a train held by a signal failure (<code class="docutils literal notranslate"><span class="pre">recordDirectSignalFailure</span></code>). A train is held by a signal failure when it stops at the end of authority of the failure, or when it stands at a red aspect within 4 m of the failed section that is the next section on its own route; a train that stands there for a planned stop is recorded too. The second rule covers the fixed-block levels 0, 1 and 2 (see <a class="reference internal" href="signalling-levels.html"><span class="std std-doc">signalling levels</span></a>). It does not cover level 5, whose restrictive aspect is red-red. A train that is held only by the train ahead is not recorded, and neither is a train that waits to enter while the first section of its route is failed. So the evidence depends on the signalling level. The signal failure cases of the line fixture show it (<code class="docutils literal notranslate"><span class="pre">direct_incident</span> <span class="pre">count</span></code> in the files of <code class="docutils literal notranslate"><span class="pre">tests/characterization/expected</span></code> whose names start with sf-):</p>
@@ -879,7 +879,7 @@
 </li>
 <li><p>The <strong>CSV…</strong> button of the Delays chart writes the timetable file for the selected trains, not a delay file.</p></li>
 <li><p>The passenger journey delay is another quantity: it is measured against a planned arrival drawn from a window, not against the timetable of the train.</p></li>
-<li><p>None of the committed scenes has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a committed scene.</p></li>
+<li><p>None of the bundled cases has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a bundled case.</p></li>
 <li><p>Nothing in the application attributes a delay to a cause beyond the recorded direct evidence.</p></li>
 <li><p>The pairing of stops and timetable points is by name and order only. It is exact when the n-th stop of a name takes place at the n-th station node of that name on the route; the run does not check this.</p></li>
 </ol>

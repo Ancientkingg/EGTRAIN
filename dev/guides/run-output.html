@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -373,7 +373,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/TrainPathDiagram.txt</span></code>, one file with a row for every train and a column for every time step.</p></li>
 </ul>
 <p>Both replace an existing file of the same name.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>QEGTRAIN<span class="w"> </span>--scene<span class="w"> </span>path/to/scene<span class="w"> </span>-g<span class="w"> </span><span class="m">0</span><span class="w"> </span>--detailed-trajectories
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>QEGTRAIN<span class="w"> </span>--scene<span class="w"> </span>path/to/case<span class="w"> </span>-g<span class="w"> </span><span class="m">0</span><span class="w"> </span>--detailed-trajectories
 </pre></div>
 </div>
 <p>The first line of a train file names eight columns, separated by tabs: <code class="docutils literal notranslate"><span class="pre">Time[s]</span></code>, <code class="docutils literal notranslate"><span class="pre">Speed[m/s]</span></code>, <code class="docutils literal notranslate"><span class="pre">Position[m]</span></code>, <code class="docutils literal notranslate"><span class="pre">Tail_Position[m]</span></code>, <code class="docutils literal notranslate"><span class="pre">Power_Cons[kW]</span></code>, <code class="docutils literal notranslate"><span class="pre">BX[m]</span></code>, <code class="docutils literal notranslate"><span class="pre">instant_train_energy_consumption[KWh]</span></code> and <code class="docutils literal notranslate"><span class="pre">Block</span></code>. A row follows for each time step in which the train has a position, with its values in that order, separated by tabs. Between two stretches of steps with a position, the file holds an empty line.</p>

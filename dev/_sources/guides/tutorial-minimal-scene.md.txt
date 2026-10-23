@@ -1,8 +1,8 @@
-# Tutorial: the smallest useful scene
+# Tutorial: the smallest useful case
 
-This tutorial builds a complete case study from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
+This tutorial builds a complete case from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
 
-You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a supplied case](tutorial-modify-a-case.md). The words case study, scene, bundle and validation are in the [glossary](glossary.md).
+You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a bundled case](tutorial-modify-a-case.md). The words case, case folder, bundle and validation are in the [glossary](glossary.md).
 
 ## What the editors do not do
 
@@ -23,7 +23,7 @@ Every row below keeps the identifier that the editor proposes (`track`, `node`, 
 
 ## 1. Create the case
 
-1. Choose **File > New Case Study...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
+1. Choose **File > New Case...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
 2. Click the tab **Case Settings** and replace **Name** (`Untitled case`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
 
 A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Add a track to run this case". The status bar counts them after "Cannot run:", and the title bar shows the mark for unsaved changes.
@@ -90,7 +90,7 @@ The planned times are seconds after the base time of the case, 08:00:00 (**Plann
 
 ## 6. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows no error under the name of the case, and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
+Choose **View > Case Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows no error under the name of the case, and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
 
 ## 7. Run
 
@@ -98,17 +98,17 @@ Choose **Run**, check the dialog **Run simulation** (**Trains** 1, and no **Inci
 
 ## 8. Save as a folder and as a bundle
 
-1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](scene-schema.md#version-and-files)).
-2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save Scene** writes to this bundle.
+1. Choose **File > Save As Folder...**. In the dialog **Save Case As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a case](scene-schema.md#version-and-files)).
+2. Choose **File > Save As...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this bundle.
 
-Both are now listed under **File > Recent Scenes**.
+Both are now listed under **File > Recent Cases**.
 
 ## 9. Reopen and confirm
 
-1. Choose **File > Open Scene Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
-2. Choose **File > Recent Scenes** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
+1. Choose **File > Open Case Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
+2. Choose **File > Recent Cases** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
-## 10. Check the saved scene outside the window
+## 10. Check the saved case outside the window
 
 `scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the folder and bundle in the current folder:
 
@@ -136,4 +136,4 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 - **Add** in Platforms leaves the table as it is and the status bar reads "Add a station before adding a platform": add the stations first.
 - **Add Stop** shows the message "No Reachable Stop: No station on the route is left to stop at. Check the route and the stop order.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
 - A refused edit says "IDs must be unique and not empty": choose another name.
-- **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Scene Validation** lists all of them.
+- **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Case Validation** lists all of them.

@@ -23,7 +23,7 @@ scenario or incident.
 ## The student loop
 
 The completed student loop is: open a case, optionally review **Loaded Data**
-and **Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
+and **Validation**, choose or edit a scenario, save (or **Save As...**),
 review the run summary, run the selected scenario, then use **Run Results** to
 open the existing timetable, delay, speed, and blocking-time views. Results
 are cleared when the case or scenario changes and are rebuilt only by a new
@@ -99,7 +99,7 @@ during a run. A field that only a run fills reads `After a run` in the preview. 
 signal of the preview is named by the label of its section, as in
 `Signal B0 0.230 to 0.310 km` in Paimpol. A signal that
 `signalling.json` lists for the section comes first: `sig1 (B0 0.230 to 0.310 km)`.
-During a run the inspector names tracks by their scene ids and sections by their
+During a run the inspector names tracks by their case ids and sections by their
 labels, and the tooltip of a field gives the track number or the section
 id ([ids and labels](glossary.md#ids-and-labels)). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
@@ -113,7 +113,7 @@ Dragging the canvas pans the view and keeps the selection.
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
 (green), Unavailable (a gray ring with a short gray bar) or Failed (a red lamp
-with a white cross). A head is unavailable when its section has no signalling area, so a scene
+with a white cross). A head is unavailable when its section has no signalling area, so a case
 without one shows rings for the whole run. A head is failed on every signal of a
 section for as long as a signal failure incident is active. The marks appear when
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
@@ -131,7 +131,7 @@ places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline, discards the results and closes
 the dock **Run Results**. Opened again from the menu **View**, the dock reads
 `No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
-baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case Study...**
+baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case...**
 gives `Baseline cleared: a new case was created` and opening another case gives
 `Baseline cleared: another case was opened`. A new run without
 incidents or entrance delays can then be set as the baseline. **Compare delays** requires a run with incidents or

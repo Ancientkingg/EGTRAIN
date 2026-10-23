@@ -15,7 +15,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | Area | Where | Behaviour |
 | --- | --- | --- |
 | Simulation run | `DispatchController::runSimulation` (`app/DispatchController.cpp`), around the stages in `runSimulationStages` | The run ends as failed. See [What happens when one is caught](#what-happens-when-one-is-caught). |
-| Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the scene: <what>"). |
+| Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the case: <what>"). |
 | Window events | `GuardedApplication::notify` | Logged as `Unexpected error in <class> (event <type>): <what>` in `app.ui`, and the event counts as not handled. Not on macOS. |
 | Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, or exit code 1 with `error: <what>`. |
 | Telemetry | `telemetry/TelemetrySender.cpp` (`catch (...)` around every operation and the timer pump), `app/UpdateTelemetryController.cpp`, `app/RunController.cpp` | Fails closed and silently, by design. |
@@ -29,9 +29,9 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Check | Diagnostic | What the user sees |
 | --- | --- | --- |
-| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Scene** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
 | `<output>/TEMP` of a run with `--detailed-trajectories` | none; the run throws "Cannot create the folder <path>: <reason>", which `runSimulation` catches | The run fails as below. |
-| The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the scene folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case Study**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
+| The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the case folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
 | The legacy folder of an import and its passenger files (`scene/SceneImporter.cpp`) | `scene.import.missing` with the reason; passenger files that cannot be checked count as absent | **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. |
 
 ### Where they still escape
@@ -40,7 +40,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | --- | --- | --- | --- |
 | `scene/SceneExporter.cpp` `fs::exists`/`is_directory` without `error_code` | `scene_tool export` only | main | `scene_tool`'s `main`: exit code 1 |
 | Range-for over `fs::directory_iterator(dir, ec)`: the increment still throws (`SceneImporter.cpp`, `SceneExporter.cpp`) | import and export; needs an I/O error during a listing | GUI or main | `GuardedApplication` (not on macOS) or `scene_tool`'s `main` |
-| `std::bad_alloc` | Train vectors sized `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp`, `simulation/RollingStock.cpp`), built on the GUI thread; the scene validator checks only that the duration is positive and finite | GUI, or main without a window | `RunController::runScene`: **Cannot Run Scene**; without a window, `main`: exit code 70 |
+| `std::bad_alloc` | Train vectors sized `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp`, `simulation/RollingStock.cpp`), built on the GUI thread; the scene validator checks only that the duration is positive and finite | GUI, or main without a window | `RunController::runScene`: **Cannot Run Case**; without a window, `main`: exit code 70 |
 
 ### What happens when one is caught
 
@@ -84,13 +84,13 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 
 | Failure | User sees | Logged |
 | --- | --- | --- |
-| Scene cannot be read, in the window | "Cannot Open Case Study" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Could not open <file name>". The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
+| Scene cannot be read, in the window | "Cannot Open Case" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Could not open <file name>". The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
 | Scene of another version | Question box with Check for Updates or the upgrade offer | No |
 | Scene named on the command line cannot be read | Box, then the default case opens (`main.cpp`) | Standard error |
 | Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`) | Standard error |
-| Save fails | "Cannot Save Scene" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
+| Save fails | "Cannot Save Case" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
 | Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
-| Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Scene" box with the first diagnostic; Run Results status "Failed" | Yes |
+| Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Case" box with the first diagnostic; Run Results status "Failed" | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
 | Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |

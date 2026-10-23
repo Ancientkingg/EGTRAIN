@@ -70,10 +70,10 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | R8 Manual update check |  |  |  |  |
 | R9 In-app update |  |  |  |  |
 | R10 Installation that cannot be updated in place |  |  |  |  |
-| R11 Save an installed example |  |  |  |  |
+| R11 Save a bundled case |  |  |  |  |
 | R12 Bundle of the previous release |  |  |  |  |
 | M1 File type in Finder |  |  |  |  |
-| M2 Open a case study by double-click |  |  |  |  |
+| M2 Open a case by double-click |  |  |  |  |
 | M3 Double-click a damaged file and a special path |  |  |  |  |
 | M4 First start of an ad hoc build |  |  |  |  |
 | M5 First start of a notarized build |  |  |  |  |
@@ -83,7 +83,7 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | W4 Reinstall |  |  |  |  |
 | W5 Upgrade |  |  |  |  |
 | W6 Portable archive |  |  |  |  |
-| W7 Open a case study by double-click |  |  |  |  |
+| W7 Open a case by double-click |  |  |  |  |
 | W8 In-app update of an installed copy |  |  |  |  |
 | W9 Double-click a damaged file and a special path |  |  |  |  |
 

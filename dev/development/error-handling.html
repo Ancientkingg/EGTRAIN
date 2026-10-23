@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -335,7 +335,7 @@
 </tr>
 <tr class="row-odd"><td><p>Run preparation and scene reading in the window</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code> around <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code> around <code class="docutils literal notranslate"><span class="pre">readScene</span></code></p></td>
-<td><p>Becomes <code class="docutils literal notranslate"><span class="pre">run.prepare.exception</span></code> (“Cannot prepare the run: <what>”) or <code class="docutils literal notranslate"><span class="pre">scene.read.exception</span></code> (“Cannot read the scene: <what>”).</p></td>
+<td><p>Becomes <code class="docutils literal notranslate"><span class="pre">run.prepare.exception</span></code> (“Cannot prepare the run: <what>”) or <code class="docutils literal notranslate"><span class="pre">scene.read.exception</span></code> (“Cannot read the case: <what>”).</p></td>
 </tr>
 <tr class="row-even"><td><p>Window events</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GuardedApplication::notify</span></code></p></td>
@@ -386,15 +386,15 @@
 <tbody>
 <tr class="row-even"><td><p>The output folder of a run and its subfolders (<code class="docutils literal notranslate"><span class="pre">ensureDirectory</span></code> in <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">run.output.folder</span></code>: “Cannot create the output folder <path>: <reason>”</p></td>
-<td><p>Window: <strong>Cannot Run Scene</strong> with that text, Run Results status “Failed”, the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
+<td><p>Window: <strong>Cannot Run Case</strong> with that text, Run Results status “Failed”, the case stays open. Without a window: the diagnostic on standard error and exit code 1.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/TEMP</span></code> of a run with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code></p></td>
 <td><p>none; the run throws “Cannot create the folder <path>: <reason>”, which <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> catches</p></td>
 <td><p>The run fails as below.</p></td>
 </tr>
 <tr class="row-even"><td><p>The scene folder in <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneModel.cpp</span></code>)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">scene.dir.unreadable</span></code>: “Cannot read the scene folder: <reason>”; a path that does not exist or is not a folder keeps <code class="docutils literal notranslate"><span class="pre">scene.dir.missing</span></code></p></td>
-<td><p>Window: <strong>Cannot Open Case Study</strong>. At the start, headless and in <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code> and <code class="docutils literal notranslate"><span class="pre">export</span></code>: the diagnostic and exit code 1.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.dir.unreadable</span></code>: “Cannot read the case folder: <reason>”; a path that does not exist or is not a folder keeps <code class="docutils literal notranslate"><span class="pre">scene.dir.missing</span></code></p></td>
+<td><p>Window: <strong>Cannot Open Case</strong>. At the start, headless and in <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code> and <code class="docutils literal notranslate"><span class="pre">export</span></code>: the diagnostic and exit code 1.</p></td>
 </tr>
 <tr class="row-odd"><td><p>The legacy folder of an import and its passenger files (<code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.import.missing</span></code> with the reason; passenger files that cannot be checked count as absent</p></td>
@@ -429,7 +429,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></p></td>
 <td><p>Train vectors sized <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">timestep)</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/builders/OperationsBuilder.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.cpp</span></code>), built on the GUI thread; the scene validator checks only that the duration is positive and finite</p></td>
 <td><p>GUI, or main without a window</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>: <strong>Cannot Run Scene</strong>; without a window, <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 70</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>: <strong>Cannot Run Case</strong>; without a window, <code class="docutils literal notranslate"><span class="pre">main</span></code>: exit code 70</p></td>
 </tr>
 </tbody>
 </table>
@@ -532,7 +532,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Scene cannot be read, in the window</p></td>
-<td><p>“Cannot Open Case Study” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Could not open <file name>”. The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
+<td><p>“Cannot Open Case” box (<code class="docutils literal notranslate"><span class="pre">app/SceneSession.cpp</span></code>) with the first diagnostic, then the status bar “Could not open <file name>”. The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (<code class="docutils literal notranslate"><span class="pre">app/CannotOpenMessage.h</span></code>). An exception while the scene is read gives the same box.</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Scene of another version</p></td>
@@ -548,7 +548,7 @@
 <td><p>Standard error</p></td>
 </tr>
 <tr class="row-even"><td><p>Save fails</p></td>
-<td><p>“Cannot Save Scene” box with the first diagnostic. Three Save As errors call <code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> directly (<code class="docutils literal notranslate"><span class="pre">SceneSession.cpp</span></code>), which bypasses dialog suppression and the log.</p></td>
+<td><p>“Cannot Save Case” box with the first diagnostic. Three Save As errors call <code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> directly (<code class="docutils literal notranslate"><span class="pre">SceneSession.cpp</span></code>), which bypasses dialog suppression and the log.</p></td>
 <td><p>Yes, except those three</p></td>
 </tr>
 <tr class="row-odd"><td><p>Legacy import fails</p></td>
@@ -556,7 +556,7 @@
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-even"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
-<td><p>“Cannot Run Scene” box with the first diagnostic; Run Results status “Failed”</p></td>
+<td><p>“Cannot Run Case” box with the first diagnostic; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
 </tr>
 <tr class="row-odd"><td><p>Run stopped by an exception</p></td>

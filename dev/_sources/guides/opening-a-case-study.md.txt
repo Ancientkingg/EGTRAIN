@@ -1,7 +1,7 @@
-# Opening an `.egscene` case study
+# Opening an `.egscene` case
 
-An `.egscene` file contains one case study. It is a ZIP archive with the same
-JSON files that EGTRAIN loads from a scene folder. This page is about the
+An `.egscene` file contains one case. It is a ZIP archive with the same
+JSON files that EGTRAIN loads from a case folder. This page is about the
 bundle: how to open one, which versions open, what happens when a file is
 opened by double-click, and how to handle bundles from the command line.
 [Getting started](getting-started.md) takes you from a download through a first
@@ -9,34 +9,34 @@ run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 Opening a bundle does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use
-**File > Save Case Study As...** to create a new `.egscene` after editing the
-scene.
+**File > Save As...** to create a new `.egscene` after editing the
+case.
 
-## Scenes that do not open
+## Cases that do not open
 
-When you open a scene in the EGTRAIN window, EGTRAIN checks its version before
-it loads the scene. The check never changes the file you opened. Three dialogs
-report a scene that does not open:
+When you open a case in the EGTRAIN window, EGTRAIN checks its version before
+it loads the case. The check never changes the file you opened. Three dialogs
+report a case that does not open:
 
-- **Older Scene Not Supported**: the scene reports a version older than any
+- **Older Case Not Supported**: the case reports a version older than any
   EGTRAIN can read, or it has the draft layout. No older version can be
-  upgraded today. The message names the version numbers of the scene and the
-  EGTRAIN version that saved it, when the scene records that. Download the
-  current case study from the releases page.
-- **Newer Scene**: the scene was saved with a newer EGTRAIN. Choose
+  upgraded today. The message names the version numbers of the case and the
+  EGTRAIN version that saved it, when the case records that. Download the
+  current case from the releases page.
+- **Newer Case**: the case was saved with a newer EGTRAIN. Choose
   **Check for Updates...** to look for the newer release.
-- **Cannot Open Case Study**: the version cannot be read, the file is not a
-  valid scene or bundle, or loading the scene reports errors. The message gives
-  the file name and says that the file is damaged or is not an EGTRAIN case
-  study, and the first problem follows it; keep it. A folder gets its own
-  sentence: it holds no EGTRAIN scene, which is a `scene.json` file, or the
-  `scene.json` in it is damaged. The same message appears when EGTRAIN starts
+- **Cannot Open Case**: the version cannot be read, the file is not a
+  valid case folder or bundle, or loading the case reports errors. The message gives
+  the file name and says that the file is damaged or is not an EGTRAIN case,
+  and the first problem follows it; keep it. A folder gets its own
+  sentence: it holds no EGTRAIN case (a case folder holds a `scene.json` file),
+  or the `scene.json` in it is damaged. The same message appears when EGTRAIN starts
   with that file.
 
-Scenes written by builds before 2026-08-08 use an older layout under the same
+Cases written by builds before 2026-08-08 use an older layout under the same
 version number. EGTRAIN recognises that draft layout, reports it in the
-**Older Scene Not Supported** dialog and does not open it. Use the current case
-studies, or convert the original legacy input folder again with **File > Load
+**Older Case Not Supported** dialog and does not open it. Use the current bundled
+cases, or convert the original legacy input folder again with **File > Import
 Legacy Case...**.
 
 If EGTRAIN rejects a downloaded file, keep the diagnostic message and download
@@ -46,23 +46,22 @@ paths, duplicate entries, and files that exceed the documented bundle limits.
 ## Open by double-click
 
 On Windows and macOS, a double-click on an `.egscene` file in Explorer or Finder
-opens the case study in EGTRAIN. The file opens as it does with **File > Open
-Case Study...**: EGTRAIN checks the version in the same way and adds the case
-study to **File > Recent Scenes** once it has opened. It does not run the case
-study. The path may contain spaces and letters outside ASCII. Open one file at a
+opens the case in EGTRAIN. The file opens as it does with **File > Open
+Case...**: EGTRAIN checks the version in the same way and adds the case
+to **File > Recent Cases** once it has opened. It does not run the case. The path may contain spaces and letters outside ASCII. Open one file at a
 time.
 
-**EGTRAIN is closed.** EGTRAIN starts with the case study open and does not
+**EGTRAIN is closed.** EGTRAIN starts with the case open and does not
 show the **Open a Case** window. If the file does not open, EGTRAIN says why and
-starts with its default case. On Windows a message titled **Cannot Open Case
-Study** names the problem, and the **Open a Case** window follows.
+starts with its default case. On Windows a message titled **Cannot Open
+Case** names the problem, and the **Open a Case** window follows.
 
 **EGTRAIN is already open.** The file opens in the window that is open, and the
 window comes to the front. No second window starts. First, EGTRAIN deals with
 what is in the way:
 
 - With unsaved changes, EGTRAIN asks about them before it opens the file. On
-  Windows and Linux the box is titled **Unsaved Scene** and its buttons are
+  Windows and Linux the box is titled **Unsaved Case** and its buttons are
   **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title
   whose buttons are **Save**, **Cancel** and **Don't Save**. **Save** saves the
   open case and **Discard** (**Don't Save** on macOS) drops the changes, and the
@@ -71,14 +70,14 @@ what is in the way:
 - A simulation that is running stops before the file opens.
 - If the **Open a Case** window is open, it closes. If another dialog is open,
   such as a question at the first start, the file waits until you close it.
-- If the file does not open, EGTRAIN shows the same message as **File > Open Case
-  Study...** and the case in the window stays as it is.
+- If the file does not open, EGTRAIN shows the same message as **File > Open
+  Case...** and the case in the window stays as it is.
 
 ### Windows
 
 The installer registers `.egscene` for your Windows user, with the installed
 `QEGTRAIN.exe` as the program that opens the file. Explorer then shows these
-files as `EGTRAIN case study` with the EGTRAIN icon. Setup needs no
+files as `EGTRAIN case` with the EGTRAIN icon. Setup needs no
 administrator rights and registers no other file type, so `.zip` files are
 untouched. If you chose another program for `.egscene` files with **Open with**,
 Windows keeps your choice until you choose EGTRAIN there.
@@ -94,13 +93,13 @@ Uninstalling EGTRAIN removes the registration that Setup made and leaves your
 
 The portable archive registers nothing, not even when you run it, so a
 double-click does not start a portable copy. In a portable copy, open a case
-study with **File > Open Case Study...**, drag the file onto the window, or give
+with **File > Open Case...**, drag the file onto the window, or give
 the file name to `QEGTRAIN.exe` on the command line. If an installed copy exists
 as well, a double-click starts that one, also while the portable copy is open.
 
 ### macOS
 
-The app declares `.egscene` as the file type `EGTRAIN Case Study`, and no other
+The app declares `.egscene` as the file type `EGTRAIN Case`, and no other
 type. Copy `QEGTRAIN.app` out of the disk image to the Applications folder, as
 [Installing EGTRAIN](install.md#macos-disk-image) describes, and open it from
 there. The first start of an ad hoc signed app needs the steps that
@@ -108,7 +107,7 @@ there. The first start of an ad hoc signed app needs the steps that
 
 Once macOS has registered the app, a double-click on a `.egscene` file opens it
 in EGTRAIN, and **File > Get Info** in Finder shows the **Kind**
-`EGTRAIN Case Study`. If EGTRAIN is open, Finder gives the file to that EGTRAIN
+`EGTRAIN Case`. If EGTRAIN is open, Finder gives the file to that EGTRAIN
 and no second copy starts. If a file opens in another program, or in none, take
 it yourself:
 
@@ -118,17 +117,17 @@ it yourself:
 
 ### Linux
 
-The AppImage registers no file type. Use **File > Open Case Study...**.
+The AppImage registers no file type. Use **File > Open Case...**.
 
 ## Instructor and command-line use
 
-Directory scenes remain the editable source format. The command-line tool can
+Case folders remain the editable source format. The command-line tool can
 pack, inspect, and unpack them:
 
 ```bash
-scene_tool pack path/to/scene case-study.egscene
-scene_tool validate case-study.egscene
-scene_tool unpack case-study.egscene path/to/unpacked-scene
+scene_tool pack path/to/case case.egscene
+scene_tool validate case.egscene
+scene_tool unpack case.egscene path/to/unpacked-case
 ```
 
 The unpack destination must be a new path; the tool does not replace an
@@ -137,13 +136,13 @@ existing file or directory.
 The simulator also accepts a bundle directly:
 
 ```bash
-QEGTRAIN --scene case-study.egscene -g 0
+QEGTRAIN --scene case.egscene -g 0
 ```
 
 A file name without `--scene` opens the bundle in the same way:
 
 ```bash
-QEGTRAIN case-study.egscene
+QEGTRAIN case.egscene
 ```
 
 Exactly one `.egscene` file is accepted. Another kind of file or several files
