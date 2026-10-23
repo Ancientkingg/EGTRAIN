@@ -140,6 +140,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a175039cf40269ee3e660ffc6efb093fa" id="r_a175039cf40269ee3e660ffc6efb093fa"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a175039cf40269ee3e660ffc6efb093fa">TrainKeyList</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:a175039cf40269ee3e660ffc6efb093fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty list.  <br /></td></tr>
 <tr class="memitem:a2e6ae6bfe2741b5201ab319b2c31f569" id="r_a2e6ae6bfe2741b5201ab319b2c31f569"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2e6ae6bfe2741b5201ab319b2c31f569">setTrains</a> (const QVector&lt; <a class="el" href="class_train.html">Train</a> &gt; &amp;trains)</td></tr>
+<tr class="memitem:ad1a4fb5b4dc7c265c115555d82456433" id="r_ad1a4fb5b4dc7c265c115555d82456433"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad1a4fb5b4dc7c265c115555d82456433">setColours</a> (const QHash&lt; QString, QColor &gt; &amp;colours)</td></tr>
 <tr class="memitem:ab077059587cfbd075b2f76b11ab26cf0" id="r_ab077059587cfbd075b2f76b11ab26cf0"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#ab077059587cfbd075b2f76b11ab26cf0">trainIds</a> () const</td></tr>
 <tr class="memdesc:ab077059587cfbd075b2f76b11ab26cf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids of the listed trains, in the order setTrains gave them.  <br /></td></tr>
 <tr class="memitem:a8bc8737a80382bdea1ad7b396bef81d9" id="r_a8bc8737a80382bdea1ad7b396bef81d9"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#a8bc8737a80382bdea1ad7b396bef81d9">visibleTrainIds</a> () const</td></tr>
@@ -152,7 +153,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a68e39a731ad6d25c88da404675f8fb95" id="r_a68e39a731ad6d25c88da404675f8fb95"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a68e39a731ad6d25c88da404675f8fb95">setSearchedVisible</a> (bool visible)</td></tr>
 <tr class="memdesc:a68e39a731ad6d25c88da404675f8fb95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibilityChanged once.  <br /></td></tr>
 <tr class="memitem:a1beae213ea88097d658afc039ec75751" id="r_a1beae213ea88097d658afc039ec75751"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1beae213ea88097d658afc039ec75751">setSelectedTrain</a> (const QString &amp;trainId)</td></tr>
-<tr class="memdesc:a1beae213ea88097d658afc039ec75751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Highlights the row of the train and brings it first; an empty id removes the highlight.  <br /></td></tr>
+<tr class="memdesc:a1beae213ea88097d658afc039ec75751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Highlights the row of the train and brings it first; an empty id removes the highlight. Emits nothing.  <br /></td></tr>
 <tr class="memitem:a86f838abaf687d441df26c4aa4d16f95" id="r_a86f838abaf687d441df26c4aa4d16f95"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a86f838abaf687d441df26c4aa4d16f95">isGrouped</a> () const</td></tr>
 <tr class="memdesc:a86f838abaf687d441df26c4aa4d16f95"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the trains are grouped by service.  <br /></td></tr>
 <tr class="memitem:a411c06ba2579340fa0990a4b44eda454" id="r_a411c06ba2579340fa0990a4b44eda454"><td class="memItemLeft">QVector&lt; QPair&lt; QString, QColor &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a411c06ba2579340fa0990a4b44eda454">shownRows</a> () const</td></tr>
@@ -169,7 +170,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a2873886c5b9e37aeb6366b9509cfad6f" id="r_a2873886c5b9e37aeb6366b9509cfad6f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2873886c5b9e37aeb6366b9509cfad6f">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The Trains section of a diagram window: the train filter and the colour key in one list. Each row has a check box that shows or hides the train, a line sample in its colour and its id. More than six trains in six services or fewer are grouped by service, with a group row whose check box shows and hides the trains of the group and is partly checked while some of them are shown; other lists are flat. The selected train comes first and is highlighted, then the shown trains, then the hidden ones, and groups follow the same order; while the pointer is over the list or the list has the focus the rows keep their places, and they move once it leaves. Above 6 trains All and None show or hide the trains of the rows in the list, and above 12 a search field beside them narrows the rows; a group then counts and acts on its trains that the search shows, and Escape in the field clears it. The count of shown trains, such as "2 of 2", is a label that the panel puts on the heading row of the section. </p>
+<div class="textblock"><p>The Trains section of a diagram window: the train filter and the colour key in one list. Each row has a check box that shows or hides the train, a line sample in its colour and its id. More than six trains in six services or fewer are grouped by service, with a group row whose check box shows and hides the trains of the group and is partly checked while some of them are shown, and whose line sample has the colour that its shown trains share, or while none is shown the colour that all its trains share; other lists are flat. The selected train comes first and is highlighted, then the shown trains, then the hidden ones, and groups follow the same order; while the pointer is over the list or the list has the focus the rows keep their places, and they move once it leaves. Above 6 trains All and None show or hide the trains of the rows in the list, and above 12 a search field beside them narrows the rows; a group then counts and acts on its trains that the search shows, and Escape in the field clears it. The count of shown trains, such as "2 of 2", is a label that the panel puts on the heading row of the section. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a175039cf40269ee3e660ffc6efb093fa" name="a175039cf40269ee3e660ffc6efb093fa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a175039cf40269ee3e660ffc6efb093fa">&#9670;&#160;</a></span>TrainKeyList()</h2>
@@ -378,6 +379,24 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ad1a4fb5b4dc7c265c115555d82456433" name="ad1a4fb5b4dc7c265c115555d82456433"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1a4fb5b4dc7c265c115555d82456433">&#9670;&#160;</a></span>setColours()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainKeyList::setColours </td>
+          <td>(</td>
+          <td class="paramtype">const QHash&lt; QString, QColor &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>colours</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gives the listed trains the colours of their line samples, by id, and keeps the rows, their order, their check states and the open groups as they are; a train that <span class="tt">colours</span> leaves out has no line sample. Emits nothing. </p>
+
+</div>
+</div>
 <a id="a68e39a731ad6d25c88da404675f8fb95" name="a68e39a731ad6d25c88da404675f8fb95"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a68e39a731ad6d25c88da404675f8fb95">&#9670;&#160;</a></span>setSearchedVisible()</h2>
 
@@ -417,7 +436,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Highlights the row of the train and brings it first; an empty id removes the highlight. </p>
+<p>Highlights the row of the train and brings it first; an empty id removes the highlight. Emits nothing. </p>
 
 </div>
 </div>
@@ -476,7 +495,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The rows of the shown trains as an exported figure lists them: in a grouped list each service with a shown train, with the colour that all its trains share or none, else each shown train with its colour. </p>
+<p>The rows of the shown trains as an exported figure lists them: in a grouped list each service with a shown train, with the colour that its shown trains share, or, where they differ, each of them; else each shown train with its colour. </p>
 
 </div>
 </div>

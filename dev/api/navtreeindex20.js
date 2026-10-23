@@ -1,5 +1,13 @@
 var NAVTREEINDEX20 =
 {
+"struct_capacity_compression_row.html#a2e99f2183287474db05159a35d6eaaac":[2,0,35,1],
+"struct_capacity_compression_row.html#a4f1bf04877b31bc3aae20ff34e2c3687":[2,0,35,5],
+"struct_capacity_compression_row.html#a9010787f73c96a2b350deef7b8b14773":[2,0,35,4],
+"struct_capacity_compression_row.html#ae651bb162734353a1c86f6adc243cdac":[2,0,35,0],
+"struct_capacity_compression_row.html#af3a1facf97b4cc0b36da0cb14adc3b90":[2,0,35,6],
+"struct_capacity_compression_row.html#afcee103d483279183a6c5f6002bff36a":[2,0,35,2],
+"struct_capacity_compression_row.html#afe5a1c37cc6774f6cf179ad5a46a7d44":[2,0,35,3],
+"struct_capacity_critical_block.html":[2,0,36],
 "struct_capacity_critical_block.html#a219e48075922aef361e8d912a62d4004":[2,0,36,2],
 "struct_capacity_critical_block.html#a271d8aced75dd49c47d7e388577f16c5":[2,0,36,3],
 "struct_capacity_critical_block.html#a88191021b6f7f5975bb96bc7a297ca2d":[2,0,36,4],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "struct_gui_simulation_snapshot.html#ad6ad88ed89d37e2cd4db2f3dfd599a0a":[2,0,89,5],
 "struct_gui_train_state.html":[2,0,91],
 "struct_gui_train_state.html#a3f4fb8fb102552479d966a1fccb1a554":[2,0,91,13],
-"struct_gui_train_state.html#a43a878047eb80daa6e10a592b9b25ca4":[2,0,91,0],
-"struct_gui_train_state.html#a456446466ea6fb3738265ae832b324e3":[2,0,91,3],
-"struct_gui_train_state.html#a4fef031312c9e68b9353e56207cb4ed4":[2,0,91,2],
-"struct_gui_train_state.html#a50001db89cfcc69616a24ea28efe2b7c":[2,0,91,15],
-"struct_gui_train_state.html#a524fb5cd1d2e0da3b99e1df2b8a8704c":[2,0,91,6],
-"struct_gui_train_state.html#a55c9942802ef1becb2a8f05e9d96bdf2":[2,0,91,19],
-"struct_gui_train_state.html#a5a13bed0009f4527060cd89f64090830":[2,0,91,14],
-"struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a":[2,0,91,17],
-"struct_gui_train_state.html#a77ac848598e3d1fd14e40e24aa4d8ff9":[2,0,91,12]
+"struct_gui_train_state.html#a43a878047eb80daa6e10a592b9b25ca4":[2,0,91,0]
 };

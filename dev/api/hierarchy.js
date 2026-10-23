@@ -433,6 +433,8 @@ var hierarchy =
       [ "Regional", "class_regional.html", null ]
     ] ],
     [ "TrainKeyList::Train", "struct_train_key_list_1_1_train.html", null ],
+    [ "TrainColourInput", "struct_train_colour_input.html", null ],
+    [ "TrainColourPlan", "struct_train_colour_plan.html", null ],
     [ "TrainEvent", "class_train_event.html", null ],
     [ "TrainRunResult", "struct_train_run_result.html", null ],
     [ "TrainVisual", "struct_train_visual.html", null ],

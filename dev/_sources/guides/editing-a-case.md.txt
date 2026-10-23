@@ -25,11 +25,14 @@ the next run: the Map Key keeps the colour of the last run until then, also
 after Default. In the result windows of
 a run, the lines of those trains in the speed, time, distance and tractive
 effort diagrams, the delay diagram, the timetable graph and the train-path
-graph take the colour with their line widths and dash patterns unchanged, and
-the Trains list of the window shows it as the line of each train; the timetable
-table shows it as a swatch in its train filter. Trains without a colour keep the chart colours. The
-blocking-time charts keep the colours that show the block types and show the
-service colour in the Trains list only. A stored value that is not
+graph take the colour instead of a colour of the palette, with their line
+widths and dash patterns unchanged, and the Trains list of the window shows it
+as the line of each train; the timetable table shows it as a swatch in its train
+filter. Trains without a colour take the colours of the palette. Where a window
+has too many trains to give each train or service a colour, the trains are grey
+and only the selected train takes its colour. The blocking-time charts give the
+colour to the lines and the outlines of the blocking times of the train; critical
+blocks and conflicts keep their own colours. A stored value that is not
 a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
 you choose a colour or press Default; trains of that service use the default
 yellow. Changing the colour counts as a case edit, so it discards the run

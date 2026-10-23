@@ -18,7 +18,6 @@ var class_diagram_window =
     [ "setTimeAxisX", "class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281", null ],
     [ "setTimeAxisY", "class_diagram_window.html#afd09f9c58ae3e9b01f2b8b14610c9e75", null ],
     [ "setTrainColors", "class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2", null ],
-    [ "setTrainListColors", "class_diagram_window.html#a6212e347794f75549187d4dbe96f679d", null ],
     [ "setTrainServices", "class_diagram_window.html#ab408ce4b95e0ba9ab73fdbe8f4efbd62", null ],
     [ "trainSelected", "class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc", null ]
 ];

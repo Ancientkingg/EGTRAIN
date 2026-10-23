@@ -9,6 +9,7 @@ var class_train_key_list =
     [ "isTrainVisible", "class_train_key_list.html#a9e461b93d6ee71f70b7d6a41eaa5e463", null ],
     [ "searchField", "class_train_key_list.html#acd8eff25ae52867d8d943f6f6de4dea9", null ],
     [ "serviceOf", "class_train_key_list.html#a9ed93313e952705dae79dbc7408d86b4", null ],
+    [ "setColours", "class_train_key_list.html#ad1a4fb5b4dc7c265c115555d82456433", null ],
     [ "setSearchedVisible", "class_train_key_list.html#a68e39a731ad6d25c88da404675f8fb95", null ],
     [ "setSelectedTrain", "class_train_key_list.html#a1beae213ea88097d658afc039ec75751", null ],
     [ "setTrains", "class_train_key_list.html#a2e6ae6bfe2741b5201ab319b2c31f569", null ],

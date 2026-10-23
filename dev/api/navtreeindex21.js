@@ -1,5 +1,13 @@
 var NAVTREEINDEX21 =
 {
+"struct_gui_train_state.html#a456446466ea6fb3738265ae832b324e3":[2,0,91,3],
+"struct_gui_train_state.html#a4fef031312c9e68b9353e56207cb4ed4":[2,0,91,2],
+"struct_gui_train_state.html#a50001db89cfcc69616a24ea28efe2b7c":[2,0,91,15],
+"struct_gui_train_state.html#a524fb5cd1d2e0da3b99e1df2b8a8704c":[2,0,91,6],
+"struct_gui_train_state.html#a55c9942802ef1becb2a8f05e9d96bdf2":[2,0,91,19],
+"struct_gui_train_state.html#a5a13bed0009f4527060cd89f64090830":[2,0,91,14],
+"struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a":[2,0,91,17],
+"struct_gui_train_state.html#a77ac848598e3d1fd14e40e24aa4d8ff9":[2,0,91,12],
 "struct_gui_train_state.html#a8836f6c87043f0a40cabd35ae26a14e4":[2,0,91,1],
 "struct_gui_train_state.html#a8c60725c4a81ac0108bf4b2998baaa77":[2,0,91,16],
 "struct_gui_train_state.html#ab50b689d7f31ee0513f13345812284dc":[2,0,91,11],
@@ -241,13 +249,5 @@ var NAVTREEINDEX21 =
 "struct_route_diagram_projection.html#ac871fbe6d49241c474bc45cd1a25189f":[2,0,168,2],
 "struct_route_diagram_projection.html#ad0d33e9a1a9d898d65f6c1a2ae4d0f33":[2,0,168,1],
 "struct_route_diagram_series.html":[2,0,169],
-"struct_route_diagram_series.html#a1c41f2104a0fa493256ba47acaa5009b":[2,0,169,5],
-"struct_route_diagram_series.html#a74cdea5039364e043e6c301e24233bc6":[2,0,169,7],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7":[2,0,169,0],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc":[2,0,169,0,0],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12":[2,0,169,0,2],
-"struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7aa4ecfc70574394990cf17bd83df499f7":[2,0,169,0,1],
-"struct_route_diagram_series.html#ac4a4e8861c89ab8ee560614c13dec8fb":[2,0,169,4],
-"struct_route_diagram_series.html#acfc0388524acbf312dafacdc4373950c":[2,0,169,1],
-"struct_route_diagram_series.html#ad929dd1cb41383cd82fbe18e0361e694":[2,0,169,2]
+"struct_route_diagram_series.html#a1c41f2104a0fa493256ba47acaa5009b":[2,0,169,5]
 };

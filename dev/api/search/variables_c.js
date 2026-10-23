@@ -68,7 +68,8 @@ var searchData=
   ['minor_65',['minor',['../struct_semantic_version.html#a363dc8163219b4e5634e4eae71853d2a',1,'SemanticVersion']]],
   ['minpictogrampixels_66',['MinPictogramPixels',['../class_station_overlay_item.html#ad6a6bdb15c3d2388ee415bb810239038',1,'StationOverlayItem']]],
   ['minpixels_67',['MinPixels',['../class_selection_cue_item.html#ab3c1b93842ba80610b6621f8882fcc97',1,'SelectionCueItem::MinPixels'],['../class_train_body_item.html#abf2b584ee8de3940350ed337fd453192',1,'TrainBodyItem::MinPixels']]],
-  ['modified_68',['modified',['../struct_recovery_source.html#a91f5483f32f816e0632fd0f8e8950200',1,'RecoverySource']]],
-  ['modifiedscenarioids_69',['modifiedScenarioIds',['../struct_scene_history_entry.html#abaf1b912a17144af2fee23c4200fe025',1,'SceneHistoryEntry']]],
-  ['mutex_70',['mutex',['../struct_live_server_state.html#ab64886055bee4e92758efc1bd7168a3b',1,'LiveServerState::mutex'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa63f290307d7e98bbd864a44baefa633',1,'telemetry::TelemetrySender::Shared::mutex']]]
+  ['mode_68',['mode',['../struct_train_colour_plan.html#a8bbe40bf6a066854905b599cd92c9782',1,'TrainColourPlan']]],
+  ['modified_69',['modified',['../struct_recovery_source.html#a91f5483f32f816e0632fd0f8e8950200',1,'RecoverySource']]],
+  ['modifiedscenarioids_70',['modifiedScenarioIds',['../struct_scene_history_entry.html#abaf1b912a17144af2fee23c4200fe025',1,'SceneHistoryEntry']]],
+  ['mutex_71',['mutex',['../struct_live_server_state.html#ab64886055bee4e92758efc1bd7168a3b',1,'LiveServerState::mutex'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#aa63f290307d7e98bbd864a44baefa633',1,'telemetry::TelemetrySender::Shared::mutex']]]
 ];

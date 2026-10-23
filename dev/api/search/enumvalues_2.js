@@ -10,9 +10,11 @@ var searchData=
   ['changed_7',['Changed',['../class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a820dbd2b8f606aff866c0bbfb6b737c1',1,'InfrastructureFacet::Changed'],['../_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1',1,'Changed:&#160;RecoveryStore.h']]],
   ['completed_8',['Completed',['../classtelemetry_1_1_simulation_observation.html#aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f',1,'telemetry::SimulationObservation']]],
   ['compositions_9',['Compositions',['../class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de',1,'SceneDocument']]],
-  ['continue_10',['Continue',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe',1,'CaseChooserDialog']]],
-  ['critical_11',['Critical',['../_blocking_time_diagram_8h.html#a8e31489306e50f827b479eb73d6001d7a278d01e5af56273bae1bb99a98b370cd',1,'BlockingTimeDiagram.h']]],
-  ['criticalstation_12',['CriticalStation',['../_blocking_time_diagram_8h.html#a8e31489306e50f827b479eb73d6001d7a1765ca86e8cca0f47f882d03928aa973',1,'BlockingTimeDiagram.h']]],
-  ['csv_13',['Csv',['../namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121ab20daea8bfacec3891fcf5b7be4adca0',1,'telemetry']]],
-  ['current_14',['Current',['../_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5',1,'SceneCompatibility.h']]]
+  ['conflict_10',['Conflict',['../_train_colors_8h.html#ad085b8ab25c7060dfbb67c5b737f4da6af1d4ac54357cc0932f385d56814ba7e4',1,'TrainColors.h']]],
+  ['continue_11',['Continue',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe',1,'CaseChooserDialog']]],
+  ['critical_12',['Critical',['../_blocking_time_diagram_8h.html#a8e31489306e50f827b479eb73d6001d7a278d01e5af56273bae1bb99a98b370cd',1,'BlockingTimeDiagram.h']]],
+  ['criticalblock_13',['CriticalBlock',['../_train_colors_8h.html#ad085b8ab25c7060dfbb67c5b737f4da6aa89ea5161ce04ac26a52cc610f85370c',1,'TrainColors.h']]],
+  ['criticalstation_14',['CriticalStation',['../_blocking_time_diagram_8h.html#a8e31489306e50f827b479eb73d6001d7a1765ca86e8cca0f47f882d03928aa973',1,'BlockingTimeDiagram.h']]],
+  ['csv_15',['Csv',['../namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121ab20daea8bfacec3891fcf5b7be4adca0',1,'telemetry']]],
+  ['current_16',['Current',['../_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5',1,'SceneCompatibility.h']]]
 ];

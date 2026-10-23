@@ -337,6 +337,8 @@ var annotated_dup =
     [ "Train", "class_train.html", "class_train" ],
     [ "TrainBadgeItem", "class_train_badge_item.html", "class_train_badge_item" ],
     [ "TrainBodyItem", "class_train_body_item.html", "class_train_body_item" ],
+    [ "TrainColourInput", "struct_train_colour_input.html", "struct_train_colour_input" ],
+    [ "TrainColourPlan", "struct_train_colour_plan.html", "struct_train_colour_plan" ],
     [ "TrainEvent", "class_train_event.html", "class_train_event" ],
     [ "TrainFilterButton", "class_train_filter_button.html", "class_train_filter_button" ],
     [ "TrainItemGroup", "class_train_item_group.html", "class_train_item_group" ],

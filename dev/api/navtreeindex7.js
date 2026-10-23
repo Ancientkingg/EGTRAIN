@@ -1,5 +1,13 @@
 var NAVTREEINDEX7 =
 {
+"_visual_polish_8h.html#a26df8324994d4726d94931837161a573a11a755d598c0c417f9a36758c3da7481":[3,0,4,14,5,1],
+"_visual_polish_8h.html#a26df8324994d4726d94931837161a573a764a2caff05993fc0d3eff5de7b225e9":[3,0,4,14,5,2],
+"_visual_polish_8h.html#a26df8324994d4726d94931837161a573ae9bb5320b3890b6747c91b5a71ae5a01":[3,0,4,14,5,0],
+"_visual_polish_8h.html#a26df8324994d4726d94931837161a573af262fae0a2f17e8c1eb4e9eddb0160e4":[3,0,4,14,5,3],
+"_visual_polish_8h.html#a2e7d09af69daec1cb464c65129b19737":[3,0,4,14,10],
+"_visual_polish_8h.html#a390edc9c1e6f62d5b3ed847698920d13":[3,0,4,14,24],
+"_visual_polish_8h.html#a436626af4d350c743238ab619ecd6066":[3,0,4,14,33],
+"_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cb":[3,0,4,14,6],
 "_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba394a844cc3d6d99eb45b4e71afde2c99":[3,0,4,14,6,1],
 "_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba3b329734e45b57e60f3df64c2cf412a9":[3,0,4,14,6,2],
 "_visual_polish_8h.html#a49d576a166f0648bea83212755f0c3cba4558f7fa8f5356a88a53347ad89babde":[3,0,4,14,6,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX7 =
 "class_connections.html#abe46975eb784942ea18354770c3c82cc":[2,0,54,1],
 "class_connections.html#ac0d0d092939d41d6d0c5c7518a17b858":[2,0,54,11],
 "class_connections.html#ac12d24778f6af12885f90ba88637e120":[2,0,54,10],
-"class_connections.html#ac88d39f818e8a52e8c630cb388ed520c":[2,0,54,0],
-"class_connections.html#aeed40a32a8dcf417c4e153753be404da":[2,0,54,7],
-"class_connections.html#af675cd7b4ccf26b19be55d78687b1d04":[2,0,54,6],
-"class_console_streambuf.html":[2,0,55],
-"class_console_streambuf.html#a0a28f85171a0c0dff1c5a1cbb3a35aaa":[2,0,55,2],
-"class_console_streambuf.html#a4871bc5b10f432d52b72b6e9891d298e":[2,0,55,1],
-"class_console_streambuf.html#a506abfab9948ec233647516bc6401305":[2,0,55,9],
-"class_console_streambuf.html#a59574d93c639dfd37f08fc99d6a88c3d":[2,0,55,0],
-"class_console_streambuf.html#ac44be2269b38a922f9816b3f923f49e7":[2,0,55,8]
+"class_connections.html#ac88d39f818e8a52e8c630cb388ed520c":[2,0,54,0]
 };

@@ -137,9 +137,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6a0470e83e6f726a252b1b7b308842df" id="r_a6a0470e83e6f726a252b1b7b308842df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a0470e83e6f726a252b1b7b308842df">setChart</a> (QChart *chart)</td></tr>
 <tr class="memitem:a60cb3e3e03a095be4ab508fa8697f55f" id="r_a60cb3e3e03a095be4ab508fa8697f55f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a60cb3e3e03a095be4ab508fa8697f55f">setPresentation</a> (const QString &amp;heading, const QString &amp;context, const QString &amp;warning=QString(), const QString &amp;contextToolTip=QString())</td></tr>
 <tr class="memitem:a0365f0d7bf7ae2dd09e3f7933f9d5b1a" id="r_a0365f0d7bf7ae2dd09e3f7933f9d5b1a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0365f0d7bf7ae2dd09e3f7933f9d5b1a">setRollingStockSubject</a> (bool on)</td></tr>
-<tr class="memdesc:a0365f0d7bf7ae2dd09e3f7933f9d5b1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a chart of rolling stock input, which has no trains: hides the train filter and the selection.  <br /></td></tr>
 <tr class="memitem:ae62313eba188517867e611dfa3a6f3b2" id="r_ae62313eba188517867e611dfa3a6f3b2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae62313eba188517867e611dfa3a6f3b2">setTrainColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
-<tr class="memitem:a6212e347794f75549187d4dbe96f679d" id="r_a6212e347794f75549187d4dbe96f679d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6212e347794f75549187d4dbe96f679d">setTrainListColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
 <tr class="memitem:ab408ce4b95e0ba9ab73fdbe8f4efbd62" id="r_ab408ce4b95e0ba9ab73fdbe8f4efbd62"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab408ce4b95e0ba9ab73fdbe8f4efbd62">setTrainServices</a> (const QHash&lt; QString, QString &gt; &amp;services)</td></tr>
 <tr class="memitem:afd09f9c58ae3e9b01f2b8b14610c9e75" id="r_afd09f9c58ae3e9b01f2b8b14610c9e75"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afd09f9c58ae3e9b01f2b8b14610c9e75">setTimeAxisY</a> (bool on, long long startOffsetSeconds=0)</td></tr>
 <tr class="memitem:a6d991a03ac97993a7dc5fc9b8a67f281" id="r_a6d991a03ac97993a7dc5fc9b8a67f281"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d991a03ac97993a7dc5fc9b8a67f281">setTimeAxisX</a> (bool on, long long startOffsetSeconds=0)</td></tr>
@@ -164,8 +162,9 @@ Protected Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the sections Trains (the train filter and colour key in one list, a <a class="el" href="class_train_key_list.html">TrainKeyList</a>), Key (the kinds of mark in view, a <a class="el" href="class_diagram_key.html">DiagramKey</a>), Selected and Export, and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
-<p>The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind, else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as "Stop". Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A chart of rolling stock input lists its series by name, in their own colours.</p>
-<p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor. </p>
+<p>The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind, else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as "Stop". Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the pen of the "keyPen" property of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
+<p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor.</p>
+<p>One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette for each train while six trains or fewer are shown, else one for each service while those trains run in six services or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series whose "ownColour" property is true keeps the colours of its builder, as do the series of a chart of rolling stock input. The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a02013e3da2fd785a63557a6f6db43d58" name="a02013e3da2fd785a63557a6f6db43d58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a02013e3da2fd785a63557a6f6db43d58">&#9670;&#160;</a></span>DiagramWindow()</h2>
@@ -377,7 +376,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. A new chart ends the selection. </p>
+<p>Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned" property is true or its name holds "planned"; a planned series is drawn dashed. A line narrower than 2 px is drawn 2 px wide, and the outline of a box ("inspectionFilled") keeps its width. A new chart ends the selection. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -495,8 +494,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>True for a chart of rolling stock input, which has no trains: hides the train filter and the selection. </p>
+<p>True for a chart of rolling stock input, which has no trains: hides the train filter and the selection, and the curves of the next chart keep their colours. </p>
 
 </div>
 </div>
@@ -608,25 +606,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Paints the series of each listed train in its colour: the pen colour of a line series, the brush colour (alpha kept) and pen colour of an area series. Width and dash pattern stay as the chart builder set them. <a class="el" href="class_train.html">Train</a> ids are the group ids (the "trainId" property, or the series name); a train that is not listed, or has an invalid colour, keeps its chart colours. The colours become the base look of the series, so selecting and clearing a train keeps them, and the line sample of the train in the Trains list shows them. Set before or after setChart. A later call does not undo colours an earlier call applied, and keeps which trains are shown and which is selected. </p>
-
-</div>
-</div>
-<a id="a6212e347794f75549187d4dbe96f679d" name="a6212e347794f75549187d4dbe96f679d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6212e347794f75549187d4dbe96f679d">&#9670;&#160;</a></span>setTrainListColors()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DiagramWindow::setTrainListColors </td>
-          <td>(</td>
-          <td class="paramtype">const QHash&lt; QString, QColor &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>colors</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Shows the colour of each listed train in the train filter only and leaves the series as the chart builder painted them, for a chart whose series colours have a meaning of their own. </p>
+<p>The colour that the case gives the service of each train, by its group id (trainColorsForRun), which wins over the palette of the colour rule. Set before or after setChart. Keeps which trains are shown and which is selected. </p>
 
 </div>
 </div>
@@ -644,7 +624,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The service of each train, by its group id, which groups the Trains list by service when it has more than six trains in six services or fewer. A train without a service is a service of its own. Keeps which trains are shown. </p>
+<p>The service of each train, by its group id, which groups the Trains list by service when it has more than six trains in six services or fewer and gives the trains their colours by service when more than six are shown. A train without a service is a service of its own. Keeps which trains are shown. </p>
 
 </div>
 </div>

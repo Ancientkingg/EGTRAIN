@@ -945,7 +945,7 @@
 <!-- Node166 -->
 <g id="Node000166" class="node">
 <title>Node166</title>
-<g id="a_Node000166"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title="True for a chart of rolling stock input, which has no trains: hides the train filter and the selectio...">
+<g id="a_Node000166"><a xlink:href="class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="598,-391.5 446,-391.5 446,-361.5 598,-361.5 598,-391.5"/>
 <text text-anchor="start" x="454" y="-379.5" font-family="Helvetica,sans-Serif" font-size="10.00">DiagramWindow::setRolling</text>
 <text text-anchor="middle" x="522" y="-368.5" font-family="Helvetica,sans-Serif" font-size="10.00">StockSubject</text>
