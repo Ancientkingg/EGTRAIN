@@ -113,5 +113,6 @@ var searchData=
   ['stationplatform_110',['StationPlatform',['../class_station_platform.html',1,'']]],
   ['stations_111',['Stations',['../class_stations.html',1,'']]],
   ['stationtick_112',['StationTick',['../struct_station_tick.html',1,'']]],
-  ['stationvisual_113',['StationVisual',['../struct_station_visual.html',1,'']]]
+  ['stationvisual_113',['StationVisual',['../struct_station_visual.html',1,'']]],
+  ['stretch_114',['Stretch',['../struct_position_scale_1_1_stretch.html',1,'PositionScale']]]
 ];

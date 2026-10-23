@@ -1,0 +1,18 @@
+<map id="diagrams/PositionScale.h" name="diagrams/PositionScale.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="304,5,491,31"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8h.html" title=" " alt="" coords="195,79,439,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="386,33,342,72,339,68,383,29"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="463,152,526,177"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="412,29,454,77,487,138,482,141,450,80,408,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,91,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="275,107,104,151,103,146,273,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="115,152,173,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="290,106,186,149,184,144,288,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="197,152,256,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="304,106,254,145,251,141,301,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="280,152,355,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="320,104,320,138,315,138,315,104"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="379,152,439,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="334,102,385,141,382,146,330,106"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="347,102,454,144,452,149,345,106"/>
+</map>

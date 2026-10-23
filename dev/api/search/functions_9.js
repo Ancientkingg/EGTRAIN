@@ -7,5 +7,6 @@ var searchData=
   ['journeyidedit_4',['journeyIdEdit',['../class_passenger_panel.html#ad47fddbb6f9eced110fcf88f85c98470',1,'PassengerPanel']]],
   ['journeylist_5',['journeyList',['../class_passenger_panel.html#aa7ce1860dc1f1a153aa1987da8329c57',1,'PassengerPanel']]],
   ['journeyorigincombo_6',['journeyOriginCombo',['../class_passenger_panel.html#a733916b764a266542cd73294f3b7370d',1,'PassengerPanel']]],
-  ['journeywindowedits_7',['journeyWindowEdits',['../class_passenger_panel.html#a741498019ad59a4da4fa9a5d3e388c31',1,'PassengerPanel']]]
+  ['journeywindowedits_7',['journeyWindowEdits',['../class_passenger_panel.html#a741498019ad59a4da4fa9a5d3e388c31',1,'PassengerPanel']]],
+  ['jumps_8',['jumps',['../class_position_scale.html#a810876eae4af9658f7faf9464accbb4d',1,'PositionScale']]]
 ];

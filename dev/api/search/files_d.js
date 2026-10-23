@@ -12,5 +12,7 @@ var searchData=
   ['platformitem_2eh_9',['PlatformItem.h',['../_platform_item_8h.html',1,'']]],
   ['playbackprofiler_2ecpp_10',['PlaybackProfiler.cpp',['../_playback_profiler_8cpp.html',1,'']]],
   ['playbackprofiler_2eh_11',['PlaybackProfiler.h',['../_playback_profiler_8h.html',1,'']]],
-  ['portability_2eh_12',['portability.h',['../portability_8h.html',1,'']]]
+  ['portability_2eh_12',['portability.h',['../portability_8h.html',1,'']]],
+  ['positionscale_2ecpp_13',['PositionScale.cpp',['../_position_scale_8cpp.html',1,'']]],
+  ['positionscale_2eh_14',['PositionScale.h',['../_position_scale_8h.html',1,'']]]
 ];

@@ -166,6 +166,7 @@ var annotated_dup =
     [ "PlatformIndex", "class_platform_index.html", "class_platform_index" ],
     [ "PlatformItem", "class_platform_item.html", "class_platform_item" ],
     [ "PlaybackProfiler", "class_playback_profiler.html", "class_playback_profiler" ],
+    [ "PositionScale", "class_position_scale.html", "class_position_scale" ],
     [ "PreviewStationMembership", "struct_preview_station_membership.html", "struct_preview_station_membership" ],
     [ "RecoveryCandidate", "struct_recovery_candidate.html", "struct_recovery_candidate" ],
     [ "RecoveryController", "class_recovery_controller.html", "class_recovery_controller" ],

@@ -120,6 +120,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a276028de9703f53274d3f2fd0336f8f1" id="r_a276028de9703f53274d3f2fd0336f8f1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a276028de9703f53274d3f2fd0336f8f1">id</a></td></tr>
 <tr class="memitem:a74a5e1a1e7646a07d9a2ab50531a4f92" id="r_a74a5e1a1e7646a07d9a2ab50531a4f92"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a74a5e1a1e7646a07d9a2ab50531a4f92">startKm</a> = 0.0</td></tr>
 <tr class="memitem:a64187953d21c19c79dcf2e00e6711ac0" id="r_a64187953d21c19c79dcf2e00e6711ac0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64187953d21c19c79dcf2e00e6711ac0">endKm</a> = 0.0</td></tr>
+<tr class="memitem:a59092e23122bd0485bc15f80af8638ce" id="r_a59092e23122bd0485bc15f80af8638ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a59092e23122bd0485bc15f80af8638ce">geoStartKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memdesc:a59092e23122bd0485bc15f80af8638ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the start in km, the scene X; NaN when unknown.  <br /></td></tr>
+<tr class="memitem:aa989fbe7482e7352e488d8884063de00" id="r_aa989fbe7482e7352e488d8884063de00"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa989fbe7482e7352e488d8884063de00">geoEndKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memdesc:aa989fbe7482e7352e488d8884063de00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the end in km, the scene X; NaN when unknown.  <br /></td></tr>
+<tr class="memitem:a2a36dc851bfdcba451dfd30370b0317c" id="r_a2a36dc851bfdcba451dfd30370b0317c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2a36dc851bfdcba451dfd30370b0317c">isSwitch</a> = false</td></tr>
+<tr class="memdesc:a2a36dc851bfdcba451dfd30370b0317c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The section holds a diverging switch.  <br /></td></tr>
 </table>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a64187953d21c19c79dcf2e00e6711ac0" name="a64187953d21c19c79dcf2e00e6711ac0"></a>
@@ -136,6 +142,38 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="aa989fbe7482e7352e488d8884063de00" name="aa989fbe7482e7352e488d8884063de00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa989fbe7482e7352e488d8884063de00">&#9670;&#160;</a></span>geoEndKm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double BlockSectionInput::geoEndKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Geo X of the end in km, the scene X; NaN when unknown. </p>
+
+</div>
+</div>
+<a id="a59092e23122bd0485bc15f80af8638ce" name="a59092e23122bd0485bc15f80af8638ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59092e23122bd0485bc15f80af8638ce">&#9670;&#160;</a></span>geoStartKm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double BlockSectionInput::geoStartKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Geo X of the start in km, the scene X; NaN when unknown. </p>
+
+</div>
+</div>
 <a id="a276028de9703f53274d3f2fd0336f8f1" name="a276028de9703f53274d3f2fd0336f8f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a276028de9703f53274d3f2fd0336f8f1">&#9670;&#160;</a></span>id</h2>
 
@@ -147,6 +185,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2a36dc851bfdcba451dfd30370b0317c" name="a2a36dc851bfdcba451dfd30370b0317c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a36dc851bfdcba451dfd30370b0317c">&#9670;&#160;</a></span>isSwitch</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool BlockSectionInput::isSwitch = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The section holds a diverging switch. </p>
 
 </div>
 </div>

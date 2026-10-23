@@ -11,9 +11,9 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_telemetry_context.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classtelemetry_1_1_worker.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="104,-19 0,-19 0,0 104,0 104,-19"/>
-<text text-anchor="middle" x="52" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryContext</text>
+<text text-anchor="middle" x="52" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::Worker</text>
 </a>
 </g>
 </g>

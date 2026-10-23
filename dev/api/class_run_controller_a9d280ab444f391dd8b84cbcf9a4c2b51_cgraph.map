@@ -44,7 +44,7 @@
 <area shape="rect" id="Node000035" href="$class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328" title=" " alt="" coords="551,1041,721,1081"/>
 <area shape="poly" id="edge52_Node000007_Node000035" title=" " alt="" coords="397,893,470,971,527,1027,540,1033,537,1038,524,1031,466,975,393,896"/>
 <area shape="poly" id="edge28_Node000008_Node000008" title=" " alt="" coords="594,316,585,306,589,296,607,290,636,288,673,292,684,297,687,303,683,306,680,301,672,297,636,293,608,295,593,300,590,306,598,313"/>
-<area shape="rect" id="Node000009" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title="The block sections of the route in route order, with their ends in km." alt="" coords="801,95,1003,120"/>
+<area shape="rect" id="Node000009" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="801,95,1003,120"/>
 <area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="641,313,662,276,695,226,739,173,765,149,793,129,805,123,807,127,796,134,769,154,743,177,699,229,666,279,646,316"/>
 <area shape="rect" id="Node000010" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="839,168,965,193"/>
 <area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="648,312,707,259,748,228,794,202,825,191,827,196,796,207,751,233,711,263,652,316"/>

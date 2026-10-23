@@ -384,6 +384,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/DelayAnalysis.cpp
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
+    ${SRC_DIR}/diagrams/PositionScale.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
     ${SRC_DIR}/diagrams/RunExports.cpp
@@ -917,6 +918,14 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_routediagramcoordinates ${SRC_DIR}/tests/test_routediagramcoordinates.cpp)
     target_link_libraries(test_routediagramcoordinates PRIVATE egtrain_diagrams egtrain_util)
     add_test(NAME test_routediagramcoordinates COMMAND test_routediagramcoordinates)
+
+    add_executable(test_positionscale ${SRC_DIR}/tests/test_positionscale.cpp)
+    target_link_libraries(test_positionscale PRIVATE egtrain_diagrams)
+    add_test(NAME test_positionscale COMMAND test_positionscale)
+
+    add_executable(test_routegeo ${SRC_DIR}/tests/test_routegeo.cpp)
+    target_link_libraries(test_routegeo PRIVATE egtrain_diagrams egtrain_sim)
+    add_test(NAME test_routegeo COMMAND test_routegeo ${SRC_DIR}/Scenes)
 
     add_executable(test_diagramwindow ${SRC_DIR}/tests/test_diagramwindow.cpp)
     target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
@@ -1645,7 +1654,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
 			test_delayanalysis test_delayanalysiswindow test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
-			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
+			test_positionscale test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_lightpalette test_widgetstyle test_colorchoicebutton test_aboutdialog test_settingsdialog test_manualwindow
 			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_guardedapplication test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
@@ -1677,7 +1686,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatetelemetrycontroller test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
 		test_guisimulationsnapshot test_liveframe test_livecommand test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis test_delayanalysiswindow
-		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
+		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_positionscale test_routegeo test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera

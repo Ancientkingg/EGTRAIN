@@ -102,6 +102,8 @@ var hierarchy =
     [ "InstallerRecord", "struct_installer_record.html", null ],
     [ "telemetry::TelemetrySender::Shared::Intent", "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html", null ],
     [ "Journey", "class_journey.html", null ],
+    [ "PositionScale::Jump", "struct_position_scale_1_1_jump.html", null ],
+    [ "PositionScale::Label", "struct_position_scale_1_1_label.html", null ],
     [ "LegacyPassengerParseResult", "struct_legacy_passenger_parse_result.html", null ],
     [ "LegacyPassengerSources", "struct_legacy_passenger_sources.html", null ],
     [ "LegacyPassengerStationReference", "struct_legacy_passenger_station_reference.html", null ],
@@ -133,6 +135,7 @@ var hierarchy =
     [ "PassengerIndex", "class_passenger_index.html", null ],
     [ "PlatformIndex", "class_platform_index.html", null ],
     [ "PlaybackProfiler", "class_playback_profiler.html", null ],
+    [ "PositionScale", "class_position_scale.html", null ],
     [ "telemetry::PreparedBatch", "structtelemetry_1_1_prepared_batch.html", null ],
     [ "NetworkPresenter::PreviewOptions", "struct_network_presenter_1_1_preview_options.html", null ],
     [ "NetworkPresenter::PreviewOutcome", "struct_network_presenter_1_1_preview_outcome.html", null ],
@@ -402,6 +405,7 @@ var hierarchy =
     [ "std::streambuf", null, [
       [ "ConsoleStreambuf", "class_console_streambuf.html", null ]
     ] ],
+    [ "PositionScale::Stretch", "struct_position_scale_1_1_stretch.html", null ],
     [ "TDS", "class_t_d_s.html", null ],
     [ "TelemetryContext", "struct_telemetry_context.html", null ],
     [ "telemetry::TelemetryEvent", "structtelemetry_1_1_telemetry_event.html", null ],
