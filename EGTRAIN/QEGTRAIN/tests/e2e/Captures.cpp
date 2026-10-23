@@ -508,7 +508,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 
 	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit Timetable Stop,
-	// whose dwell becomes 180 s, and the warning that this gives in Scene Validation.
+	// whose dwell becomes 180 s, and the warning that this gives in Case Validation.
 	steps.push_back([&w] {
 		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
 			return failCaptures(QStringLiteral("the case could not be named Paimpol practice"));
@@ -538,7 +538,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	steps.push_back([&w, showOnly, windowShot] {
 		showOnly({w.m_validationDock});
 		return saveCapture(windowShot(), QStringLiteral("how-to-scene-validation.png"), QStringLiteral("Paimpol"),
-			QStringLiteral("Scene Validation after the dwell at Pontrieaux became 180 s"));
+			QStringLiteral("Case Validation after the dwell at Pontrieaux became 180 s"));
 	});
 
 	// Modify a case: the scenario Express breakdown with its incident, after a run of baseline that is the delay baseline.

@@ -643,7 +643,7 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 	}
 }
 
-// A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Scenes
+// A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Cases
 // menu; a folder is named by its manifest.
 void exerciseBundleLabels(Scenarios& s, const QRect& screen) {
 	const QString scenario = QStringLiteral("bundle labels");

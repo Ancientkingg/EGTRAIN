@@ -117,7 +117,7 @@ progress as one long line.
 
 The files are listed in [Run output](../guides/run-output.md). On Windows a run without a window prints
 nothing to a terminal; see [Windows headless runs](testing.md#windows-headless-runs).
-The bundled cases and their `-n` numbers are in [Case study numbers](../guides/command-line.md#case-study-numbers).
+The bundled cases and their `-n` numbers are in [Bundled case numbers](../guides/command-line.md#bundled-case-numbers).
 
 ## Source map
 
@@ -148,7 +148,7 @@ This is the path of one case through the code, in the order a user takes it. It 
 into `MainWindow.cpp`. [Scene editor flow](../architecture/scene-editor-flow.md) describes the same
 path from the user's side, and [Scene model](../architecture/scene-model.md) describes the data.
 
-1. **Open.** `File > Open Case Study...` (a `.egscene` bundle), `File > Open Scene Folder...` or the
+1. **Open.** `File > Open Case...` (a `.egscene` bundle), `File > Open Case Folder...` or the
    case chooser lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
    loads the scene with `loadScenePath` into a `SceneModel` and hands it to its `SceneDocument`.
 2. **Edit.** An editor panel changes the model in place and calls `SceneDocument::markChanged`.
@@ -156,7 +156,7 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    earlier run and schedules the recovery copy.
 3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls
    `validateRunnableScene` and fills the validation table. Error diagnostics block Run; warnings do not.
-4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run Scene` reaches `RunController::runScene`, which
+4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run` reaches `RunController::runScene`, which
    validates again and opens the review window **Run simulation**. Its button goes on to
    `DispatchController::prepareScene`, which validates, builds the infrastructure and the operations
    with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene`, and then to
@@ -166,9 +166,9 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    need into one `CompletedRunData` with `captureCompletedRun` and fills the **Run Results** dock.
    **Open result view...** in that dock opens the charts and tables, including the Delay analysis
    window. The output files are written to the [output folder](../guides/command-line.md#output-folder).
-6. **Save.** `File > Save Scene` goes through `SceneSession::saveSceneToCurrentDir` to `saveSceneBundle`
+6. **Save.** `File > Save` goes through `SceneSession::saveSceneToCurrentDir` to `saveSceneBundle`
    or `saveScene` (`scene/SceneWriter`), and `SceneSession::finishSceneSave` marks the scene saved. A bundled case
-   in the installation folder is never overwritten: Save leads to `Save Case Study As...`.
+   in the installation folder is never overwritten: Save leads to `Save As...`.
 
 Messages go through the logging core in `util/Log`. Switch categories on with `EGTRAIN_LOG` and
 read them in the **Log** dock (`View > Log`); see

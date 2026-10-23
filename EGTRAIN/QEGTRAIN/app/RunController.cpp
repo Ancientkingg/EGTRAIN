@@ -290,7 +290,7 @@ bool RunController::showRunReview() {
 			? unsignalledSections + QLatin1Char('.')
 			: detailsEnabled && counts.warnings > 0
 			? countText(counts.warnings, QStringLiteral("validation warning"), QStringLiteral("validation warnings"))
-				+ QStringLiteral(". See Scene Validation.")
+				+ QStringLiteral(". See Case Validation.")
 			: QString());
 	status->setProperty("warning", !status->text().isEmpty());
 	status->setWordWrap(true);
@@ -707,7 +707,7 @@ void RunController::runScene() {
 	m_host.validateScene();
 	if (hasErrors(m_session->diagnostics())) {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(m_session->diagnostics()));
-		showError("Cannot Run Scene", ValidationPanel::statusText(countDiagnostics(m_session->diagnostics()), false) + QStringLiteral("\n\nFix the errors in Scene Validation."));
+		showError("Cannot Run Case", ValidationPanel::statusText(countDiagnostics(m_session->diagnostics()), false) + QStringLiteral("\n\nFix the errors in Case Validation."));
 		return;
 	}
 	m_selection.pruneExcluded(m_document->model(), m_host.serviceOccurrenceDuration());
@@ -716,7 +716,7 @@ void RunController::runScene() {
 	m_lastRunSelectedInPeriodOccurrences = m_selection.selectedInPeriodCount(m_document->model(), m_host.serviceOccurrenceDuration());
 	if (m_lastRunSelectedOccurrences <= 0) {
 		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
-		showError("Cannot Run Scene", "Select at least one occurrence on the Run occurrences tab of Services.");
+		showError("Cannot Run Case", "Select at least one occurrence on the Run occurrences tab of Services.");
 		return;
 	}
 	if (!showRunReview())
@@ -758,7 +758,7 @@ void RunController::runScene() {
 		m_runtimeStatus = QStringLiteral("Failed");
 		m_host.sceneActionsChanged();
 		m_host.validateScene();
-		showError("Cannot Run Scene", firstDiagnosticMessage(diagnostics));
+		showError("Cannot Run Case", firstDiagnosticMessage(diagnostics));
 		return;
 	}
 	m_runtimeStatus = QStringLiteral("Ready");

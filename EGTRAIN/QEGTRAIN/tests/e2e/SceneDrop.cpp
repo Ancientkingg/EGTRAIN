@@ -32,7 +32,7 @@
 
 // Sends drag and drop events to the window over the network view. Only a single local scene bundle may
 // open, a drop that is refused must leave the open scene as it was, and a drop on an unsaved scene must
-// ask first. The Recent Scenes menu must mark a scene that has been deleted as unavailable when it opens, and the recent
+// ask first. The Recent Cases menu must mark a scene that has been deleted as unavailable when it opens, and the recent
 // scenes must not keep an installed scene. It prints E2E_SCENE_DROP_OK and exits with 0, or prints the failures and exits
 // with 1.
 void MainWindowTestAccess::runSceneDrop(MainWindow& w) {

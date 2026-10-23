@@ -74,7 +74,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 | Focused | Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Lists and tables of the editors and the list, table or tree that fills a dock: a 2 px action border over the 1 px frame, so the rows stay in place. Selected tab of a tab bar with the focus, such as the tabs inside an editor: action face and a 2 px action focus border, with 1 px less padding; the tab bars of tabbed docks take no focus. Default button: a 2 px action focus border. Run details in the run review: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border |
 | Disabled | Disabled fill, border colour and disabled text |
 | Selected | Lists, tables and trees use the accent with white text while they have the focus and the selected token with the text colour while they do not; a checked box in a selected row with the focus has a white border. Menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text |
-| Invalid | Fields are not recoloured. The message goes in a status label beside them (`DialogLayout::setStatus`, error or warning tokens), and the Scene Validation dock lists every issue |
+| Invalid | Fields are not recoloured. The message goes in a status label beside them (`DialogLayout::setStatus`, error or warning tokens), and the Case Validation dock lists every issue |
 | Empty | A help label in secondary text says what is missing (`EditorLayout::emptyStateLabel`); a table with no rows shows only its header; a value that does not exist shows as "-" |
 
 ## Tables

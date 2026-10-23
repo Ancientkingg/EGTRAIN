@@ -1225,14 +1225,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != folder || w.m_session->m_sceneIsBundle
 			|| w.m_document->isDirty() || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
-			fail(QStringLiteral("public Save Scene As Folder did not persist the focused physical value"));
+			fail(QStringLiteral("public Save As Folder did not persist the focused physical value"));
 			return;
 		}
 		w.m_newSceneAction->trigger();
 		process();
 		QAction* openFolder = w.findChild<QAction*>("actionOpenSceneFolder");
 		if (!openFolder) {
-			fail(QStringLiteral("public Open Scene Folder action is unavailable"));
+			fail(QStringLiteral("public Open Case Folder action is unavailable"));
 			return;
 		}
 		acceptFileDialog(folder, true);
@@ -1312,14 +1312,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != bundle || !w.m_session->m_sceneIsBundle
 			|| w.m_document->isDirty() || !QFileInfo(bundle).exists()) {
-			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
+			fail(QStringLiteral("public Save As bundle did not complete"));
 			return;
 		}
 		// Later work of the window must not replace the message either.
 		process();
 		process();
-		if (w.statusBar()->currentMessage() != QLatin1String("Scene saved")) {
-			fail(QStringLiteral("the status bar does not read Scene saved after Save Case Study As: ") + w.statusBar()->currentMessage());
+		if (w.statusBar()->currentMessage() != QLatin1String("Case saved")) {
+			fail(QStringLiteral("the status bar does not read Case saved after Save As: ") + w.statusBar()->currentMessage());
 			return;
 		}
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
@@ -1479,7 +1479,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		QAction* openBundle = w.findChild<QAction*>("actionOpenCaseStudyBundle");
 		if (!openBundle) {
-			fail(QStringLiteral("public Open Case Study bundle action is unavailable"));
+			fail(QStringLiteral("public Open Case bundle action is unavailable"));
 			return;
 		}
 		acceptFileDialog(bundle, false);

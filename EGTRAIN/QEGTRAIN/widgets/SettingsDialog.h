@@ -11,7 +11,7 @@ enum class UpdateCheckState;
 
 // The keys of the application settings that the Settings window and the menu entries share. The automatic update
 // checks are in update/UpdateSettings.h and the privacy choices in telemetry/TelemetryConsent.h.
-/// The setting that lists the cases of File > Recent Scenes and of the Recent cases group in Open a Case.
+/// The setting that lists the cases of File > Recent Cases and of the Recent cases group in Open a Case.
 constexpr const char* kRecentScenesKey = "recentScenes";
 /// The setting behind the Advanced Details switch.
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";

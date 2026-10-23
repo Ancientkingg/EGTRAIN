@@ -20,7 +20,7 @@ from startup_benchmark import validate_records
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 SCENE = RUN_DIR / "Scenes/Paimpol"
 PROMPT_MARKERS = (
-    "Case study (1 Netherlands",
+    "Bundled case (1 Netherlands",
     "Open the window?",
     "Show passengers?",
     "Do you want to change it",
@@ -369,12 +369,12 @@ def assert_interactive_questions(app: Path) -> None:
         root = Path(root_name)
         run = root / "run-asked"
         returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch", answers="2\n0\n")
-        if (returncode != 0 or "Case study (1 Netherlands" not in output or "Open the window?" not in output
+        if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" not in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"--interactive exited with {returncode}, did not ask for -n and -g or did not run Paimpol\n{tail(output)}")
         run = root / "run-given"
         returncode, output = run_app(app, ["-interactive", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="2\n")
-        if (returncode != 0 or "Case study (1 Netherlands" not in output or "Open the window?" in output
+        if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
         print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
@@ -466,7 +466,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
             archive.writestr("scene.json", json.dumps({"format": "egscene", "bundle_version": 2, "schema_version": 1}))
             archive.writestr("future-layout.json", "future")
         cases = (
-            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Load Legacy Case"]),
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
             ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, bundle layout 2"]),
         )
@@ -481,7 +481,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
         print("headless launches with a draft, a newer and a newer bundle scene exit with 1 and name the reason")
 
         window_cases = (
-            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Load Legacy Case"]),
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
         )
         for index, (name, args, details) in enumerate(window_cases):
@@ -601,7 +601,7 @@ def read_ini(ini: Path) -> str:
 
 
 # A launch that only names a file hands it to the window that runs and ends with 0, and the window
-# opens it like File > Open Case Study. The window is a test run with the relay switched on. It was
+# opens it like File > Open Case. The window is a test run with the relay switched on. It was
 # started with a file, or without one so that the case chooser is open; the chooser then gives way.
 # The second launch has no test variable, as when the system opens a file. A scripted launch that
 # has a test variable and no switch opens the file in a window of its own. A file that does not load

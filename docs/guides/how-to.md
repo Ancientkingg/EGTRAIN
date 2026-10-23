@@ -21,43 +21,43 @@ Short recipes for the common tasks. Each says what you need, what to do and what
 
 ## Open a case
 
-You need a case: an example case of the package, an `.egscene` file or a scene folder.
+You need a case: a bundled case, an `.egscene` file or a case folder.
 
 Use one of these:
 
-- Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
-- Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
-- Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The example cases of the package are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
+- Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case...**, **Open Case Folder...** and **Import Legacy Case...**.
+- Choose **File > Open Case...** (Ctrl+O) and select an `.egscene` file.
+- Choose **File > Open Case Folder...** and select a folder that holds `scene.json`.
+- Choose **File > Recent Cases**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The example cases of the package are not listed there; **Open a Case** has them under **Bundled cases**. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Cannot open the dropped file: <reason>` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
-- From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
+- From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a case folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
 
-The dialogs of **Open Case Study...** and **Open Scene Folder...** start in the folder above the open case. With no case open, they start in the `Scenes` folder of the app on macOS, and in your home folder on other systems.
+The dialogs of **Open Case...** and **Open Case Folder...** start in the folder above the open case. With no case open, they start in the `Scenes` folder of the app on macOS, and in your home folder on other systems.
 
 You should see the window title `EGTRAIN - <case name>`, the network in the view and the status bar `Opened <case name>`. Opening a case does not run it and does not change the file.
 
-If the case does not open, a dialog says why: **Cannot Open Case Study**, **Older Scene Not Supported** or **Newer Scene**. [Opening an `.egscene` case study](opening-a-case-study.md) explains each. While the current case has unsaved edits, see [the unsaved changes question](#answer-the-unsaved-changes-question).
+If the case does not open, a dialog says why: **Cannot Open Case**, **Older Case Not Supported** or **Newer Case**. [Opening an `.egscene` case](opening-a-case-study.md) explains each. While the current case has unsaved edits, see [the unsaved changes question](#answer-the-unsaved-changes-question).
 
-Normal mode keeps the network view and the editors uncluttered. **View > Advanced Details** switches to advanced mode, which raises the dock **Loaded Data** automatically after a case opens and shows the full validation counts, the non-blocking warnings and the technical inventories. In normal mode **View > Loaded Data** and **View > Scene Validation** still open those docks. The choice changes what is shown, not what a run does.
+Normal mode keeps the network view and the editors uncluttered. **View > Advanced Details** switches to advanced mode, which raises the dock **Loaded Data** automatically after a case opens and shows the full validation counts, the non-blocking warnings and the technical inventories. In normal mode **View > Loaded Data** and **View > Case Validation** still open those docks. The choice changes what is shown, not what a run does.
 
 ## Copy and save a case
 
 An example case of the package is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.
 
-1. Choose **File > Save Case Study As...**.
+1. Choose **File > Save As...**.
 2. Choose a folder of your own and a file name. EGTRAIN adds `.egscene` when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for an example case.
 3. Save.
 
-You should see `Scene saved` in the status bar. Your file is now the open case, and it appears in **File > Recent Scenes**. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.
+You should see `Case saved` in the status bar. Your file is now the open case, and it appears in **File > Recent Cases**. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.
 
 Other ways to save:
 
-- **File > Save Scene** (Ctrl+S) writes the case back to the bundle or scene folder it came from. For an example case of the package, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save Case Study As...** does, and Cancel keeps the edit. A scene folder outside the installation, such as one in a source checkout, is saved in place.
-- **File > Save Scene As Folder...** writes the scene as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. A folder that already holds a `scene.json` is written over without a question; other files in it are kept.
-- A destination inside the installation is refused with **Cannot Save Scene**: `Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.`
+- **File > Save** (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save As...** does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.
+- **File > Save As Folder...** writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `The folder is not empty. Save the case there anyway?`. A folder that already holds a `scene.json` is written over without a question; other files in it are kept.
+- A destination inside the installation is refused with **Cannot Save Case**: `Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
-To check a saved case, open it again from **File > Recent Scenes**. The three save commands are enabled whenever a case is open, also during a run.
+To check a saved case, open it again from **File > Recent Cases**. The three save commands are enabled whenever a case is open, also during a run.
 
 ## Run a case
 
@@ -75,9 +75,9 @@ A run starts its clock at the **Base time** in **Editors > Case Settings**.
 You need an open case. EGTRAIN checks it when it opens, after every edit and before every run. An error disables **Run** and a warning does not.
 
 1. Look in the dock **Case and Layers**. It names the case, and when an error blocks the run, the line under the name shows the first error.
-2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**. Without **View > Advanced Details**, **Code**, **File** and **Path** are in the tooltip of a row instead.
+2. Choose **View > Case Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**. Without **View > Advanced Details**, **Code**, **File** and **Path** are in the tooltip of a row instead.
 
-   ![The dock Scene Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
+   ![The dock Case Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
@@ -87,11 +87,11 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 - A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab **Timetable** of **Services**.
 - A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in **Rolling Stock Units**.
 
-**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)).
+**Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/case` prints the same findings ([scene_tool](command-line.md#scene_tool)).
 
 ## Answer the unsaved changes question
 
-After an edit the case is unsaved. EGTRAIN then asks (`Save the changes to <case name>?`) before it replaces the case, which happens when you open another case, choose **New Case Study...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Scene** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
+After an edit the case is unsaved. EGTRAIN then asks (`Save the changes to <case name>?`) before it replaces the case, which happens when you open another case, choose **New Case...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Case** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
 
 - **Save** saves the case first. For an example case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
 - **Discard** (**Don't Save** on macOS) drops the edits.
@@ -116,7 +116,7 @@ For the whole exercise of changing a copy, saving it, opening it again, validati
 
 You need an open case that you have copied and no active run. The editors **Rolling Stock Units** and **Compositions** are not disabled during a run, but an edit there discards the results of that run.
 
-1. Choose **Editors > Rolling Stock Units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Row**, **Delete Row**). **Plot Traction Curve** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Scene Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
+1. Choose **Editors > Rolling Stock Units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Row**, **Delete Row**). **Plot Traction Curve** plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning `scene.train.value.implausible` in **Case Validation**. The limits are in [Rolling stock](scene-schema.md#rolling-stock).
 2. Choose **Editors > Compositions** to put units in order for a train: **Add Composition**, **Add Unit**, **Remove Unit**, **Move Up**, **Move Down**.
 3. Choose the composition of a service in **Editors > Services**.
 
@@ -132,7 +132,7 @@ A scenario is a named set of incidents and entrance delays. **Set delay baseline
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.
 
-The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same scene revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import...** and **Export...** in the dock move a single scenario between cases.
+The two buttons say why they are disabled in their tooltips and in the line above them. **Set delay baseline** needs a completed run whose scenario has no incident and no entrance delay. **Compare delays** needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same case revision, base time, duration, timestep and occurrences. [How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline) has the rules. [Scenario library and student loop](scenarios.md) describes the library. **Import...** and **Export...** in the dock move a single scenario between cases.
 
 ## Move around the network view and follow a train
 
@@ -175,30 +175,30 @@ Delay figures are explained in [How delays are calculated](delay-analysis.md), c
 
 ## Convert a legacy case and write legacy files
 
-A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new scene folder and leaves the source unchanged.
+A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new case folder and leaves the source unchanged.
 
-1. Choose **File > Load Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. Both go straight to the folder dialogs.
-2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Scene Destination**. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives `Directory not found`. It must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
-3. If the import reports errors, warnings or notes, the box **Legacy Case Imported** counts them, for example `Import: 1 error, 2 warnings`, and lists the first findings. An import without findings shows no box. The converted scene then opens. `scene_tool export` writes the base time and the simulation settings to `EGTRAINInitialParameters.json`, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the scene reports two validation errors and cannot run until you set both in **Editors > Case Settings**. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
+1. Choose **File > Import Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. Both go straight to the folder dialogs.
+2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Case Destination**. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives `Directory not found`. It must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
+3. If the import reports errors, warnings or notes, the box **Legacy Case Imported** counts them, for example `Import: 1 error, 2 warnings`, and lists the first findings. An import without findings shows no box. The converted case then opens. `scene_tool export` writes the base time and the simulation settings to `EGTRAINInitialParameters.json`, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the case reports two validation errors and cannot run until you set both in **Editors > Case Settings**. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
 
 From a terminal:
 
 ```bash
-scene_tool import path/to/legacy-case path/to/new-scene SceneName
-scene_tool validate path/to/new-scene
+scene_tool import path/to/legacy-case path/to/new-case CaseName
+scene_tool validate path/to/new-case
 ```
 
-The window cannot write legacy files. `scene_tool export path/to/scene path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the scene. [Convert a legacy case](scene-schema.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
+The window cannot write legacy files. `scene_tool export path/to/case path/to/legacy-output` writes them for another tool, and edits to those files do not flow back into the case. [Convert a legacy case](scene-schema.md#convert-a-legacy-case) lists what the conversion preserves, and the [migration matrix](v1-scene-migration-matrix.md) says what each legacy file becomes.
 
 ## Close, start a new case or open another during a run
 
-Closing the window, **New Case Study...**, the open commands and **Load Legacy Case...** first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows `Stopping simulation...` and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.
+Closing the window, **New Case...**, the open commands and **Import Legacy Case...** first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows `Stopping simulation...` and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.
 
 ## Change the application settings
 
 **Edit > Settings...** opens the window **Settings**. On macOS the entry is in the **EGTRAIN** menu (Command+,). The window holds the settings that apply to every case:
 
-- **General**: the recent cases that **File > Recent Scenes** and **Open a Case** offer, and **Clear Recent Cases**.
+- **General**: the recent cases that **File > Recent Cases** and **Open a Case** offer, and **Clear Recent Cases**.
 - **Display**: **Show passengers**, the same switch as **View > Passengers**, and **Show advanced details**, the same as **View > Advanced Details**.
 - **Updates and privacy**: **Automatically check for updates**, the same as the Help entry, and the two choices of **Help > Privacy & diagnostics...**. A build that collects nothing shows them disabled.
 
@@ -220,9 +220,9 @@ EGTRAIN keeps the 10 newest notes that it has reported.
 
 | Command | It is disabled when | What to do |
 | --- | --- | --- |
-| **Run** (toolbar), **Simulation > Run**, **File > Run Scene** | No case is open, a run is active, or validation reports an error | Read the first error in **View > Scene Validation** ([fix validation errors](#fix-validation-errors)) or wait for the run |
+| **Run** (toolbar), **Simulation > Run**, **File > Run** | No case is open, a run is active, or validation reports an error | Read the first error in **View > Case Validation** ([fix validation errors](#fix-validation-errors)) or wait for the run |
 | **Pause**, **Stop** | No run is active, or the run is already stopping | Start a run, or wait for the run to stop |
-| **File > Save Scene**, **Save Case Study As...**, **Save Scene As Folder...** | No case is open | Open or create a case. A normal start always has one open |
+| **File > Save**, **Save As...**, **Save As Folder...** | No case is open | Open or create a case. A normal start always has one open |
 | **File > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
 | The contents of the editors **Services**, **Passengers**, **Infrastructure** and **Scenarios** (the menu **Editors** still opens them) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling Stock Units** and **Compositions** stay usable during a run, and an edit there discards the results of that run |
 | **Edit > Undo**, **Edit > Redo** | A run uses the case, or there is nothing to undo or redo | Stop the run or wait |
@@ -231,4 +231,4 @@ EGTRAIN keeps the 10 newest notes that it has reported.
 | **Compare delays** | There is no baseline, or the completed run has neither an incident nor an entrance delay | Same |
 | **Follow** | No run has started, or the case has no services | Run the case and choose a train |
 
-When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one occurrence on the Run occurrences tab of Services.` On Windows and Linux the message is titled **Cannot Run Scene**. In the tab **Run occurrences** of **Services**, tick **Run** for at least one occurrence.
+When **Run** is enabled but a message refuses the run, it names the problem, for example `Select at least one occurrence on the Run occurrences tab of Services.` On Windows and Linux the message is titled **Cannot Run Case**. In the tab **Run occurrences** of **Services**, tick **Run** for at least one occurrence.

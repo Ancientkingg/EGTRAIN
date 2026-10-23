@@ -170,8 +170,8 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	// and Space opens the menu.
 	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
-	QAction* newCase = m_otherMenu->addAction("New Case Study...");
-	QAction* browseScene = m_otherMenu->addAction("Open Scene Folder...");
+	QAction* newCase = m_otherMenu->addAction("New Case...");
+	QAction* browseScene = m_otherMenu->addAction("Open Case Folder...");
 	QAction* legacy = m_otherMenu->addAction("Import Legacy Case...");
 	legacy->setToolTip("Convert a case from the original text files");
 	moreButton->setMenu(m_otherMenu);

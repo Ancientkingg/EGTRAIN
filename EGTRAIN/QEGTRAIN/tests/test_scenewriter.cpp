@@ -823,7 +823,7 @@ static bool checkSavePublication() {
 		const SceneSaveResult refused = saveScene(scene, other.string());
 		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
 			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-				&& diagnostic.message.rfind("Cannot create a private scene staging directory", 0) == 0;
+				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
 		});
 		ok &= expect(!refused.success() && reported, "save into a read-only parent reports the staging directory");
 		ok &= expect(!fs::exists(other), "failed save creates no destination");

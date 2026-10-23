@@ -150,7 +150,7 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.draft",
 			"This case uses the draft layout that EGTRAIN saved before 2026-08-08 (" + found + ", " + saved
 				+ "). That layout is not supported.",
-			"scene.json", "Import the original legacy case again with File > Load Legacy Case...");
+			"scene.json", "Import the original legacy case again with File > Import Legacy Case...");
 	} else if (result.classification == SceneCompatibilityClass::Newer) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.newer",
 			"This case was saved by a newer version of EGTRAIN, in " + found + " (" + saved + "). " + reads + ".",
@@ -160,7 +160,7 @@ void explainRejection(SceneCompatibilityProbeResult& result, bool draftLayout) {
 			"This case was saved by an older version of EGTRAIN, in " + found + " (" + saved + "), and cannot be converted. "
 				+ reads + ".",
 			"scene.json",
-			"Open a case saved by this version of EGTRAIN, or import the original legacy case again with File > Load Legacy Case...");
+			"Open a case saved by this version of EGTRAIN, or import the original legacy case again with File > Import Legacy Case...");
 	}
 }
 
@@ -172,7 +172,7 @@ SceneCompatibilityProbeResult probeDirectory(const std::string& path,
 	const fs::path directory = pathFromUtf8(path);
 	if (!fs::is_directory(directory, ec) || ec) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.directory",
-			"Scene directory is missing or unreadable", path);
+			"Case folder is missing or unreadable", path);
 		return result;
 	}
 	std::string manifestText;

@@ -28,7 +28,7 @@ Two more files are written only when the application is started with `--detailed
 Both replace an existing file of the same name.
 
 ```bash
-QEGTRAIN --scene path/to/scene -g 0 --detailed-trajectories
+QEGTRAIN --scene path/to/case -g 0 --detailed-trajectories
 ```
 
 The first line of a train file names eight columns, separated by tabs: `Time[s]`, `Speed[m/s]`, `Position[m]`, `Tail_Position[m]`, `Power_Cons[kW]`, `BX[m]`, `instant_train_energy_consumption[KWh]` and `Block`. A row follows for each time step in which the train has a position, with its values in that order, separated by tabs. Between two stretches of steps with a position, the file holds an empty line.

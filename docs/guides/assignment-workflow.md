@@ -8,7 +8,7 @@ choices, not copy OpenTrack menus or target the model-answer timestamps.
 The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
-in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
+in the editor. The bundled `Assignment_Gvc_Gdg_Ut` case is a synthetic smoke
 fixture with three stations, no signals and four services that all use one
 placeholder `SLT_Sprinter` composition. It validates, runs and packs as
 `.egscene`, but its railway data are not authoritative: do not use it for model
@@ -23,7 +23,7 @@ work to add a source-backed example dataset.
 
 An instructor can build the case through the normal application workflow:
 
-1. Choose **File > New Case Study...** and enter the case name, base time,
+1. Choose **File > New Case...** and enter the case name, base time,
    duration, buffer, and recovery settings in **Case Settings**.
 2. Use the **Infrastructure** table and network preview to add tracks, nodes,
    arcs, blocks, connections, stations, platforms, signals, routes, dependencies,
@@ -51,7 +51,7 @@ The alternative-composition exercise uses 1xICM3 for IC 1723. The
 rolling-stock comparison replaces SGM with sourced Plan V data without changing
 the service pattern.
 
-An incomplete scene remains editable and saveable. **Run** remains unavailable
+An incomplete case remains editable and saveable. **Run** remains unavailable
 when validation reports an error. Missing signalling coverage is never replaced
 with an implicit conventional or ETCS setting.
 
@@ -83,12 +83,12 @@ with an implicit conventional or ETCS setting.
 | 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. A delay without recorded evidence is not shown to be propagated. |
 | 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit the delay of the other trains. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
-| 25 | Save and distribute | Save the canonical folder, use **File > Save Case Study As...** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
+| 25 | Save and distribute | Save the canonical folder, use **File > Save As...** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
 ## Calculation boundaries
 
 Capacity analysis uses complete native block occupations from the selected run.
-If the scene has no sourced signalling coverage or the run produced no complete
+If the case has no sourced signalling coverage or the run produced no complete
 occupations, EGTRAIN reports the analysis as unavailable. It does not create
 blocking times from a default signalling system.
 

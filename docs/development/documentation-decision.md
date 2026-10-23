@@ -134,7 +134,7 @@ Voice and form:
 
 Terms:
 
-- Use the words of the [glossary](../guides/glossary.md). A case study is what the user opens, edits and runs. Say scene only where the application does, as in **File > Open Scene Folder...**, and for the data files.
+- Use the words of the [glossary](../guides/glossary.md). A case is what the user opens, edits and runs, and a case folder is a case saved as a folder. Say scene only for the file format and the tools, as in `scene.json`, `scene_tool` and the scene schema.
 - Add a new term to the glossary before using it, and link its first use on a page.
 
 Units:
@@ -145,7 +145,7 @@ Units:
 
 Menus and controls:
 
-- Bold only names that exist in the application, spelled as shown, with its capitals and ellipsis: **File > Open Case Study...**. Join menu levels with ` > `.
+- Bold only names that exist in the application, spelled as shown, with its capitals and ellipsis: **File > Open Case...**. Join menu levels with ` > `.
 - Name the kind of control the first time: the dock **Run Results**, the dialog **Run simulation**, the button **Export CSV...**.
 - Use code format for file names, keys in files, commands and paths. Shortcuts read Ctrl+R; a page that lists shortcuts says once that Ctrl is Command on macOS.
 - Do not use bold for emphasis, so every bold span can be checked against the application.

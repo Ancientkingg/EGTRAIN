@@ -6,9 +6,9 @@ This page lists the keys that EGTRAIN sets, grouped as the menus are. The other 
 
 | Entry | Windows and Linux | macOS |
 | --- | --- | --- |
-| **File > New Case Study...** | Ctrl+N | ⌘N |
-| **File > Open Case Study...** | Ctrl+O | ⌘O |
-| **File > Save Scene** | Ctrl+S | ⌘S |
+| **File > New Case...** | Ctrl+N | ⌘N |
+| **File > Open Case...** | Ctrl+O | ⌘O |
+| **File > Save** | Ctrl+S | ⌘S |
 | **File > Quit** | Ctrl+Q | ⌘Q, in the application menu |
 
 ## Edit
@@ -28,7 +28,7 @@ This page lists the keys that EGTRAIN sets, grouped as the menus are. The other 
 | **View > Zoom Out** | Ctrl+- | ⌘- |
 | **View > Fit** | Ctrl+0 | ⌘0 |
 | **View > Log** | Ctrl+Shift+L | ⇧⌘L |
-| **View > Scene Validation** | Ctrl+Shift+V | ⇧⌘V |
+| **View > Case Validation** | Ctrl+Shift+V | ⇧⌘V |
 
 **Follow** has no shortcut.
 
@@ -73,8 +73,8 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 | **Settings** | **OK** | **Cancel** |
 | **Reference route** | **OK** | **Cancel** |
 | **About EGTRAIN** | **Close** | **Close** |
-| **Unsaved Scene** | **Save** | **Cancel** |
-| **Save Scene As Folder** and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
+| **Unsaved Case** | **Save** | **Cancel** |
+| **Save Case As Folder** and the delete questions of the editors, such as **Delete Service** | **No** | **No** |
 | **Check for EGTRAIN updates automatically?** | **Check Automatically** | **Don't Check Automatically** |
 | EGTRAIN *version* Is Available | **Update and Restart** when EGTRAIN can update itself; otherwise **Open Release Page** | **Later** |
 | **Linked File Changed** | **Keep Edits** | **Keep Edits** |

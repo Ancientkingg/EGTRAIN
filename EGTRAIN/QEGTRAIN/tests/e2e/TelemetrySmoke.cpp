@@ -155,7 +155,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 					}
 					return smoke->polls.load() > poll;
 				});
-			telemetry_smoke::chooseDirectory(root + "/imported", "Select Scene Destination");
+			telemetry_smoke::chooseDirectory(root + "/imported", "Select Case Destination");
 			w.m_session->actionLoad_Network();
 			if (w.m_session->m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
 				std::fprintf(stderr, "E2E_TELEMETRY_IMPORT_FAILED\n");

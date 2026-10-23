@@ -209,7 +209,7 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     zero = "Trains" not in summary
     # Only something that needs attention has a status line.
     status = ("No selected trains start in this period." if zero else
-              f"{warnings} validation {'warning' if warnings == 1 else 'warnings'}. See Scene Validation."
+              f"{warnings} validation {'warning' if warnings == 1 else 'warnings'}. See Case Validation."
               if advanced and warnings else "")
     if unsignalled and not zero:
         # The status repeats the validator message, which names the sections and tracks.

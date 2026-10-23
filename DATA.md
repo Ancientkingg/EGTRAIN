@@ -1,8 +1,8 @@
-# Case study data
+# Data of the bundled cases
 
-The case studies in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this file records for each case that ships. Where something is not confirmed, it says so.
+The bundled cases in `EGTRAIN/QEGTRAIN/Scenes` have their own sources and terms, which this file records for each case that ships. Where something is not confirmed, it says so.
 
-Every scene also has one network-wide signalling area (level 0), added by project decision. It is not repeated below.
+Every case also has one network-wide signalling area (level 0), added by project decision. It is not repeated below.
 
 ## Copenhagen, Milano_Brescia and Paimpol
 
@@ -15,7 +15,7 @@ Source: the Denmark case input, a portion of the Copenhagen suburban network sup
 Changes for EGTRAIN:
 
 - Two malformed lines of the connections file were repaired.
-- Four single-track restrictions were added, at Hellerup (two), Hoje Taastrup and Farum, for the timetable of this scene.
+- Four single-track restrictions were added, at Hellerup (two), Hoje Taastrup and Farum, for the timetable of this case.
 
 ### Milano_Brescia
 
@@ -30,7 +30,7 @@ Changes for EGTRAIN:
 
 Source: the France case input, the single-track line from Guingamp to Paimpol supplied by the infrastructure manager SNCF. Some files differ from the deposit (timetable, train, route and passenger files, among others). They are a later version by the dataset authors, also under CC0 1.0 Universal.
 
-Changes for EGTRAIN: three of the six traction rows of the Draisy train unit are not in the scene. The reason is not recorded.
+Changes for EGTRAIN: three of the six traction rows of the Draisy train unit are not in the case. The reason is not recorded.
 
 ## Netherlands
 

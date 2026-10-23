@@ -16,12 +16,12 @@ the log of the script go to the evidence directory. A missing tool or display ex
 
 1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer the question about
    automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
-2. File > Open Case Study... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
+2. File > Open Case... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
 3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
    readiness and, after View > Advanced Details is ticked, the versions.
 4. Type a new description into a text field of the Case Settings editor and into the scenario editor, type into a table
    cell, and check that the run review names the scenario.
-5. File > Save Case Study As... to a working copy in another folder. The downloaded bundle stays as it was.
+5. File > Save As... to a working copy in another folder. The downloaded bundle stays as it was.
 6. Simulation > Run and Run simulation in the review window, from the working copy, to the end of the run.
 7. Open the timetable table with its planned and simulated values, the delay, the speed and the blocking-time results.
 8. Export a CSV file and a PNG file with the buttons of Run Results.
@@ -53,7 +53,7 @@ from pathlib import Path
 
 STEPS = (
     (1, "Start the package"),
-    (2, "Open the downloaded case study"),
+    (2, "Open the downloaded case"),
     (3, "Check the network and Loaded Data"),
     (4, "Edit the case and a scenario"),
     (5, "Save a working copy"),
@@ -548,15 +548,19 @@ class Rehearsal:
         finally:
             Atspi.set_timeout(REPLY_MILLISECONDS, STARTUP_TIMEOUT_SECONDS * 1000)
 
-    def menu_item(self, name=None, pattern=None):
+    def menu_item(self, name=None, pattern=None, menu=None):
+        """The first entry of the menu bar with that name or pattern. With `menu` only the entries of the menu with that
+        title count, so that File > Run and Simulation > Run are told apart."""
         bar = find_first(self.main_frame(), "menu bar", max_depth=1)
-        item = find_first(bar, "menu item", name, pattern, max_depth=4) if bar else None
+        root = find_first(bar, name=menu, max_depth=1) if bar and menu else bar
+        item = find_first(root, "menu item", name, pattern, max_depth=4) if root else None
         if item is None:
-            raise StepFailed(f"the menu entry {name or pattern!r} is not there")
+            where = f" in the menu {menu}" if menu else ""
+            raise StepFailed(f"the menu entry {name or pattern!r} is not there{where}")
         return item
 
-    def choose(self, name: str, modal: bool = False) -> None:
-        self.press(self.menu_item(name), modal)
+    def choose(self, name: str, modal: bool = False, menu=None) -> None:
+        self.press(self.menu_item(name, menu=menu), modal)
 
     def show_dock(self, menu_name: str, frame_name: str):
         """Shows a dock through its checkable menu entry unless it is shown, and returns its frame."""
@@ -693,8 +697,8 @@ class Rehearsal:
         copy.parent.mkdir(parents=True)
         shutil.copyfile(self.bundle, copy)
         self.original_copy, self.original_mtime = copy, self.bundle.stat().st_mtime_ns
-        self.choose("Open Case Study...", modal=True)
-        dialog = self.wait_window("Open Case Study")
+        self.choose("Open Case...", modal=True)
+        dialog = self.wait_window("Open Case")
         self.set_file_name(dialog, self.bundle)
         self.press(self.button(dialog, "Open"))
         title = f"EGTRAIN - {self.case_name}"
@@ -811,7 +815,7 @@ class Rehearsal:
 
     def show_review(self, scenario: str) -> None:
         """Opens the run review from the Simulation menu and checks that it names the case and the scenario. Closes it."""
-        self.choose("Run", modal=True)
+        self.choose("Run", modal=True, menu="Simulation")
         review = self.wait_window("Run simulation")
         subtitle = f"{self.case_name} / {scenario}"
         wait_until(lambda: find_first(review, "label", subtitle, max_depth=8, showing=True), UI_TIMEOUT_SECONDS,
@@ -820,14 +824,14 @@ class Rehearsal:
         self.wait_closed("Run simulation")
 
     def step5(self) -> str:
-        self.choose("Save Case Study As...", modal=True)
-        dialog = self.wait_window("Save Case Study As")
+        self.choose("Save As...", modal=True)
+        dialog = self.wait_window("Save Case As")
         proposed = text_of(find_first(dialog, "text", "File name:", max_depth=4))
         self.note(f"the dialog proposes {proposed!r}")
         self.working_copy.parent.mkdir(parents=True)
         self.set_file_name(dialog, self.working_copy)
         self.press(self.button(dialog, "Save"))
-        self.wait_closed("Save Case Study As")
+        self.wait_closed("Save Case As")
         wait_until(lambda: not name_of(self.main_frame()).endswith("*"), UI_TIMEOUT_SECONDS, "the saved title")
         wait_until(lambda: self.working_copy.is_file() and self.working_copy.stat().st_size > 0, UI_TIMEOUT_SECONDS,
                    "the working copy file")
@@ -857,7 +861,7 @@ class Rehearsal:
         source = self.loaded_value(LOADED_DATA_CASE)
         if source != str(self.working_copy):
             raise StepFailed(f"the open case is {source}, not the working copy")
-        self.choose("Run", modal=True)
+        self.choose("Run", modal=True, menu="Simulation")
         review = self.wait_window("Run simulation")
         self.press(self.button(review, "Run simulation"))
         self.wait_closed("Run simulation")
@@ -946,8 +950,8 @@ class Rehearsal:
         self.wait_closed("Open a Case")
         if self.ask_about_updates(5) is not None:
             raise StepFailed("the question about update checks came again")
-        self.choose("Open Case Study...", modal=True)
-        dialog = self.wait_window("Open Case Study")
+        self.choose("Open Case...", modal=True)
+        dialog = self.wait_window("Open Case")
         self.set_file_name(dialog, self.working_copy)
         self.press(self.button(dialog, "Open"))
         wait_until(lambda: name_of(self.main_frame()) == f"EGTRAIN - {self.case_name}", UI_TIMEOUT_SECONDS,
