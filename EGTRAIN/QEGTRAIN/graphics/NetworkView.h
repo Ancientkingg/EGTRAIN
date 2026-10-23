@@ -47,6 +47,11 @@ public:
 	void mousePressEvent(QMouseEvent* mouseEvent) override;
 	/// Hands the release to QGraphicsView and emits interactionFinished().
 	void mouseReleaseEvent(QMouseEvent* mouseEvent) override;
+	/// The user is moving the view: the left button, which drags the view, is held on it, or the last event of a scroll
+	/// or a pinch came less than interactionQuietMs ago.
+	bool interacting() const;
+	/// How long after the last event of a scroll or a pinch the view is no longer moved by the user, in milliseconds.
+	static constexpr int interactionQuietMs = 150;
 	/// Fits the view, as fitToBounds() does, to the ends of the track lines and connections in the scene.
 	void fitToTopology();
 	/// Fits the view to bounds in scene coordinates, with padding on each side of 24 logical pixels, or of an
@@ -101,6 +106,8 @@ private:
 	QPointF m_viewCenter;
 	bool m_hasViewCenter = false;
 	QElapsedTimer m_timingPaintTimer;
+	bool m_dragButtonHeld = false;
+	QElapsedTimer m_lastGesture;
 	QString m_timingPaintKind;
 	int m_timingPaintGeneration = -1;
 
@@ -113,6 +120,8 @@ signals:
 	void timingPaintCompleted(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	/// The playback profiler began its measurement after a paint.
 	void playbackProfileBegan();
+	/// The viewport has been painted.
+	void viewportPainted();
 };
 
 #endif // NETWORKVIEW_H

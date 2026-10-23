@@ -14,15 +14,17 @@
 /// passes positions in and the controller moves the view.
 ///
 /// Every target moves the view to it at once, to a fraction of a pixel. The window passes the position at which a
-/// followed train is drawn at every step of its glide, so the view moves with the train in the same frame. The first
+/// followed train is drawn at every step of its motion, so the view moves with the train in the same frame. The first
 /// target after stop(), a snap and a target further away than 1.5 times the larger side of the visible scene are a
 /// cut, which also ends a catch-up. Where the edge of the scene holds an axis of the view, the view stays at the edge
 /// on that axis.
 ///
-/// The controller adopts the centre after a pan, a zoom or a resize by the user. The next target then starts a
-/// catch-up: the view keeps the distance from the target that the user left and closes it over catchUpMs, easing in
-/// and out, with a timer of its own so that a catch-up also ends while the target stands still. Without a new target,
-/// as in a paused run, the view stays where the user left it.
+/// While the user moves the view (NetworkView::interacting()), holding a drag, scrolling or pinching, the controller
+/// does not move it: it keeps the target and ends a catch-up. It adopts the centre after a pan, a zoom or a resize by
+/// the user, and also after a drag in which the view did not move. The first target after the user has finished then
+/// starts a catch-up: the view keeps the distance from the target that the user left and closes it over catchUpMs,
+/// easing in and out, with a timer of its own so that a catch-up also ends while the target stands still. Without a
+/// new target, as in a paused run, the view stays where the user left it.
 class FollowCamera : public QObject {
 	Q_OBJECT
 
@@ -41,7 +43,7 @@ public:
 
 	/// Sets the position to follow, in scene coordinates, and moves the view there, part of the way during a
 	/// catch-up. A snap, the first target after stop() and a target further away than 1.5 times the larger side of
-	/// the visible scene cut to the target.
+	/// the visible scene cut to the target. While the user moves the view, the view stays where it is.
 	void follow(const QPointF& target, bool snap);
 	/// Moves the view to the target at once and ends a catch-up.
 	void settle();
@@ -67,6 +69,7 @@ private:
 	void moveTo(const QPointF& desired);
 	void cut();
 	void adoptViewCenter();
+	bool holdForUser();
 
 	QPointer<NetworkView> m_view;
 	QTimer m_timer;

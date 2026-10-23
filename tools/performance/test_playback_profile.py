@@ -71,7 +71,7 @@ class PlaybackProfileTests(unittest.TestCase):
         }], structural=True)
         self.assertEqual(summary["views"]["fit"]["trials"], [{
             "trial": 1,
-            "unobserved_optional_paths": ["gui/train_animation/value_changed"],
+            "unobserved_optional_paths": ["gui/train_motion/step"],
         }])
 
     def test_absent_optional_path_remains_nonqualifying_trial(self):
@@ -80,7 +80,7 @@ class PlaybackProfileTests(unittest.TestCase):
             trial = records()
             if trial_number < 3:
                 trial.insert(-1, {
-                    "type": "aggregate", "path": "gui/train_animation/value_changed",
+                    "type": "aggregate", "path": "gui/train_motion/step",
                     "lane": "gui", "parent": "", "calls": 10,
                     "total_ns": 10_000_000, "min_ns": 1_000_000,
                     "median_ns": 1_000_000, "p95_ns": 1_000_000,
@@ -93,7 +93,7 @@ class PlaybackProfileTests(unittest.TestCase):
                            "aggregates": aggregates, "observed_ns": 50_000_000})
         summary = profile.summarize(trials, structural=True)
         row = next(row for row in summary["views"]["fit"]["rankings"]
-                   if row["path"] == "gui/train_animation/value_changed")
+                   if row["path"] == "gui/train_motion/step")
         self.assertEqual(row["decision_qualifying_trials"], 2)
         self.assertTrue(row["decision_satisfied"])
         self.assertEqual(len(row["trial_self_totals"]), 3)
@@ -111,7 +111,7 @@ class PlaybackProfileTests(unittest.TestCase):
     def test_observed_optional_animation_remains_strictly_validated(self):
         bad = records()
         bad.insert(-1, {
-            "type": "aggregate", "path": "gui/train_animation/value_changed", "lane": "worker",
+            "type": "aggregate", "path": "gui/train_motion/step", "lane": "worker",
             "parent": "", "calls": 1, "total_ns": 1, "min_ns": 1, "median_ns": 1,
             "p95_ns": 1, "max_ns": 1,
         })
@@ -331,7 +331,7 @@ class PlaybackProfileTests(unittest.TestCase):
                             if row["path"] == profile.COMPUTE_PATH)
         self.assertIsNone(nonchild_row["trial_self_totals"][0]["compute_parent_share"])
         self.assertEqual(summary["views"]["fit"]["trials"][0]["unobserved_optional_paths"],
-                         ["gui/train_animation/value_changed"])
+                         ["gui/train_motion/step"])
 
     def test_recorded_summary_has_recorded_evidence_status(self):
         summary = profile.summarize([], structural=False)

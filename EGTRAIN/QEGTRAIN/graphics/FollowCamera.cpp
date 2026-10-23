@@ -42,6 +42,16 @@ void FollowCamera::adoptViewCenter() {
 	m_adopted = true;
 }
 
+// While the user moves the view, a catch-up ends and the next target after the user has finished starts one from where
+// the view is then.
+bool FollowCamera::holdForUser() {
+	if (!m_view->interacting())
+		return false;
+	m_timer.stop();
+	m_adopted = true;
+	return true;
+}
+
 // The part of the catch-up distance that is left at now. It eases in and out and ends the catch-up when it is
 // closed.
 QPointF FollowCamera::catchUpOffset(qint64 now) {
@@ -73,6 +83,8 @@ void FollowCamera::follow(const QPointF& target, bool snap) {
 		return;
 	m_target = target;
 	m_hasTarget = true;
+	if (holdForUser())
+		return;
 
 	const QPointF center = viewCenter();
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
@@ -104,7 +116,7 @@ void FollowCamera::stop() {
 }
 
 void FollowCamera::tick() {
-	if (!m_view || !m_hasTarget || !m_timer.isActive()) {
+	if (!m_view || !m_hasTarget || !m_timer.isActive() || holdForUser()) {
 		m_timer.stop();
 		return;
 	}

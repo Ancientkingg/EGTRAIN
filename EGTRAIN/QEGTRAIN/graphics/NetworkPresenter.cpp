@@ -70,7 +70,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QPainterPath>
-#include <QVariantAnimation>
 #include <QtMath>
 
 #include <algorithm>
@@ -105,15 +104,49 @@ bool hasPlatformBar(const std::string& stationName, const std::string& platformI
 	return hasPlatformId(platformId) && stationName.find("virtual") == std::string::npos;
 }
 
-// The glide of a train between two live updates lasts the median of the last three update intervals, kept between
-// these bounds. The longest is a little above the update interval of the slowest speed, 2x, so that a train moves all
-// the time at every speed.
+// The glide of a train between two live updates lasts this many times the longest of the last update intervals but
+// one, kept between these bounds, so that the next update comes before it ends. The longest bound is a little above
+// the update interval of the slowest speed, 2x.
+constexpr double kGlideFactor = 1.5;
 constexpr qint64 kMinGlideMs = 16;
 constexpr qint64 kMaxGlideMs = 600;
 // The glide before the update interval is known.
 constexpr qint64 kDefaultGlideMs = 120;
 // A longer gap between two live updates, as at a pause, is not an update interval.
 constexpr qint64 kMaxUpdateIntervalMs = 1000;
+// The number of update intervals that the glide is measured over.
+constexpr std::size_t kMeasuredIntervals = 8;
+// The time between two steps of the motion of the trains, about one frame.
+constexpr int kMotionStepMs = 16;
+// The first step after a live update comes this soon. It runs outside the event that delivered the update, so its
+// flushSceneUpdates() hands the view what the update changed before the view is painted.
+constexpr int kStepAfterUpdateMs = 1;
+
+// The X in kilometres of the point at the position q along a route, in metres, as the simulation finds the end of a
+// wagon (trainXPositionOf()): on the first section of the route that holds it, or -1 where it is on none.
+double routeXAt(const Route& route, bool reversed, double q) {
+	const int sections = std::min(route.N_Block_Sections, static_cast<int>(route.sequence_of_block_sections.size()));
+	for (int i = 0; i < sections; ++i) {
+		const Section& section = route.sequence_of_block_sections[static_cast<std::size_t>(i)];
+		if (q >= section.start_node.X * 1000 && q < section.end_node.X * 1000) {
+			const double portion = q - section.start_node.X * 1000;
+			return (reversed ? section.GeoXBegNode - portion : section.GeoXBegNode + portion) / 1000;
+		}
+	}
+	return -1.0;
+}
+
+// The middle of the front of a train as it is drawn, in scene coordinates, where its callouts start. Returns false while
+// its head has no shape.
+bool trainFront(const TrainItemGroup& train, QPointF& front) {
+	if (!train.trainPolygonItemList || train.trainPolygonItemList->isEmpty())
+		return false;
+	const TrainBodyItem* head = train.trainPolygonItemList->at(0);
+	if (!head || head->polygon().isEmpty())
+		return false;
+	front = head->mapToScene((head->polygon().first() + head->polygon().last()) / 2);
+	return true;
+}
 
 // The positions along a route at which its first section starts and its last section ends, in metres. Returns false
 // for a route without sections.
@@ -202,6 +235,16 @@ void placePlatformBar(QGraphicsItem* bar, const QPointF& before, const QPointF& 
 NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view)
 	: m_scene(scene), m_view(view), m_host(&noFrameHost()) {
 	m_elapsed.start();
+	m_motionTimer.setTimerType(Qt::PreciseTimer);
+	m_motionTimer.setInterval(kMotionStepMs);
+	QObject::connect(&m_motionTimer, &QTimer::timeout, &m_motionTimer, [this]() {
+		if (m_motionTimer.interval() != kMotionStepMs)
+			m_motionTimer.setInterval(kMotionStepMs);
+		stepTrains();
+		flushSceneUpdates();
+	});
+	if (view)
+		QObject::connect(view, &NetworkView::viewportPainted, &m_motionTimer, [this]() { notePaint(); });
 	// The icon is a resource of the application, which a caller such as a test can lack.
 	const QPixmap passenger(QStringLiteral(":/icons/pax_icon.png"));
 	if (!passenger.isNull())
@@ -218,7 +261,7 @@ void NetworkPresenter::setFrameHost(FrameHost* host) {
 
 void NetworkPresenter::clear() {
 	m_inspectedSignal = nullptr;
-	// A movement points to the items of a train, which the scene is about to delete.
+	// The motion of a train points to its items, which the scene is about to delete.
 	stopTrainAnimations();
 	m_runModel = nullptr;
 	if (m_scene)
@@ -226,9 +269,13 @@ void NetworkPresenter::clear() {
 
 	// The scene has deleted the items, so every pointer to one is dropped.
 	m_trainBadges.clear();
-	m_trainRoutePlaces.clear();
 	m_updateIntervals.clear();
 	m_lastUpdateMs = -1;
+	m_drawnAtMs = -1;
+	m_updatedSincePaint = false;
+	m_updateLeadsMs.clear();
+	m_stepLeadsMs.clear();
+	m_presentedMs = -1;
 	allTrains.clear();
 	allSignals.clear();
 	m_signalDecorations.clear();
@@ -1282,9 +1329,9 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	QPointF frontUp = headPolygon->polygon().first();
 	QPointF frontDown = headPolygon->polygon().last();
 
-	// create line from train to message
-	QPointF start = frontUp + frontDown;
-	start /= 2;
+	// create line from train to message, drawn from the front of the train, where the group is
+	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
+	const QPointF start;
 	qreal dx = 0;
 	qreal dy = -1 * track_separation * presentationScale();
 	QPointF end = start + QPointF(dx, dy);
@@ -1340,8 +1387,7 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	msgGroup->addToGroup(textBox);
 	msgGroup->addToGroup(text);
 	msgGroup->setZValue(5);
-	// where a glide draws the train
-	msgGroup->setPos(trainItem->pos());
+	msgGroup->setPos(front);
 
 	// add group to scene
 	m_scene->addItem(msgGroup);
@@ -1701,21 +1747,15 @@ QPointF NetworkPresenter::trainCenter(int train) const {
 	const TrainItemGroup* group = trainGroup(train);
 	if (!group)
 		return QPointF();
-	const auto found = m_trainRoutePlaces.find(train);
-	if (found == m_trainRoutePlaces.end())
-		return group->sceneBoundingRect().center();
-	// Where the point of the train that glides is drawn, part of the way through its glide or at its place, and the
-	// middle of the part of the train on its route, which is that point unless the train enters or leaves its route.
-	const TrainRoutePlace& place = found->second;
-	double position = place.position;
-	if (const QVariantAnimation* gliding = m_trainAnimations.value(train, nullptr); gliding && place.glide)
-		place.glide->pointAt(gliding->currentValue().toReal(), &position);
-	const QPointF point = place.point + group->pos();
-	const double middle = middleOnRoute(place.routeIndex, position + place.toHead, place.length);
+	const auto found = m_trainMotions.find(train);
 	QPointF center;
-	if (std::abs(middle - position) < 1e-6 || !routePoint(place.routeIndex, place.reversedDirection, middle, center))
-		return point;
-	return center;
+	if (found != m_trainMotions.end()) {
+		const GuiTrainState& state = found->second.newest;
+		if (routePoint(state.routeIndex, state.reversedDirection,
+				middleOnRoute(state.routeIndex, found->second.drawnHead, state.length), center))
+			return center + group->pos();
+	}
+	return group->sceneBoundingRect().center();
 }
 
 // converts geodetic to cartesian coordinates
@@ -2155,52 +2195,75 @@ bool NetworkPresenter::routePath(int routeIndex, bool reversed, double from, dou
 	return false;
 }
 
-QPointF NetworkPresenter::RoutePath::pointAt(double length, double* position) const {
-	if (points.empty())
-		return QPointF();
-	std::size_t next = 1;
-	while (next < points.size() && lengths[next] < length)
-		++next;
-	if (next >= points.size() || length >= lengths.back()) {
-		if (position)
-			*position = positions.back();
-		return points.back();
-	}
-	const double span = lengths[next] - lengths[next - 1];
-	const double ratio = span > 0.0 ? std::clamp((length - lengths[next - 1]) / span, 0.0, 1.0) : 0.0;
-	if (position)
-		*position = positions[next - 1] + ratio * (positions[next] - positions[next - 1]);
-	return points[next - 1] + (points[next] - points[next - 1]) * ratio;
-}
-
 void NetworkPresenter::setClock(Clock clock) {
 	m_clock = std::move(clock);
+	// What was measured on the old clock means nothing on the new one.
+	m_updateIntervals.clear();
+	m_lastUpdateMs = -1;
+	m_drawnAtMs = -1;
+	m_updatedSincePaint = false;
+	m_updateLeadsMs.clear();
+	m_stepLeadsMs.clear();
+	m_presentedMs = -1;
+	for (auto& entry : m_trainMotions) {
+		entry.second.fromHead = entry.second.newest.routeAxisPosition;
+		entry.second.fromMs = entry.second.toMs = std::numeric_limits<qint64>::min();
+	}
 }
 
 qint64 NetworkPresenter::nowMs() const {
 	return m_clock ? m_clock() : m_elapsed.elapsed();
 }
 
-// Keeps the last three intervals between two live updates.
+// The time for which an update, or a step, draws the trains: when the paint that shows them will end, as long after now
+// as in the median of the last five paints after an update, or of the last five others. A paint after an update is
+// often a paint of the whole view, which takes longer, and the event loop can be busy before it. It never goes back.
+qint64 NetworkPresenter::presentationMs(bool update) {
+	m_updatedSincePaint = m_updatedSincePaint || update;
+	std::vector<qint64> leads = m_updatedSincePaint ? m_updateLeadsMs : m_stepLeadsMs;
+	qint64 lead = 0;
+	if (!leads.empty()) {
+		std::nth_element(leads.begin(), leads.begin() + static_cast<std::ptrdiff_t>(leads.size() / 2), leads.end());
+		lead = leads[leads.size() / 2];
+	}
+	m_presentedMs = std::max(m_presentedMs, nowMs() + lead);
+	m_drawnAtMs = nowMs();
+	return m_presentedMs;
+}
+
+// Measures how long after the trains were drawn the paint that shows them ended.
+void NetworkPresenter::notePaint() {
+	if (m_drawnAtMs < 0)
+		return;
+	std::vector<qint64>& leads = m_updatedSincePaint ? m_updateLeadsMs : m_stepLeadsMs;
+	if (leads.size() == 5)
+		leads.erase(leads.begin());
+	leads.push_back(std::clamp<qint64>(nowMs() - m_drawnAtMs, 0, 50));
+	m_drawnAtMs = -1;
+	m_updatedSincePaint = false;
+}
+
+// Keeps the last intervals between two live updates.
 void NetworkPresenter::noteLiveUpdate() {
 	const qint64 now = nowMs();
 	const qint64 interval = m_lastUpdateMs < 0 ? -1 : now - m_lastUpdateMs;
 	m_lastUpdateMs = now;
 	if (interval <= 0 || interval > kMaxUpdateIntervalMs)
 		return;
-	if (m_updateIntervals.size() == 3)
+	if (m_updateIntervals.size() == kMeasuredIntervals)
 		m_updateIntervals.erase(m_updateIntervals.begin());
 	m_updateIntervals.push_back(interval);
 }
 
-// The median of the last three update intervals, and the shorter one of the first two, so that one long gap, after a
-// pause or a slow frame, does not slow the trains, and a change of speed takes effect within two updates.
-int NetworkPresenter::glideDurationMs() const {
+// A little longer than the longest of the last update intervals but one, so that a glide does not end before the next
+// update while the intervals vary, and one long gap, after a slow frame, does not make the trains trail far behind.
+qint64 NetworkPresenter::glideDurationMs() const {
 	if (m_updateIntervals.empty())
-		return static_cast<int>(kDefaultGlideMs);
+		return kDefaultGlideMs;
 	std::vector<qint64> sorted = m_updateIntervals;
-	std::sort(sorted.begin(), sorted.end());
-	return static_cast<int>(std::clamp(sorted[(sorted.size() - 1) / 2], kMinGlideMs, kMaxGlideMs));
+	std::sort(sorted.begin(), sorted.end(), std::greater<>());
+	const qint64 longest = sorted[std::min<std::size_t>(1, sorted.size() - 1)];
+	return std::clamp<qint64>(std::llround(kGlideFactor * static_cast<double>(longest)), kMinGlideMs, kMaxGlideMs);
 }
 
 // The longest glide in scene units: the larger side of the visible scene. Without a view a glide has no limit.
@@ -2209,18 +2272,6 @@ qreal NetworkPresenter::longestGlide() const {
 		return std::numeric_limits<qreal>::max();
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
 	return std::max(visible.width(), visible.height());
-}
-
-// The distance in metres along the route from the point of a train that glides to its head: half the length of the
-// train, or less while the middle of the train is before the start of its route where its head is drawn, at
-// drawnHead, so that the point is on the route at both ends of the glide. The shape of the train moves with its head,
-// which stays at this distance from the point during the glide.
-double NetworkPresenter::glideToHead(const GuiTrainState& train, double drawnHead) const {
-	double start = 0.0;
-	double end = 0.0;
-	if (!routeExtent(m_source ? m_source->route(train.routeIndex) : nullptr, start, end))
-		return train.length / 2.0;
-	return std::max(train.routeAxisPosition - end, std::min(train.length / 2.0, drawnHead - start));
 }
 
 // The middle of the part of a train that is on its route, with its head at head, in metres along the route. It moves
@@ -2233,13 +2284,134 @@ double NetworkPresenter::middleOnRoute(int routeIndex, double head, double lengt
 	return (std::clamp(head - length, start, end) + std::clamp(head, start, end)) / 2.0;
 }
 
-// Moves the message of a virtual coupling and the passenger information of the selected train by the offset of the
-// glide of the train, as its badge. Both are drawn at the place of its shape.
-void NetworkPresenter::offsetTrainCallouts(const TrainItemGroup* trainItem, const QPointF& offset) {
-	if (QGraphicsItemGroup* message = m_vcMessageItems.value(trainItem->index, nullptr))
-		message->setPos(offset);
-	if (trainPaxInfoItem && trainPaxItem == trainItem)
-		trainPaxInfoItem->setPos(offset);
+// The position of the head of a train along its route at the time at: on its way at an even speed from where its glide
+// started to the place of its last update, and at that place once the glide has ended.
+double NetworkPresenter::glideHead(const TrainMotion& motion, qint64 at) const {
+	const double to = motion.newest.routeAxisPosition;
+	if (at >= motion.toMs)
+		return to;
+	if (at <= motion.fromMs)
+		return motion.fromHead;
+	return motion.fromHead
+		+ (to - motion.fromHead) * static_cast<double>(at - motion.fromMs) / static_cast<double>(motion.toMs - motion.fromMs);
+}
+
+// Gives a train the state of an update and starts its glide at the time now from drawnHead, where its head is drawn,
+// to its new place, over glideMs. A train with no glide stands at the new place.
+void NetworkPresenter::startGlide(TrainMotion& motion, const GuiTrainState& state, qint64 now, double drawnHead,
+	qint64 glideMs) {
+	GuiTrainState& newest = motion.newest;
+	newest.routeIndex = state.routeIndex;
+	newest.reversedDirection = state.reversedDirection;
+	newest.wagonCount = state.wagonCount;
+	newest.length = state.length;
+	newest.routeAxisPosition = state.routeAxisPosition;
+	newest.wagonHeadPositions = state.wagonHeadPositions;
+	newest.wagonTailPositions = state.wagonTailPositions;
+	motion.fromHead = glideMs > 0 ? drawnHead : state.routeAxisPosition;
+	motion.fromMs = now;
+	motion.toMs = now + glideMs;
+}
+
+// Draws a train with its head at head along its route: at the place of its last update with the positions of the wagons
+// there, and elsewhere with every end of a wagon at its distance from the head along the route, found as the simulation
+// finds it, -1 where it is on no section of the route. The badge goes to the centre of the bodies and the callouts to
+// the front of the train. Tells whether a body has a shape.
+bool NetworkPresenter::drawTrain(TrainItemGroup& trainItem, TrainMotion& motion, double head) {
+	const GuiTrainState& newest = motion.newest;
+	const GuiTrainState* state = &newest;
+	if (head != newest.routeAxisPosition) {
+		GuiTrainState& drawn = motion.drawn;
+		drawn.routeIndex = newest.routeIndex;
+		drawn.reversedDirection = newest.reversedDirection;
+		drawn.wagonCount = newest.wagonCount;
+		drawn.length = newest.length;
+		drawn.routeAxisPosition = head;
+		const Route* route = m_source ? m_source->route(newest.routeIndex) : nullptr;
+		const std::size_t wagons = static_cast<std::size_t>(std::max(newest.wagonCount + 1, 0));
+		const double wagonLength = newest.length / (newest.wagonCount + 1);
+		drawn.wagonHeadPositions.resize(wagons);
+		drawn.wagonTailPositions.resize(wagons);
+		for (std::size_t wagon = 0; wagon < wagons; ++wagon) {
+			const double front = head - static_cast<double>(wagon) * wagonLength;
+			drawn.wagonHeadPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front) : -1.0;
+			drawn.wagonTailPositions[wagon] = route ? routeXAt(*route, newest.reversedDirection, front - wagonLength) : -1.0;
+		}
+		state = &drawn;
+	}
+	motion.drawnHead = head;
+	const bool hasVisibleGeometry = getTrainPolygonItemList(trainItem.trainPolygonItemList, *state);
+	trainItem.setVisible(m_trainLayerVisible && hasVisibleGeometry);
+	if (TrainBadgeItem* badge = m_trainBadges.value(trainItem.index, nullptr)) {
+		badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
+		badge->setPos(trainItem.sceneBoundingRect().center());
+	}
+	moveTrainCallouts(trainItem);
+	return hasVisibleGeometry;
+}
+
+// Puts the message of a virtual coupling of a train, and the passenger information of the selected train, at the front
+// of the train as it is drawn. paintVCouplingMsg() and paintTrainPassengerInfo() draw both from their own origin.
+void NetworkPresenter::moveTrainCallouts(const TrainItemGroup& trainItem) {
+	QGraphicsItemGroup* message = m_vcMessageItems.value(trainItem.index, nullptr);
+	QGraphicsItemGroup* passengers = trainPaxItem == &trainItem ? trainPaxInfoItem : nullptr;
+	QPointF front;
+	if ((!message && !passengers) || !trainFront(trainItem, front))
+		return;
+	if (message)
+		message->setPos(front);
+	if (passengers)
+		passengers->setPos(front);
+}
+
+void NetworkPresenter::stepTrains() {
+	QEGTRAIN_PROFILE_SCOPE("gui/train_motion/step", "gui", "");
+	const qint64 at = presentationMs(false);
+	// The scene around the visible scene, as far again on every side. A train beyond it is drawn again at the next
+	// update, which draws every train, so it is never further than a move that is not placed at once.
+	QRectF around;
+	if (m_view) {
+		const QRectF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect();
+		const qreal margin = std::max(visible.width(), visible.height());
+		around = visible.adjusted(-margin, -margin, margin, margin);
+	}
+	bool moving = false;
+	for (auto& [train, motion] : m_trainMotions) {
+		const double head = glideHead(motion, at);
+		const bool stops = head == motion.newest.routeAxisPosition;
+		moving = moving || !stops;
+		TrainItemGroup* trainItem = head == motion.drawnHead ? nullptr : trainGroup(train);
+		if (!trainItem)
+			continue;
+		const bool promoted = m_host->isTrainOverlayPromoted(train);
+		if (!stops && !promoted) {
+			const QRectF drawn = trainItem->sceneBoundingRect();
+			if (!m_trainLayerVisible || (!around.isNull() && !drawn.isEmpty() && !around.intersects(drawn)))
+				continue;
+		}
+		drawTrain(*trainItem, motion, head);
+		if (promoted)
+			m_host->trainMoved(train, trainCenter(train));
+	}
+	if (!moving)
+		m_motionTimer.stop();
+}
+
+void NetworkPresenter::flushSceneUpdates() {
+	// The work of the scene queues more of its own, as its changed() signal and the selection cue that follows it, so it
+	// runs in a few rounds.
+	for (int round = 0; m_scene && round < 3; ++round)
+		QCoreApplication::sendPostedEvents(m_scene, QEvent::MetaCall);
+}
+
+bool NetworkPresenter::trainMoving(int train) const {
+	const auto found = m_trainMotions.find(train);
+	return found != m_trainMotions.end() && found->second.drawnHead != found->second.newest.routeAxisPosition;
+}
+
+bool NetworkPresenter::trainsMoving() const {
+	return std::any_of(m_trainMotions.begin(), m_trainMotions.end(),
+		[](const auto& entry) { return entry.second.drawnHead != entry.second.newest.routeAxisPosition; });
 }
 
 // returns the full train shape (list of polygons)
@@ -2605,8 +2777,9 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 	QPointF frontUp = headPolygon->polygon().first();
 	QPointF frontDown = headPolygon->polygon().last();
 
-	QPointF start = frontUp + frontDown;
-	start /= 2;
+	// The message is drawn from the front of the train, where the group is.
+	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
+	const QPointF start;
 	QPointF end = start + QPointF(0, -2 * track_separation * presentationScale());
 
 	QPen pen = QPen(QColor(242, 161, 106));
@@ -2663,6 +2836,7 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
 	text->setPos(textPos);
+	msgGroup->setPos(front);
 	msgGroup->setVisible(true);
 }
 
@@ -2994,27 +3168,18 @@ void NetworkPresenter::clearOperationalTrackStates() {
 }
 
 void NetworkPresenter::stopTrainAnimation(int train) {
-	QVariantAnimation* animation = m_trainAnimations.take(train);
-	if (!animation)
-		return;
-
-	animation->stop();
-	animation->deleteLater();
+	m_trainMotions.erase(train);
 }
 
 void NetworkPresenter::stopTrainAnimations() {
-	for (QVariantAnimation* animation : m_trainAnimations) {
-		if (!animation)
-			continue;
-		animation->stop();
-		animation->deleteLater();
-	}
-	m_trainAnimations.clear();
+	m_motionTimer.stop();
+	m_trainMotions.clear();
 }
 
 // updates train positions given a specific timestep
 void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback) {
 	const bool replay = playback == Playback::Replay;
+	const qint64 now = replay ? nowMs() : presentationMs(true);
 	if (!replay)
 		noteLiveUpdate();
 	bool legendNeedsUpdate = false;
@@ -3042,38 +3207,27 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				m_trainBadges[train]->hide();
 			// update train position
 			if (!state.outOfSimulation && (!replay || hasPosition)) {
-				// Where the head of the train is drawn along its route: part of the way through its glide, or at its
-				// place after the last update. A train that was moved otherwise, or has another route, has none.
-				std::optional<double> drawnHead;
-				const auto place = m_trainRoutePlaces.find(train);
-				if (place != m_trainRoutePlaces.end() && place->second.routeIndex == state.routeIndex
-					&& place->second.reversedDirection == state.reversedDirection) {
-					QVariantAnimation* gliding = m_trainAnimations.value(train, nullptr);
-					if (gliding && place->second.glide) {
-						// A busy event loop can hold the steps of a glide back, so the train first goes to where its glide
-						// is by the clock. Otherwise every update would start again from the same place and the train
-						// would stand still.
-						const qint64 elapsed = nowMs() - place->second.glideStartMs;
-						if (elapsed > gliding->currentTime())
-							gliding->setCurrentTime(static_cast<int>(std::min<qint64>(elapsed, gliding->duration())));
-						double position = 0.0;
-						place->second.glide->pointAt(gliding->currentValue().toReal(), &position);
-						drawnHead = position + place->second.toHead;
-					} else if (!gliding && trainItem->pos().isNull()) {
-						drawnHead = place->second.position + place->second.toHead;
-					}
+				// A live train goes on from where it is drawn now, unless it was placed otherwise, has another route,
+				// direction or shape, runs backwards, or would move further than the visible view.
+				const auto found = m_trainMotions.find(train);
+				const TrainMotion* last = found == m_trainMotions.end() ? nullptr : &found->second;
+				bool moves = !replay && last && last->newest.routeIndex == state.routeIndex
+					&& last->newest.reversedDirection == state.reversedDirection && last->newest.wagonCount == state.wagonCount
+					&& last->newest.length == state.length && state.routeAxisPosition >= last->newest.routeAxisPosition - 1e-6;
+				const double drawnHead = moves ? glideHead(*last, now) : state.routeAxisPosition;
+				if (moves) {
+					RoutePath path;
+					moves = routePath(state.routeIndex, state.reversedDirection,
+								middleOnRoute(state.routeIndex, drawnHead, state.length),
+								middleOnRoute(state.routeIndex, state.routeAxisPosition, state.length), path)
+						&& path.lengths.back() <= longestGlide();
 				}
-				stopTrainAnimation(train);
+				TrainMotion& motion = m_trainMotions[train];
+				startGlide(motion, state, now, drawnHead, moves ? glideDurationMs() : 0);
 				trainItem->setPos(QPointF(0, 0));
-				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
-
-				const bool hasVisibleGeometry = getTrainPolygonItemList(trainItem->trainPolygonItemList, state);
-				trainItem->setVisible(m_trainLayerVisible && hasVisibleGeometry);
+				const bool hasVisibleGeometry = drawTrain(*trainItem, motion, moves ? drawnHead : state.routeAxisPosition);
 				checkVCouplingMsg(trainItem, state, snapshot, t);
-
-				// The shape is built at the new place, and the glide moves it back to where the train is drawn.
-				const QPointF newCenter = trainItem->sceneBoundingRect().center();
-				if (badge) {
+				if (TrainBadgeItem* badge = m_trainBadges.value(train, nullptr)) {
 					badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(state)));
 					badge->setTooltipDetails(QString::fromStdString(state.description),
 						QString::fromStdString(state.operatingCode), QString::fromStdString(state.type));
@@ -3086,57 +3240,12 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 						m_view ? m_view->zoomRatio() : 1.0, promoted));
 					badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
 				}
-				// The middle of the train, or a point nearer its head while it enters its route, glides along the drawn
-				// track of its route, and the shape, the badge and the callouts go with it.
-				const double toHead = glideToHead(state, drawnHead.value_or(state.routeAxisPosition));
-				const double position = state.routeAxisPosition - toHead;
-				QPointF end;
-				const bool onRoute = hasVisibleGeometry && routePoint(state.routeIndex, state.reversedDirection, position, end);
-				auto path = std::make_shared<RoutePath>();
-				const bool glide = !replay && onRoute && drawnHead
-					&& routePath(state.routeIndex, state.reversedDirection, *drawnHead - toHead, position, *path)
-					&& path->lengths.back() > 0.5 && path->lengths.back() <= longestGlide();
-				if (onRoute)
-					m_trainRoutePlaces[train] = {state.routeIndex, state.reversedDirection, position, end, toHead, state.length,
-						glide ? path : nullptr, nowMs()};
-				else
-					m_trainRoutePlaces.erase(train);
-				const QPointF startOffset = glide ? path->points.front() - end : QPointF();
-				if (glide) {
-					trainItem->setPos(startOffset);
-					QVariantAnimation* interp = new QVariantAnimation(m_scene);
-					m_trainAnimations[train] = interp;
-					interp->setDuration(glideDurationMs());
-					interp->setStartValue(0.0);
-					interp->setEndValue(path->lengths.back());
-					interp->setEasingCurve(QEasingCurve::Linear);
-					QObject::connect(interp, &QVariantAnimation::valueChanged, interp,
-						[this, train, trainItem, badge, newCenter, end, glidePath = std::shared_ptr<const RoutePath>(path)](const QVariant& value) {
-							QEGTRAIN_PROFILE_SCOPE("gui/train_animation/value_changed", "gui", "");
-							const QPointF offset = glidePath->pointAt(value.toReal()) - end;
-							trainItem->setPos(offset);
-							if (badge)
-								badge->setPos(newCenter + offset);
-							offsetTrainCallouts(trainItem, offset);
-							m_host->trainMoved(train, trainCenter(train));
-						});
-					QObject::connect(interp, &QVariantAnimation::finished, interp, [this, train, interp]() {
-						if (m_trainAnimations.value(train, nullptr) == interp)
-							m_trainAnimations.remove(train);
-						interp->deleteLater();
-					});
-					interp->start();
-				}
-				if (badge)
-					badge->setPos(newCenter + startOffset);
-				offsetTrainCallouts(trainItem, startOffset);
 				if (m_host->trainPlaced(train, trainCenter(train)))
 					followedTrainMoved = true;
 			}
 			// hide train whose simulation is finished
 			else {
 				stopTrainAnimation(train);
-				m_trainRoutePlaces.erase(train);
 				trainItem->hide();
 				if (m_trainBadges.contains(train))
 					m_trainBadges[train]->setVisible(false);
@@ -3151,18 +3260,17 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 					   : t >= state.departureTime && state.routeAxisPosition != -9999)) {
 			const bool firstTrain = allTrains.isEmpty();
 			paintTrain(state, *m_runModel, m_host->isTrainOverlayPromoted(state.index));
-			// The next update glides the train from here.
-			const double toHead = glideToHead(state, state.routeAxisPosition);
-			QPointF point;
-			if (const TrainItemGroup* added = trainGroup(train); added && added->isVisible()
-				&& routePoint(state.routeIndex, state.reversedDirection, state.routeAxisPosition - toHead, point))
-				m_trainRoutePlaces[train] = {state.routeIndex, state.reversedDirection, state.routeAxisPosition - toHead, point,
-					toHead, state.length, nullptr};
+			// The next update moves the train on from here.
+			TrainMotion& motion = m_trainMotions[train];
+			startGlide(motion, state, now, state.routeAxisPosition, 0);
+			motion.drawnHead = state.routeAxisPosition;
 			legendNeedsUpdate = true;
 			if (m_host->trainAdded(train, firstTrain && !replay))
 				followedTrainMoved = true;
 		}
 	}
+	if (!replay && trainsMoving())
+		m_motionTimer.start(kStepAfterUpdateMs);
 	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
 }
 

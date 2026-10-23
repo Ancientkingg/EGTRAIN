@@ -2,9 +2,13 @@
 #include "graphics/NetworkView.h"
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QLineF>
+#include <QMouseEvent>
 #include <QScrollBar>
+#include <QThread>
+#include <QWheelEvent>
 #include <algorithm>
 #include <cmath>
 #include <initializer_list>
@@ -83,6 +87,14 @@ struct Rig {
 		bar->setValue(bar->value() + pixels);
 	}
 };
+
+// Presses or releases the left button in the middle of the view, as at the start or the end of a drag.
+static void sendLeftButton(NetworkView& view, QEvent::Type type) {
+	const QPoint at = view.viewport()->rect().center();
+	const Qt::MouseButtons held = type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton;
+	QMouseEvent event(type, QPointF(at), QPointF(view.viewport()->mapToGlobal(at)), Qt::LeftButton, held, Qt::NoModifier);
+	QApplication::sendEvent(view.viewport(), &event);
+}
 
 static bool checkIdle() {
 	bool ok = true;
@@ -350,6 +362,77 @@ static bool checkMovingView() {
 	return ok;
 }
 
+// While the user holds a drag on the view or scrolls it, the view stays where the user puts it and a catch-up ends.
+// The first target after the user has finished starts a catch-up from there.
+static bool checkHoldForUser() {
+	bool ok = true;
+	Rig rig;
+	const qreal pixel = pixelOf(rig.view);
+	QPointF target(1300.0, 1000.0);
+	rig.camera.follow(target, true);
+	rig.pan(-100);
+	rig.camera.follow(target, false);
+	ok &= expect(rig.camera.running(), "a catch-up is under way before the drag");
+
+	sendLeftButton(rig.view, QEvent::MouseButtonPress);
+	ok &= expect(rig.view.interacting(), "a held left button on the view is an interaction");
+	const QPointF pressed = centerOf(rig.view);
+	rig.tick();
+	ok &= expect(distance(centerOf(rig.view), pressed) <= 0.01 * pixel && !rig.camera.running(),
+		"a tick while the button is held does not move the view and ends the catch-up");
+	// what the drag does to the view
+	rig.pan(-80);
+	const QPointF dragged = centerOf(rig.view);
+	for (int i = 0; i < 20; ++i) {
+		rig.now += 16;
+		target += QPointF(2.0 * pixel, 0.0);
+		rig.camera.follow(target, false);
+	}
+	ok &= expect(distance(centerOf(rig.view), dragged) <= 0.01 * pixel && !rig.camera.running(),
+		"new targets while the button is held do not move the view", measured({{"moved", distance(centerOf(rig.view), dragged) / pixel}}));
+
+	sendLeftButton(rig.view, QEvent::MouseButtonRelease);
+	ok &= expect(!rig.view.interacting(), "releasing the button ends the interaction");
+	const QPointF left = dragged - target;
+	rig.now += 16;
+	target += QPointF(2.0 * pixel, 0.0);
+	rig.camera.follow(target, false);
+	const qreal firstMove = distance(centerOf(rig.view) - target, left) / pixel;
+	ok &= expect(rig.camera.running() && firstMove < 5.0, "the first target after the drag starts a catch-up from where the user left the view",
+		measured({{"firstMove", firstMove}}));
+	for (int i = 0; i < 40 && rig.camera.running(); ++i)
+		rig.tick();
+	ok &= expect(!rig.camera.running() && offInPixels(rig.view, target) <= 0.01, "the catch-up after the drag ends on the target");
+
+	// A scroll holds the view until interactionQuietMs after its last event.
+	const QPoint at = rig.view.viewport()->rect().center();
+	QWheelEvent wheel(QPointF(at), QPointF(rig.view.viewport()->mapToGlobal(at)), QPoint(60, 0), QPoint(0, 0), Qt::NoButton,
+		Qt::NoModifier, Qt::ScrollUpdate, false);
+	QElapsedTimer sinceScroll;
+	sinceScroll.start();
+	QApplication::sendEvent(rig.view.viewport(), &wheel);
+	const QPointF scrolled = centerOf(rig.view);
+	ok &= expect(offInPixels(rig.view, target) > 30.0 && rig.view.interacting(), "the scroll moved the view and is an interaction");
+	rig.now += 16;
+	target += QPointF(2.0 * pixel, 0.0);
+	rig.camera.follow(target, false);
+	if (sinceScroll.elapsed() < NetworkView::interactionQuietMs)
+		ok &= expect(distance(centerOf(rig.view), scrolled) <= 0.01 * pixel && !rig.camera.running(),
+			"a target right after a scroll does not move the view");
+	while (rig.view.interacting())
+		QThread::msleep(10);
+	ok &= expect(sinceScroll.elapsed() >= NetworkView::interactionQuietMs, "the scroll ends interactionQuietMs after its last event",
+		measured({{"elapsed", qreal(sinceScroll.elapsed())}}));
+	const QPointF scrolledLeft = scrolled - target;
+	rig.now += 16;
+	target += QPointF(2.0 * pixel, 0.0);
+	rig.camera.follow(target, false);
+	const qreal afterScroll = distance(centerOf(rig.view) - target, scrolledLeft) / pixel;
+	ok &= expect(rig.camera.running() && afterScroll < 5.0, "the first target after the scroll starts a catch-up from where it left the view",
+		measured({{"firstMove", afterScroll}}));
+	return ok;
+}
+
 static bool checkViewDestroyed() {
 	bool ok = true;
 	QGraphicsScene scene;
@@ -395,6 +478,7 @@ int main(int argc, char** argv) {
 	ok &= checkFit();
 	ok &= checkSettle();
 	ok &= checkMovingView();
+	ok &= checkHoldForUser();
 	ok &= checkViewDestroyed();
 	return ok ? 0 : 1;
 }

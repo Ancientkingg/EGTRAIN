@@ -2283,7 +2283,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		|| !m_presenter->allArcs.isEmpty() || !m_presenter->allSignals.isEmpty()
 		|| !m_presenter->allPlatforms.isEmpty() || !m_presenter->m_stationOverlays.isEmpty()
 		|| !m_presenter->m_stationDecorations.isEmpty() || !m_presenter->m_signalDecorations.isEmpty()
-		|| !m_presenter->m_vcMessageItems.isEmpty() || !m_presenter->m_trainAnimations.isEmpty()
+		|| !m_presenter->m_vcMessageItems.isEmpty() || m_presenter->trainsMoving()
 		|| !m_presenter->m_tracksBySectionId.empty() || !m_presenter->m_tracksByOccupiedArc.empty()
 		|| !m_presenter->m_activeTrackItems.empty();
 	if (hasRuntimeGraphics) {
@@ -4215,7 +4215,7 @@ bool MainWindow::trainPlaced(int trainIndex, const QPointF& center) {
 	return true;
 }
 
-// The view moves with each step of the glide of the followed train, in the same frame as the train.
+// The view moves with each step of the motion of the followed train, in the same frame as the train.
 void MainWindow::trainMoved(int trainIndex, const QPointF& center) {
 	if (m_followTrainIndex == trainIndex && m_followCamera->hasTarget())
 		m_followCamera->follow(center, false);

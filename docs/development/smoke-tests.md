@@ -412,8 +412,9 @@ the view moves with the train (a live run) or cuts to it (a replay) and which cl
 sentence are shown; the window writes the answer into the train list, the status label and the
 tooltips of the control. `graphics/FollowCamera` moves the view: the window passes it the
 place where the train is drawn at every step of the glide of the train, and the camera
-centres the view there at once. It has a timer only for the catch-up after a pan, a zoom or
-a resize of the user. The window cuts to a train, stops the camera and settles it on its last
+centres the view there at once. While the user holds a drag, scrolls or pinches, it leaves
+the view alone. It has a timer only for the catch-up after a pan, a zoom or a resize of the
+user. The window cuts to a train, stops the camera and settles it on its last
 position. Each check reads that widget state, or the centre of the view, in the window's
 own E2E code and prints a marker:
 
@@ -441,12 +442,13 @@ own E2E code and prints a marker:
   `E2E_FOLLOW_LAYER_OK` (Trains layer off and on again, with the station emphasis) and
   `E2E_FOLLOW_LIVE_END_OK` (Follow is switched off with its sentence when the followed
   train leaves).
-- The camera in the same live run. The checks step the glide of the train by hand and give
-  the camera and the glides a clock of their own, which only the ticks of the camera advance,
-  so that they do not depend on wall time. `E2E_FOLLOW_CAMERA_GLIDE_OK` (a frame starts the glide where the train is
-  drawn, so the view does not move yet; at every step of the glide the view is on the train
-  as it is drawn, within a pixel and a half to allow for the edge of the scene, and no
-  timer of the camera runs),
+- The camera in the same live run. The checks run the steps of the trains by hand and give
+  the camera and the motion of the trains a clock of their own, which only the checks
+  advance, so that they do not depend on wall time. `E2E_FOLLOW_CAMERA_GLIDE_OK` (a frame
+  starts the glide where the train is drawn, so the view does not move yet; at every step
+  of the glide the view is on the train as it is drawn, within a pixel and a half to allow
+  for the edge of the scene, no timer of the camera runs, and the view moves on in the first
+  and in the second quarter of the glide),
   `E2E_FOLLOW_CAMERA_RESUME_OK` (a frame that interrupts the glide starts the next glide
   where the train is drawn, so the view does not jump), `E2E_FOLLOW_CAMERA_OVERLAYS_OK` (a
   frame that moves the view with the train does not run the whole pass over the overlays:
@@ -463,7 +465,8 @@ own E2E code and prints a marker:
   forget the target; with the layer on again and the position back, the view is on the
   train at once) and `E2E_FOLLOW_CAMERA_RUN_STOP_OK` (the Stop button ends a catch-up in
   progress). The check of the follow animation runs the glide to its end and requires the
-  view to end on the train.
+  view to end on the train, the badge to stay at the centre of the drawn train and the train
+  to have the shape of the last frame.
 - In the replay of the Assignment run (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_REPLAY_BEFORE_OK`, `E2E_FOLLOW_REPLAY_DURING_OK` and
   `E2E_FOLLOW_REPLAY_AFTER_OK` (Follow stays on and the view moves only while the

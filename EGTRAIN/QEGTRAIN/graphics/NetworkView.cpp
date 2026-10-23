@@ -39,12 +39,20 @@ NetworkView::~NetworkView() {
 }
 
 void NetworkView::mousePressEvent(QMouseEvent* mouseEvent) {
+	if (mouseEvent->button() == Qt::LeftButton)
+		m_dragButtonHeld = true;
 	QGraphicsView::mousePressEvent(mouseEvent);
 }
 
 void NetworkView::mouseReleaseEvent(QMouseEvent* mouseEvent) {
+	if (!(mouseEvent->buttons() & Qt::LeftButton))
+		m_dragButtonHeld = false;
 	QGraphicsView::mouseReleaseEvent(mouseEvent);
 	emit interactionFinished();
+}
+
+bool NetworkView::interacting() const {
+	return m_dragButtonHeld || (m_lastGesture.isValid() && m_lastGesture.elapsed() < interactionQuietMs);
 }
 
 void NetworkView::centerOn(const QPointF& scenePos) {
@@ -254,6 +262,7 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 }
 
 void NetworkView::wheelEvent(QWheelEvent* event) {
+	m_lastGesture.start();
 	const bool control = event->modifiers() & Qt::ControlModifier;
 	if (!control && !event->pixelDelta().isNull()) {
 		const QPoint viewportCenter = viewport()->rect().center();
@@ -284,9 +293,13 @@ void NetworkView::armTimingPaint(const QString& kind, int generation) {
 }
 
 bool NetworkView::viewportEvent(QEvent* event) {
+	// A release that went elsewhere, as to a context menu, ends the drag as soon as the pointer moves over the view.
+	if (event->type() == QEvent::MouseMove && !(static_cast<QMouseEvent*>(event)->buttons() & Qt::LeftButton))
+		m_dragButtonHeld = false;
 	if (event->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(event);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+			m_lastGesture.start();
 			zoomBy(1.0 + gesture->value(), gesture->position());
 			event->accept();
 			return true;
@@ -305,6 +318,7 @@ bool NetworkView::viewportEvent(QEvent* event) {
 		if (profiler.beginAfterPaint(zoomRatio()))
 			emit playbackProfileBegan();
 	}
+	emit viewportPainted();
 	if (event->type() == QEvent::Paint && m_timingPaintGeneration >= 0) {
 		const QString kind = m_timingPaintKind;
 		const int generation = m_timingPaintGeneration;
