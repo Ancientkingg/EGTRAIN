@@ -1,7 +1,9 @@
+#include "diagrams/DiagramKey.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/TrainFilterButton.h"
+#include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
 #include "widgets/PlainToolTip.h"
 
@@ -40,6 +42,7 @@
 #include <QAreaSeries>
 #include <QListWidget>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QNativeGestureEvent>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -49,6 +52,7 @@
 #include <QSplitter>
 #include <QTimer>
 #include <QToolButton>
+#include <QTreeWidget>
 #include <QtMath>
 #include <QValueAxis>
 #include <QWheelEvent>
@@ -108,6 +112,44 @@ static void pressKey(QWidget* widget, Qt::Key key, const QString& text = QString
 	QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier, text);
 	QApplication::sendEvent(widget, &press);
 	QApplication::sendEvent(widget, &release);
+}
+
+// The Trains list of a diagram window.
+static TrainKeyList* trainListOf(const QWidget& window) {
+	return window.findChild<TrainKeyList*>("trainKeyList");
+}
+
+// The row of a train, or of a service group, in a Trains list; null when the list has none.
+static QTreeWidgetItem* rowNamed(const TrainKeyList* list, const QString& text) {
+	const auto found = list->tree()->findItems(text, Qt::MatchExactly | Qt::MatchRecursive);
+	return found.isEmpty() ? nullptr : found.first();
+}
+
+// The colour in the middle of the line sample of a row.
+static QColor lineSampleColour(const QTreeWidgetItem* row) {
+	const QIcon icon = row->icon(0);
+	return icon.isNull() ? QColor() : icon.pixmap(QSize(22, 14), 2.0).toImage().pixelColor(22, 14);
+}
+
+// The texts of the rows at the top of a Trains list, from the top, and of the open groups below their group.
+static QStringList shownRowTexts(const TrainKeyList* list) {
+	QStringList texts;
+	for (int i = 0; i < list->tree()->topLevelItemCount(); ++i) {
+		const QTreeWidgetItem* row = list->tree()->topLevelItem(i);
+		if (row->isHidden()) continue;
+		texts << row->text(0);
+		if (row->isExpanded())
+			for (int child = 0; child < row->childCount(); ++child)
+				if (!row->child(child)->isHidden()) texts << row->child(child)->text(0);
+	}
+	return texts;
+}
+
+// The trains of a Trains list, each of its own service when `services` is empty.
+static QVector<TrainKeyList::Train> trainsOf(const QStringList& ids, const QStringList& services = {}) {
+	QVector<TrainKeyList::Train> trains;
+	for (int i = 0; i < ids.size(); ++i) trains.append({ids[i], QColor(30, 90, 200), services.value(i)});
+	return trains;
 }
 
 // Pixels inside one check box that differ clearly from the row background, at the pixel density of the image.
@@ -337,7 +379,7 @@ public:
 	}
 };
 
-// Inside a diagram window the chart shortcuts leave the keys of the open train filter alone.
+// Inside a diagram window the chart shortcuts leave the keys of the Trains list alone.
 static bool exerciseTrainFilterKeysInWindow() {
 	DiagramWindow window("Train filter keys");
 	auto* chart = new QChart;
@@ -356,11 +398,10 @@ static bool exerciseTrainFilterKeysInWindow() {
 	window.show();
 	QApplication::processEvents();
 	auto* view = window.findChild<QChartView*>();
-	auto* filter = window.findChild<TrainFilterButton*>();
-	QMenu* menu = filter ? filter->menu() : nullptr;
-	auto* list = menu ? menu->findChild<QListWidget*>() : nullptr;
+	TrainKeyList* trains = trainListOf(window);
+	QTreeWidget* list = trains ? trains->tree() : nullptr;
 	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-	if (!expect(view && list && x && first && list->count() == 3, "a diagram window lists its three trains"))
+	if (!expect(view && list && x && first && list->topLevelItemCount() == 3, "a diagram window lists its three trains"))
 		return false;
 	// Require a selection for keyboard navigation, as the macOS style does.
 	auto* navigationStyle = new SelectionRequiredStyle;
@@ -371,33 +412,30 @@ static bool exerciseTrainFilterKeysInWindow() {
 	view->setFocus();
 	pressKey(view, Qt::Key_Plus, "+");
 	const double zoomedSpan = x->max() - x->min();
-	ok &= expect(zoomedSpan < fullSpan, "plus zooms the chart before the filter opens");
+	ok &= expect(zoomedSpan < fullSpan, "plus zooms the chart before the list takes the focus");
 
-	menu->popup(window.mapToGlobal(QPoint(20, 60)));
-	QApplication::processEvents();
-	list->setFocus(Qt::MouseFocusReason);
+	list->setFocus(Qt::TabFocusReason);
+	list->setCurrentItem(list->topLevelItem(0), 0, QItemSelectionModel::NoUpdate);
 	QApplication::processEvents();
 	pressKey(list, Qt::Key_Down);
 	pressKey(list, Qt::Key_End);
-	ok &= expect(list->currentRow() == 2, "Down and End move to the last train of the open filter");
+	ok &= expect(list->currentItem() == list->topLevelItem(2), "Down and End move to the last train of the list");
 	pressKey(list, Qt::Key_Home);
-	ok &= expect(list->currentRow() == 0 && x->max() - x->min() == zoomedSpan,
-		"Home moves to the first train of the open filter and leaves the chart zoom alone");
+	ok &= expect(list->currentItem() == list->topLevelItem(0) && x->max() - x->min() == zoomedSpan,
+		"Home moves to the first train of the list and leaves the chart zoom alone");
 	pressKey(list, Qt::Key_0, "0");
 	pressKey(list, Qt::Key_Minus, "-");
-	ok &= expect(x->max() - x->min() == zoomedSpan, "typing in the open filter list does not zoom the chart");
+	ok &= expect(x->max() - x->min() == zoomedSpan, "typing in the list does not zoom the chart");
 	pressKey(list, Qt::Key_Home);
 	pressKey(list, Qt::Key_Space, " ");
-	ok &= expect(
-		list->item(0)->checkState() == Qt::Unchecked && filter->text() == "Trains (2/3)" && !first->isVisible()
-			&& filter->visibleTrainIds() == QStringList({"B", "C"}),
-		"Space in the open filter hides the first train of the diagram");
-	menu->hide();
-	// The offscreen platform of Qt 6 leaves no window active when the popup closes.
-	window.activateWindow();
-	QApplication::processEvents();
+	ok &= expect(list->topLevelItem(0)->checkState(0) == Qt::Unchecked && trains->countLabel()->text() == "2 of 3" && !first->isVisible()
+			&& trains->visibleTrainIds() == QStringList({"B", "C"}),
+		"Space in the list hides the first train of the diagram");
+	ok &= expect(list->topLevelItem(0)->text(0) == "A", "the hidden train keeps its row while the list has the focus");
 
 	view->setFocus();
+	QApplication::processEvents();
+	ok &= expect(shownRowTexts(trains) == QStringList({"B", "C", "A"}), "the hidden train moves below the shown ones once the focus leaves");
 	pressKey(view, Qt::Key_Home);
 	ok &= expect(x->max() - x->min() == fullSpan && !first->isVisible(), "Home still resets the zoom with chart focus and keeps the filter");
 	return ok;
@@ -466,9 +504,9 @@ static bool isRecoloured(const QPen& pen, const QPen& before, const QColor& colo
 	return pen == expected;
 }
 
-static QColor swatchAt(const QListWidget* list, int row) {
-	const QIcon icon = list->item(row)->icon();
-	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
+static QColor swatchAt(const TrainKeyList* list, int row) {
+	const QTreeWidgetItem* item = rowNamed(list, list->trainIds().value(row));
+	return item ? lineSampleColour(item) : QColor();
 }
 
 static bool exerciseTrainColors() {
@@ -485,9 +523,9 @@ static bool exerciseTrainColors() {
 		if (!beforeChart) window.setTrainColors(colors);
 		window.show();
 		QApplication::processEvents();
-		auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+		TrainKeyList* list = trainListOf(window);
 		auto* view = window.findChild<QChartView*>();
-		if (!expect(list && view && list->count() == 2, "the coloured chart lists two trains"))
+		if (!expect(list && view && list->trainIds().size() == 2, "the coloured chart lists two trains"))
 			return false;
 		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
 				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
@@ -500,7 +538,7 @@ static bool exerciseTrainColors() {
 		ok &= expect(built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1],
 			note("the series of a train with an invalid colour keep their pens").c_str());
 		ok &= expect(swatchAt(list, 0) == green && swatchAt(list, 1) == built.solidPen[1].color(),
-			note("each filter swatch is the colour of the first series of its train").c_str());
+			note("each line sample of the Trains list is the colour of the first line of its train").c_str());
 
 		// Pin train A by clicking its solid line, then clear the pin.
 		const QPoint sample = view->mapFromScene(built.chart->mapToScene(
@@ -512,6 +550,13 @@ static bool exerciseTrainColors() {
 		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == green
 				&& built.solid[1]->pen().color().alpha() < 255,
 			note("pinning a coloured train emphasises it in its colour and mutes the other train").c_str());
+		// New colours keep which trains are shown and which is selected.
+		list->setTrainVisible("B", false);
+		window.setTrainColors(colors);
+		ok &= expect(list->visibleTrainIds() == QStringList({"A"}) && !built.solid[1]->isVisible() && built.solid[0]->pen().widthF() > 3.0
+				&& window.findChild<QLabel*>("diagramSelectedTitle")->text() == "Train A (simulated)",
+			note("setting the colours again keeps a hidden train hidden and the selected train selected").c_str());
+		list->setTrainVisible("B", true);
 		QMetaObject::invokeMethod(&window, "clearPin");
 		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
 				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
@@ -525,7 +570,7 @@ static bool exerciseTrainColors() {
 	const ColoredChart built = makeColoredChart();
 	window.setChart(built.chart);
 	window.setTrainColors({{"Z", green}, {"A", QColor()}, {"B", QColor()}});
-	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	TrainKeyList* list = trainListOf(window);
 	ok &= expect(built.solid[0]->pen() == built.solidPen[0] && built.dashed[0]->pen() == built.dashedPen[0]
 			&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
 			&& built.fill->pen() == built.fillPen && built.fill->brush() == built.fillBrush
@@ -537,7 +582,7 @@ static bool exerciseTrainColors() {
 	const ColoredChart kept = makeColoredChart();
 	listOnly.setChart(kept.chart);
 	listOnly.setTrainListColors({{"A", green}});
-	auto* keptList = listOnly.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	TrainKeyList* keptList = trainListOf(listOnly);
 	ok &= expect(kept.solid[0]->pen() == kept.solidPen[0] && kept.dashed[0]->pen() == kept.dashedPen[0]
 			&& kept.solid[1]->pen() == kept.solidPen[1] && kept.dashed[1]->pen() == kept.dashedPen[1]
 			&& kept.fill->pen() == kept.fillPen && kept.fill->brush() == kept.fillBrush,
@@ -561,9 +606,11 @@ static QChart* makeNamedChart(const QStringList& names) {
 	return chart;
 }
 
+// The names of the rows of the Key of the window; empty while the Key is hidden.
 static QStringList legendKinds(const DiagramWindow& window) {
-	const auto* legend = window.findChild<QChartView*>()->chart()->findChild<QGraphicsObject*>("lineKindLegend");
-	return legend ? legend->property("kinds").toStringList() : QStringList();
+	const auto* key = window.findChild<DiagramKey*>("diagramKey");
+	const QStringList kinds = key ? key->property("kinds").toStringList() : QStringList();
+	return key && !key->parentWidget()->isHidden() ? kinds : QStringList();
 }
 
 // The push button of the window with `text`, in the window itself or in its panel.
@@ -628,18 +675,18 @@ static bool exerciseButtonDefaults() {
 		QApplication::sendEvent(view->viewport(), &release);
 	};
 	clickTrain();
-	auto* pin = window.findChild<QLabel*>("diagramPinLabel");
-	ok &= expect(pin && pin->isVisible() && pin->text() == "A", "click selects train A in the button test");
+	auto* pin = window.findChild<QLabel*>("diagramSelectedTitle");
+	ok &= expect(pin && pin->isVisible() && pin->text() == "Train A", "click selects train A in the button test");
 	if (!pin) return false;
 	ok &= expect(clear->isVisible(), "Clear shows together with the selection");
 	view->setFocus();
 	pressKey(view, Qt::Key_Return);
 	pressKey(view, Qt::Key_Enter);
-	ok &= expect(pin->text() == "A", "Enter in the chart keeps the selection");
+	ok &= expect(pin->text() == "Train A", "Enter in the chart keeps the selection");
 	clickTrain();
-	ok &= expect(pin->text() == "A", "second click selects train A in the button test");
+	ok &= expect(pin->text() == "Train A", "second click selects train A in the button test");
 	pressKey(&window, Qt::Key_Return);
-	ok &= expect(pin->text() == "A", "Enter in the window keeps the selection");
+	ok &= expect(pin->text() == "Train A", "Enter in the window keeps the selection");
 	ok &= expect(calls == 0, "Enter starts no CSV export");
 	clear->click();
 	ok &= expect(!clear->isVisible() && !pin->isVisible(), "Clear hides itself and the selection");
@@ -730,11 +777,11 @@ static bool exerciseBlockSections() {
 	y->setReverse(true);
 	window.setChart(chart);
 	window.setBlockSections(buildBlockSectionExtents({{"@missing<&>@", 4, 4}}), "reference<&>");
-	ok &= expect(legendKinds(window).isEmpty(), "sections without geometry draw no boundaries and get no legend entry");
+	ok &= expect(legendKinds(window).isEmpty(), "sections without geometry draw no boundaries and get no Key row");
 	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
 	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
 	window.setBlockSections(extents, "reference<&>");
-	ok &= expect(legendKinds(window) == QStringList({"Simulated", "Section boundary"}), "the legend names the drawn section boundaries");
+	ok &= expect(legendKinds(window) == QStringList({"Block boundary"}), "the Key names the drawn section boundaries");
 	DiagramWindow sectionsOnly("Physical sections only");
 	auto* empty = new QChart;
 	auto* km = new QValueAxis;
@@ -742,7 +789,7 @@ static bool exerciseBlockSections() {
 	empty->addAxis(km, Qt::AlignBottom);
 	sectionsOnly.setChart(empty);
 	sectionsOnly.setBlockSections(extents, "reference<&>");
-	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Section boundary"}), "a chart with only section boundaries names them in the legend");
+	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Block boundary"}), "a chart with only section boundaries names them in the Key");
 	// Wide enough beside the panel that the label of the long section at 1 to 3 km ends before the section at 5 to 8 km.
 	window.setMaximumSize(1200, 640);
 	window.resize(1200, 640);
@@ -751,8 +798,8 @@ static bool exerciseBlockSections() {
 	auto* view = window.findChild<QChartView*>();
 	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
 	auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
-	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
-	if (!expect(overlay && list && list->count() == 2 && chart->series().size() == 3, "physical layer adds no train/filter/series identities")) return false;
+	TrainKeyList* list = trainListOf(window);
+	if (!expect(overlay && list && list->trainIds().size() == 2 && chart->series().size() == 3, "physical layer adds no train/filter/series identities")) return false;
 	ok &= expect(overlay->parentItem() == chart && overlay->property("sectionCount").toInt() == 4,
 		"chart owns all repeated/coincident and missing physical occurrences");
 	const auto chartPoint = [&](double km, double offsetY) {
@@ -875,7 +922,7 @@ static bool exerciseBlockSections() {
 		"after time pan a sample at the new upper edge remains visible and inspectable");
 	QMetaObject::invokeMethod(&window, "resetZoom");
 	QApplication::processEvents();
-	for (int row = 0; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
+	for (const QString& id : list->trainIds()) list->setTrainVisible(id, false);
 	hover(headerPoint(2, 5));
 	ok &= expect(!first->isVisible() && !second->isVisible() && tooltip->isVisible() && overlay->isVisible(),
 		"hiding every train retains section labels and inspection");
@@ -975,7 +1022,7 @@ static bool exerciseBlockSections() {
 	window.setTimeAxisY(true);
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
-	ok &= expect(only->series().isEmpty() && window.findChild<TrainFilterButton*>()->visibleTrainIds().isEmpty()
+	ok &= expect(only->series().isEmpty() && trainListOf(window)->visibleTrainIds().isEmpty()
 			&& tooltip->isVisible(),
 		"explicit numeric axes allow section-only inspection without fake trains");
 	QStringList exportedIds;
@@ -985,18 +1032,16 @@ static bool exerciseBlockSections() {
 	},
 		"unmapped.csv", {"unrelated"});
 	window.csvContent();
-	list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
-	ok &= expect(only->series().isEmpty() && list->count() == 1 && exportedIds == QStringList{"unrelated"},
+	list = trainListOf(window);
+	ok &= expect(only->series().isEmpty() && list->trainIds() == QStringList{"unrelated"} && exportedIds == QStringList{"unrelated"},
 		"real CSV-only train reaches the window provider without a dummy series");
-	list->item(0)->setCheckState(Qt::Unchecked);
+	list->setTrainVisible("unrelated", false);
 	window.csvContent();
 	ok &= expect(exportedIds.isEmpty() && only->series().isEmpty(), "CSV-only train can be hidden with the actual filter");
-	list->item(0)->setCheckState(Qt::Checked);
-	const auto* filter = window.findChild<TrainFilterButton*>();
-	ok &= expect(filter->visibleTrainIds() == QStringList{"unrelated"}, "the CSV-only identity is a checked entry before the provider goes");
+	list->setTrainVisible("unrelated", true);
+	ok &= expect(list->visibleTrainIds() == QStringList{"unrelated"}, "the CSV-only identity is a checked entry before the provider goes");
 	window.setCsvProvider({}, {});
-	list = filter->menu()->findChild<QListWidget*>();
-	ok &= expect(filter->visibleTrainIds().isEmpty() && list->count() == 0,
+	ok &= expect(list->visibleTrainIds().isEmpty() && list->trainIds().isEmpty(),
 		"removing the provider removes its checked CSV-only identity from the filter");
 	window.setBlockSections({}, "no-geometry");
 	QApplication::processEvents();
@@ -1241,16 +1286,73 @@ static bool exerciseStationAxis() {
 	return ok;
 }
 
-// A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
-// or simulated by its "planned" property or its name.
+// A blocking time of train `id` from `left` to `right` km and from `start` to `end` s: an area series for its fill and a
+// closed outline, both of the Key kind `kind`.
+static void addBlockingBox(QChart* chart, const QString& id, const QString& kind, double left, double right, double start, double end,
+	const QColor& colour) {
+	auto* lower = new QLineSeries;
+	auto* upper = new QLineSeries;
+	lower->append(left, start);
+	lower->append(right, start);
+	upper->append(left, end);
+	upper->append(right, end);
+	auto* fill = new QAreaSeries(upper, lower);
+	fill->setProperty("trainId", id);
+	fill->setProperty("keyKind", kind);
+	QColor translucent = colour;
+	translucent.setAlpha(65);
+	fill->setBrush(translucent);
+	fill->setPen(Qt::NoPen);
+	chart->addSeries(fill);
+	auto* outline = new QLineSeries;
+	outline->setName(id);
+	outline->setProperty("trainId", id);
+	outline->setProperty("keyKind", kind);
+	outline->setProperty("inspectionFilled", true);
+	outline->setProperty("inspectionInterval", QString("Block: %1\nBlocked %2 to %3 s").arg(kind).arg(start).arg(end));
+	outline->setPen(QPen(colour.darker(135), 2.0));
+	for (const QPointF& point : {QPointF(left, start), QPointF(right, start), QPointF(right, end), QPointF(left, end), QPointF(left, start)})
+		outline->append(point);
+	chart->addSeries(outline);
+}
+
+// The Key lists the kinds of mark of the shown series, each with the pen and brush of its series, in a fixed order: the
+// kind of a series is its "keyKind" property, else its layer, else planned or simulated. Simulated is left out while it
+// is the only kind of line, and the Key hides while it has no row.
+// A dashed line with a dot keeps a gap on each side of the dot, so that its sample does not read as a solid line.
+static bool exerciseKeySamples() {
+	bool ok = true;
+	const auto gapsBesideDot = [](Qt::PenStyle style) {
+		QImage image(static_cast<int>(kKeySampleWidth), static_cast<int>(kKeySampleHeight), QImage::Format_ARGB32);
+		image.fill(Qt::white);
+		QPainter painter(&image);
+		DiagramKeyEntry entry{QStringLiteral("Planned"), DiagramKeyEntry::Shape::Line, QPen(Qt::black, 2, style), QBrush()};
+		entry.marker = true;
+		paintKeySample(painter, QRectF(QPointF(0, 0), image.size()), entry);
+		painter.end();
+		const int y = image.height() / 2, middle = image.width() / 2;
+		const auto light = [&](int x) { return qGray(image.pixel(x, y)) > 200; };
+		bool left = false, right = false;
+		for (int x = 3; x < middle - 4; ++x) left = left || light(x);
+		for (int x = middle + 5; x < image.width() - 3; ++x) right = right || light(x);
+		return left && right;
+	};
+	ok &= expect(gapsBesideDot(Qt::DashLine), "a dashed line with a dot shows a gap on each side of the dot");
+	ok &= expect(!gapsBesideDot(Qt::SolidLine), "a solid line with a dot has no gap");
+	return ok;
+}
+
 static bool exerciseLegend() {
 	bool ok = true;
 
-	DiagramWindow window("Legend");
+	DiagramWindow window("Key");
+	window.show();
 	window.setChart(makeNamedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}));
-	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "planned and simulated lines are named in the legend");
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "planned and simulated lines are named in the Key");
 	window.setChart(makeNamedChart({"Train A", "Train B", "Train A"}));
-	ok &= expect(legendKinds(window).isEmpty(), "a chart with one kind of line has no legend");
+	auto* key = window.findChild<DiagramKey*>("diagramKey");
+	ok &= expect(key && key->property("kinds").toStringList().isEmpty() && key->parentWidget()->isHidden(),
+		"a chart with only simulated lines has an empty Key, and the Key section hides");
 	window.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)", "Train B"}));
 	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "the planned name test ignores letter case");
 	QChart* plannedByProperty = makeNamedChart({"Train A", "Train A"});
@@ -1259,43 +1361,488 @@ static bool exerciseLegend() {
 	const auto* plannedLine = qobject_cast<QXYSeries*>(plannedByProperty->series()[0]);
 	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}) && plannedLine->pen().style() == Qt::DashLine,
 		"a series whose planned property is set is planned without the word in its name, and drawn dashed");
-	// The colour key takes the place of its layer, the first time the layer comes; a new chart clears it.
-	const auto keyedChart = [] {
-		QChart* chart = makeNamedChart({"A", "A", "B", "A"});
-		chart->series()[0]->setProperty("layer", "blocking time");
-		chart->series()[1]->setProperty("layer", "simulated");
-		chart->series()[2]->setProperty("layer", "blocking time");
-		chart->series()[3]->setProperty("planned", true);
-		return chart;
-	};
-	window.setChart(keyedChart());
-	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "without a colour key the layer names its kind");
-	window.setColourKey("blocking time", {{"Block or station", QColor(100, 160, 240)}, {"Switch", QColor(240, 210, 40)}});
-	ok &= expect(legendKinds(window) == QStringList({"Block or station", "Switch", "Simulated", "Planned"}),
-		"the colour key replaces the entry of its layer with a swatch for each colour");
-	window.setColourKey("no such layer", {{"Conflict", QColor(220, 50, 50)}});
-	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "a key for a layer the chart lacks shows nothing");
-	window.setColourKey("blocking time", {{"Conflict", QColor(220, 50, 50)}});
-	window.setChart(keyedChart());
-	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Simulated", "Planned"}), "a new chart clears the colour key");
+	const QVector<DiagramKeyEntry> planned = key->entries();
+	ok &= expect(planned.size() == 2 && planned[0].shape == DiagramKeyEntry::Shape::Line && planned[0].pen.style() == Qt::DashLine
+			&& planned[0].pen.color() == window.palette().color(QPalette::WindowText) && planned[1].pen.style() == Qt::SolidLine,
+		"a line sample takes the dash pattern of its series in the text colour");
 	QChart* layered = makeNamedChart({"A", "A (planned reference)", "A again"});
 	layered->series()[0]->setProperty("layer", "blocking time");
 	layered->series()[2]->setProperty("layer", "simulated");
 	window.setChart(layered);
 	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Planned", "Simulated"}),
 		"the layer of a series names its kind");
+	ok &= expect(layered->margins().bottom() == 8 && !layered->findChild<QGraphicsObject*>("lineKindLegend"),
+		"the chart keeps no legend and no room for one below the plot");
 
-	// At the size of the window on a 1280 by 800 screen the legend is inside the chart, below the plot and its axis texts.
+	// Blocking times of three kinds, a planned line with its points, a simulated line and a series the Key leaves out.
+	auto* blocking = new QChart;
+	addBlockingBox(blocking, "A", "Blocking time", 1, 2, 10, 40, QColor(100, 160, 240));
+	addBlockingBox(blocking, "B", "Conflict", 2, 3, 20, 50, QColor(220, 50, 50));
+	addBlockingBox(blocking, "B", "Critical block", 3, 4, 30, 60, QColor(235, 175, 20));
+	auto* plannedRun = new QLineSeries;
+	plannedRun->setName("A");
+	plannedRun->setProperty("trainId", "A");
+	plannedRun->setProperty("planned", true);
+	plannedRun->setPointsVisible(true);
+	plannedRun->append(1, 10);
+	plannedRun->append(4, 70);
+	blocking->addSeries(plannedRun);
+	auto* run = new QLineSeries;
+	run->setName("A");
+	run->setProperty("trainId", "A");
+	run->setProperty("layer", "simulated");
+	run->append(1, 15);
+	run->append(4, 75);
+	blocking->addSeries(run);
+	auto* hidden = new QLineSeries;
+	hidden->setName("helper");
+	hidden->setProperty("trainId", "A");
+	hidden->setProperty("keyKind", QString());
+	hidden->append(1, 1);
+	hidden->append(2, 2);
+	blocking->addSeries(hidden);
+	blocking->createDefaultAxes();
+	window.setChart(blocking);
+	window.setTrainServices({});
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Critical block", "Conflict", "Planned", "Simulated"}),
+		qPrintable("the Key lists the kinds of the shown series in a fixed order, without a series whose keyKind is empty: "
+			+ legendKinds(window).join(", ")));
+	const QVector<DiagramKeyEntry> rows = key->entries();
+	const auto rowNamedKind = [&rows](const QString& name) {
+		const auto found = std::find_if(rows.begin(), rows.end(), [&name](const DiagramKeyEntry& entry) { return entry.name == name; });
+		return found == rows.end() ? DiagramKeyEntry() : *found;
+	};
+	const DiagramKeyEntry conflict = rowNamedKind("Conflict");
+	ok &= expect(conflict.shape == DiagramKeyEntry::Shape::Box && conflict.brush.color() == QColor(220, 50, 50, 65)
+			&& conflict.pen == QPen(QColor(220, 50, 50).darker(135), 2.0),
+		"a blocking time is a box with the brush of its fill and the pen of its outline");
+	ok &= expect(rowNamedKind("Planned").marker && !rowNamedKind("Simulated").marker,
+		"a line that shows its points has a dot in its sample");
+	trainListOf(window)->setTrainVisible("B", false);
+	ok &= expect(legendKinds(window) == QStringList({"Blocking time", "Planned", "Simulated"}),
+		"hiding a train takes the kinds that only it draws out of the Key");
+	trainListOf(window)->setTrainVisible("A", false);
+	ok &= expect(legendKinds(window).isEmpty(), "with every train hidden the Key is empty and hides");
+	trainListOf(window)->setTrainVisible("A", true);
+	trainListOf(window)->setTrainVisible("B", true);
+
+	// The stops of an event line are a kind of their own, and a dwell is upright.
+	auto* paths = new QChart;
+	auto* events = new QLineSeries;
+	events->setName("A (simulated arrival)");
+	events->setProperty("trainId", "A");
+	events->setProperty("keyMarker", "Stop");
+	events->setPointsVisible(true);
+	events->append(1, 10);
+	events->append(3, 30);
+	paths->addSeries(events);
+	auto* dwell = new QLineSeries;
+	dwell->setName("A (simulated dwell)");
+	dwell->setProperty("trainId", "A");
+	dwell->setProperty("keyKind", "Dwell");
+	dwell->setProperty("keyUpright", true);
+	dwell->append(3, 30);
+	dwell->append(3, 40);
+	paths->addSeries(dwell);
+	auto* plannedEvents = new QLineSeries;
+	plannedEvents->setName("A (planned arrival)");
+	plannedEvents->setProperty("trainId", "A");
+	plannedEvents->setProperty("keyMarker", "Stop");
+	plannedEvents->setPointsVisible(true);
+	plannedEvents->append(1, 12);
+	plannedEvents->append(3, 32);
+	paths->addSeries(plannedEvents);
+	paths->createDefaultAxes();
+	window.setChart(paths);
+	const QVector<DiagramKeyEntry> pathRows = key->entries();
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated", "Stop", "Dwell"}) && pathRows[2].shape == DiagramKeyEntry::Shape::Marker
+			&& pathRows[3].shape == DiagramKeyEntry::Shape::Tick && !pathRows[0].marker,
+		qPrintable("the stops of an event line and a dwell are kinds of their own: " + legendKinds(window).join(", ")));
+
+	// A chart of rolling stock input lists its curves by name, in their own pens.
+	DiagramWindow input("Key of rolling stock");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.show();
+	QChart* curves = makeNamedChart({"Draisy, input", "Draisy, limit"});
+	const QPen curvePen(QColor(20, 120, 60), 2.5);
+	qobject_cast<QXYSeries*>(curves->series()[0])->setPen(curvePen);
+	input.setChart(curves);
+	const auto* inputKey = input.findChild<DiagramKey*>("diagramKey");
+	ok &= expect(legendKinds(input) == QStringList({"Draisy, input", "Draisy, limit"}) && inputKey->entries()[0].pen == curvePen,
+		"a chart of rolling stock lists each curve by its name and in its pen");
+
+	// At the size of the window on a 1280 by 800 screen the Key lies in the panel, below the Trains.
 	window.setMaximumSize(1152, 640);
 	window.resize(1152, 640);
+	window.setChart(makeNamedChart({"A", "A (planned reference)"}));
+	QApplication::processEvents();
+	const QWidget* panel = window.findChild<QWidget*>("resultPanel");
+	const QWidget* trains = trainListOf(window);
+	ok &= expect(panel && key->isVisible() && panel->isAncestorOf(key) && key->height() == key->sizeHint().height() && key->height() > 0
+			&& key->mapTo(&window, QPoint()).y() > trains->mapTo(&window, QPoint()).y() + trains->height(),
+		"the Key lies in the panel below the Trains, with room for its rows");
+	return ok;
+}
+
+// The trains of Assignment: 22 trains in the services IC1723 and S19825 of 6 trains and IC2025 and S9827 of 5.
+static QVector<TrainKeyList::Train> assignmentTrains(const QColor& colour = QColor(30, 90, 200)) {
+	QVector<TrainKeyList::Train> trains;
+	const std::array<std::pair<const char*, int>, 4> services{{{"IC1723", 6}, {"S19825", 6}, {"IC2025", 5}, {"S9827", 5}}};
+	for (const auto& [service, count] : services)
+		for (int i = 1; i <= count; ++i) trains.append({QString("%1-%2").arg(service).arg(i), colour, service});
+	return trains;
+}
+
+// The texts of column `column` of the rows at the top of a Trains list.
+static QStringList topLevelTexts(const TrainKeyList& list, int column = 0) {
+	QStringList texts;
+	for (int i = 0; i < list.tree()->topLevelItemCount(); ++i) texts << list.tree()->topLevelItem(i)->text(column);
+	return texts;
+}
+
+// More than six trains in six services or fewer are grouped by service, with the number of trains of each group; other
+// lists are flat. The count names the shown trains, and setting the trains again keeps their check states.
+static bool exerciseTrainKeyGroups() {
+	bool ok = true;
+	TrainKeyList list;
+	int changes = 0;
+	QObject::connect(&list, &TrainKeyList::visibilityChanged, [&changes] { ++changes; });
+	list.setTrains(assignmentTrains());
+	ok &= expect(list.isGrouped() && topLevelTexts(list) == QStringList({"IC1723", "S19825", "IC2025", "S9827"})
+			&& topLevelTexts(list, 1) == QStringList({"6", "6", "5", "5"}) && changes == 0,
+		qPrintable("the trains of Assignment form four service groups of 6, 6, 5 and 5 trains: " + topLevelTexts(list).join(", ")));
+	ok &= expect(rowNamed(&list, "IC2025-3") && rowNamed(&list, "IC2025-3")->parent() == rowNamed(&list, "IC2025")
+			&& rowNamed(&list, "IC2025")->checkState(0) == Qt::Checked,
+		"each train lies under its service, and a group of shown trains is checked");
+	ok &= expect(list.serviceOf("IC2025-3") == "IC2025" && list.serviceOf("T") == QString(), "the list knows the service of each train");
+	ok &= expect(list.countLabel()->text() == "22 of 22", qPrintable("the count names the shown trains: " + list.countLabel()->text()));
+	list.setTrainVisible("S9827-1", false);
+	list.setTrainVisible("S9827-2", false);
+	ok &= expect(list.countLabel()->text() == "20 of 22" && changes == 2, qPrintable("the count follows hidden trains: " + list.countLabel()->text()));
+	list.setTrains(assignmentTrains(QColor(200, 40, 40)));
+	ok &= expect(list.visibleTrainIds().size() == 20 && !list.isTrainVisible("S9827-1") && changes == 2,
+		"setting the trains again keeps their check states and reports no change");
+	const auto rows = list.shownRows();
+	ok &= expect(rows.size() == 4 && rows[0].first == "IC1723" && rows[0].second == QColor(200, 40, 40),
+		"an exported figure lists the services with a shown train, in the colour all their trains share");
+
+	TrainKeyList six;
+	QStringList ids;
+	for (int i = 1; i <= 6; ++i) ids << QString("S-%1").arg(i);
+	six.setTrains(trainsOf(ids, QStringList(6, "S")));
+	ok &= expect(!six.isGrouped() && topLevelTexts(six) == ids && six.countLabel()->text() == "6 of 6",
+		"six trains of one service are listed flat");
+	TrainKeyList seven;
+	seven.setTrains(trainsOf(ids + QStringList{"S-7"}, QStringList(7, "S")));
+	ok &= expect(seven.isGrouped() && topLevelTexts(seven) == QStringList({"S"}), "seven trains of one service form a group");
+	TrainKeyList scattered;
+	QStringList many, services;
+	for (int i = 1; i <= 8; ++i) {
+		many << QString("T-%1").arg(i);
+		services << QString("Service %1").arg(std::min(i, 7));
+	}
+	scattered.setTrains(trainsOf(many, services));
+	ok &= expect(!scattered.isGrouped() && topLevelTexts(scattered) == many, "eight trains in seven services are listed flat");
+	TrainKeyList unknown;
+	unknown.setTrains(trainsOf({"A"}));
+	ok &= expect(unknown.serviceOf("A") == "A", "a train without a service is a service of its own");
+	return ok;
+}
+
+// The check box rectangle of a row of a Trains list, in viewport coordinates.
+static QRect treeCheckBoxRect(const QTreeWidget* tree, const QTreeWidgetItem* item) {
+	QStyleOptionViewItem option;
+	option.initFrom(tree->viewport());
+	option.widget = tree;
+	option.rect = tree->visualItemRect(item);
+	option.features = QStyleOptionViewItem::HasCheckIndicator | QStyleOptionViewItem::HasDisplay;
+	option.checkState = item->checkState(0);
+	option.text = item->text(0);
+	if (!item->icon(0).isNull()) {
+		option.features |= QStyleOptionViewItem::HasDecoration;
+		option.icon = item->icon(0);
+		option.decorationSize = tree->iconSize();
+	}
+	return tree->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &option, tree);
+}
+
+// A group row checks and unchecks all of its trains and is partly checked while some are shown, which the style sheet
+// draws filled. Above 12 trains a search hides rows and leaves the check states alone, and All and None act on the rows
+// it shows; a group then counts and acts on its trains that the search shows, and Escape clears the search. All and None
+// show above 6 trains, the search above 12.
+static bool exerciseTrainKeyChecks() {
+	bool ok = true;
+	TrainKeyList list;
+	int changes = 0;
+	QObject::connect(&list, &TrainKeyList::visibilityChanged, [&changes] { ++changes; });
+	list.setTrains(assignmentTrains(QColor()));
+	list.resize(260, 400);
+	list.show();
+	QApplication::processEvents();
+	QTreeWidgetItem* group = rowNamed(&list, "S19825");
+	rowNamed(&list, "S19825-2")->setCheckState(0, Qt::Unchecked);
+	ok &= expect(group->checkState(0) == Qt::PartiallyChecked && list.countLabel()->text() == "21 of 22" && changes == 1,
+		"hiding one train of a group makes the group partly checked");
+	group->setCheckState(0, Qt::Unchecked);
+	ok &= expect(list.countLabel()->text() == "16 of 22" && changes == 2 && rowNamed(&list, "S19825-1")->checkState(0) == Qt::Unchecked,
+		"unchecking a group hides its six trains at once");
+	rowNamed(&list, "S19825-4")->setCheckState(0, Qt::Checked);
+	// A click on a partly checked box checks it.
+	QTreeWidget* tree = list.tree();
+	QTreeWidgetItem* partial = rowNamed(&list, "S19825");
+	const QPoint box = treeCheckBoxRect(tree, partial).center();
+	QMouseEvent press(QEvent::MouseButtonPress, box, tree->viewport()->mapToGlobal(box), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, box, tree->viewport()->mapToGlobal(box), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(tree->viewport(), &press);
+	QApplication::sendEvent(tree->viewport(), &release);
+	ok &= expect(partial->checkState(0) == Qt::Checked && list.countLabel()->text() == "22 of 22",
+		qPrintable("a click on a partly checked group shows all of its trains: " + list.countLabel()->text()));
+
+	// The style sheet draws a partly checked box filled, unlike an empty one.
+	rowNamed(&list, "S19825-3")->setCheckState(0, Qt::Unchecked);
+	rowNamed(&list, "S9827")->setCheckState(0, Qt::Unchecked);
+	QEvent leave(QEvent::Leave);
+	QApplication::sendEvent(tree->viewport(), &leave);
+	QApplication::processEvents();
+	const QImage drawn = tree->viewport()->grab().toImage();
+	const auto filled = [&](const QString& name) {
+		const QRect rect = treeCheckBoxRect(tree, rowNamed(&list, name)).adjusted(3, 3, -3, -3);
+		int dark = 0;
+		for (int y = rect.top(); y <= rect.bottom(); ++y)
+			for (int x = rect.left(); x <= rect.right(); ++x) dark += qGray(drawn.pixel(x, y)) < 110 ? 1 : 0;
+		return dark;
+	};
+	ok &= expect(filled("S19825") > 20 && filled("IC1723") > 20 && filled("S9827") == 0,
+		qPrintable(QString("a partly checked group draws a filled box: %1, %2 and %3 dark pixels")
+				.arg(filled("S19825"))
+				.arg(filled("IC1723"))
+				.arg(filled("S9827"))));
+	rowNamed(&list, "S19825-3")->setCheckState(0, Qt::Checked);
+	rowNamed(&list, "S9827")->setCheckState(0, Qt::Checked);
+
+	// The search hides rows only, and the groups it opens close when it is cleared.
+	rowNamed(&list, "S9827")->setExpanded(true);
+	changes = 0;
+	ok &= expect(list.searchField()->isVisible(), "a list of more than 12 trains has a search field");
+	list.searchField()->setText("IC2025");
+	ok &= expect(shownRowTexts(&list) == QStringList({"IC2025", "IC2025-1", "IC2025-2", "IC2025-3", "IC2025-4", "IC2025-5"})
+			&& list.visibleTrainIds().size() == 22 && changes == 0,
+		qPrintable("a search shows the rows it finds and keeps the check states: " + shownRowTexts(&list).join(", ")));
+	list.findChild<QPushButton*>("trainKeyNone")->click();
+	ok &= expect(list.countLabel()->text() == "17 of 22" && changes == 1 && list.isTrainVisible("IC1723-1"),
+		"None hides the trains of the rows the search shows, and only those");
+	list.setTrainVisible("IC1723-1", false);
+	list.searchField()->setText("IC1723-3");
+	ok &= expect(rowNamed(&list, "IC1723")->checkState(0) == Qt::Checked, "a partly shown group counts its trains that the search shows");
+	rowNamed(&list, "IC1723")->setCheckState(0, Qt::Unchecked);
+	ok &= expect(!list.isTrainVisible("IC1723-3") && list.isTrainVisible("IC1723-2")
+			&& rowNamed(&list, "IC1723")->checkState(0) == Qt::Unchecked && list.shownRows().first().first == "IC1723",
+		"a group acts on its trains that the search shows, and its service keeps its place in an exported figure");
+	pressKey(list.searchField(), Qt::Key_Escape);
+	ok &= expect(list.searchField()->text().isEmpty() && shownRowTexts(&list).size() >= 4 && list.countLabel()->text() == "15 of 22"
+			&& rowNamed(&list, "IC1723")->checkState(0) == Qt::PartiallyChecked,
+		"Escape clears the search, which shows every row and keeps the check states");
+	ok &= expect(!rowNamed(&list, "IC2025")->isExpanded() && !rowNamed(&list, "IC1723")->isExpanded() && rowNamed(&list, "S9827")->isExpanded(),
+		"clearing the search closes the groups it opened and leaves a group opened by hand open");
+	list.findChild<QPushButton*>("trainKeyAll")->click();
+	ok &= expect(list.countLabel()->text() == "22 of 22", "All shows every train");
+
+	// All and None show above 6 trains, the search above 12.
+	for (const int count : {6, 7, 12, 13}) {
+		QStringList ids;
+		for (int i = 1; i <= count; ++i) ids << QString("T-%1").arg(i);
+		TrainKeyList sized;
+		sized.setTrains(trainsOf(ids));
+		sized.show();
+		QApplication::processEvents();
+		const bool allNone = sized.findChild<QPushButton*>("trainKeyAll")->isVisible() && sized.findChild<QPushButton*>("trainKeyNone")->isVisible();
+		ok &= expect(allNone == (count > 6) && sized.searchField()->isVisible() == (count > 12),
+			qPrintable(QString("a list of %1 trains has All and None %2 and a search field %3")
+					.arg(count)
+					.arg(allNone ? "shown" : "hidden")
+					.arg(sized.searchField()->isVisible() ? "shown" : "hidden")));
+		if (count == 7) {
+			sized.findChild<QPushButton*>("trainKeyNone")->click();
+			ok &= expect(sized.visibleTrainIds().isEmpty(), "None hides every train of a list without a search");
+		}
+	}
+	return ok;
+}
+
+// The selected train comes first and is highlighted, then the shown trains, then the hidden ones, each in the order the
+// window gave them. While the pointer is over the rows they keep their places, and they move once it leaves.
+static bool exerciseTrainKeyOrder() {
+	bool ok = true;
+	TrainKeyList list;
+	list.setTrains(trainsOf({"A", "B", "C", "D"}));
+	list.show();
+	QApplication::processEvents();
+	list.setTrainVisible("A", false);
+	ok &= expect(shownRowTexts(&list) == QStringList({"B", "C", "D", "A"}), qPrintable("a hidden train moves below the shown ones: " + shownRowTexts(&list).join(", ")));
+	QWidget* rows = list.tree()->viewport();
+	QEvent enter(QEvent::Enter);
+	QApplication::sendEvent(rows, &enter);
+	list.setTrainVisible("B", false);
+	ok &= expect(shownRowTexts(&list) == QStringList({"B", "C", "D", "A"}), "the rows keep their places while the pointer is over them");
+	QEvent leave(QEvent::Leave);
+	QApplication::sendEvent(rows, &leave);
+	ok &= expect(shownRowTexts(&list) == QStringList({"C", "D", "A", "B"}), qPrintable("the rows move once the pointer leaves: " + shownRowTexts(&list).join(", ")));
+	list.setSelectedTrain("D");
+	ok &= expect(shownRowTexts(&list) == QStringList({"D", "C", "A", "B"}) && rowNamed(&list, "D")->background(0).color() == QColor(0xd8, 0xe1, 0xe5)
+			&& rowNamed(&list, "C")->background(0).style() == Qt::NoBrush,
+		"the selected train comes first and is highlighted");
+	// The style sheet draws the rows, and the band still shows across the row.
+	list.resize(260, list.sizeHint().height());
+	QApplication::processEvents();
+	// Without the focus or the pointer, which the window can get once it shows.
+	list.tree()->clearFocus();
+	QApplication::sendEvent(rows, &leave);
+	const QImage band = list.tree()->viewport()->grab().toImage();
+	const QRect selectedRow = list.tree()->visualItemRect(rowNamed(&list, "D"));
+	const QColor bandColour = band.pixelColor(qRound((list.tree()->viewport()->width() - 4) * band.devicePixelRatio()),
+		qRound(selectedRow.center().y() * band.devicePixelRatio()));
+	ok &= expect(bandColour == QColor(0xd8, 0xe1, 0xe5), qPrintable("the band of the selected train is drawn: " + bandColour.name()));
+	list.setSelectedTrain(QString());
+	ok &= expect(shownRowTexts(&list) == QStringList({"C", "D", "A", "B"}) && rowNamed(&list, "D")->background(0).style() == Qt::NoBrush,
+		"without a selection the highlight goes and the order is that of the shown trains");
+
+	TrainKeyList grouped;
+	grouped.setTrains(assignmentTrains());
+	grouped.show();
+	QApplication::processEvents();
+	rowNamed(&grouped, "IC1723")->setCheckState(0, Qt::Unchecked);
+	ok &= expect(topLevelTexts(grouped) == QStringList({"S19825", "IC2025", "S9827", "IC1723"}),
+		qPrintable("a group of hidden trains moves below the others: " + topLevelTexts(grouped).join(", ")));
+	grouped.setSelectedTrain("S9827-4");
+	ok &= expect(topLevelTexts(grouped).first() == "S9827" && rowNamed(&grouped, "S9827")->isExpanded()
+			&& rowNamed(&grouped, "S9827")->child(0)->text(0) == "S9827-4",
+		"the group of the selected train comes first and opens, with the train first in it");
+	return ok;
+}
+
+// A click on a line selects its train: Selected shows the lines of its tooltip, the line is emphasised and its row
+// highlighted. A click inside a blocking time selects that box: an outline marks it, Selected shows its lines and the
+// chart keeps its look. Clear, Escape, hiding the train and a new chart end the selection, and the exported figure leaves
+// the outline out.
+static bool exerciseSelection() {
+	bool ok = true;
+	DiagramWindow window("Selection");
+	auto* chart = new QChart;
+	const QString longId = QString(70, QLatin1Char('X'));
+	addBlockingBox(chart, "A", "Blocking time", 2, 4, 20, 60, QColor(100, 160, 240));
+	addBlockingBox(chart, longId, "Conflict", 5, 7, 30, 70, QColor(220, 50, 50));
+	auto* run = new QLineSeries;
+	run->setName("B run");
+	run->setProperty("trainId", "B");
+	run->append(9, 5);
+	run->append(9, 95);
+	chart->addSeries(run);
+	chart->createDefaultAxes();
+	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
+	chart->axes(Qt::Horizontal).first()->setRange(0, 10);
+	window.setChart(chart);
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
 	window.show();
-	drawnChartTexts(window);
-	const auto* legend = layered->findChild<QGraphicsObject*>("lineKindLegend");
-	const QRectF area = legend ? legend->mapRectToScene(legend->boundingRect()) : QRectF();
-	bool clear = !area.isEmpty() && layered->sceneBoundingRect().contains(area)
-		&& area.top() > layered->mapRectToScene(layered->plotArea()).bottom();
-	for (const QRectF& rect : drawnTextRects(window)) clear = clear && !rect.intersects(area);
-	ok &= expect(clear, "the legend lies inside the chart, below the plot and clear of the axis texts");
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* title = window.findChild<QLabel*>("diagramSelectedTitle");
+	auto* lines = window.findChild<QLabel*>("diagramPinLabel");
+	auto* clear = window.findChild<QPushButton*>("diagramClearSelection");
+	TrainKeyList* list = trainListOf(window);
+	if (!expect(view && title && lines && clear && list, "the window has its Selected labels and Clear")) return false;
+	QString selected;
+	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
+	const auto click = [&](const QPointF& value, QAbstractSeries* series) {
+		const QPoint point = view->mapFromScene(chart->mapToScene(chart->mapToPosition(value, series)));
+		QMouseEvent press(QEvent::MouseButtonPress, point, view->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, point, view->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+		QApplication::processEvents();
+	};
+	auto* outlineA = qobject_cast<QXYSeries*>(chart->series()[1]);
+	const QPen outlinePen = outlineA->pen();
+	const QImage before = window.exportedFigure();
+
+	click(QPointF(3, 40), outlineA);
+	auto* outline = chart->findChild<QGraphicsObject*>("diagramSelectionOutline");
+	view->grab();
+	const QRectF box(chart->mapToPosition(QPointF(2, 60), outlineA), chart->mapToPosition(QPointF(4, 20), outlineA));
+	const QRectF drawn = outline ? outline->property("outline").toRectF() : QRectF();
+	ok &= expect(outline && outline->isVisible() && drawn.contains(box.normalized()) && std::abs(drawn.width() - box.normalized().width() - 3) < 0.5,
+		"a click inside a blocking time draws an outline just around its box");
+	ok &= expect(title->text() == "A" && lines->text().split('\n').contains("Block: Blocking time") && lines->text().split('\n').contains("Blocked 20 to 60 s")
+			&& selected == "A" && rowNamed(list, "A")->background(0).style() != Qt::NoBrush,
+		qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
+	ok &= expect(outlineA->pen() == outlinePen && run->pen().color().alpha() == 255, "a selected blocking time leaves the look of the chart as it is");
+	ok &= expect(window.exportedFigure() == before, "the exported figure leaves the outline out");
+
+	pressKey(view, Qt::Key_Escape);
+	ok &= expect(title->isHidden() || !title->isVisible(), "Escape ends the selection");
+	ok &= expect(window.isVisible() && !chart->findChild<QGraphicsObject*>("diagramSelectionOutline"), "Escape with a selection keeps the window open and removes the outline");
+	pressKey(view, Qt::Key_Escape);
+	ok &= expect(!window.isVisible(), "Escape without a selection closes the window");
+	window.show();
+	QApplication::processEvents();
+
+	click(QPointF(9, 50), run);
+	ok &= expect(title->isVisible() && title->text() == "B run" && run->pen().widthF() > outlinePen.widthF() && outlineA->pen().color().alpha() < 255
+			&& !chart->findChild<QGraphicsObject*>("diagramSelectionOutline") && rowNamed(list, "B")->background(0).style() != Qt::NoBrush,
+		"a click on a line selects its train, emphasises it and highlights its row");
+	clear->click();
+	ok &= expect(!title->isVisible() && outlineA->pen() == outlinePen && rowNamed(list, "B")->background(0).style() == Qt::NoBrush, "Clear ends the selection");
+
+	click(QPointF(9, 50), run);
+	list->setTrainVisible("B", false);
+	ok &= expect(!title->isVisible() && outlineA->pen() == outlinePen, "hiding the selected train ends the selection");
+	list->setTrainVisible("B", true);
+
+	// A long id wraps in Selected and does not widen the panel.
+	auto* outlineLong = qobject_cast<QXYSeries*>(chart->series()[3]);
+	click(QPointF(6, 50), outlineLong);
+	for (int round = 0; round < 4; ++round) QApplication::processEvents();
+	ok &= expect(title->text().remove(QChar(0x200B)) == longId && title->height() >= 2 * title->fontMetrics().height()
+			&& window.findChild<QWidget*>("resultPanel")->width() == 260,
+		qPrintable(QString("a long id wraps in Selected: %1 px high").arg(title->height())));
+	window.setChart(makeNamedChart({"A", "B"}));
+	ok &= expect(!title->isVisible(), "a new chart ends the selection");
+	return ok;
+}
+
+// The exported figure has a column at the right of the chart with the shown trains, each with its line sample and
+// without a check box, and the Key.
+static bool exerciseExportColumn() {
+	bool ok = true;
+	DiagramWindow window("Export column");
+	auto* chart = makeNamedChart({"A", "B", "C", "A (planned)"});
+	for (int i = 0; i < 4; ++i) chart->series()[i]->setProperty("trainId", QString(QChar('A' + (i % 3))));
+	window.setChart(chart);
+	window.setTrainColors({{"A", QColor(200, 0, 0)}, {"B", QColor(0, 160, 0)}, {"C", QColor(0, 0, 220)}});
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	const QImage plain = window.figureImage();
+	const QImage figure = window.exportedFigure();
+	const int column = (figure.width() - plain.width()) / 2;
+	ok &= expect(figure.height() == plain.height() && column >= 140 && column <= 280,
+		qPrintable(QString("the exported figure is wider than the chart by its column: %1 px").arg(column)));
+	const auto colourInColumn = [](const QImage& image, int from, const QColor& colour) {
+		for (int y = 0; y < image.height(); ++y)
+			for (int x = from; x < image.width(); ++x) {
+				const QColor pixel = image.pixelColor(x, y);
+				if (std::abs(pixel.red() - colour.red()) + std::abs(pixel.green() - colour.green()) + std::abs(pixel.blue() - colour.blue()) < 30) return true;
+			}
+		return false;
+	};
+	const int from = plain.width();
+	ok &= expect(colourInColumn(figure, from, QColor(200, 0, 0)) && colourInColumn(figure, from, QColor(0, 160, 0))
+			&& !colourInColumn(figure, from, QColor(0x31, 0x5a, 0x70)),
+		"the column draws the line samples of the trains and no check box");
+	trainListOf(window)->setTrainVisible("B", false);
+	const QImage shown = window.exportedFigure();
+	ok &= expect(!colourInColumn(shown, from, QColor(0, 160, 0)) && colourInColumn(shown, from, QColor(200, 0, 0)), "the column lists the shown trains only");
 	return ok;
 }
 
@@ -1458,7 +2005,7 @@ static bool exerciseCsvSavedMessage() {
 	});
 	buttonNamed(*window, "PNG...")->click();
 	const QImage saved(picture);
-	const QImage figure = window->figureImage();
+	const QImage figure = window->exportedFigure();
 	ok &= expect(!saved.isNull() && saved.size() == figure.size() && saved.dotsPerMeterX() == figure.dotsPerMeterX(),
 		"PNG... saves the figure of the window");
 	return ok;
@@ -1581,22 +2128,50 @@ static bool exerciseHeader() {
 	window.activateWindow();
 	QApplication::processEvents();
 	ok &= expect(window.focusWidget() == view, "the window opens with the chart in focus");
-	zoomOut->setFocus(Qt::TabFocusReason);
-	QStringList order;
-	for (int step = 0; step < 8 && QApplication::focusWidget(); ++step) {
-		QWidget* focused = QApplication::focusWidget();
-		if (qobject_cast<QChartView*>(focused))
-			order << QStringLiteral("chart");
-		else if (qobject_cast<TrainFilterButton*>(focused))
-			order << QStringLiteral("trains");
-		else
-			order << focused->objectName();
-		pressKey(focused, Qt::Key_Tab);
-	}
-	const QStringList expectedOrder{"diagramZoomOut", "diagramZoomIn", "diagramFit", "diagramPanelToggle", "chart", "trains",
+	// The names of the widgets that Tab gives the focus to, from the first header button on.
+	const auto tabOrder = [](QWidget* first, int steps) {
+		first->setFocus(Qt::TabFocusReason);
+		QStringList order;
+		for (int step = 0; step < steps && QApplication::focusWidget(); ++step) {
+			QWidget* focused = QApplication::focusWidget();
+			order << (qobject_cast<QChartView*>(focused) ? QStringLiteral("chart") : focused->objectName());
+			pressKey(focused, Qt::Key_Tab);
+		}
+		return order;
+	};
+	const QStringList order = tabOrder(zoomOut, 8);
+	const QStringList expectedOrder{"diagramZoomOut", "diagramZoomIn", "diagramFit", "diagramPanelToggle", "chart", "trainKeyTree",
 		"diagramExportPng", "diagramExportCsv"};
-	ok &= expect(order.mid(0, 8) == expectedOrder,
-		qPrintable("Tab goes through the header, the chart and the panel: " + order.join(", ")));
+	ok &= expect(order == expectedOrder, qPrintable("Tab goes through the header, the chart, the Trains list and the exports: " + order.join(", ")));
+
+	// With the search of a long list and a selection, Tab goes through the search, All, None and the rows, then Clear.
+	DiagramWindow many("Many trains");
+	auto* manyChart = new QChart;
+	for (int i = 0; i < 13; ++i) {
+		auto* line = new QLineSeries;
+		line->setName(QString("T%1").arg(i));
+		line->append(i, 0);
+		line->append(i + 1, 10);
+		manyChart->addSeries(line);
+	}
+	manyChart->createDefaultAxes();
+	many.setChart(manyChart);
+	many.setMaximumSize(1200, 750);
+	many.resize(1200, 750);
+	many.show();
+	QApplication::processEvents();
+	auto* manyView = many.findChild<QChartView*>();
+	const QPoint sample = manyView->mapFromScene(manyChart->mapToScene(manyChart->mapToPosition(QPointF(0.5, 5), manyChart->series().first())));
+	QMouseEvent selectPress(QEvent::MouseButtonPress, sample, manyView->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent selectRelease(QEvent::MouseButtonRelease, sample, manyView->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(manyView->viewport(), &selectPress);
+	QApplication::sendEvent(manyView->viewport(), &selectRelease);
+	QApplication::processEvents();
+	const QStringList longOrder = tabOrder(many.findChild<QToolButton*>("diagramZoomOut"), 11);
+	const QStringList expectedLongOrder{"diagramZoomOut", "diagramZoomIn", "diagramFit", "diagramPanelToggle", "chart", "trainKeySearch",
+		"trainKeyAll", "trainKeyNone", "trainKeyTree", "diagramClearSelection", "diagramExportPng"};
+	ok &= expect(longOrder == expectedLongOrder,
+		qPrintable("Tab goes through the search, All, None, the rows and Clear of a long list with a selection: " + longOrder.join(", ")));
 
 	DiagramWindow narrow("Narrow");
 	narrow.setChart(buttonTestChart());
@@ -1663,8 +2238,8 @@ static bool exercisePanelSections() {
 	QApplication::sendEvent(view->viewport(), &release);
 	QApplication::processEvents();
 	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Selected", "Export"}) && shownRules(window) == 2
-			&& window.findChild<QLabel*>("diagramPinLabel")->text() == "B",
-		"a selected train adds the section Selected with its id between Trains and Export");
+			&& window.findChild<QLabel*>("diagramSelectedTitle")->text() == "Train B",
+		"a selected train adds the section Selected with its name between Trains and Export");
 	QMetaObject::invokeMethod(&window, "clearPin");
 	QApplication::processEvents();
 	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Export"}) && shownRules(window) == 1, "Clear removes the section Selected");
@@ -1673,8 +2248,8 @@ static bool exercisePanelSections() {
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
-	ok &= expect(shownHeadings(input) == QStringList({"Export"}) && shownRules(input) == 0,
-		"a rolling stock window shows only Export, without a rule");
+	ok &= expect(shownHeadings(input) == QStringList({"Key", "Export"}) && shownRules(input) == 1,
+		"a rolling stock window shows only its Key and Export");
 
 	// A drag of the splitter to the right edge of the window stops at the panel's minimum width.
 	auto* splitter = window.findChild<QSplitter*>("resultSplitter");
@@ -1725,15 +2300,15 @@ static bool exerciseReadout() {
 		moveTo(view, value, line);
 		return readout->text();
 	};
-	const QRegularExpression numeric(QStringLiteral("^(\\d+\\.\\d{2}) km, (\\d+\\.\\d) km/h$"));
+	const QRegularExpression numeric(QStringLiteral("^(\\d+\\.\\d) km/h at (\\d+\\.\\d{2}) km$"));
 	const auto near = [&numeric](const QString& text, double km, double speed) {
 		const QRegularExpressionMatch match = numeric.match(text);
-		return match.hasMatch() && std::abs(match.captured(1).toDouble() - km) < 0.02 && std::abs(match.captured(2).toDouble() - speed) < 0.3;
+		return match.hasMatch() && std::abs(match.captured(2).toDouble() - km) < 0.02 && std::abs(match.captured(1).toDouble() - speed) < 0.3;
 	};
 	const QString value = pointAt(QPointF(3, 40));
 	bool ok = expect(near(value, 3, 40) && x->max() - x->min() < chart->plotArea().width() / 10
 			&& y->max() - y->min() > chart->plotArea().height() / 10,
-		qPrintable("the readout gives distance and speed to the precision of a pixel, with the units of the axes: " + value));
+		qPrintable("the readout gives the speed at the distance to the precision of a pixel, with the units of the axes: " + value));
 	ok &= expect(pointAt(QPointF(-1, 40)).isEmpty(), "the readout is empty left of the plot");
 	pointAt(QPointF(3, 40));
 	QEvent leave(QEvent::Leave);
@@ -1755,6 +2330,54 @@ static bool exerciseReadout() {
 	wheel(view, QPoint(0, qRound(chart->plotArea().height() / 4)), {}, Qt::NoModifier, still);
 	ok &= expect(!readout->text().isEmpty() && readout->text() != zoomed,
 		qPrintable("the readout follows a wheel pan under a still pointer: " + readout->text()));
+	// A new size of the chart, as when the panel hides, moves the plot from under the pointer.
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	moveTo(view, QPointF(3, 30), line);
+	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(!readout->text().isEmpty() && tooltip->isVisible(), "the pointer on the line shows the tooltip and the readout");
+	window.findChild<QToolButton*>("diagramPanelToggle")->click();
+	QApplication::processEvents();
+	ok &= expect(readout->text().isEmpty() && !tooltip->isVisible(), "hiding the panel clears the tooltip and the readout");
+	window.findChild<QToolButton*>("diagramPanelToggle")->click();
+	QApplication::processEvents();
+	moveTo(view, QPointF(3, 30), line);
+	window.resize(1100, 700);
+	QApplication::processEvents();
+	ok &= expect(readout->text().isEmpty() && !tooltip->isVisible(), "a resize of the window clears the tooltip and the readout");
+
+	// With the clock along the bottom the readout gives the value at the clock time.
+	window.setTimeAxisY(false);
+	window.setTimeAxisX(true, 8 * 3600);
+	QApplication::processEvents();
+	const QString speedAtTime = pointAt(QPointF(3, 40));
+	ok &= expect(QRegularExpression(QStringLiteral("^\\d+\\.\\d+ km/h at 08:00:0[234]$")).match(speedAtTime).hasMatch(),
+		qPrintable("with the clock along the bottom the readout gives the speed at the clock time: " + speedAtTime));
+
+	// An axis with a readout name gives the nearest value that a shown series has a sample at.
+	DiagramWindow delays("Delays");
+	auto* delayChart = new QChart;
+	auto* delay = new QLineSeries;
+	delay->setName("Train A");
+	for (int stop = 1; stop <= 5; ++stop) delay->append(stop, stop * 0.5);
+	delayChart->addSeries(delay);
+	delayChart->createDefaultAxes();
+	delayChart->axes(Qt::Horizontal).first()->setTitleText("Stop number");
+	delayChart->axes(Qt::Horizontal).first()->setProperty("readoutName", "stop");
+	delayChart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
+	delays.setChart(delayChart);
+	delays.setMaximumSize(1200, 750);
+	delays.resize(1200, 750);
+	delays.show();
+	QApplication::processEvents();
+	auto* delayView = delays.findChild<QChartView*>();
+	auto* delayReadout = delays.findChild<QLabel*>("resultReadout");
+	moveTo(delayView, QPointF(2.8, 1.5), delay);
+	const QString atStop = delayReadout->text();
+	ok &= expect(QRegularExpression(QStringLiteral("^1\\.[45]\\d* min at stop 3$")).match(atStop).hasMatch(),
+		qPrintable("the readout of the delays names the stop nearest the pointer: " + atStop));
+	trainListOf(delays)->setTrainVisible(delay->name(), false);
+	moveTo(delayView, QPointF(2.8, 1.5), delay);
+	ok &= expect(delayReadout->text().endsWith(" min"), qPrintable("without a shown stop the readout gives the delay alone: " + delayReadout->text()));
 	return ok;
 }
 
@@ -1871,9 +2494,13 @@ static bool exerciseCopy() {
 	QKeyEvent press(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
 	QApplication::sendEvent(view, &press);
 	const QImage copied = clipboard->image();
-	bool ok = expect(!copied.isNull() && copied.size() == window.figureImage().size(), "Copy puts the figure on the clipboard");
-	// Only the chart in focus takes Copy, not the rest of the window.
+	bool ok = expect(!copied.isNull() && copied.size() == window.exportedFigure().size() && copied.width() > window.figureImage().width(),
+		"Copy puts the figure with the column of the trains on the clipboard");
+	// Without a CSV export, PNG... keeps its half of the row.
 	auto* png = window.findChild<QPushButton*>("diagramExportPng");
+	ok &= expect(png->width() <= png->parentWidget()->width() / 2 + 2,
+		qPrintable(QString("PNG... keeps half of the row: %1 of %2 px").arg(png->width()).arg(png->parentWidget()->width())));
+	// Only the chart in focus takes Copy, not the rest of the window.
 	png->setFocus();
 	clipboard->clear();
 	QKeyEvent buttonPress(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
@@ -2450,7 +3077,7 @@ int main(int argc, char* argv[]) {
 	QKeyEvent right(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
 	QApplication::sendEvent(view, &right);
 	ok &= expect(x->min() > beforeArrow, "keyboard arrow pans with chart focus");
-	auto* filter = window.findChild<TrainFilterButton*>();
+	QWidget* filter = trainListOf(window) ? trainListOf(window)->tree() : nullptr;
 	if (filter) filter->setFocus();
 	const double beforeFilterKey = x->max() - x->min();
 	QKeyEvent filterPlus(QEvent::KeyPress, Qt::Key_Plus, Qt::NoModifier, "+");
@@ -2470,9 +3097,9 @@ int main(int argc, char* argv[]) {
 	QApplication::sendEvent(view->viewport(), &press);
 	QApplication::sendEvent(view->viewport(), &release);
 	ok &= expect(selected == "A", "actual click retains train linkage");
-	auto* list = window.findChild<QListWidget*>();
-	ok &= expect(list && list->count() == 2, "train grouping");
-	if (list) list->item(1)->setCheckState(Qt::Unchecked);
+	TrainKeyList* list = trainListOf(window);
+	ok &= expect(list && list->trainIds() == QStringList({"A", "B"}), "train grouping");
+	if (list) list->setTrainVisible("B", false);
 	ok &= expect(!other->isVisible() && !tooltip->isVisible(), "filter hides series and tooltip");
 	QMetaObject::invokeMethod(&window, "resetZoom");
 	ok &= expect(x->min() == 0 && x->max() == 100 && y->min() == 0 && y->max() == 120,
@@ -2561,9 +3188,8 @@ int main(int argc, char* argv[]) {
 	rectangle->attachAxis(emptyY);
 	moveTo(emptyView, QPointF(40, 150), rectangle);
 	auto* emptyTooltip = empty.findChild<QLabel*>("diagramTooltip");
-	ok &= expect(
-		emptyTooltip->isVisible() && emptyTooltip->text().contains("B12") && !emptyTooltip->text().contains("150.00"),
-		"block interior reports plotted corner and context");
+	ok &= expect(emptyTooltip->isVisible() && emptyTooltip->text() == "Block occupation\nResource: B12 | Type: block | Start: 20 s | End: 60 s",
+		qPrintable("block interior reports its name and context, not the values of a corner: " + emptyTooltip->text()));
 	auto* events = new QScatterSeries;
 	events->setName("Arrival");
 	events->append(100, 300);
@@ -2773,7 +3399,7 @@ int main(int argc, char* argv[]) {
 			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
 		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
 	ok &= expect(
-		!input.findChild<TrainFilterButton*>()->isVisible()
+		!trainListOf(input)->isVisible()
 			&& input.findChild<QLabel*>("diagramContext")->text().contains(authoredId)
 			&& !input.findChild<QLabel*>("diagramNavigationHelp"),
 		"input traction uses rolling-stock subject and no visible train filter");
@@ -2822,7 +3448,13 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseMenuSeparator();
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
+	ok &= exerciseKeySamples();
 	ok &= exerciseLegend();
+	ok &= exerciseTrainKeyGroups();
+	ok &= exerciseTrainKeyChecks();
+	ok &= exerciseTrainKeyOrder();
+	ok &= exerciseSelection();
+	ok &= exerciseExportColumn();
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();

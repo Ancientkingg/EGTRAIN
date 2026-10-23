@@ -61,5 +61,11 @@ int main(int argc, char** argv) {
 		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
 			return 1;
 	}
+	// The marks of a checked and of a partly checked check box in a list or a tree.
+	for (const char* path : {":/icons/check-mark.svg", ":/icons/check-partial.svg"}) {
+		const QImage image(path);
+		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
+			return 1;
+	}
 	return 0;
 }

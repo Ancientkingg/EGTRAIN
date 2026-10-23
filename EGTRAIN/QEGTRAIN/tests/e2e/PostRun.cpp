@@ -13,7 +13,8 @@
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
-#include "diagrams/TrainFilterButton.h"
+#include "diagrams/TrainColors.h"
+#include "diagrams/TrainKeyList.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/FollowCamera.h"
@@ -44,13 +45,13 @@
 #include <QEvent>
 #include <QFile>
 #include <QGraphicsItem>
+#include <QHash>
 #include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
 #include <QList>
-#include <QListWidget>
 #include <QMenu>
 #include <QMetaObject>
 #include <QMetaType>
@@ -65,6 +66,7 @@
 #include <QRectF>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSet>
 #include <QSize>
 #include <QSlider>
 #include <QStatusBar>
@@ -229,6 +231,30 @@ DiagramWindow* newestWindow(const MainWindow& w) {
 	return windows.isEmpty() ? nullptr : windows.last();
 }
 
+// The Trains list of a result window knows the service of each train of the run, `services` by train id, and groups more
+// than six trains in six services or fewer.
+bool trainServicesShown(DiagramWindow* window, const QHash<QString, QString>& services) {
+	auto* list = window ? window->findChild<TrainKeyList*>() : nullptr;
+	if (!list)
+		return false;
+	bool ok = true;
+	QSet<QString> shared;
+	for (const QString& id : list->trainIds()) {
+		shared.insert(services.value(id, id));
+		if (list->serviceOf(id) != services.value(id, id)) {
+			std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: the Trains list has service %s for %s\n", qPrintable(window->windowTitle()),
+				qPrintable(list->serviceOf(id)), qPrintable(id));
+			ok = false;
+		}
+	}
+	if (list->isGrouped() != (list->trainIds().size() > 6 && shared.size() <= 6)) {
+		std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: %lld trains in %lld services, grouped %d\n", qPrintable(window->windowTitle()),
+			static_cast<long long>(list->trainIds().size()), static_cast<long long>(shared.size()), list->isGrouped() ? 1 : 0);
+		ok = false;
+	}
+	return ok;
+}
+
 // Writes the dump of the chart of a result window.
 bool exportChart(DiagramWindow* window, const QString& dir, const QString& name) {
 	if (!window)
@@ -241,17 +267,17 @@ bool exportChart(DiagramWindow* window, const QString& dir, const QString& name)
 // and for none, as the train filter sets them.
 bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name,
 	const std::function<bool(const QString&, const std::string&)>& dump) {
-	auto* filter = window ? window->findChild<TrainFilterButton*>() : nullptr;
-	auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
+	auto* list = window ? window->findChild<TrainKeyList*>() : nullptr;
 	if (!list)
 		return false;
 	bool ok = exportChart(window, dir, name);
 	ok &= dump(name + "_window_all.csv", window->csvContent());
-	for (int row = 1; row < list->count(); ++row)
-		list->item(row)->setCheckState(Qt::Unchecked);
+	const QStringList ids = list->trainIds();
+	for (int row = 1; row < ids.size(); ++row)
+		list->setTrainVisible(ids[row], false);
 	ok &= dump(name + "_window_one.csv", window->csvContent());
-	if (list->count())
-		list->item(0)->setCheckState(Qt::Unchecked);
+	if (!ids.isEmpty())
+		list->setTrainVisible(ids.first(), false);
 	ok &= dump(name + "_window_none.csv", window->csvContent());
 	return ok;
 }
@@ -386,7 +412,9 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			const double end = diagram ? diagram->referencePath.nodes.back().positionKm : 0.0;
 			const double low = std::min(origin, end), high = std::max(low + 0.02, std::max(origin, end));
 			const QString route = QStringLiteral(" \u00b7 ") + QString::fromStdString(diagram ? diagram->referencePath.id : std::string());
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			for (DiagramWindow* window : windows) {
+				ok &= trainServicesShown(window, services);
 				auto* view = window->findChild<QChartView*>();
 				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
 				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
@@ -461,6 +489,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		bool ok = w.m_runController->m_resultsAvailable;
 		if (ok) {
 			const QStringList ids = trainIdsFrom(*w.m_runController->m_completedRun);
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_runController->m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_runController->m_completedRun, ids));
 			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_runController->m_completedRun, ids);
@@ -468,18 +497,19 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			auto* blocking = windows.isEmpty() ? nullptr : windows.last();
-			auto* filter = blocking ? blocking->findChild<TrainFilterButton*>() : nullptr;
-			auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
+			auto* list = blocking ? blocking->findChild<TrainKeyList*>() : nullptr;
 			// A scene with no routed train has no blocking-time window and nothing to export.
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
+				ok &= trainServicesShown(blocking, services);
 				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
-				for (int row = 1; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
+				const QStringList blockingIds = list->trainIds();
+				for (int row = 1; row < blockingIds.size(); ++row) list->setTrainVisible(blockingIds[row], false);
 				ok &= dump("blocking_time_window_one.csv", blocking->csvContent());
-				if (list->count()) list->item(0)->setCheckState(Qt::Unchecked);
+				if (!blockingIds.isEmpty()) list->setTrainVisible(blockingIds.first(), false);
 				ok &= dump("blocking_time_window_none.csv", blocking->csvContent());
 				QApplication::processEvents();
 				ok &= blocking->grab().save(dir + "/blocking_time_window_none.png");
@@ -503,12 +533,13 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					position ? position->max() : 0.0, range.first, range.second, position ? position->count() : 0,
 					strip ? strip->property("stripRows").toInt() : 0, strip ? static_cast<int>(strip->property("stripLabels").toStringList().size()) : 0,
 					stations);
-				ok &= filter->visibleTrainIds().isEmpty();
-				for (int row = 0; row < list->count(); ++row) ok &= !list->item(row)->text().startsWith("Key:");
+				ok &= list->visibleTrainIds().isEmpty();
+				for (const QString& id : list->trainIds()) ok &= !id.startsWith("Key:");
 				blocking->close();
 			}
 			w.showDelayDiagram();
 			DiagramWindow* delay = newestWindow(w);
+			ok &= trainServicesShown(delay, services);
 			ok &= exportWindow(delay, dir, "delay_diagram", dump);
 			if (delay)
 				delay->close();
@@ -525,6 +556,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			for (int mode = 0; mode < 4; ++mode) {
 				w.buildPerTrainDiagram(mode);
 				DiagramWindow* perTrain = newestWindow(w);
+				ok &= trainServicesShown(perTrain, services);
 				ok &= mode == 0 ? exportWindow(perTrain, dir, perTrainNames[mode], dump)
 								: exportChart(perTrain, dir, perTrainNames[mode]);
 				if (perTrain)

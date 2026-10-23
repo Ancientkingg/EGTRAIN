@@ -2339,19 +2339,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("no compressed block hover gives the position of the block"));
 			return;
 		}
-		// The legend under the plot explains the block colours: conflicts on the blocking-time chart, capacity-critical
-		// blocks on the compressed chart, which moves its trains apart until their blocks only touch and so has no conflict.
-		const auto legendKindsOf = [](const QChartView* view) {
-			const QObject* legend = view ? view->chart()->findChild<QObject*>(QStringLiteral("lineKindLegend")) : nullptr;
-			return legend ? legend->property("kinds").toStringList() : QStringList();
+		// The Key of the panel explains the blocks: critical blocks on the compressed chart only, and no conflict there,
+		// as it moves its trains apart until their blocks only touch.
+		const auto keyKindsOf = [](const QWidget* window) {
+			const QObject* key = window ? window->findChild<QObject*>(QStringLiteral("diagramKey")) : nullptr;
+			return key ? key->property("kinds").toStringList() : QStringList();
 		};
-		const QStringList blockingKinds = legendKindsOf(blockingAgain ? blockingAgain->findChild<QChartView*>() : nullptr);
-		const QStringList compressedKinds = legendKindsOf(compressedView);
-		const QStringList sharedKey = {QStringLiteral("Block or station"), QStringLiteral("Switch")};
-		if (blockingKinds.mid(0, 3) != sharedKey + QStringList({QStringLiteral("Conflict")})
-			|| compressedKinds.mid(0, 3) != sharedKey + QStringList({QStringLiteral("Capacity critical")})
-			|| blockingKinds.contains(QStringLiteral("Capacity critical")) || compressedKinds.contains(QStringLiteral("Conflict"))) {
-			fail(QStringLiteral("the legends do not explain the block colours of each chart: ") + blockingKinds.join(QStringLiteral(", "))
+		const QStringList blockingKinds = keyKindsOf(blockingAgain);
+		const QStringList compressedKinds = keyKindsOf(compressedView ? compressedView->window() : nullptr);
+		const auto has = [](const QStringList& kinds, const char* kind) { return kinds.contains(QLatin1String(kind)); };
+		if (!has(blockingKinds, "Blocking time") || !has(blockingKinds, "Block boundary") || has(blockingKinds, "Critical block")
+			|| !has(compressedKinds, "Blocking time") || !has(compressedKinds, "Critical block") || has(compressedKinds, "Conflict")) {
+			fail(QStringLiteral("the Keys do not explain the blocks of each chart: ") + blockingKinds.join(QStringLiteral(", "))
 				+ QStringLiteral(" / ") + compressedKinds.join(QStringLiteral(", ")));
 			return;
 		}

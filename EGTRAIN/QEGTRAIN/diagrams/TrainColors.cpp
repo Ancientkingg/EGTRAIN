@@ -13,3 +13,10 @@ QHash<QString, QColor> trainColorsForRun(const RunResults& run, const SceneModel
 	}
 	return colors;
 }
+
+QHash<QString, QString> trainServicesForRun(const RunResults& run) {
+	QHash<QString, QString> services;
+	for (const TrainRunResult& train : run.trains)
+		if (!train.serviceId.empty()) services.insert(QString::fromStdString(train.trainId), QString::fromStdString(train.serviceId));
+	return services;
+}
