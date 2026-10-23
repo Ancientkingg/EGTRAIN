@@ -1,6 +1,7 @@
 #include "diagrams/DelayAnalysisWindow.h"
 
 #include "app/DialogFolders.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/CsvWriter.h"
@@ -12,7 +13,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -24,6 +24,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include <initializer_list>
 #include <iterator>
 #include <utility>
 
@@ -477,28 +478,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_occurrenceCount = static_cast<int>(occurrenceLabels.size());
 	m_stationCount = static_cast<int>(stationLabels.size());
 
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-
-	m_occurrences = new TrainFilterButton(body);
-	m_occurrences->setObjectName("delayAnalysisOccurrences");
-	setChoices(m_occurrences, occurrenceLabels);
-	m_stations = new TrainFilterButton(body);
-	m_stations->setObjectName("delayAnalysisStations");
-	setChoices(m_stations, stationLabels);
-	m_kind = new ChoiceComboBox(body);
-	m_kind->setObjectName("delayAnalysisEvents");
-	m_kind->addItem("Arrivals", static_cast<int>(DelayEventKind::Arrival));
-	m_kind->addItem("Departures", static_cast<int>(DelayEventKind::Departure));
-	auto* filters = new QHBoxLayout();
-	filters->addWidget(m_occurrences);
-	filters->addWidget(m_stations);
-	filters->addWidget(new QLabel("Events:", body));
-	filters->addWidget(m_kind);
-	filters->addStretch();
-	layout->addLayout(filters);
-
-	m_tabs = new QTabWidget(body);
+	m_tabs = new QTabWidget;
 	m_tabs->setObjectName("delayAnalysisTabs");
 
 	auto* callsPage = new QWidget(m_tabs);
@@ -561,17 +541,56 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	resultsLayout->addWidget(m_baselineCalls, 1);
 	baselineLayout->addWidget(m_baselineResults, 1);
 	m_tabs->addTab(baselinePage, "Against baseline");
-	layout->addWidget(m_tabs, 1);
 
-	m_exportButton = new QPushButton("Export CSV...", body);
+	// The tabs at the left, with the runs in the header. The panel holds the key figures of the selection, the filters and
+	// the export.
+	auto* frame = new ResultFrame(resultTableArea({m_tabs}), "delayAnalysis");
+	ResultPanel* panel = frame->panel();
+	panel->readout()->hide();
+	auto* figures = new QWidget(frame);
+	auto* figureColumn = new QVBoxLayout(figures);
+	figureColumn->setContentsMargins(0, 0, 0, 0);
+	figureColumn->setSpacing(8);
+	m_sumFigure = new ResultFigure("delayAnalysisSum", figures);
+	m_meanFigure = new ResultFigure("delayAnalysisMean", figures);
+	m_earlyLateFigure = new ResultFigure("delayAnalysisEarlyLate", figures);
+	for (ResultFigure* figure : {m_sumFigure, m_meanFigure, m_earlyLateFigure})
+		figureColumn->addWidget(figure);
+	panel->addSection(QString(), figures);
+
+	auto* filters = new QWidget(frame);
+	auto* filterColumn = new QVBoxLayout(filters);
+	filterColumn->setContentsMargins(0, 0, 0, 0);
+	filterColumn->setSpacing(8);
+	m_occurrences = new TrainFilterButton(filters);
+	m_occurrences->setObjectName("delayAnalysisOccurrences");
+	setChoices(m_occurrences, occurrenceLabels);
+	m_stations = new TrainFilterButton(filters);
+	m_stations->setObjectName("delayAnalysisStations");
+	setChoices(m_stations, stationLabels);
+	m_kind = new ChoiceComboBox(filters);
+	m_kind->setObjectName("delayAnalysisEvents");
+	m_kind->setAccessibleName("Events");
+	m_kind->addItem("Events: Arrivals", static_cast<int>(DelayEventKind::Arrival));
+	m_kind->addItem("Events: Departures", static_cast<int>(DelayEventKind::Departure));
+	// The choice keeps the width of the panel and shortens its text when the panel is narrower.
+	m_kind->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+	m_kind->setMinimumContentsLength(8);
+	for (QWidget* filter : std::initializer_list<QWidget*>{m_occurrences, m_stations, m_kind}) {
+		filter->setSizePolicy(QSizePolicy::Expanding, filter->sizePolicy().verticalPolicy());
+		filterColumn->addWidget(filter);
+	}
+	panel->addSection(QString(), filters);
+
+	m_exportButton = new QPushButton("CSV...", frame);
 	m_exportButton->setObjectName("delayAnalysisExport");
+	m_exportButton->setAccessibleName("Export CSV");
 	m_exportButton->setToolTip("Save the visible tab as CSV");
-	m_exportButton->setAutoDefault(false);
-	auto* buttonRow = new QHBoxLayout();
-	buttonRow->addWidget(m_exportButton);
-	buttonRow->addStretch();
-	layout->addLayout(buttonRow);
+	panel->addSection("Export", m_exportButton);
 
+	// No button of the window is a default button, so Enter presses none.
+	for (QPushButton* button : frame->findChildren<QPushButton*>())
+		button->setAutoDefault(false);
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, this);
 	connect(closeButtons, &QDialogButtonBox::rejected, this, &QDialog::close);
 	connect(m_exportButton, &QPushButton::clicked, this, [this]() { exportCsv(); });
@@ -583,11 +602,11 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 		updateExport();
 	});
 
-	const QString baselineContext = m_baseline ? runText(m_baseline->provenance) : QStringLiteral("none");
-	// The run line names the scenario, so the window title is the name of the view.
-	DialogLayout::install(*this, QStringLiteral("Delay analysis"),
-		QString("Run: %1\nBaseline: %2").arg(runText(m_scenario.provenance), baselineContext), body, closeButtons);
-	resize(qMin(maximumWidth(), 1100), qMin(maximumHeight(), 640));
+	// The window title is the name of the view; the context names the run and the baseline.
+	frame->setContext(runText(m_scenario.provenance) + QStringLiteral(" \u00b7 ")
+		+ (m_baseline ? "delay baseline " + runText(m_baseline->provenance) : QStringLiteral("no delay baseline set")));
+	frame->installInDialog(*this, QStringLiteral("Delay analysis"), closeButtons);
+	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 	refresh();
 }
 
@@ -619,10 +638,23 @@ void DelayAnalysisWindow::refresh() {
 	}
 	m_shownBaseline.totals = baselineTotals(m_shownBaseline.occurrences);
 
+	fillFigures();
 	fillCalls();
 	fillSummary();
 	fillBaseline();
 	updateExport();
+}
+
+// The figures of all selected stations, as the last row of the Summary tab has them.
+void DelayAnalysisWindow::fillFigures() {
+	const DelayStatistics& network = m_shownSummary.network;
+	const QString counted = QString("Available %1: %2")
+								.arg(m_shownKind == DelayEventKind::Arrival ? QStringLiteral("arrivals") : QStringLiteral("departures"))
+								.arg(network.available);
+	m_sumFigure->setFigure(figureText(network.sumSeconds), QStringLiteral("Sum of delays"), counted);
+	m_meanFigure->setFigure(figureText(network.meanSeconds), QStringLiteral("Mean"), counted);
+	m_earlyLateFigure->setFigure(QString("%1 / %2").arg(network.early).arg(network.late), QStringLiteral("Early / late"),
+		QString("Early: %1\nOn time: %2\nLate: %3").arg(network.early).arg(network.onTime).arg(network.late));
 }
 
 void DelayAnalysisWindow::fillCalls() {

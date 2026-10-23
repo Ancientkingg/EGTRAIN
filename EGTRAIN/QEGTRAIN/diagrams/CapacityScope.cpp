@@ -288,11 +288,12 @@ QString capacityReferenceOf(const CapacityAnalysisResult& result, const std::str
 	return {};
 }
 
-QString capacityDetailsText(const CapacityAnalysisResult& result) {
-	return QString("Cycle time %1 s / period %2 s × 100 = %3%\nFrom %4 to %5")
-		.arg(QString::fromStdString(csv::formatDouble(result.cycleTime)), QString::fromStdString(csv::formatDouble(result.periodSeconds)),
-			QString::number(result.cyclePercentage, 'f', 1), QString::fromStdString(result.firstIdentity),
-			QString::fromStdString(result.cycleEndIdentity));
+QString capacityPeriodText(double periodSeconds) {
+	if (periodSeconds > 0.0 && std::fmod(periodSeconds, 3600.0) == 0.0)
+		return QString::fromStdString(csv::formatDouble(periodSeconds / 3600.0)) + " h";
+	if (periodSeconds > 0.0 && std::fmod(periodSeconds, 60.0) == 0.0)
+		return QString::fromStdString(csv::formatDouble(periodSeconds / 60.0)) + " min";
+	return QString::fromStdString(csv::formatDouble(periodSeconds)) + " s";
 }
 
 bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope) {

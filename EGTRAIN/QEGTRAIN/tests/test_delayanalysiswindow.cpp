@@ -5,22 +5,29 @@
 // does not exist. The test shows no message box and opens no file chooser.
 
 #include "diagrams/DelayAnalysisWindow.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QStringList>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QToolButton>
 
 #include <initializer_list>
 #include <iostream>
@@ -231,8 +238,9 @@ bool exerciseCalls() {
 	ok &= expect(window.windowTitle() == "Delay analysis" && !window.isModal(), "the window is not modal");
 	for (const QTableWidget* tableWidget : window.findChildren<QTableWidget*>())
 		ok &= expect(!tableWidget->tabKeyNavigation(), "Tab leaves each table of the window");
-	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && labelText(window, "dialogContext") == "Run: Case A / follow-level-0\nBaseline: none",
-		"the window title is the only heading and the context names the run and its scenario");
+	ok &= expect(!window.findChild<QLabel*>("dialogHeading") && !window.findChild<QLabel*>("dialogContext")
+			&& labelText(window, "delayAnalysisContext") == "Case A / follow-level-0 \u00b7 no delay baseline set",
+		"the window title is the only heading and the header names the run, its scenario and the missing baseline");
 	const QTableWidget* calls = table(window, "delayCalls");
 	ok &= expect(headerTexts(calls)
 			== QStringList({"Service", "Occurrence", "Train", "Operating code", "Station", "Journey order", "Call", "Event", "Planned (s)",
@@ -264,6 +272,118 @@ bool exerciseCalls() {
 	ok &= expect(rowTexts(calls, 2) == QStringList({"F1", "1", "F1-1", "", "C", "3", "1", "Departure", "-", "934", "-", "Not available", "No plan"}),
 		"a departure without a plan has no delay");
 	ok &= expect(cell(calls, 4, 10) == "+157" && cell(calls, 4, 11) == "Late", "a late departure");
+	return ok;
+}
+
+// The text of a key figure of the panel: its value and its caption.
+QString figureText(const DelayAnalysisWindow& window, const char* name) {
+	const auto* figure = window.findChild<ResultFigure*>(name);
+	return figure ? figure->value() + " | " + figure->caption() : QStringLiteral("missing");
+}
+
+QStringList figureTexts(const DelayAnalysisWindow& window) {
+	return {figureText(window, "delayAnalysisSum"), figureText(window, "delayAnalysisMean"), figureText(window, "delayAnalysisEarlyLate")};
+}
+
+void pressTab(QWidget* widget) {
+	QKeyEvent press(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+	QKeyEvent release(QEvent::KeyRelease, Qt::Key_Tab, Qt::NoModifier);
+	QApplication::sendEvent(widget, &press);
+	QApplication::sendEvent(widget, &release);
+}
+
+// The panel holds the key figures of the selection, the filters and the export. The figures are those of all selected
+// stations in the Summary tab: for the arrivals of follow-level-0 a sum of -289 s, a mean of -72.25 s, 3 early and 1 late.
+bool exercisePanel() {
+	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+	window.show();
+	QApplication::processEvents();
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	if (!expect(panel != nullptr, "the window has a panel"))
+		return false;
+	bool inPanel = true;
+	for (const char* name : {"delayAnalysisSum", "delayAnalysisMean", "delayAnalysisEarlyLate", "delayAnalysisOccurrences", "delayAnalysisStations",
+			 "delayAnalysisEvents", "delayAnalysisExport"})
+		inPanel = inPanel && window.findChild<QWidget*>(name) && panel->isAncestorOf(window.findChild<QWidget*>(name));
+	bool ok = expect(inPanel && !panel->isAncestorOf(tabs(window)), "the figures, the filters and the export lie in the panel, beside the tabs");
+	ok &= expect(figureTexts(window) == QStringList({"-289 s | Sum of delays", "-72.25 s | Mean", "3 / 1 | Early / late"}),
+		qPrintable("the figures of the arrivals: " + figureTexts(window).join(", ")));
+	const auto* earlyLate = window.findChild<ResultFigure*>("delayAnalysisEarlyLate");
+	ok &= expect(earlyLate && earlyLate->toolTip().contains("Early: 3") && earlyLate->toolTip().contains("On time: 0")
+			&& earlyLate->toolTip().contains("Late: 1")
+			&& window.findChild<ResultFigure*>("delayAnalysisSum")->toolTip().contains("Available arrivals: 4"),
+		"the tooltips give the on-time count and the number of available arrivals");
+	QStringList headings;
+	for (const QLabel* label : panel->findChildren<QLabel*>())
+		if (label->property("resultSectionHeading").toBool() && label->isVisible())
+			headings << label->text();
+	ok &= expect(headings == QStringList({"Export"}), qPrintable("only the export has a heading: " + headings.join(", ")));
+	const QPushButton* csv = exportButton(window);
+	const auto* events = window.findChild<QComboBox*>("delayAnalysisEvents");
+	ok &= expect(csv->text() == "CSV..." && csv->accessibleName() == "Export CSV" && events->currentText() == "Events: Arrivals"
+			&& events->accessibleName() == "Events",
+		"the export reads CSV... and the events choice names what it chooses");
+
+	chooseEvents(window, 1);
+	ok &= expect(figureTexts(window) == QStringList({"+157 s | Sum of delays", "+78.5 s | Mean", "0 / 1 | Early / late"}),
+		qPrintable("the figures of the departures: " + figureTexts(window).join(", ")));
+	chooseEvents(window, 0);
+	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F2 #1", false), "F2 can be unchecked");
+	QApplication::processEvents();
+	ok &= expect(figureTexts(window) == QStringList({"-436 s | Sum of delays", "-218 s | Mean", "2 / 0 | Early / late"}),
+		qPrintable("the figures of the arrivals of F1: " + figureTexts(window).join(", ")));
+	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false), "F1 can be unchecked");
+	QApplication::processEvents();
+	ok &= expect(figureTexts(window) == QStringList({"- | Sum of delays", "- | Mean", "0 / 0 | Early / late"}),
+		qPrintable("without a train the sum and the mean are not available: " + figureTexts(window).join(", ")));
+
+	setChecked(window, "delayAnalysisOccurrences", "F1 #1", true);
+	setChecked(window, "delayAnalysisOccurrences", "F2 #1", true);
+	QApplication::processEvents();
+	// The tables lie beside a panel of 200 px and scroll sideways; Tab goes through the header, the tabs and the panel.
+	const QTableWidget* calls = table(window, "delayCalls");
+	ok &= expect(window.width() <= 960 && panel->width() == 200 && calls->horizontalScrollBar()->maximum() > 0,
+		qPrintable(QString("a panel of 200 px and a calls table that scrolls sideways: window %1, panel %2").arg(window.width()).arg(panel->width())));
+	window.findChild<QToolButton*>("delayAnalysisPanelToggle")->setFocus(Qt::TabFocusReason);
+	QStringList order;
+	for (int step = 0; step < 7 && QApplication::focusWidget(); ++step) {
+		QWidget* focused = QApplication::focusWidget();
+		if (qobject_cast<QTabBar*>(focused))
+			order << QStringLiteral("tabs");
+		else
+			order << focused->objectName();
+		pressTab(focused);
+	}
+	ok &= expect(order == QStringList({"delayAnalysisPanelToggle", "tabs", "delayCalls", "delayAnalysisOccurrences", "delayAnalysisStations", "delayAnalysisEvents", "delayAnalysisExport"}),
+		qPrintable("Tab goes through the header, the tabs, the table and the panel: " + order.join(", ")));
+	return ok;
+}
+
+// At 1.5 times the font in a short window the body of the dialog scrolls to the panel, which keeps its figures and filters
+// whole, and Close stays below the body.
+bool exerciseLargeFont() {
+	const QFont original = QApplication::font();
+	QFont font = original;
+	font.setPointSizeF(font.pointSizeF() * 1.5);
+	QApplication::setFont(font);
+	bool ok = true;
+	{
+		DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+		window.show();
+		window.resize(window.width(), 300);
+		QApplication::processEvents();
+		auto* scroll = window.findChild<QScrollArea*>("dialogBodyScroll");
+		auto* panel = window.findChild<QWidget*>("resultPanel");
+		auto* close = window.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
+		ok = expect(scroll && panel && close && scroll->verticalScrollBar()->maximum() > 0
+				&& panel->height() >= panel->minimumSizeHint().height() && close->isVisible()
+				&& close->mapTo(&window, QPoint(0, close->height())).y() <= window.height(),
+			qPrintable(QString("the body scrolls to the whole panel and Close stays in the window: range %1, panel %2 of %3")
+					.arg(scroll ? scroll->verticalScrollBar()->maximum() : -1)
+					.arg(panel ? panel->height() : -1)
+					.arg(panel ? panel->minimumSizeHint().height() : -1)));
+	}
+	QApplication::setFont(original);
 	return ok;
 }
 
@@ -394,8 +514,8 @@ bool exerciseBaseline() {
 	showTab(window, 2);
 	bool ok = expect(window.findChild<QWidget*>("delayBaselineOccurrences")->isVisible() && !table(window, "delayBaselineDiagnostics")->isVisible(),
 		"a compatible baseline shows the occurrences and the calls");
-	ok &= expect(labelText(window, "dialogContext") == "Run: Case A / signal-failure-forward\nBaseline: Case A / baseline",
-		"the context names both runs");
+	ok &= expect(labelText(window, "delayAnalysisContext") == "Case A / signal-failure-forward \u00b7 delay baseline Case A / baseline",
+		"the header names both runs");
 	ok &= expect(labelText(window, "delayBaselineTotals")
 			== "2 trains. At the final arrival: 2 later. Added delay +508 s, net +508 s.",
 		"the totals");
@@ -778,6 +898,8 @@ bool exerciseExport() {
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	bool ok = exerciseCalls();
+	ok &= exercisePanel();
+	ok &= exerciseLargeFont();
 	ok &= exerciseSummary();
 	ok &= exerciseThresholds();
 	ok &= exerciseFilters();

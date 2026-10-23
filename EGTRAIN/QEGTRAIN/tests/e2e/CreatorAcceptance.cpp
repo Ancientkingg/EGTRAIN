@@ -7,6 +7,7 @@
 #include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "editors/InfrastructurePanel.h"
@@ -2065,9 +2066,20 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (auto* candidate = qobject_cast<TimetableTableWindow*>(widget))
 				timetable = candidate;
 		if (!timetable
-			|| !exportButton(timetable, QStringLiteral("Export CSV..."), path("timetable.csv"))
-			|| !exportButton(timetable, QStringLiteral("Export PNG..."), path("timetable.png"))) {
+			|| !exportButton(timetable, QStringLiteral("CSV..."), path("timetable.csv"))
+			|| !exportButton(timetable, QStringLiteral("PNG..."), path("timetable.png"))) {
 			fail(QStringLiteral("timetable exports were not driven through the public table"));
+			return;
+		}
+		// The picture holds every column of the table, also those that the window scrolls to.
+		const QTableWidget* timetableTable = timetable->findChild<QTableWidget*>();
+		int timetableColumnsWidth = 0;
+		for (int column = 0; timetableTable && column < timetableTable->columnCount(); ++column)
+			timetableColumnsWidth += timetableTable->columnWidth(column);
+		const QImage timetableImage(path("timetable.png"));
+		if (!timetableTable || timetableTable->horizontalScrollBar()->maximum() == 0 || timetableImage.isNull()
+			|| timetableImage.width() / timetableImage.devicePixelRatio() < timetableColumnsWidth) {
+			fail(QStringLiteral("the timetable picture does not show every column of the table"));
 			return;
 		}
 		QAction* blockingButton = findResultAction(QStringLiteral("Blocking time"));
@@ -2112,15 +2124,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 
-		auto boundedResultDialog = [process](QDialog* dialog, QTableWidget* table,
-									   QPushButton* secondary) {
+		// A table window of the results has its frame as the body of the dialog: the header names the run in one line, the
+		// window title names the window, and Close stays in the footer. The body scrolls to the panel in a short window.
+		auto boundedResultDialog = [process](QDialog* dialog, QTableWidget* table, QPushButton* secondary) {
 			if (!dialog || !table || !secondary) return false;
 			auto* scroll = dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
-			auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
+			auto* frame = dialog->findChild<ResultFrame*>();
+			QLabel* context = frame ? frame->contextLabel() : nullptr;
 			auto* buttons = dialog->findChild<QDialogButtonBox*>();
-			if (!scroll || !context || dialog->findChild<QLabel*>(QStringLiteral("dialogHeading")) || !buttons
+			if (!scroll || !context || dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"))
+				|| dialog->findChild<QLabel*>(QStringLiteral("dialogContext")) || !buttons
 				|| !buttons->button(QDialogButtonBox::Close) || !scroll->isAncestorOf(table) || !scroll->isAncestorOf(secondary)
-				|| scroll->isAncestorOf(buttons) || !context->wordWrap() || context->textFormat() != Qt::PlainText)
+				|| scroll->isAncestorOf(buttons) || context->isHidden() || context->text().isEmpty() || context->wordWrap()
+				|| context->textFormat() != Qt::PlainText)
 				return false;
 			QScreen* screen = QGuiApplication::screenAt(dialog->mapToGlobal(QPoint(0, 0)));
 			if (!screen) screen = QGuiApplication::primaryScreen();
@@ -2136,6 +2152,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				return false;
 			}
 			const QString originalContext = context->text();
+			const QSize originalSize = dialog->size();
 			const int rows = table->rowCount();
 			const int columns = table->columnCount();
 			const QString firstCell = rows && columns && table->item(0, 0)
@@ -2146,7 +2163,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (largeFont.pointSizeF() > 0) largeFont.setPointSizeF(largeFont.pointSizeF() * 1.5);
 			else largeFont.setPixelSize(qMax(18, largeFont.pixelSize() * 3 / 2));
 			dialog->setFont(largeFont);
+			// A long context stays in one line and does not widen the window; a short window scrolls its body.
 			context->setText(QStringLiteral("<case & scenario> ").repeated(400) + originalContext);
+			// Shorter than the panel with any font, so that the body has to scroll to the export.
+			dialog->resize(dialog->width(), 200);
 			// Modal timer callbacks can leave nested layout requests queued. Settle
 			// both the content and viewport before checking the scroll range.
 			QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
@@ -2154,7 +2174,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
 			const int scrollRange = scroll->verticalScrollBar()->maximum();
 			scroll->verticalScrollBar()->setValue(scrollRange);
-			const bool intact = bounded() && scrollRange > 0
+			process();
+			const int secondaryBottom = secondary->mapTo(scroll->viewport(), QPoint(0, secondary->height())).y();
+			const bool intact = bounded() && scrollRange > 0 && secondaryBottom <= scroll->viewport()->height()
 				&& buttons->button(QDialogButtonBox::Close)->isVisible()
 				&& buttons->geometry().bottom() <= dialog->height()
 				&& scroll->geometry().bottom() <= buttons->geometry().top()
@@ -2162,10 +2184,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				&& (firstCell.isEmpty() || (table->item(0, 0) && table->item(0, 0)->text() == firstCell));
 			if (!intact)
 				qWarning() << "Result dialog stress check failed:" << dialog->windowTitle()
-						   << dialog->size() << available << "scroll range" << scrollRange
+						   << dialog->size() << available << "scroll range" << scrollRange << "secondary bottom" << secondaryBottom
 						   << "Close visible" << buttons->button(QDialogButtonBox::Close)->isVisible();
 			context->setText(originalContext);
 			dialog->setFont(originalFont);
+			dialog->resize(originalSize);
 			scroll->verticalScrollBar()->setValue(0);
 			process();
 			return intact;
@@ -2189,7 +2212,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		if (capacity)
 			for (QPushButton* button : capacity->findChildren<QPushButton*>()) {
 				capacityAutoDefault |= button->autoDefault();
-				if (button->text() == QStringLiteral("Export CSV...")) capacityExport = button;
+				if (button->text() == QStringLiteral("CSV...")) capacityExport = button;
 			}
 		auto* capacityTabs = capacity ? capacity->findChild<QTabWidget*>() : nullptr;
 		auto* pairTable = capacityTabs ? qobject_cast<QTableWidget*>(capacityTabs->widget(0)) : nullptr;
@@ -2210,7 +2233,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !criticalTable || criticalTable->columnCount() != 5
 			|| !boundedResultDialog(capacity, pairTable, capacityExport)
 			|| capacityAutoDefault
-			|| !exportButton(capacity, QStringLiteral("Export CSV..."), path("capacity_analysis.csv"))) {
+			|| !exportButton(capacity, QStringLiteral("CSV..."), path("capacity_analysis.csv"))) {
 			fail(QStringLiteral("capacity analysis did not open and export through public controls"));
 			return;
 		}
@@ -2219,31 +2242,28 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("Tab moves between the cells of a capacity table and does not leave it"));
 			return;
 		}
-		// The calculation details give the percentage with one decimal, as the context line does.
-		const auto capacityLabels = capacity->findChildren<QLabel*>("resultContextText");
-		const bool validCapacityPercentage = std::any_of(capacityLabels.cbegin(), capacityLabels.cend(),
-			[](const QLabel* label) {
-				const QString percentage = label->text().section(QStringLiteral(" = "), 1).section(QLatin1Char('%'), 0, 0);
-				return label->text().startsWith(QStringLiteral("Cycle time "))
-					&& percentage.section(QLatin1Char('.'), 1).size() == 1
-					&& !label->text().contains(QStringLiteral("%%"));
-			});
-		if (!validCapacityPercentage) {
-			fail(QStringLiteral("capacity calculation details do not have a rounded percentage"));
+		// The panel leads with the cycle of the chosen trains and its share of the period, the percentage with one decimal.
+		// The header names the run before the section.
+		const auto* capacityCycle = capacity->findChild<ResultFigure*>(QStringLiteral("capacityCycle"));
+		const auto* capacityShare = capacity->findChild<ResultFigure*>(QStringLiteral("capacityShare"));
+		const QString capacityPercentage = capacityShare ? capacityShare->value() : QString();
+		if (!capacityCycle || !capacityCycle->value().endsWith(QStringLiteral(" s")) || capacityCycle->caption() != QStringLiteral("Cycle")
+			|| !capacityShare || !capacityPercentage.endsWith(QLatin1Char('%')) || capacityPercentage.contains(QStringLiteral("%%"))
+			|| capacityPercentage.chopped(1).section(QLatin1Char('.'), 1).size() != 1
+			|| !capacityShare->caption().startsWith(QStringLiteral("of "))) {
+			fail(QStringLiteral("capacity analysis does not show the cycle of the chosen trains and its rounded share: ")
+				+ (capacityCycle ? capacityCycle->value() : QString()) + QStringLiteral(" / ") + capacityPercentage);
 			return;
 		}
-		// The result leads the context line, below the window title.
-		const auto* capacityContext = capacity->findChild<QLabel*>(QStringLiteral("dialogContext"));
-		const QString capacityResult = capacityContext ? capacityContext->text().section(QLatin1Char('\n'), 0, 0) : QString();
-		if (!capacityResult.startsWith(QStringLiteral("Cycle ")) || !capacityResult.endsWith(QStringLiteral(" s period"))) {
-			fail(QStringLiteral("capacity analysis does not lead with the cycle of the chosen trains: ") + capacityResult);
+		const ResultFrame* capacityFrame = capacity->findChild<ResultFrame*>();
+		const QString capacityContext = capacityFrame ? capacityFrame->contextLabel()->text() : QString();
+		if (!capacityContext.startsWith(runContext(w.m_runController->m_completedRun->provenance) + QStringLiteral(" \u00b7 "))) {
+			fail(QStringLiteral("the capacity header does not lead with the run: ") + capacityContext);
 			return;
 		}
-		QPushButton* compressedButton = nullptr;
-		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
-			if (candidate->text() == QStringLiteral("Open Compressed Blocking Time"))
-				compressedButton = candidate;
-		if (!compressedButton || !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))->isAncestorOf(compressedButton)) {
+		auto* compressedButton = capacity->findChild<QPushButton*>(QStringLiteral("capacityOpenDiagram"));
+		if (!compressedButton || compressedButton->text() != QStringLiteral("Open Diagram")
+			|| !capacity->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"))->isAncestorOf(compressedButton)) {
 			fail(QStringLiteral("compressed blocking-time control is unavailable"));
 			return;
 		}
@@ -2349,7 +2369,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window->isVisible())
 				area = window;
 		if (!area || area->isModal()
-			|| !exportButton(area, QStringLiteral("Export CSV..."), path("area_capacity.csv"))) {
+			|| !exportButton(area, QStringLiteral("CSV..."), path("area_capacity.csv"))) {
 			fail(QStringLiteral("capacity by area did not open and export through public controls"));
 			return;
 		}
@@ -2413,7 +2433,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const QTableWidget* callsTable = delayTable(callsWindow, "delayCalls");
 		if (!callsWindow || delayTab(callsWindow) != 0 || !callsTable || callsTable->rowCount() == 0
 			|| callsWindow->suggestedFileName() != QStringLiteral("delay_analysis.csv")
-			|| !exportButton(callsWindow, QStringLiteral("Export CSV..."), path("delay_analysis.csv"))) {
+			|| !exportButton(callsWindow, QStringLiteral("CSV..."), path("delay_analysis.csv"))) {
 			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
@@ -2494,14 +2514,15 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		DelayAnalysisWindow* laterWindow = openComparison();
 		QTableWidget* laterOccurrences = delayTable(laterWindow, "delayBaselineOccurrences");
 		QPushButton* laterExport = qobject_cast<QPushButton*>(delayChild(laterWindow, "delayAnalysisExport"));
-		const auto* laterContext = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogContext")) : nullptr;
+		const auto* laterFrame = laterWindow ? laterWindow->findChild<ResultFrame*>() : nullptr;
+		const QString laterContext = laterFrame ? laterFrame->contextLabel()->text() : QString();
 		const QString laterTotals = delayLabelText(laterWindow, "delayBaselineTotals");
 		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2
-			&& laterWindow->windowTitle() == QStringLiteral("Delay analysis") && laterContext
-			&& laterContext->text().contains("Run:") && laterContext->text().contains("Baseline:")
+			&& laterWindow->windowTitle() == QStringLiteral("Delay analysis")
+			&& laterContext.startsWith(runContext(w.m_runController->m_completedRun->provenance) + QStringLiteral(" \u00b7 delay baseline "))
 			&& laterTotals.contains(QStringLiteral("Added delay +"))
 			&& boundedResultDialog(laterWindow, laterOccurrences, laterExport);
-		if (!laterOk || !exportButton(laterWindow, QStringLiteral("Export CSV..."), path("delay_comparison.csv"))) {
+		if (!laterOk || !exportButton(laterWindow, QStringLiteral("CSV..."), path("delay_comparison.csv"))) {
 			restoreRun();
 			fail(QStringLiteral("a later run did not show its additional delay and export through the Against baseline tab: ") + laterTotals);
 			return;
