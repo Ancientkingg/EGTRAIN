@@ -51,7 +51,7 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 	// square around the point that the widest pick circle reaches holds every item that the point hits too, so the items
 	// in it give the order.
 	const QList<QGraphicsItem*> pointHits = items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder, device);
-	const qreal reach = SignalItem::PickPixels / 2.0 + 1.0;
+	const qreal reach = std::max(NodeItem::PickPixels, SignalItem::PickPixels) / 2.0 + 1.0;
 	const QRectF around = device.inverted().mapRect(QRectF(click - QPointF(reach, reach), click + QPointF(reach, reach)));
 	QList<QGraphicsItem*> hitItems;
 	for (QGraphicsItem* item : items(around, Qt::IntersectsItemBoundingRect, Qt::DescendingOrder, device))

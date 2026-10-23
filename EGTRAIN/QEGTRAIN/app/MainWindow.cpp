@@ -4517,7 +4517,6 @@ void MainWindow::updateSignalCues() {
 			signal->setGroupedSignals({});
 			if (item->data(kSignalAnchorRole).isValid())
 				signal->setPos(item->data(kSignalAnchorRole).toPointF());
-			signal->setScale(1.0);
 			signal->setToolTip(QStringLiteral("%1, facing %2\n%3")
 					.arg(signalAspectLabel(signal), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), signal->inspectionIdentity()));
 		}
