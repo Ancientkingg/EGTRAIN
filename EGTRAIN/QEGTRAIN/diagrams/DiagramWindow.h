@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/PositionScale.h"
 #include "telemetry/TelemetryOperation.h"
 #include <QHash>
 #include <QPen>
@@ -74,7 +75,8 @@ public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
 	/// Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported
 	/// figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range
-	/// widens to the first round tick past each end; a range that starts at zero keeps that start. A chart with more than
+	/// widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose
+	/// "exactRange" property is true keeps its range and still gets round ticks. A chart with more than
 	/// one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set:
 	/// the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is
 	/// true or its name holds "planned"; a planned series is drawn dashed.
@@ -103,14 +105,23 @@ public:
 	/// the series as the chart builder painted them, for a chart whose series
 	/// colours have a meaning of their own.
 	void setTrainListColors(const QHash<QString, QColor>& colors);
-	/// Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus `startOffsetSeconds`, the clock time
-	/// of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is in range.
+	/// Labels the Y axis as clock time, titled "Time (hh:mm)": the axis value in seconds plus `startOffsetSeconds`, the
+	/// clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is
+	/// in range. Ticks on whole minutes read HH:MM while the ticks are at least a minute apart; a tick off a whole minute,
+	/// such as second 0 at 07:10:40, and every tick of a shorter step read HH:MM:SS, so no two ticks read the same.
 	/// False restores numeric labels. Set before or after setChart. Bounds and reversal come from the caller, without
 	/// the round widening of setChart; reset restores those bounds. The numeric axis is hidden while the clock axis takes
-	/// its place, so that the chart draws one axis on that side.
+	/// its place, so that the chart draws one axis on that side. Tooltips and the readout keep HH:MM:SS.
 	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
 	/// As setTimeAxisY, for the X axis.
 	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
+	/// Labels the bottom axis, a route distance in km, as the geo X of `scale`, titled "Position (km)": labels on round
+	/// geo X values at their route distance, which count down where the route runs against the scene coordinate, and a
+	/// break mark on the bottom edge of the plot at each jump of the scale, whose hover gives both geo X. The plot keeps
+	/// the route distance. The labels follow every zoom, pan, fit and resize, and lie at least 60 px apart. The readout and
+	/// the tooltip of a sample give the geo X. Set after setChart, not with setTimeAxisX; an empty scale restores the
+	/// numeric axis. The numeric axis is hidden while the position axis takes its place, as with setTimeAxisY.
+	void setPositionAxis(PositionScale scale);
 
 	/// Supply raw source data for CSV export. The provider receives the ids of the
 	/// trains currently visible so it can export only what the user is looking at.
@@ -122,9 +133,15 @@ public:
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
 	/// chart-owned physical layer, not train series, with an entry in the legend of line kinds. Chart replacement clears
-	/// it. `labels` names the sections in the strip, with the id in the hover text; without it the strip shows the ids.
+	/// it. The strip above the plot names each section by its short id (shortBlockId), centred in its cell, in one row
+	/// when every id fits at the full view of the chart and otherwise in two, where an id that collides in the first row
+	/// tries the second. When the ids in route order leave one out, those of critical and conflict sections, the first and
+	/// last section, then switch and station sections are placed first. A switch section is hatched, and `marks`, one per
+	/// section or empty, add a dark top bar for a station, an amber bar for a critical block and a red one for a conflict.
+	/// The hover of a cell or a boundary gives the id, the label from `labels`, the kind, "Section N of M" with M
+	/// `routeSectionCount` (the number of sections when 0), the geo extent and the route distance.
 	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId,
-		const SceneSectionLabels* labels = nullptr);
+		const SceneSectionLabels* labels = nullptr, std::vector<BlockSectionMarks> marks = {}, int routeSectionCount = 0);
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
@@ -170,6 +187,10 @@ private:
 
 	void applyChartStyle(QChart* chart);
 	void applyTimeAxis();
+	void applyPositionAxis();
+	void schedulePositionLayout();
+	void layoutPositionAxis();
+	void reserveStripRoom();
 	void scheduleStationLayout();
 	void layoutStationAxis();
 	QString elidedAxisTextAt(const QPointF& chartPosition) const;
@@ -220,6 +241,10 @@ private:
 	bool m_stationLayoutPending = false;
 	QPointer<QAbstractAxis> m_clockAxis;
 	QPointer<QValueAxis> m_numericAxis; // detached while its clock axis is displayed
+	PositionScale m_positionScale;
+	QPointer<QCategoryAxis> m_positionAxis;
+	QPointer<QValueAxis> m_positionNumericAxis; // detached while the position axis is displayed
+	bool m_positionLayoutPending = false;
 	QString m_pinnedTrainId;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;

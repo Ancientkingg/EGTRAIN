@@ -33,8 +33,8 @@ struct RouteDiagramProjection {
 // projected between uniquely shared nodes/stations; no extrapolation is made.
 RouteDiagramProjection buildRouteDiagramProjection(const RouteDiagramPath& source,
 	const RouteDiagramPath& reference);
-// Distance-axis range of a chart of the reference route, with the margin every such chart uses: the sections that have
-// geometry, else the finite nodes of the reference path, else 0 to 1. Envelopes are projected onto that path.
+// Distance-axis range of a chart of the reference route, exactly: the sections that have geometry, else the finite nodes
+// of the reference path, else 0 to 1, and at least 0.02 km long. Envelopes are projected onto that path.
 std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionExtent>& extents, const RouteDiagramPath& reference);
 // Where a stop lies on the reference route: its node is on the path of its own route at the stored abscissa. Empty when the
 // stop has no node or the path does not hold it there.

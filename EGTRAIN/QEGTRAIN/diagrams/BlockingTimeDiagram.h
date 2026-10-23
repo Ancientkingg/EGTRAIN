@@ -79,6 +79,13 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 	const std::vector<std::vector<BlockingTimeDiagramInput>>& trains,
 	const std::vector<std::string>& trainNames);
 
+/// The blocks that a block id names, which the resource matcher compares: the first and the third field between "@"
+/// signs, such as "71-B0" and "0-B1" for "@71-B0@-21.235000/@0-B1@-21.252000", or the id itself without such a field.
+/// Empty for an empty id.
+std::vector<std::string> comparableBlockTokens(const std::string& blockId);
+/// The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1".
+std::string shortBlockId(const std::string& blockId);
+
 // Shared resource matcher used by both diagram conflict classification and
 // capacity analysis. It matches exact plain and decorated/composite components.
 bool shareBlockingTimeResource(const std::string& firstBlockId, const std::string& secondBlockId);
@@ -147,6 +154,21 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId,
 	const SceneSectionLabels* labels = nullptr);
+
+/// What the section strip of a blocking-time chart marks on a section, besides a switch section (BlockSectionExtent::isSwitch).
+struct BlockSectionMarks {
+	bool station = false;  ///< A station of the reference route lies on the section
+	bool critical = false; ///< A capacity-critical blocking time of a compressed chart lies on the section
+	bool conflict = false; ///< A conflicting blocking time lies on the section
+};
+
+/// The marks of each extent, in the order of `extents`. A section is a station section when one of `stationKm`, the
+/// route distances of the station nodes of the reference route, lies on it, ends included. The other marks come from the
+/// blocking times matched to the section (BlockingTimeDiagramSegment::referenceSection), as the chart colours them: with
+/// `compressed` a capacity-critical one makes the section critical, and otherwise a conflicting one (the Critical styles)
+/// gives it a conflict.
+std::vector<BlockSectionMarks> blockSectionMarks(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<BlockingTimeDiagramSegment>& segments, const std::vector<double>& stationKm, bool compressed);
 
 // Scope uses zero-based route indices, not ids; selected extents keep their original route order.
 std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<BlockSectionExtent>& extents,

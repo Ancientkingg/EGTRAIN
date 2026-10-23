@@ -30,23 +30,6 @@ bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
 }
 
-std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
-	std::vector<std::string> tokens;
-	std::istringstream line(blockId);
-	std::string token;
-	int validTokenIndex = 0;
-	while (std::getline(line, token, '@')) {
-		if (token.empty())
-			continue;
-		if (validTokenIndex == 0 || validTokenIndex == 2)
-			tokens.push_back(token);
-		validTokenIndex++;
-	}
-	if (tokens.empty() && hasValue(blockId))
-		tokens.push_back(blockId);
-	return tokens;
-}
-
 // A section in a note: its label and id, or its id without labels.
 std::string sectionName(const std::string& id, const SceneSectionLabels* labels) {
 	return labels ? labels->labelWithId(id) : id;
@@ -73,6 +56,30 @@ BlockingTimeSegmentStyle segmentStyle(const BlockingTimeDiagramInput& block, boo
 }
 
 } // namespace
+
+std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
+	std::vector<std::string> tokens;
+	std::istringstream line(blockId);
+	std::string token;
+	int validTokenIndex = 0;
+	while (std::getline(line, token, '@')) {
+		if (token.empty())
+			continue;
+		if (validTokenIndex == 0 || validTokenIndex == 2)
+			tokens.push_back(token);
+		validTokenIndex++;
+	}
+	if (tokens.empty() && hasValue(blockId))
+		tokens.push_back(blockId);
+	return tokens;
+}
+
+std::string shortBlockId(const std::string& blockId) {
+	std::string text;
+	for (const std::string& token : comparableBlockTokens(blockId))
+		text += (text.empty() ? "" : "/") + token;
+	return text;
+}
 
 bool shareBlockingTimeResource(const std::string& aBlockId, const std::string& bBlockId) {
 	std::vector<std::string> aTokens = comparableBlockTokens(aBlockId);
@@ -362,6 +369,25 @@ bool positionInBlockSections(double positionKm, const std::vector<BlockSectionEx
 	return std::any_of(sections.begin(), sections.end(), [positionKm](const BlockSectionExtent& section) {
 		return section.geometryValid && positionKm >= section.lowerKm() && positionKm <= section.upperKm();
 	});
+}
+
+std::vector<BlockSectionMarks> blockSectionMarks(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<BlockingTimeDiagramSegment>& segments, const std::vector<double>& stationKm, bool compressed) {
+	std::vector<BlockSectionMarks> marks(extents.size());
+	for (std::size_t i = 0; i < extents.size(); ++i) {
+		const BlockSectionExtent& extent = extents[i];
+		marks[i].station = extent.geometryValid && std::any_of(stationKm.begin(), stationKm.end(), [&extent](double km) {
+			return km >= extent.lowerKm() - kBlockSectionToleranceKm && km <= extent.upperKm() + kBlockSectionToleranceKm;
+		});
+		for (const BlockingTimeDiagramSegment& segment : segments) {
+			if (segment.referenceSection != extent.order) continue;
+			if (compressed && segment.capacityCritical)
+				marks[i].critical = true;
+			else if (segment.style == BlockingTimeSegmentStyle::Critical || segment.style == BlockingTimeSegmentStyle::CriticalStation)
+				marks[i].conflict = true;
+		}
+	}
+	return marks;
 }
 
 std::optional<std::pair<double, double>> blockSectionBounds(const std::vector<BlockSectionExtent>& extents) {

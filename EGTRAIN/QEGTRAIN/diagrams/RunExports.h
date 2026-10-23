@@ -90,6 +90,7 @@ struct BlockingTimeDiagramData {
 	std::vector<BlockingTimeDiagramSegment> segments; ///< Projected onto the reference route and inside the scope
 	std::vector<BlockingTimeDiagramSegment> unmapped; ///< Could not be projected
 	std::vector<BlockSectionExtent> extents;		  ///< The sections of the scope
+	int routeSectionCount = 0;						  ///< The sections of the whole reference route
 	/// Planned stop events inside the time range.
 	std::vector<BlockingTimePlannedReference> plannedReferences;
 	/// Clipped to the scope, for the chart.

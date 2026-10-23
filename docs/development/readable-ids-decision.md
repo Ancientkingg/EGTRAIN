@@ -240,6 +240,10 @@ Where part 2 differs from the plan:
 - The examples in [The problem](#the-problem) and in the table name the signal at 0.23 km by `@0-B0@`. A signal of the preview stands at the start of the section it names, and the first section of a track has no signal, so that signal names `@1-B0@`. In a run the reversed head at 0.23 km has `@0-B0@` ahead and `@1-B0@` behind, not "behind none".
 - The table keeps the id of a signal only in the inspector. **Find** also matches the ids, so a search for `@1-B0@` still finds the heads of that section.
 
+## Change of 2026-10-23: block ids in the chart strip
+
+After feedback from the supervisor in the redesign of the diagram windows (#1092), the section strip of the blocking-time charts names each section by its short block id, such as `71-B0`, or `71-B0/0-B1` for a switch section, without the route order. A label is about twice as wide as a block id, so the strip named few sections. The short id keeps the block names of the full id that the exports, `BlockingTimes.txt` and the scene files use, such as `@71-B0@-21.235000/@0-B1@-21.252000`. The hover of the strip gives the id and then the label on a line of its own. Every other place in the table above keeps its label.
+
 ## Open questions
 
 - Station context for route choosers. The stations of a route are known in travel order (`sceneRouteStations`, `scene/SectionInventory.h:194`), so a chooser could show "Guingamp to Gourland" beside the label of each block of a route. In Netherlands, Amsterdam_Hilversum_Student and Assignment_Gvc_Gdg_Ut the station names are codes.
