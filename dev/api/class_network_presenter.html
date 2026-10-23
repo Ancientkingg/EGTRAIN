@@ -365,7 +365,7 @@ Public Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ac31de218e31c41cfc976b2a759f1e443_cgraph.svg" width="1015" height="111"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ac31de218e31c41cfc976b2a759f1e443_cgraph.svg" width="1007" height="70"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1237,7 +1237,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A timer of the presenter calls it right after each live update and then about once a frame while a train moves, and every live update moves the trains too; a test calls it with the clock of <a class="el" href="#a35ddc7ecaec547371835d2c09882826f">setClock()</a>. </p>
+<p>Moves every live train that is in motion to where it is at the moment, and tells the host where a promoted one is drawn. A train far outside the visible scene is drawn again only at the next update or when it stops. A timer of the presenter calls it about once a frame while a train moves, at a pace that the updates do not change, and every live update moves the trains too; a test calls it with the clock of <a class="el" href="#a35ddc7ecaec547371835d2c09882826f">setClock()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1463,7 +1463,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Adds, moves and hides the trains of the snapshot at step t, in seconds from the start of the run, and sets the state of the sections and of the occupied arcs on the track lines. <a class="el" href="#a2f2dbeb4415ab81874fff34a4f97b078">apply()</a> does this; it is public so that the trains can be updated alone.</p>
-<p>A live train glides along its route at an even speed from where it is drawn to its new place, drawn wagon by wagon where it is at the moment, as <a class="el" href="#a78a21f60ad47ed52be80d6f91c2558d3">getTrainPolygon()</a> draws it at an update, with its badge and its callouts. The glide lasts a little longer than the longest recent update interval, so that the next update, which starts the next glide from where the train is then drawn, comes before it ends; the train trails its newest place by a fraction of a glide, and without a new update, as at a pause, it stops there. A train that has just appeared, has another route or direction, runs backwards, or would move further than the visible view is placed at once, and so is every train of a replay. The positions are for the time at which the paint that shows them is expected to end. </p>
+<p>A live train glides along its route at an even speed from where it is drawn to its new place, drawn wagon by wagon where it is at the moment, as <a class="el" href="#a78a21f60ad47ed52be80d6f91c2558d3">getTrainPolygon()</a> draws it at an update, with its badge and its callouts. The glide lasts several recent update intervals, up to a bound, so that the next update, which starts the next glide from where the train is then drawn, gives it a speed close to the one before, also when the updates come unevenly or bring uneven steps of simulated time; the speed still changes a little at each update. The train trails its newest place by a few updates. At the highest speeds that is a long way, so the occupied track and the signal aspects, which show the newest state, can run well ahead of the drawn train. An update that leaves the train at its place keeps the glide that runs, and without a new update, as at a pause, the train also goes on to that place; it stops there when the glide ends. A train that has just appeared, has another route or direction, runs backwards, or has moved further than the visible view since its last update is placed at once, and so is every train of a replay. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

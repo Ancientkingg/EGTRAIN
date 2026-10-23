@@ -1,6 +1,5 @@
 var NAVTREEINDEX25 =
 {
-"struct_train_run_result.html#a0ba9359588e9ff9d1ebf06e4c8227232":[2,0,318,19],
 "struct_train_run_result.html#a12c53834e4b7616d7eaafc76e23407f3":[2,0,318,21],
 "struct_train_run_result.html#a220e4f19bb4a42b0051c786f5db78292":[2,0,318,6],
 "struct_train_run_result.html#a27078601b0b2ce2e5305c22abd25f8be":[2,0,318,16],

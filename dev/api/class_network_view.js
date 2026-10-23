@@ -22,7 +22,6 @@ var class_network_view =
     [ "topologyBounds", "class_network_view.html#a6f153a2e962a6bd7b823bc37585d25f0", null ],
     [ "viewportChanged", "class_network_view.html#ac759eb59c9af28946b90f56ced8205ac", null ],
     [ "viewportEvent", "class_network_view.html#a14b006303865e0c9fa150ab23b2dbcf4", null ],
-    [ "viewportPainted", "class_network_view.html#ae2ced58ea56ff385bf067bfaafc81937", null ],
     [ "wheelEvent", "class_network_view.html#a39df6408a6655117aa5a869e91ba0e56", null ],
     [ "zoomBy", "class_network_view.html#acfca8b5474a26b98c458e7d75decd1e5", null ],
     [ "zoomLabel", "class_network_view.html#a61b2ce4092775b2df89f9101265ae75d", null ],
