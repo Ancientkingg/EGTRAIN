@@ -12,10 +12,13 @@
 #include <QtMath>
 
 /// A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for
-/// any state but Proceed, show the state of the aspect code. A transparent child of 12 by 12 logical pixels at
-/// its centre keeps it clickable when the head is smaller on screen.
+/// any state but Proceed, show the state of the aspect code. NetworkScene picks it in a circle of PickPixels logical
+/// pixels across at its centre, which keeps it clickable when the head is smaller on screen.
 class SignalItem : public QGraphicsEllipseItem {
 public:
+	/// The width on screen of the circle in which a click picks the head, in logical pixels.
+	static constexpr qreal PickPixels = 12.0;
+
 	/// A head in rect with aspect code 180, on no track line and at no position.
 	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~SignalItem() override;

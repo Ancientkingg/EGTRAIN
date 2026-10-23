@@ -15,7 +15,8 @@ public:
 
 	/// Shows step `timestep` (from 0) of a run of `totalSteps` steps, clamped to the run, as "<clock> of <end clock>" with
 	/// the tooltip "Step <n> of <total>", which a shown tooltip of the bar follows. The clock times take one step as one
-	/// second after `startOffsetSeconds`, the base time of the run in seconds since midnight.
+	/// second after `startOffsetSeconds`, the base time of the run in seconds since midnight. The bar shows the step at
+	/// the next paint of the window and paints nothing at once.
 	void setProgress(int timestep, int totalSteps, long long startOffsetSeconds);
 
 protected:

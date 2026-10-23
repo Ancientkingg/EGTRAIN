@@ -13,14 +13,6 @@ constexpr qreal kMinMarkPixels = 6.0;
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
-	// Invisible picking geometry stays device-sized while the actual head scales
-	// with the authored scene. NetworkScene resolves child hits to this signal.
-	auto* target = new QGraphicsEllipseItem(QRectF(-6.0, -6.0, 12.0, 12.0), this);
-	target->setPos(rect.center());
-	target->setFlag(QGraphicsItem::ItemIgnoresTransformations);
-	target->setPen(Qt::NoPen);
-	target->setBrush(Qt::NoBrush);
-	target->setAcceptedMouseButtons(Qt::NoButton);
 
 	// initialize parameters
 	trackID = -1;

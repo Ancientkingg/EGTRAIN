@@ -2,7 +2,32 @@
 
 #include <QApplication>
 #include <QGraphicsView>
+#include <QPainterPath>
 #include <limits>
+
+namespace {
+// Whether scenePos, on a view with the transform device, is in the pick circle of item, a node dot or a signal head:
+// PickPixels across on screen around the centre of its rect. As the scene tests an item that ignores the view transform,
+// the point is in the square of the circle and the square of one pixel from the point meets the circle. Other items
+// have no pick circle.
+bool inPickCircle(const QGraphicsItem* item, const QPointF& scenePos, const QTransform& device) {
+	const QGraphicsEllipseItem* ellipse = qgraphicsitem_cast<const NodeItem*>(item);
+	qreal pixels = NodeItem::PickPixels;
+	if (!ellipse) {
+		ellipse = qgraphicsitem_cast<const SignalItem*>(item);
+		pixels = SignalItem::PickPixels;
+	}
+	if (!ellipse)
+		return false;
+	const QPointF local = device.map(scenePos) - device.map(ellipse->mapToScene(ellipse->rect().center()));
+	const QRectF square(-pixels / 2.0, -pixels / 2.0, pixels, pixels);
+	if (!square.contains(local))
+		return false;
+	QPainterPath circle;
+	circle.addEllipse(square);
+	return circle.intersects(QRectF(local, QSizeF(1.0, 1.0)));
+}
+} // namespace
 
 NetworkScene::NetworkScene(QObject* parent)
 	: QGraphicsScene(parent) {
@@ -20,13 +45,21 @@ QTransform NetworkScene::viewTransformFor(QWidget* widget) const {
 }
 
 QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* widget) const {
-	const QList<QGraphicsItem*> hitItems = items(
-		scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder, viewTransformFor(widget));
+	const QTransform device = viewTransformFor(widget);
+	const QPointF click = device.map(scenePos);
+	// The items under the point, with every node dot and signal head whose pick circle holds it, from the top down. The
+	// square around the point that the widest pick circle reaches holds every item that the point hits too, so the items
+	// in it give the order.
+	const QList<QGraphicsItem*> pointHits = items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder, device);
+	const qreal reach = SignalItem::PickPixels / 2.0 + 1.0;
+	const QRectF around = device.inverted().mapRect(QRectF(click - QPointF(reach, reach), click + QPointF(reach, reach)));
+	QList<QGraphicsItem*> hitItems;
+	for (QGraphicsItem* item : items(around, Qt::IntersectsItemBoundingRect, Qt::DescendingOrder, device))
+		if (pointHits.contains(item) || inPickCircle(item, scenePos, device))
+			hitItems.append(item);
 	SignalItem* nearestSignal = nullptr;
 	qreal nearestDistance = std::numeric_limits<qreal>::max();
 	NodeItem* paddedNode = nullptr;
-	const QTransform device = viewTransformFor(widget);
-	const QPointF click = device.map(scenePos);
 	for (QGraphicsItem* item : hitItems) {
 		for (QGraphicsItem* candidate = item; candidate; candidate = candidate->parentItem()) {
 			// Artwork owns its station identity even when its structural parent
@@ -51,7 +84,7 @@ QGraphicsItem* NetworkScene::semanticItemAt(const QPointF& scenePos, QWidget* wi
 					paddedNode = node;
 				break;
 			}
-			// Node and signal targets sit above the broad track/connection selection shapes.
+			// The pick circles of nodes and signals sit above the broad track/connection selection shapes.
 			// Keep looking for painted signals or trains before falling back to the node or the padded signal.
 			if ((paddedNode || nearestSignal) && (qgraphicsitem_cast<TrackLineItem*>(candidate) || qgraphicsitem_cast<ConnectionItem*>(candidate)))
 				break;

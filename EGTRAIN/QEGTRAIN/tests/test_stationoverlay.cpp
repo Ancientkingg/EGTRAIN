@@ -212,9 +212,8 @@ int main(int argc, char* argv[]) {
 	boundaryView.centerOn(boundary->rect().center());
 	QApplication::processEvents();
 	const QImage boundaryImage = boundaryView.viewport()->grab().toImage();
-	ok &= expect(boundary->childItems().size() == 1
-			&& boundary->childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-		"transparent Fit target remains available for semantic picks");
+	ok &= expect(boundary->childItems().isEmpty(),
+		"node has no transparent Fit target for every paint to visit; the scene picks it in its pick circle");
 	ok &= expect(boundaryView.viewportTransform().mapRect(boundary->rect()).width() < 3.0,
 		"scene-sized boundary scales proportionally at Fit");
 	const QList<QGraphicsItem*> hit = boundaryScene.items(boundary->rect().center(),

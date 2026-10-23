@@ -353,9 +353,8 @@ int main(int argc, char* argv[]) {
 	head.setAspectCode(0);
 	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"signal heads scale with the scene");
-	ok &= expect(head.childItems().size() == 1
-			&& head.childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-		"signal retains an invisible device-space semantic target");
+	ok &= expect(head.childItems().isEmpty(),
+		"signal head has no invisible child for every paint to visit; the scene picks it in its pick circle");
 	QImage signalImage(48, 48, QImage::Format_ARGB32_Premultiplied);
 	signalImage.fill(Qt::black);
 	{

@@ -588,6 +588,38 @@ int main(int argc, char* argv[]) {
 		ok &= expect(context == &node, "zero-size node target wins over underlying line for context menu");
 	}
 
+	// The scene picks a node dot or a signal head in a circle that keeps its size on screen, at Fit and zoomed in.
+	for (const qreal scale : {0.05, 4.0}) {
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		view.scale(scale, scale);
+		const qreal pixel = 1.0 / scale;
+		// Both are smaller than a pixel on screen at either zoom.
+		NodeItem node(QRectF(-0.1, -0.1, 0.2, 0.2));
+		SignalItem signal(QRectF(-0.1, -0.1, 0.2, 0.2));
+		signal.setPos(100.0 * pixel, 100.0 * pixel);
+		TrackLineItem track(QLineF(-60.0 * pixel, 0.0, 20.0 * pixel, 0.0));
+		scene.addItem(&track);
+		scene.addItem(&node);
+		scene.addItem(&signal);
+		QGraphicsItem* picked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { picked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnSignal, [&](SignalItem* item) { picked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem* item) { picked = item; });
+		const auto pickedAt = [&](const QPointF& offset, const QGraphicsItem& item) {
+			picked = nullptr;
+			sendLeftClick(scene, view, item.scenePos() + offset * pixel);
+			return picked;
+		};
+		ok &= expect(pickedAt(QPointF(1.0, 0.0), node) == &node && pickedAt(QPointF(-1.0, -1.0), node) == &node,
+			"a click 1 px beside a node dot picks it over the track under it");
+		ok &= expect(pickedAt(QPointF(4.0, 0.0), node) == &track, "a click 4 px beside a node dot picks the track");
+		ok &= expect(pickedAt(QPointF(-5.0, 0.0), signal) == &signal && pickedAt(QPointF(0.0, 5.0), signal) == &signal,
+			"a click 5 px beside a signal head picks it");
+		ok &= expect(!pickedAt(QPointF(0.0, 8.0), signal), "a click 8 px beside a signal head picks nothing");
+	}
+
 	{
 		TrackLineItem track(QLineF(4, 20, 44, 20));
 		QPen speed(QColor(30, 130, 210), 4);
