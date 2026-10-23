@@ -18,6 +18,7 @@ class QLabel;
 class QPushButton;
 class QTabWidget;
 class QTableWidget;
+class ResultFigure;
 class TrainFilterButton;
 
 // The window of the delay analysis (diagrams/DelayAnalysis.h). It shows the delay of each call against the
@@ -46,7 +47,8 @@ std::string delaySummaryCsv(const DelaySummary& summary, DelayEventKind kind);
 /// comparison is not compatible.
 std::string delayBaselineCsv(const DelayBaselineComparison& comparison);
 
-/// The result window. Not modal. It holds the runs as values, so it can outlive them.
+/// The result window. Not modal. It holds the runs as values, so it can outlive them. The tabs lie at the left and a
+/// panel at the right holds the key figures of the selection, the filters and the export.
 class DelayAnalysisWindow : public QDialog {
 public:
 	/// `baseline` is the baseline run when one is set. The Against baseline tab compares it with `scenario`.
@@ -64,6 +66,7 @@ public:
 
 private:
 	void refresh();
+	void fillFigures();
 	void fillCalls();
 	void fillSummary();
 	void fillBaseline();
@@ -97,6 +100,9 @@ private:
 	QTableWidget* m_baselineCalls = nullptr;
 	QTableWidget* m_baselineDiagnostics = nullptr;
 	QPushButton* m_exportButton = nullptr;
+	ResultFigure* m_sumFigure = nullptr;
+	ResultFigure* m_meanFigure = nullptr;
+	ResultFigure* m_earlyLateFigure = nullptr;
 	telemetry::CaptureOperation m_telemetryCapture;
 };
 

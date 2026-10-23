@@ -1,6 +1,7 @@
 #include "diagrams/AreaCapacityWindow.h"
 
 #include "app/DialogFolders.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RunExports.h"
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
@@ -13,7 +14,6 @@
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QFont>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
@@ -286,9 +286,11 @@ QString statusLine(const AreaCapacityResult& result) {
 	return parts.isEmpty() ? QString() : "Statuses: " + parts.join(", ");
 }
 
-// The resources with the largest occupation, by their labels, with their rate. A switch label holds a comma, so the
-// labels are joined with semicolons.
-QString governingText(const AreaCapacityResult& result, const SceneSectionLabels& labels) {
+// The figures of the panel: the rate of the governing resources, named by their labels, the cycle of the chain and its
+// share of the period. A figure that is not available reads "-" and its caption says why.
+void fillFigures(const AreaCapacityResult& result, const SceneSectionLabels& labels, ResultFigure* governing, ResultFigure* cycle,
+	ResultFigure* share) {
+	// A switch label holds a comma, so the labels are joined with semicolons.
 	QStringList names;
 	double percentage = -1.0;
 	for (const AreaCapacityResource& resource : result.resources) {
@@ -298,9 +300,21 @@ QString governingText(const AreaCapacityResult& result, const SceneSectionLabels
 		percentage = resource.occupationPercentage;
 	}
 	if (names.isEmpty())
-		return QStringLiteral("none");
-	return percentage >= 0.0 ? QString("%1 (%2% of period)").arg(names.join("; "), percentText(percentage))
-							 : QString("%1 (no valid period)").arg(names.join("; "));
+		governing->setFigure(QStringLiteral("-"), QStringLiteral("No governing resource"));
+	else
+		governing->setFigure(percentage >= 0.0 ? percentText(percentage) + "%" : QStringLiteral("-"), "Governing: " + names.join("; "),
+			percentage >= 0.0 ? QString() : QStringLiteral("No valid period"));
+
+	const CapacityAnalysisResult& chain = result.chain;
+	const QString period = chain.periodSeconds > 0.0 ? "of " + capacityPeriodText(chain.periodSeconds) : QStringLiteral("No valid period");
+	if (!chainHasCycle(chain)) {
+		cycle->setFigure(QStringLiteral("-"), chain.analyzable ? QStringLiteral("No cycle-closing train") : QStringLiteral("Chain cannot be analysed"));
+		share->setFigure(QStringLiteral("-"), period);
+		return;
+	}
+	cycle->setFigure(QString::number(chain.cycleTime, 'f', 1) + " s", QStringLiteral("Cycle"),
+		QString("From %1 to %2").arg(QString::fromStdString(chain.firstIdentity), QString::fromStdString(chain.cycleEndIdentity)));
+	share->setFigure(chain.cyclePercentage >= 0.0 ? percentText(chain.cyclePercentage) + "%" : QStringLiteral("-"), period);
 }
 
 bool touchesArea(const CompletedTrain& train, const std::vector<std::string>& resources) {
@@ -759,54 +773,53 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	setModal(false);
 	setProperty("manualSection", QStringLiteral("capacity-by-area"));
 	setWindowTitle("Capacity by area");
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-
-	auto* statuses = new QLabel(body);
-	statuses->setObjectName("areaCapacityStatuses");
-	DialogLayout::setStatus(statuses, m_result.notes.empty() ? DialogLayout::Severity::Neutral : DialogLayout::Severity::Warning,
-		statusLine(m_result));
-	layout->addWidget(statuses);
-
-	auto* tabs = new QTabWidget(body);
+	auto* tabs = new QTabWidget;
 	tabs->setObjectName("areaCapacityTabs");
 	tabs->addTab(resourcesTab(m_result, labels, tabs), "Resources");
 	tabs->addTab(chainTab(m_result, labels, tabs), "Chain");
 	const std::vector<QStringList> excluded = noteRows(m_result, true);
 	tabs->addTab(notesTab(excluded, "areaCapacityExcluded", labels, tabs), countedTitle("Excluded traffic", excluded.size()));
 	tabs->addTab(notesTab(noteRows(m_result, false), "areaCapacityNotes", labels, tabs), countedTitle("Notes", m_result.notes.size()));
-	layout->addWidget(tabs, 1);
 
-	auto* exportButton = new QPushButton("Export CSV...", body);
+	// The tabs at the left, with the run, the area and the traffic in the header. The statuses lie above the tabs, with the
+	// look of a warning when there is one. The panel holds the figures and the export.
+	auto* statuses = new QLabel;
+	statuses->setObjectName("areaCapacityStatuses");
+	auto* frame = new ResultFrame(resultTableArea({statuses, tabs}), "areaCapacity");
+	// Once the label has a parent, so that showing it opens no window of its own.
+	DialogLayout::setStatus(statuses, m_result.notes.empty() ? DialogLayout::Severity::Neutral : DialogLayout::Severity::Warning,
+		statusLine(m_result));
+	ResultPanel* panel = frame->panel();
+	panel->readout()->hide();
+	auto* figures = new QWidget(frame);
+	auto* figureColumn = new QVBoxLayout(figures);
+	figureColumn->setContentsMargins(0, 0, 0, 0);
+	figureColumn->setSpacing(8);
+	auto* governing = new ResultFigure("areaCapacityGoverning", figures);
+	auto* cycle = new ResultFigure("areaCapacityCycle", figures);
+	auto* share = new ResultFigure("areaCapacityShare", figures);
+	fillFigures(m_result, labels, governing, cycle, share);
+	for (ResultFigure* figure : {governing, cycle, share})
+		figureColumn->addWidget(figure);
+	panel->addSection(QString(), figures);
+
+	auto* exportButton = new QPushButton("CSV...", frame);
 	exportButton->setObjectName("areaCapacityExport");
+	exportButton->setAccessibleName("Export CSV");
+	exportButton->setToolTip("Save the tabs as CSV");
 	exportButton->setAutoDefault(false);
 	exportButton->setEnabled(!m_result.resources.empty());
 	connect(exportButton, &QPushButton::clicked, this, [this]() { exportCsv(); });
-	auto* buttonRow = new QHBoxLayout();
-	buttonRow->addWidget(exportButton);
-	buttonRow->addStretch();
-	layout->addLayout(buttonRow);
+	panel->addSection("Export", exportButton);
 
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, this);
 	connect(closeButtons, &QDialogButtonBox::rejected, this, &QDialog::close);
-
-	const CapacityAnalysisResult& chain = m_result.chain;
-	QString summary = QStringLiteral("Chain cannot be analysed");
-	if (chainHasCycle(chain)) {
-		const QString cycle = QString::number(chain.cycleTime, 'f', 1);
-		summary = chain.cyclePercentage >= 0.0
-			? QString("Cycle %1 s, %2% of period").arg(cycle, percentText(chain.cyclePercentage))
-			: QString("Cycle %1 s, no valid period").arg(cycle);
-	} else if (chain.analyzable) {
-		summary = QStringLiteral("No cycle-closing train");
-	}
+	// The window title names the view; the header names the run, the area and partial traffic.
+	QString context = runText(m_provenance) + QStringLiteral(" \u00b7 ") + (areaText.isEmpty() ? m_areaLabel : areaText);
 	if (!m_result.complete)
-		summary += QStringLiteral("\nPartial traffic: rates count only the checked trains");
-	// The window title names the view; the result leads the context.
-	DialogLayout::install(*this, QStringLiteral("Capacity by area"),
-		QString("%1\nArea: %2\nGoverning resource: %3\nRun: %4")
-			.arg(summary, areaText.isEmpty() ? m_areaLabel : areaText, governingText(m_result, labels), runText(m_provenance)),
-		body, closeButtons);
+		context += QStringLiteral(" \u00b7 partial traffic");
+	frame->setContext(context, m_result.complete ? QString() : QStringLiteral("Rates count only the checked trains"));
+	frame->installInDialog(*this, QStringLiteral("Capacity by area"), closeButtons);
 	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 }
 

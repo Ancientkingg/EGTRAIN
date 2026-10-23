@@ -8,9 +8,9 @@ A run produces delay figures in four places. The Delay analysis window (Diagrams
 
 | Place | Where to find it |
 | --- | --- |
-| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **Export CSV...** button of both windows; the tabs Calls and Summary of the Delay analysis window and the file `delay_analysis.csv` from its **Export CSV...** button |
+| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls and Summary of the Delay analysis window and the file `delay_analysis.csv` from its **CSV...** button |
 | Station statistics | `Stats_Stations.txt` and `Pos&Neg_Stats_Stations.txt` in the `TrainTrajectories` folder of the run output |
-| Baseline comparison | The buttons **Set delay baseline** and **Compare delays** in the Run Results dock, the tab Against baseline of the Delay analysis window and the file `delay_comparison.csv` from its **Export CSV...** button |
+| Baseline comparison | The buttons **Set delay baseline** and **Compare delays** in the Run Results dock, the tab Against baseline of the Delay analysis window and the file `delay_comparison.csv` from its **CSV...** button |
 | Passenger journey delay | `JourneyDelays.txt` in the `PassengerStatus` folder of the run output |
 
 The Timetable graph (Run Results > Open result view > Timetable graph) draws the planned and the simulated times whose difference the timetable results report. It shows no delay figure and is not a fifth place.
@@ -69,7 +69,7 @@ The n-th stop of a train at a station name uses the n-th timetable point of that
 
 | Place and how to open it | Quantity and formula | Reference | Calls counted and denominator | Unavailable values |
 | --- | --- | --- | --- | --- |
-| Timetable results: Diagrams > Timetable; Diagrams > Delays; `timetable.csv` | Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as "+157 s" without decimals, dark red above 60 s, dark brown above 0, dark green otherwise. The chart plots the arrival delay in minutes over journey order. The CSV holds all ten columns | Planned time of the same stop ([units](#units-and-the-reference-timetable)); at an entrance-delayed stop the planned departure is the shifted one | One row per stop of every train; a repeated station gives one row per call. No sum, mean or share is formed (the tab Summary of the Delay analysis window forms them from the same rows, [the window](#the-delay-analysis-window)). **Export CSV...** of both windows writes the rows of the trains selected in the window (suggested name `timetable.csv`), with a provenance file beside the CSV | Unavailable when either side is. The table shows "-", the CSV an empty field, the chart skips the point |
+| Timetable results: Diagrams > Timetable; Diagrams > Delays; `timetable.csv` | Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as "+157 s" without decimals, dark red above 60 s, dark brown above 0, dark green otherwise. The chart plots the arrival delay in minutes over journey order. The CSV holds all ten columns | Planned time of the same stop ([units](#units-and-the-reference-timetable)); at an entrance-delayed stop the planned departure is the shifted one | One row per stop of every train; a repeated station gives one row per call. No sum, mean or share is formed (the tab Summary of the Delay analysis window forms them from the same rows, [the window](#the-delay-analysis-window)). **CSV...** of both windows writes the rows of the trains selected in the window (suggested name `timetable.csv`), with a provenance file beside the CSV | Unavailable when either side is. The table shows "-", the CSV an empty field, the chart skips the point |
 | `Stats_Stations.txt` | Arrival delay per call; early arrivals set to 0 ([rules](#the-station-statistics-files)) | Planned arrival | Every call with a simulated and a planned arrival; the denominator of a station row is its `N_StopTrains` | The call is not counted. A row without a counted call holds -1 |
 | `Pos&Neg_Stats_Stations.txt` | The same with the signed delay, early arrivals negative | Planned arrival | As above | As above, but -1 can also be a real value |
 | Rows `Ent_Del+DwT_Dist`, `Ent_Delays`, `DwT_Dist` of both files | Entrance delay, and entrance delay plus dwell disturbance, of each train in seconds | None (scenario input) | Every train of the run; `N_StopTrains` is the number of trains | -1 when the run has no train |
@@ -80,9 +80,9 @@ An unavailable value in a CSV is an empty field.
 
 ## The Delay analysis window
 
-**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and the two context lines under it name the run and the baseline ("Baseline: none" when there is none). The window explains no column in a paragraph: the headers of the delay columns have the definitions of [Definitions](#definitions) as their tooltips.
+**Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and its header names the run and the delay baseline, such as "Paimpol / incident · delay baseline Paimpol / baseline", or "no delay baseline set". The window explains no column in a paragraph: the headers of the delay columns have the definitions of [Definitions](#definitions) as their tooltips.
 
-Three choices sit above the tabs. **Trains** and **Stations** list what the run has, each with its count, such as "Trains (2/2)"; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls and Summary between arrivals and departures. The choice of trains applies to all three tabs, the choice of stations to Calls, Summary and the call rows of Against baseline, and the choice of events to Calls and Summary only.
+The tabs lie at the left and a panel at the right. The panel starts with three figures of the selected events, the same as the row "All selected stations" of the tab Summary: the sum of the delays ("Sum of delays"), their mean ("Mean"), and the number of early and late events ("Early / late", such as "3 / 1"). The tooltips of the sum and the mean give the number of Available events, and the tooltip of Early / late gives the early, on-time and late counts. A sum or mean without an Available event reads "-". The three choices follow. **Trains** and **Stations** list what the run has, each with its count, such as "Trains (2/2)"; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls, Summary and the figures between arrivals and departures, as in "Events: Arrivals". The choice of trains applies to all three tabs and the figures, the choice of stations to Calls, Summary, the figures and the call rows of Against baseline, and the choice of events to Calls, Summary and the figures only.
 
 ### Calls
 
@@ -140,7 +140,7 @@ When an occurrence has no arrival at its final call in the scenario run, its add
 
 ### Export
 
-**Export CSV...** writes the visible tab, with a provenance file beside it that names the run (for Against baseline, the baseline too). The file is `delay_analysis.csv` for Calls and Summary and `delay_comparison.csv` for Against baseline. All times and differences are seconds. A value that does not exist is an empty field. A tab without a row cannot be exported.
+**CSV...** under Export in the panel writes the visible tab, with a provenance file beside it that names the run (for Against baseline, the baseline too). The file is `delay_analysis.csv` for Calls and Summary and `delay_comparison.csv` for Against baseline. All times and differences are seconds. A value that does not exist is an empty field. A tab without a row cannot be exported.
 
 - Calls holds one record for each row of the table, with the columns Service, Occurrence, Train, Operating code, Station, Journey order, Call, Event, Planned[s], Simulated[s], Delay[s], Class and Status.
 - Summary holds a `station` record for each station and a `network` record, with the counts, the four figures and, for each threshold, the number of later events and its percentage.
@@ -282,7 +282,7 @@ The window does not support:
    | Any | No train in `sf-first` at any level, in `sf-late` at the levels none, 0 and 3, or in `sf-entered-level-none` |
 
    For a run in which no train has evidence, with advanced details on, the Run Results line says "Incidents acted on 0 of n trains" and the tab Against baseline shows "None recorded" for every occurrence. A train that is delayed because the train ahead was held shows its difference and no evidence. This describes the current behaviour of the program and is not a statement about the railway.
-8. The **Export CSV...** button of the Delays chart writes the timetable file for the selected trains, not a delay file.
+8. The **CSV...** button of the Delays chart writes the timetable file for the selected trains, not a delay file.
 9. The passenger journey delay is another quantity: it is measured against a planned arrival drawn from a window, not against the timetable of the train.
 10. None of the committed scenes has an incident or an entrance delay; each has only the baseline scenario, so the baseline comparison cannot be tried on a committed scene.
 11. Nothing in the application attributes a delay to a cause beyond the recorded direct evidence.

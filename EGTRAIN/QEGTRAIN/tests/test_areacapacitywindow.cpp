@@ -5,6 +5,7 @@
 // opens no file chooser.
 
 #include "diagrams/AreaCapacityWindow.h"
+#include "diagrams/ResultFrame.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -13,14 +14,19 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
 #include <QPointer>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QTabBar>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QToolButton>
 
 #include <algorithm>
 #include <initializer_list>
@@ -129,10 +135,21 @@ AreaCapacityWindow makeWindow(const AreaCapacityResult& result) {
 	return AreaCapacityWindow(result, "R / main / @0-B0@ to @7-B0@", lineRun().provenance);
 }
 
-// The result line of the window: the first line of its context, below the window title.
-QString heading(const AreaCapacityWindow& window) {
-	const auto* label = window.findChild<QLabel*>("dialogContext");
-	return label && window.windowTitle() == "Capacity by area" ? label->text().section('\n', 0, 0) : QString();
+// The text of a key figure of the panel: its value and its caption.
+QString figure(const AreaCapacityWindow& window, const char* name) {
+	const auto* shown = window.findChild<ResultFigure*>(name);
+	return shown && window.windowTitle() == "Capacity by area" ? shown->value() + " | " + shown->caption() : QStringLiteral("missing");
+}
+
+// The figures of the cycle of the chain and of its share of the period, which say why they are not available.
+QString cycleFigures(const AreaCapacityWindow& window) {
+	return figure(window, "areaCapacityCycle") + ", " + figure(window, "areaCapacityShare");
+}
+
+// The context of the header.
+QString context(const AreaCapacityWindow& window) {
+	const auto* label = window.findChild<QLabel*>("areaCapacityContext");
+	return label ? label->text() : QString();
 }
 
 QTableWidget* table(const AreaCapacityWindow& window, const char* name) {
@@ -214,7 +231,9 @@ bool exerciseResult() {
 	AreaCapacityWindow partial = makeWindow(analyze(data, lineScope({"F1", "F2"})));
 	partial.show();
 	QApplication::processEvents();
-	bool ok = expect(heading(partial) == "Cycle 471.5 s, 13.1% of period", "the header names the cycle of the chain");
+	bool ok = expect(cycleFigures(partial) == "471.5 s | Cycle, 13.1% | of 1 h" && figure(partial, "areaCapacityGoverning") == "28.7% | Governing: @3-B0@",
+		qPrintable("the panel gives the governing rate, the cycle and its share: " + figure(partial, "areaCapacityGoverning") + ", "
+			+ cycleFigures(partial)));
 	const QTableWidget* resources = table(partial, "areaCapacityResources");
 	ok &= expect(resources && resources->rowCount() == 8, "one row for each resource of the area");
 	const int governing = rowOf(resources, "@3-B0@");
@@ -243,18 +262,16 @@ bool exerciseResult() {
 		"the tabs");
 	const auto* statuses = partial.findChild<QLabel*>("areaCapacityStatuses");
 	ok &= expect(statuses && statuses->text() == "Statuses: Unselected traffic (1)", "the statuses line");
-	const QString context = partial.findChild<QLabel*>("dialogContext") ? partial.findChild<QLabel*>("dialogContext")->text() : QString();
-	ok &= expect(context.contains("Governing resource: @3-B0@ (28.7% of period)")
-			&& context.section('\n', 1, 1) == "Partial traffic: rates count only the checked trains" && context.contains("Run: Case A / Scenario B")
-			&& !context.contains("Traffic:"),
-		"the context names the governing resource, the partial traffic and the run");
+	const auto* partialContext = partial.findChild<QLabel*>("areaCapacityContext");
+	ok &= expect(context(partial) == "Case A / Scenario B \u00b7 R / main / @0-B0@ to @7-B0@ \u00b7 partial traffic" && partialContext
+			&& partialContext->toolTip().contains("Rates count only the checked trains") && !partial.findChild<QLabel*>("dialogContext"),
+		qPrintable("the header names the run, the area and the partial traffic: " + context(partial)));
 
 	// All three trains selected: G runs the other way, so it counts in the rows and not in the chain.
 	AreaCapacityWindow complete = makeWindow(analyze(data, lineScope({"F1", "F2", "G"})));
 	complete.show();
 	QApplication::processEvents();
-	ok &= expect(heading(complete) == "Cycle 471.5 s, 13.1% of period"
-			&& !complete.findChild<QLabel*>("dialogContext")->text().contains("Partial traffic"),
+	ok &= expect(cycleFigures(complete) == "471.5 s | Cycle, 13.1% | of 1 h" && context(complete) == "Case A / Scenario B \u00b7 R / main / @0-B0@ to @7-B0@",
 		"the header of complete traffic, which says nothing about the traffic");
 	const QTableWidget* completeResources = table(complete, "areaCapacityResources");
 	const int sixth = rowOf(completeResources, "@6-B0@");
@@ -293,7 +310,9 @@ bool exerciseStatuses() {
 	AreaCapacityWindow window = makeWindow(result);
 	window.show();
 	QApplication::processEvents();
-	bool ok = expect(heading(window) == "Chain cannot be analysed", "the header without a chain");
+	bool ok = expect(cycleFigures(window) == "- | Chain cannot be analysed, - | No valid period"
+			&& figure(window, "areaCapacityGoverning") == "- | No governing resource",
+		qPrintable("the figures without a chain: " + cycleFigures(window)));
 	const QTableWidget* notes = table(window, "areaCapacityNotes");
 	ok &= expect(notes && notes->rowCount() == 12 && tabTitle(window, 3) == "Notes (12)", "a row for every note");
 	const auto* statuses = window.findChild<QLabel*>("areaCapacityStatuses");
@@ -307,6 +326,118 @@ bool exerciseStatuses() {
 	ok &= expect(excluded && excluded->rowCount() == 4, "four statuses concern traffic that the figures leave out");
 	const auto* exportButton = window.findChild<QPushButton*>("areaCapacityExport");
 	ok &= expect(exportButton && !exportButton->isEnabled() && !exportButton->autoDefault(), "nothing to export without a resource row");
+	return ok;
+}
+
+void pressTab(QWidget* widget) {
+	QKeyEvent press(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+	QKeyEvent release(QEvent::KeyRelease, Qt::Key_Tab, Qt::NoModifier);
+	QApplication::sendEvent(widget, &press);
+	QApplication::sendEvent(widget, &release);
+}
+
+// The panel holds the figures and the export. The statuses lie above the tabs with the look of a warning, the tables
+// scroll sideways beside a panel of 200 px, and Tab goes through the header, the tabs and the panel.
+bool exercisePanel() {
+	const CompletedRunData data = lineRun();
+	AreaCapacityWindow window = makeWindow(analyze(data, lineScope({"F1", "F2"})));
+	window.show();
+	QApplication::processEvents();
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	auto* statuses = window.findChild<QLabel*>("areaCapacityStatuses");
+	auto* tabs = window.findChild<QTabWidget*>("areaCapacityTabs");
+	auto* exportButton = window.findChild<QPushButton*>("areaCapacityExport");
+	if (!expect(panel && statuses && tabs && exportButton, "the window has a panel, statuses, tabs and an export"))
+		return false;
+	bool inPanel = panel->isAncestorOf(exportButton);
+	for (const char* name : {"areaCapacityGoverning", "areaCapacityCycle", "areaCapacityShare"})
+		inPanel = inPanel && window.findChild<ResultFigure*>(name) && panel->isAncestorOf(window.findChild<ResultFigure*>(name));
+	bool ok = expect(inPanel && !panel->isAncestorOf(tabs), "the figures and the export lie in the panel, beside the tabs");
+	ok &= expect(exportButton->text() == "CSV..." && exportButton->accessibleName() == "Export CSV", "the export reads CSV...");
+	QStringList headings;
+	for (const QLabel* label : panel->findChildren<QLabel*>())
+		if (label->property("resultSectionHeading").toBool() && label->isVisible())
+			headings << label->text();
+	ok &= expect(headings == QStringList({"Export"}), qPrintable("only the export has a heading: " + headings.join(", ")));
+	ok &= expect(statuses->isVisible() && statuses->property("dialogStatus").toString() == "warning" && !panel->isAncestorOf(statuses)
+			&& statuses->mapTo(&window, QPoint(0, statuses->height())).y() <= tabs->mapTo(&window, QPoint()).y(),
+		"the statuses keep the look of a warning above the tabs");
+
+	const QTableWidget* resources = table(window, "areaCapacityResources");
+	int columns = 0;
+	for (int column = 0; column < resources->columnCount(); ++column)
+		columns += resources->columnWidth(column);
+	ok &= expect(window.width() <= 960 && panel->width() == 200 && columns > resources->viewport()->width()
+			&& resources->horizontalScrollBar()->maximum() > 0,
+		qPrintable(QString("a panel of 200 px and a resources table that scrolls sideways: window %1, panel %2, columns %3 in %4")
+				.arg(window.width())
+				.arg(panel->width())
+				.arg(columns)
+				.arg(resources->viewport()->width())));
+	window.findChild<QToolButton*>("areaCapacityPanelToggle")->setFocus(Qt::TabFocusReason);
+	QStringList order;
+	for (int step = 0; step < 3 && QApplication::focusWidget(); ++step) {
+		QWidget* focused = QApplication::focusWidget();
+		order << (qobject_cast<QTabBar*>(focused) ? QStringLiteral("tabs") : focused->objectName());
+		pressTab(focused);
+	}
+	ok &= expect(order == QStringList({"areaCapacityPanelToggle", "tabs", "areaCapacityResources"}),
+		qPrintable("Tab goes from the header to the tabs and their table: " + order.join(", ")));
+	exportButton->setFocus(Qt::TabFocusReason);
+	pressTab(exportButton);
+	ok &= expect(QApplication::focusWidget() != exportButton && !panel->isAncestorOf(QApplication::focusWidget()),
+		"Tab leaves the export, the last control of the panel");
+	return ok;
+}
+
+// Under the style sheet of the application the wrapped statuses and the tall Chain tab do not squeeze the header to its
+// smallest height.
+bool exerciseHeader() {
+	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
+	if (!expect(stylesheet.open(QIODevice::ReadOnly), "the style sheet opens"))
+		return false;
+	qApp->setStyleSheet(QString::fromUtf8(stylesheet.readAll()));
+	bool ok = true;
+	{
+		const CompletedRunData data = lineRun();
+		AreaCapacityWindow window = makeWindow(analyze(data, lineScope({"F1", "F2"})));
+		window.show();
+		QApplication::processEvents();
+		const auto* header = window.findChild<QWidget*>("resultHeader");
+		ok = expect(header && header->height() == header->sizeHint().height(),
+			qPrintable(QString("the header keeps its height above the statuses: %1 of %2")
+					.arg(header ? header->height() : -1)
+					.arg(header ? header->sizeHint().height() : -1)));
+	}
+	qApp->setStyleSheet(QString());
+	return ok;
+}
+
+// At 1.5 times the font in a short window the body of the dialog scrolls to the panel, which keeps its figures whole, and
+// Close stays below the body.
+bool exerciseLargeFont() {
+	const QFont original = QApplication::font();
+	QFont font = original;
+	font.setPointSizeF(font.pointSizeF() * 1.5);
+	QApplication::setFont(font);
+	bool ok = true;
+	{
+		AreaCapacityWindow window = makeWindow(analyze(lineRun(), lineScope({"F1", "F2"})));
+		window.show();
+		window.resize(window.width(), 220);
+		QApplication::processEvents();
+		auto* scroll = window.findChild<QScrollArea*>("dialogBodyScroll");
+		auto* panel = window.findChild<QWidget*>("resultPanel");
+		auto* close = window.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
+		ok = expect(scroll && panel && close && scroll->verticalScrollBar()->maximum() > 0
+				&& panel->height() >= panel->minimumSizeHint().height() && close->isVisible()
+				&& close->mapTo(&window, QPoint(0, close->height())).y() <= window.height(),
+			qPrintable(QString("the body scrolls to the whole panel and Close stays in the window: range %1, panel %2 of %3")
+					.arg(scroll ? scroll->verticalScrollBar()->maximum() : -1)
+					.arg(panel ? panel->height() : -1)
+					.arg(panel ? panel->minimumSizeHint().height() : -1)));
+	}
+	QApplication::setFont(original);
 	return ok;
 }
 
@@ -460,7 +591,7 @@ bool exerciseEdgeCases() {
 	AreaCapacityWindow empty = makeWindow(analyze(data, noArea));
 	const auto* emptyStatuses = empty.findChild<QLabel*>("areaCapacityStatuses");
 	const auto* emptyExport = empty.findChild<QPushButton*>("areaCapacityExport");
-	bool ok = expect(heading(empty) == "Chain cannot be analysed" && table(empty, "areaCapacityResources")->rowCount() == 0
+	bool ok = expect(figure(empty, "areaCapacityCycle") == "- | Chain cannot be analysed" && table(empty, "areaCapacityResources")->rowCount() == 0
 			&& emptyStatuses && emptyStatuses->text() == "Statuses: Empty scope (1)" && emptyExport && !emptyExport->isEnabled(),
 		"an area without a resource is reported");
 
@@ -471,7 +602,7 @@ bool exerciseEdgeCases() {
 	AreaCapacityWindow window = makeWindow(noPeriod);
 	window.show();
 	QApplication::processEvents();
-	ok &= expect(heading(window) == "Cycle 471.5 s, no valid period", "the header of a period of zero");
+	ok &= expect(cycleFigures(window) == "471.5 s | Cycle, - | No valid period", qPrintable("the figures of a period of zero: " + cycleFigures(window)));
 	const auto* summary = window.findChild<QLabel*>("areaCapacityChainSummary");
 	ok &= expect(summary && summary->text().startsWith("Cycle 471.5 s, no valid period, from F1 to ")
 			&& summary->toolTip().startsWith("F1: planned departure at A"),
@@ -480,9 +611,9 @@ bool exerciseEdgeCases() {
 	const int governing = rowOf(resources, "@3-B0@");
 	ok &= expect(governing >= 0 && cell(resources, governing, 1) == "-" && cell(resources, governing, 2) == "governing resource",
 		"the rate of a period of zero is not available");
-	const QString context = window.findChild<QLabel*>("dialogContext") ? window.findChild<QLabel*>("dialogContext")->text() : QString();
+	const auto* governingFigure = window.findChild<ResultFigure*>("areaCapacityGoverning");
 	const auto* statuses = window.findChild<QLabel*>("areaCapacityStatuses");
-	ok &= expect(context.contains("Governing resource: @3-B0@ (no valid period)") && statuses
+	ok &= expect(figure(window, "areaCapacityGoverning") == "- | Governing: @3-B0@" && governingFigure->toolTip().contains("No valid period") && statuses
 			&& statuses->text() == "Statuses: Invalid period (1), Opposing train (1)",
 		"the governing resource and the statuses of a period of zero");
 	const std::string csvText = areaCapacityCsv(noPeriod, "area");
@@ -495,7 +626,7 @@ bool exerciseEdgeCases() {
 	opposing.cycleEndOccurrenceId = "G";
 	AreaCapacityWindow other = makeWindow(analyze(data, opposing));
 	const auto* otherSummary = other.findChild<QLabel*>("areaCapacityChainSummary");
-	ok &= expect(heading(other) == "No cycle-closing train" && otherSummary && otherSummary->text() == "No cycle-closing train was chosen."
+	ok &= expect(figure(other, "areaCapacityCycle") == "- | No cycle-closing train" && otherSummary && otherSummary->text() == "No cycle-closing train was chosen."
 			&& rowOf(table(other, "areaCapacityExcluded"), "Opposing train") == 0,
 		"an opposing cycle-closing train is left out of the chain and listed as opposing");
 
@@ -531,7 +662,7 @@ bool exerciseOpen() {
 	QPointer<AreaCapacityWindow> window = openAreaCapacityWindow(nullptr, data);
 	ok &= expect(window && window->isVisible() && !window->isModal() && window->testAttribute(Qt::WA_DeleteOnClose),
 		"the options open a window that is not modal and deletes itself");
-	ok &= expect(window && heading(*window) == "No cycle-closing train", "the window shows the chosen scope");
+	ok &= expect(window && figure(*window, "areaCapacityCycle") == "- | No cycle-closing train", "the window shows the chosen scope");
 	if (window)
 		window->close();
 	QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
@@ -569,10 +700,18 @@ bool exerciseLabels() {
 	const AreaCapacityScope one = lineScope({"F1", "F2"});
 	AreaCapacityWindow window(analyze(data, one), areaCapacityLabel(data, one), data.provenance, nullptr, areaCapacityText(data, one),
 		data.sectionLabels);
-	const QString context = window.findChild<QLabel*>("dialogContext") ? window.findChild<QLabel*>("dialogContext")->text() : QString();
-	ok &= expect(context.contains("Area: R (main), blocks 1 to 8\n")
-			&& context.contains("Governing resource: B0 0.690 to 0.920 km (28.7% of period)"),
-		"the context names the area by its block numbers and the governing resource by its label");
+	ok &= expect(context(window) == "Case A / Scenario B \u00b7 R (main), blocks 1 to 8 \u00b7 partial traffic"
+			&& figure(window, "areaCapacityGoverning") == "28.7% | Governing: B0 0.690 to 0.920 km",
+		"the header names the area by its block numbers and the panel the governing resource by its label");
+	// Tied governing resources are all named, with semicolons between their labels, since a label can hold a comma.
+	AreaCapacityResult tied = analyze(data, one);
+	for (AreaCapacityResource& resource : tied.resources)
+		resource.governing = resource.resourceId == "@3-B0@" || resource.resourceId == "@4-B0@";
+	const AreaCapacityWindow tiedWindow(tied, areaCapacityLabel(data, one), data.provenance, nullptr, areaCapacityText(data, one),
+		data.sectionLabels);
+	const QString tiedCaption = "Governing: " + QString::fromStdString(data.sectionLabels.label("@3-B0@") + "; " + data.sectionLabels.label("@4-B0@"));
+	ok &= expect(tiedWindow.findChild<ResultFigure*>("areaCapacityGoverning")->caption() == tiedCaption,
+		qPrintable("two governing resources: " + figure(tiedWindow, "areaCapacityGoverning")));
 	const QTableWidget* resources = table(window, "areaCapacityResources");
 	const int governing = rowOf(resources, "@3-B0@");
 	ok &= expect(governing >= 0 && resources->item(governing, 0)->toolTip() == "B0 0.690 to 0.920 km",
@@ -618,6 +757,9 @@ int main(int argc, char** argv) {
 	bool ok = exerciseInput();
 	ok &= exerciseResult();
 	ok &= exerciseStatuses();
+	ok &= exercisePanel();
+	ok &= exerciseHeader();
+	ok &= exerciseLargeFont();
 	ok &= exerciseExport();
 	ok &= exerciseDialog();
 	ok &= exerciseEdgeCases();

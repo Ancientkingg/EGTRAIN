@@ -50,7 +50,7 @@ Run 1 alone at 100 % performance.
 1. On **Run occurrences**, click **Select None**, then tick **Run** in the first row, operating code `IC_ASD_HVS_DEMO-1`. The text above the table reads "1 of 4 selected". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
 2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Trains**, **Start time** and **Duration**; **Run details** shows more. Check that **Trains** is 1, then click **Run simulation**.
 3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the lines at its top include "Status: Completed".
-4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **Export CSV...** in that window and save `baseline-timetable.csv` in your own folder. Close the window.
+4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **CSV...** in the panel of that window and save `baseline-timetable.csv` in your own folder. Close the window.
 5. Choose **Open result view...** > **Speed / distance**, click **PNG...** in the panel of that window and save `baseline-speed-distance.png`. Close the window.
 6. Click **Export CSV...** in the dock and save `baseline-run-summary.csv`. The two export buttons of the dock write the summary table only; every result window has its own CSV and PNG exports.
 
@@ -89,7 +89,7 @@ Explain whether the changed delay comes from faster movement, a changed target o
 1. On **Run occurrences**, click **Select All**. The text reads "4 of 4 selected". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
 2. Run as in steps 2 and 3 of task 2. **Trains** in **Run simulation** is 4.
 3. Open **Timetable**. Its train filter button reads `Trains (4/4)` while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
-4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
+4. Click **CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
 Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (h:mm:ss)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.
 

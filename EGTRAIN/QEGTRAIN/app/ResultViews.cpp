@@ -10,6 +10,7 @@
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
+#include "diagrams/CapacityWindow.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/PositionScale.h"
@@ -19,25 +20,14 @@
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/TrainColors.h"
-#include "util/CsvWriter.h"
 #include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
-#include "widgets/DialogLayout.h"
-#include <QApplication>
 #include <QDialog>
-#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
-#include <QTabWidget>
-#include <QTableWidget>
-#include <QToolButton>
-#include <QVBoxLayout>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChart>
@@ -718,134 +708,13 @@ void ResultViews::showCapacityAnalysis() {
 	}
 
 	const RunProvenance provenance = run->provenance;
-	QDialog* dialog = new QDialog(m_window);
+	const QString sectionTip = capacityScopeBlocksText(*run, scope);
+	// The header names the run and the section; the window title names the view.
+	auto* dialog = new CapacityWindow(result, completedRunContext(provenance) + QStringLiteral(" \u00b7 ") + sectionText, sectionTip,
+		run->sectionLabels, m_window);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setWindowTitle(ResultViewName::kCapacity);
-	dialog->setProperty("manualSection", QStringLiteral("capacity"));
-	dialog->setModal(false);
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-	// "Reference time: planned departure at Guingamp" for the tooltip of a cell that names a train; empty without one.
-	const auto referenceTip = [&result](const std::string& identity) {
-		const QString reference = capacityReferenceOf(result, identity);
-		return reference.isEmpty() ? QString() : "Reference time: " + reference;
-	};
-	auto* detailsToggle = new QToolButton(body);
-	detailsToggle->setObjectName("capacityDetailsToggle");
-	detailsToggle->setText("Calculation details");
-	detailsToggle->setCheckable(true);
-	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	detailsToggle->setArrowType(Qt::RightArrow);
-	// The text size of the dialog; macOS gives a tool button a smaller font.
-	detailsToggle->setFont(QApplication::font());
-	auto* details = new QLabel(capacityDetailsText(result), body);
-	details->setObjectName("resultContextText");
-	QStringList references;
-	for (const std::string& identity : {result.firstIdentity, result.cycleEndIdentity})
-		if (const QString reference = capacityReferenceOf(result, identity); !reference.isEmpty())
-			references << QString::fromStdString(identity) + ": " + reference;
-	details->setToolTip(references.join('\n'));
-	details->setTextFormat(Qt::PlainText);
-	details->setWordWrap(true);
-	details->setMinimumWidth(0);
-	details->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	details->hide();
-	connect(detailsToggle, &QToolButton::toggled, dialog, [detailsToggle, details](bool shown) {
-		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
-		details->setVisible(shown);
-	});
-	layout->addWidget(detailsToggle);
-	layout->addWidget(details);
-
-	auto* tabs = new QTabWidget(body);
-	const auto addTable = [tabs](const QStringList& headers, int rows) {
-		auto* table = new QTableWidget(rows, headers.size(), tabs);
-		table->setHorizontalHeaderLabels(headers);
-		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		table->setSelectionBehavior(QAbstractItemView::SelectRows);
-		table->setAlternatingRowColors(true);
-		// Tab leaves the table for the buttons below it; the arrow keys move between the cells.
-		table->setTabKeyNavigation(false);
-		table->horizontalHeader()->setStretchLastSection(true);
-		tabs->addTab(table, QString());
-		return table;
-	};
-	// Numbers are aligned to the right, as in the other analysis tables. A cell that names blocks by their ids has
-	// their labels as its tooltip.
-	const auto cell = [](const QString& text, bool number, const QString& tooltip = QString()) {
-		auto* item = new QTableWidgetItem(text);
-		if (number)
-			item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-		if (!tooltip.isEmpty())
-			item->setToolTip(tooltip);
-		return item;
-	};
-	const SceneSectionLabels& labels = run->sectionLabels;
-	// A tab title with its count, which it leaves out when it is 0.
-	const auto countedTitle = [](const QString& title, int count) {
-		return count == 0 ? title : QString("%1 (%2)").arg(title).arg(count);
-	};
-	auto* pairTable = addTable({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway (s)",
-								   "Minimum headway (s)", "Buffer (s)", "Governing block"},
-		static_cast<int>(result.pairs.size()));
-	for (int row = 0; row < pairTable->rowCount(); ++row) {
-		const CapacityPairRow& pair = result.pairs[static_cast<std::size_t>(row)];
-		const QStringList values = {QString::fromStdString(pair.leaderIdentity), QString::fromStdString(pair.followerIdentity),
-			QString::fromStdString(pair.leaderOperatingCode), QString::fromStdString(pair.followerOperatingCode),
-			QString::fromStdString(csv::formatDouble(pair.scheduledHeadway)), QString::fromStdString(csv::formatDouble(pair.minimumHeadway)),
-			QString::fromStdString(csv::formatDouble(pair.buffer)), QString::fromStdString(capacityEvidenceBlocks(pair.governingEvidence))};
-		const QStringList tips = {referenceTip(pair.leaderIdentity), referenceTip(pair.followerIdentity), QString(), QString(), QString(),
-			QString(), QString(), QString::fromStdString(capacityEvidenceText(pair.governingEvidence, &labels))};
-		for (int column = 0; column < values.size(); ++column)
-			pairTable->setItem(row, column, cell(values[column], column >= 4 && column <= 6, tips[column]));
-	}
-	tabs->setTabText(0, countedTitle("Pairs", pairTable->rowCount()));
-
-	auto* compressionTable = addTable({"Train", "Operating code", "Original reference (s)", "Scheduled reference (s)",
-										  "Compressed reference (s)", "Shift (s)", "Governing predecessor"},
-		static_cast<int>(result.compression.size()));
-	for (int row = 0; row < compressionTable->rowCount(); ++row) {
-		const CapacityCompressionRow& compressed = result.compression[static_cast<std::size_t>(row)];
-		QStringList governing;
-		QStringList governingTips;
-		for (const CapacityCompressionEvidence& predecessor : compressed.governingPredecessors) {
-			const QString start = QString("%1 (%2 s)").arg(QString::fromStdString(predecessor.predecessorIdentity), QString::fromStdString(csv::formatDouble(predecessor.minimumHeadway)));
-			governing << start + ": " + QString::fromStdString(capacityEvidenceBlocks(predecessor.governingEvidence));
-			governingTips << start + "\n" + QString::fromStdString(capacityEvidenceText(predecessor.governingEvidence, &labels));
-		}
-		const QStringList values = {QString::fromStdString(compressed.identity), QString::fromStdString(compressed.operatingCode),
-			QString::fromStdString(csv::formatDouble(compressed.originalReference)),
-			QString::fromStdString(csv::formatDouble(compressed.scheduledReference)),
-			QString::fromStdString(csv::formatDouble(compressed.compressedReference)),
-			QString::fromStdString(csv::formatDouble(compressed.shift)), governing.join(", ")};
-		const QStringList tips = {referenceTip(compressed.identity), QString(), QString(), QString(), QString(), QString(), governingTips.join('\n')};
-		for (int column = 0; column < values.size(); ++column)
-			compressionTable->setItem(row, column, cell(values[column], column >= 2 && column <= 5, tips[column]));
-	}
-	tabs->setTabText(1, countedTitle("Compression", compressionTable->rowCount()));
-
-	auto* criticalTable = addTable({"Leader", "Follower", "Leader block", "Follower block", "Gap (s)"},
-		static_cast<int>(result.criticalBlocks.size()));
-	for (int row = 0; row < criticalTable->rowCount(); ++row) {
-		const CapacityCriticalBlock& critical = result.criticalBlocks[static_cast<std::size_t>(row)];
-		const QStringList values = {QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
-			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId),
-			QString::fromStdString(csv::formatDouble(critical.gap))};
-		const QStringList tips = {QString(), QString(), QString::fromStdString(labels.label(critical.leaderBlockId)),
-			QString::fromStdString(labels.label(critical.followerBlockId)), QString()};
-		for (int column = 0; column < values.size(); ++column)
-			criticalTable->setItem(row, column, cell(values[column], column == 4, tips[column]));
-	}
-	tabs->setTabText(2, countedTitle("Critical blocks", criticalTable->rowCount()));
-	for (int index = 0; index < tabs->count(); ++index)
-		qobject_cast<QTableWidget*>(tabs->widget(index))->resizeColumnsToContents();
-	layout->addWidget(tabs, 1);
-
-	auto* secondaryActions = new QHBoxLayout();
-	QPushButton* exportButton = new QPushButton("Export CSV...", body);
 	// The file dialog and its messages belong to the Capacity window, so the focus returns to it.
-	connect(exportButton, &QPushButton::clicked, dialog, [this, dialog, result, sectionLabel, provenance]() {
+	connect(dialog->exportButton(), &QPushButton::clicked, dialog, [this, dialog, result, sectionLabel, provenance]() {
 		const auto operation = m_host.captureTelemetryOperation();
 		saveCsvInteractive(
 			dialog, "capacity_analysis.csv", operation,
@@ -854,9 +723,7 @@ void ResultViews::showCapacityAnalysis() {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
-	QPushButton* diagramButton = new QPushButton("Open Compressed Blocking Time", body);
-	const QString sectionTip = capacityScopeBlocksText(*run, scope);
-	connect(diagramButton, &QPushButton::clicked, dialog, [this, run, scope, result, sectionText, sectionTip]() {
+	connect(dialog->diagramButton(), &QPushButton::clicked, dialog, [this, run, scope, result, sectionText, sectionTip]() {
 		const std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
 		if (!diagram)
 			return;
@@ -865,37 +732,6 @@ void ResultViews::showCapacityAnalysis() {
 				.arg(sectionText, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity)),
 			sectionTip);
 	});
-	secondaryActions->addWidget(exportButton);
-	secondaryActions->addWidget(diagramButton);
-	secondaryActions->addStretch();
-	layout->addLayout(secondaryActions);
-	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
-	connect(closeButtons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
-	// The window title names the view; the result leads the context.
-	DialogLayout::install(*dialog, ResultViewName::kCapacity,
-		QString("Cycle %1 s, %2% of the %3 s period\nSection: %4\nRun: %5")
-			.arg(QString::number(result.cycleTime, 'f', 1), QString::number(result.cyclePercentage, 'f', 1),
-				QString::fromStdString(csv::formatDouble(result.periodSeconds)), sectionText, completedRunContext(provenance)),
-		body, closeButtons);
-	if (auto* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext")))
-		context->setToolTip(sectionTip);
-	// Room for the tables, as Capacity by area has, and for every column of the widest one, up to the width limit:
-	// while the window is fitted, each table asks for the size of all its cells, and the widgets above it measure again.
-	const auto askForCells = [tabs](bool cells) {
-		for (QTableWidget* table : tabs->findChildren<QTableWidget*>()) {
-			table->setSizeAdjustPolicy(cells ? QAbstractScrollArea::AdjustToContents : QAbstractScrollArea::AdjustIgnored);
-			for (QWidget* widget = table; widget && !widget->isWindow(); widget = widget->parentWidget())
-				widget->updateGeometry();
-		}
-	};
-	askForCells(true);
-	dialog->resize(qMin(dialog->maximumWidth(), 960), qMin(dialog->maximumHeight(), 640));
-	DialogLayout::fitWidthToContent(*dialog);
-	askForCells(false);
-	dialog->resize(dialog->width(), qMin(dialog->maximumHeight(), 640));
-	// No button of the window is a default button, so Return presses none.
-	for (QPushButton* button : dialog->findChildren<QPushButton*>())
-		button->setAutoDefault(false);
 	showWindow(dialog);
 }
 

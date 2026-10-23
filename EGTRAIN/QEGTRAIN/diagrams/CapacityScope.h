@@ -58,9 +58,8 @@ QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnal
 QString capacityReferenceText(const std::string& source, const std::string& label);
 /// capacityReferenceText for the train `identity` of the result; empty when the result does not have it.
 QString capacityReferenceOf(const CapacityAnalysisResult& result, const std::string& identity);
-/// The Calculation details of the Capacity window: "Cycle time 155.5 s / period 3600 s × 100 = 4.3%" and on a second
-/// line "From <first train> to <cycle-closing train>". The percentage has one decimal, as the context line has it.
-QString capacityDetailsText(const CapacityAnalysisResult& result);
+/// An analysis period as the capacity windows name it: "1 h" for whole hours, "30 min" for whole minutes, else "90.5 s".
+QString capacityPeriodText(double periodSeconds);
 
 /// Asks for a route, a period, the occurrences to analyse in order, the occurrence that closes the cycle and one of the
 /// sections that capacityStretchesFrom gives for the checked occurrences. The longest section is selected; after a

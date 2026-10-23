@@ -869,7 +869,7 @@ class Rehearsal:
         opened = []
         self.choose("Timetable", modal=True)
         timetable = self.wait_window(pattern=r"^Timetable")
-        table = wait_until(lambda: find_first(timetable, "table", max_depth=4, showing=True), UI_TIMEOUT_SECONDS,
+        table = wait_until(lambda: find_first(timetable, "table", showing=True), UI_TIMEOUT_SECONDS,
                            "the timetable table")
         headers, cells = table_texts(table)
         problems = timetable_problems(headers, cells)

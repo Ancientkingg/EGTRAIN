@@ -1078,15 +1078,10 @@ void testCapacityOrder() {
 	check(capacityScopeTextFrom(data, scope) == "r (north), block 1" && capacityScopeBlocksText(data, scope) == "Block 1: B",
 		"the window names a scope by its route, corridor and block number");
 	scope.sectionIndices.clear();
-	// The Calculation details round the percentage as the context line does.
-	CapacityAnalysisResult cycle;
-	cycle.cycleTime = 155.5;
-	cycle.periodSeconds = 3600.0;
-	cycle.cyclePercentage = cycle.cycleTime / cycle.periodSeconds * 100.0;
-	cycle.firstIdentity = "a";
-	cycle.cycleEndIdentity = "b";
-	check(capacityDetailsText(cycle) == QString("Cycle time 155.5 s / period 3600 s × 100 = 4.3%\nFrom a to b"),
-		"the calculation details give the percentage with one decimal");
+	// The capacity windows name a period in hours or minutes when it has whole ones.
+	check(capacityPeriodText(3600.0) == "1 h" && capacityPeriodText(7200.0) == "2 h" && capacityPeriodText(1800.0) == "30 min"
+			&& capacityPeriodText(5400.0) == "90 min" && capacityPeriodText(90.5) == "90.5 s",
+		"the period in hours, minutes or seconds");
 	scope.routeIndex = 7;
 	check(capacityScopeLabelFrom(data, scope).toStdString() == "no selected route" && capacityScopeIssueFrom(data, scope).empty(), "a route that does not exist");
 

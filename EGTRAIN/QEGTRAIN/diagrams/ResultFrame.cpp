@@ -1,10 +1,15 @@
 #include "diagrams/ResultFrame.h"
 
+#include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/PlainToolTip.h"
 
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QEvent>
 #include <QFile>
+#include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -20,6 +25,8 @@ namespace {
 constexpr int kPanelWidth = 260;
 constexpr int kNarrowPanelWidth = 200;
 constexpr int kNarrowWindow = 1000;
+// The value of a key figure is this much larger than the text of the panel.
+constexpr qreal kFigureScale = 1.45;
 } // namespace
 
 ResultPanel::ResultPanel(QWidget* parent)
@@ -29,13 +36,13 @@ ResultPanel::ResultPanel(QWidget* parent)
 	scroll->setObjectName("resultPanelScroll");
 	// The sections take the keyboard focus themselves; the area around them is not a stop of its own.
 	scroll->setFocusPolicy(Qt::NoFocus);
-	auto* body = new QWidget(scroll);
-	body->setObjectName("resultPanelBody");
-	m_column = new QVBoxLayout(body);
+	m_body = new QWidget(scroll);
+	m_body->setObjectName("resultPanelBody");
+	m_column = new QVBoxLayout(m_body);
 	m_column->setContentsMargins(16, 12, 16, 12);
 	m_column->setSpacing(12);
 	m_column->addStretch(1);
-	scroll->setWidget(body);
+	scroll->setWidget(m_body);
 
 	m_readout = new QLabel(this);
 	m_readout->setObjectName("resultReadout");
@@ -59,14 +66,16 @@ QWidget* ResultPanel::addSection(const QString& title, QWidget* content, QWidget
 	auto* layout = new QVBoxLayout(section);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(6);
-	auto* headingRow = new QHBoxLayout();
-	headingRow->setSpacing(8);
-	QLabel* heading = EditorLayout::sectionHeading(title, section);
-	heading->setProperty("resultSectionHeading", true);
-	headingRow->addWidget(heading, 1);
-	if (headingWidget)
-		headingRow->addWidget(headingWidget, 0, Qt::AlignRight | Qt::AlignVCenter);
-	layout->addLayout(headingRow);
+	if (!title.isEmpty() || headingWidget) {
+		auto* headingRow = new QHBoxLayout();
+		headingRow->setSpacing(8);
+		QLabel* heading = EditorLayout::sectionHeading(title, section);
+		heading->setProperty("resultSectionHeading", true);
+		headingRow->addWidget(heading, 1);
+		if (headingWidget)
+			headingRow->addWidget(headingWidget, 0, Qt::AlignRight | Qt::AlignVCenter);
+		layout->addLayout(headingRow);
+	}
 	layout->addWidget(content);
 	// Before the stretch that keeps the sections at the top.
 	m_column->insertWidget(m_column->count() - 1, rule);
@@ -81,6 +90,26 @@ void ResultPanel::setSectionVisible(QWidget* section, bool visible) {
 	updateRules();
 }
 
+void ResultPanel::keepSectionsWhole() {
+	m_sectionsWhole = true;
+	m_body->installEventFilter(this);
+	updateGeometry();
+}
+
+QSize ResultPanel::minimumSizeHint() const {
+	QSize hint = QWidget::minimumSizeHint();
+	if (m_sectionsWhole)
+		hint.setHeight(std::max(hint.height(), m_body->sizeHint().height() + (m_readout->isHidden() ? 0 : m_readout->sizeHint().height())));
+	return hint;
+}
+
+bool ResultPanel::eventFilter(QObject* watched, QEvent* event) {
+	// The scroll area keeps a change of the height of the sections to itself, so the panel passes it on to its layout.
+	if (watched == m_body && event->type() == QEvent::LayoutRequest)
+		updateGeometry();
+	return QWidget::eventFilter(watched, event);
+}
+
 // A rule lies above each shown section that follows another shown section.
 void ResultPanel::updateRules() {
 	bool above = false;
@@ -91,6 +120,55 @@ void ResultPanel::updateRules() {
 	}
 }
 
+ResultFigure::ResultFigure(const QString& name, QWidget* parent)
+	: QWidget(parent) {
+	setObjectName(name);
+	auto* value = new ElidedLabel(this);
+	value->setObjectName("resultFigureValue");
+	m_value = value;
+	auto* caption = new ElidedLabel(this);
+	caption->setObjectName("resultFigureCaption");
+	m_caption = caption;
+	auto* layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(0);
+	layout->addWidget(m_value);
+	layout->addWidget(m_caption);
+	scaleValue();
+}
+
+void ResultFigure::setFigure(const QString& value, const QString& caption, const QString& toolTip) {
+	m_value->setText(value);
+	m_caption->setText(caption);
+	const QString whole = value + ' ' + caption;
+	setToolTip(plainToolTip(toolTip.isEmpty() ? whole : whole + '\n' + toolTip));
+}
+
+QString ResultFigure::value() const {
+	return m_value->text();
+}
+
+QString ResultFigure::caption() const {
+	return m_caption->text();
+}
+
+void ResultFigure::changeEvent(QEvent* event) {
+	QWidget::changeEvent(event);
+	if (event->type() == QEvent::FontChange)
+		scaleValue();
+}
+
+// The value is set in a semibold font larger than the font of the figure.
+void ResultFigure::scaleValue() {
+	QFont font = this->font();
+	if (font.pointSizeF() > 0)
+		font.setPointSizeF(font.pointSizeF() * kFigureScale);
+	else
+		font.setPixelSize(qRound(font.pixelSize() * kFigureScale));
+	font.setWeight(QFont::DemiBold);
+	m_value->setFont(font);
+}
+
 ResultFrame::ResultFrame(QWidget* main, const QString& name, QWidget* parent)
 	: QWidget(parent) {
 	m_header = new QFrame(this);
@@ -99,6 +177,9 @@ ResultFrame::ResultFrame(QWidget* main, const QString& name, QWidget* parent)
 	// With the rule below it, the header is 40 px tall around buttons of 26 px.
 	m_headerLayout->setContentsMargins(16, 7, 12, 6);
 	m_headerLayout->setSpacing(4);
+	// The header keeps that height also above a main widget whose height depends on its width, such as one with a
+	// wrapped status line, which would otherwise squeeze the header to its smallest height.
+	m_header->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto* context = new ElidedLabel(m_header);
 	context->setObjectName(name + "Context");
 	context->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -175,6 +256,16 @@ void ResultFrame::addAboveMain(QWidget* widget) {
 	m_mainColumn->insertWidget(m_mainColumn->count() - 1, widget);
 }
 
+void ResultFrame::installInDialog(QDialog& dialog, const QString& heading, QDialogButtonBox* buttons) {
+	m_panel->keepSectionsWhole();
+	DialogLayout::install(dialog, heading, QString(), this, buttons);
+	QLayout* layout = dialog.layout();
+	const QMargins margins = layout->contentsMargins();
+	buttons->setContentsMargins(margins.left(), layout->spacing(), margins.right(), margins.bottom());
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(0);
+}
+
 void ResultFrame::resizeEvent(QResizeEvent* event) {
 	QWidget::resizeEvent(event);
 	fitPanel();
@@ -192,4 +283,15 @@ void ResultFrame::fitPanel() {
 	const int panel = window()->width() < kNarrowWindow ? kNarrowPanelWidth : kPanelWidth;
 	const int main = std::max(1, m_splitter->width() - m_splitter->handleWidth() - panel);
 	m_splitter->setSizes({main, panel});
+}
+
+QWidget* resultTableArea(const QList<QWidget*>& widgets) {
+	auto* area = new QWidget;
+	area->setObjectName("resultTableArea");
+	auto* column = new QVBoxLayout(area);
+	column->setContentsMargins(16, 12, 12, 12);
+	column->setSpacing(8);
+	for (QWidget* widget : widgets)
+		column->addWidget(widget, widget == widgets.last() ? 1 : 0);
+	return area;
 }

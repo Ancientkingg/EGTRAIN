@@ -465,8 +465,8 @@ QDialog QListWidget:focus {
     padding: 3px;
 }
 
-QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
-QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
+QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext, QLabel#delayAnalysisContext, QLabel#capacityContext,
+QLabel#areaCapacityContext, QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
     background: transparent;
     color: #5b6871;
 }
@@ -543,16 +543,13 @@ QDialog#caseChooserDialog QListWidget::item:selected {
     color: #24313a;
 }
 
-/* The Run details toggle and the Calculation details toggle of the capacity analysis have the corners of a dialog button
-   and show keyboard focus with its 2 px action border. The padding gives up the extra pixel, so the arrow and the text do
-   not move. */
-QToolButton#runReviewDetailsToggle,
-QToolButton#capacityDetailsToggle {
+/* The Run details toggle has the corners of a dialog button and shows keyboard focus with its 2 px action border. The
+   padding gives up the extra pixel, so the arrow and the text do not move. */
+QToolButton#runReviewDetailsToggle {
     border-radius: 6px;
 }
 
-QToolButton#runReviewDetailsToggle:focus,
-QToolButton#capacityDetailsToggle:focus {
+QToolButton#runReviewDetailsToggle:focus {
     border: 2px solid #2e7491;
     padding: 2px 5px;
 }
@@ -797,10 +794,6 @@ QLabel#infrastructureGuidance {
     color: #5b6871;
 }
 
-QLabel#resultContextText {
-    color: #5b6871;
-}
-
 /* The 2 px border of the network view turns from #3a4a54 to #8fbcd4 while the view has the keyboard focus; the two have a
    contrast of 4.5:1, and #8fbcd4 has 8.6:1 with the canvas. */
 QGraphicsView#networkView {
@@ -975,7 +968,8 @@ QToolButton[resultHeaderButton="true"]:pressed {
 }
 
 /* The panel of a result window: section headings in the heading colour, a rule between the sections, the cursor readout
-   in the secondary text colour, and a rule at the left edge, which is the splitter handle. */
+   and the captions of the key figures in the secondary text colour, and a rule at the left edge, which is the splitter
+   handle. */
 QLabel[resultSectionHeading="true"] {
     color: #315a70;
 }
@@ -985,8 +979,13 @@ QDialog QFrame[resultRule="true"] {
     border: 0;
 }
 
-QLabel#resultReadout {
+QLabel#resultReadout, QLabel#resultFigureCaption {
     color: #5b6871;
+}
+
+/* The tables of a table window lie on white up to the header and the panel, as a chart does. */
+QDialog QWidget#resultTableArea {
+    background: #ffffff;
 }
 
 QSplitter#resultSplitter::handle {
