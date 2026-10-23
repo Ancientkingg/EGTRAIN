@@ -27,6 +27,8 @@
         <file alias="icons/scroll-right-arrow-disabled.svg">../resources/icons/scroll-right-arrow-disabled.svg</file>
         <file alias="icons/zoom-in.svg">../resources/icons/zoom-in.svg</file>
         <file alias="icons/zoom-out.svg">../resources/icons/zoom-out.svg</file>
+        <file alias="icons/fit.svg">../resources/icons/fit.svg</file>
+        <file alias="icons/panel.svg">../resources/icons/panel.svg</file>
         <file alias="icons/follow.svg">../resources/icons/follow.svg</file>
         <file alias="icons/pick-target.svg">../resources/icons/pick-target.svg</file>
         <file alias="app/egtrain-16.png">../resources/app/egtrain-16.png</file>

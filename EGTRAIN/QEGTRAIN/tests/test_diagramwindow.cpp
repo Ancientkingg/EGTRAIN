@@ -4,6 +4,7 @@
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
+#include <QClipboard>
 #include <QGraphicsObject>
 #include <QFontMetricsF>
 #include <QDir>
@@ -38,9 +39,13 @@
 #include <QMouseEvent>
 #include <QNativeGestureEvent>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QRubberBand>
 #include <QPointer>
 #include <QScrollBar>
+#include <QSplitter>
 #include <QTimer>
+#include <QToolButton>
 #include <QtMath>
 #include <QValueAxis>
 #include <QWheelEvent>
@@ -550,24 +555,21 @@ static QChart* makeNamedChart(const QStringList& names) {
 	return chart;
 }
 
-static QString navigationHelp(const DiagramWindow& window) {
-	return window.findChild<QLabel*>("diagramNavigationHelp")->text();
-}
-
 static QStringList legendKinds(const DiagramWindow& window) {
 	const auto* legend = window.findChild<QChartView*>()->chart()->findChild<QGraphicsObject*>("lineKindLegend");
 	return legend ? legend->property("kinds").toStringList() : QStringList();
 }
 
-static QPushButton* topButton(QDialog& window, const QString& text) {
-	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+// The push button of the window with `text`, in the window itself or in its panel.
+static QPushButton* buttonNamed(QDialog& window, const QString& text) {
+	for (auto* button : window.findChildren<QPushButton*>())
 		if (button->text() == text) return button;
 	return nullptr;
 }
 
 static bool buttonFlags(QDialog& window, const QString& prefix) {
 	bool ok = true;
-	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+	for (auto* button : window.findChildren<QPushButton*>()) {
 		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
 		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
 	}
@@ -602,16 +604,16 @@ static bool exerciseButtonDefaults() {
 	window.setCsvProvider(provider, "buttons.csv");
 	window.show();
 	QApplication::processEvents();
-	auto* csv = topButton(window, "Export CSV...");
-	auto* reset = topButton(window, "Reset zoom");
-	auto* png = topButton(window, "Export PNG...");
+	auto* csv = buttonNamed(window, "CSV...");
+	auto* fit = window.findChild<QToolButton*>("diagramFit");
+	auto* png = buttonNamed(window, "PNG...");
+	auto* clear = window.findChild<QPushButton*>("diagramClearSelection");
 	auto* view = window.findChild<QChartView*>();
-	bool ok = expect(csv && reset && png && topButton(window, "Clear selection") && view, "diagram window has its top bar buttons");
+	bool ok = expect(csv && fit && png && clear && clear->text() == "Clear" && view, "diagram window has its fit, clear and export buttons");
 	if (!ok) return false;
 	ok &= buttonFlags(window, "diagram window button");
-	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows Export CSV with a provider");
-	auto* clear = topButton(window, "Clear selection");
-	ok &= expect(clear->isHidden(), "Clear selection is hidden while no train is selected");
+	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows CSV... with a provider");
+	ok &= expect(!clear->isVisible(), "Clear is hidden while no train is selected");
 	const auto clickTrain = [&] {
 		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), chart->series().first())));
 		QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
@@ -620,47 +622,45 @@ static bool exerciseButtonDefaults() {
 		QApplication::sendEvent(view->viewport(), &release);
 	};
 	clickTrain();
-	QLabel* pin = nullptr;
-	for (auto* label : window.findChildren<QLabel*>(QString(), Qt::FindDirectChildrenOnly))
-		if (label->text().startsWith("Selected:")) pin = label;
-	ok &= expect(pin && pin->text() == "Selected: A", "click selects train A in the button test");
+	auto* pin = window.findChild<QLabel*>("diagramPinLabel");
+	ok &= expect(pin && pin->isVisible() && pin->text() == "A", "click selects train A in the button test");
 	if (!pin) return false;
-	ok &= expect(clear->isVisible(), "Clear selection shows together with the selection");
+	ok &= expect(clear->isVisible(), "Clear shows together with the selection");
 	view->setFocus();
 	pressKey(view, Qt::Key_Return);
 	pressKey(view, Qt::Key_Enter);
-	ok &= expect(pin->text() == "Selected: A", "Enter in the chart keeps the selection");
+	ok &= expect(pin->text() == "A", "Enter in the chart keeps the selection");
 	clickTrain();
-	ok &= expect(pin->text() == "Selected: A", "second click selects train A in the button test");
+	ok &= expect(pin->text() == "A", "second click selects train A in the button test");
 	pressKey(&window, Qt::Key_Return);
-	ok &= expect(pin->text() == "Selected: A", "Enter in the window keeps the selection");
+	ok &= expect(pin->text() == "A", "Enter in the window keeps the selection");
 	ok &= expect(calls == 0, "Enter starts no CSV export");
 	clear->click();
-	ok &= expect(clear->isHidden() && pin->isHidden(), "Clear selection hides itself and the selection");
+	ok &= expect(!clear->isVisible() && !pin->isVisible(), "Clear hides itself and the selection");
 	DiagramWindow input("Input traction");
 	input.setProperty("inputTrainUnitId", "unit-a");
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
-	auto* inputCsv = topButton(input, "Export CSV...");
-	auto* inputReset = topButton(input, "Reset zoom");
-	auto* inputPng = topButton(input, "Export PNG...");
-	if (!expect(inputCsv && inputReset && inputPng, "rolling stock window has its top bar buttons")) return false;
-	ok &= expect(inputCsv->isHidden(), "a window without a provider has no Export CSV button");
-	ok &= expect(inputReset->isVisible() && inputPng->isVisible(), "a window without a provider keeps Reset zoom and Export PNG");
+	auto* inputCsv = buttonNamed(input, "CSV...");
+	auto* inputFit = input.findChild<QToolButton*>("diagramFit");
+	auto* inputPng = buttonNamed(input, "PNG...");
+	if (!expect(inputCsv && inputFit && inputPng, "rolling stock window has its fit and export buttons")) return false;
+	ok &= expect(inputCsv->isHidden(), "a window without a provider has no CSV... button");
+	ok &= expect(inputFit->isVisible() && inputPng->isVisible(), "a window without a provider keeps Fit and PNG...");
 	ok &= buttonFlags(input, "rolling stock window button");
 	DiagramWindow late("Late provider");
 	late.setChart(buttonTestChart());
 	late.show();
 	QApplication::processEvents();
-	auto* lateCsv = topButton(late, "Export CSV...");
+	auto* lateCsv = buttonNamed(late, "CSV...");
 	if (!expect(lateCsv, "late provider window has its CSV button")) return false;
 	late.setCsvProvider(provider, "late.csv");
 	QApplication::processEvents();
-	ok &= expect(lateCsv->isVisible() && lateCsv->isEnabled(), "setCsvProvider shows Export CSV");
+	ok &= expect(lateCsv->isVisible() && lateCsv->isEnabled(), "setCsvProvider shows CSV...");
 	late.setCsvProvider({}, QString());
 	QApplication::processEvents();
-	ok &= expect(lateCsv->isHidden(), "an empty provider hides Export CSV again");
+	ok &= expect(lateCsv->isHidden(), "an empty provider hides CSV... again");
 	return ok;
 }
 
@@ -685,7 +685,7 @@ static bool exerciseRunContext() {
 	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run
 			&& QString(context->toolTip()).remove(QChar(0x200B)).contains(run)
 			&& context->height() <= context->fontMetrics().height() * 3 && warning->isHidden(),
-		"the context line holds the whole run within three lines and no warning strip opens");
+		"the context line names the run in at most three lines, its tooltip holds the whole run, and no warning strip opens");
 	ok &= expect(window.width() <= screenArea.width() * 9 / 10 && window.height() <= screenArea.height() * 4 / 5,
 		"a long run identity keeps the window within the screen");
 	return ok;
@@ -737,6 +737,9 @@ static bool exerciseBlockSections() {
 	sectionsOnly.setChart(empty);
 	sectionsOnly.setBlockSections(extents, "reference<&>");
 	ok &= expect(legendKinds(sectionsOnly) == QStringList({"Section boundary"}), "a chart with only section boundaries names them in the legend");
+	// Wide enough beside the panel that the label of the long section at 1 to 3 km ends before the section at 5 to 8 km.
+	window.setMaximumSize(1200, 640);
+	window.resize(1200, 640);
 	window.show();
 	QApplication::processEvents();
 	auto* view = window.findChild<QChartView*>();
@@ -830,7 +833,8 @@ static bool exerciseBlockSections() {
 	ok &= expect(bandPixels(0, bandTop - 2, false) == 0 && bandPixels(bandTop, bandTop + rowHeight, false) > 0
 			&& bandPixels(bandTop + rowHeight, chart->plotArea().top(), true) > 10,
 		"the strip and the geometry notice text paint in the band above the plot and not over the title");
-	// With the overlay hidden, only the chart title paints above the plot. It must end above the strip, so the strip covers none of it.
+	// The window header names the chart, so the chart draws no title of its own: with the overlay hidden nothing dark paints
+	// above the middle of the plot, although the chart came with a title.
 	const auto titleExtent = [&](double limitY) {
 		overlay->hide();
 		const QImage image = view->grab().toImage();
@@ -855,8 +859,8 @@ static bool exerciseBlockSections() {
 	const auto titleAll = titleExtent(chart->plotArea().top());
 	const auto titleAboveStrip = titleExtent(stripTop);
 	const int stripTopView = view->mapFromScene(chart->mapToScene(QPointF(0, stripTop))).y();
-	ok &= expect(titleAll.first > 20 && titleAll.second < stripTopView && titleAboveStrip == titleAll,
-		"the chart title is visible and ends above the section strip");
+	ok &= expect(chart->title().isEmpty() && titleAll.first == 0 && titleAboveStrip == titleAll && stripTopView > 0,
+		"the chart draws no title above the plot");
 	ok &= expect(earlyVisible(QPointF(2.5, 1)), "near-minimum time sample is visible in capture and inspectable with physical header");
 	y->setRange(20, 70);
 	wheel(view, QPoint(0, -qRound(chart->plotArea().height() / 5)), {});
@@ -1193,16 +1197,13 @@ static bool exerciseStationAxis() {
 }
 
 // A chart with more than one kind of line names the kinds in a legend below the plot: the layer of a series, else planned
-// or simulated by its "planned" property or its name. The help line does not explain them and is the same for every chart.
+// or simulated by its "planned" property or its name.
 static bool exerciseLegend() {
-	const QString general = "Drag to zoom. Scroll to pan. Home resets.";
 	bool ok = true;
 
 	DiagramWindow window("Legend");
-	ok &= expect(navigationHelp(window) == general, "help of a window without a chart");
 	window.setChart(makeNamedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}));
-	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}) && navigationHelp(window) == general,
-		"planned and simulated lines are named in the legend, not in the help");
+	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "planned and simulated lines are named in the legend");
 	window.setChart(makeNamedChart({"Train A", "Train B", "Train A"}));
 	ok &= expect(legendKinds(window).isEmpty(), "a chart with one kind of line has no legend");
 	window.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)", "Train B"}));
@@ -1250,11 +1251,6 @@ static bool exerciseLegend() {
 		&& area.top() > layered->mapRectToScene(layered->plotArea()).bottom();
 	for (const QRectF& rect : drawnTextRects(window)) clear = clear && !rect.intersects(area);
 	ok &= expect(clear, "the legend lies inside the chart, below the plot and clear of the axis texts");
-
-	DiagramWindow input("Help of an input traction curve");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
-	input.setChart(makeNamedChart({"Unit planned"}));
-	ok &= expect(navigationHelp(input) == general, "input traction has the same help");
 	return ok;
 }
 
@@ -1375,8 +1371,8 @@ static bool exerciseSingleVerticalAxis() {
 	return ok;
 }
 
-// Once Export CSV... has saved the file, the status bar of the main window names it. Export PNG... suggests the name of
-// the CSV with .png.
+// Once CSV... has saved the file, the status bar of the main window names it. PNG... suggests the name of the CSV with
+// .png and saves the figure of the window.
 static bool exerciseCsvSavedMessage() {
 	QMainWindow mainWindow;
 	auto* window = new DiagramWindow("Saved message", &mainWindow);
@@ -1393,7 +1389,7 @@ static bool exerciseCsvSavedMessage() {
 				static_cast<QDialog*>(dialog)->accept(); // QFileDialog::accept is protected
 			}
 	});
-	topButton(*window, "Export CSV...")->click();
+	buttonNamed(*window, "CSV...")->click();
 	bool ok = expect(QFile::exists(path) && mainWindow.statusBar()->currentMessage().contains(QDir::toNativeSeparators(path)),
 		"the status bar of the main window names the saved CSV file");
 	QString suggested;
@@ -1404,8 +1400,22 @@ static bool exerciseCsvSavedMessage() {
 				dialog->reject();
 			}
 	});
-	topButton(*window, "Export PNG...")->click();
-	ok &= expect(suggested == "saved.png", "Export PNG suggests the name of the CSV with .png");
+	buttonNamed(*window, "PNG...")->click();
+	ok &= expect(suggested == "saved.png", "PNG... suggests the name of the CSV with .png");
+	const QString picture = QDir(directory.path()).filePath("saved.png");
+	QTimer::singleShot(0, window, [picture] {
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				dialog->setDirectory(QFileInfo(picture).absolutePath());
+				dialog->selectFile(QFileInfo(picture).fileName());
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	buttonNamed(*window, "PNG...")->click();
+	const QImage saved(picture);
+	const QImage figure = window->figureImage();
+	ok &= expect(!saved.isNull() && saved.size() == figure.size() && saved.dotsPerMeterX() == figure.dotsPerMeterX(),
+		"PNG... saves the figure of the window");
 	return ok;
 }
 
@@ -1441,6 +1451,398 @@ static bool exerciseLongAxisTitle() {
 	ok &= expect(tooltip->isVisible() && tooltip->text().contains(id), "the tooltip of a shortened title holds the whole id");
 	ok &= expect(tooltip->geometry().right() <= window.rect().right() && tooltip->height() > tooltip->fontMetrics().height() * 3,
 		"the tooltip of a title wraps the id within the window");
+	return ok;
+}
+
+// The header of a diagram window: the context in one line at the left, then Zoom Out, Zoom In, Fit and the panel button,
+// which show their names while their icons are not loaded. No help line is left; the tooltips of the buttons name the keys.
+// The window opens with the chart in focus, and Tab goes through the header, the chart and the panel in that order. The
+// panel is 260 px wide in a window of 1200 px and 200 px in a window narrower than 1000 px, until the user drags the
+// splitter.
+static bool exerciseHeader() {
+	DiagramWindow window("Header");
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setCsvProvider([](const QStringList&) { return std::string(); }, "header.csv");
+	const QString longContext = QStringLiteral("Case / Scenario · ") + QString(400, QLatin1Char('R'));
+	window.setPresentation("Header", longContext);
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	auto* header = window.findChild<QFrame*>("resultHeader");
+	auto* view = window.findChild<QChartView*>();
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	if (!expect(header && view && panel, "the window has a header, a chart and a panel")) return false;
+	QList<QToolButton*> buttons = header->findChildren<QToolButton*>();
+	std::sort(buttons.begin(), buttons.end(), [](const QToolButton* a, const QToolButton* b) { return a->x() < b->x(); });
+	QStringList names, accessible;
+	for (const QToolButton* button : buttons) {
+		names << button->objectName();
+		accessible << button->accessibleName();
+	}
+	bool ok = expect(names == QStringList({"diagramZoomOut", "diagramZoomIn", "diagramFit", "diagramPanelToggle"})
+			&& accessible == QStringList({"Zoom Out", "Zoom In", "Fit", "Panel"}),
+		"the header has Zoom Out, Zoom In, Fit and the panel button, from left to right");
+	if (!ok) return false;
+	QToolButton* zoomOut = buttons[0];
+	QToolButton* zoomIn = buttons[1];
+	QToolButton* fit = buttons[2];
+	QToolButton* toggle = buttons[3];
+	ok &= expect(zoomOut->toolTip() == "Zoom out (-)" && zoomIn->toolTip().startsWith("Zoom in (+)\nDrag a rectangle to zoom into it\n")
+			&& fit->toolTip() == "Show the whole chart (Home or 0)\nScroll or the arrow keys to pan"
+			&& toggle->toolTip() == "Show or hide the panel",
+		"the tooltips of the header buttons name the keys, one fact a line");
+	ok &= expect(!window.findChild<QLabel*>("diagramNavigationHelp") && !buttonNamed(window, "Reset zoom"),
+		"the window has no help line and no Reset zoom button");
+	const auto* context = window.findChild<QLabel*>("diagramContext");
+	const QRect contextArea(context->mapTo(&window, QPoint()), context->size());
+	const QRect zoomOutArea(zoomOut->mapTo(&window, QPoint()), zoomOut->size());
+	ok &= expect(context->isVisible() && context->text() == longContext && context->height() < context->fontMetrics().height() * 2
+			&& contextArea.right() < zoomOutArea.left() && QString(context->toolTip()).remove(QChar(0x200B)).contains(longContext)
+			&& window.width() == 1200 && window.findChild<QSplitter*>("resultSplitter")->sizeHint().width() < context->fontMetrics().horizontalAdvance(longContext),
+		"a long context is one line left of the buttons, whole in its tooltip, and widens neither the window nor its size hint");
+	const QRect headerArea(header->mapTo(&window, QPoint()), header->size());
+	const QRect viewArea(view->mapTo(&window, QPoint()), view->size());
+	const QRect panelArea(panel->mapTo(&window, QPoint()), panel->size());
+	ok &= expect(headerArea.bottom() < viewArea.top() && headerArea.right() < panelArea.left() && panelArea.top() == 0
+			&& panelArea.bottom() == window.height() - 1,
+		"the header lies over the chart only and the panel takes the full height at the right");
+	ok &= expect(panel->width() == 260, "the panel opens 260 px wide in a window of 1200 px");
+
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	const double low = x->min();
+	const double high = x->max();
+	zoomIn->click();
+	ok &= expect(std::abs((x->max() - x->min()) - (high - low) / 1.2) < 1e-6 && std::abs((x->min() + x->max() - low - high) / 2) < 1e-6,
+		"Zoom in narrows the chart around its centre");
+	zoomOut->click();
+	zoomOut->click();
+	ok &= expect(x->min() == low && x->max() == high, "Zoom out widens the chart up to its full range");
+	zoomIn->click();
+	zoomIn->click();
+	fit->click();
+	ok &= expect(x->min() == low && x->max() == high && low == 0 && high > 0, "Fit shows the whole chart");
+
+	const int chartWidth = view->width();
+	toggle->click();
+	QApplication::processEvents();
+	ok &= expect(!toggle->isChecked() && !panel->isVisible() && view->width() > chartWidth + 200,
+		"the panel button hides the panel and the chart takes its room");
+	toggle->click();
+	QApplication::processEvents();
+	ok &= expect(toggle->isChecked() && panel->isVisible() && view->width() == chartWidth, "the panel button shows the panel again");
+
+	window.activateWindow();
+	QApplication::processEvents();
+	ok &= expect(window.focusWidget() == view, "the window opens with the chart in focus");
+	zoomOut->setFocus(Qt::TabFocusReason);
+	QStringList order;
+	for (int step = 0; step < 8 && QApplication::focusWidget(); ++step) {
+		QWidget* focused = QApplication::focusWidget();
+		if (qobject_cast<QChartView*>(focused))
+			order << QStringLiteral("chart");
+		else if (qobject_cast<TrainFilterButton*>(focused))
+			order << QStringLiteral("trains");
+		else
+			order << focused->objectName();
+		pressKey(focused, Qt::Key_Tab);
+	}
+	const QStringList expectedOrder{"diagramZoomOut", "diagramZoomIn", "diagramFit", "diagramPanelToggle", "chart", "trains",
+		"diagramExportPng", "diagramExportCsv"};
+	ok &= expect(order.mid(0, 8) == expectedOrder,
+		qPrintable("Tab goes through the header, the chart and the panel: " + order.join(", ")));
+
+	DiagramWindow narrow("Narrow");
+	narrow.setChart(buttonTestChart());
+	// The window opens at most 90 % as wide as the screen, which is 800 px offscreen.
+	narrow.setMaximumSize(1200, 750);
+	narrow.resize(900, 600);
+	narrow.show();
+	QApplication::processEvents();
+	auto* narrowPanel = narrow.findChild<QWidget*>("resultPanel");
+	ok &= expect(narrow.width() == 900 && narrowPanel->width() == 200, "the panel opens 200 px wide in a window of 900 px");
+	narrow.resize(1200, 600);
+	QApplication::processEvents();
+	ok &= expect(narrow.width() == 1200 && narrowPanel->width() == 260, "the panel widens to 260 px when the window widens to 1200 px");
+	auto* splitter = narrow.findChild<QSplitter*>("resultSplitter");
+	QSplitterHandle* handle = splitter->handle(1);
+	const QPoint grip = handle->rect().center();
+	const QPoint dragged = grip - QPoint(40, 0);
+	QMouseEvent press(QEvent::MouseButtonPress, grip, handle->mapToGlobal(grip), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent move(QEvent::MouseMove, dragged, handle->mapToGlobal(dragged), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, dragged, handle->mapToGlobal(dragged), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(handle, &press);
+	QApplication::sendEvent(handle, &move);
+	QApplication::sendEvent(handle, &release);
+	QApplication::processEvents();
+	const int draggedWidth = narrowPanel->width();
+	narrow.resize(900, 600);
+	QApplication::processEvents();
+	ok &= expect(draggedWidth == 300 && narrowPanel->width() == 300,
+		qPrintable(QStringLiteral("the panel keeps the width of a drag of the splitter: %1, then %2").arg(draggedWidth).arg(narrowPanel->width())));
+	return ok;
+}
+
+// The sections of the panel: Trains, Selected while a train is selected, and Export, with a rule between two shown sections.
+// A rolling stock window has no train sections.
+static bool exercisePanelSections() {
+	const auto shownRules = [](const DiagramWindow& window) {
+		int count = 0;
+		for (const QFrame* rule : window.findChildren<QFrame*>())
+			if (rule->property("resultRule").toBool() && rule->isVisible()) ++count;
+		return count;
+	};
+	const auto shownHeadings = [](const DiagramWindow& window) {
+		QList<const QLabel*> labels;
+		for (const QLabel* label : window.findChildren<QLabel*>())
+			if (label->property("resultSectionHeading").toBool() && label->isVisible()) labels << label;
+		std::sort(labels.begin(), labels.end(),
+			[&window](const QLabel* a, const QLabel* b) { return a->mapTo(&window, QPoint()).y() < b->mapTo(&window, QPoint()).y(); });
+		QStringList texts;
+		for (const QLabel* label : labels) texts << label->text();
+		return texts;
+	};
+	DiagramWindow window("Panel sections");
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.show();
+	QApplication::processEvents();
+	bool ok = expect(shownHeadings(window) == QStringList({"Trains", "Export"}) && shownRules(window) == 1,
+		"the panel shows Trains and Export with one rule between them");
+	auto* view = window.findChild<QChartView*>();
+	const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(70, 20), chart->series().last())));
+	QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &press);
+	QApplication::sendEvent(view->viewport(), &release);
+	QApplication::processEvents();
+	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Selected", "Export"}) && shownRules(window) == 2
+			&& window.findChild<QLabel*>("diagramPinLabel")->text() == "B",
+		"a selected train adds the section Selected with its id between Trains and Export");
+	QMetaObject::invokeMethod(&window, "clearPin");
+	QApplication::processEvents();
+	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Export"}) && shownRules(window) == 1, "Clear removes the section Selected");
+	DiagramWindow input("Rolling stock panel");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setChart(buttonTestChart());
+	input.show();
+	QApplication::processEvents();
+	ok &= expect(shownHeadings(input) == QStringList({"Export"}) && shownRules(input) == 0,
+		"a rolling stock window shows only Export, without a rule");
+
+	// A drag of the splitter to the right edge of the window stops at the panel's minimum width.
+	auto* splitter = window.findChild<QSplitter*>("resultSplitter");
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	QSplitterHandle* handle = splitter ? splitter->handle(1) : nullptr;
+	if (handle && panel) {
+		const QPoint grab = handle->rect().center();
+		const QPoint edge = handle->mapFromGlobal(window.mapToGlobal(QPoint(window.width() - 1, grab.y())));
+		QMouseEvent down(QEvent::MouseButtonPress, grab, handle->mapToGlobal(grab), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent move(QEvent::MouseMove, edge, handle->mapToGlobal(edge), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent up(QEvent::MouseButtonRelease, edge, handle->mapToGlobal(edge), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(handle, &down);
+		QApplication::sendEvent(handle, &move);
+		QApplication::sendEvent(handle, &up);
+		QApplication::processEvents();
+	}
+	ok &= expect(handle && panel && panel->isVisible() && panel->width() > 0 && splitter->sizes().value(1) > 0,
+		"a drag of the splitter to the edge does not collapse the panel");
+	return ok;
+}
+
+// The readout at the bottom of the panel gives the value under the pointer in the units of the axes, to the precision of
+// one pixel of the plot, and a clock time in the place of a time axis. It is empty outside the plot and once the pointer
+// leaves the chart, and follows the chart under a pointer that stays where it is while the wheel pans.
+static bool exerciseReadout() {
+	DiagramWindow window("Readout");
+	auto* chart = new QChart;
+	auto* line = new QLineSeries;
+	line->append(0, 0);
+	line->append(10, 100);
+	chart->addSeries(line);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setRange(0, 10);
+	x->setTitleText("Distance (km)");
+	y->setRange(0, 100);
+	y->setTitleText("Speed (km/h)");
+	window.setChart(chart);
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* readout = window.findChild<QLabel*>("resultReadout");
+	if (!expect(view && readout && readout->text().isEmpty(), "the readout is empty before the pointer comes")) return false;
+	const auto pointAt = [&](const QPointF& value) {
+		moveTo(view, value, line);
+		return readout->text();
+	};
+	const QRegularExpression numeric(QStringLiteral("^(\\d+\\.\\d{2}) km, (\\d+\\.\\d) km/h$"));
+	const auto near = [&numeric](const QString& text, double km, double speed) {
+		const QRegularExpressionMatch match = numeric.match(text);
+		return match.hasMatch() && std::abs(match.captured(1).toDouble() - km) < 0.02 && std::abs(match.captured(2).toDouble() - speed) < 0.3;
+	};
+	const QString value = pointAt(QPointF(3, 40));
+	bool ok = expect(near(value, 3, 40) && x->max() - x->min() < chart->plotArea().width() / 10
+			&& y->max() - y->min() > chart->plotArea().height() / 10,
+		qPrintable("the readout gives distance and speed to the precision of a pixel, with the units of the axes: " + value));
+	ok &= expect(pointAt(QPointF(-1, 40)).isEmpty(), "the readout is empty left of the plot");
+	pointAt(QPointF(3, 40));
+	QEvent leave(QEvent::Leave);
+	QApplication::sendEvent(view->viewport(), &leave);
+	ok &= expect(readout->text().isEmpty(), "the readout is empty once the pointer leaves the chart");
+	y->setReverse(true);
+	ok &= expect(near(pointAt(QPointF(3, 40)), 3, 40), qPrintable("a reversed axis reads from its top: " + readout->text()));
+	window.setTimeAxisY(true, 8 * 3600);
+	QApplication::processEvents();
+	const QString clock = pointAt(QPointF(3, 40));
+	const QRegularExpression timed(QStringLiteral("^08:00:(39|40|41) at (\\d+\\.\\d{2}) km$"));
+	const QRegularExpressionMatch match = timed.match(clock);
+	ok &= expect(match.hasMatch() && std::abs(match.captured(2).toDouble() - 3) < 0.02,
+		qPrintable("with a time axis the readout gives the clock time at the distance: " + clock));
+	const QPointF still = chart->mapToPosition(QPointF(3, 40), line);
+	wheel(view, {}, QPoint(0, 360), Qt::ControlModifier, still);
+	pointAt(QPointF(3, 40));
+	const QString zoomed = readout->text();
+	wheel(view, QPoint(0, qRound(chart->plotArea().height() / 4)), {}, Qt::NoModifier, still);
+	ok &= expect(!readout->text().isEmpty() && readout->text() != zoomed,
+		qPrintable("the readout follows a wheel pan under a still pointer: " + readout->text()));
+	return ok;
+}
+
+// The figure of Copy and PNG... has twice the pixels of the window and 144 dots per inch: the window title as heading, the
+// context below it and the chart under both. It leaves out the tooltip and the rubber band that lie over the chart, and a
+// later export can add a column at the right.
+static bool exerciseFigure() {
+	DiagramWindow window("Figure heading");
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setPresentation("Figure heading", "Case / Scenario");
+	window.setMaximumSize(1200, 750);
+	window.resize(1200, 750);
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	const QSize chartSize = view->viewport()->size();
+	const QImage figure = window.figureImage();
+	const int top = figure.height() / 2 - chartSize.height();
+	bool ok = expect(figure.devicePixelRatio() == 2 && figure.width() == 2 * chartSize.width() && figure.height() % 2 == 0 && top > 0
+			&& figure.dotsPerMeterX() == qRound(2 * window.logicalDpiX() / 0.0254)
+			&& figure.dotsPerMeterY() == qRound(2 * window.logicalDpiY() / 0.0254),
+		"the figure has twice the pixels of the chart and room above it, at twice the resolution of the screen");
+	QFont headingFont = window.font();
+	headingFont.setPointSizeF(headingFont.pointSizeF() * 1.25);
+	headingFont.setBold(true);
+	const int headingBottom = 16 + QFontMetrics(headingFont).height();
+	// The heading is in the text colour, #24313a; the context is in the secondary text colour, #5b6871, and nothing in its
+	// band is darker than that.
+	const auto pixels = [&figure](int fromY, int toY, int below) {
+		int count = 0;
+		for (int row = fromY * 2; row < toY * 2; ++row)
+			for (int column = 0; column < figure.width(); ++column) {
+				const QColor color = figure.pixelColor(column, row);
+				if (color.red() + color.green() + color.blue() < below) ++count;
+			}
+		return count;
+	};
+	ok &= expect(pixels(0, headingBottom, 200) > 20, "the heading paints in the text colour at the top");
+	// The heading is as wide as the text in its font, so it is not drawn larger than the room made for it.
+	int inkLeft = figure.width();
+	int inkRight = -1;
+	for (int row = 0; row < headingBottom * 2; ++row)
+		for (int column = 0; column < figure.width(); ++column) {
+			const QColor color = figure.pixelColor(column, row);
+			if (color.red() + color.green() + color.blue() < 200) {
+				inkLeft = std::min(inkLeft, column);
+				inkRight = std::max(inkRight, column);
+			}
+		}
+	const double inkWidth = (inkRight - inkLeft + 1) / 2.0;
+	const int textWidth = QFontMetrics(headingFont).boundingRect("Figure heading").width();
+	ok &= expect(std::abs(inkWidth - textWidth) <= 2 + textWidth * 0.1,
+		qPrintable(QStringLiteral("the heading is drawn at the size of its font: %1 px of ink for %2 px of text").arg(inkWidth).arg(textWidth)));
+	ok &= expect(pixels(headingBottom, top, 600) > 20 && pixels(headingBottom, top, 280) == 0,
+		"the context paints in the secondary colour below the heading");
+	ok &= expect(figure.copy(0, top * 2, figure.width(), figure.height() - top * 2) != QImage(figure.width(), figure.height() - top * 2, figure.format()),
+		"the chart fills the figure below the heading");
+
+	moveTo(view, QPointF(20, 30), chart->series().first());
+	ok &= expect(window.findChild<QLabel*>("diagramTooltip")->isVisible() && window.figureImage() == figure,
+		"the figure leaves out the tooltip");
+	const QPoint from = view->mapFromScene(chart->mapToScene(chart->plotArea().center()));
+	const QPoint to = from + QPoint(80, 60);
+	QMouseEvent press(QEvent::MouseButtonPress, from, view->viewport()->mapToGlobal(from), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent drag(QEvent::MouseMove, to, view->viewport()->mapToGlobal(to), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &press);
+	QApplication::sendEvent(view->viewport(), &drag);
+	QApplication::processEvents();
+	bool band = false;
+	for (const QRubberBand* rubberBand : view->findChildren<QRubberBand*>()) band = band || rubberBand->isVisible();
+	ok &= expect(band && window.figureImage() == figure, "the figure leaves out the rubber band of a drag");
+	QMouseEvent release(QEvent::MouseButtonRelease, from, view->viewport()->mapToGlobal(from), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &release);
+
+	FigureColumn column;
+	column.width = 120;
+	column.paint = [](QPainter& painter, const QRectF& area) { painter.fillRect(area, Qt::red); };
+	window.findChild<QToolButton*>("diagramFit")->click();
+	const QImage keyed = window.figureImage(column);
+	const int middle = keyed.height() - chartSize.height();
+	ok &= expect(keyed.width() == 2 * (chartSize.width() + 120) && keyed.pixelColor(keyed.width() - 4, middle) == QColor(Qt::red)
+			&& keyed.pixelColor(2 * chartSize.width() - 4, middle) != QColor(Qt::red) && keyed.pixelColor(keyed.width() - 4, 4) != QColor(Qt::red),
+		"a column adds its width at the right of the chart, beside the chart only");
+
+	// The warning of the window goes into the figure, under the context and above the chart.
+	window.setPresentation("Figure heading", "Case / Scenario", "Negative effort below the displayed 0 kN range.");
+	QApplication::processEvents();
+	const QImage warned = window.figureImage();
+	const int warnedTop = warned.height() / 2 - view->viewport()->size().height();
+	int warningInk = 0;
+	for (int row = top * 2; row < warnedTop * 2; ++row)
+		for (int x = 0; x < warned.width(); ++x) {
+			const QColor color = warned.pixelColor(x, row);
+			if (color.red() + color.green() + color.blue() < 600) ++warningInk;
+		}
+	ok &= expect(warnedTop > top && warningInk > 20, "the figure shows the warning of the window under the context");
+	return ok;
+}
+
+// Copy with the chart in focus puts the figure on the clipboard; with a button or a text field in focus it does not.
+static bool exerciseCopy() {
+	QClipboard* clipboard = QGuiApplication::clipboard();
+	if (!expect(clipboard, "the application has a clipboard")) return false;
+	DiagramWindow window("Copy");
+	window.setChart(buttonTestChart());
+	window.setPresentation("Copy", "Case / Scenario");
+	window.show();
+	QApplication::processEvents();
+	clipboard->clear();
+	auto* view = window.findChild<QChartView*>();
+	view->setFocus();
+	const QKeyCombination copy = QKeySequence(QKeySequence::Copy)[0];
+	QKeyEvent press(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
+	QApplication::sendEvent(view, &press);
+	const QImage copied = clipboard->image();
+	bool ok = expect(!copied.isNull() && copied.size() == window.figureImage().size(), "Copy puts the figure on the clipboard");
+	// Only the chart in focus takes Copy, not the rest of the window.
+	auto* png = window.findChild<QPushButton*>("diagramExportPng");
+	png->setFocus();
+	clipboard->clear();
+	QKeyEvent buttonPress(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
+	QApplication::sendEvent(png, &buttonPress);
+	ok &= expect(clipboard->image().isNull(), "Copy with a button in focus leaves the clipboard empty");
+	// A text field in the window keeps Copy for its own text.
+	auto* field = new QLineEdit("Field text", &window);
+	field->show();
+	field->setFocus();
+	field->selectAll();
+	clipboard->clear();
+	QKeyEvent fieldPress(QEvent::KeyPress, copy.key(), copy.keyboardModifiers(), "c");
+	QApplication::sendEvent(field, &fieldPress);
+	ok &= expect(clipboard->text() == "Field text" && clipboard->image().isNull(), "Copy in a text field copies its text");
 	return ok;
 }
 
@@ -1659,8 +2061,7 @@ int main(int argc, char* argv[]) {
 	app.processEvents();
 	auto* emptyView = empty.findChild<QChartView*>();
 	wheel(emptyView, {}, QPoint(0, 120), Qt::ControlModifier);
-	for (auto* button : empty.findChildren<QPushButton*>())
-		if (button->text() == "Reset zoom") button->click();
+	empty.findChild<QToolButton*>("diagramFit")->click();
 	ok &= expect(emptyX->min() == 0 && emptyX->max() == 200 && emptyY->max() == 600,
 		"no-data non-time reset retains the round caller ranges");
 
@@ -1888,15 +2289,14 @@ int main(int argc, char* argv[]) {
 	ok &= expect(
 		input.windowTitle() == "Input traction characteristic"
 			&& input.findChild<QLabel*>("diagramContext")->text().contains("Case A / Scenario B")
-			&& inputChart->title().contains(scientificWarning)
+			&& inputChart->title().isEmpty()
 			&& input.findChild<QLabel*>("diagramContext")->isVisible()
 			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning,
 		"explicit presentation before setChart preserves identity and scientific warning with | in ID");
 	ok &= expect(
 		!input.findChild<TrainFilterButton*>()->isVisible()
 			&& input.findChild<QLabel*>("diagramContext")->text().contains(authoredId)
-			&& !input.findChild<QLabel*>("diagramNavigationHelp")->text().contains("Planned:")
-			&& input.findChild<QLabel*>("diagramNavigationHelp")->text() == "Drag to zoom. Scroll to pan. Home resets.",
+			&& !input.findChild<QLabel*>("diagramNavigationHelp"),
 		"input traction uses rolling-stock subject and no visible train filter");
 	input.setPresentation("Updated heading", "Case C / Scenario D", scientificWarning);
 	app.processEvents();
@@ -1904,9 +2304,10 @@ int main(int argc, char* argv[]) {
 		input.windowTitle() == "Updated heading"
 			&& input.findChild<QLabel*>("diagramContext")->text() == "Case C / Scenario D"
 			&& input.findChild<QLabel*>("diagramWarning")->text() == scientificWarning
-			&& inputChart->title().contains(scientificWarning),
-		"explicit presentation after setChart preserves distinct chart qualification");
-	// Long provenance must never consume the space needed by scientific caveats.
+			&& inputChart->title().isEmpty(),
+		"explicit presentation after setChart keeps the warning and leaves the chart without a title");
+	// Long provenance must never consume the space needed by scientific caveats: the context stays one line in the header,
+	// and the warning lies below the header and above the chart.
 	input.setMaximumWidth(qMin(640, input.maximumWidth()));
 	input.resize(input.maximumWidth(), input.maximumHeight());
 	const QString longContext = "Reference: " + QString(1500, QLatin1Char('R'))
@@ -1918,16 +2319,20 @@ int main(int argc, char* argv[]) {
 		app.processEvents();
 		const auto* label = input.findChild<QLabel*>("diagramWarning");
 		const auto* context = input.findChild<QLabel*>("diagramContext");
+		const auto* inputView = input.findChild<QChartView*>();
 		const QRect content = label->contentsRect();
 		const QRect textBounds = label->fontMetrics().boundingRect(
 			QRect(0, 0, content.width(), 10000), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
+		const QRect warningArea(label->mapTo(&input, QPoint()), label->size());
+		const QRect contextArea(context->mapTo(&input, QPoint()), context->size());
+		const QRect viewArea(inputView->mapTo(&input, QPoint()), inputView->size());
 		ok &= expect(
 			label->text() == warning && label->isVisible() && label->height() >= label->heightForWidth(label->width())
-				&& content.height() >= textBounds.height() && input.rect().contains(label->geometry())
-				&& label->geometry().bottom() < context->geometry().top()
-				&& context->height() <= context->fontMetrics().height() * 3 && (context->alignment() & Qt::AlignTop)
+				&& content.height() >= textBounds.height() && input.rect().contains(warningArea)
+				&& contextArea.bottom() < warningArea.top() && warningArea.bottom() < viewArea.top()
+				&& context->text() == longContext && context->height() < context->fontMetrics().height() * 2
 				&& input.width() <= 640 && input.height() <= input.maximumHeight(),
-			"complete warning fits above capped long provenance at enlarged font in bounded narrow window");
+			"complete warning fits between the one-line long provenance and the chart at enlarged font in bounded narrow window");
 	}
 	input.setPresentation("No warning", longContext);
 	ok &= expect(input.findChild<QLabel*>("diagramWarning")->isHidden(), "absent warning uses no strip");
@@ -1950,6 +2355,11 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseClockTicks();
 	ok &= exerciseSingleVerticalAxis();
 	ok &= exerciseCsvSavedMessage();
+	ok &= exerciseHeader();
+	ok &= exercisePanelSections();
+	ok &= exerciseReadout();
+	ok &= exerciseFigure();
+	ok &= exerciseCopy();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

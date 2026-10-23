@@ -325,8 +325,8 @@ QDialog QPushButton:focus {
     padding: 4px 13px;
 }
 
-/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the bar of buttons above the
-   chart or table keeps its width and the window fits within 90 percent of a narrow screen. */
+/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the two export buttons fit
+   side by side in the panel of a diagram window and the bar of buttons above a table keeps its width. */
 DiagramWindow QPushButton, TimetableTableWindow QPushButton {
     padding: 5px 7px;
 }
@@ -928,4 +928,86 @@ QComboBox::down-arrow {
 
 QComboBox::down-arrow:disabled {
     image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* The header of a result window is a white row over the chart, with a light rule under it. Its context is one line in the
+   secondary text colour, and its icon buttons have the face, border and states of a push button, also while the panel
+   button is checked. The padding gives up the extra pixel of the focus border, so the icon does not move. */
+QFrame#resultHeader {
+    background: #ffffff;
+    border: 0;
+    border-bottom: 1px solid #e3eaee;
+}
+
+QFrame#resultHeader QLabel {
+    background: transparent;
+}
+
+/* The chart lies on white up to the header and the panel. */
+QWidget#resultMain QGraphicsView {
+    background: #ffffff;
+    border: 0;
+}
+
+/* A tool button is 3 px wider and taller than its icon and padding, so a 16 px icon makes a button of 28 by 26 px. */
+QToolButton[resultHeaderButton="true"], QToolButton[resultHeaderButton="true"]:checked {
+    background: #ffffff;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    color: #24313a;
+    min-height: 0;
+    padding: 3px 3px 2px 4px;
+}
+
+QToolButton[resultHeaderButton="true"]:hover {
+    background: #ffffff;
+    border-color: #5b6871;
+}
+
+QToolButton[resultHeaderButton="true"]:focus {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    padding: 2px 2px 1px 3px;
+}
+
+QToolButton[resultHeaderButton="true"]:pressed {
+    background: #e3eaee;
+}
+
+/* The panel of a result window: section headings in the heading colour, a rule between the sections, the cursor readout
+   in the secondary text colour, and a rule at the left edge, which is the splitter handle. */
+QLabel[resultSectionHeading="true"] {
+    color: #315a70;
+}
+
+QDialog QFrame[resultRule="true"] {
+    background: #c9d3db;
+    border: 0;
+}
+
+QLabel#resultReadout {
+    color: #5b6871;
+}
+
+QSplitter#resultSplitter::handle {
+    background: #f8fafb;
+    border-left: 1px solid #c9d3db;
+}
+
+/* Clear of the selected train reads as a link in the action colour, without the face of a button. Its 2 px border shows
+   only with keyboard focus, so the text does not move. */
+QPushButton#diagramClearSelection {
+    background: transparent;
+    border: 2px solid transparent;
+    color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#diagramClearSelection:focus {
+    border-color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#diagramClearSelection:pressed {
+    background: #e3eaee;
 }

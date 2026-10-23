@@ -1,11 +1,13 @@
 #include "diagrams/DiagramWindow.h"
 #include "app/DialogFolders.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/TrainFilterButton.h"
 #include "scene/SectionLabels.h"
 #include "util/TimeFormat.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
+#include <QClipboard>
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -19,6 +21,7 @@
 #include <QPinchGesture>
 #include <QShortcut>
 #include <QStatusBar>
+#include <QToolButton>
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QAreaSeries>
 #include <algorithm>
@@ -32,7 +35,6 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QPixmap>
 #include <QPushButton>
 #include <QSaveFile>
 #include <QScreen>
@@ -556,12 +558,14 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	m_tooltip->setAttribute(Qt::WA_TransparentForMouseEvents);
 	m_tooltip->hide();
 	installEventFilter(this);
+	m_view->setFrameShape(QFrame::NoFrame);
+	const auto zoomAtCentre = [this](double factor) { navigate(factor, m_view->chart()->plotArea().center()); };
 	// The shortcuts belong to the chart view, so they only take keys while the chart has focus.
 	for (const auto key : {Qt::Key_Plus, Qt::Key_Equal, Qt::Key_Minus, Qt::Key_0, Qt::Key_Home,
 			 Qt::Key_Left, Qt::Key_Right, Qt::Key_Up, Qt::Key_Down}) {
 		auto* shortcut = new QShortcut(QKeySequence(key), m_view);
 		shortcut->setContext(Qt::WidgetWithChildrenShortcut);
-		connect(shortcut, &QShortcut::activated, this, [this, key] {
+		connect(shortcut, &QShortcut::activated, this, [this, key, zoomAtCentre] {
 			if (key == Qt::Key_0 || key == Qt::Key_Home) {
 				resetZoom();
 				return;
@@ -571,87 +575,105 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 			if (key == Qt::Key_Right) pan.setX(-40);
 			if (key == Qt::Key_Up) pan.setY(40);
 			if (key == Qt::Key_Down) pan.setY(-40);
-			navigate(pan.isNull() ? (key == Qt::Key_Minus ? 1 / 1.2 : 1.2) : 1,
-				m_view->chart()->plotArea().center(), pan);
+			if (pan.isNull())
+				zoomAtCentre(key == Qt::Key_Minus ? 1 / 1.2 : 1.2);
+			else
+				navigate(1, m_view->chart()->plotArea().center(), pan);
 		});
 	}
+	// Copy takes the figure while the chart has the focus; a text field with the focus keeps Copy for its text.
+	auto* copy = new QShortcut(QKeySequence::Copy, m_view);
+	copy->setContext(Qt::WidgetWithChildrenShortcut);
+	connect(copy, &QShortcut::activated, this, &DiagramWindow::copyFigure);
 	// Drag a rectangle to zoom; filter state is unaffected by zoom or pan.
 	m_view->setRubberBand(QChartView::RectangleRubberBand);
 
-	// Top bar: train visibility dropdown, pin state, zoom reset, exports.
-	m_trainsButton = new TrainFilterButton(this);
-	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
-		this, &DiagramWindow::applyTrainVisibility);
-
-	m_clearPinButton = new QPushButton("Clear selection", this);
-	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
-	m_pinLabel = new QLabel("", this);
-	m_pinLabel->setObjectName("diagramPinLabel");
-	// Both are shown only while a train is selected: an empty label would still take a gap in the top bar.
-	m_pinLabel->hide();
-	m_clearPinButton->hide();
-
-	QPushButton* resetZoomBtn = new QPushButton("Reset zoom", this);
-	// The wheel zooms with Control or Command held; the tooltip names the key that the platform uses.
+	m_frame = new ResultFrame(m_view, "diagram", this);
+	m_contextLabel = m_frame->contextLabel();
+	// The header buttons. The wheel zooms with Control or Command held; the tooltip names the key that the platform uses.
 #ifdef Q_OS_MACOS
-	resetZoomBtn->setToolTip("Show the whole chart (Home or 0)\nPinch, Command-scroll or +/- zooms\nArrow keys pan");
+	const QString wheelZoom = QStringLiteral("Pinch or Command-scroll to zoom at the pointer");
 #else
-	resetZoomBtn->setToolTip("Show the whole chart (Home or 0)\nPinch, Ctrl-scroll or +/- zooms\nArrow keys pan");
+	const QString wheelZoom = QStringLiteral("Pinch or Ctrl-scroll to zoom at the pointer");
 #endif
-	connect(resetZoomBtn, &QPushButton::clicked, this, &DiagramWindow::resetZoom);
+	QToolButton* zoomOut = m_frame->addHeaderButton("diagramZoomOut", "Zoom Out", ":/icons/zoom-out.svg", "Zoom out (-)");
+	connect(zoomOut, &QToolButton::clicked, this, [zoomAtCentre] { zoomAtCentre(1 / 1.2); });
+	QToolButton* zoomIn = m_frame->addHeaderButton("diagramZoomIn", "Zoom In", ":/icons/zoom-in.svg",
+		"Zoom in (+)\nDrag a rectangle to zoom into it\n" + wheelZoom);
+	connect(zoomIn, &QToolButton::clicked, this, [zoomAtCentre] { zoomAtCentre(1.2); });
+	QToolButton* fit = m_frame->addHeaderButton("diagramFit", "Fit", ":/icons/fit.svg",
+		"Show the whole chart (Home or 0)\nScroll or the arrow keys to pan");
+	connect(fit, &QToolButton::clicked, this, &DiagramWindow::resetZoom);
 
-	m_csvButton = new QPushButton("Export CSV...", this);
-	m_csvButton->setToolTip("Save the data of the visible trains as CSV");
-	m_csvButton->hide();
-	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
-
-	QPushButton* exportPngBtn = new QPushButton("Export PNG...", this);
-	exportPngBtn->setToolTip("Save the chart as an image");
-	connect(exportPngBtn, &QPushButton::clicked, this, &DiagramWindow::exportPng);
-
-	// No button of the window is a default button, so Enter presses none.
-	for (QPushButton* button : findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
-		button->setAutoDefault(false);
-
-	QHBoxLayout* topBar = new QHBoxLayout();
-	topBar->addWidget(m_trainsButton);
-	topBar->addWidget(m_clearPinButton);
-	topBar->addWidget(m_pinLabel);
-	topBar->addStretch();
-	topBar->addWidget(resetZoomBtn);
-	topBar->addWidget(m_csvButton);
-	topBar->addWidget(exportPngBtn);
-
-	m_readout = new QLabel(this);
-	m_readout->setObjectName("diagramNavigationHelp");
-	m_readout->setWordWrap(true);
-	m_readout->setTextFormat(Qt::PlainText);
-	m_readout->setText("Drag to zoom. Scroll to pan. Home resets.");
 	m_warningLabel = new QLabel(this);
 	m_warningLabel->setObjectName("diagramWarning");
 	m_warningLabel->setTextFormat(Qt::PlainText);
 	m_warningLabel->setWordWrap(true);
 	m_warningLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	m_warningLabel->setContentsMargins(16, 8, 16, 0);
 	QSizePolicy warningPolicy(QSizePolicy::Ignored, QSizePolicy::Minimum);
 	warningPolicy.setHeightForWidth(true);
 	m_warningLabel->setSizePolicy(warningPolicy);
 	m_warningLabel->hide();
-	m_contextLabel = new QLabel(this);
-	m_contextLabel->setObjectName("diagramContext");
-	m_contextLabel->setTextFormat(Qt::PlainText);
-	m_contextLabel->setWordWrap(true);
-	m_contextLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	m_contextLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	m_contextLabel->setMaximumHeight(fontMetrics().height() * 3);
-	m_contextLabel->hide();
+	m_frame->addAboveMain(m_warningLabel);
 
-	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->setSpacing(8);
-	layout->addLayout(topBar);
-	layout->addWidget(m_warningLabel);
-	layout->addWidget(m_contextLabel);
-	layout->addWidget(m_view, 1);
-	layout->addWidget(m_readout);
+	// The panel: the train filter, the selected train, the exports and the readout.
+	ResultPanel* panel = m_frame->panel();
+	m_trainsButton = new TrainFilterButton(this);
+	m_trainsButton->setSizePolicy(QSizePolicy::Expanding, m_trainsButton->sizePolicy().verticalPolicy());
+	connect(m_trainsButton, &TrainFilterButton::selectionChanged,
+		this, &DiagramWindow::applyTrainVisibility);
+	m_trainsSection = panel->addSection("Trains", m_trainsButton);
+
+	m_clearPinButton = new QPushButton("Clear", this);
+	m_clearPinButton->setObjectName("diagramClearSelection");
+	m_clearPinButton->setAccessibleName("Clear selection");
+	m_clearPinButton->setToolTip("Clear the selection");
+	connect(m_clearPinButton, &QPushButton::clicked, this, &DiagramWindow::clearPin);
+	m_pinLabel = new QLabel(this);
+	m_pinLabel->setObjectName("diagramPinLabel");
+	m_pinLabel->setTextFormat(Qt::PlainText);
+	m_pinLabel->setWordWrap(true);
+	m_pinLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	// Shown only while a train is selected.
+	m_selectedSection = panel->addSection("Selected", m_pinLabel, m_clearPinButton);
+	panel->setSectionVisible(m_selectedSection, false);
+
+	auto* exports = new QWidget(this);
+	auto* exportRow = new QHBoxLayout(exports);
+	exportRow->setContentsMargins(0, 0, 0, 0);
+	exportRow->setSpacing(8);
+	auto* pngButton = new QPushButton("PNG...", exports);
+	pngButton->setObjectName("diagramExportPng");
+	pngButton->setAccessibleName("Export PNG");
+	pngButton->setToolTip("Save the chart as an image");
+	connect(pngButton, &QPushButton::clicked, this, &DiagramWindow::exportPng);
+	m_csvButton = new QPushButton("CSV...", exports);
+	m_csvButton->setObjectName("diagramExportCsv");
+	m_csvButton->setAccessibleName("Export CSV");
+	m_csvButton->setToolTip("Save the data of the visible trains as CSV");
+	m_csvButton->hide();
+	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
+	exportRow->addWidget(pngButton, 1);
+	exportRow->addWidget(m_csvButton, 1);
+	panel->addSection("Export", exports);
+	m_readout = panel->readout();
+
+	// No button of the window is a default button, so Enter presses none. The buttons of the panel lie deeper than the
+	// direct children of the window, so the search takes every descendant.
+	for (QPushButton* button : findChildren<QPushButton*>())
+		button->setAutoDefault(false);
+	// Tab goes through the header, the chart, then the panel from top to bottom.
+	const QList<QWidget*> order{zoomOut, zoomIn, fit, m_frame->panelButton(), m_view, m_trainsButton, m_clearPinButton,
+		pngButton, m_csvButton};
+	for (int i = 1; i < order.size(); ++i)
+		QWidget::setTabOrder(order[i - 1], order[i]);
+	// The window opens with the chart in focus, so that its keys work at once.
+	m_view->setFocus();
+
+	auto* layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addWidget(m_frame);
 }
 
 void DiagramWindow::setPresentation(const QString& heading, const QString& context,
@@ -659,10 +681,7 @@ void DiagramWindow::setPresentation(const QString& heading, const QString& conte
 	setWindowTitle(heading);
 	m_warningLabel->setText(warning);
 	m_warningLabel->setVisible(!warning.isEmpty());
-	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
-	m_contextLabel->setText(context);
-	m_contextLabel->setToolTip(plainToolTip(contextToolTip.isEmpty() ? context : contextToolTip));
-	m_contextLabel->setVisible(!context.isEmpty());
+	m_frame->setContext(context, contextToolTip);
 }
 
 void DiagramWindow::setColourKey(const QString& layer, std::vector<ColourKeyEntry> key) {
@@ -673,9 +692,8 @@ void DiagramWindow::setColourKey(const QString& layer, std::vector<ColourKeyEntr
 
 void DiagramWindow::setRollingStockSubject(bool on) {
 	m_rollingStockSubject = on;
-	m_trainsButton->setVisible(!on);
-	m_clearPinButton->setVisible(!on && !m_pinnedTrainId.isEmpty());
-	m_pinLabel->setVisible(!on && !m_pinnedTrainId.isEmpty());
+	m_frame->panel()->setSectionVisible(m_trainsSection, !on);
+	m_frame->panel()->setSectionVisible(m_selectedSection, !on && !m_pinnedTrainId.isEmpty());
 }
 
 // A chart with more than one kind of line gets a legend of the kinds. A sample takes the line style and width of the
@@ -759,8 +777,12 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_stations.clear();
 	m_colourKeyLayer.clear();
 	m_colourKey.clear();
-	if (chart)
+	if (m_readout) m_readout->clear();
+	if (chart) {
+		// The window title and the export name the chart, so the plot has no title of its own.
+		chart->setTitle(QString());
 		applyChartStyle(chart);
+	}
 	QChart* previous = m_view->chart();
 	if (previous != chart)
 		m_view->setChart(chart); // QChartView takes ownership of the new chart
@@ -879,8 +901,8 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 	auto* chart = m_view->chart();
 	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, labels, font(), palette());
 	m_sectionOverlay = overlay;
-	// QChart lays a top legend out between its title and the plot area, so an invisible legend as tall as the
-	// strip keeps the title where it is and moves only the plot down. A larger top margin would move both.
+	// QChart lays a top legend out above the plot area, so an invisible legend as tall as the strip moves the plot
+	// down and leaves the strip its room.
 	auto* legend = chart->legend();
 	const int height = static_cast<int>(std::ceil(overlay->headerHeight()));
 	legend->setAlignment(Qt::AlignTop);
@@ -908,12 +930,6 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 	chart->setBackgroundRoundness(0);
 	chart->setBackgroundBrush(palette().brush(QPalette::Base));
 	chart->setMargins(kChartMargins);
-
-	QFont titleFont = font();
-	titleFont.setPointSizeF(titleFont.pointSizeF() * 1.25);
-	titleFont.setBold(true);
-	chart->setTitleFont(titleFont);
-	chart->setTitleBrush(palette().brush(QPalette::WindowText));
 
 	QColor gridColor = palette().color(QPalette::WindowText);
 	gridColor.setAlpha(30);
@@ -1140,22 +1156,16 @@ void DiagramWindow::applyTrainVisibility() {
 
 void DiagramWindow::pinTrain(const QString& trainId) {
 	m_pinnedTrainId = trainId;
-	if (m_pinLabel) {
-		m_pinLabel->setText(QString("Selected: %1").arg(trainId));
-		m_pinLabel->setVisible(!m_rollingStockSubject);
-	}
-	if (m_clearPinButton) m_clearPinButton->setVisible(!m_rollingStockSubject);
+	m_pinLabel->setText(trainId);
+	m_frame->panel()->setSectionVisible(m_selectedSection, !m_rollingStockSubject);
 	refreshEmphasis();
 	emit trainSelected(trainId);
 }
 
 void DiagramWindow::clearPin() {
 	m_pinnedTrainId.clear();
-	if (m_pinLabel) {
-		m_pinLabel->clear();
-		m_pinLabel->hide();
-	}
-	if (m_clearPinButton) m_clearPinButton->hide();
+	m_pinLabel->clear();
+	m_frame->panel()->setSectionVisible(m_selectedSection, false);
 	refreshEmphasis();
 }
 
@@ -1188,7 +1198,8 @@ void DiagramWindow::refreshEmphasis() {
 	}
 }
 
-void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesName) {
+// The tooltip of a plotted sample: the identity of its series, and its values with the titles of the axes.
+void DiagramWindow::setSampleTooltip(const QPointF& value, const QString& seriesName) {
 	if (!m_tooltip || !m_view || !m_view->chart())
 		return;
 
@@ -1215,6 +1226,130 @@ void DiagramWindow::updateReadout(const QPointF& value, const QString& seriesNam
 			.arg(yText));
 }
 
+namespace {
+
+// The shown plot axis along an edge of the chart, or null: the numeric axis or the clock axis in its place.
+QValueAxis* edgeAxis(const QChart& chart, Qt::Alignment edge) {
+	for (QAbstractAxis* axis : chart.axes())
+		if (axis->alignment() == edge && axis->isVisible())
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) return value;
+	return nullptr;
+}
+
+// The unit of an axis: the text in the last round brackets of its title, such as "km" for "Distance (km)".
+QString axisUnit(const QAbstractAxis& axis) {
+	QTextDocument title;
+	title.setHtml(axis.titleText());
+	const QString text = title.toPlainText();
+	const auto open = text.lastIndexOf(QLatin1Char('('));
+	const auto close = open < 0 ? -1 : text.indexOf(QLatin1Char(')'), open);
+	return close < 0 ? QString() : text.mid(open + 1, close - open - 1);
+}
+
+} // namespace
+
+// The value under the pointer in the units of the axes, to the precision of one pixel of the plot: "07:14:32 at 9.860 km"
+// with a clock axis, "30.00 km, 100 km/h" without one. Empty outside the plot.
+void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
+	if (!m_readout) return;
+	const QChart* chart = m_view ? m_view->chart() : nullptr;
+	const QRectF plot = chart ? chart->plotArea() : QRectF();
+	if (!chart || plot.isEmpty() || !plot.contains(chartPosition)) {
+		m_readout->clear();
+		return;
+	}
+	QString clock;
+	QStringList values;
+	for (const Qt::Alignment edge : {Qt::AlignBottom, Qt::AlignLeft}) {
+		const QValueAxis* axis = edgeAxis(*chart, edge);
+		if (!axis) continue;
+		const bool horizontal = edge == Qt::AlignBottom;
+		double fraction = horizontal ? (chartPosition.x() - plot.left()) / plot.width() : (plot.bottom() - chartPosition.y()) / plot.height();
+		if (axis->isReverse()) fraction = 1 - fraction;
+		const double span = axis->max() - axis->min();
+		const double value = axis->min() + fraction * span;
+		if (axis == m_clockAxis.data()) {
+			clock = QString::fromStdString(formatSimTime(static_cast<long long>(std::floor(value)), m_startOffset));
+			continue;
+		}
+		const double perPixel = span / (horizontal ? plot.width() : plot.height());
+		const int decimals = perPixel > 0 ? std::clamp(static_cast<int>(std::ceil(-std::log10(perPixel))), 0, 6) : 0;
+		// A value that rounds to zero reads "0.00", not "-0.00".
+		const double shown = std::abs(value) < 0.5 * std::pow(10.0, -decimals) ? 0.0 : value;
+		const QString unit = axisUnit(*axis);
+		values << QString::number(shown, 'f', decimals) + (unit.isEmpty() ? QString() : QStringLiteral(" ") + unit);
+	}
+	const QString rest = values.join(QStringLiteral(", "));
+	if (clock.isEmpty())
+		m_readout->setText(rest);
+	else
+		m_readout->setText(rest.isEmpty() ? clock : clock + QStringLiteral(" at ") + rest);
+}
+
+QImage DiagramWindow::figureImage(const FigureColumn& column) const {
+	constexpr qreal ratio = 2;
+	constexpr int margin = 16;
+	const QSize chartSize = m_view->viewport()->size();
+	const int width = chartSize.width() + static_cast<int>(std::ceil(std::max(0.0, column.width)));
+	// The heading in the bold font a chart title had, 1.25 times the window font, and the context in the window font.
+	QFont headingFont = font();
+	if (headingFont.pointSizeF() > 0)
+		headingFont.setPointSizeF(headingFont.pointSizeF() * 1.25);
+	else
+		headingFont.setPixelSize(qRound(headingFont.pixelSize() * 1.25));
+	headingFont.setBold(true);
+	const QFontMetrics headingMetrics(headingFont);
+	// The context wraps at its spaces, and a long identifier also after every 32 characters.
+	const QString context = m_contextLabel && !m_contextLabel->isHidden() ? withBreakOpportunities(m_contextLabel->text()) : QString();
+	const QRect textArea(margin, margin, std::max(1, width - 2 * margin), 100000);
+	const QRect contextArea = context.isEmpty()
+		? QRect()
+		: fontMetrics().boundingRect(textArea.adjusted(0, headingMetrics.height() + 4, 0, 0), Qt::TextWordWrap, context);
+	const int contextBottom = contextArea.isEmpty() ? margin + headingMetrics.height() : contextArea.bottom() + 1;
+	// The warning of the window, such as a curve cut off at 0 kN, goes with the figure under the context.
+	const QString warning = !m_warningLabel->isHidden() ? withBreakOpportunities(m_warningLabel->text()) : QString();
+	const QRect warningArea = warning.isEmpty()
+		? QRect()
+		: fontMetrics().boundingRect(QRect(margin, contextBottom + 4, textArea.width(), 100000), Qt::TextWordWrap, warning);
+	const int top = (warningArea.isEmpty() ? contextBottom : warningArea.bottom() + 1) + margin / 2;
+
+	QImage image(QSize(width, top + chartSize.height()) * ratio, QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(ratio);
+	// One surface with the chart.
+	image.fill(m_view->chart() ? m_view->chart()->backgroundBrush().color() : palette().color(QPalette::Base));
+	QPainter painter(&image);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+	painter.setFont(headingFont);
+	painter.setPen(palette().color(QPalette::WindowText));
+	painter.drawText(QRect(textArea.topLeft(), QSize(textArea.width(), headingMetrics.height())), Qt::AlignLeft | Qt::AlignVCenter,
+		headingMetrics.elidedText(windowTitle(), Qt::ElideRight, textArea.width()));
+	if (!context.isEmpty()) {
+		painter.setFont(font());
+		painter.setPen(m_contextLabel->palette().color(m_contextLabel->foregroundRole()));
+		painter.drawText(contextArea, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, context);
+	}
+	if (!warning.isEmpty()) {
+		painter.setFont(font());
+		painter.setPen(m_warningLabel->palette().color(m_warningLabel->foregroundRole()));
+		painter.drawText(warningArea, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, warning);
+	}
+	// The scene of the chart, without the widgets over it: the rubber band and the tooltip.
+	m_view->render(&painter, QRectF(QPointF(0, top), chartSize), m_view->viewport()->rect());
+	if (column.width > 0 && column.paint)
+		column.paint(painter, QRectF(chartSize.width(), top, column.width, chartSize.height()));
+	painter.end();
+	// Twice the resolution of the screen, so that a viewer shows the image at the size of the window. It is set once the
+	// figure is drawn, as text drawn on an image takes its size from the resolution of the image.
+	image.setDotsPerMeterX(qRound(ratio * logicalDpiX() / 0.0254));
+	image.setDotsPerMeterY(qRound(ratio * logicalDpiY() / 0.0254));
+	return image;
+}
+
+void DiagramWindow::copyFigure() {
+	if (QClipboard* clipboard = QGuiApplication::clipboard())
+		clipboard->setImage(figureImage());
+}
+
 QStringList DiagramWindow::visibleTrainIds() const {
 	if (m_trainsButton)
 		return m_trainsButton->visibleTrainIds();
@@ -1239,10 +1374,10 @@ void DiagramWindow::exportPng() {
 		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
 		path += ".png";
-	QPixmap pix = m_view->grab();
+	const QImage figure = figureImage();
 	QByteArray png;
 	QBuffer buffer(&png);
-	if (!buffer.open(QIODevice::WriteOnly) || !pix.save(&buffer, "PNG")) {
+	if (!buffer.open(QIODevice::WriteOnly) || !figure.save(&buffer, "PNG")) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 		QMessageBox::warning(this, "Export failed",
 			QString("Could not save the image to:\n%1").arg(path));
@@ -1386,7 +1521,7 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	}
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
-	updateReadout(sample, identity);
+	setSampleTooltip(sample, identity);
 	const QStringList contexts = selected->property("inspectionPoints").toStringList();
 	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
 		m_tooltip->setText(m_tooltip->text() + "\n" + contexts[sampleIndex]);
@@ -1445,8 +1580,11 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 	if (!m_view || obj != m_view->viewport() || !m_view->chart())
 		return QDialog::eventFilter(obj, ev);
 	const auto chartPosition = [this](const QPoint& p) { return m_view->chart()->mapFromScene(m_view->mapToScene(p)); };
-	if (ev->type() == QEvent::MouseMove) {
+	if (ev->type() == QEvent::Leave && m_readout) {
+		m_readout->clear();
+	} else if (ev->type() == QEvent::MouseMove) {
 		auto* mouse = static_cast<QMouseEvent*>(ev);
+		updateCursorReadout(chartPosition(mouse->pos()));
 		if (mouse->buttons() == Qt::NoButton) inspectAt(mouse->pos());
 		else clearTooltip();
 	} else if (ev->type() == QEvent::MouseButtonPress) {
@@ -1474,6 +1612,8 @@ bool DiagramWindow::eventFilter(QObject* obj, QEvent* ev) {
 			if (wheel->modifiers() & Qt::ShiftModifier) pan = QPointF(pan.y(), pan.x());
 			navigate(1, chartPosition(wheel->position().toPoint()), pan);
 		}
+		// The value under the pointer changes with the axes.
+		updateCursorReadout(chartPosition(wheel->position().toPoint()));
 		wheel->accept();
 		return true;
 	} else if (ev->type() == QEvent::NativeGesture) {

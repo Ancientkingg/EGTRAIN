@@ -8,8 +8,10 @@
 #include <QPen>
 #include <QBrush>
 #include <QColor>
+#include <QImage>
 #include <QPointer>
 #include <QPointF>
+#include <QRectF>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -24,7 +26,9 @@
 
 class QGraphicsObject;
 class QLabel;
+class QPainter;
 class QPushButton;
+class ResultFrame;
 class TrainFilterButton;
 
 /// A station along the distance axis of a route chart: its position on that axis and the plain-text labels it can
@@ -41,9 +45,18 @@ struct ColourKeyEntry {
 	QColor outline{}; ///< The outline of the series; invalid for the fill colour, darker
 };
 
-/// Reusable non-modal window that shows a chart with a train visibility
-/// dropdown, hover and click identification, rubber-band zoom with reset,
-/// PNG export, and optional CSV export.
+/// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
+struct FigureColumn {
+	/// In pixels of the window; 0 for no column.
+	double width = 0;
+	/// Paints the column in its rectangle, in pixels of the window.
+	std::function<void(QPainter&, const QRectF&)> paint;
+};
+
+/// Reusable non-modal window that shows a chart in a ResultFrame: a header row with the context and the zoom, fit and
+/// panel buttons over the chart, and a panel beside it with the train filter, the selected train, the exports and a
+/// readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and
+/// exports a PNG and, optionally, a CSV.
 ///
 /// Series are grouped by the dynamic property "trainId" when the caller sets it
 /// (the same train can own several series, such as planned and simulated lines);
@@ -59,14 +72,16 @@ class DiagramWindow : public QDialog {
 public:
 	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
-	/// Shows the chart and takes ownership of it. Numeric axes that keep the ticks Qt gives them get ticks on round
-	/// values, and their range widens to the first round tick past each end; a range that starts at zero keeps that
-	/// start. A chart with more than one kind of line gets a legend of the kinds below the plot, built from the series
-	/// the chart has when it is set: the "layer" property of a series, else planned or simulated. A series is planned when
-	/// its "planned" property is true or its name holds "planned"; a planned series is drawn dashed.
+	/// Shows the chart and takes ownership of it. The chart loses its title, since the window title and the exported
+	/// figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range
+	/// widens to the first round tick past each end; a range that starts at zero keeps that start. A chart with more than
+	/// one kind of line gets a legend of the kinds below the plot, built from the series the chart has when it is set:
+	/// the "layer" property of a series, else planned or simulated. A series is planned when its "planned" property is
+	/// true or its name holds "planned"; a planned series is drawn dashed.
 	void setChart(QChart* chart);
-	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
-	/// its label. The context label has `contextToolTip` as its tooltip, or the context itself when it is empty.
+	/// Sets the window title to `heading`, shows `context` in one line in the header, elided at the right, and `warning`
+	/// in a label above the chart; an empty text hides its label. The tooltip of the context has the whole context,
+	/// with `contextToolTip` on the lines below it when given.
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString(), const QString& contextToolTip = QString());
 	/// Explains the colours of the series whose "layer" property is `layer`: the legend below the plot shows a filled
@@ -101,7 +116,7 @@ public:
 	/// trains currently visible so it can export only what the user is looking at.
 	/// `trainIds` adds to the train filter the trains that have CSV rows but no plotted series.
 	/// An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save
-	/// names the file in the status bar of the main window that is the parent of this window. Export PNG suggests
+	/// names the file in the status bar of the main window that is the parent of this window. The PNG export suggests
 	/// `suggestedFileName` with the suffix png, or diagram.png without a name.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName, const QStringList& trainIds = {});
@@ -115,8 +130,12 @@ public:
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
 	/// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped.
 	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
-	/// The same provider/filter snapshot that Export CSV writes, without opening a file dialog.
+	/// The same provider/filter snapshot that the CSV export writes, without opening a file dialog.
 	std::string csvContent() const;
+	/// The figure that the PNG export saves and Copy puts on the clipboard, at two image pixels per pixel of the window:
+	/// the window title as its heading, the context below it, then the chart as the chart view shows it, without the
+	/// rubber band, the tooltip or the readout, and `column` at the right of the chart.
+	QImage figureImage(const FigureColumn& column = {}) const;
 	/// Sets the function that writes an export and its provenance sidecar; `artifactKind` is "png" or "csv". Without
 	/// it the export is written alone.
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
@@ -127,7 +146,7 @@ signals:
 	void trainSelected(const QString& trainId); ///< A click on a series selected this train
 
 protected:
-	/// Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view.
+	/// Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view.
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
 public:
@@ -137,6 +156,7 @@ public:
 private slots:
 	void exportPng();
 	void exportCsv();
+	void copyFigure();
 	void resetZoom();
 	void applyTrainVisibility();
 	void clearPin();
@@ -163,11 +183,15 @@ private:
 	void refreshEmphasis();
 	QStringList visibleTrainIds() const;
 	QString groupIdForSeries(QAbstractSeries* series) const;
-	void updateReadout(const QPointF& value, const QString& seriesName);
+	void setSampleTooltip(const QPointF& value, const QString& seriesName);
+	void updateCursorReadout(const QPointF& chartPosition);
 	void refreshLegend();
 
 	QPointer<QChartView> m_view;
-	QPointer<QLabel> m_readout;
+	QPointer<ResultFrame> m_frame;
+	QPointer<QWidget> m_trainsSection;
+	QPointer<QWidget> m_selectedSection;
+	QPointer<QLabel> m_readout; // the value under the pointer, at the bottom of the panel
 	QPointer<QLabel> m_pinLabel;
 	QPointer<TrainFilterButton> m_trainsButton;
 	QPointer<QPushButton> m_csvButton;
