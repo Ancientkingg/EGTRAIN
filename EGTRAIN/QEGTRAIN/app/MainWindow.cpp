@@ -1798,7 +1798,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction(QString(ResultViewName::kCapacity) + "...", m_resultViews, &ResultViews::showCapacityAnalysis);
 	m_diagramsMenu->addAction(QString(ResultViewName::kCapacityByArea) + "...", m_resultViews, &ResultViews::showAreaCapacity);
 	m_diagramsMenu->addAction(ResultViewName::kTimetable, m_resultViews, &ResultViews::showTimetableTable);
-	m_diagramsMenu->addAction(ResultViewName::kDelays, m_resultViews, &ResultViews::showDelayDiagram);
+	m_diagramsMenu->addAction(QString(ResultViewName::kDelays) + "...", m_resultViews, &ResultViews::showDelayDiagram);
 	m_diagramsMenu->addAction(ResultViewName::kDelayAnalysis, m_resultViews, &ResultViews::showDelayAnalysis);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();

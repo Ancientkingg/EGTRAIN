@@ -8,6 +8,8 @@
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/ResultFrame.h"
+#include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "editors/InfrastructurePanel.h"
@@ -80,6 +82,7 @@
 #include <QPushButton>
 #include <QRect>
 #include <QRectF>
+#include <QRegularExpression>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -106,6 +109,7 @@
 #include <cstdio>
 #include <functional>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -2061,6 +2065,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			longRun->provenance.appliedScenario = std::string(300, 's');
 			w.m_runController->m_completedRun = longRun;
 			const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
+			// Delays names its reference route after the run: the first route that a train runs on, as no dialog asks.
+			const auto used = usedRouteReferencesFrom(*kept);
+			const QString delaysContext = run + QStringLiteral(" \u00b7 ") + QString::fromStdString(used.empty() ? std::string() : used.front().second);
 			const char* const chartTitles[] = {"Speed / distance", "Speed / time", "Time / distance",
 				"Tractive effort / distance", "Delays"};
 			QString problem;
@@ -2079,7 +2086,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					problem = title + QStringLiteral(" did not open");
 				else if (window->windowTitle() != title)
 					problem = title + QStringLiteral(" has the window title ") + window->windowTitle();
-				else if (context->isHidden() || context->text() != run)
+				else if (context->isHidden() || context->text() != (chart < 4 ? run : delaysContext))
 					problem = title + QStringLiteral(" does not name the run in its header: ") + context->text();
 				else if (window->width() > window->screen()->availableGeometry().width() * 9 / 10)
 					problem = title + QStringLiteral(" does not keep its size with a long run");
@@ -2127,8 +2134,53 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				delays->close();
 			w.m_runController->m_completedRun = kept;
 			process();
-			if (emptyText != QStringLiteral("No arrival delays in this run")) {
+			const auto used = usedRouteReferencesFrom(*kept);
+			if (used.empty() || emptyText != QStringLiteral("No arrival delays at stations of ") + QString::fromStdString(used.front().second)) {
 				fail(QStringLiteral("the Delays chart of a run without planned arrivals does not say so: ") + emptyText);
+				return;
+			}
+		}
+		// The Delays chart draws the arrival delays along the reference route: the distance along the bottom, the stations
+		// of the route above the plot, and a marker for each call at the place of its station, which its tooltip names.
+		{
+			const std::shared_ptr<const CompletedRunData> run = w.m_runController->m_completedRun;
+			const auto used = usedRouteReferencesFrom(*run);
+			const auto stations = used.empty() ? std::map<double, std::string>()
+											   : routeDiagramStationLabels(run->routes[static_cast<std::size_t>(used.front().first)].path);
+			w.showDelayDiagram();
+			process();
+			const auto windows = w.findChildren<DiagramWindow*>();
+			DiagramWindow* delays = windows.isEmpty() ? nullptr : windows.last();
+			const auto* view = delays ? delays->findChild<QChartView*>() : nullptr;
+			const auto horizontal = view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>();
+			const auto* distance = horizontal.isEmpty() ? nullptr : qobject_cast<QValueAxis*>(horizontal.first());
+			const auto* stationAxis = horizontal.size() < 2 ? nullptr : qobject_cast<QCategoryAxis*>(horizontal.last());
+			QString problem;
+			if (!distance || distance->titleText() != QStringLiteral("Distance (km)"))
+				problem = QStringLiteral("has no distance axis");
+			else if (stations.empty() || !stationAxis || stationAxis->count() == 0)
+				problem = QStringLiteral("does not name the stations of the route above the plot");
+			int markers = 0;
+			const QList<QAbstractSeries*> drawn = view && problem.isEmpty() ? view->chart()->series() : QList<QAbstractSeries*>();
+			for (const QAbstractSeries* series : drawn) {
+				const auto* line = qobject_cast<const QXYSeries*>(series);
+				const QStringList contexts = series->property("inspectionPoints").toStringList();
+				for (qsizetype index = 0; line && index < line->count(); ++index) {
+					const auto station = stations.find(line->at(index).x());
+					const QString context = contexts.value(index);
+					if (!line->pointsVisible() || station == stations.end()
+						|| !QRegularExpression(QStringLiteral("^(.+), stop \\d+$")).match(context).hasMatch()
+						|| !QString::fromStdString(station->second).startsWith(context.section(QStringLiteral(", stop "), 0, 0)))
+						problem = QStringLiteral("draws %1 of %2 at %3 km").arg(context, series->name()).arg(line->at(index).x());
+					++markers;
+				}
+			}
+			if (problem.isEmpty() && markers == 0) problem = QStringLiteral("draws no call");
+			if (delays)
+				delays->close();
+			process();
+			if (!problem.isEmpty()) {
+				fail(QStringLiteral("the Delays chart ") + problem);
 				return;
 			}
 		}

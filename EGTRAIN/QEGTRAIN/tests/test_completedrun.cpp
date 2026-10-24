@@ -2,11 +2,12 @@
 //
 // Two committed scenes run in this process, one after the other. The data captured from the run of the simulation must
 // agree with it, the exports and diagram inputs must follow from it, and none of it may change when the next scene
-// replaces the run. A result window opened for a scene must keep exporting that scene. Hand-made data then pins
-// the adapters on cases that the scenes do not hold: missing times, repeated stops, the order of the
+// replaces the run. A result window opened for a scene must keep exporting that scene. The scenes after --delays run
+// for the Delays chart alone and must have trains that call at one station in opposite directions. Hand-made data then
+// pins the adapters on cases that the scenes do not hold: missing times, repeated stops, the order of the
 // capacity trains and shared resources.
 //
-//   test_completedrun SCENE_DIR...
+//   test_completedrun SCENE_DIR... [--delays SCENE_DIR...]
 
 #include "app/DispatchController.h"
 #include "diagrams/AreaCapacityWindow.h"
@@ -58,6 +59,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -640,6 +642,64 @@ void checkRouteDiagrams(const CapturedRun& run) {
 		scene + ": no diagram without a reference route");
 }
 
+// The Delays chart on each route that a train runs on: a point for each arrival delay of the timetable at a station of
+// the route, at a node of that station, in journey order, and every train drawn or listed without a call there. Gives
+// the number of stations at which trains that run in opposite directions have a point, each at one position for all.
+std::size_t checkDelayDiagrams(const CapturedRun& run) {
+	std::size_t shared = 0;
+	for (const auto& used : usedRouteReferencesFrom(run.data)) {
+		const std::string label = run.scene + ": delays on " + used.second;
+		const auto diagram = delayDiagramData(run.data, used.first);
+		check(diagram && diagram->referencePath.id == used.second, label);
+		if (!diagram)
+			continue;
+		check(diagram->series.size() + diagram->withoutCalls.size() == run.data.trains.size(), label + ": every train is drawn or listed");
+		std::map<std::string, std::set<double>> stations;
+		for (const RouteDiagramNode& node : diagram->referencePath.nodes)
+			if (!node.stationName.empty())
+				stations[node.stationName].insert(node.positionKm);
+		std::size_t delays = 0, points = 0;
+		for (const TimetableResultRow& timetableRow : run.data.timetable)
+			delays += timetableRow.arrivalDelaySeconds.available && stations.count(timetableRow.stationId) ? 1 : 0;
+		// The position of each point at each station, with the direction of its train: 1 up the route, -1 down.
+		std::map<std::string, std::vector<std::pair<double, double>>> calls;
+		for (const DelayDiagramSeries& series : diagram->series) {
+			int journey = 0;
+			for (const DelayDiagramPoint& point : series.points) {
+				const std::string where = label + ": " + series.trainId + " stop " + std::to_string(point.journey);
+				const auto station = stations.find(point.station);
+				check(station != stations.end() && station->second.count(point.positionKm), where + " lies at a node of " + point.station);
+				check(point.journey > journey, where + " is in journey order");
+				journey = point.journey;
+				const auto timetableRow = std::find_if(run.data.timetable.begin(), run.data.timetable.end(), [&](const TimetableResultRow& candidate) {
+					return candidate.trainId == series.trainId && candidate.journeyIndex == point.journey;
+				});
+				check(timetableRow != run.data.timetable.end() && timetableRow->arrivalDelaySeconds.value == point.delaySeconds
+						&& timetableRow->callIndex == point.call,
+					where + " has the arrival delay of the timetable");
+				++points;
+			}
+			const auto& line = series.points;
+			if (line.size() >= 2 && line.front().positionKm != line.back().positionKm)
+				for (const DelayDiagramPoint& point : line)
+					calls[point.station].emplace_back(point.positionKm, line.back().positionKm > line.front().positionKm ? 1.0 : -1.0);
+		}
+		check(points == delays, label + ": a point for each arrival delay at a station of the route");
+		for (const auto& station : calls) {
+			const auto& drawn = station.second;
+			if (std::none_of(drawn.begin(), drawn.end(), [](const auto& call) { return call.second > 0; })
+				|| std::none_of(drawn.begin(), drawn.end(), [](const auto& call) { return call.second < 0; }))
+				continue;
+			++shared;
+			check(std::all_of(drawn.begin(), drawn.end(), [&drawn](const auto& call) { return call.first == drawn.front().first; }),
+				label + ": trains in both directions are drawn at one position of " + station.first);
+		}
+	}
+	check(!delayDiagramData(run.data, -1) && !delayDiagramData(run.data, static_cast<int>(run.data.routes.size())),
+		run.scene + ": no Delays chart without a reference route");
+	return shared;
+}
+
 // The first run has to give the same text after the second run has replaced the simulation state.
 std::string exportsOf(const CompletedRunData& data) {
 	const QStringList ids = trainIdsFrom(data);
@@ -1037,6 +1097,64 @@ void testReversedRoutes() {
 	if (blocking && blocking->segments.size() == 1)
 		check(blocking->segments[0].startPositionKm == 4.0 && blocking->segments[0].endPositionKm == 2.0 && blocking->segments[0].midPositionKm == 3.0,
 			"the ends of the envelope are mirrored");
+}
+
+void testDelayDiagram() {
+	// The route passes Alpha, Bravo, Mike, Bravo again and Charlie; two sections share the first node of Bravo. The station
+	// Bravo has the id st-b, and a timetable row names a station by its name.
+	CompletedRunData data;
+	CompletedRoute line = routeOf("line", {});
+	line.path.nodes = {{"a", "A", "Alpha", 0.0}, {"b1", "st-b", "Bravo", 3.0}, {"b1", "st-b", "Bravo", 3.0}, {"m", "M", "Mike", 4.5},
+		{"x", "", "", 5.0}, {"b2", "st-b", "Bravo", 6.0}, {"c", "C", "Charlie", 9.0}};
+	data.routes = {line, routeOf("empty", {})};
+	data.trains = {trainOn("Up", 0), trainOn("Down", 0), trainOn("Shuttle", 0), trainOn("Unplanned", 0), trainOn("Away", 0), trainOn("Idle", 0)};
+	const auto call = [&data](const std::string& train, const std::string& station, int journey, int callIndex, std::optional<double> delay) {
+		TimetableResultRow entry = rowOf(train, station, journey, callIndex, kAbsent, kAbsent, kAbsent, kAbsent);
+		entry.arrivalDelaySeconds = delay ? at(*delay) : kAbsent;
+		data.timetable.push_back(entry);
+	};
+	// Up has no arrival delay at Alpha, calls at Zulu off the route and comes back to Bravo after Mike.
+	call("Up", "Alpha", 1, 1, std::nullopt);
+	call("Up", "Bravo", 2, 1, 60.0);
+	call("Up", "Mike", 3, 1, 30.0);
+	call("Up", "Zulu", 4, 1, 10.0);
+	call("Up", "Bravo", 5, 2, 90.0);
+	call("Up", "Charlie", 6, 1, -30.0);
+	// Down runs the other way, so it reaches the second node of Bravo first.
+	call("Down", "Charlie", 1, 1, 120.0);
+	call("Down", "Bravo", 2, 1, 45.0);
+	call("Down", "Mike", 3, 1, 15.0);
+	call("Down", "Bravo", 4, 2, 20.0);
+	call("Down", "Alpha", 5, 1, 0.0);
+	// Shuttle calls only at Bravo, so nothing gives its direction.
+	call("Shuttle", "Bravo", 1, 1, 5.0);
+	call("Shuttle", "Bravo", 2, 2, 6.0);
+	call("Unplanned", "Mike", 1, 1, std::nullopt);
+	// The id of Bravo is not the name of a station of the route.
+	call("Away", "Zulu", 1, 1, 50.0);
+	call("Away", "st-b", 2, 1, 40.0);
+
+	const auto pointsOf = [](const DelayDiagramSeries& series) {
+		std::string text = series.trainId + ":";
+		for (const DelayDiagramPoint& point : series.points)
+			text += " " + num(point.positionKm) + "|" + num(point.delaySeconds) + "|" + point.station + "|" + std::to_string(point.journey) + "|" + std::to_string(point.call);
+		return text + "\n";
+	};
+	const auto diagram = delayDiagramData(data, 0);
+	check(diagram && diagram->referencePath.id == "line", "the Delays chart of the line");
+	if (!diagram)
+		return;
+	std::string actual;
+	for (const DelayDiagramSeries& series : diagram->series)
+		actual += pointsOf(series);
+	checkSame("the delays at the stations of the line",
+		"Up: 3|60|Bravo|2|1 4.5|30|Mike|3|1 6|90|Bravo|5|2 9|-30|Charlie|6|1\n"
+		"Down: 9|120|Charlie|1|1 6|45|Bravo|2|1 4.5|15|Mike|3|1 3|20|Bravo|4|2 0|0|Alpha|5|1\n"
+		"Shuttle: 3|5|Bravo|1|1 3|6|Bravo|2|2\n"
+		"Unplanned:\n",
+		actual);
+	check(diagram->withoutCalls == std::vector<std::string>({"Away", "Idle"}), "the trains without a call at a station of the line");
+	check(!delayDiagramData(data, 1) && !delayDiagramData(data, -1) && !delayDiagramData(data, 2), "no Delays chart without a route with nodes");
 }
 
 void testCapacityOrder() {
@@ -1935,8 +2053,9 @@ void testScopeDialogMacFooter() {
 
 int main(int argc, char** argv) {
 	QApplication application(argc, argv);
-	if (argc < 3) {
-		std::cerr << "usage: test_completedrun SCENE_DIR SCENE_DIR...\n";
+	const int delaysOnly = static_cast<int>(std::find(argv + 1, argv + argc, std::string("--delays")) - argv);
+	if (delaysOnly < 3) {
+		std::cerr << "usage: test_completedrun SCENE_DIR SCENE_DIR... [--delays SCENE_DIR...]\n";
 		return 2;
 	}
 	QTemporaryDir output;
@@ -1945,10 +2064,10 @@ int main(int argc, char** argv) {
 		return 2;
 	}
 
-	std::vector<CapturedRun> runs(static_cast<std::size_t>(argc - 1));
+	std::vector<CapturedRun> runs(static_cast<std::size_t>(delaysOnly - 1));
 	std::vector<std::string> exports;
 	std::vector<OpenWindows> windows;
-	for (int k = 1; k < argc; ++k) {
+	for (int k = 1; k < delaysOnly; ++k) {
 		CapturedRun& run = runs[static_cast<std::size_t>(k - 1)];
 		if (!runScene(argv[k], output.path().toStdString(), run))
 			return 1;
@@ -1958,9 +2077,16 @@ int main(int argc, char** argv) {
 		checkBlockingDiagrams(run);
 		checkCapacity(run);
 		checkRouteDiagrams(run);
+		checkDelayDiagrams(run);
 		exports.push_back(exportsOf(run.data));
 		windows.push_back(openWindows(run));
 		checkLabelledChoosers(run);
+	}
+	for (int k = delaysOnly + 1; k < argc; ++k) {
+		CapturedRun run;
+		if (!runScene(argv[k], output.path().toStdString(), run))
+			return 1;
+		check(checkDelayDiagrams(run) > 0, run.scene + ": trains in opposite directions call at one station");
 	}
 	// Every run has been replaced by the next one by now. The data of each must still give what it gave.
 	for (std::size_t k = 0; k < runs.size(); ++k) {
@@ -1979,6 +2105,7 @@ int main(int argc, char** argv) {
 	testRepeatedResource();
 	testRouteScopeOfSharedBlocks();
 	testReversedRoutes();
+	testDelayDiagram();
 	testCapacityOrder();
 	testCapacityStretch();
 	testCapacitySections();

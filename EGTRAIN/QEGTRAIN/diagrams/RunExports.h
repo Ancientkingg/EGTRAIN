@@ -166,4 +166,35 @@ struct RouteDiagramData {
 /// Empty when the route does not exist or has no nodes.
 std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex);
 
+/// One arrival delay of the Delays chart, at a station of the reference route.
+struct DelayDiagramPoint {
+	double positionKm = 0.0;   ///< Of the station node on the reference route
+	double delaySeconds = 0.0; ///< TimetableResultRow::arrivalDelaySeconds
+	std::string station;	   ///< TimetableResultRow::stationId
+	int journey = 0;		   ///< TimetableResultRow::journeyIndex
+	int call = 0;			   ///< TimetableResultRow::callIndex
+};
+
+/// The arrival delays of one train at the stations of the reference route.
+struct DelayDiagramSeries {
+	std::string trainId;				   ///< Name of the train in the run
+	std::vector<DelayDiagramPoint> points; ///< In journey order; empty when no call there has an arrival delay
+};
+
+/// What the Delays chart shows.
+struct DelayDiagramData {
+	RouteDiagramPath referencePath;			///< The reference route
+	std::vector<DelayDiagramSeries> series; ///< The trains with a call at a station of the route, in run order
+	std::vector<std::string> withoutCalls;	///< The other trains, in run order
+};
+
+/// The arrival delay of each call of each train at a station of the reference route with the given index, at the
+/// position of that station on the route. A call is at the station nodes of the route whose station name is the station
+/// of the call (TimetableResultRow::stationId holds the name). When the route passes the station at more than one
+/// position, the call takes the first that the train reaches at or after its previous call at a station of the route,
+/// moving as between its last two such calls that lie apart, or before those as from its first to its last call at a
+/// station that the route passes once. Otherwise it takes the first of them on the route. Empty when the route does not
+/// exist or has no nodes.
+std::optional<DelayDiagramData> delayDiagramData(const CompletedRunData& data, int referenceIndex);
+
 #endif
