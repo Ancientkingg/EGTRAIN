@@ -213,6 +213,11 @@ bool exerciseInput() {
 		"the reference times come from the first block of the first route and all occupations are passed");
 	ok &= expect(!first.reversedDirection && input.otherTraffic[0].reversedDirection, "the direction is the one of the route of the train");
 	ok &= expect(input.otherTraffic[0].train.profileReferenceTime < 0.0, "a train without the first block has no reference");
+	CompletedRunData later = data;
+	later.trains.push_back(train("L", 0, {occupation("@3-B0@", 400.0, 460.0, 400.0)}));
+	const AreaCapacityInput laterInput = areaCapacityInputFrom(later, lineScope({"F1", "L"}));
+	ok &= expect(laterInput.selected.size() == 2 && laterInput.selected[1].train.profileReferenceTime < 0.0,
+		"a train that enters the area after the first block has no reference, though its record there has a StartRunTime");
 	ok &= expect(areaCapacityLabel(data, scope).toStdString() == "R / main / @0-B0@ to @7-B0@ and S / @7-B0@ to @6-B0@",
 		"the label names both route ranges");
 	ok &= expect(areaCapacityLabel(data, lineScope({})).toStdString() == "R / main / @0-B0@ to @7-B0@", "the label of one route range");
@@ -634,6 +639,25 @@ bool exerciseEdgeCases() {
 	ok &= expect(figure(other, "areaCapacityCycle") == "- | No cycle-closing train" && otherSummary && otherSummary->text() == "No cycle-closing train was chosen."
 			&& rowOf(table(other, "areaCapacityExcluded"), "Opposing train") == 0,
 		"an opposing cycle-closing train is left out of the chain and listed as opposing");
+
+	// A cycle-closing train that shares no resource with an earlier train of the chain closes no cycle.
+	const auto chained = [](const char* id, const char* resource, double start) {
+		AreaCapacityTrain value;
+		value.train.runtimeId = id;
+		value.train.profileReferenceTime = start;
+		value.train.occupations = {occupation(resource, start, start + 20.0, start)};
+		return value;
+	};
+	AreaCapacityInput unshared;
+	unshared.resourceIds = {"X", "Y"};
+	unshared.selected = {chained("A", "X", 0.0), chained("B", "Y", 20.0)};
+	unshared.periodSeconds = 3600.0;
+	unshared.cycleEndIdentity = "B";
+	AreaCapacityWindow noCycle = makeWindow(analyzeAreaCapacity(unshared));
+	const auto* noCycleSummary = noCycle.findChild<QLabel*>("areaCapacityChainSummary");
+	ok &= expect(figure(noCycle, "areaCapacityCycle") == "- | No cycle" && figure(noCycle, "areaCapacityShare") == "- | of 1 h" && noCycleSummary
+			&& noCycleSummary->text() == "Train B shares no resource with an earlier train of the chain, so it closes no cycle.",
+		qPrintable("a cycle-closing train that shares no resource with an earlier train closes no cycle: " + cycleFigures(noCycle)));
 
 	// A train that occupies a resource twice counts both occupations and is noted.
 	CompletedRunData repeated = data;

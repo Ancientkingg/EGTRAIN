@@ -414,18 +414,7 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 			if (std::find(indices.begin(), indices.end(), static_cast<int>(index)) == indices.end()
 				&& shareBlockingTimeResource(section.id, extents[index].id))
 				return "A selected block is also used outside the chosen blocks, so the passes cannot be told apart. Choose other blocks.";
-	for (std::size_t index = 1; index < selected.size(); ++index)
-		if (shareBlockingTimeResource(selected.front().id, selected[index].id))
-			return "The first block occurs more than once in the selection. Choose another first block.";
 	return {};
-}
-
-bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
-	const std::string& entryBlockId) {
-	return std::count_if(occupations.begin(), occupations.end(), [&entryBlockId](const auto& occupation) {
-		return validBlockingTimeDiagramInput(occupation) && std::isfinite(occupation.startRunTime)
-			&& occupation.startRunTime >= 0 && shareBlockingTimeResource(occupation.blockId, entryBlockId);
-	}) > 1;
 }
 
 const std::vector<std::string>& blockingTimeCsvHeader() {

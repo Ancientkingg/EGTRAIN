@@ -185,13 +185,9 @@ std::vector<int> blockSectionRangeIndices(int first, int last, int count);
 bool blockingSegmentInSections(const BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& sections);
 // Whether a position on the reference route lies on the interval of a section that has geometry.
 bool positionInBlockSections(double positionKm, const std::vector<BlockSectionExtent>& sections);
-// The existing capacity API selects resources by id and needs a unique entry occurrence.
+// The capacity analysis selects resources by id, so a resource of the chosen sections must not also lie outside them.
 std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>& extents,
 	const std::vector<int>& indices);
-
-// A resource-id entry is unusable when several valid profile records could provide it.
-bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
-	const std::string& entryBlockId);
 
 // Names of the columns of the blocking-time export, in order. A compression never moves the times named "Original", and
 // the last three columns give the positions as geo X through the PositionScale of the sections of the export.

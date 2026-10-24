@@ -279,22 +279,11 @@ static bool blockSectionTests() {
 	ok &= expect(!blockSectionBounds({broken[1], broken[3]}),
 		"missing geometry yields no invented coordinate bounds");
 	ok &= expect(!blockSectionCapacityScopeIssue(returning, {0}).empty(), "capacity rejects a selected repeated resource with another occurrence outside scope");
-	ok &= expect(!blockSectionCapacityScopeIssue(returning, {0, 1, 2}).empty(), "capacity rejects repeated selected entry resource");
+	ok &= expect(blockSectionCapacityScopeIssue(returning, {0, 1, 2}).empty(), "a resource repeated only inside the chosen blocks is accepted");
 	const auto unrelatedRepeat = buildBlockSectionExtents({{"@entry@", 0, 1}, {"@else@", 1, 2}, {"@else@", 2, 3}});
 	ok &= expect(blockSectionCapacityScopeIssue(unrelatedRepeat, {0}).empty(), "unrelated repeats do not block a representable capacity scope");
 	const auto sharedScope = buildBlockSectionExtents({{"@a@/@b@", 0, 1}, {"@b@", 2, 3}});
 	ok &= expect(!blockSectionCapacityScopeIssue(sharedScope, {0}).empty(), "capacity rejects shared composite resource outside selected scope");
-	auto entry = block("@entry@", 1, 2, 0, 1000, "None", "None", true);
-	entry.startRunTime = 1;
-	auto duplicateEntry = entry;
-	auto incompleteEntry = entry;
-	incompleteEntry.isComplete = false;
-	auto unrelated = entry;
-	unrelated.blockId = "@other@";
-	ok &= expect(blockingTimeEntryAmbiguous({entry, duplicateEntry}, "@entry@"),
-		"several valid profile entry records refuse an arbitrary first StartRunTime");
-	ok &= expect(!blockingTimeEntryAmbiguous({entry, incompleteEntry, unrelated, unrelated}, "@entry@"),
-		"incomplete entry and unrelated repeated profile records do not cause refusal");
 	return ok;
 }
 
