@@ -359,14 +359,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					|| dialog->windowTitle() != QStringLiteral("Capacity"))
 					continue;
 				const QList<QComboBox*> combos = dialog->findChildren<QComboBox*>();
-				QComboBox* cycleEnd = nullptr;
-				for (QComboBox* combo : combos)
-					if (combo->count() >= 3
-						&& combo->itemText(0).startsWith(QStringLiteral("Select the first train")))
-						cycleEnd = combo;
+				const auto* cycleEnd = dialog->findChild<QComboBox*>(QStringLiteral("capacityCycleEnd"));
 				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
-				const auto* blocks = dialog->findChild<QComboBox*>(QStringLiteral("capacityBlocks"));
-				if (combos.size() != 3 || !cycleEnd || !blocks || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
+				const auto* from = dialog->findChild<QComboBox*>(QStringLiteral("capacityFromBlock"));
+				const auto* to = dialog->findChild<QComboBox*>(QStringLiteral("capacityToBlock"));
+				if (combos.size() != 4 || !cycleEnd || !from || !to || !buttons || !buttons->button(QDialogButtonBox::Ok)) {
 					fail(QStringLiteral("capacity scope controls are incomplete"));
 					return;
 				}
@@ -378,12 +375,17 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					fail(QStringLiteral("the occurrence rows are wider than their list"));
 					return;
 				}
-				// The chooser is accepted as it opens: the two trains of the run are checked, so the second closes the
-				// cycle, and the analysed blocks are those both run over. The smoke script compares their sections with
-				// those of the blocking-time export.
-				if (cycleEnd->currentIndex() != 2) {
+				// The chooser is accepted as it opens: the whole route, with the two trains of the run checked and the
+				// first train one period later closing the cycle. The smoke script compares the sections with those of
+				// the blocking-time export.
+				if (from->currentIndex() != 0 || to->currentIndex() != to->count() - 1) {
 					dialog->reject();
-					fail(QStringLiteral("the second of the two checked occurrences does not close the cycle"));
+					fail(QStringLiteral("the capacity chooser does not open on the whole route"));
+					return;
+				}
+				if (cycleEnd->currentIndex() != 0 || cycleEnd->itemText(0) != QStringLiteral("First train, one period later")) {
+					dialog->reject();
+					fail(QStringLiteral("the first train one period later does not close the cycle"));
 					return;
 				}
 				buttons->button(QDialogButtonBox::Ok)->click();
@@ -2449,7 +2451,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		// The compressed diagram has the position axis of the blocking-time diagram, with labels. Its time axis spans the
-		// compressed blocking times, which start about a minute after the run start in this run, so it does not start at 0 s.
+		// compressed blocking times with a margin of 5 % of their span, cut at 0 s, and not the whole run.
 		const auto axisOf = [](const QChartView* view, Qt::Orientation orientation) -> const QValueAxis* {
 			const auto axes = view ? view->chart()->axes(orientation) : QList<QAbstractAxis*>();
 			return axes.isEmpty() ? nullptr : qobject_cast<const QValueAxis*>(axes.first());
@@ -2474,8 +2476,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				+ (compressedX ? compressedX->titleText() : QStringLiteral("no axis")));
 			return;
 		}
-		if (!compressedTime || !(earliestEnvelope <= latestEnvelope) || !(compressedTime->min() > 0.0)
-			|| compressedTime->min() > earliestEnvelope || compressedTime->max() < latestEnvelope) {
+		const double timeMargin = std::max(1.0, (latestEnvelope - earliestEnvelope) * 0.05);
+		if (!compressedTime || !(earliestEnvelope <= latestEnvelope)
+			|| std::abs(compressedTime->min() - std::max(0.0, earliestEnvelope - timeMargin)) > 0.01
+			|| std::abs(compressedTime->max() - (latestEnvelope + timeMargin)) > 0.01) {
 			fail(QString("the compressed time axis %1 s to %2 s does not fit the compressed blocking times, %3 s to %4 s")
 					.arg(compressedTime ? compressedTime->min() : -1.0)
 					.arg(compressedTime ? compressedTime->max() : -1.0)
@@ -2528,8 +2532,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				+ QStringLiteral(" / ") + compressedKinds.join(QStringLiteral(", ")));
 			return;
 		}
-		// The outline of a blocking time takes the colour of its train from the palette, one colour for each train, while a
-		// critical block keeps its amber-brown outline, and its sample in the Key has the hatch.
+		// The outline of a blocking time takes the colour of its train from the palette, one colour for each train of the run,
+		// and the first train one period later has the colour of the first train. A critical block keeps its amber-brown
+		// outline, and its sample in the Key has the hatch.
 		const QList<QRgb> palette{qRgb(0x2a, 0x78, 0xd6), qRgb(0xc2, 0x44, 0x8a), qRgb(0x4c, 0x8a, 0x12), qRgb(0x61, 0x27, 0xb1),
 			qRgb(0xe3, 0x5b, 0x6b), qRgb(0x84, 0x2a, 0x65)};
 		QHash<QString, QRgb> outlineColours;
@@ -2550,18 +2555,31 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				outlineColours.insert(train, colour);
 			}
 		}
+		const QString nextPeriod = QStringLiteral(" (next period)");
 		QSet<QRgb> distinct;
-		for (const QRgb colour : std::as_const(outlineColours)) distinct.insert(colour);
+		int copies = 0;
+		bool copiesColoured = true;
+		for (auto outline = outlineColours.cbegin(); outline != outlineColours.cend(); ++outline) {
+			if (!outline.key().endsWith(nextPeriod)) {
+				distinct.insert(outline.value());
+				continue;
+			}
+			++copies;
+			const QString source = outline.key().chopped(nextPeriod.size());
+			copiesColoured &= outlineColours.contains(source) && outlineColours.value(source) == outline.value();
+		}
 		bool keyHatched = false;
 		if (const auto* key = compressedView->window()->findChild<DiagramKey*>(QStringLiteral("diagramKey")))
 			for (const DiagramKeyEntry& entry : key->entries())
 				keyHatched = keyHatched || (entry.name == QStringLiteral("Critical block") && entry.brush.style() == Qt::TexturePattern);
-		if (!oneColourEach || outlineColours.size() < 2 || distinct.size() != outlineColours.size() || criticalOutlines == 0 || !criticalKept
-			|| !keyHatched) {
+		if (!oneColourEach || outlineColours.size() < 3 || copies != 1 || !copiesColoured || distinct.size() != outlineColours.size() - copies
+			|| criticalOutlines == 0 || !criticalKept || !keyHatched) {
 			fail(QString("the compressed blocks do not have the colours of their trains and the critical look: %1 trains in %2 colours, "
-						 "%3 critical outlines, kept %4, hatched key %5")
+						 "%3 copies in the colour of their train %4, %5 critical outlines, kept %6, hatched key %7")
 					.arg(outlineColours.size())
 					.arg(distinct.size())
+					.arg(copies)
+					.arg(copiesColoured)
 					.arg(criticalOutlines)
 					.arg(criticalKept)
 					.arg(keyHatched));

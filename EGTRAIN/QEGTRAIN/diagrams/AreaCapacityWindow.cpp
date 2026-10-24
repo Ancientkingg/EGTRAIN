@@ -191,6 +191,9 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 			if (!reference.isEmpty())
 				references << QString::fromStdString(identity) + ": " + reference;
 		}
+	} else if (chain.analyzable && !chain.cycleEndIdentity.empty()) {
+		summary = QString("Train %1 shares no resource with an earlier train of the chain, so it closes no cycle.")
+					  .arg(QString::fromStdString(chain.cycleEndIdentity));
 	} else if (chain.analyzable) {
 		summary = QStringLiteral("No cycle-closing train was chosen.");
 	} else {
@@ -331,6 +334,12 @@ void fillFigures(const AreaCapacityResult& result, const SceneSectionLabels& lab
 
 	const CapacityAnalysisResult& chain = result.chain;
 	const QString period = chain.periodSeconds > 0.0 ? "of " + capacityPeriodText(chain.periodSeconds) : QStringLiteral("No valid period");
+	if (!chainHasCycle(chain) && chain.analyzable && !chain.cycleEndIdentity.empty()) {
+		cycle->setFigure(QStringLiteral("-"), QStringLiteral("No cycle"),
+			QString("Train %1 shares no resource with an earlier train of the chain.").arg(QString::fromStdString(chain.cycleEndIdentity)));
+		share->setFigure(QStringLiteral("-"), period);
+		return;
+	}
 	if (!chainHasCycle(chain)) {
 		cycle->setFigure(QStringLiteral("-"), chain.analyzable ? QStringLiteral("No cycle-closing train") : QStringLiteral("Chain cannot be analysed"));
 		share->setFigure(QStringLiteral("-"), period);
@@ -384,6 +393,14 @@ CapacityAnalysisScope referenceScope(const AreaCapacityScope& scope) {
 	return reference;
 }
 
+// The first resource of the first range, where capacityInputFrom takes the reference time of a train of the area.
+CapacityAnalysisScope entryScope(const AreaCapacityScope& scope) {
+	CapacityAnalysisScope entry = referenceScope(scope);
+	entry.blockIds.resize(std::min<std::size_t>(entry.blockIds.size(), 1));
+	entry.sectionIndices.resize(std::min<std::size_t>(entry.sectionIndices.size(), 1));
+	return entry;
+}
+
 std::vector<std::string> areaResources(const AreaCapacityScope& scope) {
 	std::vector<std::string> resources = scope.blockIds;
 	resources.insert(resources.end(), scope.secondBlockIds.begin(), scope.secondBlockIds.end());
@@ -420,7 +437,7 @@ AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const Area
 	input.resourceIds = areaResources(scope);
 	input.periodSeconds = scope.periodSeconds;
 	input.cycleEndIdentity = scope.cycleEndOccurrenceId;
-	const CapacityAnalysisScope reference = referenceScope(scope);
+	const CapacityAnalysisScope reference = entryScope(scope);
 	for (const std::string& id : scope.occurrenceIds) {
 		const auto train = std::find_if(data.trains.begin(), data.trains.end(), [&id](const CompletedTrain& candidate) { return candidate.trainId == id; });
 		if (train != data.trains.end())
@@ -731,7 +748,7 @@ AreaCapacityScope AreaCapacityScopeDialog::scope() const {
 void AreaCapacityScopeDialog::refillOccurrences() {
 	const AreaCapacityScope area = scope();
 	const std::vector<std::string> resources = areaResources(area);
-	const CapacityAnalysisScope reference = referenceScope(area);
+	const CapacityAnalysisScope reference = entryScope(area);
 	struct Candidate {
 		CapacityAnalysisTrain input;
 		double key = 0.0;

@@ -646,9 +646,32 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setBlockSections(extents, QString::fromStdString(referencePath.id), &run->sectionLabels,
 		blockSectionMarks(extents, segments, stationKm, compressed), diagram.routeSectionCount);
 	win->setPositionAxis(scale);
-	// The outlines and lines take the colours of the trains; critical blocks and conflicts keep their own.
-	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
-	win->setTrainServices(trainServicesForRun(run->results));
+	// The outlines and lines take the colours of the trains; critical blocks and conflicts keep their own. A repeated
+	// train has the service of its train, and a train without a service is a service of its own. It has the colour of its
+	// train in the case, or else, when each train has a colour of its own, the colour that its train has in the diagram
+	// without the repeated trains.
+	QHash<QString, QColor> colours = trainColorsForRun(run->results, m_host.sceneModel());
+	QHash<QString, QString> services = trainServicesForRun(run->results);
+	QVector<TrainColourInput> unrepeated;
+	for (const BlockingTimeDiagramSegment& segment : segments) {
+		const QString id = QString::fromStdString(segment.trainName);
+		if (!diagram.repeatedTrains.count(segment.trainName)
+			&& std::none_of(unrepeated.begin(), unrepeated.end(), [&id](const TrainColourInput& train) { return train.id == id; }))
+			unrepeated.append({id, services.value(id), true});
+	}
+	const TrainColourPlan plan = trainColourPlan(unrepeated, colours);
+	for (const auto& [repeat, source] : diagram.repeatedTrains) {
+		const QString repeatId = QString::fromStdString(repeat);
+		const QString sourceId = QString::fromStdString(source);
+		if (!colours.contains(sourceId) && plan.mode == TrainColourPlan::Mode::PerTrain && plan.colours.contains(sourceId))
+			colours.insert(sourceId, plan.colours.value(sourceId));
+		if (colours.contains(sourceId))
+			colours.insert(repeatId, colours.value(sourceId));
+		services.insert(sourceId, services.value(sourceId, sourceId));
+		services.insert(repeatId, services.value(sourceId));
+	}
+	win->setTrainColors(colours);
+	win->setTrainServices(services);
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	// The header names the run before the scope of the chart.
 	win->setPresentation(title, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + context,
@@ -676,15 +699,14 @@ void ResultViews::showCapacityAnalysis() {
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No block has complete blocking times for two or more trains. Run a case with signalling data.");
+			"No route has complete blocking times for two or more trains. Run a case with signalling data.");
 		return;
 	}
 	if ((!m_host.dialogsSuppressed() || mainWindowTestHooks().askCapacityScope)
 		&& !chooseCapacityAnalysisScope(m_window, *run, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No block of the route is shared by the checked trains. Choose other trains.");
+		QMessageBox::information(m_window, ResultViewName::kCapacity, "The chosen route has no blocks. Choose another route.");
 		return;
 	}
 	const std::string scopeIssue = capacityScopeIssueFrom(*run, scope);
@@ -692,26 +714,29 @@ void ResultViews::showCapacityAnalysis() {
 		QMessageBox::information(m_window, ResultViewName::kCapacity, QString::fromStdString(scopeIssue));
 		return;
 	}
-	const auto trains = capacityInputsFrom(*run, scope);
-	if (trains.size() < 2) {
+	if (capacityInputsFrom(*run, scope).size() < 2) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"Fewer than two trains share the chosen blocks. Choose other trains.");
+			"Fewer than two trains use the chosen blocks. Choose other blocks or trains.");
 		return;
 	}
 	// The export names the blocks by their ids, the window by their labels.
 	const QString sectionLabel = capacityScopeLabelFrom(*run, scope);
 	const QString sectionText = capacityScopeTextFrom(*run, scope);
-	const CapacityAnalysisResult result = analyzeCapacity(trains, scope.periodSeconds,
-		scope.cycleEndOccurrenceId);
+	const CapacityAnalysisResult result = capacityAnalysisFrom(*run, scope);
 	if (!result.analyzable) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"These trains do not form a chain: two neighbours share no block or still overlap after compression. "
-			"Choose other trains or another order.");
+			"These trains still overlap after compression. Choose other trains or another order.");
 		return;
 	}
-	if (result.cycleEndIdentity.empty() || result.cycleTime < 0.0) {
+	if (result.cycleEndIdentity.empty()) {
 		QMessageBox::information(m_window, ResultViewName::kCapacity,
 			"The cycle-closing train must be a checked row below the first.");
+		return;
+	}
+	if (result.cycleTime < 0.0) {
+		QMessageBox::information(m_window, ResultViewName::kCapacity,
+			QString("%1 shares no block with an earlier train, so it closes no cycle. Choose another cycle-closing train.")
+				.arg(QString::fromStdString(result.cycleEndIdentity)));
 		return;
 	}
 

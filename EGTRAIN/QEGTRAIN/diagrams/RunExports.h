@@ -101,6 +101,10 @@ struct BlockingTimeDiagramData {
 	/// envelopes with a margin (see compressedBlockingTimeDiagramData).
 	std::pair<double, double> timeRange;
 	int omitted = 0; ///< Endpoints and events that could not be projected
+	/// Trains of the chart that repeat a train of the run, by id, with the id of that train: the first train one period
+	/// later of a compressed diagram. Such a train lies on the route of its train and has its recorded movement, colour
+	/// and service.
+	std::map<std::string, std::string> repeatedTrains;
 };
 
 /// Empty when the scope has no reference route.
@@ -108,9 +112,12 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	const BlockingTimeScope& scope);
 /// The compressed blocking-time diagram of a capacity result, on the route and the blocks of its scope: the compressed
 /// occupations of `result` as envelopes, and the recorded samples of each train of the result that lie inside them,
-/// moved in time as its occupations are (compressed minus profile reference). It has no planned references. The time
-/// range spans the envelopes with a margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope
-/// does; it is 0 s to 1 s without an envelope. Empty when the scope has no route.
+/// moved in time as its occupations are (compressed minus profile reference). An envelope that the route of its train
+/// does not project lies on the blocks of the scope that share a resource with it, from the first to the last. With scope.repeatFirstTrain the first
+/// train one period later is a repeated train of the first train, whose samples move by its compressed reference minus
+/// the profile reference of the first train. It has no planned references. The time range spans the envelopes with a
+/// margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope does; it is 0 s to 1 s without
+/// an envelope. Empty when the scope has no route.
 std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
 	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result);
 
@@ -124,7 +131,7 @@ std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& e
 /// The capacity CSV of the result, with times in seconds and the cycle share in percent. Empty when the result cannot
 /// be analysed or has no cycle time or no cycle share.
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel);
-/// Empty when the scope has an issue or the occurrences do not form a chain.
+/// capacityAnalysisCsv of capacityAnalysisFrom; empty when the scope has an issue.
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 
 /// The routes that trains run on, as (route index, route id) in order of first use.

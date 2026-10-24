@@ -61,21 +61,21 @@ CapacityPairRow pairConstraint(const CapacityAnalysisTrain& leader,
 		}
 	}
 	if (row.hasSharedConstraint) {
-		row.minimumHeadway = std::max(0.0, maximumCandidate);
+		row.minimumHeadway = maximumCandidate;
 		if (isFiniteValue(row.scheduledHeadway))
 			row.buffer = row.scheduledHeadway - row.minimumHeadway;
 	}
 	return row;
 }
 
+// The compressed occupations come from valid ones and can start before 0 s, which validBlockingTimeDiagramInput would
+// take for a missing time, so they are all compared.
 bool conflicts(const std::vector<std::vector<BlockingTimeDiagramInput>>& occupations) {
 	for (std::size_t leaderIndex = 0; leaderIndex < occupations.size(); ++leaderIndex) {
 		for (std::size_t followerIndex = leaderIndex + 1; followerIndex < occupations.size(); ++followerIndex) {
 			for (const auto& leader : occupations[leaderIndex]) {
-				if (!validBlockingTimeDiagramInput(leader))
-					continue;
 				for (const auto& follower : occupations[followerIndex]) {
-					if (!validBlockingTimeDiagramInput(follower) || !shareBlockingTimeResource(leader, follower))
+					if (!shareBlockingTimeResource(leader, follower))
 						continue;
 					if (std::max(leader.startOccTime, follower.startOccTime)
 						< std::min(leader.endOccTime, follower.endOccTime) - kBlockingTimeToleranceSeconds)
@@ -139,8 +139,10 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 		row.compressedReference = scheduledReferences[index];
 		double compressed = scheduledReferences[index];
 		if (index > 0) {
-			compressed = compressedReferences[index - 1];
-			double best = compressed;
+			// The earlier trains that share a resource with this one place it, with no other bound, as their references can
+			// lie at other blocks; a train that shares none starts with the first train.
+			compressed = compressedReferences.front();
+			bool sharesEarlier = false;
 			for (std::size_t predecessor = 0; predecessor < index; ++predecessor) {
 				const CapacityPairRow& pair = pairMatrix[predecessor][index];
 				if (!pair.hasSharedConstraint)
@@ -148,17 +150,15 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 				const double candidate = compressedReferences[predecessor] + pair.minimumHeadway;
 				if (!isFiniteValue(candidate))
 					continue;
-				if (!isFiniteValue(best) || candidate > best + kBlockingTimeToleranceSeconds) {
-					best = candidate;
+				if (!sharesEarlier || candidate > compressed + kBlockingTimeToleranceSeconds) {
+					compressed = candidate;
+					sharesEarlier = true;
 					row.governingPredecessors.clear();
-				} else if (std::abs(candidate - best) > kBlockingTimeToleranceSeconds) {
+				} else if (std::abs(candidate - compressed) > kBlockingTimeToleranceSeconds) {
 					continue;
 				}
-				if (std::abs(candidate - best) <= kBlockingTimeToleranceSeconds)
-					row.governingPredecessors.push_back({trains[predecessor].runtimeId,
-						pair.minimumHeadway, pair.governingEvidence});
+				row.governingPredecessors.push_back({trains[predecessor].runtimeId, pair.minimumHeadway, pair.governingEvidence});
 			}
-			compressed = best;
 		}
 		row.compressedReference = compressed;
 		row.shift = isFiniteValue(compressed) && isFiniteValue(row.scheduledReference)
@@ -170,7 +170,7 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 
 	result.compressedOccupations.resize(trains.size());
 	for (std::size_t index = 0; index < trains.size(); ++index) {
-		const double shift = availableTime(compressedReferences[index]) && availableTime(profileReferences[index])
+		const double shift = isFiniteValue(compressedReferences[index]) && availableTime(profileReferences[index])
 			? compressedReferences[index] - profileReferences[index]
 			: 0.0;
 		for (const BlockingTimeDiagramInput& source : trains[index].occupations) {
@@ -213,10 +213,7 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 
 	result.conflictFree = !conflicts(result.compressedOccupations);
 	const bool hasValidProfiles = std::all_of(profileReferences.begin(), profileReferences.end(), availableTime);
-	const bool hasAdjacentConstraints = !result.pairs.empty()
-		&& std::all_of(result.pairs.begin(), result.pairs.end(),
-			[](const CapacityPairRow& pair) { return pair.hasSharedConstraint; });
-	result.analyzable = trains.size() >= 2 && hasValidProfiles && hasAdjacentConstraints && result.conflictFree;
+	result.analyzable = trains.size() >= 2 && hasValidProfiles && result.conflictFree;
 	if (result.compression.empty())
 		return result;
 	result.firstIdentity = result.compression.front().identity;
@@ -225,10 +222,34 @@ CapacityAnalysisResult analyzeCapacity(const std::vector<CapacityAnalysisTrain>&
 	if (cycleEnd == result.compression.end() || cycleEnd == result.compression.begin())
 		return result;
 	result.cycleEndIdentity = cycleEnd->identity;
-	if (isFiniteValue(result.compression.front().compressedReference) && isFiniteValue(cycleEnd->compressedReference)) {
+	// The cycle-closing train is placed by the trains it shares a resource with; without one it closes no cycle.
+	const auto cycleIndex = static_cast<std::size_t>(cycleEnd - result.compression.begin());
+	const bool constrained = std::any_of(pairMatrix.begin(), pairMatrix.begin() + static_cast<std::ptrdiff_t>(cycleIndex),
+		[cycleIndex](const std::vector<CapacityPairRow>& leader) { return leader[cycleIndex].hasSharedConstraint; });
+	if (constrained && isFiniteValue(result.compression.front().compressedReference) && isFiniteValue(cycleEnd->compressedReference)) {
 		result.cycleTime = cycleEnd->compressedReference - result.compression.front().compressedReference;
 		if (isFiniteValue(result.periodSeconds) && result.periodSeconds > 0.0)
 			result.cyclePercentage = result.cycleTime / result.periodSeconds * 100.0;
 	}
 	return result;
+}
+
+std::string capacityNextPeriodIdentity(const std::string& runtimeId) {
+	return runtimeId + " (next period)";
+}
+
+CapacityAnalysisTrain capacityNextPeriodTrain(const CapacityAnalysisTrain& train, double periodSeconds) {
+	CapacityAnalysisTrain next = train;
+	next.runtimeId = capacityNextPeriodIdentity(train.runtimeId);
+	const auto move = [periodSeconds](double& seconds) {
+		if (availableTime(seconds))
+			seconds += periodSeconds;
+	};
+	move(next.profileReferenceTime);
+	move(next.scheduledReferenceTime);
+	for (BlockingTimeDiagramInput& occupation : next.occupations)
+		for (double* seconds : {&occupation.startOccTime, &occupation.endOccTime, &occupation.startApproachTime,
+				 &occupation.startRunTime, &occupation.endRunTime, &occupation.endClearTime})
+			move(*seconds);
+	return next;
 }

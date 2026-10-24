@@ -188,21 +188,29 @@ std::optional<double> stopPosition(const CompletedTrain& train, int index, const
 }
 
 // Adds to the diagram the recorded samples of each train that lie inside one of its envelopes there, each moved in time
-// by the shift of its train in `shifts` (0 s for a train without one).
+// by the shift of its train in `shifts` (0 s for a train without one). A repeated train of the diagram has the samples of
+// the train it repeats.
 void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
 	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
 	const double timestepSeconds = data.settings.timestepSeconds;
 	const PositionScale scale(diagram.extents);
-	for (const CompletedTrain& train : data.trains) {
-		const CompletedTrajectory& trajectory = train.trajectory;
-		const auto projection = projections.find(train.trainId);
+	std::vector<std::pair<const CompletedTrain*, std::string>> sampled; // A train of the run and the id it has in the chart
+	for (const CompletedTrain& train : data.trains)
+		sampled.emplace_back(&train, train.trainId);
+	for (const auto& [repeat, source] : diagram.repeatedTrains)
+		for (const CompletedTrain& train : data.trains)
+			if (train.trainId == source)
+				sampled.emplace_back(&train, repeat);
+	for (const auto& [train, trainId] : sampled) {
+		const CompletedTrajectory& trajectory = train->trajectory;
+		const auto projection = projections.find(trainId);
 		if (trajectory.segments.empty() || projection == projections.end())
 			continue;
-		const auto shift = shifts.find(train.trainId);
+		const auto shift = shifts.find(trainId);
 		const double shiftSeconds = shift == shifts.end() ? 0.0 : shift->second;
 		std::vector<const BlockingTimeDiagramSegment*> own;
 		for (const auto& block : diagram.segments)
-			if (block.trainName == train.trainId)
+			if (block.trainName == trainId)
 				own.push_back(&block);
 		for (const TrajectorySegment& valid : trajectory.segments) {
 			bool open = false;
@@ -220,16 +228,37 @@ void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRu
 					continue;
 				}
 				if (!open) {
-					diagram.trajectories.push_back({train.trainId, {}});
+					diagram.trajectories.push_back({trainId, {}});
 					open = true;
 				}
 				diagram.trajectories.back().points.emplace_back(*x, seconds);
-				diagram.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
+				diagram.trajectoryRows.push_back({trainId, "", "", "", csv::formatDouble(*x),
 					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory",
 					"", csv::formatDouble(scale.geoAt(*x))});
 			}
 		}
 	}
+}
+
+// Places a segment that the route of its train does not project onto the reference route on the sections of `extents`
+// that share a resource with its block, from the start of the first of them to the end of the last. False when no
+// section with geometry shares one.
+bool placeOnSharedSections(BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& extents) {
+	const BlockSectionExtent* first = nullptr;
+	const BlockSectionExtent* last = nullptr;
+	for (const BlockSectionExtent& extent : extents) {
+		if (!extent.geometryValid || !shareBlockingTimeResource(extent.id, segment.blockId))
+			continue;
+		if (!first)
+			first = &extent;
+		last = &extent;
+	}
+	if (!first)
+		return false;
+	segment.startPositionKm = first->startKm;
+	segment.endPositionKm = last->endKm;
+	segment.midPositionKm = (segment.startPositionKm + segment.endPositionKm) / 2.0;
+	return true;
 }
 
 } // namespace
@@ -416,18 +445,60 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
 	BlockingTimeDiagramData diagram;
 	diagram.referencePath = route.path;
-	const RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
-	auto shifted = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
+	// The first train one period later lies on the route of the first train.
+	const std::string nextPeriod = capacityNextPeriodIdentity(result.firstIdentity);
+	if (scope.repeatFirstTrain
+		&& std::find(result.trainIdentities.begin(), result.trainIdentities.end(), nextPeriod) != result.trainIdentities.end()) {
+		diagram.repeatedTrains.emplace(nextPeriod, result.firstIdentity);
+		const auto projection = maps.byTrain.find(result.firstIdentity);
+		if (projection != maps.byTrain.end())
+			maps.byTrain.emplace(nextPeriod, projection->second);
+	}
+	// A compressed occupation can start before 0 s, which validBlockingTimeDiagramInput takes for a missing time, so the
+	// segments are built from the occupations moved to 0 s or later and then moved back.
+	double lift = 0.0;
+	for (const auto& occupations : result.compressedOccupations)
+		for (const BlockingTimeDiagramInput& occupation : occupations)
+			lift = std::max(lift, -occupation.startOccTime);
+	auto lifted = result.compressedOccupations;
+	for (auto& occupations : lifted)
+		for (BlockingTimeDiagramInput& occupation : occupations) {
+			occupation.startOccTime += lift;
+			occupation.endOccTime += lift;
+		}
+	auto shifted = buildBlockingTimeDiagramSegments(lifted, result.trainIdentities);
+	for (BlockingTimeDiagramSegment& segment : shifted) {
+		segment.startTime -= lift;
+		segment.endTime -= lift;
+		segment.originalStartTime -= lift;
+		segment.originalEndTime -= lift;
+	}
 	restoreCompressedOriginalTimes(shifted, result.compression);
 	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
 	diagram.routeSectionCount = static_cast<int>(allExtents.size());
+	// Every analysed occupation shares a resource with a block of the scope, so one that the route of its train does not
+	// project is drawn on the blocks of the scope that share a resource with it.
+	std::vector<BlockingTimeDiagramSegment> unplaced;
+	for (BlockingTimeDiagramSegment& segment : diagram.unmapped) {
+		if (placeOnSharedSections(segment, diagram.extents)) {
+			diagram.segments.push_back(std::move(segment));
+			--diagram.omitted;
+		} else {
+			unplaced.push_back(std::move(segment));
+		}
+	}
+	diagram.unmapped = std::move(unplaced);
 	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
-	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
+	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back. Those of the first
+	// train one period later are the samples of the first train, so they move from its profile reference.
 	std::map<std::string, double> shifts;
-	for (const CapacityCompressionRow& row : result.compression)
-		shifts.emplace(row.identity, row.compressedReference - row.originalReference);
+	for (const CapacityCompressionRow& row : result.compression) {
+		const bool repeated = diagram.repeatedTrains.count(row.identity) > 0;
+		shifts.emplace(row.identity, row.compressedReference - (repeated ? result.compression.front() : row).originalReference);
+	}
 	addRecordedTrajectories(diagram, data, maps.byTrain, shifts);
 	diagram.timeRange = {0.0, 1.0};
 	if (!diagram.segments.empty()) {
@@ -577,8 +648,7 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
 	if (scope.routeIndex < 0 || !capacityScopeIssueFrom(data, scope).empty())
 		return {};
-	return capacityAnalysisCsv(analyzeCapacity(capacityInputsFrom(data, scope), scope.periodSeconds, scope.cycleEndOccurrenceId),
-		capacityScopeLabelFrom(data, scope));
+	return capacityAnalysisCsv(capacityAnalysisFrom(data, scope), capacityScopeLabelFrom(data, scope));
 }
 
 std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const CompletedRunData& data) {

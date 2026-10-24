@@ -89,7 +89,8 @@ enum class AreaCapacityNoteKind {
 	/// The chain holds exactly one train.
 	FewerThanTwoTrains,
 	/// The adjacent chain trains trainId and otherTrainId share no resource.
-	/// Not reported when one of them has an invalid reference.
+	/// Not reported when one of them has an invalid reference. The chain can
+	/// still be analysed.
 	NoSharedResource,
 	/// The chain holds at least two trains and its compressed occupations overlap.
 	ChainConflict,
