@@ -112,7 +112,7 @@ Station A has no planned arrival, and the trains begin their route there, so bot
 
 ### Punctuality
 
-A bar chart of the selected events in six classes: Early (below 0), On time (exactly 0), Up to 1 min late, 1 to 3 min late, 3 to 5 min late and More than 5 min late. A delay equal to a threshold is in the class below it, so the classes agree with the shares of the tab Summary. Each bar has its count above it, and its tooltip gives the count and the share of the Available events, such as "1 of 4 arrivals (25.0%)".
+A bar chart of the selected events in six classes: Early (below 0), On time (exactly 0), Up to 1 min late, 1 to 3 min late, 3 to 5 min late and Over 5 min late. A delay equal to a threshold is in the class below it, so the classes agree with the shares of the tab Summary. Each bar has its count above it, and its tooltip gives the count and the share of the Available events, such as "1 of 4 arrivals (25.0%)".
 
 The line above the chart counts the Available events and their trains, the events that are not reached or have no plan, which are in no class, and the shares no more than 3 and no more than 5 min late, such as "4 arrivals of 2 trains; 2 not reached or without a plan. No more than 3 min late: 100.0% (4 of 4); no more than 5 min late: 100.0% (4 of 4)." Without an Available event the tab says "The selected trains and stations have no arrival with a delay." and shows no chart.
 
@@ -150,7 +150,7 @@ When an occurrence has no arrival at its final call in the scenario run, its add
 
 - Calls holds one record for each row of the table, with the columns Service, Occurrence, Train, Operating code, Station, Journey order, Call, Event, Planned[s], Simulated[s], Delay[s], Class and Status.
 - Summary holds a `station` record for each station and a `network` record, with the counts, the four figures and, for each threshold, the number of later events and its percentage.
-- Punctuality holds a record for each class, with the columns Event, Class, From[s], To[s], Events and Share[%], and then one record each for No plan, Not reached and No plan, not reached, with the count and no bounds or share. A class holds the delays above From up to and including To; Early has no From and More than 5 min late has no To. The tab has no file when no event is Available.
+- Punctuality holds a record for each class, with the columns Event, Class, From[s], To[s], Events and Share[%], and then one record each for No plan, Not reached and No plan, not reached, with the count and no bounds or share. A class holds the delays above From up to and including To; Early has no From and Over 5 min late has no To. The tab has no file when no event is Available.
 - Against baseline holds an `occurrence` record for each occurrence (with the input delay, the direct incident evidence, its incident ids and the secondary delay), a `call` record for each call and one `total` record, with a column `Complete` that is `no` when the totals leave an occurrence out.
 
 ## The station statistics files
