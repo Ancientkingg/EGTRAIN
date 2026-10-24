@@ -54,7 +54,7 @@ var searchData=
   ['etcs3stoppingpoint_51',['ETCS3StoppingPoint',['../class_train.html#ad0002743b9f6e6e558ac1fe14c315148',1,'Train']]],
   ['etcsma_52',['etcsMa',['../struct_simulation_run.html#a5a91fa277f04410abb1fa5d257ae3090',1,'SimulationRun']]],
   ['event_53',['event',['../struct_route_diagram_series.html#acfc0388524acbf312dafacdc4373950c',1,'RouteDiagramSeries::event'],['../structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5',1,'telemetry::UsageRecord::event'],['../structtelemetry_1_1_diagnostic_record.html#a4e1c1292b4a8711e1e4d54c2db587d30',1,'telemetry::DiagnosticRecord::event']]],
-  ['events_54',['events',['../struct_live_server_state.html#ae190e920412d8875ead045acf24315d8',1,'LiveServerState']]],
+  ['events_54',['events',['../struct_delay_histogram_class.html#ab6f5e384096c76caf6db3f3fcd38ebdb',1,'DelayHistogramClass::events'],['../struct_live_server_state.html#ae190e920412d8875ead045acf24315d8',1,'LiveServerState::events']]],
   ['eventtype_55',['eventType',['../struct_blocking_time_planned_reference.html#a78f1cd36a0908e3f4125419a6d6742f6',1,'BlockingTimePlannedReference']]],
   ['every_56',['every',['../struct_dispatch_live.html#a769abc71969ac5c6112e94249d3e4dae',1,'DispatchLive']]],
   ['exit_57',['exit',['../class_station_boundary_section.html#a741347ca64d9b88ea1b71ceade4903e2',1,'StationBoundarySection']]],

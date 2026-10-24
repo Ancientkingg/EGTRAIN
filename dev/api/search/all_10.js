@@ -82,7 +82,7 @@ var searchData=
   ['perc_5fdelayed_5ft_79',['Perc_Delayed_T',['../class_stations.html#a3b4d7b92659264ac1e2cf512a3760d75',1,'Stations']]],
   ['perc_5fdelayed_5ft_5f3min_80',['Perc_Delayed_T_3min',['../class_stations.html#a573b563c37692eb6b61b80a46c074e13',1,'Stations']]],
   ['perc_5fdelayed_5ft_5f5min_81',['Perc_Delayed_T_5min',['../class_stations.html#a462a56fe41a2cf892b98e22602bae0f5',1,'Stations']]],
-  ['percent_82',['percent',['../struct_delay_share.html#a166d2896693827e356b61cc81a6a3512',1,'DelayShare']]],
+  ['percent_82',['percent',['../struct_delay_share.html#a166d2896693827e356b61cc81a6a3512',1,'DelayShare::percent'],['../struct_delay_histogram_class.html#a3228f9e6bf9fd5d39b193acc3bc7991b',1,'DelayHistogramClass::percent']]],
   ['performancepercent_83',['performancePercent',['../struct_train_run_result.html#a04ea697d7f9aaeafeaa1483b2660a19c',1,'TrainRunResult::performancePercent'],['../struct_scene_service.html#a446c032c24b6af7404fd15f0b4260aa6',1,'SceneService::performancePercent']]],
   ['performancepercentedit_84',['performancePercentEdit',['../class_service_panel.html#a7f530b4bb130585be485a9180b69ec52',1,'ServicePanel']]],
   ['periodseconds_85',['periodSeconds',['../struct_area_capacity_input.html#a603f1bc5119583eebcc13f49e0b29b7f',1,'AreaCapacityInput::periodSeconds'],['../struct_area_capacity_result.html#a5c348d3467b1b264b6346700064f1f71',1,'AreaCapacityResult::periodSeconds'],['../struct_area_capacity_scope.html#a9b3c9f14da0d2734856f9ee64a717a5d',1,'AreaCapacityScope::periodSeconds'],['../struct_capacity_analysis_result.html#a401b497c6f7769d1227d2dda42a3d81f',1,'CapacityAnalysisResult::periodSeconds'],['../struct_capacity_analysis_scope.html#a2714699baf4443ce76cf1e2c92728389',1,'CapacityAnalysisScope::periodSeconds']]],

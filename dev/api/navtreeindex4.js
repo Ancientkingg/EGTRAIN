@@ -1,5 +1,9 @@
 var NAVTREEINDEX4 =
 {
+"_scene_importer_8cpp.html#ad9a5e2a40bf0f42228052b18fb45e939":[3,0,7,16,7],
+"_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898":[3,0,7,16,24],
+"_scene_importer_8cpp.html#aeb67ac0899e16f66f4bc593ee7ee86a0":[3,0,7,16,28],
+"_scene_importer_8cpp.html#aed3b5e18fd7ceb03109350d047ef6fe9":[3,0,7,16,29],
 "_scene_importer_8cpp.html#af011a6ca680ac004aafb810c1cfe41ef":[3,0,7,16,25],
 "_scene_importer_8cpp.html#af073cc46a3a51cb4473f73f12825f8ce":[3,0,7,16,9],
 "_scene_importer_8cpp.html#af2140a30b929da68c19a93d11c3a6177":[3,0,7,16,21],
@@ -245,9 +249,5 @@ var NAVTREEINDEX4 =
 "_section_inventory_8h.html#af454f6ad805e4782da5b9ee9d8a43dbe":[3,0,7,30,19],
 "_section_inventory_8h_source.html":[3,0,7,30],
 "_section_labels_8h.html":[3,0,7,31],
-"_section_labels_8h_source.html":[3,0,7,31],
-"_section_rows_facet_8h.html":[3,0,3,0,6],
-"_section_rows_facet_8h_source.html":[3,0,3,0,6],
-"_selection_cue_item_8cpp.html":[3,0,4,0,12],
-"_selection_cue_item_8h.html":[3,0,4,0,13]
+"_section_labels_8h_source.html":[3,0,7,31]
 };

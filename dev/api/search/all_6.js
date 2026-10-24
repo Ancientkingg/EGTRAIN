@@ -129,11 +129,12 @@ var searchData=
   ['from1sto10s_126',['From1sTo10s',['../namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea1af19a759287e51ab5a577227dbe5778',1,'telemetry']]],
   ['fromlater_127',['FromLater',['../_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbfaadfca77467f262937ea8ddea53419e9b',1,'ReplayCoverage.h']]],
   ['fromnodeid_128',['fromNodeId',['../struct_scene_arc.html#a54120fcd4cc2bf4d4c4a0587748b669b',1,'SceneArc::fromNodeId'],['../struct_scene_connection.html#aa95e28f290c65def8995bdfca13f20f5',1,'SceneConnection::fromNodeId']]],
-  ['fromversion_129',['fromVersion',['../struct_scene_migration_step.html#a8a0aa594f3f9a96e2e3f50fd2e407c37',1,'SceneMigrationStep']]],
-  ['frontal_5farea_5fm2_130',['frontal_area_m2',['../struct_scene_train_physical.html#a9ff9445696e925913f49bbd5e136a9f6',1,'SceneTrainPhysical']]],
-  ['frontal_5fwagon_5farea_131',['frontal_wagon_area',['../class_train.html#a5e7cf985e5e6bba1a7bbcdde37fd0ed6',1,'Train']]],
-  ['frozen_132',['frozen',['../class_playback_profiler.html#a13cb93afc333b3136d5a889bf34f9467',1,'PlaybackProfiler']]],
-  ['fs_133',['fs',['../class_arc.html#ae483819071b3305505e054422b7d4c83',1,'Arc']]],
-  ['fullbrakingstep_134',['fullBrakingStep',['../class_train.html#a9ed1da2ac786a644ff5e8fd001c8d4e1',1,'Train']]],
-  ['fulltableimage_135',['fullTableImage',['../_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6',1,'fullTableImage(const QTableView &amp;table):&#160;RunExports.cpp'],['../_run_exports_8h.html#af4427af0200906891a03bce3aff863b6',1,'fullTableImage(const QTableView &amp;table):&#160;RunExports.cpp']]]
+  ['fromseconds_129',['fromSeconds',['../struct_delay_histogram_class.html#ab795e511235a73cf68cd03e5e29e7e26',1,'DelayHistogramClass']]],
+  ['fromversion_130',['fromVersion',['../struct_scene_migration_step.html#a8a0aa594f3f9a96e2e3f50fd2e407c37',1,'SceneMigrationStep']]],
+  ['frontal_5farea_5fm2_131',['frontal_area_m2',['../struct_scene_train_physical.html#a9ff9445696e925913f49bbd5e136a9f6',1,'SceneTrainPhysical']]],
+  ['frontal_5fwagon_5farea_132',['frontal_wagon_area',['../class_train.html#a5e7cf985e5e6bba1a7bbcdde37fd0ed6',1,'Train']]],
+  ['frozen_133',['frozen',['../class_playback_profiler.html#a13cb93afc333b3136d5a889bf34f9467',1,'PlaybackProfiler']]],
+  ['fs_134',['fs',['../class_arc.html#ae483819071b3305505e054422b7d4c83',1,'Arc']]],
+  ['fullbrakingstep_135',['fullBrakingStep',['../class_train.html#a9ed1da2ac786a644ff5e8fd001c8d4e1',1,'Train']]],
+  ['fulltableimage_136',['fullTableImage',['../_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6',1,'fullTableImage(const QTableView &amp;table):&#160;RunExports.cpp'],['../_run_exports_8h.html#af4427af0200906891a03bce3aff863b6',1,'fullTableImage(const QTableView &amp;table):&#160;RunExports.cpp']]]
 ];

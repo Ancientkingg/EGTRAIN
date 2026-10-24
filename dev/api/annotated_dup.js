@@ -88,6 +88,8 @@ var annotated_dup =
     [ "DelayDifference", "struct_delay_difference.html", "struct_delay_difference" ],
     [ "DelayEvent", "struct_delay_event.html", "struct_delay_event" ],
     [ "DelayFilter", "struct_delay_filter.html", "struct_delay_filter" ],
+    [ "DelayHistogram", "struct_delay_histogram.html", "struct_delay_histogram" ],
+    [ "DelayHistogramClass", "struct_delay_histogram_class.html", "struct_delay_histogram_class" ],
     [ "DelayOccurrence", "struct_delay_occurrence.html", "struct_delay_occurrence" ],
     [ "DelayRunSnapshot", "struct_delay_run_snapshot.html", "struct_delay_run_snapshot" ],
     [ "DelayShare", "struct_delay_share.html", "struct_delay_share" ],

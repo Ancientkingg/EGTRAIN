@@ -48,6 +48,8 @@ var hierarchy =
     [ "DelayDifference", "struct_delay_difference.html", null ],
     [ "DelayEvent", "struct_delay_event.html", null ],
     [ "DelayFilter", "struct_delay_filter.html", null ],
+    [ "DelayHistogram", "struct_delay_histogram.html", null ],
+    [ "DelayHistogramClass", "struct_delay_histogram_class.html", null ],
     [ "DelayOccurrence", "struct_delay_occurrence.html", null ],
     [ "DelayRunSnapshot", "struct_delay_run_snapshot.html", null ],
     [ "DelayShare", "struct_delay_share.html", null ],

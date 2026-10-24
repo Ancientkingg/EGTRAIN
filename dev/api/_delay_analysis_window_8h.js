@@ -6,6 +6,7 @@ var _delay_analysis_window_8h =
     [ "delayChangeText", "_delay_analysis_window_8h.html#ac2e80583b573f9ae72959bef697a0259", null ],
     [ "delayClassText", "_delay_analysis_window_8h.html#acd80f3866cca0943025b11153c495ee7", null ],
     [ "delayDiagnosticText", "_delay_analysis_window_8h.html#af5e0ccade70745b9d0016cdfb022c18b", null ],
+    [ "delayHistogramCsv", "_delay_analysis_window_8h.html#ace658299672c842be4db041640dbf0fb", null ],
     [ "delayStatusText", "_delay_analysis_window_8h.html#a4d085b34f0709ffd7a7c8eec749f8573", null ],
     [ "delaySummaryCsv", "_delay_analysis_window_8h.html#a4769d7cd8c2d15ebcaa158460a195466", null ]
 ];
