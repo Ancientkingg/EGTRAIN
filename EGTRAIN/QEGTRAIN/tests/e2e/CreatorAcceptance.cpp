@@ -211,6 +211,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		return edit->text() == value;
 	};
+	auto editNumber = [process](QDoubleSpinBox* edit, double value) {
+		if (!edit)
+			return false;
+		edit->setValue(value);
+		QMetaObject::invokeMethod(edit, "editingFinished", Qt::DirectConnection);
+		process();
+		return edit->value() == value;
+	};
 	auto choose = [process](QComboBox* combo, const QString& value) {
 		if (!combo)
 			return false;
@@ -988,12 +996,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		w.m_serviceHasEntryTimeCheck->setChecked(true);
-		if (!editLine(w.m_serviceEntryTimeSecondsEdit, QStringLiteral("60"))) {
+		if (!editNumber(w.m_serviceEntryTimeSecondsEdit, 60)) {
 			fail(QStringLiteral("service entry time did not commit"));
 			return;
 		}
 		w.m_serviceHasRepeatCheck->setChecked(true);
-		if (!editLine(w.m_serviceHeadwaySecondsEdit, QStringLiteral("300"))) {
+		if (!editNumber(w.m_serviceHeadwaySecondsEdit, 300)) {
 			fail(QStringLiteral("service headway did not commit"));
 			return;
 		}
@@ -1103,8 +1111,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		if (!editLine(w.m_incidentIdEdit, QStringLiteral("creator-signal-failure"))
 			|| !choose(w.m_incidentTargetCombo, QStringLiteral("creator-signal"))
-			|| !editLine(w.m_incidentStartSecondsEdit, QStringLiteral("350"))
-			|| !editLine(w.m_incidentEndSecondsEdit, QStringLiteral("500"))) {
+			|| !editNumber(w.m_incidentStartSecondsEdit, 350)
+			|| !editNumber(w.m_incidentEndSecondsEdit, 500)) {
 			fail(QStringLiteral("signal failure incident did not bind through controls"));
 			return;
 		}
@@ -1114,8 +1122,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		if (!editLine(w.m_incidentIdEdit, QStringLiteral("creator-breakdown"))
 			|| !choose(w.m_incidentTargetCombo, QStringLiteral("creator-service"))
-			|| !editLine(w.m_incidentStartSecondsEdit, QStringLiteral("60"))
-			|| !editLine(w.m_incidentEndSecondsEdit, QStringLiteral("100"))) {
+			|| !editNumber(w.m_incidentStartSecondsEdit, 60)
+			|| !editNumber(w.m_incidentEndSecondsEdit, 100)) {
 			fail(QStringLiteral("breakdown incident target or finite interval did not commit"));
 			return;
 		}

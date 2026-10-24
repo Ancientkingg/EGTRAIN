@@ -80,6 +80,9 @@ Each panel of `editors/` has a test, `test_editor_<panel>`, such as `test_editor
 the panel. It checks that a refresh lists the model and, as far as the panel has them, that an edit, an addition and a
 deletion change the model and mark the document once, that a refused or cancelled edit changes nothing, and that a rename
 keeps what refers to the entity.
+`test_editor_service` and `test_editor_incident` also check that a stored number that a field rounds or shows at a limit
+of its range, such as an entry time of 600.5 s, a performance of 150 or a speed cap of 1200 km/h, is saved as stored while
+the user does not edit it, even when the field has the focus at Save, and that a typed fraction of a second is stored.
 The infrastructure facets have one test for each file of facets: `test_editor_infrastructure_topology`,
 `test_editor_infrastructure_blocks`, `test_editor_infrastructure_stations` and `test_editor_infrastructure_signals`.
 `test_editor_infrastructure` checks the panel itself with facets of its own, including where its buttons and the sections of a route are placed. `test_infrastructureguidance` checks the sentence above the table for each of the thirteen facets, with and without entities and a scene.

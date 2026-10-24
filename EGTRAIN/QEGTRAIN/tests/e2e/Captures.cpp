@@ -259,6 +259,15 @@ bool editLine(QLineEdit* edit, const QString& value) {
 	return edit->text() == value;
 }
 
+bool editNumber(QDoubleSpinBox* edit, double value) {
+	if (!edit)
+		return false;
+	edit->setValue(value);
+	QMetaObject::invokeMethod(edit, "editingFinished", Qt::DirectConnection);
+	settle();
+	return edit->value() == value;
+}
+
 // Chooses the item whose data is this text, or else the first whose text starts with it.
 bool chooseText(QComboBox* combo, const QString& text) {
 	int index = combo ? combo->findData(text) : -1;
@@ -562,9 +571,9 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		settle();
 		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("Train breakdown"))
 			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
-			&& editLine(w.m_incidentStartSecondsEdit, QStringLiteral("900"));
+			&& editNumber(w.m_incidentStartSecondsEdit, 900);
 		w.m_incidentHasEndSecondsCheck->setChecked(true);
-		ok = ok && editLine(w.m_incidentEndSecondsEdit, QStringLiteral("1200"));
+		ok = ok && editNumber(w.m_incidentEndSecondsEdit, 1200);
 		if (!ok)
 			return failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));
 		// The tutorial saves the case here. Saving is not needed for the pictures, and the case on disk stays as it is.

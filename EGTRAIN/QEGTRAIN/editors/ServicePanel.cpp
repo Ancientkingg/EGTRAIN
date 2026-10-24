@@ -10,6 +10,7 @@
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -40,6 +41,27 @@
 namespace {
 
 constexpr int kMaxOccurrences = RuntimeLimits::kMaxExpandedTrains;
+
+bool hasEditorFocus(QWidget* editor) {
+	QWidget* focus = QApplication::focusWidget();
+	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
+}
+
+// The value that a field shows for a stored value. A stored value outside the range is shown at the nearest limit, and
+// committing it from an untouched field is not an edit.
+double shownValue(const QDoubleSpinBox* edit, double stored) {
+	return std::clamp(stored, edit->minimum(), edit->maximum());
+}
+
+// A field of seconds that keeps the fractions of a stored time.
+CompactDoubleSpinBox* secondsEdit(const char* objectName, QWidget* parent) {
+	auto* edit = new CompactDoubleSpinBox(parent);
+	edit->setObjectName(objectName);
+	edit->setRange(0.0, std::numeric_limits<double>::max());
+	edit->setDecimals(std::numeric_limits<double>::max_digits10);
+	edit->setKeyboardTracking(false);
+	return edit;
+}
 
 // A speed field that shows the stored value as it is and does not round it to the number of decimals.
 class ServiceSpeedSpinBox : public CompactDoubleSpinBox {
@@ -165,16 +187,12 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	m_hasEntryTimeCheck = new QCheckBox("Entry time (s)", detailPane);
 	m_hasEntryTimeCheck->setObjectName("serviceHasEntryTimeCheck");
-	m_entryTimeSecondsEdit = new QLineEdit(detailPane);
-	m_entryTimeSecondsEdit->setObjectName("serviceEntryTimeSecondsEdit");
-	m_entryTimeSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_entryTimeSecondsEdit));
+	m_entryTimeSecondsEdit = secondsEdit("serviceEntryTimeSecondsEdit", detailPane);
 	form->addRow(m_hasEntryTimeCheck, m_entryTimeSecondsEdit);
 
 	m_hasRepeatCheck = new QCheckBox("Repeat every (s)", detailPane);
 	m_hasRepeatCheck->setObjectName("serviceHasRepeatCheck");
-	m_headwaySecondsEdit = new QLineEdit(detailPane);
-	m_headwaySecondsEdit->setObjectName("serviceHeadwaySecondsEdit");
-	m_headwaySecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_headwaySecondsEdit));
+	m_headwaySecondsEdit = secondsEdit("serviceHeadwaySecondsEdit", detailPane);
 	form->addRow(m_hasRepeatCheck, m_headwaySecondsEdit);
 
 	m_hasRepeatCountCheck = new QCheckBox("Repeat count", detailPane);
@@ -262,9 +280,9 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_compositionCombo, &QComboBox::currentTextChanged, this, &ServicePanel::commitComposition);
 	connect(m_routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, &ServicePanel::commitRoute);
 	connect(m_hasEntryTimeCheck, &QCheckBox::toggled, this, &ServicePanel::commitHasEntryTime);
-	connect(m_entryTimeSecondsEdit, &QLineEdit::editingFinished, this, &ServicePanel::commitEntryTimeSeconds);
+	connect(m_entryTimeSecondsEdit, &QAbstractSpinBox::editingFinished, this, &ServicePanel::commitEntryTimeSeconds);
 	connect(m_hasRepeatCheck, &QCheckBox::toggled, this, &ServicePanel::commitHasRepeat);
-	connect(m_headwaySecondsEdit, &QLineEdit::editingFinished, this, &ServicePanel::commitHeadwaySeconds);
+	connect(m_headwaySecondsEdit, &QAbstractSpinBox::editingFinished, this, &ServicePanel::commitHeadwaySeconds);
 	connect(m_hasRepeatCountCheck, &QCheckBox::toggled, this, &ServicePanel::commitHasRepeatCount);
 	connect(m_repeatCountEdit, &QLineEdit::editingFinished, this, &ServicePanel::commitRepeatCount);
 	connect(m_performancePercentEdit, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &ServicePanel::commitPerformancePercent);
@@ -454,8 +472,7 @@ void ServicePanel::updateDetail() {
 	}
 	{
 		const QSignalBlocker blocker(m_entryTimeSecondsEdit);
-		const int seconds = service ? static_cast<int>(service->entryTimeSeconds) : 0;
-		m_entryTimeSecondsEdit->setText(QString::number(seconds));
+		m_entryTimeSecondsEdit->setValue(service ? service->entryTimeSeconds : 0.0);
 		m_entryTimeSecondsEdit->setEnabled(editorAvailable && hasEntryTime);
 	}
 
@@ -467,8 +484,7 @@ void ServicePanel::updateDetail() {
 	}
 	{
 		const QSignalBlocker blocker(m_headwaySecondsEdit);
-		const int seconds = service ? static_cast<int>(service->headwaySeconds) : 0;
-		m_headwaySecondsEdit->setText(QString::number(seconds));
+		m_headwaySecondsEdit->setValue(service ? service->headwaySeconds : 0.0);
 		m_headwaySecondsEdit->setEnabled(editorAvailable && hasRepeat);
 	}
 
@@ -829,20 +845,9 @@ void ServicePanel::commitEntryTimeSeconds() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	bool ok = false;
-	int seconds = m_entryTimeSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_entryTimeSecondsEdit);
-		m_entryTimeSecondsEdit->setText(QString::number(seconds));
-	}
-
-	const double newValue = static_cast<double>(seconds);
+	const double newValue = m_entryTimeSecondsEdit->value();
 	SceneService& service = m_document->mutableModel().services[static_cast<std::size_t>(row)];
-	if (newValue == service.entryTimeSeconds)
+	if (newValue == shownValue(m_entryTimeSecondsEdit, service.entryTimeSeconds))
 		return;
 	service.entryTimeSeconds = newValue;
 
@@ -887,20 +892,9 @@ void ServicePanel::commitHeadwaySeconds() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	bool ok = false;
-	int seconds = m_headwaySecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_headwaySecondsEdit);
-		m_headwaySecondsEdit->setText(QString::number(seconds));
-	}
-
-	const double newValue = static_cast<double>(seconds);
+	const double newValue = m_headwaySecondsEdit->value();
 	SceneService& service = m_document->mutableModel().services[static_cast<std::size_t>(row)];
-	if (newValue == service.headwaySeconds)
+	if (newValue == shownValue(m_headwaySecondsEdit, service.headwaySeconds))
 		return;
 	service.headwaySeconds = newValue;
 
@@ -956,7 +950,7 @@ void ServicePanel::commitPerformancePercent(double value) {
 		return;
 	value = std::clamp(value, 1.0, 100.0);
 	SceneService& service = m_document->mutableModel().services[static_cast<std::size_t>(row)];
-	if (value == service.performancePercent)
+	if (value == shownValue(m_performancePercentEdit, service.performancePercent))
 		return;
 	service.performancePercent = value;
 	m_document->markChanged(SceneDocument::Services, "Change service performance");
@@ -990,7 +984,7 @@ void ServicePanel::commitMaximumSpeed() {
 		return;
 	const double value = m_maximumSpeedKmhEdit->value();
 	SceneService& service = m_document->mutableModel().services[static_cast<std::size_t>(row)];
-	if (value == service.maximumSpeedKmh)
+	if (value == shownValue(m_maximumSpeedKmhEdit, service.maximumSpeedKmh))
 		return;
 	service.maximumSpeedKmh = value;
 	m_document->markChanged(SceneDocument::Services, "Change service maximum speed");
@@ -1045,18 +1039,27 @@ void ServicePanel::commitPendingEditors() {
 		return;
 	commitIdEdit();
 	commitOperatingCode();
-	if (m_hasEntryTimeCheck->isChecked())
-		commitEntryTimeSeconds();
 	if (m_hasRepeatCheck->isChecked()) {
-		commitHeadwaySeconds();
 		if (m_hasRepeatCountCheck->isChecked())
 			commitRepeatCount();
 		if (m_hasOperatingCodeStepCheck->isChecked())
 			commitOperatingCodeStep();
 	}
-	m_performancePercentEdit->interpretText();
-	commitPerformancePercent(m_performancePercentEdit->value());
-	if (m_hasMaximumSpeedCheck->isChecked()) {
+	// A number field commits only the text that is being typed in it, so that a value the user did not edit is kept. A
+	// field that its box has switched off is disabled and cannot have the focus.
+	if (hasEditorFocus(m_entryTimeSecondsEdit)) {
+		m_entryTimeSecondsEdit->interpretText();
+		commitEntryTimeSeconds();
+	}
+	if (hasEditorFocus(m_headwaySecondsEdit)) {
+		m_headwaySecondsEdit->interpretText();
+		commitHeadwaySeconds();
+	}
+	if (hasEditorFocus(m_performancePercentEdit)) {
+		m_performancePercentEdit->interpretText();
+		commitPerformancePercent(m_performancePercentEdit->value());
+	}
+	if (hasEditorFocus(m_maximumSpeedKmhEdit)) {
 		m_maximumSpeedKmhEdit->interpretText();
 		commitMaximumSpeed();
 	}
