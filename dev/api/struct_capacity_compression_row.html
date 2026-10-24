@@ -146,7 +146,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The scheduled reference for the first train. For a later one, the compressed reference of the train before it or, when later, an earlier train's compressed reference plus their minimum headway. </p>
+<p>The scheduled reference for the first train. For a later one that shares a resource with earlier trains, the largest of their compressed reference plus their minimum headway, which can lie before the first train's; for one that shares none, the compressed reference of the first train. </p>
 
 </div>
 </div>

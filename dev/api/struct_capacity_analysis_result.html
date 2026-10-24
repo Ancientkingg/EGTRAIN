@@ -135,13 +135,13 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a8d35a9940e5ff072bc6a963ac3d0618f"><td class="mdescLeft">&#160;</td><td class="mdescRight">referenceSource of each train  <br /></td></tr>
 <tr class="memitem:ab6cb46394965ca36ccedf424dea4931c" id="r_ab6cb46394965ca36ccedf424dea4931c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_capacity_critical_block.html">CapacityCriticalBlock</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab6cb46394965ca36ccedf424dea4931c">criticalBlocks</a></td></tr>
 <tr class="memitem:aee07229ba2471103406f4c2e87c8882a" id="r_aee07229ba2471103406f4c2e87c8882a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aee07229ba2471103406f4c2e87c8882a">cycleTime</a> = -1.0</td></tr>
-<tr class="memdesc:aee07229ba2471103406f4c2e87c8882a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compressed reference of the cycle-closing train minus that of the first train; -1.0 without cycleEndIdentity.  <br /></td></tr>
 <tr class="memitem:a401b497c6f7769d1227d2dda42a3d81f" id="r_a401b497c6f7769d1227d2dda42a3d81f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a401b497c6f7769d1227d2dda42a3d81f">periodSeconds</a> = -1.0</td></tr>
 <tr class="memdesc:a401b497c6f7769d1227d2dda42a3d81f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The period of the call when it is finite and not below 0, else -1.0.  <br /></td></tr>
 <tr class="memitem:a958b3aedd20b9a9fab709c0dc8b744c1" id="r_a958b3aedd20b9a9fab709c0dc8b744c1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a958b3aedd20b9a9fab709c0dc8b744c1">cyclePercentage</a> = -1.0</td></tr>
 <tr class="memdesc:a958b3aedd20b9a9fab709c0dc8b744c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">cycleTime / periodSeconds * 100; -1.0 without a cycle time or a period above 0.  <br /></td></tr>
 <tr class="memitem:a26a2c55d03f1276e0175d126d8f404df" id="r_a26a2c55d03f1276e0175d126d8f404df"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a26a2c55d03f1276e0175d126d8f404df">conflictFree</a> = false</td></tr>
 <tr class="memitem:a270cbd40da965b70a9db9d11caa18a96" id="r_a270cbd40da965b70a9db9d11caa18a96"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a270cbd40da965b70a9db9d11caa18a96">analyzable</a> = false</td></tr>
+<tr class="memdesc:a270cbd40da965b70a9db9d11caa18a96"><td class="mdescLeft">&#160;</td><td class="mdescRight">True with at least two trains, valid profile references and no conflict.  <br /></td></tr>
 <tr class="memitem:a8923baf9c79329c719aace60dbad6ee0" id="r_a8923baf9c79329c719aace60dbad6ee0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8923baf9c79329c719aace60dbad6ee0">firstIdentity</a></td></tr>
 <tr class="memdesc:a8923baf9c79329c719aace60dbad6ee0"><td class="mdescLeft">&#160;</td><td class="mdescRight">runtimeId of the first train, empty without trains  <br /></td></tr>
 <tr class="memitem:ab2bb1531833a9af99bbb185f58d04cca" id="r_ab2bb1531833a9af99bbb185f58d04cca"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab2bb1531833a9af99bbb185f58d04cca">cycleEndIdentity</a></td></tr>
@@ -177,7 +177,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>True with at least two trains, valid profile references, a shared resource for every adjacent pair and no conflict. </p>
+
+<p>True with at least two trains, valid profile references and no conflict. </p>
 
 </div>
 </div>
@@ -285,8 +286,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Compressed reference of the cycle-closing train minus that of the first train; -1.0 without cycleEndIdentity. </p>
+<p>Compressed reference of the cycle-closing train minus that of the first train; -1.0 without cycleEndIdentity or when the cycle-closing train shares no resource with an earlier train. </p>
 
 </div>
 </div>

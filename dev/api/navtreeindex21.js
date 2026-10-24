@@ -1,5 +1,13 @@
 var NAVTREEINDEX21 =
 {
+"struct_follow_availability_input.html":[2,0,83],
+"struct_follow_availability_input.html#a15f0d37c482370568c2944cb79f3cf50":[2,0,83,0],
+"struct_follow_availability_input.html#a41527ff5d263d743a81121b9327c4d79":[2,0,83,5],
+"struct_follow_availability_input.html#a43da6cb2fce127f8b63084d925c47a74":[2,0,83,3],
+"struct_follow_availability_input.html#a65f03a2d94b7f028aeb0d49a43ecf6ae":[2,0,83,7],
+"struct_follow_availability_input.html#a6ed5f21ee34ab66da58c19bb7fb340cd":[2,0,83,2],
+"struct_follow_availability_input.html#a7eb64f9065bb226c6726f41f99226770":[2,0,83,6],
+"struct_follow_availability_input.html#a8033b4b1c54de4169a6e9f3b0629ec45":[2,0,83,1],
 "struct_follow_availability_input.html#ad0111903130cf79c03fefef72d6e7f58":[2,0,83,4],
 "struct_follow_availability_input.html#ad6c7287a3c41d4b0b006ab3adc8f4a6d":[2,0,83,10],
 "struct_follow_availability_input.html#adf966c634dc01cc716f9d0f897f7cc30":[2,0,83,8],
@@ -241,13 +249,5 @@ var NAVTREEINDEX21 =
 "struct_recovery_result.html#ade59a8ff21ce9e0f0572487e52b199fc":[2,0,156,1],
 "struct_recovery_scan.html":[2,0,157],
 "struct_recovery_scan.html#a4e2dcdeb71309cb7e66fa8f13efd4f51":[2,0,157,0],
-"struct_recovery_scan.html#ae20e7237336e68231c4f642bc38ed40d":[2,0,157,1],
-"struct_recovery_source.html":[2,0,158],
-"struct_recovery_source.html#a2bc9fb7698b219ca86ea51a3b219710e":[2,0,158,4],
-"struct_recovery_source.html#a560c74be0df95952889215184d065bad":[2,0,158,1],
-"struct_recovery_source.html#a91f5483f32f816e0632fd0f8e8950200":[2,0,158,2],
-"struct_recovery_source.html#aaef56fe2cadd461c6a6607151a937f27":[2,0,158,3],
-"struct_recovery_source.html#ad1757f2ab119513e389f1572b2b78650":[2,0,158,0],
-"struct_release_asset.html":[2,0,161],
-"struct_release_asset.html#a7fc8a71f2b84597e57fb94762939a874":[2,0,161,0]
+"struct_recovery_scan.html#ae20e7237336e68231c4f642bc38ed40d":[2,0,157,1]
 };

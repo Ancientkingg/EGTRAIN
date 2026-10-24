@@ -143,7 +143,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" id="r_a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">trajectoryRows</a></td></tr>
 <tr class="memitem:a1b70af28b923e32fd73b8f18d56da7bf" id="r_a1b70af28b923e32fd73b8f18d56da7bf"><td class="memItemLeft">std::pair&lt; double, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1b70af28b923e32fd73b8f18d56da7bf">timeRange</a></td></tr>
 <tr class="memitem:a4c95afc0f6c3e4e2f1e72a98bda997d8" id="r_a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c95afc0f6c3e4e2f1e72a98bda997d8">omitted</a> = 0</td></tr>
-<tr class="memdesc:a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Endpoints and events that could not be projected.  <br /></td></tr>
+<tr class="memitem:aad9de93696e0dce0837c32060f4dead9" id="r_aad9de93696e0dce0837c32060f4dead9"><td class="memItemLeft">std::map&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aad9de93696e0dce0837c32060f4dead9">repeatedTrains</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What the blocking-time diagram of a scope shows and exports. </p>
@@ -175,8 +175,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Endpoints and events that could not be projected. </p>
+<p>Endpoints and events that could not be projected </p>
 
 </div>
 </div>
@@ -225,6 +224,21 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The reference route. </p>
+
+</div>
+</div>
+<a id="aad9de93696e0dce0837c32060f4dead9" name="aad9de93696e0dce0837c32060f4dead9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad9de93696e0dce0837c32060f4dead9">&#9670;&#160;</a></span>repeatedTrains</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt;std::string, std::string&gt; BlockingTimeDiagramData::repeatedTrains</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Trains of the chart that repeat a train of the run, by id, with the id of that train: the first train one period later of a compressed diagram. Such a train lies on the route of its train and has its recorded movement, colour and service. </p>
 
 </div>
 </div>

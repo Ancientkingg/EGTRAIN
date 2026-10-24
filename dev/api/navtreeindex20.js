@@ -1,10 +1,18 @@
 var NAVTREEINDEX20 =
 {
+"struct_capacity_analysis_result.html#aaa9a70fd80f30a652936b2852c069aee":[2,0,31,10],
+"struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca":[2,0,31,6],
+"struct_capacity_analysis_result.html#ab6cb46394965ca36ccedf424dea4931c":[2,0,31,5],
+"struct_capacity_analysis_result.html#ad28b9d1f48c61b5487a333a8c6807801":[2,0,31,3],
+"struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a":[2,0,31,8],
+"struct_capacity_analysis_scope.html":[2,0,32],
+"struct_capacity_analysis_scope.html#a2714699baf4443ce76cf1e2c92728389":[2,0,32,3],
+"struct_capacity_analysis_scope.html#a33f5ce427ec5c7dc846156d034415a73":[2,0,32,4],
 "struct_capacity_analysis_scope.html#a7cd4bcf09530fe99be2902a7f14a6b96":[2,0,32,0],
-"struct_capacity_analysis_scope.html#a8b08aeffde34d6972e3ab6ce4a9cf0d9":[2,0,32,5],
+"struct_capacity_analysis_scope.html#a8b08aeffde34d6972e3ab6ce4a9cf0d9":[2,0,32,6],
 "struct_capacity_analysis_scope.html#a9f4b77a20d02a7fcdbb6985f9e5e3793":[2,0,32,2],
 "struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e":[2,0,32,1],
-"struct_capacity_analysis_scope.html#af48c07ffcfcfddd1faf073a7c2747531":[2,0,32,4],
+"struct_capacity_analysis_scope.html#af48c07ffcfcfddd1faf073a7c2747531":[2,0,32,5],
 "struct_capacity_analysis_train.html":[2,0,33],
 "struct_capacity_analysis_train.html#a30292457028e91e838a2447d20e605f9":[2,0,33,5],
 "struct_capacity_analysis_train.html#a30c177b4278d41aaa6b89b36bb7936d2":[2,0,33,4],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051":[2,0,82,4],
 "struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[2,0,82,1],
 "struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[2,0,82,8],
-"struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,82,5],
-"struct_follow_availability_input.html":[2,0,83],
-"struct_follow_availability_input.html#a15f0d37c482370568c2944cb79f3cf50":[2,0,83,0],
-"struct_follow_availability_input.html#a41527ff5d263d743a81121b9327c4d79":[2,0,83,5],
-"struct_follow_availability_input.html#a43da6cb2fce127f8b63084d925c47a74":[2,0,83,3],
-"struct_follow_availability_input.html#a65f03a2d94b7f028aeb0d49a43ecf6ae":[2,0,83,7],
-"struct_follow_availability_input.html#a6ed5f21ee34ab66da58c19bb7fb340cd":[2,0,83,2],
-"struct_follow_availability_input.html#a7eb64f9065bb226c6726f41f99226770":[2,0,83,6],
-"struct_follow_availability_input.html#a8033b4b1c54de4169a6e9f3b0629ec45":[2,0,83,1]
+"struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,82,5]
 };
