@@ -71,6 +71,10 @@ public:
 	/// The Against baseline tab writes the provenance of both runs. False when the tab has no row or a write fails.
 	bool exportCsvTo(const QString& path) const;
 
+protected:
+	/// Answers a tooltip request over the Punctuality chart with the tooltip of the bar under the pointer.
+	bool eventFilter(QObject* watched, QEvent* event) override;
+
 private:
 	void refresh();
 	void fillFigures();
@@ -81,6 +85,7 @@ private:
 	void updateExport();
 	std::string currentCsv() const;
 	void exportCsv();
+	QString histogramToolTip(int index) const;
 
 	DelayRunSnapshot m_scenario;
 	std::optional<DelayRunSnapshot> m_baseline;
@@ -106,6 +111,7 @@ private:
 	QLabel* m_histogramCounts = nullptr;
 	QChartView* m_histogramView = nullptr;
 	QBarSet* m_histogramBars = nullptr;
+	int m_hoveredBar = -1; // the class of the bar under the pointer, or -1
 	QValueAxis* m_histogramAxis = nullptr;
 	QLabel* m_baselineNote = nullptr;
 	QWidget* m_baselineResults = nullptr;

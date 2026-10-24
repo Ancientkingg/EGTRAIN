@@ -1143,6 +1143,11 @@ void DiagramWindow::setTrainServices(const QHash<QString, QString>& services) {
 	applyColourPlan();
 }
 
+void DiagramWindow::setTrainCopies(const QHash<QString, QString>& copyOf) {
+	m_trainCopies = copyOf;
+	applyColourPlan();
+}
+
 // The colour rule needs the trains that the list shows, so the list keeps its check states and takes the colours of the
 // rule in its line samples only.
 void DiagramWindow::applyColourPlan() {
@@ -1150,7 +1155,8 @@ void DiagramWindow::applyColourPlan() {
 		QVector<TrainColourInput> trains;
 		trains.reserve(m_groups.size());
 		for (const SeriesGroup& group : m_groups)
-			trains.append({group.trainId, m_trainServices.value(group.trainId), m_trainList->isTrainVisible(group.trainId)});
+			trains.append({group.trainId, m_trainServices.value(group.trainId), m_trainList->isTrainVisible(group.trainId),
+				m_trainCopies.value(group.trainId)});
 		m_planColours = trainColourPlan(trains, m_serviceColours, m_pinnedTrainId).colours;
 		// The base look of a series takes the colour of its train and keeps its widths, dash patterns and the alpha of an
 		// area fill.

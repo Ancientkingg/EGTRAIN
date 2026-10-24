@@ -28,6 +28,8 @@ struct TrainColourInput {
 	QString id;		   ///< The id of the train, the group id of its series
 	QString service;   ///< The service of the train; empty makes the train a service of its own
 	bool shown = true; ///< The Trains list shows the train
+	QString copyOf;	   ///< The train of the window that this train copies, such as the first train of a capacity cycle
+					   ///< one period later; empty for a train of its own
 };
 
 /// The colours that the colour rule of the diagram windows gives the trains of a window.
@@ -49,7 +51,10 @@ struct TrainColourPlan {
 /// the rule gives it one of the palette. The palette goes in the order of `trains`: by the place of a train, or of a
 /// service, among all the trains of the window while there are six of them or fewer, so that showing and hiding moves
 /// no colour, and otherwise among the shown ones. A hidden train is light grey, #c3cbd1, the colour of a hidden row in
-/// the Trains list. A train without a service is a service of its own. The ids of `trains` are distinct.
+/// the Trains list. A train without a service is a service of its own. A copy takes the colour of the train it copies,
+/// or light grey while it is hidden, and is counted as that train, which the rule then counts as shown while the train
+/// or a copy of it is shown; selecting a copy selects its train. The ids of `trains` are distinct, and a train that a
+/// copy names is no copy.
 TrainColourPlan trainColourPlan(const QVector<TrainColourInput>& trains, const QHash<QString, QColor>& serviceColours,
 	const QString& selectedTrain = QString());
 

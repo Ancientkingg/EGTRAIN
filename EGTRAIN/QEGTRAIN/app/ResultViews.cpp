@@ -647,30 +647,19 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 		blockSectionMarks(extents, segments, stationKm, compressed), diagram.routeSectionCount);
 	win->setPositionAxis(scale);
 	// The outlines and lines take the colours of the trains; critical blocks and conflicts keep their own. A repeated
-	// train has the service of its train, and a train without a service is a service of its own. It has the colour of its
-	// train in the case, or else, when each train has a colour of its own, the colour that its train has in the diagram
-	// without the repeated trains.
-	QHash<QString, QColor> colours = trainColorsForRun(run->results, m_host.sceneModel());
+	// train is a copy of its train, which gives it the colour of that train, and it has the service of its train; a train
+	// without a service is a service of its own.
 	QHash<QString, QString> services = trainServicesForRun(run->results);
-	QVector<TrainColourInput> unrepeated;
-	for (const BlockingTimeDiagramSegment& segment : segments) {
-		const QString id = QString::fromStdString(segment.trainName);
-		if (!diagram.repeatedTrains.count(segment.trainName)
-			&& std::none_of(unrepeated.begin(), unrepeated.end(), [&id](const TrainColourInput& train) { return train.id == id; }))
-			unrepeated.append({id, services.value(id), true});
-	}
-	const TrainColourPlan plan = trainColourPlan(unrepeated, colours);
+	QHash<QString, QString> copies;
 	for (const auto& [repeat, source] : diagram.repeatedTrains) {
 		const QString repeatId = QString::fromStdString(repeat);
 		const QString sourceId = QString::fromStdString(source);
-		if (!colours.contains(sourceId) && plan.mode == TrainColourPlan::Mode::PerTrain && plan.colours.contains(sourceId))
-			colours.insert(sourceId, plan.colours.value(sourceId));
-		if (colours.contains(sourceId))
-			colours.insert(repeatId, colours.value(sourceId));
+		copies.insert(repeatId, sourceId);
 		services.insert(sourceId, services.value(sourceId, sourceId));
 		services.insert(repeatId, services.value(sourceId));
 	}
-	win->setTrainColors(colours);
+	win->setTrainCopies(copies);
+	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(services);
 	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	// The header names the run before the scope of the chart.

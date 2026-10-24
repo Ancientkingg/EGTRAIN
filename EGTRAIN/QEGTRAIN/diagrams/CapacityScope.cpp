@@ -14,10 +14,8 @@
 #include <QListWidget>
 #include <QObject>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSize>
-#include <QTimer>
 #include <QVariant>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -381,8 +379,12 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	dialog.setWindowTitle("Capacity");
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
+	// No margins, so that the body lines up with the first train and the status below it.
+	layout->setContentsMargins(0, 0, 0, 0);
 	auto* form = new QFormLayout();
 	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	// The fields fill the width, so the labels keep their place when a choice changes the width of its field.
+	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	auto* routeCombo = new ChoiceComboBox(&dialog);
 	for (std::size_t routeIndex = 0; routeIndex < run.routes.size(); ++routeIndex) {
 		const CompletedRoute& route = run.routes[routeIndex];
@@ -408,7 +410,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	occurrences->setSelectionMode(QAbstractItemView::SingleSelection);
 	occurrences->setDragDropMode(QAbstractItemView::InternalMove);
 	occurrences->setDefaultDropAction(Qt::MoveAction);
-	occurrences->setMinimumHeight(180);
+	occurrences->setMinimumHeight(occurrences->fontMetrics().height() * 4);
 	form->addRow("Route / corridor:", routeCombo);
 	form->addRow("From block:", fromBlock);
 	form->addRow("To block:", toBlock);
@@ -422,26 +424,18 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	auto* occurrencesCaption = new QLabel("Trains in these blocks:", body);
 	occurrencesCaption->setWordWrap(true);
 	layout->addWidget(occurrencesCaption);
-	layout->addWidget(occurrences);
-	auto* firstTrain = new QLabel(body);
+	// The list takes the height that the body has left over.
+	layout->addWidget(occurrences, 1);
+	auto* firstTrain = new QLabel(&dialog);
 	firstTrain->setObjectName("capacityFirstTrain");
 	firstTrain->setWordWrap(true);
-	layout->addWidget(firstTrain);
-	auto* status = new QLabel(body);
+	auto* status = new QLabel(&dialog);
 	status->setObjectName("capacityScopeStatus");
-	layout->addWidget(status);
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	QPushButton* ok = buttons->button(QDialogButtonBox::Ok);
 
-	// An empty text hides the label. A text is scrolled into view once the layout has made room for it, because the body
-	// of the dialog scrolls and the label is at its end.
-	QScrollArea* bodyScroll = nullptr;
-	const auto showStatus = [status, &bodyScroll](DialogLayout::Severity severity, const QString& text) {
-		DialogLayout::setStatus(status, severity, text);
-		if (!text.isEmpty() && bodyScroll)
-			QTimer::singleShot(0, status, [status, bodyScroll] { bodyScroll->ensureWidgetVisible(status); });
-	};
-	showStatus(DialogLayout::Severity::Error, QString());
+	// An empty text hides the label.
+	DialogLayout::setStatus(status, DialogLayout::Severity::Error, QString());
 
 	// The analysed blocks and their trains in the order of capacityTrainOrder; the list shows those trains.
 	CapacityAnalysisScope range;
@@ -467,7 +461,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	// Fewer than two checked trains, or a cycle-closing train that shares no block with an earlier checked train, cannot
 	// be analysed, so OK is then disabled and the status says why. A train listed before one that runs ahead of it is a
 	// warning only.
-	const auto refreshChoices = [occurrences, firstTrain, cycleEnd, ok, showStatus, checkedTrains]() {
+	const auto refreshChoices = [occurrences, firstTrain, cycleEnd, ok, status, checkedTrains]() {
 		const QVariant previous = cycleEnd->currentData();
 		const QSignalBlocker blocker(cycleEnd);
 		cycleEnd->clear();
@@ -497,17 +491,17 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		const auto conflict = capacityOrderConflictFrom(checked);
 		ok->setEnabled(checked.size() >= 2 && !opensNoCycle);
 		if (checked.size() < 2)
-			showStatus(DialogLayout::Severity::Error, "Check at least two trains.");
+			DialogLayout::setStatus(status, DialogLayout::Severity::Error, "Check at least two trains.");
 		else if (opensNoCycle)
-			showStatus(DialogLayout::Severity::Error,
+			DialogLayout::setStatus(status, DialogLayout::Severity::Error,
 				QString("%1 shares no block with an earlier checked train, so it closes no cycle. Choose another cycle-closing train.")
 					.arg(QString::fromStdString(closing)));
 		else if (!conflict.first.empty())
-			showStatus(DialogLayout::Severity::Warning,
+			DialogLayout::setStatus(status, DialogLayout::Severity::Warning,
 				QString("%1 runs ahead of %2 in these blocks; the analysis keeps the order of the list.")
 					.arg(QString::fromStdString(conflict.second), QString::fromStdString(conflict.first)));
 		else
-			showStatus(DialogLayout::Severity::Error, QString());
+			DialogLayout::setStatus(status, DialogLayout::Severity::Error, QString());
 	};
 	// Lists the trains of the range: those of `first` checked and first, in that order, then the others in the order of
 	// capacityTrainOrder, checked unless the user unchecked them.
@@ -629,7 +623,14 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		dialog.accept();
 	});
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	bodyScroll = DialogLayout::install(dialog, "Capacity", QString(), body, buttons);
+	DialogLayout::install(dialog, "Capacity", QString(), body, buttons);
+	// The first train and the status sit above the buttons, outside the scrolling body, so that they are always in view.
+	auto* dialogColumn = static_cast<QVBoxLayout*>(dialog.layout());
+	dialogColumn->insertWidget(dialogColumn->count() - 1, firstTrain);
+	dialogColumn->insertWidget(dialogColumn->count() - 1, status);
 	DialogLayout::fitWidthToContent(dialog);
+	// The dialog opened tall enough for the list at its preferred height. From now on the list counts at its minimum
+	// height, so that on a short screen it scrolls its rows before the body scrolls.
+	occurrences->setSizePolicy(occurrences->sizePolicy().horizontalPolicy(), QSizePolicy::Ignored);
 	return dialog.exec() == QDialog::Accepted;
 }

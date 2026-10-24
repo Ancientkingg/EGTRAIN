@@ -1913,6 +1913,22 @@ void testCapacityDialog() {
 		check(!parts.ok->isEnabled() && parts.status->property("dialogStatus").toString() == "error"
 				&& parts.status->text() == "e shares no block with an earlier checked train, so it closes no cycle. Choose another cycle-closing train.",
 			"a cycle-closing train that shares no block with an earlier checked train disables OK");
+		QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+		QApplication::processEvents();
+		QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+		const auto* scroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
+		const auto* body = scroll->widget();
+		check(!body->isAncestorOf(parts.status) && !body->isAncestorOf(parts.firstTrain)
+				&& parts.status->geometry().bottom() <= dialog.findChild<QDialogButtonBox*>()->geometry().top(),
+			"the first train and the status sit above the buttons, outside the scrolling body");
+		check(parts.firstTrain->mapTo(&dialog, QPoint()).x() == parts.list->mapTo(&dialog, QPoint()).x(),
+			"the first train lines up with the list");
+		// On a short screen the list gives up its height, not the body: with room for four rows of it, the body does not scroll.
+		const int fourRows = 4 * parts.list->sizeHintForRow(0) + 2 * parts.list->frameWidth();
+		dialog.resize(dialog.width(), dialog.height() - (parts.list->height() - fourRows));
+		QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+		QApplication::processEvents();
+		check(scroll->verticalScrollBar()->maximum() == 0, "the list, not the body, gives up height on a short screen");
 		parts.cycleEnd->setCurrentIndex(0);
 		check(parts.ok->isEnabled() && parts.status->isHidden(), "the first train one period later closes the cycle");
 		parts.cycleEnd->setCurrentIndex(parts.cycleEnd->findData("e"));
