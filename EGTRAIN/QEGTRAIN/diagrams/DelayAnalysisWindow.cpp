@@ -9,6 +9,7 @@
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 
+#include <QCursor>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -17,13 +18,23 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPalette>
+#include <QPen>
 #include <QPushButton>
 #include <QSet>
 #include <QStringList>
 #include <QTabWidget>
 #include <QTableWidget>
+#include <QToolTip>
 #include <QVBoxLayout>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
 
+#include <algorithm>
 #include <initializer_list>
 #include <iterator>
 #include <utility>
@@ -32,7 +43,8 @@ namespace {
 
 constexpr int kCallsTab = 0;
 constexpr int kSummaryTab = 1;
-constexpr int kBaselineTab = 2;
+constexpr int kPunctualityTab = 2;
+constexpr int kBaselineTab = 3;
 
 // Up to two decimals and no trailing zeros: 168.2, -72.25, 301.
 QString numberText(double value) {
@@ -73,6 +85,11 @@ QString thresholdText(const DelayShare& share) {
 
 QString eventName(DelayEventKind kind) {
 	return kind == DelayEventKind::Arrival ? QStringLiteral("Arrival") : QStringLiteral("Departure");
+}
+
+// "arrival", "departures" and so on, for `count` events.
+QString eventsText(DelayEventKind kind, int count) {
+	return eventName(kind).toLower() + (count == 1 ? QString() : QStringLiteral("s"));
 }
 
 QString yesNo(bool value) {
@@ -242,6 +259,66 @@ QString totalsText(const BaselineTotals& totals) {
 	return line;
 }
 
+// The available events that are no more than `seconds` late, those of the classes up to that bound, as "87.8% (36 of 41)".
+QString noMoreThanText(const DelayHistogram& histogram, double seconds) {
+	int count = 0;
+	for (const DelayHistogramClass& delayClass : histogram.classes)
+		if (delayClass.toSeconds.available && delayClass.toSeconds.value <= seconds)
+			count += delayClass.events;
+	return QString("%1% (%2 of %3)").arg(QString::number(100.0 * count / histogram.available, 'f', 1)).arg(count).arg(histogram.available);
+}
+
+// "41 arrivals of 7 trains; 2 not reached or without a plan. No more than 3 min late: 87.8% (36 of 41); no more than 5 min
+// late: 95.1% (39 of 41).", without the events that have no delay when there are none. Needs an available event.
+QString histogramCountsText(const DelayHistogram& histogram, int trains, DelayEventKind kind) {
+	QString line = QString("%1 %2 of %3 %4")
+					   .arg(histogram.available)
+					   .arg(eventsText(kind, histogram.available))
+					   .arg(trains)
+					   .arg(trains == 1 ? QStringLiteral("train") : QStringLiteral("trains"));
+	const int unavailable = histogram.noPlan + histogram.notReached + histogram.noPlanAndNotReached;
+	if (unavailable > 0)
+		line += QString("; %1 not reached or without a plan").arg(unavailable);
+	return line
+		+ QString(". No more than 3 min late: %1; no more than 5 min late: %2.").arg(noMoreThanText(histogram, 180.0), noMoreThanText(histogram, 300.0));
+}
+
+// The look of the charts of DiagramWindow: square corners, the base colour behind the plot, a quiet grid and axes, and the
+// text colour for the labels and titles.
+void styleChart(QChart* chart, const QPalette& palette) {
+	chart->setBackgroundRoundness(0);
+	chart->setBackgroundBrush(palette.brush(QPalette::Base));
+	chart->setMargins(QMargins(12, 8, 12, 8));
+	QColor gridColor = palette.color(QPalette::WindowText);
+	gridColor.setAlpha(30);
+	QColor lineColor = palette.color(QPalette::WindowText);
+	lineColor.setAlpha(90);
+	for (QAbstractAxis* axis : chart->axes()) {
+		axis->setGridLinePen(QPen(gridColor));
+		axis->setLabelsBrush(palette.brush(QPalette::WindowText));
+		axis->setTitleBrush(palette.brush(QPalette::WindowText));
+		axis->setLinePen(QPen(lineColor));
+	}
+}
+
+// Whole-number ticks from 0 in steps of 1, 2 or 5 times a power of ten, at most eight steps, with a step of room above the
+// highest bar for its label.
+void setCountRange(QValueAxis* axis, int highest) {
+	int step = 1;
+	for (int power = 1; highest > 7 * step; power *= 10) {
+		for (const int factor : {1, 2, 5}) {
+			step = factor * power;
+			if (highest <= 7 * step)
+				break;
+		}
+	}
+	const int top = (highest / step + 1) * step;
+	axis->setRange(0, top);
+	axis->setTickType(QValueAxis::TicksDynamic);
+	axis->setTickAnchor(0);
+	axis->setTickInterval(step);
+}
+
 } // namespace
 
 QString delayStatusText(TimetableValueStatus status) {
@@ -345,6 +422,22 @@ std::string delaySummaryCsv(const DelaySummary& summary, DelayEventKind kind) {
 		record("station", station.stationId, station.statistics);
 	record("network", std::string(), summary.network);
 	return csv::makeDocument(header, rows);
+}
+
+std::string delayHistogramCsv(const DelayHistogram& histogram, DelayEventKind kind) {
+	if (histogram.available == 0)
+		return std::string();
+	const std::string event = eventName(kind).toStdString();
+	std::vector<std::vector<std::string>> rows;
+	for (const DelayHistogramClass& delayClass : histogram.classes) {
+		rows.push_back({event, delayClass.label, csvValue(delayClass.fromSeconds), csvValue(delayClass.toSeconds), std::to_string(delayClass.events),
+			csvValue(delayClass.percent)});
+	}
+	const std::pair<TimetableValueStatus, int> unavailable[] = {{TimetableValueStatus::NoPlan, histogram.noPlan},
+		{TimetableValueStatus::NotReached, histogram.notReached}, {TimetableValueStatus::NoPlanAndNotReached, histogram.noPlanAndNotReached}};
+	for (const auto& status : unavailable)
+		rows.push_back({event, delayStatusText(status.first).toStdString(), std::string(), std::string(), std::to_string(status.second), std::string()});
+	return csv::makeDocument({"Event", "Class", "From[s]", "To[s]", "Events", "Share[%]"}, rows);
 }
 
 std::string delayBaselineCsv(const DelayBaselineComparison& comparison) {
@@ -506,6 +599,60 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	summaryLayout->addWidget(m_summaryTable, 1);
 	m_tabs->addTab(summaryPage, "Summary");
 
+	// A bar for each class of delay, with its count above it, under a line of counts.
+	auto* punctualityPage = new QWidget(m_tabs);
+	auto* punctualityLayout = new QVBoxLayout(punctualityPage);
+	m_histogramNote = new QLabel(punctualityPage);
+	m_histogramNote->setObjectName("delayHistogramNote");
+	punctualityLayout->addWidget(m_histogramNote);
+	m_histogramCounts = new QLabel(punctualityPage);
+	m_histogramCounts->setObjectName("delayHistogramCounts");
+	m_histogramCounts->setTextFormat(Qt::PlainText);
+	m_histogramCounts->setWordWrap(true);
+	punctualityLayout->addWidget(m_histogramCounts);
+	// The first colour of the train palette (TrainColors.h).
+	const QColor barColor(0x2a, 0x78, 0xd6);
+	m_histogramBars = new QBarSet(QStringLiteral("Events"));
+	m_histogramBars->setColor(barColor);
+	m_histogramBars->setBorderColor(barColor);
+	m_histogramBars->setLabelColor(palette().color(QPalette::WindowText));
+	// "min late" on a line of its own, so that the classes keep their whole names under narrow bars. The axis reads its
+	// labels as rich text.
+	QStringList classLabels;
+	for (const DelayHistogramClass& delayClass : delayHistogram({}).classes) {
+		classLabels << fromStd(delayClass.label).replace(" min late", "<br>min late");
+		m_histogramBars->append(0);
+	}
+	auto* bars = new QBarSeries;
+	bars->append(m_histogramBars);
+	bars->setLabelsVisible(true);
+	bars->setLabelsPosition(QAbstractBarSeries::LabelsOutsideEnd);
+	bars->setLabelsFormat(QStringLiteral("@value"));
+	auto* chart = new QChart;
+	chart->addSeries(bars);
+	chart->legend()->hide();
+	auto* classAxis = new QBarCategoryAxis(chart);
+	classAxis->append(classLabels);
+	chart->addAxis(classAxis, Qt::AlignBottom);
+	bars->attachAxis(classAxis);
+	m_histogramAxis = new QValueAxis(chart);
+	m_histogramAxis->setTitleText(QStringLiteral("Events"));
+	m_histogramAxis->setLabelFormat(QStringLiteral("%.0f"));
+	chart->addAxis(m_histogramAxis, Qt::AlignLeft);
+	bars->attachAxis(m_histogramAxis);
+	styleChart(chart, palette());
+	classAxis->setGridLineVisible(false);
+	m_histogramView = new QChartView(chart, punctualityPage);
+	m_histogramView->setObjectName("delayHistogram");
+	m_histogramView->setRenderHint(QPainter::Antialiasing);
+	m_histogramView->setFrameShape(QFrame::NoFrame);
+	// The chart takes no keys, so Tab passes over it.
+	m_histogramView->setFocusPolicy(Qt::NoFocus);
+	punctualityLayout->addWidget(m_histogramView, 1);
+	// Keeps the note at the top while the chart is hidden.
+	punctualityLayout->addStretch();
+	m_tabs->addTab(punctualityPage, "Punctuality");
+
 	auto* baselinePage = new QWidget(m_tabs);
 	auto* baselineLayout = new QVBoxLayout(baselinePage);
 	m_baselineNote = new QLabel(baselinePage);
@@ -597,6 +744,22 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	connect(m_occurrences, &TrainFilterButton::selectionChanged, this, [this]() { refresh(); });
 	connect(m_stations, &TrainFilterButton::selectionChanged, this, [this]() { refresh(); });
 	connect(m_kind, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int) { refresh(); });
+	// The tooltip of a bar gives its class, its count and its share.
+	connect(m_histogramBars, &QBarSet::hovered, this, [this](bool entered, int index) {
+		if (!entered || index < 0 || index >= static_cast<int>(m_shownHistogram.classes.size())) {
+			QToolTip::hideText();
+			return;
+		}
+		const DelayHistogramClass& delayClass = m_shownHistogram.classes[static_cast<std::size_t>(index)];
+		QToolTip::showText(QCursor::pos(),
+			QString("%1\n%2 of %3 %4 (%5%)")
+				.arg(fromStd(delayClass.label))
+				.arg(delayClass.events)
+				.arg(m_shownHistogram.available)
+				.arg(eventsText(m_shownKind, m_shownHistogram.available))
+				.arg(delayClass.percent.available ? QString::number(delayClass.percent.value, 'f', 1) : QStringLiteral("-")),
+			m_histogramView);
+	});
 	connect(m_tabs, &QTabWidget::currentChanged, this, [this](int tab) {
 		m_kind->setEnabled(tab != kBaselineTab);
 		updateExport();
@@ -624,6 +787,7 @@ void DelayAnalysisWindow::refresh() {
 	DelayFilter filter;
 	filter.kind = m_shownKind;
 	m_shownSummary = summarizeDelays(m_shownEvents, filter);
+	m_shownHistogram = delayHistogram(m_shownEvents);
 
 	m_shownBaseline = DelayBaselineComparison();
 	m_shownBaseline.compatible = m_comparison.compatible;
@@ -641,6 +805,7 @@ void DelayAnalysisWindow::refresh() {
 	fillFigures();
 	fillCalls();
 	fillSummary();
+	fillHistogram();
 	fillBaseline();
 	updateExport();
 }
@@ -673,6 +838,27 @@ void DelayAnalysisWindow::fillSummary() {
 	for (int column = 1; column < m_summaryTable->columnCount(); ++column)
 		numericColumns << column;
 	fillTable(m_summaryTable, rows, numericColumns);
+}
+
+void DelayAnalysisWindow::fillHistogram() {
+	const bool empty = m_shownHistogram.available == 0;
+	DialogLayout::setStatus(m_histogramNote, DialogLayout::Severity::Neutral,
+		empty ? QString("The selected trains and stations have no %1 with a delay.").arg(eventsText(m_shownKind, 1)) : QString());
+	m_histogramCounts->setVisible(!empty);
+	m_histogramView->setVisible(!empty);
+	QSet<QString> trains;
+	for (const DelayEvent& event : m_shownEvents) {
+		if (event.status == TimetableValueStatus::Available)
+			trains.insert(occurrenceOf(event));
+	}
+	m_histogramCounts->setText(empty ? QString() : histogramCountsText(m_shownHistogram, static_cast<int>(trains.size()), m_shownKind));
+	int highest = 0;
+	for (std::size_t index = 0; index < m_shownHistogram.classes.size(); ++index) {
+		const int events = m_shownHistogram.classes[index].events;
+		m_histogramBars->replace(static_cast<int>(index), events);
+		highest = std::max(highest, events);
+	}
+	setCountRange(m_histogramAxis, highest);
 }
 
 void DelayAnalysisWindow::fillBaseline() {
@@ -712,6 +898,7 @@ std::string DelayAnalysisWindow::currentCsv() const {
 	switch (m_tabs->currentIndex()) {
 		case kCallsTab: return delayCallsCsv(m_shownEvents);
 		case kSummaryTab: return delaySummaryCsv(m_shownSummary, m_shownKind);
+		case kPunctualityTab: return delayHistogramCsv(m_shownHistogram, m_shownKind);
 		case kBaselineTab: return delayBaselineCsv(m_shownBaseline);
 		default: break;
 	}
@@ -723,7 +910,12 @@ void DelayAnalysisWindow::showBaselineTab() {
 }
 
 QString DelayAnalysisWindow::suggestedFileName() const {
-	return m_tabs->currentIndex() == kBaselineTab ? QStringLiteral("delay_comparison.csv") : QStringLiteral("delay_analysis.csv");
+	switch (m_tabs->currentIndex()) {
+		case kPunctualityTab: return QStringLiteral("delay_histogram.csv");
+		case kBaselineTab: return QStringLiteral("delay_comparison.csv");
+		default: break;
+	}
+	return QStringLiteral("delay_analysis.csv");
 }
 
 bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {

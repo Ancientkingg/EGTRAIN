@@ -356,6 +356,144 @@ bool thresholdsAreStrict() {
 	return ok;
 }
 
+struct ClassExpectation {
+	const char* label;
+	double from; // kNone for no lower bound
+	double to;	 // kNone for no upper bound
+	int events;
+	double percent; // kNone for unavailable
+};
+
+bool isValueOrNone(const RunResultValue& value, double expected) {
+	return expected == kNone ? !value.available : isValue(value, expected);
+}
+
+bool hasClasses(const DelayHistogram& histogram, const ClassExpectation (&expected)[6]) {
+	if (histogram.classes.size() != 6)
+		return false;
+	for (std::size_t index = 0; index < 6; ++index) {
+		const DelayHistogramClass& delayClass = histogram.classes[index];
+		if (delayClass.label != expected[index].label || !isValueOrNone(delayClass.fromSeconds, expected[index].from)
+			|| !isValueOrNone(delayClass.toSeconds, expected[index].to) || delayClass.events != expected[index].events
+			|| !isValueOrNone(delayClass.percent, expected[index].percent))
+			return false;
+	}
+	return true;
+}
+
+std::vector<DelayEvent> ofKind(const std::vector<DelayEvent>& events, DelayEventKind kind) {
+	std::vector<DelayEvent> result;
+	for (const DelayEvent& event : events) {
+		if (event.kind == kind)
+			result.push_back(event);
+	}
+	return result;
+}
+
+// Every share of the summary counts the classes above its threshold: those whose lower bound is at least the threshold
+// and whose upper bound, when they have one, lies above it.
+bool agreesWithSummary(const DelayHistogram& histogram, const DelayStatistics& statistics) {
+	if (histogram.available != statistics.available || statistics.shares.size() != 4)
+		return false;
+	for (const DelayShare& share : statistics.shares) {
+		int later = 0;
+		double percent = 0.0;
+		for (const DelayHistogramClass& delayClass : histogram.classes) {
+			if (delayClass.fromSeconds.available && delayClass.fromSeconds.value >= share.thresholdSeconds
+				&& (!delayClass.toSeconds.available || delayClass.toSeconds.value > share.thresholdSeconds)) {
+				later += delayClass.events;
+				percent += delayClass.percent.value;
+			}
+		}
+		if (later != share.later || share.percent.available != (histogram.available > 0)
+			|| (share.percent.available && !near(percent, share.percent.value)))
+			return false;
+	}
+	return true;
+}
+
+// Arrival delays -30, 0, 0, 1, 60, 61, 180, 300, 300.5 and 1000 s. A delay on a threshold is in the class below it:
+// 60 is up to 1 min late, 180 is 1 to 3 min late and 300 is 3 to 5 min late, as it is not later than that threshold.
+// Early 1 (10 %), on time 2 (20 %), up to 1 min 2 (20 %), 1 to 3 min 2 (20 %), 3 to 5 min 1 (10 %), more than 5 min
+// 2 (20 %). One arrival has no plan, two are not reached and three have neither; they are in no class.
+bool histogramClasses() {
+	std::vector<TimetableResultRow> rows;
+	const double delays[10] = {-30.0, 0.0, 0.0, 1.0, 60.0, 61.0, 180.0, 300.0, 300.5, 1000.0};
+	for (int index = 0; index < 10; ++index)
+		rows.push_back(row("Z", 1, "S", index + 1, index + 1, {1000.0, kNone, 1000.0 + delays[index], kNone}));
+	rows.push_back(row("Z", 1, "S", 11, 11, {kNone, kNone, 1000.0, kNone}));
+	for (int index = 12; index < 14; ++index)
+		rows.push_back(row("Z", 1, "S", index, index, {1000.0, kNone, kNone, kNone}));
+	for (int index = 14; index < 17; ++index)
+		rows.push_back(row("Z", 1, "S", index, index, {kNone, kNone, kNone, kNone}));
+	const std::vector<DelayEvent> arrivals = ofKind(buildDelayEvents(rows, RunResults()), DelayEventKind::Arrival);
+	const DelayHistogram histogram = delayHistogram(arrivals);
+	bool ok = expect(hasClasses(histogram,
+						 {{"Early", kNone, 0.0, 1, 10.0}, {"On time", 0.0, 0.0, 2, 20.0}, {"Up to 1 min late", 0.0, 60.0, 2, 20.0},
+							 {"1 to 3 min late", 60.0, 180.0, 2, 20.0}, {"3 to 5 min late", 180.0, 300.0, 1, 10.0},
+							 {"More than 5 min late", 300.0, kNone, 2, 20.0}}),
+		"histogram: the classes, their bounds, counts and shares, with a delay on a threshold in the class below it");
+	ok &= expect(histogram.available == 10 && histogram.noPlan == 1 && histogram.notReached == 2 && histogram.noPlanAndNotReached == 3,
+		"histogram: the events without a delay are counted by status and are in no class");
+	DelayFilter filter;
+	ok &= expect(agreesWithSummary(histogram, summarizeDelays(arrivals, filter).network),
+		"histogram: the classes above each threshold are the events later than it in the summary");
+	return ok;
+}
+
+// The arrivals of follow-level-0: -269, -167, +157 and -10, and two without a plan or an arrival at A. Early 3 (75 %) and
+// 1 to 3 min late 1 (25 %). The departures: 0 and +157 at B, two not reached at A and two without a plan at C. Without an
+// available event every share is unavailable, not 0.
+bool histogramOfFollowLevel0() {
+	const std::vector<DelayEvent> events = buildDelayEvents(lineRows({331, 660, 933, 934, 817, 877, 1150, 1151}), lineRun());
+	const DelayHistogram arrivals = delayHistogram(ofKind(events, DelayEventKind::Arrival));
+	bool ok = expect(hasClasses(arrivals,
+						 {{"Early", kNone, 0.0, 3, 75.0}, {"On time", 0.0, 0.0, 0, 0.0}, {"Up to 1 min late", 0.0, 60.0, 0, 0.0},
+							 {"1 to 3 min late", 60.0, 180.0, 1, 25.0}, {"3 to 5 min late", 180.0, 300.0, 0, 0.0},
+							 {"More than 5 min late", 300.0, kNone, 0, 0.0}})
+			&& arrivals.available == 4 && arrivals.noPlan == 0 && arrivals.notReached == 0 && arrivals.noPlanAndNotReached == 2,
+		"histogram: the arrivals of follow-level-0");
+	DelayFilter arrivalFilter;
+	ok &= expect(agreesWithSummary(arrivals, summarizeDelays(events, arrivalFilter).network), "histogram: the arrivals agree with the summary");
+
+	const DelayHistogram departures = delayHistogram(ofKind(events, DelayEventKind::Departure));
+	ok &= expect(hasClasses(departures,
+					 {{"Early", kNone, 0.0, 0, 0.0}, {"On time", 0.0, 0.0, 1, 50.0}, {"Up to 1 min late", 0.0, 60.0, 0, 0.0},
+						 {"1 to 3 min late", 60.0, 180.0, 1, 50.0}, {"3 to 5 min late", 180.0, 300.0, 0, 0.0},
+						 {"More than 5 min late", 300.0, kNone, 0, 0.0}})
+			&& departures.available == 2 && departures.noPlan == 2 && departures.notReached == 2 && departures.noPlanAndNotReached == 0,
+		"histogram: the departures of follow-level-0");
+	DelayFilter departureFilter;
+	departureFilter.kind = DelayEventKind::Departure;
+	ok &= expect(agreesWithSummary(departures, summarizeDelays(events, departureFilter).network),
+		"histogram: the departures agree with the summary");
+
+	DelayFilter atA;
+	atA.stations = {"A"};
+	std::vector<DelayEvent> eventsAtA;
+	for (const DelayEvent& event : ofKind(events, DelayEventKind::Arrival)) {
+		if (event.stationId == "A")
+			eventsAtA.push_back(event);
+	}
+	const DelayHistogram unavailable = delayHistogram(eventsAtA);
+	ok &= expect(hasClasses(unavailable,
+					 {{"Early", kNone, 0.0, 0, kNone}, {"On time", 0.0, 0.0, 0, kNone}, {"Up to 1 min late", 0.0, 60.0, 0, kNone},
+						 {"1 to 3 min late", 60.0, 180.0, 0, kNone}, {"3 to 5 min late", 180.0, 300.0, 0, kNone},
+						 {"More than 5 min late", 300.0, kNone, 0, kNone}})
+			&& unavailable.available == 0 && unavailable.noPlanAndNotReached == 2
+			&& agreesWithSummary(unavailable, summarizeDelays(events, atA).network),
+		"histogram: without an available event the classes are empty and their shares unavailable");
+
+	const DelayHistogram empty = delayHistogram({});
+	ok &= expect(hasClasses(empty,
+					 {{"Early", kNone, 0.0, 0, kNone}, {"On time", 0.0, 0.0, 0, kNone}, {"Up to 1 min late", 0.0, 60.0, 0, kNone},
+						 {"1 to 3 min late", 60.0, 180.0, 0, kNone}, {"3 to 5 min late", 180.0, 300.0, 0, kNone},
+						 {"More than 5 min late", 300.0, kNone, 0, kNone}})
+			&& empty.available == 0 && empty.noPlan == 0 && empty.notReached == 0 && empty.noPlanAndNotReached == 0,
+		"histogram: no event gives the six classes without a count or a share");
+	return ok;
+}
+
 // Early, on time, no plan, not reached, repeated station. Train T calls at S, U, S again and W.
 // S first call: arrival 90 for 100 (-10), departure 200 for 200 (0). U: arrival 300 with no plan, departure 420 for 400 (+20).
 // S second call: planned 500 and 600, the train never got there. W: no plan, no time.
@@ -718,6 +856,8 @@ int main() {
 	ok &= departureSummaryOfFollowLevel0();
 	ok &= filters();
 	ok &= thresholdsAreStrict();
+	ok &= histogramClasses();
+	ok &= histogramOfFollowLevel0();
 	ok &= earlyZeroMissingAndRepeated();
 	ok &= entranceDelayEvents();
 	ok &= pairWithoutSignalling();

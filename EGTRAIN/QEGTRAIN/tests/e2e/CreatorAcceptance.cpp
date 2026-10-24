@@ -1891,7 +1891,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					return entranceInputs->item(row, 4)->text() + QStringLiteral(" at ") + entranceInputs->item(row, 5)->text();
 			return QString();
 		};
-		if (!entranceTabs || entranceTabs->currentIndex() != 2 || !entranceInputs || !entranceInputs->isVisible()
+		if (!entranceTabs || entranceTabs->currentIndex() != 3 || !entranceInputs || !entranceInputs->isVisible()
 			|| entranceInputs->rowCount() != 2 || inputDelayOf(QStringLiteral("2")) != QStringLiteral("90 at Creator A")
 			|| inputDelayOf(QStringLiteral("1")) != QStringLiteral("0 at ")) {
 			fail(QStringLiteral("the comparison of the entrance run did not show the entrance delay as the input delay: occurrence 1 '%1', occurrence 2 '%2'")
@@ -2619,7 +2619,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			compareButton->click();
 			process();
 			DelayAnalysisWindow* window = newestDelayWindow();
-			return delayTab(window) == 2 && window->suggestedFileName() == QStringLiteral("delay_comparison.csv") ? window : nullptr;
+			return delayTab(window) == 3 && window->suggestedFileName() == QStringLiteral("delay_comparison.csv") ? window : nullptr;
 		};
 		const auto delayEvidenceShown = [&delayTable](DelayAnalysisWindow* window, const QString& prefix) {
 			const QTableWidget* occurrences = delayTable(window, "delayBaselineOccurrences");
