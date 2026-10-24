@@ -44,14 +44,25 @@ constexpr qsizetype kMostKeyed = static_cast<qsizetype>(kPalette.size()); // tra
 
 TrainColourPlan trainColourPlan(const QVector<TrainColourInput>& trains, const QHash<QString, QColor>& serviceColours,
 	const QString& selectedTrain) {
+	QStringList ids;
+	for (const TrainColourInput& train : trains) ids << train.id;
+	const auto isCopy = [&ids](const TrainColourInput& train) { return !train.copyOf.isEmpty() && ids.contains(train.copyOf); };
+	QStringList shownByCopy;
+	QString selected = selectedTrain;
+	for (const TrainColourInput& train : trains) {
+		if (!isCopy(train)) continue;
+		if (train.shown) shownByCopy << train.copyOf;
+		if (train.id == selectedTrain) selected = train.copyOf;
+	}
 	QStringList all, shown, allServices, shownServices;
 	QHash<QString, QString> serviceOf;
 	for (const TrainColourInput& train : trains) {
+		if (isCopy(train)) continue;
 		const QString service = train.service.isEmpty() ? train.id : train.service;
 		all << train.id;
 		serviceOf.insert(train.id, service);
 		if (!allServices.contains(service)) allServices << service;
-		if (!train.shown) continue;
+		if (!train.shown && !shownByCopy.contains(train.id)) continue;
 		shown << train.id;
 		if (!shownServices.contains(service)) shownServices << service;
 	}
@@ -73,8 +84,13 @@ TrainColourPlan trainColourPlan(const QVector<TrainColourInput>& trains, const Q
 	} else {
 		plan.mode = TrainColourPlan::Mode::Grey;
 		for (const QString& id : shown) plan.colours.insert(id, kManyTrains);
-		if (shown.contains(selectedTrain)) plan.colours.insert(selectedTrain, colourOf(selectedTrain, 0));
+		if (shown.contains(selected)) plan.colours.insert(selected, colourOf(selected, 0));
 	}
+	// A copy takes the colour of its train, and a hidden train that only its copy showed is light grey again.
+	for (const TrainColourInput& train : trains)
+		if (isCopy(train)) plan.colours.insert(train.id, train.shown ? plan.colours.value(train.copyOf) : kHiddenTrain);
+	for (const TrainColourInput& train : trains)
+		if (!isCopy(train) && !train.shown) plan.colours.insert(train.id, kHiddenTrain);
 	return plan;
 }
 

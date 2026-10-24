@@ -10,6 +10,7 @@
 #include "widgets/EditorLayout.h"
 
 #include <QCursor>
+#include <QEvent>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -648,6 +649,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_histogramView->setFrameShape(QFrame::NoFrame);
 	// The chart takes no keys, so Tab passes over it.
 	m_histogramView->setFocusPolicy(Qt::NoFocus);
+	m_histogramView->viewport()->installEventFilter(this);
 	punctualityLayout->addWidget(m_histogramView, 1);
 	// Keeps the note at the top while the chart is hidden.
 	punctualityLayout->addStretch();
@@ -746,19 +748,11 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	connect(m_kind, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int) { refresh(); });
 	// The tooltip of a bar gives its class, its count and its share.
 	connect(m_histogramBars, &QBarSet::hovered, this, [this](bool entered, int index) {
-		if (!entered || index < 0 || index >= static_cast<int>(m_shownHistogram.classes.size())) {
+		m_hoveredBar = entered && index >= 0 && index < static_cast<int>(m_shownHistogram.classes.size()) ? index : -1;
+		if (m_hoveredBar < 0)
 			QToolTip::hideText();
-			return;
-		}
-		const DelayHistogramClass& delayClass = m_shownHistogram.classes[static_cast<std::size_t>(index)];
-		QToolTip::showText(QCursor::pos(),
-			QString("%1\n%2 of %3 %4 (%5%)")
-				.arg(fromStd(delayClass.label))
-				.arg(delayClass.events)
-				.arg(m_shownHistogram.available)
-				.arg(eventsText(m_shownKind, m_shownHistogram.available))
-				.arg(delayClass.percent.available ? QString::number(delayClass.percent.value, 'f', 1) : QStringLiteral("-")),
-			m_histogramView);
+		else
+			QToolTip::showText(QCursor::pos(), histogramToolTip(m_hoveredBar), m_histogramView);
 	});
 	connect(m_tabs, &QTabWidget::currentChanged, this, [this](int tab) {
 		m_kind->setEnabled(tab != kBaselineTab);
@@ -771,6 +765,26 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	frame->installInDialog(*this, QStringLiteral("Delay analysis"), closeButtons);
 	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 	refresh();
+}
+
+QString DelayAnalysisWindow::histogramToolTip(int index) const {
+	const DelayHistogramClass& delayClass = m_shownHistogram.classes[static_cast<std::size_t>(index)];
+	return QString("%1\n%2 of %3 %4 (%5%)")
+		.arg(fromStd(delayClass.label))
+		.arg(delayClass.events)
+		.arg(m_shownHistogram.available)
+		.arg(eventsText(m_shownKind, m_shownHistogram.available))
+		.arg(delayClass.percent.available ? QString::number(delayClass.percent.value, 'f', 1) : QStringLiteral("-"));
+}
+
+// The chart view answers a tooltip request from its scene, which has no tooltip and would hide that of the bar under the
+// pointer, so the window answers it with the tooltip of that bar.
+bool DelayAnalysisWindow::eventFilter(QObject* watched, QEvent* event) {
+	if (event->type() == QEvent::ToolTip && m_histogramView && watched == m_histogramView->viewport() && m_hoveredBar >= 0) {
+		QToolTip::showText(static_cast<QHelpEvent*>(event)->globalPos(), histogramToolTip(m_hoveredBar), m_histogramView);
+		return true;
+	}
+	return QDialog::eventFilter(watched, event);
 }
 
 void DelayAnalysisWindow::refresh() {

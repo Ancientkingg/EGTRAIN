@@ -126,6 +126,9 @@ public:
 	/// trains in six services or fewer and gives the trains their colours by service when more than six are shown. A
 	/// train without a service is a service of its own. Keeps which trains are shown.
 	void setTrainServices(const QHash<QString, QString>& services);
+	/// The train that each copied train copies, by group id, such as the first train of a capacity cycle for its copy one
+	/// period later. A copy takes the colour of its train (trainColourPlan). Keeps which trains are shown.
+	void setTrainCopies(const QHash<QString, QString>& copyOf);
 	/// Labels the Y axis as clock time, titled "Time (hh:mm)": the axis value in seconds plus `startOffsetSeconds`, the
 	/// clock time of second 0 in seconds since midnight, with ticks on round clock times and one at second 0 while it is
 	/// in range. Ticks on whole minutes read HH:MM while the ticks are at least a minute apart; a tick off a whole minute,
@@ -286,6 +289,7 @@ private:
 	QHash<QString, QColor> m_serviceColours; // the colour of the service of a train in the case, by group id
 	QHash<QString, QColor> m_planColours;	 // the colour that the colour rule gave each train last, by group id
 	QHash<QString, QString> m_trainServices;
+	QHash<QString, QString> m_trainCopies; // the train that a copied train copies, by group id
 	QPoint m_pressPosition;
 	QPointer<QCategoryAxis> m_stationAxis;
 	std::vector<StationTick> m_stations;

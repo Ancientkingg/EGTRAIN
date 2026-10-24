@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QHelpEvent>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
@@ -514,7 +515,7 @@ bool exercisePunctuality() {
 	const auto* counts = chart->axes(Qt::Vertical).isEmpty() ? nullptr : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	bool ok = expect(classes
 			&& classes->categories()
-				== QStringList({"Early", "On time", "Up to 1<br>min late", "1 to 3<br>min late", "3 to 5<br>min late", "More than 5<br>min late"}),
+				== QStringList({"Early", "On time", "Up to 1<br>min late", "1 to 3<br>min late", "3 to 5<br>min late", "Over 5<br>min late"}),
 		"a bar for each class, labelled with the class on two lines where it ends in min late");
 	ok &= expect(counts && counts->titleText() == "Events" && counts->min() == 0.0 && counts->max() == 4.0
 			&& counts->tickType() == QValueAxis::TicksDynamic && counts->tickInterval() == 1.0 && counts->tickAnchor() == 0.0
@@ -535,6 +536,11 @@ bool exercisePunctuality() {
 	// The tooltip of a bar gives the class, the count and the share.
 	emit histogramBars(window)->hovered(true, 3);
 	ok &= expect(QToolTip::text() == "1 to 3 min late\n1 of 4 arrivals (25.0%)", qPrintable("the tooltip of a bar: " + QToolTip::text()));
+	QWidget* plot = window.findChild<QChartView*>("delayHistogram")->viewport();
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), plot->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(plot, &help);
+	ok &= expect(QToolTip::text() == "1 to 3 min late\n1 of 4 arrivals (25.0%)",
+		qPrintable("the tooltip of a bar stays when the pointer rests: " + QToolTip::text()));
 	emit histogramBars(window)->hovered(false, 3);
 
 	chooseEvents(window, 1);
@@ -984,7 +990,7 @@ bool exerciseExport() {
 	ok &= expect(lines(histogramPath)
 			== QStringList({"Event,Class,From[s],To[s],Events,Share[%]", "Arrival,Early,,0,1,25", "Arrival,On time,0,0,0,0",
 				"Arrival,Up to 1 min late,0,60,0,0", "Arrival,1 to 3 min late,60,180,1,25", "Arrival,3 to 5 min late,180,300,2,50",
-				"Arrival,More than 5 min late,300,,0,0", "Arrival,No plan,,,0,", "Arrival,Not reached,,,0,", "Arrival,\"No plan, not reached\",,,2,"}),
+				"Arrival,Over 5 min late,300,,0,0", "Arrival,No plan,,,0,", "Arrival,Not reached,,,0,", "Arrival,\"No plan, not reached\",,,2,"}),
 		qPrintable("the records of the punctuality: " + lines(histogramPath).join(" | ")));
 	ok &= expect(sidecar(histogramPath).contains("run") && !sidecar(histogramPath).contains("baseline_run"), "the punctuality has the provenance of the run");
 	chooseEvents(window, 1);

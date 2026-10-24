@@ -294,7 +294,7 @@ DelayHistogram delayHistogram(const std::vector<DelayEvent>& events) {
 		addClass(from == 0.0 ? "Up to " + minutesText(to) + " min late" : minutesText(from) + " to " + minutesText(to) + " min late",
 			{true, from}, {true, to});
 	}
-	addClass("More than " + minutesText(thresholds.back()) + " min late", {true, thresholds.back()}, {});
+	addClass("Over " + minutesText(thresholds.back()) + " min late", {true, thresholds.back()}, {});
 
 	for (const DelayEvent& event : events) {
 		switch (event.status) {

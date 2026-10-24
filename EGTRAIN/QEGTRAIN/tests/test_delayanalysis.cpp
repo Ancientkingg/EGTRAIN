@@ -431,7 +431,7 @@ bool histogramClasses() {
 	bool ok = expect(hasClasses(histogram,
 						 {{"Early", kNone, 0.0, 1, 10.0}, {"On time", 0.0, 0.0, 2, 20.0}, {"Up to 1 min late", 0.0, 60.0, 2, 20.0},
 							 {"1 to 3 min late", 60.0, 180.0, 2, 20.0}, {"3 to 5 min late", 180.0, 300.0, 1, 10.0},
-							 {"More than 5 min late", 300.0, kNone, 2, 20.0}}),
+							 {"Over 5 min late", 300.0, kNone, 2, 20.0}}),
 		"histogram: the classes, their bounds, counts and shares, with a delay on a threshold in the class below it");
 	ok &= expect(histogram.available == 10 && histogram.noPlan == 1 && histogram.notReached == 2 && histogram.noPlanAndNotReached == 3,
 		"histogram: the events without a delay are counted by status and are in no class");
@@ -450,7 +450,7 @@ bool histogramOfFollowLevel0() {
 	bool ok = expect(hasClasses(arrivals,
 						 {{"Early", kNone, 0.0, 3, 75.0}, {"On time", 0.0, 0.0, 0, 0.0}, {"Up to 1 min late", 0.0, 60.0, 0, 0.0},
 							 {"1 to 3 min late", 60.0, 180.0, 1, 25.0}, {"3 to 5 min late", 180.0, 300.0, 0, 0.0},
-							 {"More than 5 min late", 300.0, kNone, 0, 0.0}})
+							 {"Over 5 min late", 300.0, kNone, 0, 0.0}})
 			&& arrivals.available == 4 && arrivals.noPlan == 0 && arrivals.notReached == 0 && arrivals.noPlanAndNotReached == 2,
 		"histogram: the arrivals of follow-level-0");
 	DelayFilter arrivalFilter;
@@ -460,7 +460,7 @@ bool histogramOfFollowLevel0() {
 	ok &= expect(hasClasses(departures,
 					 {{"Early", kNone, 0.0, 0, 0.0}, {"On time", 0.0, 0.0, 1, 50.0}, {"Up to 1 min late", 0.0, 60.0, 0, 0.0},
 						 {"1 to 3 min late", 60.0, 180.0, 1, 50.0}, {"3 to 5 min late", 180.0, 300.0, 0, 0.0},
-						 {"More than 5 min late", 300.0, kNone, 0, 0.0}})
+						 {"Over 5 min late", 300.0, kNone, 0, 0.0}})
 			&& departures.available == 2 && departures.noPlan == 2 && departures.notReached == 2 && departures.noPlanAndNotReached == 0,
 		"histogram: the departures of follow-level-0");
 	DelayFilter departureFilter;
@@ -479,7 +479,7 @@ bool histogramOfFollowLevel0() {
 	ok &= expect(hasClasses(unavailable,
 					 {{"Early", kNone, 0.0, 0, kNone}, {"On time", 0.0, 0.0, 0, kNone}, {"Up to 1 min late", 0.0, 60.0, 0, kNone},
 						 {"1 to 3 min late", 60.0, 180.0, 0, kNone}, {"3 to 5 min late", 180.0, 300.0, 0, kNone},
-						 {"More than 5 min late", 300.0, kNone, 0, kNone}})
+						 {"Over 5 min late", 300.0, kNone, 0, kNone}})
 			&& unavailable.available == 0 && unavailable.noPlanAndNotReached == 2
 			&& agreesWithSummary(unavailable, summarizeDelays(events, atA).network),
 		"histogram: without an available event the classes are empty and their shares unavailable");
@@ -488,7 +488,7 @@ bool histogramOfFollowLevel0() {
 	ok &= expect(hasClasses(empty,
 					 {{"Early", kNone, 0.0, 0, kNone}, {"On time", 0.0, 0.0, 0, kNone}, {"Up to 1 min late", 0.0, 60.0, 0, kNone},
 						 {"1 to 3 min late", 60.0, 180.0, 0, kNone}, {"3 to 5 min late", 180.0, 300.0, 0, kNone},
-						 {"More than 5 min late", 300.0, kNone, 0, kNone}})
+						 {"Over 5 min late", 300.0, kNone, 0, kNone}})
 			&& empty.available == 0 && empty.noPlan == 0 && empty.notReached == 0 && empty.noPlanAndNotReached == 0,
 		"histogram: no event gives the six classes without a count or a share");
 	return ok;

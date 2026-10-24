@@ -21,7 +21,7 @@ const QColor kHidden("#c3cbd1");
 // Trains named T0, T1 and so on, each a service of its own.
 QVector<TrainColourInput> numberedTrains(int count) {
 	QVector<TrainColourInput> trains;
-	for (int i = 0; i < count; ++i) trains.append({QString("T%1").arg(i), QString(), true});
+	for (int i = 0; i < count; ++i) trains.append({QString("T%1").arg(i), QString(), true, QString()});
 	return trains;
 }
 
@@ -30,7 +30,7 @@ QVector<TrainColourInput> assignmentTrains() {
 	QVector<TrainColourInput> trains;
 	const std::array<std::pair<const char*, int>, 4> services{{{"IC1723", 6}, {"S19825", 6}, {"IC2025", 5}, {"S9827", 5}}};
 	for (const auto& [service, count] : services)
-		for (int i = 1; i <= count; ++i) trains.append({QString("%1-%2").arg(service).arg(i), QString(service), true});
+		for (int i = 1; i <= count; ++i) trains.append({QString("%1-%2").arg(service).arg(i), QString(service), true, QString()});
 	return trains;
 }
 
@@ -123,6 +123,38 @@ bool exerciseSceneColours() {
 	return ok;
 }
 
+// A copy, such as the first train of a capacity cycle one period later, takes the colour of its train and counts as
+// that train.
+bool exerciseCopies() {
+	bool ok = true;
+	QVector<TrainColourInput> cycle = numberedTrains(31);
+	cycle.append({"T0 (next period)", QString(), true, "T0"});
+	for (TrainColourInput& train : cycle) train.shown = train.id.startsWith("T0");
+	const TrainColourPlan two = trainColourPlan(cycle, {});
+	ok &= expect(two.mode == TrainColourPlan::Mode::PerTrain && two.colours.value("T0") == kPalette[0]
+			&& two.colours.value("T0 (next period)") == kPalette[0],
+		"of 31 trains the first train and its copy, both shown, take the first colour");
+	cycle[0].shown = false;
+	const TrainColourPlan copyOnly = trainColourPlan(cycle, {});
+	ok &= expect(copyOnly.colours.value("T0") == kHidden && copyOnly.colours.value("T0 (next period)") == kPalette[0],
+		"a shown copy of a hidden train takes the colour of its train, which stays light grey");
+	QVector<TrainColourInput> six = numberedTrains(6);
+	six.append({"T2 (next period)", QString(), true, "T2"});
+	const TrainColourPlan sixAndCopy = trainColourPlan(six, {});
+	ok &= expect(sixAndCopy.mode == TrainColourPlan::Mode::PerTrain && sixAndCopy.colours.value("T2 (next period)") == kPalette[2]
+			&& sixAndCopy.colours.value("T5") == kPalette[5],
+		"six trains and a copy keep a colour each, and the copy takes that of its train");
+	six.back().shown = false;
+	ok &= expect(trainColourPlan(six, {}).colours.value("T2 (next period)") == kHidden, "a hidden copy is light grey");
+	QVector<TrainColourInput> many = numberedTrains(47);
+	many.append({"T10 (next period)", QString(), true, "T10"});
+	const TrainColourPlan selectedCopy = trainColourPlan(many, {}, "T10 (next period)");
+	ok &= expect(selectedCopy.mode == TrainColourPlan::Mode::Grey && selectedCopy.colours.value("T10") == kPalette[0]
+			&& selectedCopy.colours.value("T10 (next period)") == kPalette[0] && selectedCopy.colours.value("T11") == kGrey,
+		"selecting a copy among many grey trains colours the copy and its train");
+	return ok;
+}
+
 } // namespace
 
 int main() {
@@ -130,6 +162,7 @@ int main() {
 	ok &= exercisePerService();
 	ok &= exerciseGrey();
 	ok &= exerciseSceneColours();
+	ok &= exerciseCopies();
 	std::cout << (ok ? "test_traincolours passed\n" : "test_traincolours FAILED\n");
 	return ok ? 0 : 1;
 }
