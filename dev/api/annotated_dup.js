@@ -135,6 +135,7 @@ var annotated_dup =
     [ "InspectorPanel", "class_inspector_panel.html", "class_inspector_panel" ],
     [ "InstallerRecord", "struct_installer_record.html", "struct_installer_record" ],
     [ "Journey", "class_journey.html", "class_journey" ],
+    [ "KeepInFront", "class_keep_in_front.html", "class_keep_in_front" ],
     [ "LegacyPassengerParseResult", "struct_legacy_passenger_parse_result.html", "struct_legacy_passenger_parse_result" ],
     [ "LegacyPassengerSources", "struct_legacy_passenger_sources.html", "struct_legacy_passenger_sources" ],
     [ "LegacyPassengerStationReference", "struct_legacy_passenger_station_reference.html", "struct_legacy_passenger_station_reference" ],

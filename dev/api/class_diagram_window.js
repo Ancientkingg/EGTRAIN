@@ -9,6 +9,8 @@ var class_diagram_window =
     [ "setBlockSections", "class_diagram_window.html#a96fc99c6db7318229f03cb98fa7afec2", null ],
     [ "setChart", "class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df", null ],
     [ "setCsvProvider", "class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d", null ],
+    [ "setEmptyText", "class_diagram_window.html#a98360c09269fbf789e109c49b3f55c42", null ],
+    [ "setFigureFileName", "class_diagram_window.html#a4183a86daf571701f350bd059208d997", null ],
     [ "setPositionAxis", "class_diagram_window.html#a793d3c53f037ce0694f78db0295866fd", null ],
     [ "setPresentation", "class_diagram_window.html#a60cb3e3e03a095be4ab508fa8697f55f", null ],
     [ "setProvenanceWriter", "class_diagram_window.html#a072ab92bbf800c9021108d0b1283078d", null ],

@@ -136,6 +136,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a02013e3da2fd785a63557a6f6db43d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">An empty window with the given title.  <br /></td></tr>
 <tr class="memitem:a6a0470e83e6f726a252b1b7b308842df" id="r_a6a0470e83e6f726a252b1b7b308842df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a0470e83e6f726a252b1b7b308842df">setChart</a> (QChart *chart)</td></tr>
 <tr class="memitem:a60cb3e3e03a095be4ab508fa8697f55f" id="r_a60cb3e3e03a095be4ab508fa8697f55f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a60cb3e3e03a095be4ab508fa8697f55f">setPresentation</a> (const QString &amp;heading, const QString &amp;context, const QString &amp;warning=QString(), const QString &amp;contextToolTip=QString())</td></tr>
+<tr class="memitem:a98360c09269fbf789e109c49b3f55c42" id="r_a98360c09269fbf789e109c49b3f55c42"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98360c09269fbf789e109c49b3f55c42">setEmptyText</a> (const QString &amp;text)</td></tr>
+<tr class="memitem:a4183a86daf571701f350bd059208d997" id="r_a4183a86daf571701f350bd059208d997"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4183a86daf571701f350bd059208d997">setFigureFileName</a> (const QString &amp;fileName)</td></tr>
+<tr class="memdesc:a4183a86daf571701f350bd059208d997"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.  <br /></td></tr>
 <tr class="memitem:a0365f0d7bf7ae2dd09e3f7933f9d5b1a" id="r_a0365f0d7bf7ae2dd09e3f7933f9d5b1a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0365f0d7bf7ae2dd09e3f7933f9d5b1a">setRollingStockSubject</a> (bool on)</td></tr>
 <tr class="memitem:ae62313eba188517867e611dfa3a6f3b2" id="r_ae62313eba188517867e611dfa3a6f3b2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae62313eba188517867e611dfa3a6f3b2">setTrainColors</a> (const QHash&lt; QString, QColor &gt; &amp;colors)</td></tr>
 <tr class="memitem:ab408ce4b95e0ba9ab73fdbe8f4efbd62" id="r_ab408ce4b95e0ba9ab73fdbe8f4efbd62"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab408ce4b95e0ba9ab73fdbe8f4efbd62">setTrainServices</a> (const QHash&lt; QString, QString &gt; &amp;services)</td></tr>
@@ -162,9 +165,10 @@ Protected Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Reusable non-modal window that shows a chart in a <a class="el" href="class_result_frame.html">ResultFrame</a>: a header row with the context and the zoom, fit and panel buttons over the chart, and a panel beside it with the sections Trains (the train filter and colour key in one list, a <a class="el" href="class_train_key_list.html">TrainKeyList</a>), Key (the kinds of mark in view, a <a class="el" href="class_diagram_key.html">DiagramKey</a>), Selected and Export, and a readout of the value under the pointer. The chart has hover and click identification and rubber-band zoom, and exports a PNG and, optionally, a CSV.</p>
-<p>The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind, else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as "Stop". Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the pen of the "keyPen" property of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
-<p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor.</p>
-<p>One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette for each train while six trains or fewer are shown, else one for each service while those trains run in six services or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series whose "ownColour" property is true keeps the colours of its builder, as do the series of a chart of rolling stock input. The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. </p>
+<p>The Key lists each kind of mark that a shown series draws, with the pen and brush of the series: the "keyKind" property of a series names its kind, and an empty one leaves the series out; without it the "layer" property names the kind, else the series is Planned or Simulated. A closed outline whose "inspectionFilled" property is set is a box, filled with the brush of an area series of the same kind; another series is a line in the text colour, since its colour belongs to its train, with a dot when it shows its points, and upright when its "keyUpright" property is true, as for a dwell. The "keyMarker" property of a series that shows its points names a kind of its own for its points, such as "Stop". The chart draws the points of a planned series as open circles and those of another series as dots, and the Key draws them alike: a planned line with an open circle, a kind of points as a dot while a series that is not planned has them. Simulated is left out while it is the only kind of line. The section strip adds Station section, Switch section and Block boundary. The Key follows the trains that are shown. A box takes the pen of the "keyPen" property of its outline when the outline has one, so that it looks alike for every train. A chart of rolling stock input lists its series by name, in their own colours.</p>
+<p>Series are grouped by the dynamic property "trainId" when the caller sets it (the same train can own several series, such as planned and simulated lines); series without that property are grouped by their own name. Optional inspection metadata: "inspectionPoints" is a QStringList with one plain-text context entry per appended point (including empty entries). "inspectionInterval" is plain-text context shared by a line segment; "inspectionFilled" explicitly opts a closed QLineSeries into interior hits, and "inspectionTitle" is the first line of such a box, such as "IC1723-2 on 12-B0". Inside a box a click selects a line only within 4 px of it, and otherwise the box. A line hit always reports its nearest actual plotted sample, not an interpolated value at the cursor. The value along an axis whose "readoutName" property is set reads as the number it is, such as "Stop number: 5".</p>
+<p>One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette for each train while six trains or fewer are shown, else one for each service while those trains run in six services or fewer (setTrainServices), else grey with the selected train in the first colour of the palette. The colour of a service in the case wins over the palette (setTrainColors). Showing, hiding and selecting trains apply the rule again and keep which trains are checked. A series takes the colour of its train in its pen, and an area series also in its brush, with the alpha of the brush kept; widths and dash patterns stay as the chart builder set them. A series whose "ownColour" property is true keeps the colours of its builder, as do the series of a chart of rolling stock input. The line sample of a train in the Trains list has its colour, and that of a hidden train is light grey. The selected train is drawn over the other trains.</p>
+<p>A chart without series shows the text of setEmptyText in the middle of its plot, and the panel leaves out the sections that have nothing to show, Trains included. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a02013e3da2fd785a63557a6f6db43d58" name="a02013e3da2fd785a63557a6f6db43d58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a02013e3da2fd785a63557a6f6db43d58">&#9670;&#160;</a></span>DiagramWindow()</h2>
@@ -197,7 +201,7 @@ Protected Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="1556" height="2144"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a02013e3da2fd785a63557a6f6db43d58_cgraph.svg" width="1556" height="1924"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -248,7 +252,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. A new size of the chart, as when the panel shows or hides or the window resizes, clears the tooltip and the readout. </p>
+<p>Hover, click selection, the readout, wheel and pinch zoom, and wheel pan on the chart view. The readout fills when the pointer comes into the chart and follows the zoom of a dragged rectangle. A new size of the chart, as when the panel shows or hides or the window resizes, clears the tooltip and the readout. </p>
 
 </div>
 </div>
@@ -408,7 +412,44 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Supply raw source data for CSV export. The provider receives the ids of the trains currently visible so it can export only what the user is looking at. <span class="tt">trainIds</span> adds to the train filter the trains that have CSV rows but no plotted series. An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save names the file in the status bar of the main window that is the parent of this window. The PNG export suggests <span class="tt">suggestedFileName</span> with the suffix png, or diagram.png without a name. </p>
+<p>Supply raw source data for CSV export. The provider receives the ids of the trains currently visible so it can export only what the user is looking at. <span class="tt">trainIds</span> adds to the train filter the trains that have CSV rows but no plotted series. An empty return means there is nothing to export. The CSV button is shown only while a provider is set. A save names the file in the status bar of the main window that is the parent of this window. The PNG export suggests the name of setFigureFileName, else <span class="tt">suggestedFileName</span> with the suffix png, or diagram.png without a name. After an export the window is raised and active again, saved or cancelled (<a class="el" href="class_keep_in_front.html">KeepInFront</a>). </p>
+
+</div>
+</div>
+<a id="a98360c09269fbf789e109c49b3f55c42" name="a98360c09269fbf789e109c49b3f55c42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98360c09269fbf789e109c49b3f55c42">&#9670;&#160;</a></span>setEmptyText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::setEmptyText </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The line that the plot shows while the chart has no series, such as "No arrival delays in this run"; empty for none. Set before or after setChart. </p>
+
+</div>
+</div>
+<a id="a4183a86daf571701f350bd059208d997" name="a4183a86daf571701f350bd059208d997"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4183a86daf571701f350bd059208d997">&#9670;&#160;</a></span>setFigureFileName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DiagramWindow::setFigureFileName </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>fileName</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV. </p>
 
 </div>
 </div>
@@ -458,7 +499,12 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Sets the window title to <span class="tt">heading</span>, shows <span class="tt">context</span> in one line in the header, elided at the right, and <span class="tt">warning</span> in a label above the chart; an empty text hides its label. The tooltip of the context has the whole context, with <span class="tt">contextToolTip</span> on the lines below it when given. </p>
+<p>Sets the window title to <span class="tt">heading</span>, shows <span class="tt">context</span> in one line in the header, elided at the right, and <span class="tt">warning</span> above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text hides its label. The tooltip of the context has the whole context, with <span class="tt">contextToolTip</span> on the lines below it when given. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_diagram_window_a60cb3e3e03a095be4ab508fa8697f55f_cgraph.svg" width="1107" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

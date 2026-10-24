@@ -1,15 +1,8 @@
 var searchData=
 [
-  ['passenger_0',['Passenger',['../class_passenger.html',1,'']]],
-  ['passengerindex_1',['PassengerIndex',['../class_passenger_index.html',1,'']]],
-  ['passengeritem_2',['PassengerItem',['../class_passenger_item.html',1,'']]],
-  ['passengerpanel_3',['PassengerPanel',['../class_passenger_panel.html',1,'']]],
-  ['platformindex_4',['PlatformIndex',['../class_platform_index.html',1,'']]],
-  ['platformitem_5',['PlatformItem',['../class_platform_item.html',1,'']]],
-  ['playbackprofiler_6',['PlaybackProfiler',['../class_playback_profiler.html',1,'']]],
-  ['positionscale_7',['PositionScale',['../class_position_scale.html',1,'']]],
-  ['preparedbatch_8',['PreparedBatch',['../structtelemetry_1_1_prepared_batch.html',1,'telemetry']]],
-  ['previewoptions_9',['PreviewOptions',['../struct_network_presenter_1_1_preview_options.html',1,'NetworkPresenter']]],
-  ['previewoutcome_10',['PreviewOutcome',['../struct_network_presenter_1_1_preview_outcome.html',1,'NetworkPresenter']]],
-  ['previewstationmembership_11',['PreviewStationMembership',['../struct_preview_station_membership.html',1,'']]]
+  ['openedscene_0',['OpenedScene',['../struct_scene_session_1_1_opened_scene.html',1,'SceneSession']]],
+  ['openrequestrelay_1',['OpenRequestRelay',['../class_open_request_relay.html',1,'']]],
+  ['operationobservation_2',['OperationObservation',['../classtelemetry_1_1_operation_observation.html',1,'telemetry']]],
+  ['operationtoken_3',['OperationToken',['../classtelemetry_1_1_telemetry_sender_1_1_operation_token.html',1,'telemetry::TelemetrySender']]],
+  ['options_4',['Options',['../struct_case_chooser_dialog_1_1_options.html',1,'CaseChooserDialog']]]
 ];

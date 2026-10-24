@@ -105,6 +105,7 @@ var hierarchy =
     [ "telemetry::TelemetrySender::Shared::Intent", "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html", null ],
     [ "Journey", "class_journey.html", null ],
     [ "PositionScale::Jump", "struct_position_scale_1_1_jump.html", null ],
+    [ "KeepInFront", "class_keep_in_front.html", null ],
     [ "PositionScale::Label", "struct_position_scale_1_1_label.html", null ],
     [ "LegacyPassengerParseResult", "struct_legacy_passenger_parse_result.html", null ],
     [ "LegacyPassengerSources", "struct_legacy_passenger_sources.html", null ],
