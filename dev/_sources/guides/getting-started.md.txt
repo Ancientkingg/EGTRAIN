@@ -45,7 +45,7 @@ When Paimpol has loaded:
 - The dock **Case and Layers** on the left names the case. When validation finds an error, the line under the name shows the first error and **Run** is disabled. The check boxes under **Layers** switch parts of the picture on and off: **Stations and platforms**, **Station names**, **Trains**, **Train speed labels**, **Signals** and **Passengers**. **View > Map Key** explains the symbols. **Passengers** is off at the first start and is the same switch as **View > Passengers**. Turning it on shows the passenger markers and counters on the platform bars from the next run, and turning it off hides them at once. The platform bars belong to the stations: they show whenever you zoom in on a station, with or without passengers. A case without passengers draws no passenger markers and shows both controls off and disabled; the choice comes back in a case with passengers. `-pax 1` ([the option](command-line.md#options)) starts with passengers on, and the program remembers the last choice.
 - The toolbar holds **Open Case**, **Run**, **Pause**, **Stop**, a speed slider with the current speed next to it, **Follow** with the list of trains, the zoom buttons and **Fit**.
 
-![The main window with Paimpol loaded and not yet run, at the full view. The toolbar, the dock Case and Layers with Passengers off and the map key, the line of stations and the status bar Scene loaded: Paimpol (2 services, 15 routes) are visible.](../images/getting-started-main-window.png)
+![The main window with Paimpol loaded and not yet run, at the full view. The toolbar, the dock Case and Layers with Passengers off and the map key, the line of stations and the status bar Opened Paimpol are visible.](../images/getting-started-main-window.png)
 
 The editors, **Case Validation**, **Loaded Data** and **Log** are hidden when the window opens. The menu **Editors** opens the editors, and the menu **View** opens the other docks.
 
@@ -60,7 +60,7 @@ To see the findings, choose **View > Case Validation** (Ctrl+Shift+V). The table
 1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run**. The three do the same.
 2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Trains** (2: both services enter during the run), **Start time** (07:10:40) and **Duration** (`2:30:00, until 09:40:40`). **Incidents** shows only when the scenario has any, and a line under the facts shows only when something needs your attention, for example `No selected trains start in this period.` **Run details** shows more.
 
-   ![The dialog Run simulation for Paimpol / baseline before a run: 2 selected in period, start clock 07:10:40, duration 2:30:00 ending near 09:40:40, 0 active incidents and the message Ready to run, with Run details closed and the buttons Run simulation and Cancel.](../images/getting-started-run-simulation.png)
+   ![The dialog Run simulation for Paimpol / baseline before a run: Trains 2, Start time 07:10:40 and Duration 2:30:00, until 09:40:40, with Run details closed and the buttons Cancel and Run simulation.](../images/getting-started-run-simulation.png)
 3. Click **Run simulation**. **Cancel** returns to the window without a run.
 
 While the run is active:
@@ -76,7 +76,7 @@ At the fastest speed the run of Paimpol takes seconds. When it has ended, the st
 
 ## 5. Replay the run
 
-The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. A run that is too large to keep whole loses its first part, and a line under the controls says which part the row holds. [How-to](how-to.md#replay-a-completed-run) has the details.
+The **Replay** row has the icon buttons **Start**, **Play** and **End**, a slider and a label. The label reads `Replay` until you choose a time, and then the clock time of the shown frame, such as `07:31:10`. Moving the slider or clicking **Start** or **End** shows the network as it was at that time, and **Play** advances one simulated second for each second of real time. The row records one frame every 5 simulated seconds and shows the last frame at or before the chosen time. A run that is too large to keep whole loses its first part, and a line under the controls says which part the row holds. [How-to](how-to.md#replay-a-completed-run) has the details.
 
 ## 6. Read the results
 
@@ -89,7 +89,7 @@ To open a result window, click **Open result view...** in the dock and choose an
 
 The other entries are listed in [How-to](how-to.md#results-and-exports). The entries stay disabled until a run has ended.
 
-![The window after a completed run of Paimpol / baseline, with the menu Open result view of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view, Export CSV and Export PNG, the results table, and at the bottom edge the buttons Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
+![The window after a completed run of Paimpol / baseline, with the menu Open result view... of the dock Run Results open above its button. It lists twelve views in three groups of four: timetable and delays, speed and distance, and train paths and capacity. Beside and below it are the Replay row, the buttons Open result view..., Export CSV... and Export PNG..., the results table, and at the bottom Set delay baseline and Compare delays.](../images/getting-started-run-results.png)
 
 ## 7. Export one CSV and one PNG
 
