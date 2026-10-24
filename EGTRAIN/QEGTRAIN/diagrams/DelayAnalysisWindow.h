@@ -13,16 +13,20 @@
 #include <utility>
 #include <vector>
 
+class QBarSet;
+class QChartView;
 class QComboBox;
 class QLabel;
 class QPushButton;
 class QTabWidget;
 class QTableWidget;
+class QValueAxis;
 class ResultFigure;
 class TrainFilterButton;
 
 // The window of the delay analysis (diagrams/DelayAnalysis.h). It shows the delay of each call against the
-// authored plan, a summary with counts and thresholds, and the additional delay against a baseline run.
+// authored plan, a summary with counts and thresholds, a histogram of the delays in classes, and the additional delay
+// against a baseline run.
 // A value that does not exist is shown as "-" and is counted next to the figures, never shown as 0.
 
 /// The words of the window and of delay_analysis.csv for a status, such as "Not reached".
@@ -34,14 +38,17 @@ QString delayChangeText(DelayChange change);
 /// Why a baseline cannot be used, in a sentence. The diagnostic names the occurrence for the occurrence kinds.
 QString delayDiagnosticText(const DelayDiagnostic& diagnostic);
 
-// The text of delay_analysis.csv for each tab. Times and delays are in seconds and a value that does not
-// exist is an empty field. Empty when the tab has no row.
+// The CSV text of each tab. Times and delays are in seconds and a value that does not exist is an empty field. Empty when
+// the tab has no row.
 
 /// The CSV text of the Calls tab: one record for each event.
 std::string delayCallsCsv(const std::vector<DelayEvent>& events);
 /// The CSV text of the Summary tab: one station record for each station and one network record. The share columns
 /// come in pairs, the count and the percentage, for each threshold of the summary.
 std::string delaySummaryCsv(const DelaySummary& summary, DelayEventKind kind);
+/// The CSV text of the Punctuality tab: one record for each class, then one for each status without a delay with its
+/// count of events. Empty when no event is available.
+std::string delayHistogramCsv(const DelayHistogram& histogram, DelayEventKind kind);
 /// The CSV text of the Against baseline tab: an occurrence record for each occurrence (the final arrival, the input
 /// delay, the evidence and the secondary delay), a call record for each call and one total record. Empty when the
 /// comparison is not compatible.
@@ -57,8 +64,8 @@ public:
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
 	/// Shows the Against baseline tab. The window opens on the Calls tab.
 	void showBaselineTab();
-	/// The file name that the export offers for the visible tab: delay_comparison.csv for Against baseline,
-	/// else delay_analysis.csv.
+	/// The file name that the export offers for the visible tab: delay_histogram.csv for Punctuality,
+	/// delay_comparison.csv for Against baseline, else delay_analysis.csv.
 	QString suggestedFileName() const;
 	/// Writes the visible tab, for the occurrences, stations and events that are selected, and the provenance sidecar.
 	/// The Against baseline tab writes the provenance of both runs. False when the tab has no row or a write fails.
@@ -69,6 +76,7 @@ private:
 	void fillFigures();
 	void fillCalls();
 	void fillSummary();
+	void fillHistogram();
 	void fillBaseline();
 	void updateExport();
 	std::string currentCsv() const;
@@ -84,6 +92,7 @@ private:
 	// What the tabs show for the selection.
 	std::vector<DelayEvent> m_shownEvents;
 	DelaySummary m_shownSummary;
+	DelayHistogram m_shownHistogram;
 	DelayEventKind m_shownKind = DelayEventKind::Arrival;
 	DelayBaselineComparison m_shownBaseline;
 
@@ -93,6 +102,11 @@ private:
 	QTabWidget* m_tabs = nullptr;
 	QTableWidget* m_callsTable = nullptr;
 	QTableWidget* m_summaryTable = nullptr;
+	QLabel* m_histogramNote = nullptr;
+	QLabel* m_histogramCounts = nullptr;
+	QChartView* m_histogramView = nullptr;
+	QBarSet* m_histogramBars = nullptr;
+	QValueAxis* m_histogramAxis = nullptr;
 	QLabel* m_baselineNote = nullptr;
 	QWidget* m_baselineResults = nullptr;
 	QLabel* m_baselineTotals = nullptr;

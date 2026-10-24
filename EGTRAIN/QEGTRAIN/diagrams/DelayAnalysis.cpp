@@ -4,6 +4,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <sstream>
 #include <utility>
 
 namespace {
@@ -115,6 +116,13 @@ DelayStatistics statisticsOf(const std::vector<const DelayEvent*>& events, const
 		statistics.shares.push_back(share);
 	}
 	return statistics;
+}
+
+// A number of seconds in minutes, such as "3" or "1.5".
+std::string minutesText(double seconds) {
+	std::ostringstream text;
+	text << seconds / 60.0;
+	return text.str();
 }
 
 CallsByOccurrence callsByOccurrence(const std::vector<TimetableResultRow>& rows) {
@@ -266,6 +274,53 @@ DelaySummary summarizeDelays(const std::vector<DelayEvent>& events, const DelayF
 	for (const std::string& stationId : stationOrder)
 		summary.stations.push_back({stationId, statisticsOf(byStation[stationId], thresholdsSeconds)});
 	return summary;
+}
+
+DelayHistogram delayHistogram(const std::vector<DelayEvent>& events) {
+	const std::vector<double> thresholds = defaultDelayThresholdsSeconds();
+	DelayHistogram histogram;
+	const auto addClass = [&histogram](const std::string& label, const RunResultValue& from, const RunResultValue& to) {
+		DelayHistogramClass delayClass;
+		delayClass.label = label;
+		delayClass.fromSeconds = from;
+		delayClass.toSeconds = to;
+		histogram.classes.push_back(delayClass);
+	};
+	addClass("Early", {}, {true, 0.0});
+	addClass("On time", {true, 0.0}, {true, 0.0});
+	for (std::size_t index = 1; index < thresholds.size(); ++index) {
+		const double from = thresholds[index - 1];
+		const double to = thresholds[index];
+		addClass(from == 0.0 ? "Up to " + minutesText(to) + " min late" : minutesText(from) + " to " + minutesText(to) + " min late",
+			{true, from}, {true, to});
+	}
+	addClass("More than " + minutesText(thresholds.back()) + " min late", {true, thresholds.back()}, {});
+
+	for (const DelayEvent& event : events) {
+		switch (event.status) {
+			case TimetableValueStatus::NoPlan:
+				++histogram.noPlan;
+				continue;
+			case TimetableValueStatus::NotReached:
+				++histogram.notReached;
+				continue;
+			case TimetableValueStatus::NoPlanAndNotReached:
+				++histogram.noPlanAndNotReached;
+				continue;
+			case TimetableValueStatus::Available:
+				break;
+		}
+		++histogram.available;
+		// Early below 0, else On time and one class further for each threshold that the delay is strictly later than.
+		const double delay = event.delaySeconds.value;
+		const auto later = std::count_if(thresholds.begin(), thresholds.end(), [delay](double threshold) { return delay > threshold; });
+		++histogram.classes[delay < 0.0 ? 0 : 1 + static_cast<std::size_t>(later)].events;
+	}
+	if (histogram.available > 0) {
+		for (DelayHistogramClass& delayClass : histogram.classes)
+			delayClass.percent = {true, 100.0 * delayClass.events / histogram.available};
+	}
+	return histogram;
 }
 
 BaselineTotals baselineTotals(const std::vector<BaselineOccurrence>& occurrences) {

@@ -141,6 +141,36 @@ struct DelaySummary {
 DelaySummary summarizeDelays(const std::vector<DelayEvent>& events, const DelayFilter& filter,
 	const std::vector<double>& thresholdsSeconds = defaultDelayThresholdsSeconds());
 
+/// One class of delay of a histogram. Early holds the delays below 0 and On time the delays of exactly 0. Every other
+/// class holds the delays above its lower bound up to and including its upper bound, so a delay equal to a threshold is
+/// not later than it, as in DelayShare.
+struct DelayHistogramClass {
+	/// The words of the window and of delay_histogram.csv, such as "1 to 3 min late".
+	std::string label;
+	/// In seconds. Unavailable for Early, which has no lower bound.
+	RunResultValue fromSeconds;
+	/// In seconds. Unavailable for the last class, which has no upper bound.
+	RunResultValue toSeconds;
+	int events = 0; ///< Available events in the class
+	/// events / available * 100. Unavailable when the histogram has no available event.
+	RunResultValue percent;
+};
+
+/// The available events of a set in classes of delay, and the counts of the events without a delay.
+struct DelayHistogram {
+	/// Early, On time, one class for each interval between two thresholds of defaultDelayThresholdsSeconds() and one
+	/// class above the last threshold, in that order.
+	std::vector<DelayHistogramClass> classes;
+	/// Events with TimetableValueStatus::Available. The classes hold these events and no other.
+	int available = 0;
+	int noPlan = 0;				 ///< Events with TimetableValueStatus::NoPlan
+	int notReached = 0;			 ///< Events with TimetableValueStatus::NotReached
+	int noPlanAndNotReached = 0; ///< Events with TimetableValueStatus::NoPlanAndNotReached
+};
+
+/// The histogram of the delays of all `events`, of whatever kind; the caller selects the events.
+DelayHistogram delayHistogram(const std::vector<DelayEvent>& events);
+
 /// The sign of an additional delay.
 enum class DelayChange {
 	NotAvailable, ///< One of the two times is missing
