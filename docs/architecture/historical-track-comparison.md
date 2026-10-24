@@ -209,7 +209,7 @@ show the same extent. The zoom given for a pair is the zoom of the window before
 the crop, so a frame can show the network larger or smaller than the window did,
 and the sizes in a Fit frame and in a detail frame are not in the ratio of their
 zooms. The reference builds are `472d0b5` and, for the Netherlands, `f138134`.
-The current build is main `bf005f2b`. Both builds zoom by 1.15 per click. The
+The current build is main `3bdaa4919`. Both builds zoom by 1.15 per click. The
 zoom label of the current build is the ratio to its own Fit scale. The reference
 build has no zoom label, so its zoom is the number of zoom-in clicks from Fit.
 The reference build fits the scene rectangle and the current build fits the
@@ -228,17 +228,17 @@ them.
 
 ![Paimpol at Fit in the current build](images/paimpol-fit-current.png)
 
-Reference build `472d0b5` above, current build main `bf005f2b` below. Scene
+Reference build `472d0b5` above, current build main `3bdaa4919` below. Scene
 Paimpol at Fit in both builds, so the whole line shows, with Guingamp at the left
 end and Paimpol at the right end. The positions of the ten stations agree within
 about 0.5 percent of the frame width.
 
-In the symbols, the current frame draws a roundel, a ring with a blue bar, above
-the line on the faint blue area of each station, and a readable name under the
-line. It hides the name of Pontrieaux_Halte where it overlaps the name of
-Pontrieaux. The reference frame has no station mark and names too small to read.
-In the geometry, the siding at Pontrieaux shows in the current frame only, as a
-short second row above the line.
+In the symbols, the current frame draws a light map pin with a dark dot above
+the line at each station, its tip on the faint blue area of the station, and a
+readable name under the line. It hides the name of Pontrieaux_Halte where it
+overlaps the name of Pontrieaux. The reference frame has no station mark and
+names too small to read. In the geometry, the siding at Pontrieaux shows in the
+current frame only, as a short second row above the line.
 
 ### Paimpol at detail
 
@@ -246,22 +246,22 @@ short second row above the line.
 
 ![Paimpol at detail in the current build](images/paimpol-detail-current.png)
 
-Reference build `472d0b5` above, current build main `bf005f2b` below. Scene
+Reference build `472d0b5` above, current build main `3bdaa4919` below. Scene
 Paimpol, 16 zoom-in clicks from Fit (zoom label 9.4x in the current build), then
 10 arrow-key presses in both builds. Pontrieaux_Halte and Pontrieaux stand at the
 same x in both frames, and the line, its signals and its node dots line up within
 1 px.
 
-In the symbols, the current frame draws a light dot with a dark halo on each
-station square. The dot covers the square, and at Pontrieaux also the post of the
-signal beside it, so only the green heads of that signal show. The current frame
-writes each name under its dot, larger because the minimum name size applies at
-this zoom, and writes Pontrieaux_Halte without the space after the underscore
-that the reference frame draws. In the geometry, the current build draws the
-siding at Pontrieaux above the line, beyond the top edge of this frame: only the
-foot of its left diagonal connection shows. The reference frame draws three
-signals on the line right of that connection, at the x positions of the signals
-of the siding.
+In the symbols, the current frame draws each signal head as a green disc, larger
+than the heads of the reference frame, and a white platform bar above each
+station square. At Pontrieaux the faint blue area of the station runs from the
+top edge to just below the line. The current frame writes each name under its
+square, larger because the minimum name size applies at this zoom, and writes
+Pontrieaux_Halte without the space after the underscore that the reference frame
+draws. In the geometry, the current build draws the siding at Pontrieaux above
+the line, beyond the top edge of this frame: only the foot of its left diagonal
+connection shows. The reference frame draws three signals on the line right of
+that connection, at the x positions of the signals of the siding.
 
 ### Copenhagen junction
 
@@ -269,20 +269,22 @@ of the siding.
 
 ![Copenhagen junction in the current build](images/copenhagen-junction-current.png)
 
-Reference build `472d0b5` above, current build main `bf005f2b` below. Scene
+Reference build `472d0b5` above, current build main `3bdaa4919` below. Scene
 Copenhagen, 22 zoom-in clicks from Fit (zoom label 21.6x in the current build),
 then 10 presses of the right arrow key in both builds and, in the current build,
 6 of the down arrow key, because its two rows start lower in the window.
 Carlsberg, Dybbolsbro, Kobenhavn H and Vesterport stand at the same x in both
 frames, within 3 px.
 
-In the symbols, the current frame draws a light dot with a dark halo on each
-station square of both rows. The names of these stations stand under their
-lowest square, below the frame, so the current frame shows no name. In the
-geometry, the reference frame draws one line, with signals at more x positions
-than either current row, where the current frame draws two parallel rows joined
-by crossovers. The signals of both current rows stand at x positions where the
-reference line has a signal.
+In the symbols, the current frame draws a white platform bar above each station
+square of both rows, and the faint blue area of each station, which covers the
+squares and bars of both rows and, at Dybbolsbro and Kobenhavn H, runs on below
+the frame. The names of these stations stand under their lowest square, below
+the frame, so the current frame shows no name. In the geometry, the reference
+frame draws one line, with signals at more x positions than either current row,
+where the current frame draws two parallel rows joined by crossovers. The
+signals of both current rows stand at x positions where the reference line
+has a signal.
 
 ### Netherlands stretch
 
@@ -290,16 +292,17 @@ reference line has a signal.
 
 ![Netherlands stretch in the current build](images/netherlands-stretch-current.png)
 
-Reference build `f138134` above, current build main `bf005f2b` below. Scene
+Reference build `f138134` above, current build main `3bdaa4919` below. Scene
 Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
 The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
 the corner at Brn, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.
 
-In the symbols, the current frame draws a roundel, a ring with a blue bar, on the
-tracks at each station, with the name off the tracks: above the mark at Ndb and
-Brn, and beside it at Bsmz, Hvsm, Hvs and Hvsp. The name of Sd shows in the
-lower right corner, with its mark below the frame. The mainline track is grey
+In the symbols, the current frame draws a light map pin with a dark dot at each
+station, its tip on the tracks, with the name off the tracks: above the pin at
+Brn and at Ndb, where the top edge cuts off the top of the letters, and beside
+it at Bsmz, Hvsm, Hvs and Hvsp. The name of Sd shows in the lower right corner,
+with only the top of its pin at the bottom edge. The mainline track is grey
 (160,160,160), and the reference frame has no readable station label. In the
 geometry, the current frame draws doubled tracks and crossovers where the
 reference frame draws a single line, with one short extra segment at the corner
@@ -314,22 +317,23 @@ shown.
 
 ![Assignment corridor at detail in the current build](images/assignment-detail-current.png)
 
-Current build main `bf005f2b`, scene Assignment_Gvc_Gdg_Ut. The first frame is
-at Fit with the stations Gvc, Gdg and Ut, each a roundel, a ring with a blue bar,
+Current build main `3bdaa4919`, scene Assignment_Gvc_Gdg_Ut. The first frame is
+at Fit with the stations Gvc, Gdg and Ut, each a light map pin with a dark dot
 above the line with its name under it, and the two parallel mainline tracks of
 the corridor, grey (160,160,160), read as one band. The second frame is 10
 zoom-in clicks from Fit (zoom label 4x), around Gdg, and shows the two tracks
-apart, with a signal on each track at regular intervals. The tracks are 9 px
-apart there, less than the 12 px at which the dots replace the roundel, so Gdg
-keeps its roundel above the upper track and its name under the lower one.
+apart, with a signal on each track at regular intervals. The tracks are about
+8 px apart there, less than the 12 px at which the station squares and platform
+bars replace the pin, so Gdg keeps its pin above the upper track and its name
+under the lower one.
 
 ### What the captures show and do not show
 
 - The reference frames show the station names and no station mark, so the
-  roundels and dots of the current frames have no counterpart in them. At Fit
-  the names in the reference frames are too small to read, where the current
-  build keeps the frame of the station mark at least 24 px and the name at least
-  12 px high.
+  pins, platform bars and station areas of the current frames have no
+  counterpart in them. At Fit the names in the reference frames are too small
+  to read, where the current build keeps the frame of the station mark at least
+  24 px and the name at least 12 px high.
 - The names are larger in the current Paimpol detail frame than in the reference
   frame at the same extent. The current build draws a name at least 12 px high.
 - The current frames have the `#101a22` background and its grid, the reference

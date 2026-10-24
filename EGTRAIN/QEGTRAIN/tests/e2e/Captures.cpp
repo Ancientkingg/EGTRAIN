@@ -328,12 +328,20 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		settle();
 		return w.m_followAction->isChecked();
 	};
-	// Selects a row of the table of Infrastructure without opening an editor on one of its cells.
+	// Selects a row of the table of Infrastructure as a click does, so that Delete is enabled and the row has the colour of
+	// a focused table, with no editor open on one of its cells. Clearing the current cell first closes an editor that an
+	// earlier edit left open.
 	const auto selectRow = [&w](int row) {
-		w.m_infrastructureTable->setCurrentIndex(QModelIndex());
-		w.m_infrastructureTable->selectionModel()->select(w.m_infrastructureTable->model()->index(row, 0),
+		QTableWidget* table = w.m_infrastructureTable;
+		const QAbstractItemView::EditTriggers triggers = table->editTriggers();
+		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		table->setCurrentIndex(QModelIndex());
+		table->selectionModel()->setCurrentIndex(table->model()->index(row, 0),
 			QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+		table->setFocus(Qt::MouseFocusReason);
+		table->setEditTriggers(triggers);
 		settle();
+		return w.m_deleteInfrastructureButton->isEnabled();
 	};
 	const auto facet = [&w](const char* name) {
 		const int index = w.m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
@@ -621,11 +629,10 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	steps.push_back([&w, showOnly, windowShot, addRows, selectRow] {
 		const bool built = editLine(w.m_caseNameEdit, QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
 		showOnly({w.m_infrastructureDock});
-		selectRow(2);
-		return built
+		return built && selectRow(2)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-nodes.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("new case with one track and three nodes, Infrastructure on Nodes"))
-			: failCaptures(QStringLiteral("the track and nodes of Minimal line could not be added"));
+			: failCaptures(QStringLiteral("the track and nodes of Minimal line could not be added and selected"));
 	});
 	steps.push_back([&w, windowShot, facet, addRows, setCell, selectRow] {
 		bool built = addRows("arcs", 2) && facet("blocks");
@@ -633,11 +640,10 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		w.m_blockTrackFilterCombo->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
 			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 2, QStringLiteral("node")) && setCell(1, 2, QStringLiteral("node_3"));
-		selectRow(1);
-		return built
+		return built && selectRow(1)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"))
-			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added"));
+			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
 	});
 	steps.push_back([&w, addRows] {
 		bool built = addRows("signalling_areas", 1);

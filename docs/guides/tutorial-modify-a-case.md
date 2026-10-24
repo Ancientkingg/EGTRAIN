@@ -36,7 +36,7 @@ Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Gu
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
 2. Open the tab **Timetable** and click the row `Pontrieaux` in the table of stops. The dialog **Edit Timetable Stop** opens.
 
-   ![The dialog Edit Timetable Stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: compatible platform (no platform), planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
+   ![The dialog Edit Timetable Stop for the stop Pontrieaux of Guin-Paim-EXPRESS-1 as committed: Compatible platform (no platform), Planned arrival 1567, Planned departure 1627 and Minimum dwell (s) 60, with the buttons OK and Cancel.](../images/tutorial-modify-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
 5. Open the tab **Service**, set **Performance (%)** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
@@ -49,7 +49,7 @@ Choose **View > Case Validation** (Ctrl+Shift+V). The columns are **Severity**, 
 
 - Code `scene.dwell.exceeds_window`, message "Minimum dwell is longer than the time from arrival to departure", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
-![The dock Case Validation after the dwell edit. The first row is a warning with the code scene.dwell.exceeds_window and the message Dwell time exceeds departure - arrival window, in services.json. Rows below it are scene.passenger.legs.empty warnings.](../images/how-to-scene-validation.png)
+![The dock Case Validation after the dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs.](../images/how-to-scene-validation.png)
 
 A warning does not block a run. An error does: **Run** is disabled and the dock **Case and Layers** shows the first error under the name of the case. **Edit > Undo** takes an edit back. Normal mode hides the warning counts in the status bar; **View > Advanced Details** shows them.
 
@@ -88,11 +88,11 @@ A comparison needs two runs of the same case: a baseline without incidents or en
 1. Open the dock **Scenarios** (**Editors > Scenarios**). The list **Scenarios** has one row, for the scenario `baseline` (named Baseline), with the marker `default`. With it selected, choose **Duplicate** (**New** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
 2. Open the tab **Incidents** of the dock and choose **Add Incident**. Set **Type** to `Train breakdown` and **Target** to `Guin-Paim-EXPRESS-1-1 (route route6, +10 s)`. Enter `900` in **Start (s)**. Leave **End (s)** ticked and enter `1200` in the field below it, leave **Reduced speed** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s. For a signal failure, the icon button **Pick** beside **Target** takes the block of the signal head that you click on the network view.
 3. Choose **File > Save**. The list marks the scenario `modified` until you save. Saving does not clear results or the baseline.
-4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** has no **Incidents** row and names the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** now starts with `Baseline: Paimpol practice / baseline`.
-5. Choose `baseline_copy` in the list. The results are cleared, so the dock **Run Results** and the **Replay** row close, and the baseline stays. The entry of the menu **View** that starts with Run Results opens the dock again, as in the picture below. Choose **Run**; the dialog now says **Incidents** 1. After "Simulation complete", choose **Compare delays**.
+4. Choose `Baseline` (`baseline`) in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** has no **Incidents** row and names the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** now starts with `Baseline: Paimpol practice / baseline`.
+5. Choose `Express breakdown` (`baseline_copy`) in the list. The results are cleared, so the dock **Run Results** and the **Replay** row close, and the baseline stays. The entry of the menu **View** that starts with Run Results opens the dock again, as in the picture below. Choose **Run**; the dialog now says **Incidents** 1. After "Simulation complete", choose **Compare delays**.
 6. The window **Delay analysis** opens on the tab **Against baseline**. `Guin-Paim-EXPRESS-1` has a positive additional delay at Paimpol. The run without a window, with `baseline_copy` as the default scenario, gave 343 s: the arrival at Paimpol moves from 2866 s to 3209 s. `Guin-Paim-ALL-STOPS-1` is Same. How to read the window, and what it does not claim, is in [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
 
-   ![The dock Incidents with the scenarios baseline and baseline_copy (Express breakdown, 1 incident) listed and baseline_copy selected, above the dock Run Results after a run of baseline was set as the delay baseline. Run Results says No completed run and Baseline: Paimpol practice / baseline, and Set delay baseline and Compare delays are both dimmed.](../images/tutorial-modify-incident-baseline.png)
+   ![The dock Scenarios on its tab Scenario, with Baseline (default) and Express breakdown (1 incident) listed and Express breakdown selected, beside the dock Run Results after a run of baseline was set as the delay baseline. Run Results says No results yet and Baseline: Paimpol practice / baseline, and Set delay baseline and Compare delays are dimmed.](../images/tutorial-modify-incident-baseline.png)
 
 After any edit, **Compare delays** is disabled and the line above the buttons in **Run Results** reads "Baseline cleared: the case changed" until a run completes. Repeat step 4 and step 5. If the tab **Against baseline** lists reasons instead of a difference, the two runs do not match in another way. For example, the selection on the tab **Run occurrences** of **Services** differs between the runs, and the tab says that an occurrence is in one run only. Keep every occurrence selected, because the two runs must hold the same trains.
 
@@ -115,7 +115,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 1. Choose **File > Quit** (on macOS, the Quit entry of the application menu). If the title bar still shows the mark for unsaved changes, EGTRAIN asks about them (the box is titled **Unsaved Case** on Windows and Linux, and is a sheet without a title on macOS); choose **Save**.
 2. Start EGTRAIN again. In **Open a Case**, choose `paimpol-practice` under **Recent cases** and **Open**. **File > Recent Cases** does the same from the window.
-3. In **Services**, `Guin-Paim-EXPRESS-1` has dwell 180 at Pontrieaux and performance 80. In **Scenarios**, the list holds `baseline` and `baseline_copy` with one incident. The scenario that is selected after opening is the default, `baseline`.
+3. In **Services**, `Guin-Paim-EXPRESS-1` has dwell 180 at Pontrieaux and performance 80. In **Scenarios**, the list holds `Baseline` (`baseline`) and `Express breakdown` (`baseline_copy`) with one incident. The scenario that is selected after opening is the default, `baseline`.
 4. The Run Results are empty and **Compare delays** is disabled: results and the baseline were not saved. Run both scenarios again to compare.
 
 ## Check the copy outside the window
