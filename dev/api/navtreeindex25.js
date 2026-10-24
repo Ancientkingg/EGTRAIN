@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"struct_track_preview_result.html":[2,0,310],
+"struct_track_preview_result.html#a2afbed622ec81e596169a0b912936d3d":[2,0,310,7],
 "struct_track_preview_result.html#a59e7876cb379102399bbb8497897ebae":[2,0,310,1],
 "struct_track_preview_result.html#a5c148ba2a204ee25d337c03a6671afc1":[2,0,310,4],
 "struct_track_preview_result.html#a64323e4d70c108d4a81ca459d7aea8b5":[2,0,310,5],
@@ -35,9 +37,10 @@ var NAVTREEINDEX25 =
 "struct_train_1_1_braking_arc_cursor.html#ac6771dda22432d499fb1acfc435f465b":[2,0,315,0,1],
 "struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071":[2,0,315,0,4],
 "struct_train_colour_input.html":[2,0,318],
-"struct_train_colour_input.html#a3b5e36d3bb7f276bad0b430a5e977402":[2,0,318,0],
-"struct_train_colour_input.html#a5a601b9ce6b320986fc6a30b22edc81a":[2,0,318,2],
-"struct_train_colour_input.html#a912bb61cf5316a2906d98743559acc3d":[2,0,318,1],
+"struct_train_colour_input.html#a3b5e36d3bb7f276bad0b430a5e977402":[2,0,318,1],
+"struct_train_colour_input.html#a5a601b9ce6b320986fc6a30b22edc81a":[2,0,318,3],
+"struct_train_colour_input.html#a912bb61cf5316a2906d98743559acc3d":[2,0,318,2],
+"struct_train_colour_input.html#ab91bf4346578941cc371ff4dff2e469e":[2,0,318,0],
 "struct_train_colour_plan.html":[2,0,319],
 "struct_train_colour_plan.html#a47e11c6ba1efc63dd0bad6b3fed2e8d6":[2,0,319,1],
 "struct_train_colour_plan.html#a8bbe40bf6a066854905b599cd92c9782":[2,0,319,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX25 =
 "structtelemetry__smoke_1_1_state.html":[1,0,14,0],
 "structtelemetry__smoke_1_1_state.html":[2,0,4,0],
 "structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[1,0,14,0,3],
-"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[2,0,4,0,3],
-"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[1,0,14,0,1],
-"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[2,0,4,0,1],
-"structtelemetry__smoke_1_1_state.html#a681c197232196ba3a3846e269869f059":[1,0,14,0,4]
+"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[2,0,4,0,3]
 };

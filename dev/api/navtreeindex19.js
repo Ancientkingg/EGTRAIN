@@ -1,5 +1,7 @@
 var NAVTREEINDEX19 =
 {
+"namespacescene__save__policy.html":[1,0,12],
+"namespacescene__save__policy.html#a803871a44577cb4b466b401a0cf2de79":[1,0,12,0],
 "namespacescene__save__policy.html#aedd625aae76b1b1d7716d50d4c05956f":[1,0,12,1],
 "namespacetelemetry.html":[1,0,13],
 "namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86":[1,0,13,24],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "struct_capacity_analysis_result.html#a5678bbb06361df376a8d7d9fa2b02784":[2,0,31,14],
 "struct_capacity_analysis_result.html#a8330fd06fc75be3d4e8fc6b2638456e8":[2,0,31,12],
 "struct_capacity_analysis_result.html#a8923baf9c79329c719aace60dbad6ee0":[2,0,31,9],
-"struct_capacity_analysis_result.html#a8d35a9940e5ff072bc6a963ac3d0618f":[2,0,31,13],
-"struct_capacity_analysis_result.html#a9168ae1654a855511403b4f00a1483eb":[2,0,31,0],
-"struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1":[2,0,31,7]
+"struct_capacity_analysis_result.html#a8d35a9940e5ff072bc6a963ac3d0618f":[2,0,31,13]
 };

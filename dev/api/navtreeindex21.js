@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[2,0,82,8],
+"struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,82,5],
 "struct_follow_availability_input.html":[2,0,83],
 "struct_follow_availability_input.html#a15f0d37c482370568c2944cb79f3cf50":[2,0,83,0],
 "struct_follow_availability_input.html#a41527ff5d263d743a81121b9327c4d79":[2,0,83,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "struct_recovery_result.html#a6dc586d2c9b2e490dacc6b97f027ae78":[2,0,156,0],
 "struct_recovery_result.html#a9998c5ddbe86951b42eff9d38ba50780":[2,0,156,2],
 "struct_recovery_result.html#ade59a8ff21ce9e0f0572487e52b199fc":[2,0,156,1],
-"struct_recovery_scan.html":[2,0,157],
-"struct_recovery_scan.html#a4e2dcdeb71309cb7e66fa8f13efd4f51":[2,0,157,0],
-"struct_recovery_scan.html#ae20e7237336e68231c4f642bc38ed40d":[2,0,157,1]
+"struct_recovery_scan.html":[2,0,157]
 };

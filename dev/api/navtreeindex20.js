@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"struct_capacity_analysis_result.html#a9168ae1654a855511403b4f00a1483eb":[2,0,31,0],
+"struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1":[2,0,31,7],
 "struct_capacity_analysis_result.html#aaa9a70fd80f30a652936b2852c069aee":[2,0,31,10],
 "struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca":[2,0,31,6],
 "struct_capacity_analysis_result.html#ab6cb46394965ca36ccedf424dea4931c":[2,0,31,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "struct_follow_availability.html#a6d1604b580cb30e93ca874ad9b9c9169":[2,0,82,7],
 "struct_follow_availability.html#a812fd7ea89db709d24a28311ba26eade":[2,0,82,3],
 "struct_follow_availability.html#a871539ea556a1f5c8e3d0235991cc051":[2,0,82,4],
-"struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[2,0,82,1],
-"struct_follow_availability.html#ab1689a40d885d8005bfa9a40669e7fa9":[2,0,82,8],
-"struct_follow_availability.html#ac7e956268e21954402033b4e41a839f9":[2,0,82,5]
+"struct_follow_availability.html#a8717cd01239daff5f8d51e266cfd980e":[2,0,82,1]
 };

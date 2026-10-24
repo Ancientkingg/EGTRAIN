@@ -135,6 +135,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a42c8be067e8ff4a9ea16c53822b4fbd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the Against baseline tab. The window opens on the Calls tab.  <br /></td></tr>
 <tr class="memitem:a8bcc228a187149cd1a0f6b22348be9cd" id="r_a8bcc228a187149cd1a0f6b22348be9cd"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a8bcc228a187149cd1a0f6b22348be9cd">suggestedFileName</a> () const</td></tr>
 <tr class="memitem:aae76586959e847159ee6567831587f2d" id="r_aae76586959e847159ee6567831587f2d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aae76586959e847159ee6567831587f2d">exportCsvTo</a> (const QString &amp;path) const</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:afbcb7f76d73d6dfb678c0d8f35f4431f" id="r_afbcb7f76d73d6dfb678c0d8f35f4431f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afbcb7f76d73d6dfb678c0d8f35f4431f">eventFilter</a> (QObject *watched, QEvent *event) override</td></tr>
+<tr class="memdesc:afbcb7f76d73d6dfb678c0d8f35f4431f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Answers a tooltip request over the Punctuality chart with the tooltip of the bar under the pointer.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The result window. Not modal. It holds the runs as values, so it can outlive them. The tabs lie at the left and a panel at the right holds the key figures of the selection, the filters and the export. </p>
@@ -173,6 +178,37 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="afbcb7f76d73d6dfb678c0d8f35f4431f" name="afbcb7f76d73d6dfb678c0d8f35f4431f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbcb7f76d73d6dfb678c0d8f35f4431f">&#9670;&#160;</a></span>eventFilter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool DelayAnalysisWindow::eventFilter </td>
+          <td>(</td>
+          <td class="paramtype">QObject *</td>          <td class="paramname"><span class="paramname"><em>watched</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QEvent *</td>          <td class="paramname"><span class="paramname"><em>event</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Answers a tooltip request over the Punctuality chart with the tooltip of the bar under the pointer. </p>
+
+</div>
+</div>
 <a id="aae76586959e847159ee6567831587f2d" name="aae76586959e847159ee6567831587f2d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aae76586959e847159ee6567831587f2d">&#9670;&#160;</a></span>exportCsvTo()</h2>
 

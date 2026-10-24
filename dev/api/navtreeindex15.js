@@ -1,5 +1,7 @@
 var NAVTREEINDEX15 =
 {
+"class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d":[2,0,304,20],
+"class_timetable_stops_panel.html#ac261948f5a701b1785af6e8fe152a8c1":[2,0,304,3],
 "class_timetable_stops_panel.html#ac60ced0eda3d0318acfe657195172e0a":[2,0,304,11],
 "class_timetable_stops_panel.html#ac7141de5953324f9439fbad5fc44fa10":[2,0,304,5],
 "class_timetable_stops_panel.html#adbe65ae4cf89dcb8e76a42d1258731d8":[2,0,304,14],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "class_train_badge_item.html#a5d15bb6ef28bc67dceaf5d8f9abfe890":[2,0,316,14],
 "class_train_badge_item.html#a6b9be4691fb5a708edf2b6cb71f9a733":[2,0,316,6],
 "class_train_badge_item.html#a6e8e9320be6b4464cc99c66d6ee16197":[2,0,316,16],
-"class_train_badge_item.html#a708b2d9fd8a68704f80ce5dffee2689a":[2,0,316,12],
-"class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd":[2,0,316,13],
-"class_train_badge_item.html#a79f78c32e9b5c346117bbe19f2f21fa1":[2,0,316,17]
+"class_train_badge_item.html#a708b2d9fd8a68704f80ce5dffee2689a":[2,0,316,12]
 };
