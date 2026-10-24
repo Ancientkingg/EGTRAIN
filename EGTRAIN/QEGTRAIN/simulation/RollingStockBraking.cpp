@@ -653,7 +653,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 						if (SpeedForEoA > -1) { // if we have a valid MA and the SpeedForEoa is therefore different from -1
 							// let us compute the approximate abscissa to Brake at for EoA
-							AbscissaToBrakeAtForEoA = ETCSBrakingPoint.X - (pow(V, 2) - pow(SpeedForEoA, 2) / (2 * this->max_train_decelaration));
+							AbscissaToBrakeAtForEoA = ETCSBrakingPoint.X - (pow(V, 2) - pow(SpeedForEoA, 2)) / (2 * this->max_train_decelaration);
 
 							if ((ETCSBrakingPoint.X > S) && (AbscissaToBrakeAtForEoA < ClosestPointToBrakeForETCS)) {
 								ClosestPointToBrakeForETCS = AbscissaToBrakeAtForEoA; // if the AbscissaToBrakeAtForEoA is lower then ClosestPointToBrakeForETCS then this one becomes the ClosestPointToBrakeAt
