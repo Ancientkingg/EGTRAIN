@@ -77,7 +77,7 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 1. Look in the dock **Case and Layers**. It names the case, and when an error blocks the run, the line under the name shows the first error.
 2. Choose **View > Case Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Fix**. Without **View > Advanced Details**, **Code**, **File** and **Path** are in the tooltip of a row instead.
 
-   ![The dock Case Validation of Paimpol practice, a copy of Paimpol, after an edit of a dwell, with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns Severity, Code, Message and File are visible; Path is cut off and Suggested Fix is out of view.](../images/how-to-scene-validation.png)
+   ![The dock Case Validation of Paimpol practice, a copy of Paimpol, after a dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs.](../images/how-to-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
@@ -154,7 +154,7 @@ You need a run that reached its end. A stopped or failed run has no replay, and 
 2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example `08:20:30`. **Play** advances one simulated second for each second of real time, and the button then turns into **Pause**.
 3. When the replay holds the whole run, the row has no further text. A frame is recorded every 5 simulated seconds.
 
-   ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train, Copy train index and the dimmed Planned route and related infrastructure.](../images/how-to-replay-menu.png)
+   ![The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train and Copy train index.](../images/how-to-replay-menu.png)
 
 The replay has 128 MiB of memory. A run that is larger loses its oldest frames. A line under the controls then says from which time the replay starts, for example `Replay starts at 10:00:20. Earlier times did not fit in memory.` The slider covers only the kept part, and **Start** goes to its first time. The tooltip of **Start** says so. If not even one moment fits, the row says `No replay` and `This run is too large to replay.`, and the slider and **Play** are disabled.
 

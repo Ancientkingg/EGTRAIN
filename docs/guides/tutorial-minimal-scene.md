@@ -35,17 +35,17 @@ Everything in this part happens in the dock **Infrastructure**; click its tab. T
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
 
-   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with node_3 selected. The canvas shows the track with its three nodes, and the status bar says that 9 validation errors must be fixed.](../images/tutorial-minimal-nodes.png)
+   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with node_3 selected. The canvas highlights the selected track with its three nodes; the status bar reads Cannot run: 9 errors.](../images/tutorial-minimal-nodes.png)
 3. **Arcs.** Choose **Add** twice. The arcs `arc` (from `node` to `node_2`) and `arc_2` (from `node_2` to `node_3`) join the nodes in order. They get a **Curvature radius (m)** of 0, a **Gradient (rise/length)** of 0 and a **Speed limit (m/s)** of 20, which you keep.
 4. **Blocks.** The blocks have a filter above the table that names a track; choose `track`. Choose **Add** twice. The blocks `block` and `block_2` are 1 km long each, so together they cover the 2 km of the track.
 5. **Stations.** Choose **Add** twice. The stations are `station` and `station_2`, and each is named after its identifier.
 6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set **Nodes**, a comma-separated list of nodes: `node` for the first row and `node_3` for the second, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
 
-   ![The dock Infrastructure on Platforms, with platform at node in station and platform_2 at node_3 in station_2, each 100 m long, and platform_2 selected. The canvas shows the track with a station at each end, and the status bar counts 3 validation errors.](../images/tutorial-minimal-platforms.png)
+   ![The dock Infrastructure on Platforms: platform at node in station and platform_2 at node_3 in station_2, 100 m each, platform_2 selected. The canvas highlights the selected track, with a station at each end; the status bar reads Cannot run: 3 errors.](../images/tutorial-minimal-platforms.png)
 7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the committed Paimpol case uses.
 8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `track 0.000 to 1.000 km` in **Section catalog** and choose **Add Section**; then choose `track 1.000 to 2.000 km` and **Add Section** again. Each entry names a section by its track and the kilometres of its ends; its tooltip gives the section ID, such as `@block@`. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
 
-The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either.
+The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either. The canvas still draws a pair of signal heads where `block_2` starts, as the picture of step 6 shows: it marks the boundaries between the blocks of a track, whatever the table **Signals** holds.
 
 ## 3. A rolling stock unit
 
@@ -84,7 +84,7 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add Timetable Stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
-   ![The dock Services on the tab Timetable for new_service, with two stops: station on platform with departure 120, and station_2 on platform_2 with arrival 250. The case base reads 08:00:00 and the dock Case and Layers says Ready to run.](../images/tutorial-minimal-service.png)
+   ![The dock Services on the tab Timetable for new_service: station on platform with departure 120 and station_2 on platform_2 with arrival 250, in Seconds after 08:00:00. Run is enabled, and the dock Case and Layers shows no error.](../images/tutorial-minimal-service.png)
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
 
