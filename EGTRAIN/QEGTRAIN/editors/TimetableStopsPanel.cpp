@@ -497,6 +497,11 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	departureEdit->setObjectName("stopEditorDepartureEdit");
 	departureEdit->setAccessibleName("Planned departure time");
 	form->addRow(departurePresent, departureEdit);
+	// The two boxes are labels of the form. With labels aligned to the right, as on macOS, boxes of different widths
+	// would not line up, so both take the width of the wider one.
+	const int presentWidth = std::max(arrivalPresent->sizeHint().width(), departurePresent->sizeHint().width());
+	arrivalPresent->setMinimumWidth(presentWidth);
+	departurePresent->setMinimumWidth(presentWidth);
 	auto* dwellEdit = new QLineEdit(&dialog);
 	dwellEdit->setObjectName("stopEditorDwellEdit");
 	dwellEdit->setAccessibleName("Minimum dwell seconds");
