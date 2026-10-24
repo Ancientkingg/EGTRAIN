@@ -865,7 +865,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			ui->actionSimulationPause->setChecked(false);
 			return;
 		}
-		ui->actionSimulationPause->setText(m_runController->togglePause() ? "Resume" : "Pause");
+		const bool paused = m_runController->togglePause();
+		ui->actionSimulationPause->setText(paused ? "Resume" : "Pause");
+		statusBar()->showMessage(paused ? QStringLiteral("Paused") : QStringLiteral("Running"));
 	});
 	connect(m_speedSlider, &QSlider::valueChanged, this, [this](int value) {
 		const int delayMs = stepDelayForSlider(value);
