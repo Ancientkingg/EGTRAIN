@@ -375,10 +375,8 @@ public:
 	bool IsTrainStoppedForEoA;				  ///< True while the train stands at an end of authority (Last_MA_StoppedAt).
 	/// Arrival and departure at each station node on the route, where the train stops or not (ComputeTimetablingPoints).
 	std::list<TrainEvent> TimetablePoints;
-	int prevIntendedDepTime;  ///< First step that printTrainServicePathDiagram may print; set to 0 and never changed.
-	int dispLineID = -1;	  ///< Line ID written to the dispatching output files; nothing sets it, so it is -1.
-	int arrivalPlatform = -1; ///< Platform to book at the destination; nothing sets it, so it is -1.
-	int reservedPlatform;	  ///< Platform booked at the destination, copied from arrivalPlatform; -1 until booked.
+	int prevIntendedDepTime; ///< First step that printTrainServicePathDiagram may print; set to 0 and never changed.
+	int dispLineID = -1;	 ///< Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1.
 	// std::map<char, std::list<std::pair<int, double>>> trainCorrPosTime; // train position over time for each corridor
 
 	float GibsonDwellTimeParameters[8]; ///< The eight parameters of the passenger dwell model (computePaxDependentDwellTimeAtStations); -1 until set.
@@ -691,17 +689,13 @@ public:
 	/// Name of stop stationIndex for the arrival statistics; "None" for an index outside the stops.
 	std::string stationNameForArrivalStats(int stationIndex) const;
 
-	/// In step t, logs the arrival of the train at its last stop and its departure from its first stop. An arrival is also appended to
-	/// EGTRAINOutput.txt in the Rescheduling output folder (printTrainArrDepMsg). A first or last stop with X 0 takes its X from
-	/// run.infra.stations.
+	/// In step t, logs the arrival of the train at its last stop and its departure from its first stop. A first or last stop with X 0
+	/// takes its X from run.infra.stations. trainIdx is not read.
 	void checkTrainArrDep(int trainIdx, int t);
 
 	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
 	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1.
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
-
-	/// Appends "egtrain,<stationName>,<msgType>,<dispLineID>,<trainIdx>,<t>" to FolderName/EGTRAINOutput.txt and then waits 5 ms.
-	void printTrainArrDepMsg(std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
 	/// -1 when it is on no section of the route. Works on routes that cross regions.
@@ -775,8 +769,8 @@ void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
 void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 /// Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections
-/// ahead of its head, StationBoundarySection::protectEntrance runs for it. A platform is booked only for trains whose last stop is
-/// "Alm", "Asd" or "Asdz". It does not run when the entrance is two sections ahead and the section between is occupied.
+/// ahead of its head, StationBoundarySection::protectEntrance runs for it. It does not run when the entrance is two sections ahead
+/// and the section between is occupied.
 void protectStationAreas(SimulationRun& run, int i);
 
 #endif

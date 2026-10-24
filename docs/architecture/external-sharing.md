@@ -10,7 +10,7 @@ This page describes the code as it is. Function names are given so that a mainta
 
 ## What is not an interface
 
-- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
+- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop.
 - Without `--live` the application opens no listening socket, local server or named pipe. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see [Commands](#commands)).
 

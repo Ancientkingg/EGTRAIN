@@ -551,10 +551,9 @@ public:
 	/// Stores the three values.
 	StationBoundarySection(Section* entrance, bool direction, Section* exit);
 
-	/// Protect station interlocking area: marks section sectionIndex of route routeIndex occupied when platformBooked is true,
-	/// or when it is the entrance, the route has the protected direction and a section ahead up to the exit is occupied.
-	/// Otherwise releases it.
-	void protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex, bool platformBooked);
+	/// Protect station interlocking area: marks section sectionIndex of route routeIndex occupied when it is the entrance, the
+	/// route has the protected direction and a section ahead up to the exit is occupied. Otherwise releases it.
+	void protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex);
 
 	Section* entrance; ///< Entrance section
 	bool direction;	   ///< Routes whose reversed_direction equals this value are protected.
