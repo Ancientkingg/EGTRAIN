@@ -8,7 +8,7 @@ A run produces delay figures in four places. The Delay analysis window (Diagrams
 
 | Place | Where to find it |
 | --- | --- |
-| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls and Summary of the Delay analysis window and the file `delay_analysis.csv` from its **CSV...** button |
+| Timetable results | Diagrams > Timetable and Run Results > Open result view > Timetable; Diagrams > Delays... and Run Results > Open result view > Delays (a chart); the file `timetable.csv` from the **CSV...** button of both windows; the tabs Calls, Summary and Punctuality of the Delay analysis window and the files `delay_analysis.csv` and `delay_histogram.csv` from its **CSV...** button |
 | Station statistics | `Stats_Stations.txt` and `Pos&Neg_Stats_Stations.txt` in the `TrainTrajectories` folder of the run output |
 | Baseline comparison | The buttons **Set delay baseline** and **Compare delays** in the Run Results dock, the tab Against baseline of the Delay analysis window and the file `delay_comparison.csv` from its **CSV...** button |
 | Passenger journey delay | `JourneyDelays.txt` in the `PassengerStatus` folder of the run output |
@@ -20,14 +20,14 @@ The Timetable graph (Run Results > Open result view > Timetable graph) draws the
 These words mean the same in the Delay analysis window, in its CSV files and in this guide. Every value is in seconds.
 
 - **Event.** The arrival or the departure of one call of an occurrence. A call is an authored stop of a service, and an occurrence is one run of a service, so a service that repeats has several. Passing a station without a stop is not an event.
-- **Planned lateness.** The window shows it as Delay. The simulated time of an event minus its planned time, signed: negative is early, 0 is on time, positive is late. The stored value has no tolerance. The only tolerances are the thresholds of the summary. The planned time is the authored one ([units](#units-and-the-reference-timetable)): for the departure of a stop that an entrance delay moved, the window takes the shift back.
+- **Planned lateness.** The window shows it as Delay. The simulated time of an event minus its planned time, signed: negative is early, 0 is on time, positive is late. The stored value has no tolerance. The only tolerances are the thresholds of the summary, which also bound the classes of the tab Punctuality. The planned time is the authored one ([units](#units-and-the-reference-timetable)): for the departure of a stop that an entrance delay moved, the window takes the shift back.
 - **Not available.** An event has no delay when its plan is missing (No plan), when the train did not reach it in the run (Not reached), or both. The delay is then "-" in the window and an empty field in the files. These events are counted next to the figures and are never taken as 0.
 - **Entrance delay.** It is also called the input delay and the primary delay. The seconds that a scenario adds to the planned departure of one stop of one occurrence. The author sets it, so it is an input and not a measurement. No other delay is called primary: an incident does not make a delay primary.
 - **Additional delay.** The simulated time of an event in the scenario run minus the simulated time of the same call of the same occurrence in the baseline run. It needs a compatible baseline ([rules](#delay-comparison-against-a-baseline)). It can be negative (Earlier) or 0 (Same).
 - **Secondary delay.** The additional delay at the final arrival of an occurrence minus its entrance delay, when the stop that the entrance delay moved comes before the final call. Without an entrance delay, or when the moved stop is the final call, it equals the additional delay. It is a difference of two numbers. It says nothing about why the train was late and it can be negative.
 - **Direct incident evidence.** The scenario run recorded that an incident acted directly on the occurrence ([which cases](#limits), item 7). "None recorded" means that no direct effect was recorded. It does not show that another train caused the delay, and the window does not call such a delay propagated.
 - **Class.** Early, On time or Late for a delay below 0, exactly 0 and above 0.
-- **Later than a threshold.** Strictly later: a delay equal to the threshold is not later. The summary uses the thresholds 0, 60, 180 and 300 s.
+- **Later than a threshold.** Strictly later: a delay equal to the threshold is not later. The summary and the classes of the tab Punctuality use the thresholds 0, 60, 180 and 300 s, so a delay equal to a threshold is in the class below it.
 
 ## Units and the reference timetable
 
@@ -69,7 +69,7 @@ The n-th stop of a train at a station name uses the n-th timetable point of that
 
 | Place and how to open it | Quantity and formula | Reference | Calls counted and denominator | Unavailable values |
 | --- | --- | --- | --- | --- |
-| Timetable results: Diagrams > Timetable; Diagrams > Delays; `timetable.csv` | Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as "+157 s" without decimals, dark red above 60 s, dark brown above 0, dark green otherwise. The chart plots the arrival delay in minutes over journey order. The CSV holds all ten columns | Planned time of the same stop ([units](#units-and-the-reference-timetable)); at an entrance-delayed stop the planned departure is the shifted one | One row per stop of every train; a repeated station gives one row per call. No sum, mean or share is formed (the tab Summary of the Delay analysis window forms them from the same rows, [the window](#the-delay-analysis-window)). **CSV...** of both windows writes the rows of the trains selected in the window (suggested name `timetable.csv`), with a provenance file beside the CSV | Unavailable when either side is. The table shows "-", the CSV an empty field, the chart skips the point |
+| Timetable results: Diagrams > Timetable; Diagrams > Delays...; `timetable.csv` | Arrival delay and departure delay, each simulated minus planned, in seconds, signed (early is negative), not rounded. The table shows text such as "+157 s" without decimals, dark red above 60 s, dark brown above 0, dark green otherwise. The chart plots the arrival delay in minutes at the stations of a reference route, against the distance along it. The CSV holds all ten columns | Planned time of the same stop ([units](#units-and-the-reference-timetable)); at an entrance-delayed stop the planned departure is the shifted one | One row per stop of every train; a repeated station gives one row per call. No sum, mean or share is formed (the tabs Summary and Punctuality of the Delay analysis window form them from the same rows, [the window](#the-delay-analysis-window)). **CSV...** of both windows writes the rows of the trains selected in the window (suggested name `timetable.csv`), with a provenance file beside the CSV | Unavailable when either side is. The table shows "-", the CSV an empty field, the chart skips the point |
 | `Stats_Stations.txt` | Arrival delay per call; early arrivals set to 0 ([rules](#the-station-statistics-files)) | Planned arrival | Every call with a simulated and a planned arrival; the denominator of a station row is its `N_StopTrains` | The call is not counted. A row without a counted call holds -1 |
 | `Pos&Neg_Stats_Stations.txt` | The same with the signed delay, early arrivals negative | Planned arrival | As above | As above, but -1 can also be a real value |
 | Rows `Ent_Del+DwT_Dist`, `Ent_Delays`, `DwT_Dist` of both files | Entrance delay, and entrance delay plus dwell disturbance, of each train in seconds | None (scenario input) | Every train of the run; `N_StopTrains` is the number of trains | -1 when the run has no train |
@@ -82,7 +82,7 @@ An unavailable value in a CSV is an empty field.
 
 **Diagrams > Delay analysis** and **Run Results > Open result view... > Delay analysis** open the window for the completed run on the tab Calls. **Compare delays** opens it on the tab Against baseline. The window does not block the main window and keeps the run it was opened for, so a later run does not change it. Its title is Delay analysis, and its header names the run and the delay baseline, such as "Paimpol / incident · delay baseline Paimpol / baseline", or "no delay baseline set". The window explains no column in a paragraph: the headers of the delay columns have the definitions of [Definitions](#definitions) as their tooltips.
 
-The tabs lie at the left and a panel at the right. The panel starts with three figures of the selected events, the same as the row "All selected stations" of the tab Summary: the sum of the delays ("Sum of delays"), their mean ("Mean"), and the number of early and late events ("Early / late", such as "3 / 1"). The tooltips of the sum and the mean give the number of Available events, and the tooltip of Early / late gives the early, on-time and late counts. A sum or mean without an Available event reads "-". The three choices follow. **Trains** and **Stations** list what the run has, each with its count, such as "Trains (2/2)"; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls, Summary and the figures between arrivals and departures, as in "Events: Arrivals". The choice of trains applies to all three tabs and the figures, the choice of stations to Calls, Summary, the figures and the call rows of Against baseline, and the choice of events to Calls, Summary and the figures only.
+The tabs lie at the left and a panel at the right. The panel starts with three figures of the selected events, the same as the row "All selected stations" of the tab Summary: the sum of the delays ("Sum of delays"), their mean ("Mean"), and the number of early and late events ("Early / late", such as "3 / 1"). The tooltips of the sum and the mean give the number of Available events, and the tooltip of Early / late gives the early, on-time and late counts. A sum or mean without an Available event reads "-". The three choices follow. **Trains** and **Stations** list what the run has, each with its count, such as "Trains (2/2)"; uncheck an entry, or use All and None, to leave it out. **Events** switches Calls, Summary, Punctuality and the figures between arrivals and departures, as in "Events: Arrivals". The choice of trains applies to all four tabs and the figures, the choice of stations to Calls, Summary, Punctuality, the figures and the call rows of Against baseline, and the choice of events to Calls, Summary, Punctuality and the figures only.
 
 ### Calls
 
@@ -109,6 +109,12 @@ The Available events are the denominator of every mean and share. A figure witho
 | All selected stations | 6 | 4 | 3 | 0 | 1 | -289 | -72.25 | -269 | 157 | 25.0% (1 of 4) | 25.0% (1 of 4) |
 
 Station A has no planned arrival, and the trains begin their route there, so both of its arrivals are No plan, not reached. When a train does not finish, its later calls are Not reached and drop out of the figures in the same way: in `breakdown-f1-level-0` the second train does not reach C within the run, so C has two calls, one Available, and its mean is the delay of that one.
+
+### Punctuality
+
+A bar chart of the selected events in six classes: Early (below 0), On time (exactly 0), Up to 1 min late, 1 to 3 min late, 3 to 5 min late and More than 5 min late. A delay equal to a threshold is in the class below it, so the classes agree with the shares of the tab Summary. Each bar has its count above it, and its tooltip gives the count and the share of the Available events, such as "1 of 4 arrivals (25.0%)".
+
+The line above the chart counts the Available events and their trains, the events that are not reached or have no plan, which are in no class, and the shares no more than 3 and no more than 5 min late, such as "4 arrivals of 2 trains; 2 not reached or without a plan. No more than 3 min late: 100.0% (4 of 4); no more than 5 min late: 100.0% (4 of 4)." Without an Available event the tab says "The selected trains and stations have no arrival with a delay." and shows no chart.
 
 ### Against baseline
 
@@ -140,10 +146,11 @@ When an occurrence has no arrival at its final call in the scenario run, its add
 
 ### Export
 
-**CSV...** under Export in the panel writes the visible tab, with a provenance file beside it that names the run (for Against baseline, the baseline too). The file is `delay_analysis.csv` for Calls and Summary and `delay_comparison.csv` for Against baseline. All times and differences are seconds. A value that does not exist is an empty field. A tab without a row cannot be exported.
+**CSV...** under Export in the panel writes the visible tab, with a provenance file beside it that names the run (for Against baseline, the baseline too). The file is `delay_analysis.csv` for Calls and Summary, `delay_histogram.csv` for Punctuality and `delay_comparison.csv` for Against baseline. All times and differences are seconds. A value that does not exist is an empty field. A tab without a row cannot be exported.
 
 - Calls holds one record for each row of the table, with the columns Service, Occurrence, Train, Operating code, Station, Journey order, Call, Event, Planned[s], Simulated[s], Delay[s], Class and Status.
 - Summary holds a `station` record for each station and a `network` record, with the counts, the four figures and, for each threshold, the number of later events and its percentage.
+- Punctuality holds a record for each class, with the columns Event, Class, From[s], To[s], Events and Share[%], and then one record each for No plan, Not reached and No plan, not reached, with the count and no bounds or share. A class holds the delays above From up to and including To; Early has no From and More than 5 min late has no To. The tab has no file when no event is Available.
 - Against baseline holds an `occurrence` record for each occurrence (with the input delay, the direct incident evidence, its incident ids and the secondary delay), a `call` record for each call and one `total` record, with a column `Complete` that is `no` when the totals leave an occurrence out.
 
 ## The station statistics files
@@ -214,7 +221,7 @@ The tab exports `delay_comparison.csv` ([export](#export)).
 
 ## Early, missing and repeated cases
 
-The tabs Calls and Summary of the Delay analysis window follow the column of the timetable results. They count an early arrival as Early, an exact one as On time, and a missing value as No plan or Not reached. The one difference is the entrance delay.
+The tabs Calls, Summary and Punctuality of the Delay analysis window follow the column of the timetable results. They count an early arrival as Early, an exact one as On time, and a missing value as No plan or Not reached. The one difference is the entrance delay.
 
 | Case | Timetable results | Statistics files | Baseline comparison |
 | --- | --- | --- | --- |
@@ -249,6 +256,7 @@ The Delay analysis window supports:
 
 - one completed run at a time, for the selected occurrences and stations, with the delay of each arrival and each departure of an authored stop against the authored planned time;
 - a summary for each station and for all selected stations, for arrivals or for departures, with the thresholds 0, 60, 180 and 300 s;
+- a histogram of the delays of the selected events in six classes at the same thresholds, for arrivals or for departures;
 - the comparison of that run with one baseline run, at every call and at the final arrival, when the baseline has no incident and no entrance delay and the run has incidents, entrance delays or both;
 - the export of the visible tab as a CSV file with a provenance file.
 
@@ -266,7 +274,7 @@ The window does not support:
 ## Limits
 
 1. The figures cover arrival and departure events of authored stops. Passing a station without a stop is not a call.
-2. Four sets of thresholds are in use. The statistics files count calls later than 0, 180 and 300 s. The Timetable view colours at 0 and 60 s. The chart is in minutes with no threshold. The Delay analysis window counts events later than 0, 60, 180 and 300 s and its thresholds are fixed. All of them mean strictly later. The statistics files have no 1 minute threshold; only the Timetable view and the Delay analysis window have a threshold at 60 s.
+2. Four sets of thresholds are in use. The statistics files count calls later than 0, 180 and 300 s. The Timetable view colours at 0 and 60 s. The chart is in minutes with no threshold. The Delay analysis window counts events later than 0, 60, 180 and 300 s, sorts them into classes at the same thresholds, and its thresholds are fixed. All of them mean strictly later. The statistics files have no 1 minute threshold; only the Timetable view and the Delay analysis window have a threshold at 60 s.
 3. Early arrivals are 0 in `Stats_Stations.txt` and negative in `Pos&Neg_Stats_Stations.txt` (the `stats` and `signed_stats` lines of `follow-level-0.txt`, as in the example above).
 4. A case or a stop without a planned arrival gives no arrival delay in the timetable results, the Delay analysis window or the statistics files. A stop without a planned departure gives no departure delay in the timetable results or the window; the statistics files use arrivals only. The baseline comparison does not need planned times, and the passenger journey delay uses the planned arrival of the journey.
 5. The comparison refuses a baseline that has incidents or entrance delays. A scenario may have either. One baseline exists at a time and it is not saved with the case: any edit of the case, a new case or opening another one clears it.
