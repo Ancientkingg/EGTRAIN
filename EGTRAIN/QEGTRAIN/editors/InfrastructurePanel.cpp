@@ -268,6 +268,7 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	InfrastructureFacet* current = currentFacet();
 	const QString key = facetKey();
 	const int previousRow = resetSelection ? -1 : m_table->currentRow();
+	const int previousColumn = resetSelection ? -1 : m_table->currentColumn();
 	const QString previousId = resetSelection ? QString() : m_selectionId;
 	if (key == QStringLiteral("blocks"))
 		refreshBlockTrackFilter();
@@ -277,6 +278,7 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const QSignalBlocker blocker(m_table);
 	// Clearing the table hides a field in a cell that has the focus, and the focus goes to the table. The table would
 	// then open an editor on its first cell and lose track of it, so no editor opens while the rows are filled again.
+	// Restoring the current cell below would open one too.
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->clearContents();
 	m_table->setColumnCount(static_cast<int>(headers.size()));
@@ -285,7 +287,6 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 		current->fillRows(*this);
 	else
 		m_table->setRowCount(0);
-	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	const bool editable = canEdit();
 	m_table->setEnabled(editable);
 
@@ -312,9 +313,14 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 			}
 		}
 	}
+	// The entity that is found again in its row keeps the column that was current, if the facet still has it. A new or
+	// moved row starts at the first column.
+	const bool sameRow = !previousId.isEmpty() && rowToSelect >= 0 && rowToSelect == previousRow;
+	const int columnToSelect = sameRow && previousColumn >= 0 && previousColumn < m_table->columnCount() ? previousColumn : 0;
 	if (!resetSelection && rowToSelect < 0 && previousRow >= 0 && m_table->rowCount() > 0)
 		rowToSelect = std::min(previousRow, m_table->rowCount() - 1);
-	m_table->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
+	m_table->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : columnToSelect);
+	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	updateSelection();
 
 	const bool isBlocks = key == QStringLiteral("blocks");
