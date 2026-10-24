@@ -583,6 +583,11 @@ int main(int argc, char** argv) {
 				QWidget* arrivalEdit = edit(dialog, "stopEditorArrivalEdit");
 				QWidget* departureEdit = edit(dialog, "stopEditorDepartureEdit");
 				QWidget* dwellEdit = edit(dialog, "stopEditorDwellEdit");
+				const auto* arrivalPresent = dialog.findChild<QCheckBox*>("stopEditorArrivalPresent");
+				const auto* departurePresent = dialog.findChild<QCheckBox*>("stopEditorDeparturePresent");
+				ok &= expect(arrivalPresent && departurePresent && arrivalPresent->width() == departurePresent->width()
+						&& arrivalPresent->x() == departurePresent->x(),
+					"the two boxes of the planned times line up, whichever side the labels of the form are aligned to");
 				ok &= expect(form && form->labelForField(arrivalEdit) == dialog.findChild<QCheckBox*>("stopEditorArrivalPresent")
 						&& form->labelForField(departureEdit) == dialog.findChild<QCheckBox*>("stopEditorDeparturePresent")
 						&& arrivalEdit->mapTo(&dialog, QPoint()).x() == dwellEdit->mapTo(&dialog, QPoint()).x()

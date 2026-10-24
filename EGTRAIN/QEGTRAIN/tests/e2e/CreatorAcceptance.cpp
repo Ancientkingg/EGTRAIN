@@ -1649,7 +1649,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		followButton->click();
+		// The status bar says whether the run goes on.
 		w.ui->actionSimulationPause->trigger();
+		const QString pausedMessage = w.statusBar()->currentMessage();
+		w.ui->actionSimulationPause->trigger();
+		const QString resumedMessage = w.statusBar()->currentMessage();
+		w.ui->actionSimulationPause->trigger();
+		if (pausedMessage != QStringLiteral("Paused") || resumedMessage != QStringLiteral("Running")
+			|| w.statusBar()->currentMessage() != QStringLiteral("Paused")) {
+			fail(QStringLiteral("the status bar does not follow Pause and Resume: ") + pausedMessage + QStringLiteral(" / ")
+				+ resumedMessage);
+			return;
+		}
 		for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
 			if (action->data().toString() == w.m_session->m_sceneDir) {
 				action->trigger();
