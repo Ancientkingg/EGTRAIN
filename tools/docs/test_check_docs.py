@@ -172,14 +172,14 @@ class KindTests(TreeTestCase):
         files = {
             LANDING: doc("# Docs", "", "[guide](guides/g.md)"),
             "docs/guides/g.md": doc("# G", "", *lines),
-            "EGTRAIN/QEGTRAIN/app/Window.cpp": 'menu->addMenu("&File")->addAction("Open Case Study..."); // "Rnu"\nname("Blocking time");\n',
+            "EGTRAIN/QEGTRAIN/app/Window.cpp": 'menu->addMenu("&File")->addAction("Open Case Folder..."); // "Rnu"\nname("Blocking time");\n',
             "EGTRAIN/QEGTRAIN/app/Window.ui": "<string>Run</string> <string>Events:</string>\n",
             "EGTRAIN/QEGTRAIN/tests/test_window.cpp": 'check("Rnu");\n',
         }
         return self.findings(files)
 
     def test_ui_name_in_the_source_is_accepted(self):
-        self.assertEqual(self.manual_names("Choose **File > Open Case Study...**, **Run**, **Events** or **Blocking time...**."), [])
+        self.assertEqual(self.manual_names("Choose **File > Open Case Folder...**, **Run**, **Events** or **Blocking time...**."), [])
 
     def test_ui_name_not_in_the_source_is_reported(self):
         findings = self.manual_names("Click **Rnu**.")
@@ -187,8 +187,8 @@ class KindTests(TreeTestCase):
                          [("docs/guides/g.md", 3, "ui-name", "not a string of the application: Rnu")])
 
     def test_menu_path_with_one_wrong_part_is_reported(self):
-        findings = self.manual_names("Choose **File > Open Case Study**.")
-        self.assertEqual([f.message for f in findings], ["not a string of the application: Open Case Study"])
+        findings = self.manual_names("Choose **File > Open Case Folder**.")
+        self.assertEqual([f.message for f in findings], ["not a string of the application: Open Case Folder"])
 
     def test_list_heading_and_key_are_not_ui_names(self):
         self.assertEqual(self.manual_names("- **Not a name.** **Nor this:** text", "", "Press **Ctrl+F** or **Esc**."), [])

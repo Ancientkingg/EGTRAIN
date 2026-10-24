@@ -35,4 +35,4 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 
 miniz is compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz, listed at https://doc.qt.io/qt-6/licenses-used-in-qt.html.
 
-The case studies have their own sources and terms, listed in `DATA.md` of the source repository, https://github.com/Ancientkingg/EGTRAIN.
+The bundled cases have their own sources and terms, listed in `DATA.md` of the source repository, https://github.com/Ancientkingg/EGTRAIN.

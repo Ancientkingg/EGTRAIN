@@ -349,7 +349,7 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 	return false;
 }
 
-double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks) {
+double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
 	if (V1 <= V2)
 		return X0;
 	double nextHead = X0 - 0.002, nextSpeed = V2;
@@ -361,6 +361,8 @@ double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int B
 			return -1;
 		}
 		if (speed >= V1) {
+			if (head >= cutoff)
+				return head; // The refined point is -1 or lies in [head, nextHead].
 			if (V2 > 0) {
 				const double anchor = X0 - 0.002;
 				double low = head, high = nextHead, end, endSpeed, upper;
@@ -706,10 +708,13 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		if (successor >= 0 && targets[incumbent].speed == 0 && Vbrak[BrakStep] == 0
 			&& Sbrak[BrakStep] < target.position)
 			continue;
-		double point = BrakDist_Block(proposedSpeed, target.speed, target.position, BS, Blocks);
+		if (successor >= 0 && index == incumbent)
+			continue;
+		const bool stopWithinStep = target.node.isSignalled && target.speed == 0 && S + V * timestep >= target.position;
+		// Without a cached plan only a point below MinBX is used, so the search stops at MinBX.
+		double point = BrakDist_Block(proposedSpeed, target.speed, target.position, BS, Blocks,
+			successor < 0 && !stopWithinStep ? MinBX : std::numeric_limits<double>::infinity());
 		if (successor >= 0) {
-			if (index == incumbent)
-				continue;
 			if (target.speed == 0) {
 				double end;
 				const double anchor = target.position - 0.002;
@@ -721,8 +726,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			// A missing prediction cannot establish that the proposed successor is safe.
 			if (!std::isfinite(point) || point == -1)
 				point = S;
-		} else if (target.node.isSignalled && target.speed == 0 && S + V * timestep >= target.position
-			&& (point == -1 || point > S))
+		} else if (stopWithinStep && (point == -1 || point > S))
 			point = S;
 		if (point != -1 && point < MinBX) {
 			MinBX = point;

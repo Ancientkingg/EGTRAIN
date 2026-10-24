@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
 		ServicePanel panel;
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.idEdit()->isEnabled() && panel.occurrenceTable()->rowCount() == 0
-				&& panel.occurrenceSelectionLabel()->text() == "No scene loaded" && !panel.selectAllButton()->isEnabled(),
+				&& panel.occurrenceSelectionLabel()->text().isEmpty() && !panel.selectAllButton()->isEnabled(),
 			"a panel without a document shows nothing and offers nothing");
 		SceneDocument document;
 		panel.setDocument(&document);
@@ -250,16 +250,22 @@ int main(int argc, char** argv) {
 
 		// occurrences: one for s1, three for s2 and one for s3
 		ok &= expect(panel.occurrenceTable()->rowCount() == 5 && panel.occurrenceTable()->isEnabled()
-				&& panel.occurrenceTable()->item(1, 2)->text() == "route r2" && panel.occurrenceTable()->item(2, 3)->text() == "+1200 s"
+				&& panel.occurrenceTable()->item(1, 2)->text() == "r2" && panel.occurrenceTable()->item(2, 3)->text() == "+1200 s"
 				&& panel.occurrenceTable()->item(0, 1)->text() == "100" && panel.occurrenceTable()->item(1, 1)->text() == "s2-1"
 				&& panel.occurrenceTable()->item(1, 0)->data(Qt::UserRole).toString() == "s2"
 				&& panel.occurrenceTable()->item(1, 0)->data(Qt::UserRole + 1).toInt() == 1,
 			"the occurrence table lists every occurrence of every service");
-		ok &= expect(panel.occurrenceSelectionLabel()->text().startsWith("Configured total: 5; Number of services in sim.: 5; Selected: 5; Selected in period: 5."),
-			"the label counts the occurrences");
-		ok &= expect(panel.occurrenceTable()->item(0, 3)->toolTip() == "100 | route r1 | entry +0 s [s1, #1]",
+		ok &= expect(panel.occurrenceSelectionLabel()->text() == "5 of 5 selected"
+				&& panel.occurrenceSelectionLabel()->toolTip() == "An occurrence is in the run period when it enters from 0 up to 3600 s.",
+			"the label counts the occurrences, and its tooltip gives the counting rule");
+		ok &= expect(ServicePanel::occurrenceSummaryText(4, 3, 3, 4) == "3 of 4 selected"
+				&& ServicePanel::occurrenceSummaryText(4, 3, 2, 4) == "3 of 4 selected, 2 in the run period"
+				&& ServicePanel::occurrenceSummaryText(900, 900, 900, 700)
+					== "900 of 900 selected\nShowing the first 700. All of them run. Lower the repeat count to choose which.",
+			"the summary names the occurrences in the run period only when they differ from the selected ones");
+		ok &= expect(panel.occurrenceTable()->item(0, 3)->toolTip() == "100 (route r1, +0 s)\nService s1, run 1",
 			"a row names the generated service in its tooltip");
-		ok &= expect(ServicePanel::generatedServiceLabel(document.model().services[1], 2) == "s2-2 | route r2 | entry +1200 s",
+		ok &= expect(ServicePanel::generatedServiceLabel(document.model().services[1], 2) == "s2-2 (route r2, +1200 s)",
 			"a generated service is named by its code, route and scheduled entry");
 
 		// the preview: leave an occurrence out
@@ -267,13 +273,13 @@ int main(int argc, char** argv) {
 		panel.occurrenceTable()->item(2, 0)->setCheckState(Qt::Unchecked);
 		ok &= expect(selection.isExcluded(SceneServiceOccurrence{"s2", 2}) && selection.excluded().size() == 1
 				&& !checked(panel.occurrenceTable(), 2) && checked(panel.occurrenceTable(), 1)
-				&& panel.occurrenceSelectionLabel()->text().contains("Selected: 4;") && events.log == Log({"occurrences"})
+				&& panel.occurrenceSelectionLabel()->text() == "4 of 5 selected" && events.log == Log({"occurrences"})
 				&& !document.isDirty() && document.revision() == 1,
 			"leaving an occurrence out is kept in the run selection and does not change the scene");
 		events.log.clear();
 		panel.selectNoneOccurrences();
 		ok &= expect(selection.excluded().size() == 5 && !checked(panel.occurrenceTable(), 0)
-				&& panel.occurrenceSelectionLabel()->text().contains("Selected: 0;") && !document.isDirty(),
+				&& panel.occurrenceSelectionLabel()->text() == "0 of 5 selected" && !document.isDirty(),
 			"Select none leaves every occurrence out");
 		panel.selectAllOccurrences();
 		ok &= expect(selection.excluded().empty() && checked(panel.occurrenceTable(), 4) && !document.isDirty(),
@@ -296,7 +302,7 @@ int main(int argc, char** argv) {
 		panel.commitRepeatCount();
 		ok &= expect(panel.occurrenceTable()->rowCount() == 700 && !panel.occurrenceTable()->isEnabled()
 				&& !panel.selectAllButton()->isEnabled() && !panel.selectNoneButton()->isEnabled()
-				&& panel.occurrenceSelectionLabel()->text().contains("Preview limited to 700 rows"),
+				&& panel.occurrenceSelectionLabel()->text().contains("\nShowing the first 700. All of them run."),
 			"a preview is limited to the trains a run expands, and then cannot be used to leave occurrences out");
 		panel.selectNoneOccurrences();
 		ok &= expect(selection.excluded().empty(), "Select none does nothing while the preview is limited");
@@ -345,7 +351,7 @@ int main(int argc, char** argv) {
 		panel.routeCombo()->setCurrentIndex(panel.routeCombo()->findData("r2"));
 		ok &= expect(document.model().services[0].route == "r2"
 				&& events.log == Log({"documentChanged", "occurrences", "selected:s1", "panelChanged"})
-				&& panel.occurrenceTable()->item(0, 2)->text() == "route r2",
+				&& panel.occurrenceTable()->item(0, 2)->text() == "r2",
 			"a chosen route is written to the document and tells the timetable that its route has changed");
 
 		events.log.clear();
@@ -441,7 +447,7 @@ int main(int argc, char** argv) {
 			"an empty id is dropped and the field shows the old id");
 		panel.idEdit()->setText("s2");
 		panel.commitIdEdit();
-		ok &= expect(prompts.errorCount == 2 && prompts.errorTitle == "Service ID already exists" && panel.idEdit()->text() == "s1"
+		ok &= expect(prompts.errorCount == 2 && prompts.errorTitle == "Duplicate Service ID" && panel.idEdit()->text() == "s1"
 				&& document.model().services[0].id == "s1",
 			"an id that another service has is dropped and the field shows the old id");
 		panel.idEdit()->setText("  s1  ");
@@ -548,7 +554,7 @@ int main(int argc, char** argv) {
 		document.replace(other, false);
 		ok &= expect(items(panel.listWidget()) == QStringList({"other"}) && panel.idEdit()->text() == "other"
 				&& panel.compositionCombo()->count() == 1 && panel.compositionCombo()->currentText().isEmpty()
-				&& panel.routeCombo()->currentText() == "Missing route []" && !document.isDirty()
+				&& panel.routeCombo()->currentText() == "(none)" && !document.isDirty()
 				&& events.log == Log({"selected:other", "occurrences"}),
 			"opening another scene replaces unfinished text without an edit");
 
@@ -573,10 +579,10 @@ int main(int argc, char** argv) {
 				auto* label = qobject_cast<QLabel*>(form->labelForField(field));
 				return label ? label->text() : QString();
 			};
-			ok &= expect(labelText(panel.idEdit()) == "Service Id" && labelText(panel.operatingCodeEdit()) == "Service code (number)"
-					&& labelText(panel.categoryCombo()) == "Category" && labelText(panel.colorButton()) == "Service visualization colour"
+			ok &= expect(labelText(panel.idEdit()) == "Service ID" && labelText(panel.operatingCodeEdit()) == "Operating code"
+					&& labelText(panel.categoryCombo()) == "Category" && labelText(panel.colorButton()) == "Colour"
 					&& labelText(panel.compositionCombo()) == "Composition" && labelText(panel.routeCombo()) == "Route"
-					&& labelText(panel.performancePercentEdit()) == "Running performance (parameter) %",
+					&& labelText(panel.performancePercentEdit()) == "Performance (%)",
 				"each field has its label in its row");
 			ok &= expect(form->labelForField(panel.entryTimeSecondsEdit()) == panel.hasEntryTimeCheck()
 					&& form->labelForField(panel.headwaySecondsEdit()) == panel.hasRepeatCheck()

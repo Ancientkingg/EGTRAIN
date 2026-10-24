@@ -1,4 +1,5 @@
 #include "graphics/NetworkView.h"
+#include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/VirtualArcItem.h"
@@ -11,7 +12,6 @@
 
 namespace {
 constexpr qreal kFitPadding = 24.0;
-const QColor kCanvasColor(0x10, 0x1a, 0x22);
 const QColor kGridColor(0x18, 0x28, 0x32);
 constexpr qreal kGridBaseSpacing = 80.0;
 constexpr qreal kGridMinPixels = 24.0;
@@ -28,7 +28,7 @@ NetworkView::NetworkView(QWidget* parent)
 
 	setMouseTracking(true);
 	setSceneRect(QRectF(0, 0, 0, 0));
-	setBackgroundBrush(kCanvasColor);
+	setBackgroundBrush(canvasColor());
 	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	setTransformationAnchor(QGraphicsView::AnchorViewCenter);
@@ -39,12 +39,20 @@ NetworkView::~NetworkView() {
 }
 
 void NetworkView::mousePressEvent(QMouseEvent* mouseEvent) {
+	if (mouseEvent->button() == Qt::LeftButton)
+		m_dragButtonHeld = true;
 	QGraphicsView::mousePressEvent(mouseEvent);
 }
 
 void NetworkView::mouseReleaseEvent(QMouseEvent* mouseEvent) {
+	if (!(mouseEvent->buttons() & Qt::LeftButton))
+		m_dragButtonHeld = false;
 	QGraphicsView::mouseReleaseEvent(mouseEvent);
 	emit interactionFinished();
+}
+
+bool NetworkView::interacting() const {
+	return m_dragButtonHeld || (m_lastGesture.isValid() && m_lastGesture.elapsed() < interactionQuietMs);
 }
 
 void NetworkView::centerOn(const QPointF& scenePos) {
@@ -57,11 +65,42 @@ void NetworkView::centerOn(QGraphicsItem* item) {
 }
 
 void NetworkView::centerOnScene(const QPointF& scenePos) {
+	moveCenter([this, &scenePos]() { QGraphicsView::centerOn(scenePos); });
+}
+
+void NetworkView::centerOnExactly(const QPointF& scenePos) {
+	// The scroll bars of a view laid out from right to left, as with the -reverse option of Qt, count the other way.
+	if (isRightToLeft()) {
+		centerOnScene(scenePos);
+		return;
+	}
+	moveCenter([this, &scenePos]() {
+		// The transform of the view is a scale. The scroll position puts scenePos at the centre under that scale. On an
+		// axis where it lies at least a pixel inside the range of the scroll bar, a translation takes the rest to a
+		// whole pixel. Without an anchor the scroll bars stay where they are when the transform changes.
+		const QTransform current = transform();
+		const QPointF wanted = QPointF(scenePos.x() * current.m11(), scenePos.y() * current.m22())
+			- QPointF(viewport()->rect().center());
+		const auto fractionOf = [](const QScrollBar* bar, qreal value) {
+			return value >= bar->minimum() + 1 && value <= bar->maximum() - 1 ? std::round(value) - value : 0.0;
+		};
+		const ViewportAnchor anchor = transformationAnchor();
+		setTransformationAnchor(QGraphicsView::NoAnchor);
+		setTransform(QTransform(current.m11(), 0.0, 0.0, current.m22(), fractionOf(horizontalScrollBar(), wanted.x()),
+			fractionOf(verticalScrollBar(), wanted.y())));
+		setTransformationAnchor(anchor);
+		horizontalScrollBar()->setValue(static_cast<int>(std::round(wanted.x())));
+		verticalScrollBar()->setValue(static_cast<int>(std::round(wanted.y())));
+	});
+}
+
+// Runs move, which moves the view, and then emits viewportChanged() once when the centre of the view moved.
+void NetworkView::moveCenter(const std::function<void()>& move) {
 	const QPoint viewportCenter = viewport()->rect().center();
 	const QPointF previousCenter = m_hasViewCenter ? m_viewCenter : mapToScene(viewportCenter);
 	const bool wasSuppressed = m_suppressViewportChanged;
 	m_suppressViewportChanged = true;
-	QGraphicsView::centerOn(scenePos);
+	move();
 	m_viewCenter = mapToScene(viewportCenter);
 	m_hasViewCenter = true;
 	m_suppressViewportChanged = wasSuppressed;
@@ -223,6 +262,7 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 }
 
 void NetworkView::wheelEvent(QWheelEvent* event) {
+	m_lastGesture.start();
 	const bool control = event->modifiers() & Qt::ControlModifier;
 	if (!control && !event->pixelDelta().isNull()) {
 		const QPoint viewportCenter = viewport()->rect().center();
@@ -250,12 +290,18 @@ void NetworkView::armTimingPaint(const QString& kind, int generation) {
 	m_timingPaintKind = kind;
 	m_timingPaintGeneration = generation;
 	m_timingPaintTimer.start();
+	// Reopening the same case can leave the scene unchanged, and then nothing else asks for a paint.
+	viewport()->update();
 }
 
 bool NetworkView::viewportEvent(QEvent* event) {
+	// A release that went elsewhere, as to a context menu, ends the drag as soon as the pointer moves over the view.
+	if (event->type() == QEvent::MouseMove && !(static_cast<QMouseEvent*>(event)->buttons() & Qt::LeftButton))
+		m_dragButtonHeld = false;
 	if (event->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(event);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+			m_lastGesture.start();
 			zoomBy(1.0 + gesture->value(), gesture->position());
 			event->accept();
 			return true;
@@ -287,7 +333,7 @@ bool NetworkView::viewportEvent(QEvent* event) {
 
 void NetworkView::drawBackground(QPainter* painter, const QRectF& rect) {
 	QEGTRAIN_PROFILE_SCOPE("render/viewport_paint/background", "render", "render/viewport_paint");
-	painter->fillRect(rect, kCanvasColor);
+	painter->fillRect(rect, canvasColor());
 
 	const qreal viewScale = qAbs(transform().m11());
 	if (!std::isfinite(viewScale) || viewScale <= 0.0)

@@ -20,9 +20,9 @@ from startup_benchmark import validate_records
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 SCENE = RUN_DIR / "Scenes/Paimpol"
 PROMPT_MARKERS = (
-    "No arguments inserted",
-    "Please enter",
-    "Please insert",
+    "Bundled case (1 Netherlands",
+    "Open the window?",
+    "Show passengers?",
     "Do you want to change it",
 )
 READY_MARKERS = (
@@ -149,13 +149,12 @@ def assert_no_argument_chooser_continuation(
             key, value = line.split("=", 1)
             values[key] = value
     expected = {
-        "E2E_STARTUP_CHOOSER_PROMPT": (
-            "Current case: Netherlands. Choose another or continue."
-        ),
+        "E2E_STARTUP_CHOOSER_PROMPT": "Current case: Netherlands",
         "E2E_STARTUP_CHOOSER_ACTION": "Continue",
         "E2E_STARTUP_CHOOSER_MODEL": "Netherlands",
         "E2E_STARTUP_CHOOSER_CASE_LABEL": "Netherlands",
-        "E2E_STARTUP_CHOOSER_READINESS": "Ready to run",
+        # The line under the case name is empty while nothing blocks a run.
+        "E2E_STARTUP_CHOOSER_READINESS": "",
         "E2E_STARTUP_CHOOSER_UNCHANGED": "yes",
     }
     mismatches = [
@@ -164,9 +163,9 @@ def assert_no_argument_chooser_continuation(
         if values.get(key) != value
     ]
     status = values.get("E2E_STARTUP_CHOOSER_STATUS", "")
-    if status != "Ready - Netherlands":
+    if status != "Ready":
         mismatches.append(
-            f"E2E_STARTUP_CHOOSER_STATUS={status!r}, expected 'Ready - Netherlands'"
+            f"E2E_STARTUP_CHOOSER_STATUS={status!r}, expected 'Ready'"
         )
     if rejection is not None and not any(
         line.startswith(REJECTION_LINE) and rejection in line for line in output.splitlines()
@@ -370,12 +369,12 @@ def assert_interactive_questions(app: Path) -> None:
         root = Path(root_name)
         run = root / "run-asked"
         returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch", answers="2\n0\n")
-        if (returncode != 0 or "Please enter" not in output or "Please insert" not in output
+        if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" not in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"--interactive exited with {returncode}, did not ask for -n and -g or did not run Paimpol\n{tail(output)}")
         run = root / "run-given"
         returncode, output = run_app(app, ["-interactive", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="2\n")
-        if (returncode != 0 or "Please enter" not in output or "Please insert" in output
+        if (returncode != 0 or "Bundled case (1 Netherlands" not in output or "Open the window?" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
         print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
@@ -467,7 +466,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
             archive.writestr("scene.json", json.dumps({"format": "egscene", "bundle_version": 2, "schema_version": 1}))
             archive.writestr("future-layout.json", "future")
         cases = (
-            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Load Legacy Case"]),
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
             ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, bundle layout 2"]),
         )
@@ -482,7 +481,7 @@ def assert_version_rejections_name_the_reason(app: Path) -> None:
         print("headless launches with a draft, a newer and a newer bundle scene exit with 1 and name the reason")
 
         window_cases = (
-            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Load Legacy Case"]),
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Import Legacy Case"]),
             ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
         )
         for index, (name, args, details) in enumerate(window_cases):
@@ -571,7 +570,7 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
     if not problem and request is not None and "E2E_OPEN_REQUEST_SENT" not in text:
         problem = f"{label} did not send the open event"
     status = next((line for line in text.splitlines() if line.startswith(STATUS_PREFIX)), "")
-    if not problem and request is not None and ("could not be opened" in status) != bool(refused):
+    if not problem and request is not None and ("Could not open" in status) != bool(refused):
         problem = f"{label} shows the status line {status[len(STATUS_PREFIX):]!r} after the open event"
     if not problem and "E2E_STARTUP_CHOOSER_" in text:
         problem = f"{label} opened the chooser"
@@ -602,7 +601,7 @@ def read_ini(ini: Path) -> str:
 
 
 # A launch that only names a file hands it to the window that runs and ends with 0, and the window
-# opens it like File > Open Case Study. The window is a test run with the relay switched on. It was
+# opens it like File > Open Case. The window is a test run with the relay switched on. It was
 # started with a file, or without one so that the case chooser is open; the chooser then gives way.
 # The second launch has no test variable, as when the system opens a file. A scripted launch that
 # has a test variable and no switch opens the file in a window of its own. A file that does not load
@@ -698,17 +697,17 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
         print(f"headless launch with the bundle name {ascii(NON_ASCII_NAME)} ran the scene of the bundle")
         assert_unicode_argument_arrives_intact(app, root)
 
-        assert_headless_rejection(app, [str(notes)], root / "run-text", "headless launch with a text file", "the file must use the .egscene extension")
-        assert_headless_rejection(app, [str(spaced), str(second)], root / "run-two", "headless launch with two bundles", "open exactly one .egscene file")
-        assert_headless_rejection(app, [str(folder)], root / "run-folder", "headless launch with a folder", "an .egscene file is needed, not a directory")
+        assert_headless_rejection(app, [str(notes)], root / "run-text", "headless launch with a text file", "it is not an .egscene file")
+        assert_headless_rejection(app, [str(spaced), str(second)], root / "run-two", "headless launch with two bundles", "more than one file was given")
+        assert_headless_rejection(app, [str(folder)], root / "run-folder", "headless launch with a folder", "it is a folder, not an .egscene file")
         # The text file would be rejected if it were read as the file name.
         assert_headless_bundle_runs(app, ["--scene", str(spaced), str(notes)], root / "run-scene-wins", "headless launch with --scene and a file name")
         print("headless launches with a file that is rejected exit with 1; --scene wins over a file name")
 
         for name, args, reason in (
-            ("a text file", [str(notes)], "the file must use the .egscene extension"),
+            ("a text file", [str(notes)], "it is not an .egscene file"),
             ("a malformed bundle", [str(malformed)], "not a ZIP archive"),
-            ("two bundles", [str(spaced), str(second)], "open exactly one .egscene file"),
+            ("two bundles", [str(spaced), str(second)], "more than one file was given"),
         ):
             assert_no_argument_chooser_continuation(app, tuple(args), f"window launch with {name}", reason)
         print("window launches with a file that does not open start as without an argument")

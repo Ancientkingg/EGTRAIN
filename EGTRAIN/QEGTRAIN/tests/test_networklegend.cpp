@@ -1,16 +1,21 @@
 #include "widgets/NetworkLegendWidget.h"
 
+#include "graphics/VisualPolish.h"
 #include "graphics/items/SelectionCueItem.h"
+#include "graphics/items/StationOverlayItem.h"
 
 #include <QApplication>
 #include <QImage>
 #include <QLabel>
+#include <QMap>
+#include <QPainter>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QTextLayout>
 #include <QToolButton>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -26,6 +31,25 @@ static bool containsColor(const QImage& image, const QColor& color) {
 			if (image.pixelColor(x, y).rgb() == color.rgb())
 				return true;
 	return false;
+}
+
+// The colour of most opaque pixels of image, then those of the light, dark and blue colours of the pins and of white
+// that three opaque pixels or more have.
+static QString pinColours(const QImage& image) {
+	QMap<QRgb, int> counts;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (const QColor colour = image.pixelColor(x, y); colour.alpha() == 255)
+				++counts[colour.rgb()];
+	QRgb most = 0;
+	for (auto count = counts.cbegin(); count != counts.cend(); ++count)
+		if (count.value() > counts.value(most))
+			most = count.key();
+	QString colours = QColor(most).name();
+	for (const QColor& colour : {stationMarkFill(), canvasColor(), QColor(80, 120, 210), QColor(Qt::white)})
+		if (counts.value(colour.rgb()) >= 3)
+			colours += " " + colour.name();
+	return colours;
 }
 
 // Colour of the swatch pixel at a position in widget coordinates.
@@ -198,33 +222,55 @@ int main(int argc, char* argv[]) {
 			&& stationLegend.entries().at(0).stationClass == StationClass::Major
 			&& stationLegend.entries().at(2).stationClass == StationClass::Halt,
 		"the map key has one row for each station class on the canvas");
-	// Each station swatch shows the near mark on the left and the roundel on the right, apart, with the bar of a station
-	// or a major station, and nothing reaches the outer columns.
+	// Each station swatch shows the whole pin of its class, centred and clear of the edges, blue only for a major
+	// station. The classes keep their sizes: the pin of a halt is shorter than that of a major station.
 	stationLegend.show();
 	QApplication::processEvents();
+	QList<int> pinHeights;
 	for (int row = 0; row < 3; ++row) {
 		const QWidget* swatch = stationLegend.findChild<QWidget*>(QString("mapKeySwatch%1").arg(row));
 		QImage image(46, 18, QImage::Format_ARGB32_Premultiplied);
 		image.fill(Qt::transparent);
 		if (swatch)
 			const_cast<QWidget*>(swatch)->render(&image, QPoint(), QRegion(), QWidget::DrawChildren);
-		const QColor fill(16, 26, 34);
-		bool edgesEmpty = swatch && swatch->size() == QSize(46, 18);
-		bool nearMark = false, farMark = false, blue = false;
-		for (int y = 0; y < image.height(); ++y) {
-			edgesEmpty = edgesEmpty && image.pixelColor(0, y).alpha() == 0 && image.pixelColor(22, y).alpha() == 0
-				&& image.pixelColor(45, y).alpha() == 0;
+		// Some opaque pixel darker than mid grey: the dark halo that outlines the pin on the light panel.
+		bool dark = false, blue = false;
+		QRect painted;
+		for (int y = 0; y < image.height(); ++y)
 			for (int x = 0; x < image.width(); ++x) {
 				const QColor colour = image.pixelColor(x, y);
-				nearMark = nearMark || (x < 22 && colour == fill);
-				farMark = farMark || (x > 22 && colour == fill);
+				if (colour.alpha() > 0)
+					painted |= QRect(x, y, 1, 1);
+				dark = dark || (colour.alpha() == 255 && colour.value() < 128);
 				blue = blue || colour == QColor(80, 120, 210);
 			}
+		const bool inside = swatch && swatch->size() == QSize(46, 18) && painted.left() > 0 && painted.top() > 0
+			&& painted.right() < 45 && painted.bottom() < 17;
+		const bool centred = std::abs((painted.left() + painted.right()) / 2.0 - 22.5) <= 1.0
+			&& std::abs((painted.top() + painted.bottom()) / 2.0 - 8.5) <= 1.0;
+		const bool major = stationLegend.entries().at(row).stationClass == StationClass::Major;
+		ok &= expect(inside && centred && dark && blue == major,
+			"a station swatch shows the whole pin of its class, centred");
+		pinHeights.append(painted.height());
+		// The swatch, drawn four times as large, has the colours of the pin of its class on the canvas.
+		QImage large(46 * 4, 18 * 4, QImage::Format_ARGB32_Premultiplied);
+		large.setDevicePixelRatio(4.0);
+		large.fill(Qt::transparent);
+		if (swatch)
+			const_cast<QWidget*>(swatch)->render(&large, QPoint(), QRegion(), QWidget::DrawChildren);
+		StationMarkItem canvasPin(stationLegend.entries().at(row).stationClass, 60);
+		QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
+		canvas.fill(Qt::transparent);
+		{
+			QPainter painter(&canvas);
+			painter.translate(20.0, 20.0);
+			canvasPin.paint(&painter, nullptr, nullptr);
 		}
-		const bool halt = stationLegend.entries().at(row).stationClass == StationClass::Halt;
-		ok &= expect(edgesEmpty && nearMark && farMark && blue == !halt,
-			"a station swatch shows the near mark beside the whole roundel");
+		ok &= expect(pinColours(large) == pinColours(canvas), "a station swatch has the colours of the pin of its class on the canvas");
 	}
+	ok &= expect(stationLegend.entries().at(0).stationClass == StationClass::Major && pinHeights.size() == 3
+			&& pinHeights.at(2) < pinHeights.at(0),
+		"the pin of a halt is shorter than the pin of a major station in the map key");
 
 	// Train rows: one "Train" row for the default colour, then one row per other colour.
 	const auto trainRows = [](const NetworkLegendWidget& widget) {

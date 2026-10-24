@@ -3,7 +3,7 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowTestHooks.h"
 #include "diagrams/DiagramWindow.h"
-#include "diagrams/TrainFilterButton.h"
+#include "diagrams/TrainKeyList.h"
 #include "editors/TimetableStopsPanel.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
@@ -328,12 +328,20 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		settle();
 		return w.m_followAction->isChecked();
 	};
-	// Selects a row of the table of Infrastructure without opening an editor on one of its cells.
+	// Selects a row of the table of Infrastructure as a click does, so that Delete is enabled and the row has the colour of
+	// a focused table, with no editor open on one of its cells. Clearing the current cell first closes an editor that an
+	// earlier edit left open.
 	const auto selectRow = [&w](int row) {
-		w.m_infrastructureTable->setCurrentIndex(QModelIndex());
-		w.m_infrastructureTable->selectionModel()->select(w.m_infrastructureTable->model()->index(row, 0),
+		QTableWidget* table = w.m_infrastructureTable;
+		const QAbstractItemView::EditTriggers triggers = table->editTriggers();
+		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		table->setCurrentIndex(QModelIndex());
+		table->selectionModel()->setCurrentIndex(table->model()->index(row, 0),
 			QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+		table->setFocus(Qt::MouseFocusReason);
+		table->setEditTriggers(triggers);
 		settle();
+		return w.m_deleteInfrastructureButton->isEnabled();
 	};
 	const auto facet = [&w](const char* name) {
 		const int index = w.m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
@@ -359,7 +367,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		settle();
 		return true;
 	};
-	// Adds a stop through the dialog Add timetable stop, with a planned arrival or departure when the time is not negative.
+	// Adds a stop through the dialog Add Timetable Stop, with a planned arrival or departure when the time is not negative.
 	const auto addStop = [&w](const QString& station, const QString& platform, int arrival, int departure) {
 		bool chosen = false;
 		const QPointer<QTimer> poll = whenShown(
@@ -378,7 +386,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 					dialog.reject();
 			});
 		w.m_addStopButton->click();
-		return dialogOpened(poll, QStringLiteral("Add timetable stop")) && chosen;
+		return dialogOpened(poll, QStringLiteral("Add Timetable Stop")) && chosen;
 	};
 
 	auto& steps = captureRun.steps;
@@ -507,8 +515,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return saved;
 	});
 
-	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit timetable stop,
-	// whose dwell becomes 180 s, and the warning that this gives in Scene Validation.
+	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit Timetable Stop,
+	// whose dwell becomes 180 s, and the warning that this gives in Case Validation.
 	steps.push_back([&w] {
 		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
 			return failCaptures(QStringLiteral("the case could not be named Paimpol practice"));
@@ -525,7 +533,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			w, [&w] { return w.findChild<QDialog*>(QStringLiteral("stopEditorDialog")); },
 			[](QDialog& dialog) {
 				if (saveCapture(dialog.grab(), QStringLiteral("tutorial-modify-edit-timetable-stop.png"), QStringLiteral("Paimpol"),
-						QStringLiteral("Edit timetable stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed"))) {
+						QStringLiteral("Edit Timetable Stop for Pontrieaux of Guin-Paim-EXPRESS-1, as committed"))) {
 					dialog.findChild<QLineEdit*>(QStringLiteral("stopEditorDwellEdit"))->setText(QStringLiteral("180"));
 					dialog.findChild<QPushButton*>(QStringLiteral("stopEditorAcceptButton"))->click();
 				}
@@ -533,12 +541,12 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 					dialog.reject();
 			});
 		w.m_timetableStopsPanel->editStop(row);
-		return dialogOpened(poll, QStringLiteral("Edit timetable stop"));
+		return dialogOpened(poll, QStringLiteral("Edit Timetable Stop"));
 	});
 	steps.push_back([&w, showOnly, windowShot] {
 		showOnly({w.m_validationDock});
 		return saveCapture(windowShot(), QStringLiteral("how-to-scene-validation.png"), QStringLiteral("Paimpol"),
-			QStringLiteral("Scene Validation after the dwell at Pontrieaux became 180 s"));
+			QStringLiteral("Case Validation after the dwell at Pontrieaux became 180 s"));
 	});
 
 	// Modify a case: the scenario Express breakdown with its incident, after a run of baseline that is the delay baseline.
@@ -552,8 +560,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		showTab(w.m_incidentDock, QStringLiteral("Incidents"));
 		w.m_addIncidentButton->click();
 		settle();
-		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("train_breakdown"))
-			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 | route route6 | entry +10 s"))
+		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("Train breakdown"))
+			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
 			&& editLine(w.m_incidentStartSecondsEdit, QStringLiteral("900"));
 		w.m_incidentHasEndSecondsCheck->setChecked(true);
 		ok = ok && editLine(w.m_incidentEndSecondsEdit, QStringLiteral("1200"));
@@ -597,12 +605,12 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 			return failCaptures(QStringLiteral("Speed / distance did not open"));
 		// The window would keep to the offscreen screen, which is 800 by 600 pixels.
 		DiagramWindow* diagram = diagrams.last();
-		auto* filter = diagram->findChild<TrainFilterButton*>();
-		QListWidget* trains = filter && filter->menu() ? filter->menu()->findChild<QListWidget*>() : nullptr;
+		auto* trains = diagram->findChild<TrainKeyList*>();
 		if (!trains)
 			return failCaptures(QStringLiteral("Speed / distance has no list of trains"));
-		for (int row = kShownTrains; row < trains->count(); ++row)
-			trains->item(row)->setCheckState(Qt::Unchecked);
+		const QStringList ids = trains->trainIds();
+		for (int row = kShownTrains; row < ids.size(); ++row)
+			trains->setTrainVisible(ids[row], false);
 		diagram->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 		diagram->resize(kWindowSize);
 		settle();
@@ -621,11 +629,10 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	steps.push_back([&w, showOnly, windowShot, addRows, selectRow] {
 		const bool built = editLine(w.m_caseNameEdit, QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
 		showOnly({w.m_infrastructureDock});
-		selectRow(2);
-		return built
+		return built && selectRow(2)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-nodes.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("new case with one track and three nodes, Infrastructure on Nodes"))
-			: failCaptures(QStringLiteral("the track and nodes of Minimal line could not be added"));
+			: failCaptures(QStringLiteral("the track and nodes of Minimal line could not be added and selected"));
 	});
 	steps.push_back([&w, windowShot, facet, addRows, setCell, selectRow] {
 		bool built = addRows("arcs", 2) && facet("blocks");
@@ -633,11 +640,10 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		w.m_blockTrackFilterCombo->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
 			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 2, QStringLiteral("node")) && setCell(1, 2, QStringLiteral("node_3"));
-		selectRow(1);
-		return built
+		return built && selectRow(1)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-platforms.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("two stations with a platform at each end node, Infrastructure on Platforms"))
-			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added"));
+			: failCaptures(QStringLiteral("the arcs, blocks, stations and platforms of Minimal line could not be added and selected"));
 	});
 	steps.push_back([&w, addRows] {
 		bool built = addRows("signalling_areas", 1);

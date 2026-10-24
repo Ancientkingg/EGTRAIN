@@ -327,7 +327,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 				return;
 			std::ofstream out(path);
 			if (!out) {
-				addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write canonical compatibility file", path.u8string());
+				addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write the legacy file", path.u8string());
 				result.wroteAll = false;
 				return;
 			}
@@ -353,7 +353,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 				const auto from = nodes.find(arc.fromNodeId);
 				const auto to = nodes.find(arc.toNodeId);
 				if (from == nodes.end() || to == nodes.end()) {
-					addDiag(SceneSeverity::Warning, "scene.export.ref", "Arc refers to an unknown canonical node", arc.id);
+					addDiag(SceneSeverity::Warning, "scene.export.ref", "Arc refers to an unknown node", arc.id);
 					++arcIndex;
 					continue;
 				}
@@ -403,7 +403,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 					const auto from = nodes.find(connection.fromNodeId);
 					const auto to = nodes.find(connection.toNodeId);
 					if (from == nodes.end() || to == nodes.end()) {
-						addDiag(SceneSeverity::Warning, "scene.export.ref", "Connection refers to an unknown canonical node", connection.id);
+						addDiag(SceneSeverity::Warning, "scene.export.ref", "Connection refers to an unknown node", connection.id);
 						continue;
 					}
 					out << trackNumber(from->second.track) << "\t" << formatNumber(from->second.x) << "\t"
@@ -818,7 +818,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	fs::path providedSc = pathFromUtf8(outDir) / "GUI" / "StationsCoord.txt";
 	fs::path providedTd = pathFromUtf8(outDir) / "GUI" / "caseStudyTrackData.txt";
 	if (fs::exists(providedSc) || fs::exists(providedTd)) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "scene-provided GUI layout is used");
+		addDiag(SceneSeverity::Info, "scene.export.info", "The GUI layout of the case is used");
 		return;
 	}
 	if (!scene.stationViews.empty() || !scene.trackViews.empty()) {
@@ -829,7 +829,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	fs::path stationsFile = pathFromUtf8(outDir) / "TrackLines" / "Stations.txt";
 	std::ifstream sf(stationsFile);
 	if (!sf) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "no station anchors so no GUI layout was generated");
+		addDiag(SceneSeverity::Info, "scene.export.info", "No stations, so no GUI layout was generated");
 		return;
 	}
 
@@ -857,7 +857,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	if (stations.empty()) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "no station anchors so no GUI layout was generated");
+		addDiag(SceneSeverity::Info, "scene.export.info", "No stations, so no GUI layout was generated");
 		return;
 	}
 
@@ -899,7 +899,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	if (tracklineNodes.empty()) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "no trackline node data so no GUI layout was generated");
+		addDiag(SceneSeverity::Info, "scene.export.info", "No track line nodes, so no GUI layout was generated");
 		return;
 	}
 
@@ -914,7 +914,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 			}
 		}
 		if (se.regions.empty()) {
-			addDiag(SceneSeverity::Warning, "scene.export.adjusted", "Station anchor matches no trackline", se.name);
+			addDiag(SceneSeverity::Warning, "scene.export.adjusted", "Station position matches no node of any track line", se.name);
 		}
 	}
 
@@ -1114,7 +1114,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	const auto admitTrack = [&](const std::string& name, const std::string& file) {
 		int number = 0;
 		if (!reconstructibleTrackNumber(name, number) || !reconstructedTracks.insert(number).second) {
-			addDiag(SceneSeverity::Error, "scene.export.ref", "Canonical area conversion requires unique track numbers in canonical decimal spelling: " + name, file);
+			addDiag(SceneSeverity::Error, "scene.export.ref", "Track numbers must be unique whole numbers: " + name, file);
 			return false;
 		}
 		return true;
@@ -1185,7 +1185,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	if (conforming != scene.routes.size()) {
 		if (conforming > 0) {
 			addDiag(SceneSeverity::Error, "scene.export.unsupported",
-				"Route ids mix the route<N> pattern with other names; rename them consistently", "signalling.json");
+				"Route IDs must all follow the route<N> pattern, or none of them", "signalling.json");
 			return result;
 		}
 		routeIndices.clear();
@@ -1232,7 +1232,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 		if (fname != sFile + ".txt") {
 			addDiag(SceneSeverity::Warning, "scene.export.adjusted",
-				"Service file name collided after sanitizing; using " + fname, svc.id);
+				"Another service has the same file name, so this one is written as " + fname, svc.id);
 		}
 		trainFiles.push_back(fname);
 
@@ -1453,7 +1453,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 
 	// Manual recursive walk copying legacy/
 	if (!fs::exists(legacyDir) || !fs::is_directory(legacyDir)) {
-		addDiag(SceneSeverity::Info, "scene.export.info", "scene has no legacy passthrough data; compatibility files were generated from canonical data");
+		addDiag(SceneSeverity::Info, "scene.export.info", "The legacy files were generated from the case, because it holds no original legacy files");
 	} else {
 		auto copyLegacyFile = [&](const fs::path& srcPath) {
 			std::string relStr = srcPath.lexically_relative(legacyDir).u8string();

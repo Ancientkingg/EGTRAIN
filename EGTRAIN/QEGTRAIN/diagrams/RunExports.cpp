@@ -1,6 +1,7 @@
 #include "diagrams/RunExports.h"
 
 #include "diagrams/BlockingTimeScope.h"
+#include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
@@ -76,8 +77,9 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const auto optional = [](double value) {
 		return std::isfinite(value) && value >= 0.0 ? csv::formatDouble(value) : std::string();
 	};
+	const PositionScale scale(extents);
 	// The coordinates of an unmapped envelope belong to the route of its own train, so they are left out.
-	const auto envelopeRow = [&optional](const BlockingTimeDiagramSegment& s, bool mapped) {
+	const auto envelopeRow = [&optional, &scale](const BlockingTimeDiagramSegment& s, bool mapped) {
 		const auto coordinate = [mapped](double value) { return mapped ? csv::formatDouble(value) : std::string(); };
 		return std::vector<std::string>{s.trainName,
 			s.blockId,
@@ -94,7 +96,9 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			optional(s.endClearTime), optional(s.setupTime), optional(s.sightReactionTime),
 			optional(s.releaseTime), optional(s.runTimeMargin),
 			mapped ? std::string("calculated blocking envelope") : std::string(kUnmappedEnvelopeLayer),
-			mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string()};
+			mapped && s.referenceSection > 0 ? std::to_string(s.referenceSection) : std::string(),
+			coordinate(scale.geoAt(s.midPositionKm)),
+			coordinate(scale.geoAt(s.startPositionKm, s.endPositionKm)), coordinate(scale.geoAt(s.endPositionKm, s.startPositionKm))};
 	};
 	std::vector<std::vector<std::string>> rows;
 	for (const BlockingTimeDiagramSegment& s : segments) {
@@ -113,7 +117,8 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 			"planned reference",
 			reference.eventType,
 			reference.stationName,
-			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event"});
+			csv::formatDouble(reference.time), "", "", "", "", "", "", "", "", "", "", "", "", "planned station event", "",
+			csv::formatDouble(scale.geoAt(reference.positionKm))});
 	}
 	for (const auto& row : trajectories)
 		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
@@ -183,20 +188,29 @@ std::optional<double> stopPosition(const CompletedTrain& train, int index, const
 }
 
 // Adds to the diagram the recorded samples of each train that lie inside one of its envelopes there, each moved in time
-// by the shift of its train in `shifts` (0 s for a train without one).
+// by the shift of its train in `shifts` (0 s for a train without one). A repeated train of the diagram has the samples of
+// the train it repeats.
 void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
 	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
 	const double timestepSeconds = data.settings.timestepSeconds;
-	for (const CompletedTrain& train : data.trains) {
-		const CompletedTrajectory& trajectory = train.trajectory;
-		const auto projection = projections.find(train.trainId);
+	const PositionScale scale(diagram.extents);
+	std::vector<std::pair<const CompletedTrain*, std::string>> sampled; // A train of the run and the id it has in the chart
+	for (const CompletedTrain& train : data.trains)
+		sampled.emplace_back(&train, train.trainId);
+	for (const auto& [repeat, source] : diagram.repeatedTrains)
+		for (const CompletedTrain& train : data.trains)
+			if (train.trainId == source)
+				sampled.emplace_back(&train, repeat);
+	for (const auto& [train, trainId] : sampled) {
+		const CompletedTrajectory& trajectory = train->trajectory;
+		const auto projection = projections.find(trainId);
 		if (trajectory.segments.empty() || projection == projections.end())
 			continue;
-		const auto shift = shifts.find(train.trainId);
+		const auto shift = shifts.find(trainId);
 		const double shiftSeconds = shift == shifts.end() ? 0.0 : shift->second;
 		std::vector<const BlockingTimeDiagramSegment*> own;
 		for (const auto& block : diagram.segments)
-			if (block.trainName == train.trainId)
+			if (block.trainName == trainId)
 				own.push_back(&block);
 		for (const TrajectorySegment& valid : trajectory.segments) {
 			bool open = false;
@@ -214,15 +228,37 @@ void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRu
 					continue;
 				}
 				if (!open) {
-					diagram.trajectories.push_back({train.trainId, {}});
+					diagram.trajectories.push_back({trainId, {}});
 					open = true;
 				}
 				diagram.trajectories.back().points.emplace_back(*x, seconds);
-				diagram.trajectoryRows.push_back({train.trainId, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
+				diagram.trajectoryRows.push_back({trainId, "", "", "", csv::formatDouble(*x),
+					"recorded sample", "", "", csv::formatDouble(seconds), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory",
+					"", csv::formatDouble(scale.geoAt(*x))});
 			}
 		}
 	}
+}
+
+// Places a segment that the route of its train does not project onto the reference route on the sections of `extents`
+// that share a resource with its block, from the start of the first of them to the end of the last. False when no
+// section with geometry shares one.
+bool placeOnSharedSections(BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& extents) {
+	const BlockSectionExtent* first = nullptr;
+	const BlockSectionExtent* last = nullptr;
+	for (const BlockSectionExtent& extent : extents) {
+		if (!extent.geometryValid || !shareBlockingTimeResource(extent.id, segment.blockId))
+			continue;
+		if (!first)
+			first = &extent;
+		last = &extent;
+	}
+	if (!first)
+		return false;
+	segment.startPositionKm = first->startKm;
+	segment.endPositionKm = last->endKm;
+	segment.midPositionKm = (segment.startPositionKm + segment.endPositionKm) / 2.0;
+	return true;
 }
 
 } // namespace
@@ -388,7 +424,8 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id, &data.sectionLabels);
+	result.routeSectionCount = static_cast<int>(allExtents.size());
+	matchBlockingSegmentsToSections(result.segments, allExtents, result.referencePath.id);
 	if (!scope.sectionIndices.empty())
 		result.segments.erase(std::remove_if(result.segments.begin(), result.segments.end(),
 								  [&result](const auto& segment) { return !blockingSegmentInSections(segment, result.extents); }),
@@ -408,17 +445,60 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
 	BlockingTimeDiagramData diagram;
 	diagram.referencePath = route.path;
-	const RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
-	auto shifted = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
+	RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
+	// The first train one period later lies on the route of the first train.
+	const std::string nextPeriod = capacityNextPeriodIdentity(result.firstIdentity);
+	if (scope.repeatFirstTrain
+		&& std::find(result.trainIdentities.begin(), result.trainIdentities.end(), nextPeriod) != result.trainIdentities.end()) {
+		diagram.repeatedTrains.emplace(nextPeriod, result.firstIdentity);
+		const auto projection = maps.byTrain.find(result.firstIdentity);
+		if (projection != maps.byTrain.end())
+			maps.byTrain.emplace(nextPeriod, projection->second);
+	}
+	// A compressed occupation can start before 0 s, which validBlockingTimeDiagramInput takes for a missing time, so the
+	// segments are built from the occupations moved to 0 s or later and then moved back.
+	double lift = 0.0;
+	for (const auto& occupations : result.compressedOccupations)
+		for (const BlockingTimeDiagramInput& occupation : occupations)
+			lift = std::max(lift, -occupation.startOccTime);
+	auto lifted = result.compressedOccupations;
+	for (auto& occupations : lifted)
+		for (BlockingTimeDiagramInput& occupation : occupations) {
+			occupation.startOccTime += lift;
+			occupation.endOccTime += lift;
+		}
+	auto shifted = buildBlockingTimeDiagramSegments(lifted, result.trainIdentities);
+	for (BlockingTimeDiagramSegment& segment : shifted) {
+		segment.startTime -= lift;
+		segment.endTime -= lift;
+		segment.originalStartTime -= lift;
+		segment.originalEndTime -= lift;
+	}
 	restoreCompressedOriginalTimes(shifted, result.compression);
 	diagram.segments = projectBlockingSegments(shifted, maps.byTrain, diagram.omitted, &diagram.unmapped);
 	const auto allExtents = buildBlockSectionExtents(route.blocks);
 	diagram.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id, &data.sectionLabels);
-	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back.
+	diagram.routeSectionCount = static_cast<int>(allExtents.size());
+	// Every analysed occupation shares a resource with a block of the scope, so one that the route of its train does not
+	// project is drawn on the blocks of the scope that share a resource with it.
+	std::vector<BlockingTimeDiagramSegment> unplaced;
+	for (BlockingTimeDiagramSegment& segment : diagram.unmapped) {
+		if (placeOnSharedSections(segment, diagram.extents)) {
+			diagram.segments.push_back(std::move(segment));
+			--diagram.omitted;
+		} else {
+			unplaced.push_back(std::move(segment));
+		}
+	}
+	diagram.unmapped = std::move(unplaced);
+	matchBlockingSegmentsToSections(diagram.segments, allExtents, diagram.referencePath.id);
+	// The samples move as the occupations do, the shift that restoreCompressedOriginalTimes takes back. Those of the first
+	// train one period later are the samples of the first train, so they move from its profile reference.
 	std::map<std::string, double> shifts;
-	for (const CapacityCompressionRow& row : result.compression)
-		shifts.emplace(row.identity, row.compressedReference - row.originalReference);
+	for (const CapacityCompressionRow& row : result.compression) {
+		const bool repeated = diagram.repeatedTrains.count(row.identity) > 0;
+		shifts.emplace(row.identity, row.compressedReference - (repeated ? result.compression.front() : row).originalReference);
+	}
 	addRecordedTrajectories(diagram, data, maps.byTrain, shifts);
 	diagram.timeRange = {0.0, 1.0};
 	if (!diagram.segments.empty()) {
@@ -437,13 +517,20 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels) {
 	QStringList values;
 	for (const auto& item : evidence)
-		values << QString(labels ? "%1 / %2 (leader=%3 s; follower=%4 s; candidate=%5 s)" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(labels ? labels->label(item.leaderBlockId) : item.leaderBlockId),
-						  QString::fromStdString(labels ? labels->label(item.followerBlockId) : item.followerBlockId),
+		values << QString(labels ? "%1 / %2: leader offset %3 s, follower offset %4 s, headway %5 s" : "%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
+					  .arg(QString::fromStdString(labels ? readableSectionLabel(item.leaderBlockId, *labels) : item.leaderBlockId),
+						  QString::fromStdString(labels ? readableSectionLabel(item.followerBlockId, *labels) : item.followerBlockId),
 						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
 						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
-	return values.join("; ").toStdString();
+	return values.join(labels ? "\n" : "; ").toStdString();
+}
+
+std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& evidence) {
+	QStringList values;
+	for (const auto& item : evidence)
+		values << QString::fromStdString(shortBlockId(item.leaderBlockId) + " / " + shortBlockId(item.followerBlockId));
+	return values.join(", ").toStdString();
 }
 
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel) {
@@ -561,8 +648,7 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
 	if (scope.routeIndex < 0 || !capacityScopeIssueFrom(data, scope).empty())
 		return {};
-	return capacityAnalysisCsv(analyzeCapacity(capacityInputsFrom(data, scope), scope.periodSeconds, scope.cycleEndOccurrenceId),
-		capacityScopeLabelFrom(data, scope));
+	return capacityAnalysisCsv(capacityAnalysisFrom(data, scope), capacityScopeLabelFrom(data, scope));
 }
 
 std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const CompletedRunData& data) {
@@ -671,6 +757,64 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 				}
 			}
 		}
+	}
+	return result;
+}
+
+std::optional<DelayDiagramData> delayDiagramData(const CompletedRunData& data, int referenceIndex) {
+	if (!data.hasRoute(referenceIndex))
+		return std::nullopt;
+	DelayDiagramData result;
+	result.referencePath = data.routes[static_cast<std::size_t>(referenceIndex)].path;
+	if (result.referencePath.nodes.empty())
+		return std::nullopt;
+	// The positions of each station on the route in path order, once each: two sections share the node between them.
+	std::map<std::string, std::vector<double>> stations;
+	for (const RouteDiagramNode& node : result.referencePath.nodes) {
+		if (node.stationName.empty() || !std::isfinite(node.positionKm))
+			continue;
+		std::vector<double>& positions = stations[node.stationName];
+		if (std::find(positions.begin(), positions.end(), node.positionKm) == positions.end())
+			positions.push_back(node.positionKm);
+	}
+	for (const CompletedTrain& train : data.trains) {
+		std::vector<const TimetableResultRow*> calls; // at stations of the route, in journey order
+		for (const TimetableResultRow& row : data.timetable)
+			if (row.trainId == train.trainId && stations.count(row.stationId))
+				calls.push_back(&row);
+		if (calls.empty()) {
+			result.withoutCalls.push_back(train.trainId);
+			continue;
+		}
+		// The train moves up the route (1) or down it (-1) as between its last two calls that lie apart, and before
+		// those as from its first to its last call at a station that the route passes once; 0 when neither says.
+		std::vector<double> once;
+		for (const TimetableResultRow* call : calls)
+			if (const std::vector<double>& positions = stations.at(call->stationId); positions.size() == 1)
+				once.push_back(positions.front());
+		double direction = 0.0;
+		if (once.size() >= 2 && once.front() != once.back())
+			direction = once.back() > once.front() ? 1.0 : -1.0;
+		DelayDiagramSeries series;
+		series.trainId = train.trainId;
+		std::optional<double> previous;
+		for (const TimetableResultRow* call : calls) {
+			const std::vector<double>& positions = stations.at(call->stationId);
+			double x = positions.front();
+			if (previous && direction != 0.0) {
+				std::optional<double> ahead;
+				for (const double position : positions)
+					if ((position - *previous) * direction >= 0.0 && (!ahead || std::abs(position - *previous) < std::abs(*ahead - *previous)))
+						ahead = position;
+				x = ahead.value_or(x);
+			}
+			if (previous && x != *previous)
+				direction = x > *previous ? 1.0 : -1.0;
+			previous = x;
+			if (call->arrivalDelaySeconds.available)
+				series.points.push_back({x, call->arrivalDelaySeconds.value, call->stationId, call->journeyIndex, call->callIndex});
+		}
+		result.series.push_back(std::move(series));
 	}
 	return result;
 }

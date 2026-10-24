@@ -63,7 +63,7 @@ public:
 		if (edit == Edit::Changed)
 			panel.entityChanged((column == 0 ? QStringLiteral("Rename %1") : QStringLiteral("Edit %1")).arg(m_noun));
 		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("Infrastructure IDs must be non-empty and unique"));
+			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 		else if (edit == Edit::Refused)
 			panel.refuseEdit();
 	}

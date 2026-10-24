@@ -415,7 +415,7 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 std::string directIncidentEvidenceText(const RunResults& results) {
 	const auto withEvidence = std::count_if(results.trains.begin(), results.trains.end(),
 		[](const TrainRunResult& train) { return !train.directIncidentIds.empty(); });
-	return "Direct incident evidence recorded for " + std::to_string(withEvidence) + " of " + std::to_string(results.trains.size())
+	return "Incidents acted on " + std::to_string(withEvidence) + " of " + std::to_string(results.trains.size())
 		+ (results.trains.size() == 1 ? " train" : " trains");
 }
 

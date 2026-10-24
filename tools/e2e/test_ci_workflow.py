@@ -1588,7 +1588,7 @@ def main() -> None:
     document_type_checks = (
         'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
         'PLIST="$MOUNT/QEGTRAIN.app/Contents/Info.plist"\n',
-        'expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case Study"\n',
+        'expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case"\n',
         "expect_plist CFBundleDocumentTypes:0:CFBundleTypeRole Editor\n",
         "expect_plist CFBundleDocumentTypes:0:LSHandlerRank Owner\n",
         "expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene\n",

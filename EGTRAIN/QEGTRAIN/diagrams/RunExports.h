@@ -34,7 +34,7 @@ QImage fullTableImage(const QTableView& table);
 
 /// The blocking-time CSV: the envelopes of the visible trains in `segments`, their planned stop references, the recorded
 /// trajectory rows, the envelopes that could not be projected and one row for each section in `extents`. Every row has
-/// the columns of blockingTimeCsvHeader().
+/// the columns of blockingTimeCsvHeader(); the geo X columns map the positions through the PositionScale of `extents`.
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockingTimePlannedReference>& plannedReferences,
@@ -90,16 +90,21 @@ struct BlockingTimeDiagramData {
 	std::vector<BlockingTimeDiagramSegment> segments; ///< Projected onto the reference route and inside the scope
 	std::vector<BlockingTimeDiagramSegment> unmapped; ///< Could not be projected
 	std::vector<BlockSectionExtent> extents;		  ///< The sections of the scope
+	int routeSectionCount = 0;						  ///< The sections of the whole reference route
 	/// Planned stop events inside the time range.
 	std::vector<BlockingTimePlannedReference> plannedReferences;
 	/// Clipped to the scope, for the chart.
 	std::vector<std::vector<BlockingTimePlannedReference>> plannedLines;
 	std::vector<BlockingTimeTrajectory> trajectories;	  ///< Recorded samples that lie inside an envelope of their train
-	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories
+	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories, with geo X from `extents`
 	/// Elapsed seconds that the chart spans: the interval of the scope, at least 1 s. For a compressed diagram, the
 	/// envelopes with a margin (see compressedBlockingTimeDiagramData).
 	std::pair<double, double> timeRange;
 	int omitted = 0; ///< Endpoints and events that could not be projected
+	/// Trains of the chart that repeat a train of the run, by id, with the id of that train: the first train one period
+	/// later of a compressed diagram. Such a train lies on the route of its train and has its recorded movement, colour
+	/// and service.
+	std::map<std::string, std::string> repeatedTrains;
 };
 
 /// Empty when the scope has no reference route.
@@ -107,20 +112,26 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	const BlockingTimeScope& scope);
 /// The compressed blocking-time diagram of a capacity result, on the route and the blocks of its scope: the compressed
 /// occupations of `result` as envelopes, and the recorded samples of each train of the result that lie inside them,
-/// moved in time as its occupations are (compressed minus profile reference). It has no planned references. The time
-/// range spans the envelopes with a margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope
-/// does; it is 0 s to 1 s without an envelope. Empty when the scope has no route.
+/// moved in time as its occupations are (compressed minus profile reference). An envelope that the route of its train
+/// does not project lies on the blocks of the scope that share a resource with it, from the first to the last. With scope.repeatFirstTrain the first
+/// train one period later is a repeated train of the first train, whose samples move by its compressed reference minus
+/// the profile reference of the first train. It has no planned references. The time range spans the envelopes with a
+/// margin of 5 % of their span, at least 1 s, and starts below 0 s only when an envelope does; it is 0 s to 1 s without
+/// an envelope. Empty when the scope has no route.
 std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const CompletedRunData& data,
 	const CapacityAnalysisScope& scope, const CapacityAnalysisResult& result);
 
-/// The evidence as text, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ". With `labels`
-/// the blocks are named by their labels, "leader / follower", for the tooltips of the window; the export names them by
-/// their ids.
+/// The evidence as the export writes it, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".
+/// With `labels` it is the tooltip of the windows instead: one line per item, "leader / follower: leader offset … s,
+/// follower offset … s, headway … s", with the blocks named by their labels without internal ids (readableSectionLabel).
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels = nullptr);
+/// The blocks of the evidence by their short ids as the section strip shows them (shortBlockId), "leader / follower",
+/// joined with ", ", for the cells of the windows.
+std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& evidence);
 /// The capacity CSV of the result, with times in seconds and the cycle share in percent. Empty when the result cannot
 /// be analysed or has no cycle time or no cycle share.
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel);
-/// Empty when the scope has an issue or the occurrences do not form a chain.
+/// capacityAnalysisCsv of capacityAnalysisFrom; empty when the scope has an issue.
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
 
 /// The routes that trains run on, as (route index, route id) in order of first use.
@@ -161,5 +172,36 @@ struct RouteDiagramData {
 /// The train paths, or the timetable graph when `timetable` is set, on the reference route with the given index.
 /// Empty when the route does not exist or has no nodes.
 std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex);
+
+/// One arrival delay of the Delays chart, at a station of the reference route.
+struct DelayDiagramPoint {
+	double positionKm = 0.0;   ///< Of the station node on the reference route
+	double delaySeconds = 0.0; ///< TimetableResultRow::arrivalDelaySeconds
+	std::string station;	   ///< TimetableResultRow::stationId
+	int journey = 0;		   ///< TimetableResultRow::journeyIndex
+	int call = 0;			   ///< TimetableResultRow::callIndex
+};
+
+/// The arrival delays of one train at the stations of the reference route.
+struct DelayDiagramSeries {
+	std::string trainId;				   ///< Name of the train in the run
+	std::vector<DelayDiagramPoint> points; ///< In journey order; empty when no call there has an arrival delay
+};
+
+/// What the Delays chart shows.
+struct DelayDiagramData {
+	RouteDiagramPath referencePath;			///< The reference route
+	std::vector<DelayDiagramSeries> series; ///< The trains with a call at a station of the route, in run order
+	std::vector<std::string> withoutCalls;	///< The other trains, in run order
+};
+
+/// The arrival delay of each call of each train at a station of the reference route with the given index, at the
+/// position of that station on the route. A call is at the station nodes of the route whose station name is the station
+/// of the call (TimetableResultRow::stationId holds the name). When the route passes the station at more than one
+/// position, the call takes the first that the train reaches at or after its previous call at a station of the route,
+/// moving as between its last two such calls that lie apart, or before those as from its first to its last call at a
+/// station that the route passes once. Otherwise it takes the first of them on the route. Empty when the route does not
+/// exist or has no nodes.
+std::optional<DelayDiagramData> delayDiagramData(const CompletedRunData& data, int referenceIndex);
 
 #endif

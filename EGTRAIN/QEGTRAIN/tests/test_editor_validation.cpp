@@ -1,16 +1,23 @@
+#include "editors/CountText.h"
 #include "editors/ValidationPanel.h"
 
+#include <QAbstractItemView>
 #include <QApplication>
+#include <QHeaderView>
 #include <QLabel>
 #include <QString>
+#include <QStringList>
 #include <QTableWidget>
 #include <QTreeWidget>
+#include <QTreeWidgetItemIterator>
 #include <QWidget>
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -106,17 +113,17 @@ int main(int argc, char** argv) {
 		int previous = 3;
 		for (int row = 0; row < panel.table()->rowCount(); ++row) {
 			const QString severity = panel.table()->item(row, 0)->text();
-			const int rank = severity == "error" ? 2 : (severity == "warning" ? 1 : 0);
+			const int rank = severity == "Error" ? 2 : (severity == "Warning" ? 1 : 0);
 			hasError = hasError || rank == 2;
 			sorted = sorted && rank <= previous;
 			previous = rank;
 		}
 		ok &= expect(hasError && sorted, "the table lists errors first");
-		ok &= expect(panel.statusLabel()->text().startsWith("Not ready: "), "the status says that the scene is not ready");
+		ok &= expect(panel.statusLabel()->text().startsWith("Cannot run: "), "the status says that the scene cannot run");
 		ok &= expect(events.log == Log({"statusChanged", "refreshed"}),
 			"a refresh with a scene says that the status and then the dependents follow");
 		QTreeWidgetItem* root = panel.tree()->topLevelItem(0);
-		ok &= expect(panel.tree()->topLevelItemCount() == 1 && root && root->text(0) == "Case Study" && root->text(3) == "Invalid",
+		ok &= expect(panel.tree()->topLevelItemCount() == 1 && root && root->text(0) == "Case" && root->text(3) == "Invalid",
 			"the tree shows the case, which is invalid while the scene has errors");
 
 		const std::size_t shown = diagnostics.size();
@@ -144,16 +151,28 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.statusLabel()->text().isEmpty(), "a warning has no status in normal mode");
 		diagnostics.push_back(diagnostic(SceneSeverity::Error, "e2e.error", "Error"));
 		panel.updateStatus();
-		ok &= expect(panel.statusLabel()->text() == "Not ready: 1 validation error(s) must be fixed",
-			"an error makes the status say that the scene is not ready");
+		ok &= expect(panel.statusLabel()->text() == "Cannot run: 1 error", "an error makes the status say that the scene cannot run");
 		advanced = true;
 		panel.updateStatus();
-		ok &= expect(panel.statusLabel()->text() == "Validation: 1 error(s), 1 warning(s)",
-			"advanced details give the counts of the errors and the warnings");
+		ok &= expect(panel.statusLabel()->text() == "1 error, 1 warning", "advanced details give the counts of the errors and the warnings");
 		diagnostics.push_back(diagnostic(SceneSeverity::Info, "e2e.info", "Info"));
 		panel.updateStatus();
-		ok &= expect(panel.statusLabel()->text() == "Validation: 1 error(s), 1 warning(s), 1 info",
-			"advanced details add the count of the infos");
+		ok &= expect(panel.statusLabel()->text() == "1 error, 1 warning, 1 info", "advanced details add the count of the infos");
+		diagnostics.push_back(diagnostic(SceneSeverity::Error, "e2e.error", "Error"));
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "e2e.warning", "Warning"));
+		panel.updateStatus();
+		ok &= expect(panel.statusLabel()->text() == "2 errors, 2 warnings, 1 info", "more than one of a kind has a plural");
+		advanced = false;
+		panel.updateStatus();
+		ok &= expect(panel.statusLabel()->text() == "Cannot run: 2 errors", "two errors have a plural in normal mode too");
+		SceneDiagnosticCounts counts;
+		counts.warnings = 3;
+		ok &= expect(ValidationPanel::statusText(counts, true) == "3 warnings" && ValidationPanel::statusText(counts, false).isEmpty()
+				&& ValidationPanel::statusText(SceneDiagnosticCounts(), true).isEmpty(),
+			"a count of zero is left out, and no message gives no status");
+		ok &= expect(countText(0, "error", "errors") == "0 errors" && countText(1, "error", "errors") == "1 error"
+				&& countText(2, "delay", "delays") == "2 delays",
+			"a count takes the singular only for one");
 	}
 
 	{
@@ -166,13 +185,22 @@ int main(int argc, char** argv) {
 
 		panel.refreshLoadedData();
 		QTreeWidgetItem* root = panel.tree()->topLevelItem(0);
-		QTreeWidgetItem* runtime = root ? childRow(root, "Runtime and results") : nullptr;
-		ok &= expect(root && runtime && root->text(1).isEmpty() && runtime->text(3) == "Not built",
+		QTreeWidgetItem* runtime = root ? childRow(root, "Run") : nullptr;
+		ok &= expect(root && runtime && root->text(1).isEmpty() && runtime->text(3) == "Not run",
 			"a tree without a context shows a case that came from nowhere and no run");
-		ok &= expect(runtime && childRow(runtime, "Results") && childRow(runtime, "Results")->text(3) == "Not built"
-				&& childRow(runtime, "Applied scenario")->text(1) == "(none)",
+		ok &= expect(runtime && childRow(runtime, "Results") && childRow(runtime, "Results")->text(3) == "Not run"
+				&& childRow(runtime, "Scenario")->text(1) == "(none)",
 			"a tree without a context has no results and no applied scenario");
-		ok &= expect(root && !childRow(root, "Bundle format version"), "a scene that is no bundle has no bundle format version");
+		ok &= expect(root && !childRow(root, "Bundle version") && !childRow(root, "Format version") && !childRow(root, "Source files discovered")
+				&& childRow(root, "Name") && childRow(root, "Name")->text(2).isEmpty() && childRow(root, "Name")->text(3) == "OK",
+			"without advanced details the tree leaves out the versions and the files, and a row of one fact has no count");
+		bool advancedTree = true;
+		panel.setAdvancedDetails([&advancedTree] { return advancedTree; });
+		panel.refreshLoadedData();
+		root = panel.tree()->topLevelItem(0);
+		ok &= expect(root && childRow(root, "Format version") && childRow(root, "Saved with") && childRow(root, "Source files discovered")
+				&& !childRow(root, "Bundle version"),
+			"advanced details show the versions and the files, and a scene that is no bundle has no bundle version");
 
 		context.sceneDir = "/cases/a";
 		context.sceneIsBundle = true;
@@ -183,27 +211,143 @@ int main(int argc, char** argv) {
 		panel.setLoadedDataContext([&context] { return context; });
 		panel.refreshLoadedData();
 		root = panel.tree()->topLevelItem(0);
-		runtime = root ? childRow(root, "Runtime and results") : nullptr;
+		runtime = root ? childRow(root, "Run") : nullptr;
 		ok &= expect(panel.tree()->topLevelItemCount() == 1 && root && root->text(1) == "/cases/a",
 			"the tree is written again, not extended");
-		QTreeWidgetItem* bundle = root ? childRow(root, "Bundle format version") : nullptr;
-		ok &= expect(bundle && bundle->text(1) == "(not recorded)" && bundle->text(3) == "Missing",
-			"a bundle without a recorded version is shown as missing");
+		QTreeWidgetItem* bundle = root ? childRow(root, "Bundle version") : nullptr;
+		ok &= expect(bundle && bundle->text(1) == "-" && bundle->text(3) == "Not present",
+			"a bundle without a recorded version says so in the words of the other absent facts");
 		context.bundleVersion = 1;
 		panel.refreshLoadedData();
-		bundle = childRow(panel.tree()->topLevelItem(0), "Bundle format version");
-		ok &= expect(bundle && bundle->text(1) == "1" && bundle->text(3) == "Loaded", "a bundle shows its format version");
-		runtime = childRow(panel.tree()->topLevelItem(0), "Runtime and results");
+		bundle = childRow(panel.tree()->topLevelItem(0), "Bundle version");
+		ok &= expect(bundle && bundle->text(1) == "1" && bundle->text(3) == "OK", "a bundle shows its format version");
+		advancedTree = false;
+		panel.updateStatus();
+		ok &= expect(!childRow(panel.tree()->topLevelItem(0), "Bundle version"),
+			"switching advanced details off writes the tree again without the versions");
+		runtime = childRow(panel.tree()->topLevelItem(0), "Run");
 		QTreeWidgetItem* results = runtime ? childRow(runtime, "Results") : nullptr;
-		QTreeWidgetItem* applied = runtime ? childRow(runtime, "Applied scenario") : nullptr;
-		QTreeWidgetItem* run = runtime ? childRow(runtime, "Runtime") : nullptr;
-		ok &= expect(results && results->text(2) == "1" && results->text(3) == "Ready", "a completed run has results");
+		QTreeWidgetItem* applied = runtime ? childRow(runtime, "Scenario") : nullptr;
+		QTreeWidgetItem* run = runtime ? childRow(runtime, "Messages") : nullptr;
+		ok &= expect(results && results->text(2).isEmpty() && results->text(3) == "Ready", "a completed run has results");
 		ok &= expect(applied && applied->text(1) == "scenario.a" && applied->text(3) == "Completed",
 			"the applied scenario and the state of the run are shown");
-		QTreeWidgetItem* runtimeDiagnostic = run ? childRow(run, "e2e.run: Run warning") : nullptr;
+		QTreeWidgetItem* runtimeDiagnostic = run ? childRow(run, "Run warning") : nullptr;
 		ok &= expect(run && run->text(2) == "1" && runtimeDiagnostic && runtimeDiagnostic->text(1) == "run.json"
-				&& runtimeDiagnostic->text(3) == "Warning",
+				&& runtimeDiagnostic->text(3) == "Warning" && runtimeDiagnostic->toolTip(0).endsWith("Code: e2e.run"),
 			"the diagnostics of the run are listed under the runtime");
+	}
+
+	{
+		// a count of problems that is zero shows only with advanced details
+		QWidget host;
+		ValidationPanel panel(&host);
+		SceneDocument document;
+		panel.setDocument(&document);
+		SceneModel imported = caseScene();
+		SceneImportReportRow stations;
+		stations.category = "stations";
+		stations.sourceFile = "Stations.txt";
+		stations.sourceCount = 3;
+		stations.convertedCount = 2;
+		stations.skippedCount = 1;
+		imported.importReport.push_back(stations);
+		document.replace(imported, false);
+		bool advanced = false;
+		panel.setAdvancedDetails([&advanced] { return advanced; });
+		const auto metadataRow = [&panel]() -> QTreeWidgetItem* {
+			QTreeWidgetItem* root = panel.tree()->topLevelItem(0);
+			return root ? childRow(root, "Case metadata") : nullptr;
+		};
+		const auto importRow = [&metadataRow]() -> QTreeWidgetItem* {
+			QTreeWidgetItem* report = metadataRow() ? childRow(metadataRow(), "Import report") : nullptr;
+			return report ? childRow(report, "Stations") : nullptr;
+		};
+		panel.refreshLoadedData();
+		QTreeWidgetItem* row = importRow();
+		ok &= expect(row && childRow(row, "Source records") && childRow(row, "Skipped") && childRow(row, "Skipped")->text(2) == "1"
+				&& !childRow(row, "Unresolved references") && !childRow(metadataRow(), "Validation"),
+			"without advanced details the tree leaves out the counts of problems that are zero");
+		advanced = true;
+		panel.refreshLoadedData();
+		row = importRow();
+		ok &= expect(row && childRow(row, "Unresolved references") && childRow(row, "Unresolved references")->text(2) == "0"
+				&& childRow(metadataRow(), "Validation") && childRow(metadataRow(), "Validation")->text(2) == "0",
+			"advanced details show the counts of zero");
+		ok &= expect(row && childRow(row, "Unresolved references")->text(3) == "OK" && childRow(metadataRow(), "Validation")->text(3) == "OK",
+			"a count of zero problems says OK, as the other rows without a problem do");
+		// Rows that open deeper in the tree widen the Category column, so that their names show whole.
+		QTreeWidget* tree = panel.tree();
+		// QTreeView hides the public sizeHintForColumn of its base, which still calls the tree's own version.
+		const auto contentWidth = [tree] { return static_cast<QAbstractItemView*>(tree)->sizeHintForColumn(0); };
+		const int closedWidth = tree->columnWidth(0);
+		metadataRow()->setExpanded(true);
+		childRow(metadataRow(), "Import report")->setExpanded(true);
+		importRow()->setExpanded(true);
+		ok &= expect(tree->columnWidth(0) > closedWidth && tree->columnWidth(0) >= contentWidth(),
+			"the Category column fits the rows that an expanded row shows");
+		importRow()->setExpanded(false);
+		ok &= expect(tree->columnWidth(0) == std::max(contentWidth(), tree->header()->sectionSizeHint(0)),
+			"the Category column narrows again when a row closes");
+	}
+
+	{
+		// "Ready" is a state of the run; the case and its data say OK when they have no problem, and a message of the run
+		// says its severity
+		QWidget host;
+		ValidationPanel panel(&host);
+		SceneDocument document;
+		SceneModel clean = caseScene();
+		for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json", "rolling_stock.json",
+				 "services.json", "scenarios.json"})
+			clean.sourceFiles.insert(file);
+		document.replace(clean, false);
+		panel.setDocument(&document);
+		panel.setAdvancedDetails([] { return true; });
+		ValidationPanel::LoadedDataContext context;
+		context.runtimeStatus = "Ready";
+		context.runtimeDiagnostics = {diagnostic(SceneSeverity::Info, "e2e.note", "Run note")};
+		panel.setLoadedDataContext([&context] { return context; });
+		panel.refreshLoadedData();
+		QTreeWidgetItem* root = panel.tree()->topLevelItem(0);
+		QTreeWidgetItem* run = root ? childRow(root, "Run") : nullptr;
+		QStringList readyOutsideRun;
+		for (QTreeWidgetItemIterator it(panel.tree()); *it; ++it) {
+			bool inRun = false;
+			for (QTreeWidgetItem* item = *it; item && !inRun; item = item->parent())
+				inRun = item == run;
+			if (!inRun && (*it)->text(3) == "Ready")
+				readyOutsideRun << (*it)->text(0);
+		}
+		ok &= expect(root && root->text(3) == "OK" && run && run->text(3) == "Ready" && readyOutsideRun.isEmpty(),
+			"the case and its data without a problem say OK, and only the run says Ready");
+		context.runtimeDiagnostics.insert(context.runtimeDiagnostics.begin(), diagnostic(SceneSeverity::Error, "e2e.fail", "Run error"));
+		panel.refreshLoadedData();
+		root = panel.tree()->topLevelItem(0);
+		run = root ? childRow(root, "Run") : nullptr;
+		QTreeWidgetItem* messages = run ? childRow(run, "Messages") : nullptr;
+		QTreeWidgetItem* failRow = messages ? childRow(messages, "Run error") : nullptr;
+		QTreeWidgetItem* noteRow = messages ? childRow(messages, "Run note") : nullptr;
+		ok &= expect(failRow && failRow->text(3) == "Error" && failRow->toolTip(0) == "Run error\nCode: e2e.fail" && noteRow
+				&& noteRow->text(3) == "Info",
+			"a message of the run says its severity as the Case Validation table does, and its code in the tooltip");
+
+		// A long message does not push Count and Status out of view, and its tooltip shows it whole with its fix.
+		const std::string longMessage(200, 'm');
+		SceneDiagnostic longDiagnostic = diagnostic(SceneSeverity::Warning, "e2e.long", longMessage.c_str());
+		longDiagnostic.suggestedFix = "Shorten it";
+		context.runtimeDiagnostics.push_back(longDiagnostic);
+		panel.refreshLoadedData();
+		run = childRow(panel.tree()->topLevelItem(0), "Run");
+		messages = run ? childRow(run, "Messages") : nullptr;
+		QTreeWidgetItem* longRow = messages ? childRow(messages, QString::fromStdString(longMessage)) : nullptr;
+		if (longRow) {
+			run->setExpanded(true);
+			messages->setExpanded(true);
+		}
+		ok &= expect(longRow && panel.tree()->columnWidth(0) == ValidationPanel::kTreeTextColumnWidth
+				&& longRow->toolTip(0) == QString::fromStdString(longMessage + "\n\nShorten it\nCode: e2e.long"),
+			"the Category column stops growing at its limit, and a long message shows whole in its tooltip");
 	}
 
 	{
@@ -229,8 +373,11 @@ int main(int argc, char** argv) {
 		QWidget host;
 		ValidationPanel panel(&host);
 		panel.table()->setRowCount(2);
-		panel.table()->setItem(0, 3, new QTableWidgetItem("services.json"));
-		panel.table()->setItem(1, 3, new QTableWidgetItem("infrastructure.json"));
+		for (const auto& [row, file] : {std::pair<int, const char*>{0, "services.json"}, {1, "infrastructure.json"}}) {
+			auto* severity = new QTableWidgetItem("Error");
+			severity->setData(ValidationPanel::kFileRole, QString(file));
+			panel.table()->setItem(row, 0, severity);
+		}
 
 		panel.selectDiagnosticOfFile("infrastructure.json");
 		ok &= expect(panel.table()->selectionModel()->isRowSelected(1, QModelIndex()) && !panel.table()->selectionModel()->isRowSelected(0, QModelIndex()),
@@ -238,6 +385,52 @@ int main(int argc, char** argv) {
 		panel.selectDiagnosticOfFile("missing.json");
 		ok &= expect(panel.table()->selectionModel()->isRowSelected(1, QModelIndex()),
 			"a file without a row leaves the selection as it was");
+	}
+
+	{
+		// the table shows the severity, the message and the fix; the code, the file and the path are in the tooltip of the
+		// row and are columns only with advanced details
+		QWidget host;
+		ValidationPanel panel(&host);
+		SceneDocument document;
+		std::vector<SceneDiagnostic> diagnostics;
+		bool advanced = false;
+		panel.setDocument(&document);
+		panel.setDiagnostics(&diagnostics);
+		panel.setAdvancedDetails([&advanced] { return advanced; });
+		SceneModel scene = caseScene();
+		scene.baseTime.clear();
+		document.replace(scene, false);
+		panel.refresh();
+		QTableWidget* table = panel.table();
+		QStringList headers;
+		for (int column = 0; column < table->columnCount(); ++column)
+			headers << table->horizontalHeaderItem(column)->text();
+		const auto shown = [table] {
+			QStringList columns;
+			for (int column = 0; column < table->columnCount(); ++column)
+				if (!table->isColumnHidden(column))
+					columns << table->horizontalHeaderItem(column)->text();
+			return columns;
+		};
+		int baseTimeRow = -1;
+		for (int row = 0; row < table->rowCount(); ++row)
+			if (table->item(row, 1)->text() == "scene.basetime.missing")
+				baseTimeRow = row;
+		ok &= expect(headers == QStringList({"Severity", "Code", "Message", "File", "Path", "Fix"})
+				&& shown() == QStringList({"Severity", "Message", "Fix"}),
+			"without advanced details the table shows the severity, the message and the fix");
+		ok &= expect(baseTimeRow >= 0 && table->item(baseTimeRow, 0)->text() == "Error"
+				&& table->item(baseTimeRow, 0)->data(ValidationPanel::kFileRole).toString() == "scene.json"
+				&& table->item(baseTimeRow, 2)->toolTip() == "Code: scene.basetime.missing\nFile: scene.json\nPath: base_time"
+				&& table->item(baseTimeRow, 5)->toolTip() == table->item(baseTimeRow, 2)->toolTip(),
+			"a row keeps its file as data and names its code, file and path in its tooltip, one per line");
+		advanced = true;
+		panel.updateStatus();
+		ok &= expect(shown() == headers, "advanced details show every column");
+		advanced = false;
+		panel.updateStatus();
+		ok &= expect(shown() == QStringList({"Severity", "Message", "Fix"}), "the columns follow advanced details back");
 	}
 
 	return ok ? 0 : 1;

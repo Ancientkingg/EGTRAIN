@@ -62,7 +62,7 @@ public:
 	/// Shows the fields of the selected scenario again.
 	void updateDetail();
 	/// One line that names the selected scenario, for a header over the editors that work on its entries, such as
-	/// "Scenario: id (name)" or "No scenario selected".
+	/// "Scenario: name", "Scenario: name (id)" when another scenario has the same name, or "No scenario selected".
 	QString headerText() const;
 
 	/// Selects the scenario at this position of the scene; the list follows when it is refreshed.

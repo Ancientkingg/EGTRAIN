@@ -425,7 +425,7 @@ EXTENSION_LINE = (
     "Flags: uninsdeletevalue uninsdeletekeyifempty\n"
 )
 PROG_ID_LINE = (
-    'Root: HKCU; Subkey: "Software\\Classes\\EGTRAIN.Scene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN case study"; '
+    'Root: HKCU; Subkey: "Software\\Classes\\EGTRAIN.Scene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN case"; '
     "Flags: uninsdeletekey\n"
 )
 ICON_LINE = (
@@ -727,7 +727,7 @@ class MutationTests(unittest.TestCase):
             ("registry", "%1", COMMAND_LINE, COMMAND_LINE.replace("%1", "%2")),
             ("registry", "%1", COMMAND_LINE, COMMAND_LINE.replace(' ""%1"""', '"')),
             ("registry", "QEGTRAIN.exe", COMMAND_LINE, COMMAND_LINE.replace('"""{app}', '"{app}').replace('exe"" ""', 'exe ""')),
-            ("registry", "display name", PROG_ID_LINE, PROG_ID_LINE.replace('"EGTRAIN case study"', '""')),
+            ("registry", "display name", PROG_ID_LINE, PROG_ID_LINE.replace('"EGTRAIN case"', '""')),
             ("registry", "default value", ICON_LINE, ICON_LINE.replace('ValueName: ""', 'ValueName: "Icon"')),
             ("registry", "default value", ICON_LINE, ICON_LINE.replace("ValueType: string", "ValueType: dword")),
         ])
@@ -787,7 +787,7 @@ class AcceptedChangeTests(unittest.TestCase):
         self.assertFine(mutate(text, "PrivilegesRequired=lowest", "privilegesrequired=lowest"))
 
     def test_the_display_name_is_free_text(self):
-        self.assertFine(mutate(self.text, PROG_ID_LINE, PROG_ID_LINE.replace("EGTRAIN case study", "EGTRAIN Case Study File")))
+        self.assertFine(mutate(self.text, PROG_ID_LINE, PROG_ID_LINE.replace("EGTRAIN case", "EGTRAIN Case File")))
 
     def test_flags_may_come_in_another_order_and_the_root_in_another_case(self):
         flags = EXTENSION_LINE.replace("uninsdeletevalue uninsdeletekeyifempty", "uninsdeletekeyifempty uninsdeletevalue")

@@ -117,14 +117,14 @@ bool exerciseRows() {
 	const QString when = QLocale().toString(writtenTime().toLocalTime(), QLocale::ShortFormat);
 	ok &= check(when.contains(QStringLiteral("2026")) && when.contains(QStringLiteral("09:05")), "the time shows the date and the local time");
 	const char* const names[] = {"New case study", "Line 7", "Old depot", "Newer file", "Same file", "Unknown file", "Future copy", "Old format"};
-	const char* const sources[] = {"New case study, not saved", "/home/test/cases/Line 7.egscene", "/home/test/cases/old_depot",
+	const char* const sources[] = {"Not saved yet", "/home/test/cases/Line 7.egscene", "/home/test/cases/old_depot",
 		"/home/test/cases/Newer.egscene", "/home/test/cases/Same.egscene", "/home/test/cases/Unknown.egscene",
 		"/home/test/cases/Future.egscene", "/home/test/cases/Format.egscene"};
 	const char* const notes[] = {"", "The original changed after this copy was made.", "The original is missing.",
 		"The original is newer than this copy, so the copy is probably obsolete.", "",
 		"The original could not be compared with this copy.",
 		"This copy was made by a newer version of EGTRAIN and cannot be opened by this version.",
-		"This copy uses a different scene version and cannot be opened by this version of EGTRAIN."};
+		"This version of EGTRAIN cannot open this copy."};
 	for (int row = 0; row < 8; ++row) {
 		const QFrame* frame = parts.rows.at(row);
 		ok &= check(parts.selectors.at(row)->text() == QString::fromLatin1(names[row]), "display name");
@@ -136,7 +136,8 @@ bool exerciseRows() {
 	}
 
 	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(context && context->text().startsWith(QStringLiteral("EGTRAIN closed before these cases were saved.")), "context names several cases");
+	ok &= check(context && context->text() == QStringLiteral("EGTRAIN closed before these cases were saved. Recovering opens an unsaved copy. The originals stay unchanged until you save."),
+		"context names several cases");
 	ok &= check(!dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved")), "no line about removed copies when none were removed");
 	ok &= check(dialog.windowTitle() == QStringLiteral("Recover Unsaved Work"), "window title");
 	return ok;
@@ -299,10 +300,10 @@ bool exerciseText() {
 		"an ampersand in a name is not a shortcut");
 	ok &= check(parts.selectors.at(1)->text() == QStringLiteral("Untitled case"), "a case without a name is called untitled");
 	ok &= check(textOf(parts.rows.at(1), "recoveryTime") == QStringLiteral("Autosave time unknown"), "an unknown time is said so");
-	ok &= check(textOf(parts.rows.at(1), "recoverySource") == QStringLiteral("New case study, not saved"), "a source without a path is a new case");
+	ok &= check(textOf(parts.rows.at(1), "recoverySource") == QStringLiteral("Not saved yet"), "a source without a path is a new case");
 	auto* removed = dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
 	ok &= check(removed && removed->isVisible()
-			&& removed->text() == QStringLiteral("3 older recovery copies were removed, because EGTRAIN keeps the newest 20."),
+			&& removed->text() == QStringLiteral("Removed 3 older copies. EGTRAIN keeps the newest 20."),
 		"the dialog says that older copies were removed");
 
 	RecoveryScan oneRemoved;
@@ -310,10 +311,11 @@ bool exerciseText() {
 	oneRemoved.removedOverCap = 1;
 	RecoveryPrompt singleDialog(oneRemoved);
 	auto* oneLine = singleDialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
-	ok &= check(oneLine && oneLine->text() == QStringLiteral("1 older recovery copy was removed, because EGTRAIN keeps the newest 20."),
+	ok &= check(oneLine && oneLine->text() == QStringLiteral("Removed 1 older copy. EGTRAIN keeps the newest 20."),
 		"one removed copy");
 	auto* context = singleDialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(context && context->text().startsWith(QStringLiteral("EGTRAIN closed before this case was saved.")), "context names one case");
+	ok &= check(context && context->text() == QStringLiteral("EGTRAIN closed before this case was saved. The original stays unchanged until you save."),
+		"context names one case");
 
 	RecoveryPrompt empty{RecoveryScan()};
 	const Parts none = partsOf(empty);

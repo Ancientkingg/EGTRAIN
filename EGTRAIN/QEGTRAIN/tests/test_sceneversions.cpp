@@ -288,7 +288,7 @@ static bool checkRejectionReason(const Fixture& fixture, const SceneCompatibilit
 	bool ok = expect(text.find("schema " + std::to_string(fixture.schemaVersion)) != std::string::npos,
 		name + ": the reason \"" + text + "\" does not name the schema number");
 	if (fixture.reason == "scene.compatibility.draft") {
-		ok &= expect(text.find("2026-08-08") != std::string::npos && text.find("Load Legacy Case") != std::string::npos,
+		ok &= expect(text.find("2026-08-08") != std::string::npos && text.find("Import Legacy Case") != std::string::npos,
 			name + ": the reason \"" + text + "\" does not name the date and the way out");
 	}
 	return ok;

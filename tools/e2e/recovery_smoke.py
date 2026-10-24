@@ -178,7 +178,7 @@ def scenario_new_case(smoke: Smoke) -> None:
     saved = folder / "saved.egscene"
     output = smoke.run("start-again", SCENE, root, answer="recover", save_as=saved)
     prompt = fields(output, "E2E_RECOVERY_PROMPT")
-    require(prompt["rows"] == "1" and prompt["source"] == "New case study, not saved" and prompt["default"] == "recover",
+    require(prompt["rows"] == "1" and prompt["source"] == "Not saved yet" and prompt["default"] == "recover",
             f"the prompt does not offer a new case: {prompt}", output)
     # A new case has no services and no rolling stock, so it is a saved scene that scene_tool would not accept as complete.
     check_recovered(output, saved)

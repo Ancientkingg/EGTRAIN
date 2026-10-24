@@ -96,6 +96,7 @@ class ServicePanel;
 class SignalItem;
 class SimulationWorker;
 class StationNodeItem;
+class StationOverlayItem;
 class TelemetryConsent;
 class TimeProgressBar;
 class TimetableStopsPanel;
@@ -198,7 +199,7 @@ public:
 	/// Shows the case chooser with the bundled and the recent scenes, and acts on the choice.
 	void showStartupChooser();
 
-	/// The last choice of View > Show Passengers, which the start uses when -pax is not given.
+	/// The last choice of View > Passengers, which the start uses when -pax is not given.
 	static bool savedShowPassengers();
 
 protected:
@@ -728,6 +729,7 @@ private:
 	bool isTrainOverlayPromoted(int trainIndex) const override;
 	void trainWillUpdate(int trainIndex) override;
 	bool trainPlaced(int trainIndex, const QPointF& center) override;
+	void trainMoved(int trainIndex, const QPointF& center) override;
 	void trainHidden(int trainIndex) override;
 	bool trainAdded(int trainIndex, bool firstLiveTrain) override;
 	void signalsApplied() override;
@@ -740,6 +742,8 @@ private:
 	void showBlockingTimeDiagram();
 
 	void updateViewportOverlays();
+	const StationOverlayItem* followedStation() const;
+	bool followedStationChanged() const;
 	void updateSignalCues();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);

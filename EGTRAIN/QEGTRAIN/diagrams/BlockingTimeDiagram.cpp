@@ -5,8 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iomanip>
-#include <locale>
 #include <sstream>
 
 namespace {
@@ -24,40 +22,17 @@ constexpr std::size_t kColumnStartX = 9;
 constexpr std::size_t kColumnEndX = 10;
 constexpr std::size_t kColumnLayer = 21;
 constexpr std::size_t kColumnReferenceSection = 22;
+constexpr std::size_t kColumnGeoPosition = 23;
+constexpr std::size_t kColumnStartGeoX = 24;
+constexpr std::size_t kColumnEndGeoX = 25;
 
 bool hasValue(const std::string& value) {
 	return !value.empty() && value != "None";
 }
 
-std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
-	std::vector<std::string> tokens;
-	std::istringstream line(blockId);
-	std::string token;
-	int validTokenIndex = 0;
-	while (std::getline(line, token, '@')) {
-		if (token.empty())
-			continue;
-		if (validTokenIndex == 0 || validTokenIndex == 2)
-			tokens.push_back(token);
-		validTokenIndex++;
-	}
-	if (tokens.empty() && hasValue(blockId))
-		tokens.push_back(blockId);
-	return tokens;
-}
-
-// A section in a note: its label and id, or its id without labels.
-std::string sectionName(const std::string& id, const SceneSectionLabels* labels) {
-	return labels ? labels->labelWithId(id) : id;
-}
-
-std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count, const char* relation,
-	const SceneSectionLabels* labels) {
-	std::ostringstream text;
-	text.imbue(std::locale::classic());
-	text << std::fixed << std::setprecision(3) << "Reference section: " << extent.order << " of " << count << ", "
-		 << sectionName(extent.id, labels) << ", " << extent.lowerKm() << " to " << extent.upperKm() << " km (" << relation << ")";
-	return text.str();
+// A section of the reference route that shares a block with the envelope of another section.
+std::string referenceSectionNote(const BlockSectionExtent& extent, std::size_t count) {
+	return "Section " + std::to_string(extent.order) + " of " + std::to_string(count) + ": " + shortBlockId(extent.id);
 }
 
 bool overlaps(const BlockingTimeDiagramInput& a, const BlockingTimeDiagramInput& b) {
@@ -76,6 +51,42 @@ BlockingTimeSegmentStyle segmentStyle(const BlockingTimeDiagramInput& block, boo
 }
 
 } // namespace
+
+std::vector<std::string> comparableBlockTokens(const std::string& blockId) {
+	std::vector<std::string> tokens;
+	std::istringstream line(blockId);
+	std::string token;
+	int validTokenIndex = 0;
+	while (std::getline(line, token, '@')) {
+		if (token.empty())
+			continue;
+		if (validTokenIndex == 0 || validTokenIndex == 2)
+			tokens.push_back(token);
+		validTokenIndex++;
+	}
+	if (tokens.empty() && hasValue(blockId))
+		tokens.push_back(blockId);
+	return tokens;
+}
+
+std::string shortBlockId(const std::string& blockId) {
+	std::string text;
+	for (const std::string& token : comparableBlockTokens(blockId))
+		text += (text.empty() ? "" : "/") + token;
+	return text.empty() ? blockId : text;
+}
+
+std::string readableSectionLabel(const std::string& reference, const SceneSectionLabels& labels) {
+	std::string text = labels.label(reference);
+	if (text == reference) return shortBlockId(reference);
+	// A label that two sections share ends with the id of its section in round brackets.
+	const auto open = text.rfind(" (");
+	if (open != std::string::npos && text.back() == ')') {
+		const std::string id = text.substr(open + 2, text.size() - open - 3);
+		if (id.find('@') != std::string::npos) text = text.substr(0, open + 2) + shortBlockId(id) + ")";
+	}
+	return text;
+}
 
 bool shareBlockingTimeResource(const std::string& aBlockId, const std::string& bBlockId) {
 	std::vector<std::string> aTokens = comparableBlockTokens(aBlockId);
@@ -283,8 +294,12 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 		extent.id = inputs[i].id;
 		extent.startKm = inputs[i].startKm;
 		extent.endKm = inputs[i].endKm;
+		const bool geoKnown = std::isfinite(inputs[i].geoStartKm) && std::isfinite(inputs[i].geoEndKm);
+		extent.geoStartKm = geoKnown ? inputs[i].geoStartKm : extent.startKm;
+		extent.geoEndKm = geoKnown ? inputs[i].geoEndKm : extent.endKm;
+		extent.isSwitch = inputs[i].isSwitch;
 		if (!std::isfinite(extent.startKm) || !std::isfinite(extent.endKm))
-			extent.issue = "coordinate is not finite";
+			extent.issue = "no valid position";
 		else if (std::abs(extent.endKm - extent.startKm) <= kBlockSectionMinimumLengthKm)
 			extent.issue = "zero length";
 		extent.geometryValid = extent.issue.empty();
@@ -294,7 +309,7 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 }
 
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId, const SceneSectionLabels* labels) {
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId) {
 	for (BlockingTimeDiagramSegment& segment : segments) {
 		segment.referenceSection = 0;
 		segment.referenceNote.clear();
@@ -314,18 +329,13 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 		const auto& candidates = exact.empty() ? shared : exact;
 		if (candidates.size() == 1) {
 			segment.referenceSection = candidates.front()->order;
-			segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size(),
-				exact.empty() ? "shares a block with this envelope's section" : "same section", labels);
+			// The hover names the block, so a block that is the section needs no note.
+			if (exact.empty()) segment.referenceNote = referenceSectionNote(*candidates.front(), extents.size());
 		} else if (candidates.size() > 1) {
-			segment.referenceNote = "Ambiguous reference sections on route " + referenceRouteId + ": ";
-			// A switch label holds a comma, so labelled sections are listed with semicolons.
-			for (const auto* candidate : candidates) {
-				if (candidate != candidates.front())
-					segment.referenceNote += labels ? "; " : ", ";
-				segment.referenceNote += std::to_string(candidate->order) + (labels ? ": " : ":") + sectionName(candidate->id, labels);
-			}
+			segment.referenceNote = "Matches several sections of " + referenceRouteId;
+			for (const auto* candidate : candidates) segment.referenceNote += "\n" + referenceSectionNote(*candidate, extents.size());
 		} else {
-			segment.referenceNote = "Not a section of the reference route " + referenceRouteId;
+			segment.referenceNote = "Not on " + referenceRouteId;
 		}
 	}
 }
@@ -363,6 +373,25 @@ bool positionInBlockSections(double positionKm, const std::vector<BlockSectionEx
 	});
 }
 
+std::vector<BlockSectionMarks> blockSectionMarks(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<BlockingTimeDiagramSegment>& segments, const std::vector<double>& stationKm, bool compressed) {
+	std::vector<BlockSectionMarks> marks(extents.size());
+	for (std::size_t i = 0; i < extents.size(); ++i) {
+		const BlockSectionExtent& extent = extents[i];
+		marks[i].station = extent.geometryValid && std::any_of(stationKm.begin(), stationKm.end(), [&extent](double km) {
+			return km >= extent.lowerKm() - kBlockSectionToleranceKm && km <= extent.upperKm() + kBlockSectionToleranceKm;
+		});
+		for (const BlockingTimeDiagramSegment& segment : segments) {
+			if (segment.referenceSection != extent.order) continue;
+			if (compressed && segment.capacityCritical)
+				marks[i].critical = true;
+			else if (segment.style == BlockingTimeSegmentStyle::Critical || segment.style == BlockingTimeSegmentStyle::CriticalStation)
+				marks[i].conflict = true;
+		}
+	}
+	return marks;
+}
+
 std::optional<std::pair<double, double>> blockSectionBounds(const std::vector<BlockSectionExtent>& extents) {
 	std::optional<std::pair<double, double>> bounds;
 	for (const auto& extent : extents) {
@@ -384,26 +413,16 @@ std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>
 		for (std::size_t index = 0; index < extents.size(); ++index)
 			if (std::find(indices.begin(), indices.end(), static_cast<int>(index)) == indices.end()
 				&& shareBlockingTimeResource(section.id, extents[index].id))
-				return "Selected section resources also occur outside this scope; the capacity analysis cannot distinguish those occurrences.";
-	for (std::size_t index = 1; index < selected.size(); ++index)
-		if (shareBlockingTimeResource(selected.front().id, selected[index].id))
-			return "Selected entry resource occurs more than once; the capacity analysis cannot identify a unique entry occurrence.";
+				return "A selected block is also used outside the chosen blocks, so the passes cannot be told apart. Choose other blocks.";
 	return {};
-}
-
-bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
-	const std::string& entryBlockId) {
-	return std::count_if(occupations.begin(), occupations.end(), [&entryBlockId](const auto& occupation) {
-		return validBlockingTimeDiagramInput(occupation) && std::isfinite(occupation.startRunTime)
-			&& occupation.startRunTime >= 0 && shareBlockingTimeResource(occupation.blockId, entryBlockId);
-	}) > 1;
 }
 
 const std::vector<std::string>& blockingTimeCsvHeader() {
 	static const std::vector<std::string> header = {"Train", "Block", "Occupation start[s]", "Occupation end[s]",
 		"Position[km]", "Segment type", "Planned reference", "Station", "Planned time[s]", "Start X[km]", "End X[km]",
-		"Original start[s]", "Original end[s]", "Approach[s]", "Run start[s]", "Run end[s]", "Clearance[s]",
-		"Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section"};
+		"Original start[s]", "Original end[s]", "Original approach[s]", "Original run start[s]", "Original run end[s]",
+		"Original clearance[s]", "Setup[s]", "Sight reaction[s]", "Release[s]", "Run margin[s]", "Layer", "Reference section",
+		"Geo position[km]", "Start geo X[km]", "End geo X[km]"};
 	return header;
 }
 
@@ -419,6 +438,9 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 			row[kColumnPosition] = csv::formatDouble((extent.startKm + extent.endKm) / 2.0);
 			row[kColumnStartX] = csv::formatDouble(extent.startKm);
 			row[kColumnEndX] = csv::formatDouble(extent.endKm);
+			row[kColumnGeoPosition] = csv::formatDouble((extent.geoStartKm + extent.geoEndKm) / 2.0);
+			row[kColumnStartGeoX] = csv::formatDouble(extent.geoStartKm);
+			row[kColumnEndGeoX] = csv::formatDouble(extent.geoEndKm);
 			row[kColumnLayer] = kBlockSectionLayer;
 		} else {
 			row[kColumnLayer] = kBlockSectionMissingLayer;
@@ -428,19 +450,32 @@ std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<Bloc
 	return rows;
 }
 
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels) {
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents) {
 	constexpr std::size_t kListedIds = 3;
 	std::vector<std::string> ids;
 	for (const BlockSectionExtent& extent : extents)
 		if (!extent.geometryValid)
-			ids.push_back(sectionName(extent.id, labels));
+			ids.push_back(shortBlockId(extent.id));
 	if (ids.empty())
 		return std::string();
-	std::string note = " Reference sections without a usable extent: ";
-	// A switch label holds a comma, so labelled sections are listed with semicolons.
+	std::string note = "Sections not drawn (no valid length): ";
 	for (std::size_t i = 0; i < ids.size() && i < kListedIds; ++i)
-		note += (i > 0 ? (labels ? "; " : ", ") : "") + ids[i];
+		note += (i > 0 ? ", " : "") + ids[i];
 	if (ids.size() > kListedIds)
 		note += " and " + std::to_string(ids.size() - kListedIds) + " more";
-	return note + ".";
+	return note;
+}
+
+std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId) {
+	std::vector<std::string> parts;
+	if (omitted == 1)
+		parts.push_back("1 block or stop could not be placed on " + routeId + " and is not shown.");
+	else if (omitted > 1)
+		parts.push_back(std::to_string(omitted) + " blocks or stops could not be placed on " + routeId + " and are not shown.");
+	if (nothingPlotted)
+		parts.push_back(unplaced ? "No blocking times could be placed on " + routeId + "."
+								 : std::string("No complete blocking times in this section and period."));
+	std::string note;
+	for (const std::string& part : parts) note += (note.empty() ? "" : " ") + part;
+	return note;
 }

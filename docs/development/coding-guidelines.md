@@ -326,7 +326,7 @@ to the console directly.
   with `eglog::configureFromEnvironment()` and opens the file named by `EGTRAIN_LOG_FILE`. It
   returns a warning for `main()` to print on `std::cerr` when a rule is malformed or the file
   cannot be opened. The sink writes the text unchanged, with no prefix, to the same streams as
-  the default sink, except that `app.ui` goes to `std::cerr` while the Console Log dock is not
+  the default sink, except that `app.ui` goes to `std::cerr` while the Log dock is not
   installed, because Qt's own handler writes there. The dock shows `level category: ` in front of
   each message that comes through the core, taken from the values the core passes; text written
   to `std::cout` or `std::cerr` directly shows as written. The log file gets the same lines

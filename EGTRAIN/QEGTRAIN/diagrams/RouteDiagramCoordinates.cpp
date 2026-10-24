@@ -93,7 +93,7 @@ std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionEx
 			any = true;
 		}
 	}
-	return {low - 0.01, std::max(low + 0.02, high + 0.01)};
+	return {low, std::max(low + 0.02, high)};
 }
 
 // A stop keeps the canonical node ID and route X assigned by the native operations builder. Never substitute the map X

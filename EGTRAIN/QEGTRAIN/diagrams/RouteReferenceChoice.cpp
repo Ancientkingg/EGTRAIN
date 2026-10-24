@@ -42,8 +42,7 @@ QVector<RouteReferenceChoice> buildRouteReferenceChoices(const SceneModel& scene
 			: sceneRouteStations(scene, *sceneRoute, inventory);
 		if (!stations.resolved) {
 			choice.label = QString("%1 (station order unavailable)").arg(choice.routeId);
-			choice.toolTip = QString("%1: station order unavailable. The route is not in the scene or its topology does not resolve.")
-								 .arg(choice.routeId);
+			choice.toolTip = QString("%1: station order unavailable.").arg(choice.routeId);
 		} else if (stations.stationIds.empty()) {
 			choice.label = QString("%1 (no stations on this route)").arg(choice.routeId);
 			choice.toolTip = choice.label;

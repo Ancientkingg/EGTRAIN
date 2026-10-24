@@ -827,7 +827,7 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 	QFont font = appFont;
 	font.setPointSizeF(12 * scale);
 	QApplication::setFont(font);
-	QMessageBox box(QMessageBox::Information, QStringLiteral("EGTRAIN 1.0.2 is Available"), QStringLiteral("EGTRAIN 1.0.2 is available."));
+	QMessageBox box(QMessageBox::Information, QStringLiteral("EGTRAIN 1.0.2 Is Available"), QStringLiteral("EGTRAIN 1.0.2 is available."));
 	auto* update = box.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
 	box.addButton(QStringLiteral("Open Release Page"), QMessageBox::AcceptRole);
 	box.addButton(QStringLiteral("Stop Checking"), QMessageBox::DestructiveRole);
@@ -960,7 +960,7 @@ bool exerciseFooterTabOrder() {
 	return ok;
 }
 
-// A spin box outside a dialog, such as one in a cell of the traction table of Rolling stock units, gets the height it
+// A spin box outside a dialog, such as one in a cell of the traction table of Rolling Stock Units, gets the height it
 // asks for in a table cell, so that its text is not cut. It asks for 6 px more width and 2 px more height than a Fusion
 // spin box at the offscreen font whatever its padding, so the columns of the traction table are a little wider than
 // with Fusion; test_editor_smoke checks that the Rolling stock dock still holds its buttons. The spin box uses Fusion,
@@ -1074,9 +1074,8 @@ std::pair<int, QRgb> leftBorder(QWidget* widget) {
 	return {qRound(width / image.devicePixelRatio()), color};
 }
 
-// The Run details toggle of the run review and the Calculation details toggle of the capacity analysis, built as their
-// dialogs build them, show keyboard focus with a border as wide and in the same colour as a push button of the dialog,
-// such as Loaded Data beside the first.
+// The Run details toggle of the run review, built as its dialog builds it, shows keyboard focus with a border as wide and in
+// the same colour as a push button of the dialog, such as Loaded Data beside it.
 bool exerciseDetailsToggleFocus(const QString& name, const QString& text) {
 	QDialog review;
 	auto* body = new QWidget;
@@ -1172,8 +1171,7 @@ int main(int argc, char** argv) {
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
 	const bool runReview = exerciseRunReviewDefault();
-	const bool detailsToggle = exerciseDetailsToggleFocus(QStringLiteral("runReviewDetailsToggle"), QStringLiteral("Run details"))
-		&& exerciseDetailsToggleFocus(QStringLiteral("capacityDetailsToggle"), QStringLiteral("Calculation details"));
+	const bool detailsToggle = exerciseDetailsToggleFocus(QStringLiteral("runReviewDetailsToggle"), QStringLiteral("Run details"));
 	const bool menuButtons = exerciseMenuButtonRoom();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);

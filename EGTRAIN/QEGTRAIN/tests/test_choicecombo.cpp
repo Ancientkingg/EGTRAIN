@@ -6,6 +6,7 @@
 #include <QAbstractItemView>
 #include <QAbstractSpinBox>
 #include <QApplication>
+#include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -41,7 +42,7 @@ QString choiceName(int length) {
 		.left(length);
 }
 
-const QString kExplanation = QStringLiteral("Invalid: platform is not reachable on this route");
+const QString kExplanation = QStringLiteral("The route does not use this platform.");
 
 // A combo box that adjusts to its contents resizes itself 20 ms after its items change, which
 // undoes the size the layout gave it, and the layout restores that size in the next turn of the
@@ -62,7 +63,7 @@ struct StopForm {
 	QScrollArea* scroll = nullptr;
 
 	// Fills the combos the way the stop editor does: the platform list is rebuilt
-	// with signals blocked, and an unknown platform becomes an "Invalid" item.
+	// with signals blocked, and an unknown platform gets an item marked "(not on the route)".
 	StopForm(const QRect& screen, qreal scale, const QString& platformId) {
 		QFont font = dialog.font();
 		font.setPointSizeF(12 * scale);
@@ -78,7 +79,7 @@ struct StopForm {
 		form->addRow(QStringLiteral("Station"), station);
 		form->addRow(QStringLiteral("Compatible platform"), platform);
 		form->addRow(QStringLiteral("Planned time display"), mode);
-		form->addRow(QStringLiteral("Arrival"), new QLineEdit(&dialog));
+		form->addRow(new QCheckBox(QStringLiteral("Planned arrival"), &dialog), new QLineEdit(&dialog));
 
 		station->addItem(choiceName(31), QStringLiteral("short"));
 		station->addItem(choiceName(95), QStringLiteral("long"));
@@ -92,16 +93,14 @@ struct StopForm {
 			platform->addItem(choiceName(31), QStringLiteral("p31"));
 			platform->addItem(choiceName(95), QStringLiteral("p95"));
 			if (platform->findData(platformId) < 0 && !platformId.isEmpty()) {
-				platform->addItem(QStringLiteral("Invalid: %1").arg(platformId), platformId);
+				platform->addItem(QStringLiteral("%1 (not on the route)").arg(platformId), platformId);
 				platform->setItemData(platform->count() - 1, kExplanation, Qt::ToolTipRole);
 			}
 			platform->setCurrentIndex(std::max(0, platform->findData(platformId)));
 		}
 
 		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-		scroll = DialogLayout::install(dialog, QStringLiteral("Edit timetable stop"),
-			QStringLiteral("Set the station, platform and times."),
-			body, buttons, screen);
+		scroll = DialogLayout::install(dialog, QStringLiteral("Edit Timetable Stop"), QString(), body, buttons, screen);
 		DialogLayout::fitWidthToContent(dialog);
 		dialog.show();
 		settleLayout();
@@ -133,7 +132,7 @@ bool exerciseLayout(const QRect& screen, qreal scale) {
 	bool ok = check(f.dialog.width() <= screen.width() * 9 / 10
 			&& f.dialog.height() <= screen.height() * 4 / 5,
 		"dialog exceeds the size budget");
-	ok &= check(f.platform->currentText().startsWith(QStringLiteral("Invalid: ")),
+	ok &= check(f.platform->currentText().endsWith(QStringLiteral(" (not on the route)")),
 		"layout form does not hold the invalid platform item");
 	ok &= check(!f.scroll->horizontalScrollBar()->isVisible()
 			&& f.scroll->horizontalScrollBar()->maximum() == 0,
@@ -224,7 +223,7 @@ bool exerciseElision() {
 bool exerciseInvalidChoice() {
 	const QRect screen(0, 0, 1280, 800);
 	const QString invalidId = choiceName(95);
-	const QString shown = QStringLiteral("Invalid: %1").arg(invalidId);
+	const QString shown = QStringLiteral("%1 (not on the route)").arg(invalidId);
 	int firstIndex = -2;
 	bool ok = true;
 	for (int round = 0; round < 2; ++round) {

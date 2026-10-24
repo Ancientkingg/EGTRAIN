@@ -8,7 +8,7 @@ choices, not copy OpenTrack menus or target the model-answer timestamps.
 The application provides the complete authoring and analysis path. It does not
 invent the railway records. An instructor supplies authoritative infrastructure,
 signalling, and rolling-stock values and records the train-unit source references
-in the editor. The committed `Assignment_Gvc_Gdg_Ut` scene is a synthetic smoke
+in the editor. The bundled `Assignment_Gvc_Gdg_Ut` case is a synthetic smoke
 fixture with three stations, no signals and four services that all use one
 placeholder `SLT_Sprinter` composition. It validates, runs and packs as
 `.egscene`, but its railway data are not authoritative: do not use it for model
@@ -23,7 +23,7 @@ work to add a source-backed example dataset.
 
 An instructor can build the case through the normal application workflow:
 
-1. Choose **File > New Case Study...** and enter the case name, base time,
+1. Choose **File > New Case...** and enter the case name, base time,
    duration, buffer, and recovery settings in **Case Settings**.
 2. Use the **Infrastructure** table and network preview to add tracks, nodes,
    arcs, blocks, connections, stations, platforms, signals, routes, dependencies,
@@ -51,7 +51,7 @@ The alternative-composition exercise uses 1xICM3 for IC 1723. The
 rolling-stock comparison replaces SGM with sourced Plan V data without changing
 the service pattern.
 
-An incomplete scene remains editable and saveable. **Run** remains unavailable
+An incomplete case remains editable and saveable. **Run** remains unavailable
 when validation reports an error. Missing signalling coverage is never replaced
 with an implicit conventional or ETCS setting.
 
@@ -72,37 +72,37 @@ with an implicit conventional or ETCS setting.
 | 11 | Inspect actual tractive effort | Open the applied tractive-effort distance result or export its CSV. | Distinguish positive traction, coasting or balance, and braking from the static traction curve. |
 | 12 | Compare an alternative composition | Duplicate or edit a composition assignment and rerun. | Explain the change in performance and feasibility. |
 | 13 | Compare SGM and Plan V | Author or select the sourced alternatives and rerun the same service. | Explain the observed differences. |
-| 14 | Compute minimum headways | Open **Capacity**, choose a route and an ordered pair. The analysed blocks are a section of the blocks both trains run over. | Interpret the minimum headway and governing block. |
+| 14 | Compute minimum headways | Open **Capacity**, choose a route, a From block and a To block, which default to the whole route, and check an ordered pair of trains. | Interpret the minimum headway and governing block. |
 | 15 | Compress the timetable | Use the same ordered occurrence sequence in **Capacity** and open the compressed diagram. | Check that order is preserved and occupations do not conflict. |
 | 16 | Identify critical blocks | Inspect the reported touching constraints in the compressed result. | Explain why a critical touch is not an overlap conflict. |
 | 17 | Obtain buffer times | Read scheduled headway, minimum headway, and their unclamped difference. | Interpret positive or negative buffer. |
-| 18 | Assess capacity consumption | Select the analysis period and explicit cycle-closing occurrence. | Reproduce the displayed numerator, denominator, and percentage, then compare it with the course recommendation. |
+| 18 | Assess capacity consumption | Select the analysis period and the cycle-closing train: the first train one period later, the default, or a checked train after the first. | Reproduce the displayed numerator, denominator, and percentage, then compare it with the course recommendation. |
 | 19 | Generate a multi-hour timetable | Increase repeat count while retaining the interval and code step. | Check occurrence identities and planned offsets. |
 | 20 | Simulate signal failure | Map S451 to the corresponding canonical signal or block, set the 08:30 to 09:00 window, and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. |
 | 21 | Simulate rolling-stock breakdown | Target IC 1727 at 08:25, set the 40 km/h cap, and request destination termination at Utrecht. | Check that sibling repeats are unchanged and the target continues under signalling. |
 | 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. A delay without recorded evidence is not shown to be propagated. |
 | 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit the delay of the other trains. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
-| 25 | Save and distribute | Save the canonical folder, use **File > Save Case Study As...** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
+| 25 | Save and distribute | Save the canonical folder, use **File > Save As...** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
 ## Calculation boundaries
 
 Capacity analysis uses complete native block occupations from the selected run.
-If the scene has no sourced signalling coverage or the run produced no complete
+If the case has no sourced signalling coverage or the run produced no complete
 occupations, EGTRAIN reports the analysis as unavailable. It does not create
 blocking times from a default signalling system.
 
 Minimum headway, compression, critical blocks, buffer, and capacity consumption
-are results for the analysed blocks: one section of the route, a run of
-consecutive blocks that all checked occurrences occupy. Where the trains use
-different blocks, as on the tracks of an overtaking station such as Gdg, a
-section ends before those blocks and the next one starts after them.
-**Analyzed blocks** in the Capacity chooser offers each section, with the longest
-selected first, so the parts of the line before and after Gdg are analysed one at
-a time. The window keeps the checked order on all blocks of a section and does
-not split it where the train order changes. **Capacity by area** takes a block
-range that the student chooses, in the order of its list. Compression is analysis
-output and does not rewrite the authored timetable.
+are results for the analysed blocks: the blocks of the route from the From block
+to the To block in the Capacity chooser, by default the whole route. A train
+that uses only some of them is analysed from where it enters the range. Its
+occupations that share no resource with a block of the range are left out. The
+window keeps the checked order on all analysed blocks and does not split them
+where the train order changes, as at an overtaking station such as Gdg. To
+analyse the parts of the line before and after Gdg one at a time, choose a range
+for each. **Capacity by area** takes a block range that the student chooses, in
+the order of its list. Compression is analysis output and does not rewrite the
+authored timetable.
 
 The capacity consumption of step 18 is the cycle of the selected train chain as a
 percentage of the period that the student enters. EGTRAIN compares it with no

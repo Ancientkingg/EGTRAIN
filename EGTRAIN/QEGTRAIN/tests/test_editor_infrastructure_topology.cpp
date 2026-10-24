@@ -173,7 +173,7 @@ struct Fixture {
 };
 
 static QString blocked(const char* kind, const char* id, const QStringList& consumers) {
-	return QString("Cannot delete %1 '%2' because it is still referenced by:\n\xE2\x80\xA2 %3\nRemove or rebind those consumers first.")
+	return QString("%1 '%2' is used by:\n\xE2\x80\xA2 %3\nRemove or change these first.")
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
@@ -229,7 +229,7 @@ static bool testTracks() {
 	// ids that a track cannot have
 	f.type(0, 0, "track-c");
 	ok &= expect(f.untouched() && f.model().tracks[0].id == "track-a" && f.cell(0, 0) == "track-a"
-			&& f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+			&& f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another track has is refused, with a message, and the table shows the model again");
 	f.type(0, 0, "  ");
 	ok &= expect(f.untouched() && f.model().tracks[0].id == "track-a" && f.cell(0, 0) == "track-a" && f.messages.size() == 2,
@@ -250,13 +250,13 @@ static bool testTracks() {
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().tracks.size() == 4 && f.untouched(),
 		"a track that others use cannot be deleted");
 	ok &= expect(f.prompts.errorMessage
-			== blocked("tracks", "track-a",
+			== blocked("Track", "track-a",
 				{"node 'node-a0'", "node 'node-a1'", "node 'node-a2'", "arc 'arc-a1'", "arc 'arc-a2'", "block 'block-a1'",
 					"block 'block-a2'", "signalling area 'area-1'"}),
 		"the message names the nodes, arcs, blocks and signalling areas that use the track");
 	f.select(2);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete tracks 'track'?" && f.model().tracks.size() == 4 && f.untouched(),
+	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete track 'track'?" && f.model().tracks.size() == 4 && f.untouched(),
 		"nothing is deleted when the user answers no");
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
@@ -301,7 +301,7 @@ static bool testNodes() {
 	ok &= expect(f.changedOnce("Rename node") && f.panel.selectionId() == "node-x" && f.table()->currentRow() == 1,
 		"a rename marks the document once, and the renamed node stays selected");
 	f.type(0, 0, "node-x");
-	ok &= expect(f.untouched() && f.model().nodes[0].id == "node-a0" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().nodes[0].id == "node-a0" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another node has is refused");
 
 	// add
@@ -317,14 +317,14 @@ static bool testNodes() {
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().nodes.size() == 7 && f.untouched(),
 		"a node that others use cannot be deleted");
 	ok &= expect(f.prompts.errorMessage
-			== blocked("nodes", "node-x",
+			== blocked("Node", "node-x",
 				{"arc 'arc-a1' endpoint", "arc 'arc-a2' endpoint", "connection 'connection-1' endpoint",
 					"platform 'platform-1' at station 'station-1'"}),
 		"the message names the arcs, connections and platforms that use the node");
 	f.select(6);
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == "Delete nodes 'node'?" && f.model().nodes.size() == 6 && f.changedOnce("Delete node")
+	ok &= expect(f.prompts.confirmQuestion == "Delete node 'node'?" && f.model().nodes.size() == 6 && f.changedOnce("Delete node")
 			&& f.panel.selectionId() == "node-b2",
 		"a node that nothing uses is deleted when the user answers yes");
 	return ok;
@@ -365,7 +365,7 @@ static bool testArcs() {
 			&& f.model().arcs[1].trackId == before[1].trackId && f.changedOnce("Rename arc") && f.panel.selectionId() == "arc-x",
 		"an arc is renamed, and the other arcs are as they were");
 	f.type(2, 0, "arc-x");
-	ok &= expect(f.untouched() && f.model().arcs[2].id == "arc-b1" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().arcs[2].id == "arc-b1" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an id that another arc has is refused");
 
 	// add: after the arcs that the first track has, between its next two nodes
@@ -382,7 +382,7 @@ static bool testArcs() {
 	// delete: nothing refers to an arc
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete arcs 'arc'?" && f.model().arcs.size() == 3
+	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete arc 'arc'?" && f.model().arcs.size() == 3
 			&& f.changedOnce("Delete arc"),
 		"an arc is deleted when the user answers yes, as nothing uses it");
 	return ok;
@@ -420,7 +420,7 @@ static bool testConnections() {
 			&& f.panel.selectionId() == "connection-x",
 		"a connection is renamed");
 	f.type(0, 0, "  ");
-	ok &= expect(f.untouched() && f.model().connections[0].id == "connection-x" && f.messages == QStringList({"Infrastructure IDs must be non-empty and unique"}),
+	ok &= expect(f.untouched() && f.model().connections[0].id == "connection-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
 		"an empty id is refused");
 
 	// add
@@ -449,13 +449,13 @@ static bool testConnections() {
 	ok &= expect(used.prompts.errorCount == 1 && used.prompts.confirmCount == 0 && used.model().connections.size() == 1 && used.untouched(),
 		"a connection that a route uses cannot be deleted");
 	ok &= expect(used.prompts.errorMessage
-			== blocked("connections", "connection-1", {QString("route 'route-1' section '%1'").arg(QString::fromStdString(derived))}),
+			== blocked("Connection", "connection-1", {QString("route 'route-1' section '%1'").arg(QString::fromStdString(derived))}),
 		"the message names the routes that use a section of the connection");
 	used.document.mutableModel().routes[0].blocks.pop_back();
 	used.panel.refresh();
 	used.prompts.confirmAnswer = true;
 	used.panel.deleteButton()->click();
-	ok &= expect(used.prompts.confirmQuestion == "Delete connections 'connection-1'?" && used.model().connections.empty() && used.changedOnce("Delete connection"),
+	ok &= expect(used.prompts.confirmQuestion == "Delete connection 'connection-1'?" && used.model().connections.empty() && used.changedOnce("Delete connection"),
 		"a connection that nothing uses is deleted when the user answers yes");
 	return ok;
 }

@@ -14,7 +14,7 @@ permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
 first.
 
-When a newer release exists, a message reads `EGTRAIN <new version> is available. You are using <your version>.` (on Windows and Linux its title is `EGTRAIN <new version> is Available`) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
+When a newer release exists, a message reads `EGTRAIN <new version> is available. You are using <your version>.` (on Windows and Linux its title is `EGTRAIN <new version> Is Available`) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are **Update and Restart** (when this copy can update itself), **Open Release Page**, **Later** and **Stop Checking**.
 
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt
@@ -49,6 +49,20 @@ started, or at its next start when it was closed before that. Folders left by an
 interrupted update are removed at a start of the application once they are older
 than an hour, and when the next update starts once nothing in them changed for five
 minutes.
+
+A copy that replaces its own files (the macOS app, the Linux AppImage and a
+portable Windows copy) keeps the previous version next to the installation while
+the new one starts, under the same name followed by `.egtrain-old`, so that the
+update helper can put it back. At its start the new version tells you once
+`EGTRAIN was updated to version <version>.`, as an installed Windows copy does
+after the Setup. About 20 seconds after that start it removes the previous
+version, or about 20 seconds after a later start when it was closed sooner. The
+new version holds only the files of the release, so files that you added to the
+folder of a portable copy are removed with the previous version. Close other
+EGTRAIN windows of the same copy before you update: one that keeps running would
+run from the removed version. EGTRAIN 1.0.4 and earlier keep the previous version
+until the next update, and an update from one of those versions ends without the
+message, because the version that is replaced runs the update.
 
 When the new version cannot be started, the update helper puts the previous
 version back, removes the staging folder and starts it again. That version then tells you once which version

@@ -823,7 +823,7 @@ static bool checkSavePublication() {
 		const SceneSaveResult refused = saveScene(scene, other.string());
 		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
 			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-				&& diagnostic.message.rfind("Cannot create a private scene staging directory", 0) == 0;
+				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
 		});
 		ok &= expect(!refused.success() && reported, "save into a read-only parent reports the staging directory");
 		ok &= expect(!fs::exists(other), "failed save creates no destination");
@@ -1619,6 +1619,28 @@ int main(int argc, char** argv) {
 	const SceneLoadedData* infrastructure = findCategory(reloaded.loadedData, "infrastructure");
 	ok &= expect(infrastructure && infrastructure->targetType == "network",
 		"infrastructure summary resolves to the existing network view");
+	{
+		SceneModel twins = reloaded;
+		SceneScenario first;
+		first.id = "twin_a";
+		first.name = "Twin";
+		SceneScenario second = first;
+		second.id = "twin_b";
+		SceneScenario other;
+		other.id = "solo";
+		other.name = "Solo";
+		twins.scenarios = {first, second, other};
+		twins.defaultScenarioId = "twin_a";
+		refreshLoadedDataSummary(twins);
+		const SceneLoadedData* scenarioRows = findCategory(twins.loadedData, "scenarios");
+		const SceneLoadedData* available = scenarioRows ? findCategory(scenarioRows->children, "available_scenarios") : nullptr;
+		std::vector<std::string> labels;
+		if (available)
+			for (const auto& row : available->children)
+				labels.push_back(row.category);
+		ok &= expect(labels == std::vector<std::string>({"Twin (twin_a, default)", "Twin (twin_b)", "Solo"}),
+			"two scenarios with one name are told apart by their IDs in the loaded data");
+	}
 
 	SceneModel withoutOptional = reloaded;
 	withoutOptional.sourceFiles.erase("scenarios.json");

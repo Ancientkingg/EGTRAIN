@@ -50,7 +50,7 @@ public:
 	/// The first platform with this station id and platform id, or null.
 	virtual const StationPlatform* platform(const std::string& stationId, const std::string& platformId) const = 0;
 
-	/// The run shows the platforms and the passengers.
+	/// The run shows the passengers on the platforms and the passenger load of a train.
 	virtual bool passengerGui() const = 0;
 };
 

@@ -60,7 +60,7 @@ def check_common(contract):
             assert not row["selectable"], row
     assert contract["defaultOpen"] and contract["openEnabled"], contract
     assert contract["loadedBefore"], contract  # Not a no-loaded startup test.
-    assert contract["otherActions"] == ["New Case Study...", "Open Scene Folder...",
+    assert contract["otherActions"] == ["New Case...", "Open Case Folder...",
                                          "Import Legacy Case..."], contract
 
 

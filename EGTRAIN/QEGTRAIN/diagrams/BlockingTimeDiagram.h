@@ -2,6 +2,7 @@
 #define BLOCKINGTIMEDIAGRAM_H
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <optional>
 #include <utility>
@@ -55,7 +56,8 @@ struct BlockingTimeDiagramSegment {
 	bool capacityCritical = false;
 	// Order of the matched section of the reference route, 0 for none.
 	int referenceSection = 0;
-	// Empty means the envelope was not matched to the sections.
+	// What the hover says about the section of the reference route; empty when the block is that section, or when it
+	// was not matched to the sections.
 	std::string referenceNote;
 };
 
@@ -76,6 +78,18 @@ struct BlockingTimePlannedReference {
 std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 	const std::vector<std::vector<BlockingTimeDiagramInput>>& trains,
 	const std::vector<std::string>& trainNames);
+
+/// The blocks that a block id names, which the resource matcher compares: the first and the third field between "@"
+/// signs, such as "71-B0" and "0-B1" for "@71-B0@-21.235000/@0-B1@-21.252000", or the id itself without such a field.
+/// Empty for an empty id.
+std::vector<std::string> comparableBlockTokens(const std::string& blockId);
+/// The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1",
+/// or the id itself when it has no short form.
+std::string shortBlockId(const std::string& blockId);
+/// The label of a section for user text, without internal ids: the label that `labels` give `reference`, with an id in
+/// round brackets at its end in its short form (shortBlockId), or the short form of `reference` when the labels name no
+/// section.
+std::string readableSectionLabel(const std::string& reference, const SceneSectionLabels& labels);
 
 // Shared resource matcher used by both diagram conflict classification and
 // capacity analysis. It matches exact plain and decorated/composite components.
@@ -110,6 +124,9 @@ struct BlockSectionInput {
 	std::string id;
 	double startKm = 0.0;
 	double endKm = 0.0;
+	double geoStartKm = std::numeric_limits<double>::quiet_NaN(); ///< Geo X of the start in km, the scene X; NaN when unknown
+	double geoEndKm = std::numeric_limits<double>::quiet_NaN();	  ///< Geo X of the end in km, the scene X; NaN when unknown
+	bool isSwitch = false;										  ///< The section holds a diverging switch
 };
 
 // A section of the reference route with the ends exactly as the route holds them. The end can lie
@@ -121,21 +138,41 @@ struct BlockSectionExtent {
 	double endKm = 0.0;
 	bool geometryValid = false;
 	std::string issue;
+	/// Geo X of the start in km. The route distance when the input lacks the geo X of an end, so NaN only when the route distance is NaN.
+	double geoStartKm = std::numeric_limits<double>::quiet_NaN();
+	double geoEndKm = std::numeric_limits<double>::quiet_NaN(); ///< Geo X of the end in km, as geoStartKm
+	bool isSwitch = false;										///< The section holds a diverging switch
 
 	double lowerKm() const { return std::min(startKm, endKm); }
 	double upperKm() const { return std::max(startKm, endKm); }
 };
 
 // One extent per input in input order. Nothing is sorted, merged, shifted or invented; a section
-// whose coordinates are not finite or that has no length is listed without geometry.
+// whose coordinates are not finite or that has no length is listed without geometry. A section that lacks the geo X of
+// an end takes its route distance as geo X at both ends.
 std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<BlockSectionInput>& inputs);
 
 // Exact id/interval matches take precedence over overlapping shared resources. Several candidates
 // are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
-// The notes name a section by its label and id when `labels` is given, else by its id.
+// An exact match sets the section and no note. The notes name a section by its short id (shortBlockId), as the section
+// strip does, one section per line.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId,
-	const SceneSectionLabels* labels = nullptr);
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId);
+
+/// What the section strip of a blocking-time chart marks on a section, besides a switch section (BlockSectionExtent::isSwitch).
+struct BlockSectionMarks {
+	bool station = false;  ///< A station of the reference route lies on the section
+	bool critical = false; ///< A capacity-critical blocking time of a compressed chart lies on the section
+	bool conflict = false; ///< A conflicting blocking time lies on the section
+};
+
+/// The marks of each extent, in the order of `extents`. A section is a station section when one of `stationKm`, the
+/// route distances of the station nodes of the reference route, lies on it, ends included. The other marks come from the
+/// blocking times matched to the section (BlockingTimeDiagramSegment::referenceSection), as the chart colours them: with
+/// `compressed` a capacity-critical one makes the section critical, and otherwise a conflicting one (the Critical styles)
+/// gives it a conflict.
+std::vector<BlockSectionMarks> blockSectionMarks(const std::vector<BlockSectionExtent>& extents,
+	const std::vector<BlockingTimeDiagramSegment>& segments, const std::vector<double>& stationKm, bool compressed);
 
 // Scope uses zero-based route indices, not ids; selected extents keep their original route order.
 std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<BlockSectionExtent>& extents,
@@ -148,15 +185,12 @@ std::vector<int> blockSectionRangeIndices(int first, int last, int count);
 bool blockingSegmentInSections(const BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& sections);
 // Whether a position on the reference route lies on the interval of a section that has geometry.
 bool positionInBlockSections(double positionKm, const std::vector<BlockSectionExtent>& sections);
-// The existing capacity API selects resources by id and needs a unique entry occurrence.
+// The capacity analysis selects resources by id, so a resource of the chosen sections must not also lie outside them.
 std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>& extents,
 	const std::vector<int>& indices);
 
-// A resource-id entry is unusable when several valid profile records could provide it.
-bool blockingTimeEntryAmbiguous(const std::vector<BlockingTimeDiagramInput>& occupations,
-	const std::string& entryBlockId);
-
-// Names of the columns of the blocking-time export, in order.
+// Names of the columns of the blocking-time export, in order. A compression never moves the times named "Original", and
+// the last three columns give the positions as geo X through the PositionScale of the sections of the export.
 const std::vector<std::string>& blockingTimeCsvHeader();
 
 inline constexpr char kBlockSectionSegmentType[] = "block section";
@@ -167,8 +201,13 @@ inline constexpr char kUnmappedEnvelopeLayer[] = "unmapped blocking envelope";
 // One row of the blocking-time export for each extent, as wide as the header.
 std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents);
 
-// Sentence for the chart note that lists the sections without a usable extent, starting with a
-// space; empty when every extent is usable. A section is named by its label and id when `labels` is given.
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels = nullptr);
+// The notice of the section strip that lists the sections without a usable extent; empty when every extent is usable.
+// A section is named by its short id (shortBlockId), as the section strip does.
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents);
+
+// The note above a blocking-time chart: what it leaves out, from the parts that apply. `omitted` blocks or stops could
+// not be placed on the route `routeId`; `nothingPlotted` adds that the chart is empty, which `unplaced` blames on blocks
+// that could not be placed. Empty when nothing is missing.
+std::string blockingTimeNote(int omitted, bool nothingPlotted, bool unplaced, const std::string& routeId);
 
 #endif // BLOCKINGTIMEDIAGRAM_H

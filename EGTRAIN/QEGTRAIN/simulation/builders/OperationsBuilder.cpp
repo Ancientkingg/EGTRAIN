@@ -318,7 +318,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		}
 	}
 	if (scene.services.empty())
-		addNativeDiagnostic(diagnostics, "scene.native.services.none", "A runnable scene requires at least one service",
+		addNativeDiagnostic(diagnostics, "scene.native.services.none", "A case needs at least one service to run",
 			"services.json", "service", "", "services");
 
 	int baseTime = 0;

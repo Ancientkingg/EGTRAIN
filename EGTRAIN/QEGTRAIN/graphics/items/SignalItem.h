@@ -12,10 +12,13 @@
 #include <QtMath>
 
 /// A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for
-/// any state but Proceed, show the state of the aspect code. A transparent child of 12 by 12 logical pixels at
-/// its centre keeps it clickable when the head is smaller on screen.
+/// any state but Proceed, show the state of the aspect code. NetworkScene picks it in a circle of PickPixels logical
+/// pixels across at its centre, which keeps it clickable when the head is smaller on screen.
 class SignalItem : public QGraphicsEllipseItem {
 public:
+	/// The width on screen of the circle in which a click picks the head, in logical pixels.
+	static constexpr qreal PickPixels = 12.0;
+
 	/// A head in rect with aspect code 180, on no track line and at no position.
 	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~SignalItem() override;
@@ -37,15 +40,15 @@ public:
 	int groupedSignalCount() const { return static_cast<int>(m_groupedSignals.size()); }
 	/// Sets the text that names the head in its tooltip, the inspector and Find.
 	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
-	/// That text, or without one a text of the track line, the position in kilometres and the sections ahead
-	/// and behind: "Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km". The track is
-	/// named by sceneTrackId and a section by its label, or by the number and the id without them.
+	/// That text, or without one the track line and the position in kilometres: "Track B0 at 0.23 km". The track is
+	/// named by sceneTrackId, or by its number without one.
 	QString inspectionIdentity() const;
 	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;
 
 	/// Draws the lamp and, when the head is at least 6 device pixels wide, the mark of a failed, Stop, Caution or
-	/// unavailable head; Proceed has no mark.
+	/// unavailable head; Proceed has no mark. A narrower lit or failed head is a disc in its lamp colour, 1.5 device
+	/// pixels wider than the head, without the outline of pen().
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	/// The index of the track line of the signal in the run; -1 in the preview.

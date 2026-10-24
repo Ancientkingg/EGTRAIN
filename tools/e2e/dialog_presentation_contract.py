@@ -91,19 +91,47 @@ def expected_review(scene: Path) -> tuple:
         unsignalled = len({block for route in signalling["routes"] for block in route["blocks"]})
         warnings += 1 + len(signalling.get("single_track_restrictions", []))
     in_period = sum(0 <= entry < duration for entry in entries)
-    counts = {"Service definitions": len(services), "Configured total": len(entries),
-              "Number of services in sim.": in_period, "Selected": len(entries),
-              "Selected in period": in_period, "Compositions": len(stock["compositions"]),
-              "Incidents": len(scenario["incidents"])}
+    incidents = len(scenario["incidents"])
     start = datetime.strptime(manifest["base_time"], "%H:%M:%S")
-    summary = {"Selected in period": str(in_period), "Start clock": start.strftime("%H:%M:%S"),
-               "Duration": f"{int(duration) // 3600}:{int(duration) % 3600 // 60:02}:{int(duration) % 60:02}"
-                           f" (ends near {(start + timedelta(seconds=duration)):%H:%M:%S})",
-               "Active incidents": str(counts["Incidents"])}
-    details = {"Case study": manifest["name"], "Scenario": scenario["id"],
-               **{label: str(value) for label, value in counts.items()},
-               "Counting rule": f"scheduled entry ≥ 0 and < {duration:g} s; these are configured identities, not observed trains."}
+    # A count of zero is left out of the summary and of the details.
+    summary = {}
+    if in_period:
+        summary["Trains"] = str(in_period)
+    summary["Start time"] = start.strftime("%H:%M:%S")
+    summary["Duration"] = (f"{int(duration) // 3600}:{int(duration) % 3600 // 60:02}:{int(duration) % 60:02}"
+                           f", until {(start + timedelta(seconds=duration)):%H:%M:%S}")
+    if incidents:
+        summary["Incidents"] = str(incidents)
+    occurrences = f"{len(entries)} of {len(entries)} selected"
+    if in_period != len(entries):
+        occurrences += f", {in_period} in the run period"
+    details = {"Case": manifest["name"], "Scenario": scenario["id"], "Services": str(len(services)),
+               "Run occurrences": occurrences, "Compositions": str(len(stock["compositions"]))}
+    if incidents:
+        details["Incidents"] = str(incidents)
     return summary, details, warnings, unsignalled
+
+
+def number(value: float) -> str:
+    """A number as the dialog writes it, with up to twelve significant digits."""
+    return format(value, ".12g")
+
+
+def incident_line(incident: dict) -> tuple:
+    """The label and the value of the line of the advanced run details for an incident."""
+    kind = {"signal_failure": "signal failure", "train_breakdown": "train breakdown"}.get(incident["type"], incident["type"])
+    target = incident["target"] or "no target"
+    if "occurrence" in incident:
+        target += f" #{incident['occurrence']}"
+    start = number(incident["start_seconds"])
+    window = (f"{start} to {number(incident['end_seconds'])} s" if "end_seconds" in incident
+              else f"from {start} s, no end")
+    line = f"{kind} of {target}, {window}"
+    if "reduced_speed_kmh" in incident:
+        line += f", reduced speed {number(incident['reduced_speed_kmh'])} km/h"
+    if incident.get("terminate_at_destination"):
+        line += ", ends its run at the destination"
+    return f"Incident {incident['id']}", line
 
 
 def contains(outer: list, inner: list) -> bool:
@@ -121,21 +149,29 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     actual = dict(line.split(": ", 1) for line in rendered["details"].splitlines())
     for label, value in details.items():
         assert actual.get(label) == value, (label, value, actual)
-    if advanced:
-        assert actual["Validation"] == f"0 error(s), {warnings} warning(s)", actual
-    else:
-        assert "Validation" not in actual, actual
-        assert "Incident configuration" not in actual, actual
-        assert "Entrance delay configuration" not in actual, actual
     scenarios = json.loads((scene / "scenarios.json").read_text())
     scenario = next(item for item in scenarios["scenarios"] if item["id"] == details["Scenario"])
-    if advanced and int(details["Incidents"]):
+    # Normal details hold the lines above and nothing else; advanced details add validation, incidents and delays.
+    expected_labels = list(details)
+    if advanced:
+        if warnings:
+            assert actual["Validation"] == f"{warnings} warning{'' if warnings == 1 else 's'}", actual
+            expected_labels.append("Validation")
         for incident in scenario["incidents"]:
-            expected = (f"id={incident['id']} type={incident['type']} target={incident['target']} "
-                        f"start={incident['start_seconds']:g} window={incident['end_seconds']:g} "
-                        f"occurrence={incident.get('occurrence', 'all')}")
-            assert expected in actual["Incident configuration"], actual
-    assert rendered["context"] == f"{details['Case study']} / {details['Scenario']}", rendered
+            label, line = incident_line(incident)
+            assert actual.get(label) == line, (label, line, actual)
+            expected_labels.append(label)
+        delays = scenario.get("entrance_delays", [])
+        for delay in delays:
+            # The operating code of the occurrence sits in brackets between the occurrence and the station.
+            line = next(line for line in rendered["details"].splitlines()
+                        if line.startswith(f"Entrance delay: {number(delay['delay_seconds'])} s for "
+                                           f"{delay['service']} #{delay['occurrence']}"))
+            assert line.endswith(f" at {delay['station']}"), (delay, line)
+        if delays:
+            expected_labels.append("Entrance delay")
+    assert list(actual) == expected_labels, (expected_labels, actual)
+    assert rendered["context"] == f"{details['Case']} / {details['Scenario']}", rendered
     assert rendered["plainContext"] and rendered["plainDetails"], rendered
     # Inspect default semantics without pressing Enter and starting a simulation.
     assert rendered["initialFocus"] == "run" and rendered["runDefault"], rendered
@@ -170,23 +206,27 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
     for state in ("collapsed", "recollapsed"):
         assert rendered[state] == {"checked": False, "visible": False, "arrow": "right"}, rendered
     assert rendered["expanded"] == {"checked": True, "visible": True, "arrow": "down"}, rendered
-    zero = summary["Selected in period"] == "0"
-    status = ("Ready to run, but no selected services enter during this period." if zero else
-              f"Ready to run. Review {warnings} validation {'warning' if warnings == 1 else 'warnings'} if needed."
-              if advanced and warnings else "Ready to run.")
+    zero = "Trains" not in summary
+    # Only something that needs attention has a status line.
+    status = ("No selected trains start in this period." if zero else
+              f"{warnings} validation {'warning' if warnings == 1 else 'warnings'}. See Case Validation."
+              if advanced and warnings else "")
     if unsignalled and not zero:
         # The status repeats the validator message, which names the sections and tracks.
-        prefix = (f"Ready to run, but no signalling area is defined. {unsignalled} of {unsignalled} route sections "
-                  f"{'has' if unsignalled == 1 else 'have'} no signalling level and "
+        prefix = (f"No signalling area is defined. {unsignalled} of {unsignalled} route sections "
+                  f"{'has' if unsignalled == 1 else 'have'} no signalling system and "
                   f"{'runs' if unsignalled == 1 else 'run'} without signalling: ")
         assert rendered["status"].startswith(prefix) and rendered["status"].endswith(")."), rendered
     else:
         assert rendered["status"] == status, rendered
+    assert rendered["statusVisible"] == bool(rendered["status"]), rendered
     assert rendered["warning"] == (zero or unsignalled > 0 or (advanced and warnings > 0)), rendered
     assert rendered["runEnabled"] and rendered["rejected"] and not rendered["workerStarted"], rendered
     assert rendered["cancellation"] == cancellation, rendered
+    assert review["E2E_RUN_REVIEW_DETAILS"] == "1", review
     assert review["E2E_RUN_REVIEW_ADVANCED"] == str(int(advanced)), review
-    assert review["E2E_RUN_REVIEW_VALIDATION_VISIBLE"] == str(int(advanced)), review
+    # The validation line is left out when there is nothing to count.
+    assert review["E2E_RUN_REVIEW_VALIDATION_VISIBLE"] == str(int(advanced and warnings > 0)), review
     assert review["E2E_RUN_REVIEW_CANCELLED"] == "1", review
     assert review["E2E_RUN_REVIEW_UNCHANGED"] == "1", review
 

@@ -198,7 +198,7 @@ QLabel#caseReadinessLabel[blocking="true"] {
     color: #965c22;
 }
 
-QLabel#caseStudyTitleLabel, QLabel#layersTitleLabel {
+QLabel#layersTitleLabel {
     color: #5b6871;
     font-size: 11px;
     font-weight: 600;
@@ -223,6 +223,13 @@ QListView::indicator:checked, QTableView::indicator:checked, QTreeView::indicato
     background: #315a70;
     border-color: #315a70;
     image: url(:/icons/check-mark.svg);
+}
+
+/* A group row whose trains are partly shown. */
+QTreeView::indicator:indeterminate {
+    background: #315a70;
+    border-color: #315a70;
+    image: url(:/icons/check-partial.svg);
 }
 
 QListView::indicator:disabled, QTableView::indicator:disabled, QTreeView::indicator:disabled {
@@ -325,8 +332,8 @@ QDialog QPushButton:focus {
     padding: 4px 13px;
 }
 
-/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the bar of buttons above the
-   chart or table keeps its width and the window fits within 90 percent of a narrow screen. */
+/* The diagram and timetable windows keep 7 px beside the text of their push buttons, so that the two export buttons fit
+   side by side in the panel of a diagram window and the bar of buttons above a table keeps its width. */
 DiagramWindow QPushButton, TimetableTableWindow QPushButton {
     padding: 5px 7px;
 }
@@ -465,8 +472,8 @@ QDialog QListWidget:focus {
     padding: 3px;
 }
 
-QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
-QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
+QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext, QLabel#delayAnalysisContext, QLabel#capacityContext,
+QLabel#areaCapacityContext, QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
     background: transparent;
     color: #5b6871;
 }
@@ -543,16 +550,13 @@ QDialog#caseChooserDialog QListWidget::item:selected {
     color: #24313a;
 }
 
-/* The Run details toggle and the Calculation details toggle of the capacity analysis have the corners of a dialog button
-   and show keyboard focus with its 2 px action border. The padding gives up the extra pixel, so the arrow and the text do
-   not move. */
-QToolButton#runReviewDetailsToggle,
-QToolButton#capacityDetailsToggle {
+/* The Run details toggle has the corners of a dialog button and shows keyboard focus with its 2 px action border. The
+   padding gives up the extra pixel, so the arrow and the text do not move. */
+QToolButton#runReviewDetailsToggle {
     border-radius: 6px;
 }
 
-QToolButton#runReviewDetailsToggle:focus,
-QToolButton#capacityDetailsToggle:focus {
+QToolButton#runReviewDetailsToggle:focus {
     border: 2px solid #2e7491;
     padding: 2px 5px;
 }
@@ -797,10 +801,6 @@ QLabel#infrastructureGuidance {
     color: #5b6871;
 }
 
-QLabel#resultContextText {
-    color: #5b6871;
-}
-
 /* The 2 px border of the network view turns from #3a4a54 to #8fbcd4 while the view has the keyboard focus; the two have a
    contrast of 4.5:1, and #8fbcd4 has 8.6:1 with the canvas. */
 QGraphicsView#networkView {
@@ -928,4 +928,124 @@ QComboBox::down-arrow {
 
 QComboBox::down-arrow:disabled {
     image: url(:/icons/drop-down-arrow-disabled.svg);
+}
+
+/* The header of a result window is a white row over the chart, with a light rule under it. Its context is one line in the
+   secondary text colour, and its icon buttons have the face, border and states of a push button, also while the panel
+   button is checked. The padding gives up the extra pixel of the focus border, so the icon does not move. */
+QFrame#resultHeader {
+    background: #ffffff;
+    border: 0;
+    border-bottom: 1px solid #e3eaee;
+}
+
+QFrame#resultHeader QLabel {
+    background: transparent;
+}
+
+/* The chart lies on white up to the header and the panel. */
+QWidget#resultMain QGraphicsView {
+    background: #ffffff;
+    border: 0;
+}
+
+/* A tool button is 3 px wider and taller than its icon and padding, so a 16 px icon makes a button of 28 by 26 px. */
+QToolButton[resultHeaderButton="true"], QToolButton[resultHeaderButton="true"]:checked {
+    background: #ffffff;
+    border: 1px solid #7b8b96;
+    border-radius: 6px;
+    color: #24313a;
+    min-height: 0;
+    padding: 3px 3px 2px 4px;
+}
+
+QToolButton[resultHeaderButton="true"]:hover {
+    background: #ffffff;
+    border-color: #5b6871;
+}
+
+QToolButton[resultHeaderButton="true"]:focus {
+    background: #ffffff;
+    border: 2px solid #2e7491;
+    padding: 2px 2px 1px 3px;
+}
+
+QToolButton[resultHeaderButton="true"]:pressed {
+    background: #e3eaee;
+}
+
+/* The panel of a result window: section headings in the heading colour, a rule between the sections, the cursor readout
+   and the captions of the key figures in the secondary text colour, and a rule at the left edge, which is the splitter
+   handle. */
+QLabel[resultSectionHeading="true"] {
+    color: #315a70;
+}
+
+QDialog QFrame[resultRule="true"] {
+    background: #c9d3db;
+    border: 0;
+}
+
+QLabel#resultReadout, QLabel#resultFigureCaption {
+    color: #5b6871;
+}
+
+/* The tables of a table window lie on white up to the header and the panel, as a chart does. */
+QDialog QWidget#resultTableArea {
+    background: #ffffff;
+}
+
+QSplitter#resultSplitter::handle {
+    background: #f8fafb;
+    border-left: 1px solid #c9d3db;
+}
+
+/* Clear of the selected train reads as a link in the action colour, without the face of a button. Its 2 px border shows
+   only with keyboard focus, so the text does not move. */
+QPushButton#diagramClearSelection {
+    background: transparent;
+    border: 2px solid transparent;
+    color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#diagramClearSelection:focus {
+    border-color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#diagramClearSelection:pressed, QPushButton#trainKeyAll:pressed, QPushButton#trainKeyNone:pressed {
+    background: #e3eaee;
+}
+
+/* All and None of the Trains list read as links too. */
+QPushButton#trainKeyAll, QPushButton#trainKeyNone {
+    background: transparent;
+    border: 2px solid transparent;
+    color: #2e7491;
+    padding: 0 1px;
+}
+
+QPushButton#trainKeyAll:focus, QPushButton#trainKeyNone:focus {
+    border-color: #2e7491;
+    padding: 0 1px;
+}
+
+/* The Trains list lies on the panel without a frame. A row has no selection of its own, as the highlight belongs to the
+   train the chart selects, and its 1 px border shows only on the row with keyboard focus. */
+QTreeWidget#trainKeyTree {
+    background: transparent;
+    border: 0;
+}
+
+QTreeWidget#trainKeyTree::item {
+    border: 1px solid transparent;
+}
+
+QTreeWidget#trainKeyTree::item:focus {
+    border-color: #2e7491;
+}
+
+QLabel#trainKeyCount {
+    color: #5b6871;
 }

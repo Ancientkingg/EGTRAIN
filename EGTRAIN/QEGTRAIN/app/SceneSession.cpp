@@ -1,5 +1,6 @@
 #include "app/SceneSession.h"
 // This header brings in SceneModel.h in the way that the member named signals needs, before the other scene headers do.
+#include "editors/CountText.h"
 #include "editors/SceneDocument.h"
 #include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
@@ -46,29 +47,29 @@ const char* kRecentLabelProperty = "recentLabel";
 
 bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection) {
 	if (!mime || !mime->hasUrls() || mime->urls().isEmpty()) {
-		*rejection = QStringLiteral("no file was dropped");
+		*rejection = QStringLiteral("the drop holds no file");
 		return false;
 	}
 	if (mime->urls().size() != 1) {
-		*rejection = QStringLiteral("drop exactly one .egscene file");
+		*rejection = QStringLiteral("more than one file was dropped");
 		return false;
 	}
 	const QUrl url = mime->urls().front();
 	if (!url.isLocalFile()) {
-		*rejection = QStringLiteral("only local .egscene files can be opened");
+		*rejection = QStringLiteral("it is not on this computer");
 		return false;
 	}
 	const QFileInfo info(url.toLocalFile());
 	if (!info.exists()) {
-		*rejection = QStringLiteral("the dropped file does not exist");
+		*rejection = QStringLiteral("it does not exist");
 		return false;
 	}
 	if (!info.isFile()) {
-		*rejection = QStringLiteral("drop an .egscene file, not a directory");
+		*rejection = QStringLiteral("it is a folder, not an .egscene file");
 		return false;
 	}
 	if (info.suffix().compare(QStringLiteral("egscene"), Qt::CaseInsensitive) != 0) {
-		*rejection = QStringLiteral("the dropped file must use the .egscene extension");
+		*rejection = QStringLiteral("it is not an .egscene file");
 		return false;
 	}
 	*path = info.absoluteFilePath();
@@ -110,7 +111,7 @@ QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) 
 
 SceneSession::SceneSession(QMainWindow* window, SceneDocument* document, Host& host)
 	: QObject(window), m_window(window), m_document(document), m_host(host),
-	  m_recentScenesMenu(new QMenu("Recent Scenes", window)) {
+	  m_recentScenesMenu(new QMenu("Recent Cases", window)) {
 	// A case can be deleted while the menu is closed, so the entries are checked again as the menu opens.
 	connect(m_recentScenesMenu, &QMenu::aboutToShow, this, &SceneSession::refreshRecentSceneAvailability);
 }
@@ -128,8 +129,8 @@ void SceneSession::dragEnter(QDragEnterEvent* event) {
 		event->accept();
 	} else {
 		if (rejection.isEmpty())
-			rejection = QStringLiteral("the source does not permit copying");
-		m_window->statusBar()->showMessage(QStringLiteral("Drop rejected: %1. Scene unchanged.").arg(rejection), 8000);
+			rejection = QStringLiteral("the source does not allow copying");
+		m_window->statusBar()->showMessage(QStringLiteral("Cannot open the dropped file: %1").arg(rejection), 8000);
 		event->ignore();
 	}
 }
@@ -140,8 +141,8 @@ void SceneSession::drop(QDropEvent* event) {
 	if (!sceneDropCandidate(event->mimeData(), &path, &rejection)
 		|| !event->possibleActions().testFlag(Qt::CopyAction)) {
 		if (rejection.isEmpty())
-			rejection = QStringLiteral("the source does not permit copying");
-		m_window->statusBar()->showMessage(QStringLiteral("Drop rejected: %1. Scene unchanged.").arg(rejection), 8000);
+			rejection = QStringLiteral("the source does not allow copying");
+		m_window->statusBar()->showMessage(QStringLiteral("Cannot open the dropped file: %1").arg(rejection), 8000);
 		event->ignore();
 		return;
 	}
@@ -179,8 +180,8 @@ void SceneSession::createNewScene(const telemetry::OperationObservation& operati
 void SceneSession::openSceneDialog() {
 	const auto operation = m_host.captureTelemetryOperation();
 	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
-	const QString path = QFileDialog::getOpenFileName(m_window, "Open Case Study", startDir,
-		"EGTRAIN Case Study (*.egscene)");
+	const QString path = QFileDialog::getOpenFileName(m_window, "Open Case", startDir,
+		"EGTRAIN Case (*.egscene)");
 	if (path.isEmpty())
 		return;
 
@@ -190,7 +191,7 @@ void SceneSession::openSceneDialog() {
 void SceneSession::openSceneFolderDialog() {
 	const auto operation = m_host.captureTelemetryOperation();
 	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
-	const QString dir = QFileDialog::getExistingDirectory(m_window, "Open Scene Folder", startDir);
+	const QString dir = QFileDialog::getExistingDirectory(m_window, "Open Case Folder", startDir);
 	if (!dir.isEmpty())
 		requestOpenScene(dir, operation);
 }
@@ -202,10 +203,8 @@ bool SceneSession::requestOpenScene(const QString& path) {
 bool SceneSession::requestOpenScene(const QString& path, const telemetry::OperationObservation& operation) {
 	if (path.isEmpty())
 		return false;
-	if (!maybeSaveScene()) {
-		m_window->statusBar()->showMessage("Open canceled. Current scene retained.", 8000);
+	if (!maybeSaveScene())
 		return false;
-	}
 	// The request is accepted here. The scene opens when the running simulation has stopped.
 	if (m_host.afterRunStopped([this, path, operation] { openRequestedScene(path, operation); }))
 		return true;
@@ -215,9 +214,7 @@ bool SceneSession::requestOpenScene(const QString& path, const telemetry::Operat
 bool SceneSession::openRequestedScene(const QString& path, const telemetry::OperationObservation& operation) {
 	if (openSceneDirectory(path, operation))
 		return true;
-	m_window->statusBar()->showMessage(QString("Scene unchanged: %1 could not be opened.")
-										   .arg(QFileInfo(path).fileName()),
-		8000);
+	m_window->statusBar()->showMessage(QString("Could not open %1").arg(QFileInfo(path).fileName()), 8000);
 	return false;
 }
 
@@ -230,7 +227,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
 	const auto compatibilityMessage = [&compatibility]() {
 		if (!compatibility.diagnostics.empty())
-			return QString::fromStdString(toDisplayText(compatibility.diagnostics.front()));
+			return QString::fromStdString(toDialogText(compatibility.diagnostics.front()));
 		return QStringLiteral("The scene format could not be identified.");
 	};
 	// Scene compatibility prompts are suppressed only for unattended app/E2E
@@ -238,30 +235,22 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	const bool noCompatibilityDialogs = m_host.dialogsSuppressed();
 	if (compatibility.classification == SceneCompatibilityClass::OlderMigratable) {
 		if (noCompatibilityDialogs) {
-			m_window->statusBar()->showMessage("Older scene requires an interactive upgrade copy");
+			m_window->statusBar()->showMessage("Older case requires an interactive upgrade copy");
 			return false;
 		}
 		QMessageBox dialog(m_window);
 		dialog.setIcon(QMessageBox::Question);
-		dialog.setWindowTitle("Older Scene");
-		QString ageDetails;
-		if (compatibility.schemaVersion < kCurrentSceneSchemaVersion)
-			ageDetails = QString("schema %1 (this application uses schema %2)")
-							 .arg(compatibility.schemaVersion)
-							 .arg(kCurrentSceneSchemaVersion);
-		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion
-			&& *compatibility.bundleVersion < kCurrentSceneBundleVersion) {
-			if (!ageDetails.isEmpty())
-				ageDetails += "; ";
-			ageDetails += QString("bundle layout %1 (this application uses bundle layout %2)")
-							  .arg(*compatibility.bundleVersion)
-							  .arg(kCurrentSceneBundleVersion);
-		}
-		if (ageDetails.isEmpty())
-			ageDetails = QStringLiteral("an older scene layout");
-		dialog.setText(QString("%1 uses %2.")
-				.arg(QFileInfo(scenePath).fileName(), ageDetails));
-		dialog.setInformativeText("Upgrade a copy; the original scene will remain unchanged.");
+		dialog.setWindowTitle("Older Case");
+		dialog.setText(QString("%1 was saved by an older version of EGTRAIN.").arg(QFileInfo(scenePath).fileName()));
+		dialog.setInformativeText("Upgrade a copy to open it. The original stays as it is.");
+		QString versions = QString("Scene schema %1, this version uses %2")
+							   .arg(compatibility.schemaVersion)
+							   .arg(kCurrentSceneSchemaVersion);
+		if (compatibility.sourceKind == SceneSourceKind::Bundle && compatibility.bundleVersion)
+			versions += QString("\nBundle layout %1, this version uses %2")
+							.arg(*compatibility.bundleVersion)
+							.arg(kCurrentSceneBundleVersion);
+		dialog.setDetailedText(versions);
 		QPushButton* upgrade = dialog.addButton("Upgrade a Copy...", QMessageBox::AcceptRole);
 		dialog.addButton("Cancel", QMessageBox::RejectRole);
 		dialog.exec();
@@ -271,14 +260,14 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		QString destination;
 		if (compatibility.sourceKind == SceneSourceKind::Bundle) {
 			const QString base = sourceInfo.completeBaseName() + "-upgraded.egscene";
-			destination = QFileDialog::getSaveFileName(m_window, "Upgrade Scene Copy",
-				QDir(sourceInfo.absolutePath()).filePath(base), "EGTRAIN Case Study (*.egscene)");
+			destination = QFileDialog::getSaveFileName(m_window, "Upgrade Case Copy",
+				QDir(sourceInfo.absolutePath()).filePath(base), "EGTRAIN Case (*.egscene)");
 		} else {
 			// A migration destination must not already exist. A save-style chooser
 			// lets the user name a sibling directory without selecting an existing one.
-			destination = QFileDialog::getSaveFileName(m_window, "Upgrade Scene Copy",
+			destination = QFileDialog::getSaveFileName(m_window, "Upgrade Case Copy",
 				QDir(sourceInfo.absolutePath()).filePath(sourceInfo.fileName() + "-upgraded"),
-				"EGTRAIN Scene Directory (*)");
+				"EGTRAIN Case Folder (*)");
 		}
 		if (destination.isEmpty())
 			return false;
@@ -289,7 +278,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 			QString message = firstDiagnosticMessage(migrated.diagnostics);
 			if (message.isEmpty())
 				message = compatibilityMessage();
-			showError("Cannot Upgrade Scene", message);
+			showError("Cannot Upgrade Case", message);
 			return false;
 		}
 		return openSceneDirectory(destination, operation);
@@ -297,9 +286,8 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	if (compatibility.classification == SceneCompatibilityClass::OlderUnsupported) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetry::Error::UnsupportedFormat);
 		if (!noCompatibilityDialogs)
-			showError("Older Scene Not Supported",
-				"This scene uses an older schema or bundle layout with no registered migration path.\n\n"
-					+ compatibilityMessage());
+			showError("Older Case Not Supported",
+				"This case is too old for this version of EGTRAIN to upgrade.\n\n" + compatibilityMessage());
 		return false;
 	}
 	if (compatibility.classification == SceneCompatibilityClass::Newer) {
@@ -310,16 +298,17 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		}
 		QMessageBox dialog(m_window);
 		dialog.setIcon(QMessageBox::Question);
-		dialog.setWindowTitle("Newer Scene");
-		dialog.setText("This scene was saved with a newer scene format.");
-		QString details = QString("Supported schema: %1; scene schema: %2")
-							  .arg(kCurrentSceneSchemaVersion)
-							  .arg(compatibility.schemaVersion);
+		dialog.setWindowTitle("Newer Case");
+		dialog.setText("This case was saved by a newer version of EGTRAIN.");
+		dialog.setInformativeText("Update EGTRAIN to open it.");
+		QString versions = QString("Scene schema %1, this version uses %2")
+							   .arg(compatibility.schemaVersion)
+							   .arg(kCurrentSceneSchemaVersion);
 		if (compatibility.bundleVersion)
-			details += QString("; supported bundle: %1; scene bundle: %2")
-						   .arg(kCurrentSceneBundleVersion)
-						   .arg(*compatibility.bundleVersion);
-		dialog.setInformativeText(details);
+			versions += QString("\nBundle layout %1, this version uses %2")
+							.arg(*compatibility.bundleVersion)
+							.arg(kCurrentSceneBundleVersion);
+		dialog.setDetailedText(versions);
 		QPushButton* updates = dialog.addButton("Check for Updates...", QMessageBox::AcceptRole);
 		dialog.addButton("Cancel", QMessageBox::RejectRole);
 		dialog.exec();
@@ -346,7 +335,7 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 	} catch (const std::exception& error) {
 		SceneDiagnostic diagnostic;
 		diagnostic.code = "scene.read.exception";
-		diagnostic.message = std::string("Cannot read the scene: ") + error.what();
+		diagnostic.message = std::string("Cannot read the case: ") + error.what();
 		result.diagnostics.push_back(std::move(diagnostic));
 	}
 	int errorCount = errorDiagnosticCount(result.diagnostics);
@@ -354,8 +343,9 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(result.diagnostics));
 		QString message = firstDiagnosticMessage(result.diagnostics);
 		if (message.isEmpty())
-			message = "Scene could not be opened.";
-		message += QString("\n\nError count: %1").arg(errorCount);
+			message = "The case could not be opened.";
+		if (errorCount > 1)
+			message += "\n\n" + countText(errorCount - 1, "more error", "more errors");
 		showError(cannot_open::title(), cannot_open::text(scenePath, message));
 		return false;
 	}
@@ -395,15 +385,15 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	if (!result.success()) {
 		QString message = firstDiagnosticMessage(result.diagnostics);
 		if (message.isEmpty())
-			message = "Scene could not be saved.";
-		showError("Cannot Save Scene", message);
+			message = "The case could not be saved.";
+		showError("Cannot Save Case", message);
 		return false;
 	}
 
 	refreshSavedSceneMetadata(m_document->mutableModel());
 	m_document->mutableModel().savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
-	// A saved folder case may carry a new name, which Recent Scenes shows.
+	// A saved folder case may carry a new name, which Recent Cases shows.
 	rebuildRecentScenesMenu();
 	m_host.sceneSaved();
 	return true;
@@ -437,8 +427,8 @@ bool SceneSession::saveSceneAsToBundle(const telemetry::OperationObservation& op
 	m_host.commitPendingEdits();
 
 	const QString startPath = saveSceneAsStartPath();
-	QString targetPath = QFileDialog::getSaveFileName(m_window, "Save Case Study As", startPath,
-		"EGTRAIN Case Study (*.egscene)");
+	QString targetPath = QFileDialog::getSaveFileName(m_window, "Save Case As", startPath,
+		"EGTRAIN Case (*.egscene)");
 	if (targetPath.isEmpty())
 		return false;
 	if (!targetPath.endsWith(".egscene", Qt::CaseInsensitive))
@@ -446,7 +436,7 @@ bool SceneSession::saveSceneAsToBundle(const telemetry::OperationObservation& op
 	targetPath = QDir::cleanPath(QFileInfo(targetPath).absoluteFilePath());
 	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
 		operation.exportFinished(telemetry::ExportKind::SceneBundle, false, false, telemetry::Error::InvalidInput);
-		showError("Cannot Save Scene", "Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.");
+		showError("Cannot Save Case", "Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.");
 		return false;
 	}
 
@@ -468,14 +458,14 @@ bool SceneSession::saveSceneAsToDirectory() {
 	m_host.commitPendingEdits();
 
 	const QString startDir = dialog_folders::startFolder(m_sceneDir);
-	QString dir = QFileDialog::getExistingDirectory(m_window, "Save Scene As Folder", startDir);
+	QString dir = QFileDialog::getExistingDirectory(m_window, "Save Case As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
 
 	QString targetPath = QDir(dir).absolutePath();
 	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
 		operation.exportFinished(std::nullopt, false, false, telemetry::Error::InvalidInput);
-		showError("Cannot Save Scene", "Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.");
+		showError("Cannot Save Case", "Bundled cases cannot be overwritten. Choose a location outside the EGTRAIN installation.");
 		return false;
 	}
 	QDir targetDir(targetPath);
@@ -484,8 +474,8 @@ bool SceneSession::saveSceneAsToDirectory() {
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
 		if (isNonEmpty && !hasSceneJson) {
 			auto response = QMessageBox::question(m_window,
-				"Save Scene As Folder",
-				"The selected folder is not empty and does not contain scene.json. Save scene files there?",
+				"Save Case As Folder",
+				"The folder is not empty. Save the case there anyway?",
 				QMessageBox::Yes | QMessageBox::No,
 				QMessageBox::No);
 			if (response != QMessageBox::Yes)
@@ -517,7 +507,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 	QDir target(targetPath);
 	if (!target.exists() && !QDir().mkpath(targetPath)) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-		QMessageBox::critical(m_window, "Cannot Save Scene", "Cannot create target scene directory.");
+		QMessageBox::critical(m_window, "Cannot Save Case", QString("Could not create the folder %1.").arg(display_path::format(targetPath)));
 		return false;
 	}
 
@@ -526,7 +516,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 	if (!sourceCanonical.isEmpty() && sourceCanonical == targetCanonical)
 		return true;
 	if (!sourceCanonical.isEmpty() && targetCanonical.startsWith(sourceCanonical + "/")) {
-		QMessageBox::critical(m_window, "Cannot Save Scene", "Cannot save a scene inside the current scene folder.");
+		QMessageBox::critical(m_window, "Cannot Save Case", "Choose a folder outside the current case folder.");
 		return false;
 	}
 
@@ -538,7 +528,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 		QFile::remove(targetViews);
 		if (!QFile::copy(sourceViews, targetViews)) {
 			operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-			QMessageBox::critical(m_window, "Cannot Save Scene", "Cannot copy views.json.");
+			QMessageBox::critical(m_window, "Cannot Save Case", "Cannot copy views.json.");
 			return false;
 		}
 	}
@@ -551,9 +541,10 @@ bool SceneSession::maybeSaveScene() {
 	if (!m_document->isDirty())
 		return true;
 
+	const QString name = QString::fromStdString(m_document->model().name).trimmed();
 	auto response = QMessageBox::warning(m_window,
-		"Unsaved Scene",
-		"The current scene has unsaved changes.",
+		"Unsaved Case",
+		QString("Save the changes to %1?").arg(name.isEmpty() ? QStringLiteral("this case") : name),
 		QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
 		QMessageBox::Save);
 	if (response == QMessageBox::Save)
@@ -657,7 +648,7 @@ void SceneSession::rebuildRecentScenesMenu() {
 		});
 	}
 	if (recent.isEmpty()) {
-		QAction* emptyAction = m_recentScenesMenu->addAction("No Recent Scenes");
+		QAction* emptyAction = m_recentScenesMenu->addAction("No Recent Cases");
 		emptyAction->setEnabled(false);
 	}
 	m_host.sceneActionsChanged();
@@ -689,7 +680,7 @@ void SceneSession::actionLoad_Network() {
 	const QString sourceDir = QFileDialog::getExistingDirectory(m_window, "Select Legacy Case Folder", QDir::homePath());
 	if (sourceDir.isEmpty())
 		return;
-	const QString destinationDir = QFileDialog::getExistingDirectory(m_window, "Select Scene Destination", QDir::homePath());
+	const QString destinationDir = QFileDialog::getExistingDirectory(m_window, "Select Case Destination", QDir::homePath());
 	importLegacyCase(sourceDir, destinationDir, operation);
 }
 
@@ -713,9 +704,16 @@ QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& di
 	std::stable_sort(ordered.begin(), ordered.end(),
 		[](const SceneDiagnostic* a, const SceneDiagnostic* b) { return a->severity > b->severity; });
 
-	QString summary = QString("Import: %1 error(s), %2 warning(s)").arg(errors).arg(warnings);
+	if (ordered.empty())
+		return QString();
+	QStringList counts;
+	if (errors > 0)
+		counts << countText(errors, "error", "errors");
+	if (warnings > 0)
+		counts << countText(warnings, "warning", "warnings");
 	if (notes > 0)
-		summary += QString(", %1 note(s)").arg(notes);
+		counts << countText(notes, "note", "notes");
+	QString summary = "Import: " + counts.join(", ");
 	for (size_t i = 0; i < ordered.size() && i < kMaxListed; ++i) {
 		QString detail = QString::fromStdString(ordered[i]->message);
 		if (!ordered[i]->file.empty())
@@ -740,8 +738,7 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 		return child == parent || child.startsWith(parent + QDir::separator());
 	};
 	if (containsPath(sourcePath, destinationPath) || containsPath(destinationPath, sourcePath)) {
-		showError("Cannot Import Legacy Case",
-			"Choose a scene destination that is separate from and outside the legacy source folder.");
+		showError("Cannot Import Legacy Case", "Choose a destination outside the legacy case folder.");
 		return;
 	}
 
@@ -752,11 +749,11 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	QApplication::processEvents();
 	// Replaces the progress message, which would otherwise stay in the status bar.
 	const auto importFailed = [this] {
-		m_window->statusBar()->showMessage("Legacy import failed. Scene unchanged.", 8000);
+		m_window->statusBar()->showMessage("Legacy import failed", 8000);
 	};
 
 	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
-		? QString("Imported Legacy Scene")
+		? QString("Imported Legacy Case")
 		: QFileInfo(sourcePath).fileName();
 	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
 		sceneName.toStdString());
@@ -771,13 +768,16 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
 	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
 		importFailed();
-		showError("Cannot Open Imported Scene", legacyImportSummary(diagnostics));
+		showError("Cannot Open Imported Case", legacyImportSummary(diagnostics));
 		return;
 	}
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
 	m_window->statusBar()->clearMessage();
-	showError("Legacy Import Diagnostics", legacyImportSummary(diagnostics), true);
+	// An import that found nothing to report opens the case without a box.
+	const QString summary = legacyImportSummary(diagnostics);
+	if (!summary.isEmpty())
+		showError("Legacy Case Imported", summary, true);
 	if (m_host.afterRunStopped([this, destinationPath, operation] { openSceneDirectory(destinationPath, operation); }))
 		return;
 	openSceneDirectory(destinationPath, operation);

@@ -237,13 +237,13 @@ default is `Assignment_Gvc_Gdg_Ut`, and `QEGTRAIN_E2E_SCENE_ALT` names the
 second scene, `Copenhagen` by default. The application creates, edits,
 validates, saves and reloads cases through the editors. When the first scene has
 no passengers, it turns the passengers on in `Paimpol` and checks that the first
-scene then draws no platform bars and shows the switch off, and that `Paimpol`
-shows it on again. It then edits a copy of
+scene then shows the switch off and still draws its platform bars, and that
+`Paimpol` shows the switch on again. It then edits a copy of
 the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark
 and the run results) and keep the zoom and the centre of the network view, that an
-edit in a replay closes the Train Info dock of a train that is selected in it, that an edit
+edit in a replay closes the inspector of a train that is selected in it, that an edit
 after a run replaces the message that the run is complete and gives the focus that was in the
 Run Results dock to the network view, that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
@@ -307,7 +307,7 @@ window. The script checks:
   file that holds the three edits, Save As starts in the folder of the bundle with its
   file name, and the bundle keeps its bytes and its modification time. The window
   closes after Save As, no recovery folder is left and the next start has no prompt.
-- New case: a case that was never saved is offered as `New case study, not saved` and
+- New case: a case that was never saved is offered as `Not saved yet` and
   recovered in the same way.
 - Changed original: an original that changed, is newer than the copy or is missing is
   named in the prompt, and Decide Later is the default button for the first two.
@@ -408,10 +408,13 @@ budget in the Assignment run.
 The explanation of Follow is checked by several smoke scripts. `app/FollowAvailability.h`
 decides whether the control is offered, whether Follow can be switched on, whether it has
 to be switched off, whether the view and the station emphasis follow the train, whether
-the view glides to the train (a live run) or cuts to it (a replay) and which clause and
+the view moves with the train (a live run) or cuts to it (a replay) and which clause and
 sentence are shown; the window writes the answer into the train list, the status label and the
-tooltips of the control. `graphics/FollowCamera` moves the view: a glide runs on a timer
-of its own, and the window cuts to a train, stops the camera and settles it on its last
+tooltips of the control. `graphics/FollowCamera` moves the view: the window passes it the
+place where the train is drawn at every step of the glide of the train, and the camera
+centres the view there at once. While the user holds a drag, scrolls or pinches, it leaves
+the view alone. It has a timer only for the catch-up after a pan, a zoom or a resize of the
+user. The window cuts to a train, stops the camera and settles it on its last
 position. Each check reads that widget state, or the centre of the view, in the window's
 own E2E code and prints a marker:
 
@@ -439,25 +442,31 @@ own E2E code and prints a marker:
   `E2E_FOLLOW_LAYER_OK` (Trains layer off and on again, with the station emphasis) and
   `E2E_FOLLOW_LIVE_END_OK` (Follow is switched off with its sentence when the followed
   train leaves).
-- The camera in the same live run. The checks give the camera a clock of their own: a
-  frame is delivered while the clock stands still, and each tick advances it by one timer
-  interval, so that they do not depend on wall time. `E2E_FOLLOW_CAMERA_GLIDE_OK` (a frame
-  does not move the view, a tick moves it part of the way to the train, and without further
-  frames, as in a paused run, the view settles on the train and the timer stops),
-  `E2E_FOLLOW_CAMERA_RESUME_OK` (the first frame after a long pause does not move the view
-  and starts a glide from where the view is), `E2E_FOLLOW_CAMERA_PAN_OK` (after a pan of
-  the user and after a resize of the window, Follow stays on and the next frame starts a
-  glide from where the view was left, which ends on the train),
+- The camera in the same live run. The checks run the steps of the trains by hand and give
+  the camera and the motion of the trains a clock of their own, which only the checks
+  advance, so that they do not depend on wall time. `E2E_FOLLOW_CAMERA_GLIDE_OK` (a frame
+  starts the glide where the train is drawn, so the view does not move yet; at every step
+  of the glide the view is on the train as it is drawn, within a pixel and a half to allow
+  for the edge of the scene, no timer of the camera runs, and the view moves on in the first
+  and in the second quarter of the glide),
+  `E2E_FOLLOW_CAMERA_RESUME_OK` (a frame that interrupts the glide starts the next glide
+  where the train is drawn, so the view does not jump), `E2E_FOLLOW_CAMERA_OVERLAYS_OK` (a
+  frame that moves the view with the train does not run the whole pass over the overlays:
+  a station name hidden by hand stays hidden while the station of the train stays the same),
+  `E2E_FOLLOW_CAMERA_PAN_OK` (after a pan of the user and after a resize of the window,
+  Follow stays on, the next frame leaves the view where it was left, and a catch-up brings
+  it back to the train),
   `E2E_FOLLOW_CAMERA_ZOOM_OK` (the zoom of the toolbar, in and out, centres the view on the
-  train at once while the view lags behind it, and Fit stops the camera),
+  train at once during a catch-up, and Fit ends the catch-up),
   `E2E_FOLLOW_CAMERA_CUT_OK` (choosing another train, and switching Follow on with the
   view panned away from the train, move the view to the train at once),
   `E2E_FOLLOW_CAMERA_STOP_OK` (switching Follow off, switching the Trains layer off, a
-  train with no position on the map and the end of the followed train stop the timer and
+  train with no position on the map and the end of the followed train stop the camera and
   forget the target; with the layer on again and the position back, the view is on the
-  train at once) and `E2E_FOLLOW_CAMERA_RUN_STOP_OK` (the Stop button ends a glide in
-  progress). The check of the follow animation reads the centre of the view once the glide
-  has ended, so it requires the view to end on the train.
+  train at once) and `E2E_FOLLOW_CAMERA_RUN_STOP_OK` (the Stop button ends a catch-up in
+  progress). The check of the follow animation runs the glide to its end and requires the
+  view to end on the train, the badge to stay at the centre of the drawn train and the train
+  to have the shape of the last frame.
 - In the replay of the Assignment run (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_REPLAY_BEFORE_OK`, `E2E_FOLLOW_REPLAY_DURING_OK` and
   `E2E_FOLLOW_REPLAY_AFTER_OK` (Follow stays on and the view moves only while the
@@ -526,7 +535,7 @@ most of its checks, so run it locally to read its logs.
 | --- | --- | --- |
 | Result of a CTest run | `build/Testing/Temporary/LastTest.log`; the names of the failed tests are in `LastTestsFailed.log` in the same folder. `ctest --rerun-failed --output-on-failure` runs those again, and `--output-log FILE` writes the log to a file | CTest |
 | Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
-| Messages of a run | Standard output and error, the **Console Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
+| Messages of a run | Standard output and error, the **Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
 | Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |

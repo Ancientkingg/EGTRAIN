@@ -507,8 +507,11 @@ bool noSharedResource() {
 	const AreaCapacityTrain first = areaTrain(train("A", 0.0, {occupation("X", 0.0, 20.0)}));
 	const AreaCapacityTrain second = areaTrain(train("B", 20.0, {occupation("Y", 5.0, 25.0)}));
 	const AreaCapacityResult result = analyzeAreaCapacity(areaInput({"X", "Y"}, {first, second}, 100.0, "B"));
-	bool ok = expect(hasNote(result, AreaCapacityNoteKind::NoSharedResource, "A", "B") && !result.chain.analyzable,
-		"no shared resource: the note names the pair");
+	bool ok = expect(hasNote(result, AreaCapacityNoteKind::NoSharedResource, "A", "B"), "no shared resource: the note names the pair");
+	// B shares nothing with A, so it starts with A and closes no cycle.
+	ok &= expect(result.chain.analyzable && result.chain.cycleEndIdentity == "B" && result.chain.cycleTime < 0.0
+			&& result.chain.compression.size() == 2 && near(result.chain.compression[1].compressedReference, 0.0),
+		"no shared resource: the chain is analysed without a cycle");
 	ok &= expect(rowFor(result, "X").trainCount == 1 && rowFor(result, "Y").trainCount == 1
 			&& near(rowFor(result, "X").occupationSeconds, 20.0),
 		"no shared resource: the rows are filled");

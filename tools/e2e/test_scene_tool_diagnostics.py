@@ -50,8 +50,8 @@ def check_version_rejections(scene_tool: Path, root: Path) -> None:
         packed = temp / "draft.egscene"
 
         expect_rejection(scene_tool, ("validate", draft),
-            "scene.compatibility.draft", "draft layout", "2026-08-08", "Load Legacy Case")
-        expect_rejection(scene_tool, ("pack", draft, packed), "scene.compatibility.draft", "Load Legacy Case")
+            "scene.compatibility.draft", "draft layout", "2026-08-08", "Import Legacy Case")
+        expect_rejection(scene_tool, ("pack", draft, packed), "scene.compatibility.draft", "Import Legacy Case")
         if packed.exists():
             raise SystemExit("scene_tool pack wrote a bundle of a draft scene")
         expect_rejection(scene_tool, ("validate", temp / "newer"),
@@ -102,7 +102,7 @@ def main() -> None:
         raise SystemExit(f"expected one grouped dwell diagnostic, got {len(dwell)}")
     if not dwell[0].split("x ", 1)[0].isdigit():
         raise SystemExit(f"expected grouped diagnostic count: {dwell[0]}")
-    for detail in ("services.json", "Dwell time exceeds departure - arrival window"):
+    for detail in ("services.json", "Minimum dwell is longer than the time from arrival to departure"):
         if detail not in dwell[0]:
             raise SystemExit(f"grouped diagnostic lost {detail}: {dwell[0]}")
     for context in (

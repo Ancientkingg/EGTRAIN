@@ -208,7 +208,7 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		return left->id < right->id;
 	});
 	if (orderedTracks.size() > kMaxTrackLines)
-		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more tracks than the runtime capacity",
+		add(SceneSeverity::Error, "scene.native.capacity", "The case has more tracks than the runtime can hold",
 			"infrastructure.json", "track", "", "tracks", std::to_string(kMaxTrackLines),
 			"Reduce tracks or use a runtime with a larger fixed capacity");
 
@@ -342,10 +342,10 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 	}
 
 	if (scene.connections.size() > kMaxConnections)
-		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more connections than the runtime capacity",
+		add(SceneSeverity::Error, "scene.native.capacity", "The case has more connections than the runtime can hold",
 			"infrastructure.json", "connection", "", "connections", std::to_string(kMaxConnections));
 	if (scene.stations.size() > kMaxStations)
-		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more stations than the runtime capacity",
+		add(SceneSeverity::Error, "scene.native.capacity", "The case has more stations than the runtime can hold",
 			"stations.json", "station", "", "stations", std::to_string(kMaxStations));
 	std::unordered_set<std::string> connectionIds;
 	std::unordered_map<std::string, std::size_t> nodeConnectionCounts;

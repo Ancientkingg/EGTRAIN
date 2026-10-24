@@ -97,7 +97,6 @@ static void fill(NetworkPresenter& presenter, QGraphicsScene& scene) {
 	auto* badge = new TrainBadgeItem;
 	scene.addItem(badge);
 	presenter.m_trainBadges.insert(0, badge);
-	presenter.m_prevTrainPositions.insert(0, QPointF(1, 2));
 
 	auto* signal = new SignalItem(QRectF(0, 0, 4, 4));
 	scene.addItem(signal);
@@ -233,12 +232,11 @@ static bool barsAlong(QGraphicsScene& scene, const TrackPreviewLine& line, int c
 }
 
 static bool registriesEmpty(const NetworkPresenter& presenter) {
-	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
-		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
-		&& presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty() && presenter.m_tracksByOccupiedArc.empty()
-		&& presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty()
-		&& presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty() && presenter.m_stationPictures.isEmpty()
-		&& presenter.m_vcMessageItems.isEmpty();
+	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.allSignals.isEmpty()
+		&& presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty()
+		&& presenter.m_tracksBySectionId.empty() && presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty()
+		&& presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty()
+		&& presenter.m_stationLabels.isEmpty() && presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty();
 }
 
 static bool pointersNull(const NetworkPresenter& presenter) {
@@ -280,7 +278,7 @@ int main(int argc, char* argv[]) {
 	}
 	{
 		NetworkPresenter presenter(nullptr, nullptr);
-		presenter.m_prevTrainPositions.insert(0, QPointF());
+		presenter.m_trainBadges.insert(0, nullptr);
 		presenter.clear();
 		ok &= expect(registriesEmpty(presenter), "clear works without a scene");
 	}
@@ -313,13 +311,24 @@ int main(int argc, char* argv[]) {
 		options.selectedId = "B1";
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_previewHasSelectedTrack, "a selected track is marked");
-		const auto stationDecorations = presenter.m_stationDecorations.size();
-		presenter.clear();
-		options.platformBars = true;
-		presenter.showPreview(model, options);
-		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
+		// The preview draws the platform bars without being asked, among the station decorations, hidden in the far look
+		// and shown in the near look.
+		const auto bars = [&presenter](bool visible) {
+			return std::count_if(presenter.m_stationDecorations.cbegin(), presenter.m_stationDecorations.cend(),
+				[visible](QGraphicsItem* item) { return qgraphicsitem_cast<PlatformItem*>(item) && item->isVisible() == visible; });
+		};
+		ok &= expect(bars(false) > 0 && bars(true) == 0, "the preview draws the platform bars, hidden in the far look");
+		presenter.setStationNearLook(true);
+		ok &= expect(bars(true) > 0 && bars(false) == 0, "the platform bars show in the near look");
 		// B0 runs diagonally and bends at Gdg, its station between Gvc and Ut.
 		ok &= expect(barsAlong(scene, *presenter.trackLine("B0"), 2), "a platform bar is a scene item over the station marks and lies along its track, on the upper side");
+		const auto drawnBars = bars(true) + bars(false);
+		presenter.clear();
+		// A virtual station gets no platform bar, as it gets no overlay.
+		SceneModel withVirtual = model;
+		withVirtual.stations.push_back({"virtualLink", "virtualLink", false, 0.0, {{"virtualLink.platform", {"B1.Gdg"}}}});
+		presenter.showPreview(withVirtual);
+		ok &= expect(bars(true) + bars(false) == drawnBars, "a virtual station gets no platform bar");
 		presenter.clear();
 		// With Ut at the longitude of Gdg the track runs straight up from Gdg to Ut.
 		SceneModel vertical = model;
@@ -351,7 +360,7 @@ int main(int argc, char* argv[]) {
 			if (cycle == 0)
 				drawnWithOptions = scene.items().size();
 			ok &= expect(drawnWithOptions > 0 && scene.items().size() == drawnWithOptions,
-				"every cycle with a selection and platform bars draws the same items");
+				"every cycle with a selection draws the same items");
 			presenter.clear();
 			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
 				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
@@ -368,6 +377,12 @@ int main(int argc, char* argv[]) {
 		halt.hasPosition = true;
 		halt.positionKm = 10.0;
 		classes.stations.push_back(halt);
+		// A halt at the position of B1.Gvc, which no platform takes, has a square there.
+		SceneStation squareHalt;
+		squareHalt.id = squareHalt.name = "Hsq";
+		squareHalt.hasPosition = true;
+		squareHalt.positionKm = 164.0;
+		classes.stations.push_back(squareHalt);
 		presenter.showPreview(classes);
 		QStringList marks;
 		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
@@ -376,9 +391,10 @@ int main(int argc, char* argv[]) {
 				marks << overlay->stationName() + "=" + QString::number(static_cast<int>(overlay->visual().cls));
 		}
 		marks.sort();
-		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Ut=2"}),
+		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Hsq=0", "Ut=2"}),
 			"a station gets the mark of its class from its connections and platforms");
-		// The mark of a station with platforms gets the centres of their station squares, one without them its anchor.
+		// The mark of a station with platforms gets the centres of their station squares, one without them those of the
+		// squares at its position, as in a run.
 		bool centred = !presenter.m_stationOverlays.isEmpty();
 		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
 			const auto* mark = dynamic_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
@@ -397,11 +413,45 @@ int main(int argc, char* argv[]) {
 							&& item->data(PreviewGraphics::Id).toString() == QString::fromStdString(nodeId)
 							&& !expected.contains(item->sceneBoundingRect().center()))
 							expected.append(item->sceneBoundingRect().center());
-			if (expected.isEmpty())
-				expected.append(overlay->stableAnchor());
-			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2);
+			if (station->platforms.empty())
+				for (QGraphicsItem* item : scene.items())
+					if (qgraphicsitem_cast<StationNodeItem*>(item)
+						&& item->data(PreviewGraphics::StationId).toString() == QString::fromStdString(station->id))
+						expected.append(item->sceneBoundingRect().center());
+			centred = centred && mark->nodeCentres() == expected && (overlay->stationName() != "Gdg" || expected.size() == 2)
+				&& (overlay->stationName() != "Hsq" || expected.size() == 1) && (overlay->stationName() != "Hlt" || expected.isEmpty());
 		}
 		ok &= expect(centred, "the preview gives each station mark the centres of its station squares");
+		// In the near look before a run, as in a run, the halt with a square shows its square alone, and the halt without
+		// one keeps its pin and its name at their smallest size on screen at every zoom.
+		const auto overlayNamed = [&presenter](const QString& name) -> StationOverlayItem* {
+			for (StationOverlayItem* overlay : presenter.m_stationOverlays)
+				if (overlay->stationName() == name)
+					return overlay;
+			return nullptr;
+		};
+		StationOverlayItem* withSquare = overlayNamed("Hsq");
+		StationOverlayItem* withoutSquare = overlayNamed("Hlt");
+		bool squareAlone = withSquare && withoutSquare;
+		QList<QSizeF> keptPin;
+		QList<qreal> keptName;
+		for (const qreal viewScale : {4.0, 10.0}) {
+			if (!squareAlone)
+				break;
+			withSquare->applyViewScale(viewScale, true);
+			withoutSquare->applyViewScale(viewScale, true);
+			const auto* mark = static_cast<const StationMarkItem*>(withSquare->pictureItem());
+			const auto* pin = static_cast<const StationMarkItem*>(withoutSquare->pictureItem());
+			squareAlone = mark->isNearLook() && mark->sceneBoundingRect().isEmpty() && !pin->isNearLook();
+			keptPin << pin->sceneBoundingRect().size() * viewScale;
+			keptName << withoutSquare->nameItem()->sceneBoundingRect().height() * viewScale;
+		}
+		ok &= expect(squareAlone, "before a run a halt with a square draws no pin in the near look");
+		ok &= expect(keptPin.size() == 2 && std::abs(keptPin[0].width() - keptPin[1].width()) < 1e-6
+				&& std::abs(keptPin[0].height() - keptPin[1].height()) < 1e-6
+				&& std::abs(keptPin[0].width() - StationOverlayItem::MinPictogramPixels) < 1.0
+				&& std::abs(keptName[0] - keptName[1]) < 1e-6,
+			"a pin kept in the near look and its name keep their size on screen at every zoom");
 		presenter.clear();
 
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
@@ -424,8 +474,8 @@ int main(int argc, char* argv[]) {
 		heads.removeDuplicates();
 		heads.sort();
 		const QStringList expected{
-			"Track B0 at 28 km; section B0 28.000 to 64.000 km; signal ID sig1 | @B0.block.2@ | B0 28.000 to 64.000 km",
-			"Track B1 at 136 km; section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
+			"Track B0 at 28 km, section B0 28.000 to 64.000 km (signal sig1) | @B0.block.2@ | B0 28.000 to 64.000 km",
+			"Track B1 at 136 km, section B1 136.000 to 164.000 km | @B1.block.2@ | B1 136.000 to 164.000 km"};
 		ok &= expect(heads == expected, "a head of the preview names its section by its label and keeps its id");
 		const TrackPreviewSignal* head = presenter.previewSignal("B0", "@B0.block.2@");
 		ok &= expect(head && head->label == "sig1 (B0 28.000 to 64.000 km)" && !presenter.previewSignal("B1", "@B0.block.2@"),

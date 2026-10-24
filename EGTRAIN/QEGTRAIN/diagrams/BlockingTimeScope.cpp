@@ -45,18 +45,16 @@ BlockingTimeScope defaultBlockingTimeScope(double caseEndSeconds) {
 
 bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope) {
 	QDialog dialog(parent);
-	dialog.setWindowTitle("Blocking-time scope");
+	dialog.setWindowTitle("Blocking time");
 	auto* body = new QWidget;
 	auto* form = new QFormLayout(body);
 	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	auto* routeCombo = new ChoiceComboBox(&dialog);
-	routeCombo->addItem("All routes / all corridors", -1);
+	routeCombo->addItem("All routes", -1);
 	for (std::size_t routeIndex = 0; routeIndex < choices.routes.size(); ++routeIndex) {
 		const BlockingTimeScopeChoices::Route& route = choices.routes[routeIndex];
-		const QString corridor = route.corridor.empty()
-			? QStringLiteral("no corridor")
-			: QString::fromStdString(route.corridor);
-		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
+		const QString id = QString::fromStdString(route.id);
+		routeCombo->addItem(route.corridor.empty() ? id : QString("%1  (%2)").arg(id, QString::fromStdString(route.corridor)),
 			static_cast<int>(routeIndex));
 	}
 	auto* firstBlock = new ChoiceComboBox(&dialog);
@@ -87,8 +85,8 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 		}
 		const std::vector<std::string>& blockIds = choices.routes[static_cast<std::size_t>(routeIndex)].blockIds;
 		for (std::size_t blockIndex = 0; blockIndex < blockIds.size(); ++blockIndex) {
-			const QString blockId = QString::fromStdString(blockIds[blockIndex]);
-			const QString text = QString("%1: %2").arg(blockIndex + 1).arg(QString::fromStdString(choices.sectionLabels.label(blockIds[blockIndex])));
+			const QString blockId = QString::fromStdString(shortBlockId(blockIds[blockIndex]));
+			const QString text = QString("%1: %2").arg(blockIndex + 1).arg(QString::fromStdString(readableSectionLabel(blockIds[blockIndex], choices.sectionLabels)));
 			for (QComboBox* combo : {firstBlock, lastBlock}) {
 				combo->addItem(text);
 				combo->setItemData(combo->count() - 1, blockId, Qt::ToolTipRole);
@@ -111,13 +109,12 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	form->addRow("Route / corridor:", routeCombo);
 	form->addRow("First block:", firstBlock);
 	form->addRow("Last block:", lastBlock);
-	form->addRow("Start after case base:", startTime);
-	form->addRow("End after case base:", endTime);
+	form->addRow("From (after run start):", startTime);
+	form->addRow("To (after run start):", endTime);
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	DialogLayout::install(dialog, "Blocking-time scope",
-		"Choose the route, blocks and elapsed interval to inspect.", body, buttons);
+	DialogLayout::install(dialog, "Blocking time", QString(), body, buttons);
 	DialogLayout::fitWidthToContent(dialog);
 	if (dialog.exec() != QDialog::Accepted)
 		return false;

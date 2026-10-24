@@ -13,14 +13,6 @@ constexpr qreal kMinMarkPixels = 6.0;
 SignalItem::SignalItem(const QRectF& rect, QGraphicsItem* parent)
 	: QGraphicsEllipseItem(rect, parent), m_aspectCode(-1), m_lampColor(QColor(128, 128, 128)) {
 	setZValue(2); // draw over arcs and connections (which have z = 0), and nodes (z = 1)
-	// Invisible picking geometry stays device-sized while the actual head scales
-	// with the authored scene. NetworkScene resolves child hits to this signal.
-	auto* target = new QGraphicsEllipseItem(QRectF(-6.0, -6.0, 12.0, 12.0), this);
-	target->setPos(rect.center());
-	target->setFlag(QGraphicsItem::ItemIgnoresTransformations);
-	target->setPen(Qt::NoPen);
-	target->setBrush(Qt::NoBrush);
-	target->setAcceptedMouseButtons(Qt::NoButton);
 
 	// initialize parameters
 	trackID = -1;
@@ -70,15 +62,9 @@ void SignalItem::setGroupedSignals(const QVector<QPair<int, bool>>& aspects) {
 QString SignalItem::inspectionIdentity() const {
 	if (!m_inspectionIdentity.isEmpty())
 		return m_inspectionIdentity;
-	const auto section = [](const std::string& id, const std::string& label) {
-		if (id.empty())
-			return QStringLiteral("none");
-		return QString::fromStdString(label.empty() ? id : label);
-	};
-	return QStringLiteral("Track %1 at %2 km; ahead %3; behind %4")
+	return QStringLiteral("Track %1 at %2 km")
 		.arg(sceneTrackId.empty() ? QString::number(trackID) : QString::fromStdString(sceneTrackId))
-		.arg(X, 0, 'g', 10)
-		.arg(section(sectionAheadId, sectionAheadLabel), section(sectionBehindId, sectionBehindLabel));
+		.arg(X, 0, 'g', 10);
 }
 
 QRectF SignalItem::boundingRect() const {
@@ -94,6 +80,23 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 	// Without signalling data the head is an empty ring, not a lit lamp.
 	const bool unavailable = !m_failed && cue == SignalCueKind::Neutral;
 	const QColor ringColor(150, 150, 150);
+	const QColor lampColor = m_failed ? QColor(Qt::red) : m_lampColor;
+	// Marks tell the states apart without colour. They need room: below
+	// kMinMarkPixels device pixels only the colour is left.
+	const QTransform& world = painter->worldTransform();
+	const qreal devicePixels = lamp.width() * std::hypot(world.m11(), world.m12()) * painter->device()->devicePixelRatioF();
+	const bool marked = devicePixels >= kMinMarkPixels;
+	if (!unavailable && !marked) {
+		// A hairline would hide a small lamp, so a lit or failed head is a disc in its lamp colour as wide as the ring
+		// of an unavailable head, 1.5 device pixels wider than the head. A fill costs less to paint than that stroke.
+		if (devicePixels > 0.0) {
+			const qreal grow = 0.75 * lamp.width() / devicePixels;
+			painter->setPen(Qt::NoPen);
+			painter->setBrush(lampColor);
+			painter->drawEllipse(lamp.adjusted(-grow, -grow, grow, grow));
+		}
+		return;
+	}
 	if (unavailable) {
 		QPen ring(ringColor);
 		ring.setCosmetic(true);
@@ -102,15 +105,10 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 		painter->setBrush(Qt::NoBrush);
 	} else {
 		painter->setPen(pen());
-		painter->setBrush(m_failed ? QColor(Qt::red) : m_lampColor);
+		painter->setBrush(lampColor);
 	}
 	painter->drawEllipse(lamp);
-
-	// Marks tell the states apart without colour. They need room: below
-	// kMinMarkPixels device pixels only the colour is left.
-	const QTransform& world = painter->worldTransform();
-	const qreal devicePixels = lamp.width() * std::hypot(world.m11(), world.m12()) * painter->device()->devicePixelRatioF();
-	if (devicePixels < kMinMarkPixels)
+	if (!marked)
 		return;
 	const QPointF c = lamp.center();
 	const qreal r = lamp.width() / 2.0;

@@ -70,13 +70,22 @@ bool hasEditorFocus(QWidget* editor) {
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
 }
 
+// The name of an incident type on screen; a type that is none of the two shows as it is stored.
+QString typeText(const std::string& type) {
+	if (type == "signal_failure")
+		return QStringLiteral("Signal failure");
+	if (type == "train_breakdown")
+		return QStringLiteral("Train breakdown");
+	return QString::fromStdString(type);
+}
+
 // The text of the row of an incident in the list.
 QString rowLabel(const SceneIncident& incident) {
-	QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
+	QString label = QString::fromStdString(incident.id) + ": " + typeText(incident.type);
 	if (incident.hasOccurrence || incident.occurrence != 1)
 		label += QString(" #%1").arg(incident.occurrence);
 	if (incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0)
-		label += QString(" / %1 km/h").arg(incident.reducedSpeedKmh);
+		label += QString(", %1 km/h").arg(incident.reducedSpeedKmh);
 	return label;
 }
 
@@ -133,11 +142,12 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("incidentIdEdit");
-	detailLayout->addRow("Incident Id", m_idEdit);
+	detailLayout->addRow("Incident ID", m_idEdit);
+	// The data of an item is the type as the scene stores it.
 	m_typeCombo = new QComboBox(detailPane);
 	m_typeCombo->setObjectName("incidentTypeCombo");
-	m_typeCombo->addItem("signal_failure");
-	m_typeCombo->addItem("train_breakdown");
+	m_typeCombo->addItem(typeText("signal_failure"), QStringLiteral("signal_failure"));
+	m_typeCombo->addItem(typeText("train_breakdown"), QStringLiteral("train_breakdown"));
 	detailLayout->addRow("Type", m_typeCombo);
 	// A long train label is cut in the middle.
 	m_targetCombo = new ChoiceComboBox(detailPane);
@@ -160,19 +170,19 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_startSecondsEdit->setObjectName("incidentStartSecondsEdit");
 	m_startSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_startSecondsEdit));
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
-	m_hasEndSecondsCheck = new QCheckBox("Use recovery end (s)", detailPane);
+	m_hasEndSecondsCheck = new QCheckBox("End (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
-	m_hasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
+	m_hasEndSecondsCheck->setToolTip("Leave off to keep a slowed train slow until its destination.");
 	m_endSecondsEdit = new QLineEdit(detailPane);
 	m_endSecondsEdit->setObjectName("incidentEndSecondsEdit");
-	m_endSecondsEdit->setAccessibleName("Recovery end (s)");
+	m_endSecondsEdit->setAccessibleName("End (s)");
 	m_endSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_endSecondsEdit));
 	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
-	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed cap", detailPane);
+	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed", detailPane);
 	m_hasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
 	m_reducedSpeedKmhEdit = new CompactDoubleSpinBox(detailPane);
 	m_reducedSpeedKmhEdit->setObjectName("incidentReducedSpeedKmhEdit");
-	m_reducedSpeedKmhEdit->setAccessibleName("Reduced speed cap");
+	m_reducedSpeedKmhEdit->setAccessibleName("Reduced speed");
 	m_reducedSpeedKmhEdit->setRange(0.01, 1000.0);
 	m_reducedSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_reducedSpeedKmhEdit->setSuffix(" km/h");
@@ -198,7 +208,10 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 		updateDetail();
 	});
 	connect(m_idEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitIdEdit);
-	connect(m_typeCombo, &QComboBox::currentTextChanged, this, &IncidentPanel::commitType);
+	connect(m_typeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+		if (index >= 0)
+			commitType(m_typeCombo->itemData(index).toString());
+	});
 	connect(m_targetCombo, &QComboBox::currentTextChanged, this, [this] { commitTarget(); });
 	connect(m_startSecondsEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitStartSeconds);
 	connect(m_endSecondsEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitEndSeconds);
@@ -377,7 +390,7 @@ void IncidentPanel::updateDetail() {
 	{
 		const QSignalBlocker blocker(m_typeCombo);
 		if (hasSelection) {
-			const int typeIndex = m_typeCombo->findText(QString::fromStdString(incident->type));
+			const int typeIndex = m_typeCombo->findData(QString::fromStdString(incident->type));
 			// unknown type: default to signal_failure
 			m_typeCombo->setCurrentIndex(typeIndex >= 0 ? typeIndex : 0);
 		} else {
@@ -446,7 +459,7 @@ void IncidentPanel::refreshTargets() {
 				m_targetCombo->addItem(signalFailureTargetText(model, labels, value), QString::fromStdString(value));
 			current = m_targetCombo->findData(target);
 			if (current < 0 && !target.isEmpty()) {
-				m_targetCombo->addItem(QStringLiteral("Invalid removed target: ") + target, target);
+				m_targetCombo->addItem(QStringLiteral("%1 (missing)").arg(target), target);
 				current = m_targetCombo->count() - 1;
 			}
 		} else {
@@ -454,11 +467,7 @@ void IncidentPanel::refreshTargets() {
 			if (!singular && !incident->target.empty()) {
 				const bool exists = std::any_of(model.services.begin(), model.services.end(),
 					[&](const SceneService& service) { return service.id == incident->target; });
-				m_targetCombo->addItem(
-					(exists ? QStringLiteral("Historical scope: all generated services [")
-							: QStringLiteral("Invalid removed target; historical all scope ["))
-						+ target + QStringLiteral("]"),
-					target);
+				m_targetCombo->addItem((exists ? QStringLiteral("All runs of %1") : QStringLiteral("%1 (missing)")).arg(target), target);
 				const int index = m_targetCombo->count() - 1;
 				m_targetCombo->setItemData(index, 0, Qt::UserRole + 1);
 				current = index;
@@ -496,10 +505,7 @@ void IncidentPanel::refreshTargets() {
 		}
 		if (!signalFailure && !incident->target.empty()
 			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
-			m_targetCombo->addItem(
-				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ") + QString::number(incident->occurrence)
-					+ QStringLiteral("]"),
-				target);
+			m_targetCombo->addItem(QStringLiteral("%1 #%2 (missing)").arg(target).arg(incident->occurrence), target);
 			current = m_targetCombo->count() - 1;
 			m_targetCombo->setItemData(current, incident->hasOccurrence || incident->occurrence != 1 ? incident->occurrence : 0,
 				Qt::UserRole + 1);
@@ -510,13 +516,18 @@ void IncidentPanel::refreshTargets() {
 		++labelCounts[m_targetCombo->itemText(index)];
 	for (int index = 0; index < m_targetCombo->count(); ++index) {
 		const QString label = m_targetCombo->itemText(index);
-		const QString identity = QString(" [%1, #%2]")
-									 .arg(m_targetCombo->itemData(index).toString())
-									 .arg(m_targetCombo->itemData(index, Qt::UserRole + 1).toInt());
-		if (labelCounts.value(label) > 1)
-			m_targetCombo->setItemText(index, label + identity);
-		// A signal or block shows its id, a train its text and stable identity.
-		m_targetCombo->setItemData(index, signalFailure ? m_targetCombo->itemData(index).toString() : label + identity, Qt::ToolTipRole);
+		const QString serviceId = m_targetCombo->itemData(index).toString();
+		const int occurrence = m_targetCombo->itemData(index, Qt::UserRole + 1).toInt();
+		const QString identity = serviceId.isEmpty() ? QString()
+			: occurrence > 0						 ? QString("service %1, run %2").arg(serviceId).arg(occurrence)
+													 : QString("service %1, all runs").arg(serviceId);
+		if (labelCounts.value(label) > 1 && !identity.isEmpty())
+			m_targetCombo->setItemText(index, QString("%1 (%2)").arg(label, identity));
+		// A signal or block shows its id, a train its text and, on a line of its own, its service and run.
+		QString tooltip = signalFailure ? serviceId : label;
+		if (!signalFailure && !identity.isEmpty())
+			tooltip += QStringLiteral("\n") + identity.left(1).toUpper() + identity.mid(1);
+		m_targetCombo->setItemData(index, tooltip, Qt::ToolTipRole);
 	}
 	m_targetCombo->setCurrentIndex(std::max(0, current));
 	const bool editable = incident != nullptr && canEdit();
@@ -530,8 +541,7 @@ void IncidentPanel::refreshTargets() {
 	else if (signalFailure)
 		m_targetCombo->setToolTip(QStringLiteral("The signal or block that fails."));
 	else
-		m_targetCombo->setToolTip(
-			QStringLiteral("The train that breaks down: service code with route, elapsed scheduled entry and stable identity."));
+		m_targetCombo->setToolTip(QStringLiteral("The train that breaks down."));
 }
 
 void IncidentPanel::addIncident() {
@@ -615,7 +625,7 @@ void IncidentPanel::commitIdEdit() {
 		return;
 	}
 	if (sceneUniqueIncidentId(m_document->model(), newId) != newId) {
-		m_prompts->showError(this, "Incident ID already exists", "Incident IDs must be unique across all scenarios.", true);
+		m_prompts->showError(this, "Duplicate Incident ID", "Incident IDs must be unique across all scenarios.", true);
 		updateDetail();
 		return;
 	}
@@ -626,7 +636,7 @@ void IncidentPanel::commitIdEdit() {
 	// focus-out that lands on another control keeps that pending click intact
 	if (QListWidgetItem* item = m_listWidget->currentItem()) {
 		const QSignalBlocker blocker(m_listWidget);
-		item->setText(QString::fromStdString(newId) + " (" + QString::fromStdString(incident->type) + ")");
+		item->setText(rowLabel(*incident));
 	}
 
 	markEdited("Rename incident");

@@ -179,18 +179,22 @@ void EntranceDelayPanel::refresh() {
 		if (loaded && selected) {
 			const SceneModel& model = m_document->model();
 			for (const SceneEntranceDelay& delay : selected->entranceDelays) {
-				QString label = QString("%1 / #%2 @ %3: %4 s")
-									.arg(QString::fromStdString(delay.serviceId.empty() ? std::string("(empty)") : delay.serviceId))
-									.arg(delay.occurrence)
-									.arg(QString::fromStdString(delay.stationId.empty() ? std::string("(empty)") : delay.stationId))
-									.arg(QString::number(delay.delaySeconds, 'g', 12));
+				// The train by its operating code, else by its service and occurrence.
 				const auto service = std::find_if(model.services.begin(), model.services.end(),
 					[&delay](const SceneService& candidate) { return candidate.id == delay.serviceId; });
-				if (service != model.services.end()) {
-					const std::string code = sceneServiceOccurrenceOperatingCode(*service, delay.occurrence);
-					label += QString(" | code %1").arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code));
+				std::string code;
+				if (service != model.services.end())
+					code = sceneServiceOccurrenceOperatingCode(*service, delay.occurrence);
+				QString train = QString::fromStdString(code);
+				if (code.empty()) {
+					const QString serviceId = delay.serviceId.empty() ? QStringLiteral("(none)") : QString::fromStdString(delay.serviceId);
+					train = QString("%1 #%2").arg(serviceId).arg(delay.occurrence);
 				}
-				m_listWidget->addItem(label);
+				const QString station = delay.stationId.empty() ? QStringLiteral("(none)") : QString::fromStdString(delay.stationId);
+				QString seconds = QString::number(delay.delaySeconds, 'g', 12);
+				if (delay.delaySeconds >= 0.0)
+					seconds.prepend('+');
+				m_listWidget->addItem(QString("%1 at %2: %3 s").arg(train, station, seconds));
 			}
 		}
 		const int rowCount = m_listWidget->count();
@@ -225,8 +229,8 @@ void EntranceDelayPanel::updateDetail() {
 		if (delay) {
 			int index = m_serviceCombo->findData(QString::fromStdString(delay->serviceId));
 			if (index < 0) {
-				const QString invalid = delay->serviceId.empty() ? QStringLiteral("Invalid: (empty)")
-																 : QString("Invalid: %1").arg(QString::fromStdString(delay->serviceId));
+				const QString invalid = delay->serviceId.empty() ? QStringLiteral("(none)")
+																 : QString("%1 (missing)").arg(QString::fromStdString(delay->serviceId));
 				m_serviceCombo->addItem(invalid, QString::fromStdString(delay->serviceId));
 				index = m_serviceCombo->count() - 1;
 			}
@@ -240,6 +244,7 @@ void EntranceDelayPanel::updateDetail() {
 		const QSignalBlocker blocker(m_occurrenceEdit);
 		const int currentOccurrence = delay ? delay->occurrence : 1;
 		m_occurrenceEdit->setRange(std::min(1, currentOccurrence), std::max(occurrenceCount, currentOccurrence));
+		m_occurrenceEdit->setSuffix(delay ? QString(" of %1").arg(occurrenceCount) : QString());
 		m_occurrenceEdit->setValue(currentOccurrence);
 		m_occurrenceEdit->setEnabled(enabled);
 	}
@@ -249,16 +254,8 @@ void EntranceDelayPanel::updateDetail() {
 												: QStringLiteral("Select an entrance delay or use Add.");
 	}
 	DialogLayout::setHelp(m_emptyStateLabel, emptyState);
-	if (!delay) {
-		m_occurrenceContextLabel->clear();
-	} else {
-		QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
-		if (service)
-			context += QStringLiteral(" | ") + ServicePanel::generatedServiceLabel(*service, delay->occurrence);
-		else
-			context += QStringLiteral(" | Generated operating code: (unavailable)");
-		m_occurrenceContextLabel->setText(context);
-	}
+	// The train of the chosen occurrence; the service combo names the first one.
+	m_occurrenceContextLabel->setText(delay && service ? ServicePanel::generatedServiceLabel(*service, delay->occurrence) : QString());
 
 	{
 		const QSignalBlocker blocker(m_stationCombo);
@@ -273,8 +270,8 @@ void EntranceDelayPanel::updateDetail() {
 		if (delay) {
 			int index = m_stationCombo->findData(QString::fromStdString(delay->stationId));
 			if (index < 0) {
-				const QString invalid = delay->stationId.empty() ? QStringLiteral("Invalid: (empty)")
-																 : QString("Invalid: %1").arg(QString::fromStdString(delay->stationId));
+				const QString invalid = delay->stationId.empty() ? QStringLiteral("(none)")
+																 : QString("%1 (missing)").arg(QString::fromStdString(delay->stationId));
 				m_stationCombo->addItem(invalid, QString::fromStdString(delay->stationId));
 				index = m_stationCombo->count() - 1;
 			}

@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 	if (historicalPassenger.isNull() || historicalPassenger.size() != QSize(1200, 1200)
 		|| !historicalPassenger.hasAlphaChannel())
 		return 1;
-	const std::array<const char*, 9> command_icons{
+	const std::array<const char*, 11> command_icons{
 		":/icons/run.svg",
 		":/icons/pause.svg",
 		":/icons/stop.svg",
@@ -51,10 +51,18 @@ int main(int argc, char** argv) {
 		":/icons/skip-end.svg",
 		":/icons/zoom-in.svg",
 		":/icons/zoom-out.svg",
+		":/icons/fit.svg",
+		":/icons/panel.svg",
 		":/icons/follow.svg",
 		":/icons/pick-target.svg",
 	};
 	for (const char* path : command_icons) {
+		const QImage image(path);
+		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
+			return 1;
+	}
+	// The marks of a checked and of a partly checked check box in a list or a tree.
+	for (const char* path : {":/icons/check-mark.svg", ":/icons/check-partial.svg"}) {
 		const QImage image(path);
 		if (image.isNull() || image.size() != QSize(16, 16) || !image.hasAlphaChannel())
 			return 1;

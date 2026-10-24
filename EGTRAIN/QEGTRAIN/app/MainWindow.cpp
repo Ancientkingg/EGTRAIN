@@ -393,23 +393,21 @@ bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 }
 
 QString inputTractionContext(const SceneTrainUnit& unit, const QString& displayId = QString()) {
-	QString context = QString("Rolling stock unit: %1")
-						  .arg(displayId.isNull() ? QString::fromStdString(unit.id) : displayId);
+	QString context = displayId.isNull() ? QString::fromStdString(unit.id) : displayId;
 	if (!unit.sourceTractionFile.empty())
-		context += QString(" | Source: %1").arg(QString::fromStdString(unit.sourceTractionFile));
+		context += QString(", from %1").arg(QString::fromStdString(unit.sourceTractionFile));
 	return context;
 }
 
 QString inputTractionWarning(const SceneTrainUnit& unit) {
 	return inputTractionHasNegativeEffort(unit)
-		? QStringLiteral("Negative effort below the displayed 0 kN range.")
+		? QStringLiteral("Part of the curve is below 0 kN and is not shown.")
 		: QString();
 }
 
 QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 	const auto samples = sampleTractionCurve(unit.tractionCurve);
 	QChart* chart = new QChart();
-	chart->setTitle("Input traction characteristic");
 	QLineSeries* series = new QLineSeries();
 	series->setName(QString::fromStdString(unit.id));
 	series->setProperty("trainId", QString::fromStdString(unit.id));
@@ -424,8 +422,6 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 		effortAxis->setTitleText("Tractive effort (kN)");
 		effortAxis->setRange(0.0, std::max(1.0, effortAxis->max()));
 	}
-	if (inputTractionHasNegativeEffort(unit))
-		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
 	return chart;
 }
 
@@ -623,7 +619,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
 	// On macOS the role puts the entry in the application menu, under the name that Qt gives it.
-	auto* settingsAction = new QAction(QStringLiteral("Preferences..."), this);
+	auto* settingsAction = new QAction(QStringLiteral("Settings..."), this);
 	settingsAction->setObjectName(QStringLiteral("actionSettings"));
 	settingsAction->setMenuRole(QAction::PreferencesRole);
 	settingsAction->setShortcut(QKeySequence::Preferences);
@@ -746,14 +742,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// hide progress bar
 	progressBar->hide();
-	statusBar()->showMessage("Simulation complete");
 
 	// setup speed slider (will be added to toolbar)
 	m_speedSlider = new QSlider(Qt::Horizontal);
 	m_speedSlider->setRange(0, kMaxStepDelayMs);
 	m_speedSlider->setValue(kMaxStepDelayMs);
 	m_speedSlider->setMaximumWidth(108);
-	m_speedSlider->setToolTip("Simulation speed: fastest; right is faster");
+	m_speedSlider->setToolTip("Simulation speed");
 	m_speedSlider->setObjectName("speedSlider");
 	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
 	m_speedLabel->setObjectName("speedModeLabel");
@@ -807,24 +802,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
-	ui->actionLoad_Network->setText("Load Legacy Case...");
+	ui->actionLoad_Network->setText("Import Legacy Case...");
 	ui->actionLoad_Network->setShortcut(QKeySequence());
-	m_newSceneAction = new QAction("New Case Study...", this);
+	m_newSceneAction = new QAction("New Case...", this);
 	m_newSceneAction->setObjectName("actionNewCaseStudy");
 	m_newSceneAction->setShortcut(QKeySequence::New);
-	QAction* openSceneAction = new QAction("Open Case Study...", this);
+	QAction* openSceneAction = new QAction("Open Case...", this);
 	openSceneAction->setObjectName("actionOpenCaseStudyBundle");
 	openSceneAction->setShortcut(QKeySequence::Open);
-	QAction* openSceneFolderAction = new QAction("Open Scene Folder...", this);
+	QAction* openSceneFolderAction = new QAction("Open Case Folder...", this);
 	openSceneFolderAction->setObjectName("actionOpenSceneFolder");
-	m_saveSceneAction = new QAction("Save Scene", this);
+	m_saveSceneAction = new QAction("Save", this);
 	m_saveSceneAction->setObjectName("actionSaveScene");
 	m_saveSceneAction->setShortcut(QKeySequence::Save);
-	m_saveSceneAsAction = new QAction("Save Case Study As...", this);
+	m_saveSceneAsAction = new QAction("Save As...", this);
 	m_saveSceneAsAction->setObjectName("actionSaveCaseStudyBundle");
-	m_saveSceneAsFolderAction = new QAction("Save Scene As Folder...", this);
+	m_saveSceneAsFolderAction = new QAction("Save As Folder...", this);
 	m_saveSceneAsFolderAction->setObjectName("actionSaveSceneFolder");
-	m_runSceneAction = new QAction("Run Scene", this);
+	m_runSceneAction = new QAction("Run", this);
 	m_runSceneAction->setObjectName("actionRunScene");
 	connect(m_newSceneAction, &QAction::triggered, m_session, &SceneSession::newScene);
 	connect(openSceneAction, &QAction::triggered, m_session, &SceneSession::openSceneDialog);
@@ -870,7 +865,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			ui->actionSimulationPause->setChecked(false);
 			return;
 		}
-		ui->actionSimulationPause->setText(m_runController->togglePause() ? "Resume" : "Pause");
+		const bool paused = m_runController->togglePause();
+		ui->actionSimulationPause->setText(paused ? "Resume" : "Pause");
+		statusBar()->showMessage(paused ? QStringLiteral("Paused") : QStringLiteral("Running"));
 	});
 	connect(m_speedSlider, &QSlider::valueChanged, this, [this](int value) {
 		const int delayMs = stepDelayForSlider(value);
@@ -921,9 +918,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_caseLayersDock->setAllowedAreas(Qt::LeftDockWidgetArea);
 	QWidget* caseLayersWidget = new QWidget(m_caseLayersDock);
 	QVBoxLayout* caseLayersLayout = new QVBoxLayout(caseLayersWidget);
-	QLabel* caseTitle = new QLabel("Current case study", caseLayersWidget);
-	caseTitle->setObjectName("caseStudyTitleLabel");
-	caseLayersLayout->addWidget(caseTitle);
 	m_caseNameLabel = EditorLayout::wrappedLabel(QString(), caseLayersWidget);
 	m_caseNameLabel->setObjectName("caseNameLabel");
 	caseLayersLayout->addWidget(m_caseNameLabel);
@@ -936,29 +930,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_stationLayerCheck = new QCheckBox("Stations and platforms", caseLayersWidget);
 	m_stationLayerCheck->setObjectName("layerStationsPlatforms");
 	m_stationLayerCheck->setChecked(true);
-	m_stationLayerCheck->setToolTip("Show station symbols and platforms");
 	m_stationNamesCheck = new QCheckBox("Station names", caseLayersWidget);
 	m_stationNamesCheck->setObjectName("layerStationNames");
 	m_stationNamesCheck->setProperty("secondaryLayerToggle", true);
 	m_stationNamesCheck->setChecked(true);
-	m_stationNamesCheck->setToolTip("Show station names without changing station symbols");
 	m_trainLayerCheck = new QCheckBox("Trains", caseLayersWidget);
 	m_trainLayerCheck->setObjectName("layerTrains");
 	m_trainLayerCheck->setChecked(true);
-	m_trainLayerCheck->setToolTip("Show trains");
 	m_trainSpeedLabelsCheck = new QCheckBox("Train speed labels", caseLayersWidget);
 	m_trainSpeedLabelsCheck->setObjectName("layerTrainSpeedLabels");
 	m_trainSpeedLabelsCheck->setProperty("secondaryLayerToggle", true);
 	m_trainSpeedLabelsCheck->setChecked(true);
-	m_trainSpeedLabelsCheck->setToolTip("Show the speed beside each train when zoomed in, and beside a selected or followed train");
+	m_trainSpeedLabelsCheck->setToolTip("Shown when zoomed in, and for the selected or followed train");
 	m_signalLayerCheck = new QCheckBox("Signals", caseLayersWidget);
 	m_signalLayerCheck->setObjectName("layerSignals");
 	m_signalLayerCheck->setChecked(true);
-	m_signalLayerCheck->setToolTip("Show signals and live aspects");
 	m_passengerLayerCheck = new QCheckBox("Passengers", caseLayersWidget);
 	m_passengerLayerCheck->setObjectName("layerPassengers");
-	// View > Show Passengers is the same switch as the check box: each follows the other.
-	m_showPassengersAction = new QAction("Show Passengers", this);
+	// View > Passengers is the same switch as the check box: each follows the other.
+	m_showPassengersAction = new QAction("Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
 	m_passengerChoice = m_runController->passengerGui();
@@ -997,7 +987,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		ui->menuView->addAction(m_caseLayersDock->toggleViewAction());
 		ui->menuView->setToolTipsVisible(true);
 		ui->menuView->addAction(m_showPassengersAction);
-		m_showMapKeyAction = ui->menuView->addAction("Map key");
+		m_showMapKeyAction = ui->menuView->addAction("Map Key");
 		m_showMapKeyAction->setObjectName("actionShowMapKey");
 		connect(m_showMapKeyAction, &QAction::triggered, this, [this]() {
 			m_caseLayersDock->show();
@@ -1013,11 +1003,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_presenter->m_stationLayerVisible = checked;
 		for (auto* item : m_presenter->m_stationDecorations)
 			if (item)
-				item->setVisible(qgraphicsitem_cast<PlatformItem*>(item) ? m_presenter->platformBarsVisible() : checked);
+				item->setVisible(checked);
 		for (auto* label : m_presenter->m_stationLabels)
 			if (label)
 				label->setVisible(checked && m_presenter->m_stationNamesVisible);
-		// updateViewportOverlays owns station name visibility
+		// updateViewportOverlays owns station name visibility and that of the platform bars, which show in the near look
 		updateViewportOverlays();
 	});
 	connect(m_stationNamesCheck, &QCheckBox::toggled, this, [this](bool checked) {
@@ -1108,15 +1098,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_openCaseAction = new QAction("Open Case", this);
 	m_openCaseAction->setObjectName("actionOpenCase");
 	m_openCaseAction->setProperty("chooserEntryPoint", "showStartupChooser");
-	m_openCaseAction->setToolTip("Choose a bundled, recent, scene-folder, or legacy case");
 	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
 
 	ui->actionZoomIn->setObjectName("actionZoomIn");
 	ui->actionZoomIn->setIcon(QIcon(":/icons/zoom-in.svg"));
-	ui->actionZoomIn->setToolTip(withShortcut("Zoom in on the network view", ui->actionZoomIn));
+	ui->actionZoomIn->setToolTip(withShortcut("Zoom in", ui->actionZoomIn));
 	ui->actionZoomOut->setObjectName("actionZoomOut");
 	ui->actionZoomOut->setIcon(QIcon(":/icons/zoom-out.svg"));
-	ui->actionZoomOut->setToolTip(withShortcut("Zoom out on the network view", ui->actionZoomOut));
+	ui->actionZoomOut->setToolTip(withShortcut("Zoom out", ui->actionZoomOut));
 	ui->actionFitView->setObjectName("actionFit");
 	ui->actionFitView->setText("Fit");
 	ui->actionFitView->setIcon(QIcon());
@@ -1143,19 +1132,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				button->setFixedWidth(34);
 		}
 	};
-	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
+	const auto addToolbarGroupSeparator = [this](const char* objectName) {
 		QAction* separator = m_toolBar->addSeparator();
 		if (QWidget* widget = m_toolBar->widgetForAction(separator))
 			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 		separator->setObjectName(objectName);
 		separator->setProperty("toolbarGroupBoundary", true);
-		separator->setToolTip(QString::fromLatin1(description));
 		return separator;
 	};
 
 	m_openCaseAction->setProperty("toolbarGroup", "Case");
 	addToolbarButton(m_openCaseAction, "openCaseButton", Qt::ToolButtonTextOnly);
-	addToolbarGroupSeparator("separatorCasePlayback", "Case commands / playback commands");
+	addToolbarGroupSeparator("separatorCasePlayback");
 	ui->actionSimulationStart->setProperty("toolbarGroup", "Playback");
 	ui->actionSimulationPause->setProperty("toolbarGroup", "Playback");
 	ui->actionSimulationStop->setProperty("toolbarGroup", "Playback");
@@ -1177,7 +1165,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider->setFixedHeight(32);
 	m_speedSlider->setProperty("toolbarGroup", "Playback");
 	m_speedSlider->setAccessibleName("Simulation speed");
-	m_speedSlider->setAccessibleDescription("Adjust simulation speed; right is faster");
+	m_speedSlider->setAccessibleDescription("Simulation speed, faster to the right");
 	m_speedSlider->setFocusPolicy(Qt::StrongFocus);
 	m_toolBar->addWidget(m_speedSlider);
 	// The readout fits its widest text, so the toolbar does not move while the slider is dragged.
@@ -1186,7 +1174,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_speedLabel->fontMetrics().horizontalAdvance("1000x")));
 	m_speedLabel->setProperty("toolbarGroup", "Playback");
 	m_toolBar->addWidget(m_speedLabel);
-	addToolbarGroupSeparator("separatorPlaybackView", "Playback commands / view commands");
+	addToolbarGroupSeparator("separatorPlaybackView");
 	m_followAction->setProperty("toolbarGroup", "View");
 	ui->actionZoomIn->setProperty("toolbarGroup", "View");
 	ui->actionZoomOut->setProperty("toolbarGroup", "View");
@@ -1235,7 +1223,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// The toolbar button exists now, so it can take its description.
 	updateFollowAvailability();
 
-	// file menu: output folder chooser, after Load Legacy Case and above the separator before Quit
+	// file menu: output folder chooser, after Import Legacy Case and above the separator before Quit
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
 		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
@@ -1277,7 +1265,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
-	m_validationDock = new QDockWidget("Scene Validation", this);
+	m_validationDock = new QDockWidget("Case Validation", this);
 	m_validationDock->setObjectName("sceneValidationDock");
 	m_validationDock->setWidget(m_validation->table());
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
@@ -1297,11 +1285,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 
-	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced / Developer details"), this);
+	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced Details"), this);
 	m_advancedDetailsAction->setObjectName(QStringLiteral("actionAdvancedDetails"));
 	m_advancedDetailsAction->setCheckable(true);
-	m_advancedDetailsAction->setToolTip(QStringLiteral(
-		"Show technical inventories, validation details, and non-blocking warnings"));
+	m_advancedDetailsAction->setToolTip(QStringLiteral("Show Loaded Data, validation details and warnings"));
 	QSettings detailsSettings;
 	m_advancedDetailsAction->setChecked(detailsSettings.value(kAdvancedDetailsKey, false).toBool());
 	if (ui->menuView) {
@@ -1408,7 +1395,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		});
 	refreshInfrastructurePanel();
 
-	m_trainUnitDock = new QDockWidget("Rolling stock units", this);
+	m_trainUnitDock = new QDockWidget("Rolling Stock Units", this);
 	m_trainUnitDock->setObjectName("trainUnitDock");
 	m_trainUnitPanel = new TrainUnitPanel(m_trainUnitDock);
 	m_trainUnitListWidget = m_trainUnitPanel->listWidget();
@@ -1465,7 +1452,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
 			if (window && unit && window->property("inputTrainUnitId").toString() == oldId) {
 				window->setProperty("inputTrainUnitId", newId);
-				window->setPresentation("Input traction characteristic", inputTractionContext(*unit), inputTractionWarning(*unit));
+				window->setPresentation("Traction Curve", inputTractionContext(*unit), inputTractionWarning(*unit));
 			}
 		}
 	});
@@ -1552,7 +1539,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// incident has a type (signal_failure or train_breakdown) and a target whose
 	// valid choices depend on that type, analogous to a stop's platform choices
 	// depending on the selected station.
-	m_incidentDock = new QDockWidget("Incidents", this);
+	m_incidentDock = new QDockWidget("Scenarios", this);
 	m_incidentDock->setObjectName("incidentDock");
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
 	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
@@ -1655,11 +1642,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setDefaultTarget([this] {
 		QString selected;
 		const IncidentTarget target = selectedIncidentTarget(selected);
-		// The edit that adds the incident can draw the preview again, which writes the status bar, so the message follows.
+		// The edit that adds the incident can draw the preview again, which clears the status bar, so the message follows.
 		if (!selected.isEmpty() && !m_incidentPanel->offersTarget(target)) {
-			const QString reason = selected == "item" ? QString("The selected item is not a signal or a train")
-													  : QString("The selected %1 cannot be the target of an incident").arg(selected);
-			QTimer::singleShot(0, this, [this, reason] { statusBar()->showMessage(reason + ", so the new incident has no target.", 8000); });
+			const QString message = selected == "item"
+				? QString("The new incident has no target: select a signal or a train first")
+				: QString("The new incident has no target: the selected %1 cannot be its target").arg(selected);
+			QTimer::singleShot(0, this, [this, message] { statusBar()->showMessage(message, 8000); });
 		}
 		return target;
 	});
@@ -1792,7 +1780,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
 	connect(ui->actionFitView, &QAction::triggered, this, &MainWindow::fitToView);
-	ui->actionFitView->setToolTip(withShortcut("Restore the full network view", ui->actionFitView));
+	ui->actionFitView->setToolTip(withShortcut("Fit the network to the window", ui->actionFitView));
 	// Quit closes the window, so it asks about unsaved changes and stops a running simulation
 	// like the close button does. The application exits when its last window has closed.
 	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
@@ -1810,7 +1798,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction(QString(ResultViewName::kCapacity) + "...", m_resultViews, &ResultViews::showCapacityAnalysis);
 	m_diagramsMenu->addAction(QString(ResultViewName::kCapacityByArea) + "...", m_resultViews, &ResultViews::showAreaCapacity);
 	m_diagramsMenu->addAction(ResultViewName::kTimetable, m_resultViews, &ResultViews::showTimetableTable);
-	m_diagramsMenu->addAction(ResultViewName::kDelays, m_resultViews, &ResultViews::showDelayDiagram);
+	m_diagramsMenu->addAction(QString(ResultViewName::kDelays) + "...", m_resultViews, &ResultViews::showDelayDiagram);
 	m_diagramsMenu->addAction(ResultViewName::kDelayAnalysis, m_resultViews, &ResultViews::showDelayAnalysis);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
@@ -1821,7 +1809,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	updateDiagramActions();
 
 	// --- Status bar ---
-	statusBar()->showMessage(m_runController->readyMessage());
+	statusBar()->showMessage("Ready");
 
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
@@ -2005,8 +1993,7 @@ void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) 
 	m_history->reset(m_document->model());
 	recoverySceneReplaced(RecoverySource());
 	m_runController->selectSceneOutputFolder(m_document->model().name);
-	m_runController->clearDelayBaseline(QStringLiteral(
-		"Delay baseline cleared: a new case study was created. Complete a run with no incidents or entrance delays to set a new baseline."));
+	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: a new case was created"));
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
 	m_runSelection.clearModifiedScenarios();
 	m_passengerPanel->clearImportResult();
@@ -2015,19 +2002,18 @@ void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) 
 	m_session->updateSceneWindowTitle();
 	updateCaseLayersPanel();
 	updateSceneActions();
-	statusBar()->showMessage("New case study created; save it to choose a location");
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_document->model());
+	statusBar()->showMessage("New case created");
 	telemetry::revealEditor(m_caseSettingsDock, operation);
 	telemetry::revealEditor(m_infrastructureDock, operation);
 }
 
 bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
 	m_runController->selectSceneOutputFolder(m_document->model().name);
-	m_runController->clearDelayBaseline(QStringLiteral(
-		"Delay baseline cleared: another case study was opened. Complete a run with no incidents or entrance delays to set a new baseline."));
+	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: another case was opened"));
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
 	if (m_runSelection.scenarioId().empty() && !m_document->model().scenarios.empty()) {
 		m_runSelection.selectScenario(m_document->model().scenarios.front().id);
@@ -2048,11 +2034,8 @@ bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
 	refreshInfrastructurePanel(!opened.reloadingSameScene);
 	refreshValidationPanel();
 	renderTrackPreview(m_document->model());
-	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
-			.arg(opened.reloadingSameScene ? "Scene reloaded" : "Scene loaded")
-			.arg(QString::fromStdString(m_document->model().name))
-			.arg(static_cast<int>(m_document->model().services.size()))
-			.arg(static_cast<int>(m_document->model().routes.size())));
+	statusBar()->showMessage((opened.reloadingSameScene ? QString("Reloaded %1") : QString("Opened %1"))
+			.arg(QString::fromStdString(m_document->model().name)));
 	if (startupTimingEnabled()) {
 		if (!opened.timingIdentityOk) {
 			failStartupTiming(QStringLiteral("scene identity, counts, or canonical input snapshot changed"));
@@ -2083,8 +2066,8 @@ void MainWindow::sceneSaved() {
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	m_passengerPanel->refresh();
-	// Last, because refreshing the panels redraws the track preview, which writes its own status message.
-	statusBar()->showMessage("Scene saved");
+	// Last, because refreshing the panels redraws the track preview, which clears the status bar.
+	statusBar()->showMessage("Case saved");
 }
 
 bool MainWindow::telemetryActive() const {
@@ -2114,7 +2097,7 @@ void MainWindow::showValidation() {
 }
 
 void MainWindow::runPreparing() {
-	statusBar()->showMessage("Preparing scene simulation...");
+	statusBar()->showMessage("Preparing the run...");
 	if (!startupTimingEnabled())
 		QApplication::processEvents();
 }
@@ -2166,14 +2149,13 @@ bool MainWindow::startupTimingHoldsRun(bool identityOk) {
 		return true;
 	}
 	networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
-	statusBar()->showMessage(QString("Prepared scene: %1").arg(QString::fromStdString(m_document->model().name)));
+	statusBar()->showMessage(QString("Prepared case: %1").arg(QString::fromStdString(m_document->model().name)));
 	return true;
 }
 
 void MainWindow::runStarting() {
 	clearReplay();
 	progressBar->show();
-	statusBar()->showMessage("Simulation running...");
 }
 
 void MainWindow::workerReady() {
@@ -2235,12 +2217,10 @@ void MainWindow::resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun
 	// The inspector shows values of the run that is gone.
 	m_inspector->handleDisableHighlight();
 	if (m_runResultsPanel)
-		m_runResultsPanel->clear(
-			QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
-				.arg(QString::fromStdString(m_document->model().name), scenarioContext(), m_runController->runtimeStatus(),
-					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()),
-			QStringLiteral("Run Results \u2014 %1 (%2)")
-				.arg(scenarioContext(), stoppedByUser ? QStringLiteral("stopped") : QStringLiteral("failed")));
+		m_runResultsPanel->clear(sceneChangedDuringRun ? QStringLiteral("No results: the case changed during the run")
+				: stoppedByUser						   ? QStringLiteral("No results: the run was stopped")
+													   : QStringLiteral("No results: the run failed"),
+			QStringLiteral("Run Results"));
 }
 
 bool MainWindow::runFinished() {
@@ -2283,7 +2263,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		|| !m_presenter->allArcs.isEmpty() || !m_presenter->allSignals.isEmpty()
 		|| !m_presenter->allPlatforms.isEmpty() || !m_presenter->m_stationOverlays.isEmpty()
 		|| !m_presenter->m_stationDecorations.isEmpty() || !m_presenter->m_signalDecorations.isEmpty()
-		|| !m_presenter->m_vcMessageItems.isEmpty() || !m_presenter->m_trainAnimations.isEmpty()
+		|| !m_presenter->m_vcMessageItems.isEmpty() || m_presenter->trainsMoving()
 		|| !m_presenter->m_tracksBySectionId.empty() || !m_presenter->m_tracksByOccupiedArc.empty()
 		|| !m_presenter->m_activeTrackItems.empty();
 	if (hasRuntimeGraphics) {
@@ -2302,16 +2282,16 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	options.selectedFacet = m_infrastructurePanel->facetKey().toStdString();
 	options.selectedId = m_infrastructurePanel->selectionId().toStdString();
 	options.markSelection = m_infrastructureDock && m_infrastructureDock->isVisible();
-	options.platformBars = m_runController->passengerGui();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
 	if (!outcome.available) {
-		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
+		statusBar()->showMessage("This case has no tracks to draw");
 		return;
 	}
 	if (outcome.fitted)
 		updateViewportOverlays();
 	updateNetworkLegend();
-	statusBar()->showMessage(QString("Previewing %1 trackline(s); simulation not running").arg(outcome.trackLines));
+	// A message about the case before the edit no longer holds.
+	statusBar()->clearMessage();
 }
 
 void MainWindow::startRecovery() {
@@ -2324,7 +2304,7 @@ void MainWindow::startRecovery() {
 		if (m_recoveryFailureShown)
 			return;
 		m_recoveryFailureShown = true;
-		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message);
+		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case to keep your edits.").arg(message);
 		// The hint of a target pick stays until the pick ends, and the message follows it.
 		if (m_incidentPanel->isPickingTarget())
 			m_heldRecoveryFailure = text;
@@ -2484,7 +2464,6 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 		if (networkView) {
 			networkView->setFocus(Qt::OtherFocusReason);
 			fitToView();
-			statusBar()->showMessage("Showing the existing network view", 3000);
 		}
 		return;
 	}
@@ -2739,8 +2718,7 @@ void MainWindow::invalidateRunResults() {
 	}
 	m_runController->discardResults();
 	if (m_runResultsPanel)
-		m_runResultsPanel->clear(QString("No completed run | Scenario: %1").arg(scenarioContext()),
-			QStringLiteral("Run Results \u2014 %1 (not built)").arg(scenarioContext()));
+		m_runResultsPanel->clear(QStringLiteral("No results yet"), QStringLiteral("Run Results"));
 	m_validation->refreshLoadedData();
 	updateDiagramActions();
 	refreshFollowTrainChoices();
@@ -2788,7 +2766,7 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 			window->close();
 			continue;
 		}
-		window->setPresentation("Input traction characteristic", inputTractionContext(*unit),
+		window->setPresentation("Traction Curve", inputTractionContext(*unit),
 			inputTractionWarning(*unit));
 		window->setChart(buildInputTractionChart(*unit));
 	}
@@ -2797,11 +2775,11 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	QChart* chart = buildInputTractionChart(unit);
 
-	DiagramWindow* win = new DiagramWindow("Input traction characteristic", this);
+	DiagramWindow* win = new DiagramWindow("Traction Curve", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
 	win->setChart(chart);
-	win->setPresentation("Input traction characteristic", inputTractionContext(unit), inputTractionWarning(unit));
+	win->setPresentation("Traction Curve", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }
@@ -2992,7 +2970,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		const QString added = target.type == "train_breakdown"
 			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
 			: QStringLiteral("Added a signal failure of %1").arg(target.id);
-		statusBar()->showMessage(added + (discardsResults ? QStringLiteral("; run results discarded.") : QStringLiteral(".")), 8000);
+		statusBar()->showMessage(added + (discardsResults ? QStringLiteral(". Run results discarded.") : QStringLiteral(".")), 8000);
 	});
 }
 
@@ -3038,13 +3016,12 @@ void MainWindow::updateCaseLayersPanel() {
 	QString caseName = m_document->isLoaded() ? QString::fromStdString(m_document->model().name)
 											  : m_runController->settingsCaseName();
 	if (caseName.trimmed().isEmpty())
-		caseName = QStringLiteral("Canonical scene");
-	if (caseName.trimmed().isEmpty())
-		caseName = QStringLiteral("Default case study");
+		caseName = QStringLiteral("Untitled case");
 	if (m_caseNameLabel)
 		m_caseNameLabel->setText(EditorLayout::breakableName(caseName));
 
-	QString readiness = "Ready to run";
+	// The line under the name says only what blocks a run.
+	QString readiness;
 	bool blocked = false;
 	if (m_document->isLoaded()) {
 		for (const SceneDiagnostic& diagnostic : m_session->diagnostics()) {
@@ -3055,11 +3032,12 @@ void MainWindow::updateCaseLayersPanel() {
 			break;
 		}
 	} else {
-		readiness = "No canonical scene loaded";
+		readiness = "No case open";
 		blocked = true;
 	}
 	if (m_caseReadinessLabel) {
 		m_caseReadinessLabel->setText(readiness);
+		m_caseReadinessLabel->setVisible(!readiness.isEmpty());
 		m_caseReadinessLabel->setProperty("blocking", blocked);
 		m_caseReadinessLabel->style()->unpolish(m_caseReadinessLabel);
 		m_caseReadinessLabel->style()->polish(m_caseReadinessLabel);
@@ -3070,8 +3048,7 @@ void MainWindow::updateCaseLayersPanel() {
 
 void MainWindow::updatePassengerSwitch() {
 	const bool hasPassengers = m_document->isLoaded() && !m_document->model().passengers.empty();
-	const QString passengerTip = hasPassengers ? QStringLiteral("Show passenger counts, icons and platform bars")
-											   : QStringLiteral("This case has no passengers");
+	const QString passengerTip = hasPassengers ? QString() : QStringLiteral("This case has no passengers");
 	m_passengerLayerCheck->setEnabled(hasPassengers);
 	m_passengerLayerCheck->setToolTip(passengerTip);
 	m_showPassengersAction->setEnabled(hasPassengers);
@@ -3090,22 +3067,9 @@ void MainWindow::updatePassengerSwitch() {
 void MainWindow::applyPassengerLayer(bool shown) {
 	m_runController->setPassengerGui(shown);
 	m_presenter->m_passengerLayerVisible = shown;
-	for (auto* item : m_presenter->m_stationDecorations)
-		if (qgraphicsitem_cast<PlatformItem*>(item))
-			item->setVisible(m_presenter->platformBarsVisible());
-	for (auto* platform : m_presenter->allPlatforms) {
-		if (!platform)
-			continue;
-		if (platform->textIcon)
-			platform->textIcon->setVisible(m_presenter->paxTextVisible());
-		for (auto* icon : platform->passengerIcons)
-			if (icon)
-				icon->setVisible(shown);
-	}
+	m_presenter->applyPlatformVisibility();
 	if (m_presenter->trainPaxInfoItem)
 		m_presenter->trainPaxInfoItem->setVisible(shown);
-	if (m_presenter->paxIconInfoItem)
-		m_presenter->paxIconInfoItem->setVisible(shown);
 	updateNetworkLegend();
 	if (shown) {
 		m_presenter->updateTrainPaxInfo();
@@ -3117,9 +3081,6 @@ void MainWindow::applyPassengerLayer(bool shown) {
 void MainWindow::updateSpeedModeDisplay(int delayMs) {
 	if (m_speedLabel)
 		m_speedLabel->setText(simulationSpeedLabel(delayMs));
-	if (m_speedSlider) {
-		m_speedSlider->setToolTip(QString("Simulation speed: %1; right is faster").arg(simulationSpeedMode(delayMs).toLower()));
-	}
 }
 
 void MainWindow::refreshFollowTrainChoices() {
@@ -3153,7 +3114,7 @@ void MainWindow::refreshFollowTrainChoices() {
 			m_followTrainIndex = previousTrainIndex;
 		} else {
 			setFollowTrain(-1);
-			statusBar()->showMessage("Follow stopped: the selected train is no longer available", 5000);
+			statusBar()->showMessage("Follow off: the train is no longer in the run", 5000);
 		}
 	} else {
 		setFollowTrain(-1);
@@ -3257,14 +3218,7 @@ FollowAvailability MainWindow::updateFollowAvailability() {
 }
 
 TrainItemGroup* MainWindow::resolveTrainItem(int trainIndex) const {
-	if (!scene)
-		return nullptr;
-	for (auto* item : scene->items()) {
-		auto* train = qgraphicsitem_cast<TrainItemGroup*>(item);
-		if (train && train->scene() == scene && train->index == trainIndex)
-			return train;
-	}
-	return nullptr;
+	return scene ? m_presenter->trainGroup(trainIndex) : nullptr;
 }
 
 bool MainWindow::replayTrainHasPosition(int trainIndex) const {
@@ -3343,7 +3297,7 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 void MainWindow::cutToFollowedTrain(const FollowAvailability& following) {
 	const TrainItemGroup* item = following.canAct ? resolveTrainItem(m_followTrainIndex) : nullptr;
 	if (item)
-		m_followCamera->follow(item->sceneBoundingRect().center(), true);
+		m_followCamera->follow(m_presenter->trainCenter(m_followTrainIndex), true);
 	else
 		m_followCamera->stop();
 }
@@ -3370,14 +3324,14 @@ void MainWindow::setFollowTrain(int trainIndex) {
 		updateViewportOverlays();
 		updateFollowAvailability();
 		if (wasFollowing)
-			statusBar()->showMessage("Follow disabled", 3000);
+			statusBar()->showMessage("Follow off", 3000);
 		return;
 	}
 
 	const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1;
 	if (trainIndex >= simulation.run().numTrains || (m_followTrainCombo && comboIndex < 0)) {
 		setFollowTrain(-1);
-		statusBar()->showMessage("Cannot follow the selected train: it is no longer available", 5000);
+		statusBar()->showMessage("Follow off: the train is no longer in the run", 5000);
 		return;
 	}
 
@@ -3402,7 +3356,6 @@ void MainWindow::setFollowTrain(int trainIndex) {
 
 	const FollowAvailability following = updateFollowAvailability();
 	cutToFollowedTrain(following);
-	statusBar()->showMessage(QString::fromStdString(following.statusClause), 5000);
 }
 
 // The menus are shown with popup() and delete themselves when they close, so this function returns while a menu is open.
@@ -3453,7 +3406,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
 		});
-		connect(menu->addAction("Copy canonical ID"), &QAction::triggered, this, [resolve, id, track, reversed]() {
+		connect(menu->addAction("Copy ID"), &QAction::triggered, this, [resolve, id, track, reversed]() {
 			if (resolve() && QApplication::clipboard())
 				QApplication::clipboard()->setText(track.isEmpty() ? id
 																   : QString("track %1; section %2; %3").arg(track, id, reversed ? "reverse" : "forward"));
@@ -3468,13 +3421,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 	QMenu* menu = new QMenu(this);
 	menu->setAttribute(Qt::WA_DeleteOnClose);
 	menu->setToolTipsVisible(true);
-	auto addDeferred = [menu](const QString& text, const QString& explanation) {
-		QAction* action = menu->addAction(text);
-		action->setEnabled(false);
-		action->setToolTip(explanation);
-		action->setStatusTip(explanation);
-		return action;
-	};
 	auto openMenu = [this, menu, screenPos]() {
 		m_sceneContextMenu = menu;
 		menu->popup(screenPos);
@@ -3512,9 +3458,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 			if (resolveTrainItem(trainIndex) && QApplication::clipboard())
 				QApplication::clipboard()->setText(QString::number(trainIndex));
 		});
-		menu->addSeparator();
-		addDeferred("Planned route and related infrastructure",
-			"Requires the train-to-route association and an infrastructure query.");
 		openMenu();
 		return;
 	}
@@ -3544,9 +3487,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 				QApplication::clipboard()->setText(QString::number(nodeId, 'g',
 					std::numeric_limits<double>::max_digits10));
 		});
-		menu->addSeparator();
-		addDeferred("Filtered station arrivals and departures",
-			"Requires the station timetable association and an arrivals/departures query.");
 		openMenu();
 		return;
 	}
@@ -3575,11 +3515,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 				QApplication::clipboard()->setText(QString::number(arcId, 'g',
 					std::numeric_limits<double>::max_digits10));
 		});
-		menu->addSeparator();
-		addDeferred("Trains currently using this track",
-			"Requires the track-occupancy association and an active-train query.");
-		addDeferred("Incidents affecting this track",
-			"Requires the track-incident association and an incident query.");
 		openMenu();
 		return;
 	}
@@ -3624,9 +3559,6 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 					QApplication::clipboard()->setText(section);
 			});
 		}
-		menu->addSeparator();
-		addDeferred("Next train approaching this signal",
-			"Requires the signal route association and an approaching-train query.");
 		openMenu();
 		return;
 	}
@@ -3691,6 +3623,8 @@ bool MainWindow::writeReplayText(std::optional<int> shownTime) {
 	const ReplayBarText bar = replayBarText(replayCoverageOf(m_completedReplay, m_runController->startOffsetSeconds()), shownTime);
 	m_replayLabel->setText(QString::fromStdString(bar.selected));
 	m_replayCoverageLabel->setText(QString::fromStdString(bar.coverage));
+	// A whole run has no text there, and the row has no second line.
+	m_replayCoverageLabel->setVisible(!bar.coverage.empty());
 	m_replayStartButton->setToolTip(QString::fromStdString(bar.startTip));
 	return bar.usable;
 }
@@ -3799,7 +3733,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		return;
 	}
 	// A file that the system opens arrives from the relay that main created, from a second process or,
-	// on macOS, as an open event. It takes the steps of File > Open Case Study. A modal dialog, such as
+	// on macOS, as an open event. It takes the steps of File > Open Case... A modal dialog, such as
 	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
 	// closed.
 	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);
@@ -3816,7 +3750,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 			bringToFront();
 			const SceneOpenChoice choice = classifyOpenPaths({request});
 			if (!choice.rejection.isEmpty()) {
-				statusBar()->showMessage(QStringLiteral("Open request rejected: %1. Scene unchanged.").arg(choice.rejection), 8000);
+				statusBar()->showMessage(
+					QStringLiteral("Cannot open %1: %2").arg(QFileInfo(request).fileName(), choice.rejection), 8000);
 				return;
 			}
 			// The request names the case, so a startup chooser that has not opened yet stays closed.
@@ -3833,7 +3768,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 		m_updateTelemetry->showPrivacySettings(true);
 		m_updateTelemetry->startTelemetryAfterInitialConsent();
 		reportInstallerUpdate(this);
-		reportRolledBackUpdate(this);
+		reportInPlaceUpdate(this);
 		m_updateTelemetry->maybePromptForUpdateChecks();
 	};
 #ifdef Q_OS_MACOS
@@ -3876,7 +3811,7 @@ bool MainWindow::hasRunResults() const {
 // explains itself instead of answering with a modal error box.
 void MainWindow::updateDiagramActions() {
 	const bool available = hasRunResults();
-	const QString hint = available ? QString() : QString("Run a simulation to enable this diagram");
+	const QString hint = available ? QString() : QString("Run the case first");
 	if (m_diagramsMenu) {
 		for (QAction* action : m_diagramsMenu->actions()) {
 			action->setEnabled(available);
@@ -3933,7 +3868,7 @@ void MainWindow::showStartupChooser() {
 		case CaseChooserDialog::Outcome::NewCase: m_session->newScene(); break;
 		case CaseChooserDialog::Outcome::Continue:
 			if (!currentCaseName.isEmpty())
-				statusBar()->showMessage(QString("Ready - %1").arg(currentCaseName));
+				statusBar()->showMessage("Ready");
 			break;
 	}
 	if (const auto& dialogClosed = mainWindowTestHooks().dialogClosed)
@@ -4190,7 +4125,6 @@ void MainWindow::seekReplay(int requestedTime) {
 	m_presenter->removePaxInfoIcon();
 	m_presenter->paxIconItem = nullptr;
 	m_presenter->stopTrainAnimations();
-	m_presenter->m_prevTrainPositions.clear();
 	m_snapshot = frame;
 	{
 		const QSignalBlocker blocker(m_replaySlider);
@@ -4237,6 +4171,12 @@ bool MainWindow::trainPlaced(int trainIndex, const QPointF& center) {
 	return true;
 }
 
+// The view moves with each step of the motion of the followed train, in the same frame as the train.
+void MainWindow::trainMoved(int trainIndex, const QPointF& center) {
+	if (m_followTrainIndex == trainIndex && m_followCamera->hasTarget())
+		m_followCamera->follow(center, false);
+}
+
 void MainWindow::trainHidden(int trainIndex) {
 	if (m_followTrainIndex == trainIndex)
 		m_followCamera->stop();
@@ -4259,10 +4199,46 @@ void MainWindow::signalsApplied() {
 void MainWindow::trainsApplied(bool anyAdded, bool cameraMoved) {
 	if (anyAdded)
 		updateNetworkLegend();
-	// A move of the camera does not refresh the overlays, so the station of the followed train is refreshed here.
-	if (cameraMoved)
+	// A move of the camera does not refresh the overlays. A pan changes neither the overlays nor their names, which
+	// are placed in the scene and ranked without the position of the view, so they are refreshed only when the
+	// station nearest the followed train changes.
+	if (cameraMoved && followedStationChanged())
 		updateViewportOverlays();
 	updateFollowAvailability();
+}
+
+// The station nearest the followed train as it is drawn now, which updateViewportOverlays() marks as its station, or
+// null while no train is followed.
+const StationOverlayItem* MainWindow::followedStation() const {
+	const TrainItemGroup* train = m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0
+			&& followAvailabilityOf(m_followTrainIndex).canAct
+		? resolveTrainItem(m_followTrainIndex)
+		: nullptr;
+	if (!train)
+		return nullptr;
+	const QPointF followedCenter = train->sceneBoundingRect().center();
+	const StationOverlayItem* nearest = nullptr;
+	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	for (const StationOverlayItem* overlay : m_presenter->m_stationOverlays) {
+		if (!overlay)
+			continue;
+		const QPointF delta = overlay->stableAnchor() - followedCenter;
+		const qreal distance = QPointF::dotProduct(delta, delta);
+		if (!nearest || distance < nearestDistance
+			|| (distance == nearestDistance && overlay->stationName() < nearest->stationName())) {
+			nearest = overlay;
+			nearestDistance = distance;
+		}
+	}
+	return nearest;
+}
+
+// Whether the stations that updateViewportOverlays() marks as the station of the followed train are not the station
+// nearest the train as it is drawn now.
+bool MainWindow::followedStationChanged() const {
+	const StationOverlayItem* nearest = followedStation();
+	return std::any_of(m_presenter->m_stationOverlays.cbegin(), m_presenter->m_stationOverlays.cend(),
+		[nearest](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed() != (overlay == nearest); });
 }
 
 // --- Zoom controls ---
@@ -4398,11 +4374,17 @@ void MainWindow::bindStationOverlaySources() {
 			picture->setPos(target ? target->mapFromScene(scenePosition) : scenePosition);
 			if (target)
 				target->setZValue(StationMarkItem::HostZValue);
-			// The dots of the near look sit on the assigned station squares.
+			// The mark and its area are placed by the assigned station squares, and the area covers their platform bars.
 			QList<QPointF> centres;
 			for (const auto* station : assigned)
 				centres.append(station->sceneBoundingRect().center());
 			overlay->setNodeCentres(centres);
+			QList<QPolygonF> bars;
+			for (const auto* platform : std::as_const(m_presenter->allPlatforms))
+				for (const auto* station : assigned)
+					if (platform && platform->node == station->node)
+						bars.append(platform->mapToScene(platform->rect()));
+			overlay->setPlatformBars(bars);
 		}
 		if (overlay->hasSourceIdentity()) {
 			const double representativeNodeId = overlay->sourceNodeId();
@@ -4486,40 +4468,21 @@ bool MainWindow::isTrainOverlayPromoted(int trainIndex) const {
 void MainWindow::updateViewportOverlays() {
 	if (!networkView)
 		return;
-	QPointF followedCenter;
-	bool hasFollowedCenter = false;
-	if (m_followAction && m_followAction->isChecked() && m_followTrainIndex >= 0 && followAvailabilityOf(m_followTrainIndex).canAct) {
-		if (auto* train = resolveTrainItem(m_followTrainIndex)) {
-			followedCenter = train->sceneBoundingRect().center();
-			hasFollowedCenter = true;
-		}
-	}
-	StationOverlayItem* nearestFollowed = nullptr;
-	qreal nearestDistance = std::numeric_limits<qreal>::max();
+	const StationOverlayItem* nearestFollowed = followedStation();
 	for (auto* overlay : m_presenter->m_stationOverlays) {
 		if (!overlay)
 			continue;
 		overlay->setSelected(m_inspector->selectsStationOverlay(overlay));
 		overlay->setVisible(m_presenter->m_stationLayerVisible);
-		overlay->setFollowed(false);
-		if (!hasFollowedCenter)
-			continue;
-		const QPointF delta = overlay->stableAnchor() - followedCenter;
-		const qreal distance = QPointF::dotProduct(delta, delta);
-		if (!nearestFollowed || distance < nearestDistance
-			|| (distance == nearestDistance
-				&& overlay->stationName() < nearestFollowed->stationName())) {
-			nearestFollowed = overlay;
-			nearestDistance = distance;
-		}
+		overlay->setFollowed(overlay == nearestFollowed);
 	}
-	if (nearestFollowed)
-		nearestFollowed->setFollowed(true);
 	const qreal viewScale = std::abs(networkView->transform().m11());
 	if (m_presenter->effect)
 		m_presenter->effect->setViewScale(viewScale);
-	// The station marks are dots on the station nodes once the tracks of a station are far enough apart on screen.
+	// The station marks give way to the station squares and the platform bars once the tracks of a station are far
+	// enough apart on screen.
 	const bool nearLook = m_presenter->m_stationTrackSpacing * viewScale >= StationOverlayItem::NearTrackSpacingPixels;
+	m_presenter->setStationNearLook(nearLook);
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->applyViewScale(viewScale, nearLook);
@@ -4532,10 +4495,6 @@ void MainWindow::updateViewportOverlays() {
 			overlay->nameItem()->setVisible(m_presenter->m_stationLayerVisible && m_presenter->m_stationNamesVisible
 				&& !overlay->isNameHiddenByCollision());
 	updateSignalCues();
-	const bool paxText = m_presenter->paxTextVisible();
-	for (auto* platform : m_presenter->allPlatforms)
-		if (platform && platform->textIcon)
-			platform->textIcon->setVisible(paxText);
 	for (auto it = m_presenter->m_trainBadges.cbegin(); it != m_presenter->m_trainBadges.cend(); ++it) {
 		if (!it.value())
 			continue;
@@ -4560,9 +4519,8 @@ void MainWindow::updateSignalCues() {
 			signal->setGroupedSignals({});
 			if (item->data(kSignalAnchorRole).isValid())
 				signal->setPos(item->data(kSignalAnchorRole).toPointF());
-			signal->setScale(1.0);
-			signal->setToolTip(QStringLiteral("%1: %2, %3")
-					.arg(signal->inspectionIdentity(), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), signalAspectLabel(signal)));
+			signal->setToolTip(QStringLiteral("%1, facing %2\n%3")
+					.arg(signalAspectLabel(signal), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), signal->inspectionIdentity()));
 		}
 		item->setVisible(visible);
 	}

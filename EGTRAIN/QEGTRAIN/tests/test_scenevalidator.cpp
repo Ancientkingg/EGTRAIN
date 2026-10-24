@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
 				&& invalidColor->severity == SceneSeverity::Warning && invalidColor->file == "services.json"
 				&& invalidColor->itemType == "service" && invalidColor->itemId == "service-1"
 				&& invalidColor->path == "services[service-1].visualization_color"
-				&& invalidColor->relatedId == value && contains(invalidColor->message, "default train colour")
+				&& invalidColor->relatedId == value && contains(invalidColor->message, "The default colour is used")
 				&& contains(invalidColor->suggestedFix, "#3C8DD2"),
 			"invalid service colour gives one warning naming the service and field");
 		ok &= expect(!hasErrors(diagnostics) && validateRunnableScene(colored).size() == 1,
@@ -719,8 +719,8 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
 		"signalling area ranges must increase");
 	auto rangeErrors = findAll(validateScene(invalidAreaRange), "scene.signalling_area.range");
-	const std::string rangeMessage = "Signalling area area has start_km 1.000000 and end_km 1.000000; "
-									 "start_km must be finite and below end_km (blocks of the network cover 0.000000 to 2.000000 km)";
+	const std::string rangeMessage = "Signalling area area starts at 1.000000 km and ends at 1.000000 km, but its start must be below its end "
+									 "(blocks of the network cover 0.000000 to 2.000000 km)";
 	ok &= expect(rangeErrors.size() == 1 && rangeErrors[0].message == rangeMessage,
 		"the range error names the area, both values and the extent of the network");
 	SceneModel trackWithoutBlocks = clean;
@@ -732,7 +732,7 @@ int main(int argc, char** argv) {
 	SceneModel invalidTrackRange = clean;
 	invalidTrackRange.signallingAreas = {{"scoped", 2.5, 1.0, 2, "track-1"}};
 	rangeErrors = findAll(validateScene(invalidTrackRange), "scene.signalling_area.range");
-	ok &= expect(rangeErrors.size() == 1 && contains(rangeErrors[0].message, "start_km 2.500000 and end_km 1.000000")
+	ok &= expect(rangeErrors.size() == 1 && contains(rangeErrors[0].message, "starts at 2.500000 km and ends at 1.000000 km")
 			&& contains(rangeErrors[0].message, "(blocks of track track-1 cover 0.000000 to 2.000000 km)"),
 		"the range error of a track-scoped area gives the extent of that track");
 	invalidAreaRange.signallingAreas[0].startKm = std::numeric_limits<double>::quiet_NaN();
@@ -743,7 +743,7 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCode(validateScene(invalidAreaLevel), "scene.signalling_area.level"),
 		"signalling area levels must be between zero and five");
 	const auto levelErrors = findAll(validateScene(invalidAreaLevel), "scene.signalling_area.level");
-	ok &= expect(levelErrors.size() == 1 && levelErrors[0].message == "Signalling area area has level 6; the level must be between 0 and 5",
+	ok &= expect(levelErrors.size() == 1 && levelErrors[0].message == "Signalling area area has level 6, which is not a signalling system",
 		"the level error names the area and the offending level");
 	SceneModel unknownAreaTrack = clean;
 	unknownAreaTrack.signallingAreas = {{"area", 0.0, 1.0, 2, "missing-track"}};
@@ -752,8 +752,8 @@ int main(int argc, char** argv) {
 		"signalling area track references must resolve");
 	const auto unknownTrackDiagnostics = validateScene(unknownAreaTrack);
 	const auto unknownTrackErrors = findAll(unknownTrackDiagnostics, "scene.ref.unresolved");
-	const std::string unknownTrackMessage = "Signalling area area refers to unknown track missing-track "
-											"(tracks of the network: track-1; blocks of the network cover 0.000000 to 2.000000 km)";
+	const std::string unknownTrackMessage = "Signalling area area refers to unknown track missing-track. Tracks of the network: track-1. "
+											"Blocks of the network cover 0.000000 to 2.000000 km";
 	ok &= expect(unknownTrackErrors.size() == 1 && unknownTrackErrors[0].message == unknownTrackMessage,
 		"the unknown track error names the area, the track, the known tracks and the extent of the network");
 	SceneModel overlapWithoutSharedSection = clean;
@@ -827,7 +827,7 @@ int main(int argc, char** argv) {
 	partialArea.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const auto partialDiagnostics = validateRunnableScene(partialArea);
 	const SceneDiagnostic* partialWarning = findCode(partialDiagnostics, levelMissing);
-	ok &= expect(partialWarning != nullptr && contains(partialWarning->message, "1 of 2 route sections has no signalling level and runs")
+	ok &= expect(partialWarning != nullptr && contains(partialWarning->message, "1 of 2 route sections has no signalling system and runs")
 			&& contains(partialWarning->message, "block-2") && !contains(partialWarning->message, "block-1")
 			&& !contains(partialWarning->message, "No signalling area")
 			&& contains(partialWarning->suggestedFix, "1.000000 to 2.000000 km"),
@@ -876,12 +876,12 @@ int main(int argc, char** argv) {
 	ok &= expect(buildSceneRouteTraversal(reversedLevels, reversedLevels.routes[0]).direction == -1,
 		"the test route runs in decreasing chainage");
 	reversedLevels.signallingAreas.clear();
-	ok &= expect(contains(levelMissingMessage(reversedLevels), "2 of 2 route sections have no signalling level")
+	ok &= expect(contains(levelMissingMessage(reversedLevels), "2 of 2 route sections have no signalling system")
 			&& contains(levelMissingMessage(reversedLevels), "@block-2@ (track-1 1.000 to 2.000 km), @block-1@ (track-1 0.000 to 1.000 km)"),
 		"a reversed route without areas names its sections in route order");
 	reversedLevels.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const std::string reversedPartial = levelMissingMessage(reversedLevels);
-	ok &= expect(contains(reversedPartial, "1 of 2 route sections has no signalling level")
+	ok &= expect(contains(reversedPartial, "1 of 2 route sections has no signalling system")
 			&& contains(reversedPartial, "@block-2@") && !contains(reversedPartial, "@block-1@"),
 		"a reversed route gets the same warning as the forward route");
 	reversedLevels.signallingAreas = {{"all", 0.0, 2.0, 2, {}}};
@@ -924,14 +924,14 @@ int main(int argc, char** argv) {
 	ok &= expect(pairDiagnostics.size() == 1 && pairDiagnostics[0].itemId == "second"
 			&& pairDiagnostics[0].relatedId == "first" && pairDiagnostics[0].path == "signalling_areas[1]"
 			&& pairDiagnostics[0].message == "Signalling area first (2 ETCS Level 2 fixed block) and signalling area "
-											 "second (3 ETCS Level 3 moving block) assign different levels to 4 runtime sections, the first being "
+											 "second (3 ETCS Level 3 moving block) assign different levels to 4 sections, the first being "
 											 "@block-1@ (track-1 0.000 to 1.000 km), between 0.000000 and 2.000000 km",
 		"two areas that disagree about two sections give one conflict that names both areas, levels and the sections");
 	SceneModel singleConflict = clean;
 	singleConflict.signallingAreas = {{"wide", 0.0, 2.0, 0, {}}, {"narrow", 1.0, 2.0, 5, {}}};
 	const auto singleConflictDiagnostics = findAll(validateRunnableScene(singleConflict), conflictCode);
 	const std::string singleConflictMessage = "Signalling area wide (0 ATB fixed block) and signalling area narrow "
-											  "(5 BACC track circuits) assign different levels to 1 runtime section: "
+											  "(5 BACC track circuits) assign different levels to 1 section: "
 											  "@block-2@ (track-1 1.000 to 2.000 km), between 1.000000 and 2.000000 km";
 	ok &= expect(singleConflictDiagnostics.size() == 1 && singleConflictDiagnostics[0].message == singleConflictMessage,
 		"a conflict about one section names that section and its range");
@@ -991,7 +991,7 @@ int main(int argc, char** argv) {
 	splitMany.signallingAreas = {{"head", 0.0, 1.5, 2, {}}};
 	const auto splitManyWarnings = findAll(validateRunnableScene(splitMany), splitCode);
 	ok &= expect(splitManyWarnings.size() == 1 && contains(splitManyWarnings[0].message, "@block-2@ (track-1 1.000 to 2.000 km), so")
-			&& contains(splitManyWarnings[0].message, "; @block-3@ (track-2 0.000 to 2.000 km) is cut the same way"),
+			&& contains(splitManyWarnings[0].message, ". @block-3@ (track-2 0.000 to 2.000 km) is cut the same way"),
 		"an edge that cuts sections of several tracks gives one warning that names the others");
 
 	// An area that contains no complete section.
@@ -1003,8 +1003,8 @@ int main(int argc, char** argv) {
 	ok &= expect(emptyWarnings.size() == 1 && emptyWarnings[0].severity == SceneSeverity::Warning
 			&& emptyWarnings[0].file == "signalling.json" && emptyWarnings[0].itemId == "far"
 			&& emptyWarnings[0].path == "signalling_areas[0]"
-			&& emptyWarnings[0].message == "Signalling area far (5.000000 to 6.000000 km) contains no complete section; "
-										   "blocks of the network cover 0.000000 to 2.000000 km"
+			&& emptyWarnings[0].message == "Signalling area far (5.000000 to 6.000000 km) contains no complete section "
+										   "(blocks of the network cover 0.000000 to 2.000000 km)"
 			&& !hasErrors(emptyDiagnostics) && !hasCode(validateScene(emptyArea), emptyCode),
 		"an area outside the network gives one warning with the extent of the network");
 	SceneModel insideSection = clean;
@@ -1038,14 +1038,14 @@ int main(int argc, char** argv) {
 
 	// The warning about route sections without a level names the stretches and the areas next to them.
 	const auto stretchNone = findAll(validateRunnableScene(noAreas), levelMissing);
-	const std::string stretchNoneFix = "In Infrastructure > Signalling area add a network-wide area covering "
+	const std::string stretchNoneFix = "In Infrastructure > Signalling areas add a network-wide area covering "
 									   "0.000000 to 2.000000 km, or a track-scoped area for each track listed";
 	ok &= expect(stretchNone.size() == 1 && stretchNone[0].suggestedFix == stretchNoneFix,
 		"without areas the fix gives the range of the network and no list of stretches");
 	const auto stretchPartial = findAll(validateRunnableScene(partialArea), levelMissing);
 	const std::string stretchPartialMessage =
-		"1 of 2 route sections has no signalling level and runs without signalling: @block-2@ (track-1 1.000 to 2.000 km) (track track-1)";
-	const std::string stretchPartialFix = "or a track-scoped area for each track listed. Without a level: "
+		"1 of 2 route sections has no signalling system and runs without signalling: @block-2@ (track-1 1.000 to 2.000 km) (track track-1)";
+	const std::string stretchPartialFix = "or a track-scoped area for each track listed. Without a signalling system: "
 										  "track-1 1.000000 to 2.000000 km (after area partial)";
 	ok &= expect(stretchPartial.size() == 1 && stretchPartial[0].message == stretchPartialMessage
 			&& contains(stretchPartial[0].suggestedFix, stretchPartialFix),
@@ -1055,7 +1055,7 @@ int main(int argc, char** argv) {
 	gapBetween.signallingAreas = {{"left", 0.0, 3.0, 2, "track-2"}, {"right", 4.0, 5.0, 2, {}}};
 	const auto stretchBetween = findAll(validateRunnableScene(gapBetween), levelMissing);
 	const std::string stretchBetweenFix =
-		". Without a level: track-2 3.000000 to 4.000000 km (between area left and area right)";
+		". Without a signalling system: track-2 3.000000 to 4.000000 km (between area left and area right)";
 	ok &= expect(stretchBetween.size() == 1 && contains(stretchBetween[0].suggestedFix, stretchBetweenFix),
 		"a stretch between two areas names both");
 	SceneModel gapBefore = conflictingDerivedAreas;
@@ -1076,7 +1076,7 @@ int main(int argc, char** argv) {
 	gapRuns.routes[0].blocks = {"block-1", "block-2", "block-3"};
 	gapRuns.signallingAreas = {{"middle", 1.0, 2.0, 2, {}}};
 	const auto stretchRuns = findAll(validateRunnableScene(gapRuns), levelMissing);
-	ok &= expect(stretchRuns.size() == 1 && contains(stretchRuns[0].message, "2 of 3 route sections have no signalling level")
+	ok &= expect(stretchRuns.size() == 1 && contains(stretchRuns[0].message, "2 of 3 route sections have no signalling system")
 			&& contains(stretchRuns[0].suggestedFix, "track-1 0.000000 to 1.000000 km (before area middle), "
 													 "track-1 2.000000 to 3.000000 km (after area middle)"),
 		"separate uncovered stretches of one track are listed one by one");
@@ -1124,7 +1124,7 @@ int main(int argc, char** argv) {
 	negativeAreaLevel.signallingAreas = {{"area", 0.0, 1.0, -1, {}}};
 	const auto negativeLevelErrors = findAll(validateScene(negativeAreaLevel), "scene.signalling_area.level");
 	ok &= expect(negativeLevelErrors.size() == 1
-			&& negativeLevelErrors[0].message == "Signalling area area has level -1; the level must be between 0 and 5",
+			&& negativeLevelErrors[0].message == "Signalling area area has level -1, which is not a signalling system",
 		"an area of level -1 has an invalid level");
 	ok &= expect(findAll(validateRunnableScene(invalidAreaLevel), emptyCode).empty(),
 		"an area with an invalid level takes no part in the warning about empty areas");
@@ -1132,19 +1132,19 @@ int main(int argc, char** argv) {
 	unchosenAreaSystem.signallingAreas = {{"area", 0.0, 1.0, kSignallingLevelUnset, "track-1"}};
 	const auto unchosenSystemErrors = findAll(validateScene(unchosenAreaSystem), "scene.signalling_area.level");
 	ok &= expect(unchosenSystemErrors.size() == 1 && unchosenSystemErrors[0].severity == SceneSeverity::Error
-			&& unchosenSystemErrors[0].message == "Signalling area area has no signalling system; choose one of the levels 0 to 5"
+			&& unchosenSystemErrors[0].message == "Signalling area area has no signalling system"
 			&& unchosenSystemErrors[0].file == "signalling.json" && unchosenSystemErrors[0].itemType == "signalling_area"
 			&& unchosenSystemErrors[0].itemId == "area" && unchosenSystemErrors[0].path == "signalling_areas[0].level"
 			&& unchosenSystemErrors[0].relatedId == "track-1"
-			&& unchosenSystemErrors[0].suggestedFix == "Choose a signalling system for the area in Infrastructure > Signalling area",
+			&& unchosenSystemErrors[0].suggestedFix == "Choose a signalling system (level 0 to 5) for the area in Infrastructure > Signalling areas",
 		"an area without a chosen signalling system has its own message and fix");
 	SceneModel nearUnsetLevel = clean;
 	nearUnsetLevel.signallingAreas = {{"area", 0.0, 1.0, kSignallingLevelUnset + 1, "track-1"}};
 	const auto nearUnsetErrors = findAll(validateScene(nearUnsetLevel), "scene.signalling_area.level");
 	ok &= expect(nearUnsetErrors.size() == 1
-			&& nearUnsetErrors[0].message == "Signalling area area has level -99999998; the level must be between 0 and 5"
+			&& nearUnsetErrors[0].message == "Signalling area area has level -99999998, which is not a signalling system"
 			&& nearUnsetErrors[0].relatedId == "track-1"
-			&& nearUnsetErrors[0].suggestedFix == "Use a signalling level from 0 through 5",
+			&& nearUnsetErrors[0].suggestedFix == "Choose a signalling system (level 0 to 5)",
 		"any other level outside 0 to 5 keeps the level message and fix");
 
 	// Which area decides the level of each section.
@@ -1295,12 +1295,12 @@ int main(int argc, char** argv) {
 	ok &= expect(unsignalledWarning != nullptr && unsignalledWarning->severity == SceneSeverity::Warning
 			&& unsignalledWarning->file == "signalling.json" && unsignalledWarning->path == "single_track_restrictions[0]"
 			&& contains(unsignalledWarning->message,
-				"Single-track restriction 0 (start_block block-1 (track-1 0.000 to 1.000 km), end_block block-2 (track-1 1.000 "
-				"to 2.000 km), protected_start_block block-1 (track-1 0.000 to 1.000 km), protected_end_block block-2 "
-				"(track-1 1.000 to 2.000 km))")
-			&& contains(unsignalledWarning->message, "start_block block-1 (track-1 0.000 to 1.000 km) has no signalling level")
-			&& contains(unsignalledWarning->message, "protected_end_block block-2 (track-1 1.000 to 2.000 km) has no signalling level")
-			&& contains(unsignalledWarning->suggestedFix, "signalling level") && !hasErrors(unsignalledDiagnostics)
+				"Single-track restriction 0 (start block-1 (track-1 0.000 to 1.000 km), end block-2 (track-1 1.000 "
+				"to 2.000 km), protected start block-1 (track-1 0.000 to 1.000 km), protected end block-2 "
+				"(track-1 1.000 to 2.000 km)) has no effect, because these sections have no signalling system: start block-1 "
+				"(track-1 0.000 to 1.000 km), end block-2")
+			&& contains(unsignalledWarning->message, ", protected end block-2 (track-1 1.000 to 2.000 km)")
+			&& unsignalledWarning->suggestedFix == "In Infrastructure > Signalling areas give these sections a signalling system" && !hasErrors(unsignalledDiagnostics)
 			&& !hasCode(validateScene(restricted), noEffect) && hasCode(unsignalledDiagnostics, levelMissing),
 		"a single-track restriction without a signalling level warns that it has no effect");
 	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}, {"block-2", "block-1", "block-2", "block-1"}};
@@ -1312,8 +1312,8 @@ int main(int argc, char** argv) {
 	restricted.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
 	const auto partialRestrictionDiagnostics = validateRunnableScene(restricted);
 	const SceneDiagnostic* partialRestrictionWarning = findCode(partialRestrictionDiagnostics, noEffect);
-	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "end_block block-2 (track-1 1.000 to 2.000 km) has no signalling level")
-			&& !contains(partialRestrictionWarning->message, "start_block block-1 (track-1 0.000 to 1.000 km) has"),
+	ok &= expect(partialRestrictionWarning != nullptr && contains(partialRestrictionWarning->message, "no signalling system: end block-2 (track-1 1.000 to 2.000 km), protected end block-2")
+			&& !contains(partialRestrictionWarning->message, "no signalling system: start"),
 		"the warning names only the blocks without a signalling level");
 	restricted.singleTrackRestrictions.clear();
 	restricted.signallingAreas.clear();
@@ -1329,8 +1329,8 @@ int main(int argc, char** argv) {
 			&& contains(steepDescentWarning->message, "arc-1 (-0.09)")
 			&& contains(steepDescentWarning->message, "limit 0.08333")
 			&& contains(steepDescentWarning->message, "limit 0.1411")
-			&& contains(steepDescentWarning->message, "rise per length")
-			&& contains(steepDescentWarning->suggestedFix, "gradient_percent")
+			&& contains(steepDescentWarning->message, "too steep for the train to brake on as a descent")
+			&& contains(steepDescentWarning->suggestedFix, "0.01 is a 1 percent slope")
 			&& !hasErrors(steepDescentDiagnostics),
 		"a descent steeper than the braking limit gives a warning that names the arc and both limits");
 	ok &= expect(hasCode(validateRunnableScene(steepDescent), steepCode),
@@ -1864,6 +1864,14 @@ int main(int argc, char** argv) {
 		"incomplete historical fixture fails runnable validation");
 	ok &= expect(hasCode(validateSceneStructure("/no/such/scene/dir"), "scene.dir.missing"),
 		"missing directory reports structural error");
+
+	// A dialog shows the message and the fix as two paragraphs, and only the message when there is no fix.
+	SceneDiagnostic dialogDiagnostic;
+	dialogDiagnostic.message = "Service s1 has no route";
+	ok &= expect(toDialogText(dialogDiagnostic) == "Service s1 has no route", "a diagnostic without a fix shows its message alone");
+	dialogDiagnostic.suggestedFix = "Choose a route";
+	ok &= expect(toDialogText(dialogDiagnostic) == "Service s1 has no route\n\nChoose a route",
+		"a diagnostic with a fix shows the fix as a second paragraph");
 
 	if (!ok)
 		return 1;

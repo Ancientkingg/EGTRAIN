@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QDialog>
 #include <QHash>
+#include <QImage>
 #include "telemetry/TelemetryOperation.h"
 #include <QPointer>
 #include <QStringList>
@@ -14,11 +15,11 @@
 #include <vector>
 
 class QTableWidget;
-class QLabel;
+class ResultFrame;
 class TrainFilterButton;
 
-/// Planned versus simulated timetable as a filterable, sortable table with the
-/// same train dropdown and export pair the chart windows use.
+/// Planned versus simulated timetable as a filterable, sortable table in the frame of the chart windows: the table at
+/// the left and a panel with the train filter and the exports at the right.
 /// The CSV button is shown only when the constructor gets a CSV provider.
 class TimetableTableWindow : public QDialog {
 	Q_OBJECT
@@ -31,8 +32,10 @@ public:
 		QWidget* parent = nullptr);
 	/// Writes `provenance` as a sidecar with every export and shows its case and scenario as the context.
 	void setRunProvenance(RunProvenance provenance);
-	/// Sets the window title to `heading` and shows `context` in a label; an empty context hides the label.
+	/// Sets the window title to `heading` and shows `context` in the header in one line; an empty context hides it.
 	void setPresentation(const QString& heading, const QString& context);
+	/// The picture that the PNG export saves: every column of the table and the rows of the visible trains.
+	QImage tableImage() const;
 	/// Shows a swatch of the given colour next to each listed train in the train
 	/// filter; trains without an entry, or with an invalid colour, have none. Resets
 	/// the filter to all trains visible.
@@ -58,7 +61,7 @@ private:
 	QHash<QString, QColor> m_trainColors;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QPointer<QTableWidget> m_table;
-	QPointer<QLabel> m_contextLabel;
+	ResultFrame* m_frame = nullptr;
 	QPointer<TrainFilterButton> m_trainsButton;
 	RunProvenance m_runProvenance;
 	bool m_hasRunProvenance = false;

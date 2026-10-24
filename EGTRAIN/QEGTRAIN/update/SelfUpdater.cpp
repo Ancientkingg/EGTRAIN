@@ -71,6 +71,22 @@ QString helperName() {
 #endif
 }
 
+// Where the update helper keeps the previous installation while it starts the new version.
+QString backupPath(const QString& installation) {
+	return installation + QStringLiteral(".egtrain-old");
+}
+
+// Removes the folder or the file at path. A symbolic link or a Windows junction is neither followed nor
+// removed. True when nothing is left at path.
+bool removeBackup(const QString& path) {
+	const QFileInfo backup(path);
+	if (backup.isSymLink() || backup.isJunction())
+		return false;
+	if (!backup.exists())
+		return true;
+	return backup.isDir() ? QDir(path).removeRecursively() : QFile::remove(path);
+}
+
 } // namespace
 
 UpdatePackage updatePackageFor(Distribution distribution, const QString& platformKey) {
@@ -117,7 +133,7 @@ SelfUpdateCapability SelfUpdater::capability() {
 #endif
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
-	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
+	result.reason = QStringLiteral("Updates install only in a packaged release.");
 	return result;
 #else
 	const QString applicationPath = QFileInfo(QCoreApplication::applicationFilePath()).absoluteFilePath();
@@ -185,6 +201,18 @@ void SelfUpdater::cleanupStaleStaging() {
 	const SelfUpdateCapability current = capability();
 	if (current.supported)
 		removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kStaleStagingAge);
+}
+
+void SelfUpdater::removeUpdateBackup() {
+	const SelfUpdateCapability current = capability();
+	if (!current.supported || current.usesInstaller)
+		return;
+	// A staging folder can belong to an update that another instance runs, whose helper may still need the backup.
+	const QDir parent = QFileInfo(current.currentPath).absoluteDir();
+	const QDir::Filters filters = QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks | QDir::Hidden | QDir::CaseSensitive;
+	if (!parent.entryList({QStringLiteral(".qegtrain-update-*")}, filters).isEmpty())
+		return;
+	removeBackup(backupPath(current.currentPath));
 }
 
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
@@ -491,17 +519,9 @@ bool SelfUpdater::startHelper() {
 		installerArguments += updateRecordArguments(m_release.version, updateRecordPath());
 		return QProcess::startDetached(helperCopy, installerArguments);
 	}
-	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
-	const QFileInfo previousBackup(backup);
-	if (previousBackup.isSymLink())
+	const QString backup = backupPath(m_currentPath);
+	if (!removeBackup(backup))
 		return false;
-	if (previousBackup.exists()) {
-		const bool removed = previousBackup.isDir()
-			? QDir(backup).removeRecursively()
-			: QFile::remove(backup);
-		if (!removed)
-			return false;
-	}
 	QStringList arguments = {
 		QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
 		QStringLiteral("--current"), m_currentPath,

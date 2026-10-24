@@ -10,10 +10,13 @@
 
 #include "simulation/Infrastructure.h"
 
-/// The dot of a node of a track line. It draws over track lines and connections. A transparent child of 3 by 3
-/// logical pixels at its centre keeps it clickable when the dot is smaller on screen.
+/// The dot of a node of a track line. It draws over track lines and connections. NetworkScene picks it in a circle of
+/// PickPixels logical pixels across at its centre, which keeps it clickable when the dot is smaller on screen.
 class NodeItem : public QGraphicsEllipseItem {
 public:
+	/// The width on screen of the circle in which a click picks the dot, in logical pixels.
+	static constexpr qreal PickPixels = 3.0;
+
 	/// A dot in rect, in scene coordinates, without a node.
 	NodeItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
 	~NodeItem() override;

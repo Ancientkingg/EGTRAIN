@@ -158,6 +158,45 @@ int main(int argc, char** argv) {
 				"netherlands label with a piece of one kilometre");
 	}
 
+	// Every route of the committed scenes lists its sections in the order of travel: each one joins the next in the
+	// direction of the route. A route may jump once between two kilometre references, as the Netherlands routes do
+	// between their regions; the runtime moves the sections after one such jump onto the reference before it.
+	std::vector<fs::path> committed;
+	for (const fs::directory_entry& entry : fs::directory_iterator(scenes))
+		if (fs::exists(entry.path() / "scene.json"))
+			committed.push_back(entry.path());
+	std::sort(committed.begin(), committed.end());
+	ok &= expect(committed.size() >= 6, "the committed scenes are found");
+	for (const fs::path& directory : committed) {
+		const SceneModel scene = loadScene(directory.string()).scene;
+		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+		const std::string name = directory.filename().string();
+		ok &= expect(!scene.routes.empty(), name.c_str());
+		for (const SceneRoute& route : scene.routes) {
+			std::vector<const SceneSectionDescriptor*> sections;
+			for (const std::string& reference : route.blocks)
+				if (const SceneSectionDescriptor* section = inventory.resolve(reference))
+					sections.push_back(section);
+			const int direction = sceneRouteDirection(scene, sections);
+			if (sections.size() != route.blocks.size() || direction == 0) {
+				std::cerr << "failed: " << name << " " << route.id << " does not resolve to one direction\n";
+				ok = false;
+				continue;
+			}
+			int jumps = 0;
+			for (std::size_t index = 1; index < sections.size(); ++index) {
+				const SceneSectionTransition transition = classifySceneSectionTransition(scene, *sections[index - 1], *sections[index]);
+				if (direction > 0 ? transition.joinsForward : transition.joinsReverse)
+					continue;
+				if (transition.regionJump && ++jumps == 1)
+					continue;
+				std::cerr << "failed: " << name << " " << route.id << " entries " << index << " and " << index + 1
+						  << " are not in the order of travel: " << route.blocks[index - 1] << " -> " << route.blocks[index] << "\n";
+				ok = false;
+			}
+		}
+	}
+
 	// Block order decides the travel direction, so the reversed route lists the far station first.
 	SceneModel reversed = lineScene();
 	reversed.stations = {station("A", {"node-1"}), station("B", {"node-4"})};

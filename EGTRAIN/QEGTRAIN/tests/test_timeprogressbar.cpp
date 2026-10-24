@@ -1,17 +1,40 @@
 #include "widgets/TimeProgressBar.h"
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFontDatabase>
 #include <QImage>
 #include <QMouseEvent>
 #include <QToolTip>
 #include <QWheelEvent>
+#include <QWidget>
 #include <iostream>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
 	return condition;
+}
+
+// Counts the paint events of the widgets it watches.
+class PaintCounter : public QObject {
+public:
+	int paints = 0;
+
+protected:
+	bool eventFilter(QObject* watched, QEvent* event) override {
+		if (event->type() == QEvent::Paint)
+			++paints;
+		return QObject::eventFilter(watched, event);
+	}
+};
+
+// Runs the event loop until both counters have counted a paint, for at most two seconds.
+static void waitForPaints(const PaintCounter& first, const PaintCounter& second) {
+	QElapsedTimer waited;
+	waited.start();
+	while ((first.paints == 0 || second.paints == 0) && waited.elapsed() < 2000)
+		QApplication::processEvents();
 }
 
 int main(int argc, char** argv) {
@@ -92,6 +115,32 @@ int main(int argc, char** argv) {
 				textRight = qMax(textRight, x);
 	ok &= expect(textRight > 0 && emptyImage.width() - 2 - textRight >= 3,
 		"at least 3 pixels lie between the text and the right border");
+
+	// A new step paints nothing at once: a paint then would also draw the rest of the window that waits for one, as the
+	// network view. The bar and the rest paint together from the event loop.
+	QWidget window;
+	window.resize(400, 80);
+	auto* canvas = new QWidget(&window);
+	canvas->setGeometry(0, 0, 400, 40);
+	auto* timeline = new TimeProgressBar(&window);
+	timeline->setGeometry(0, 40, 400, 28);
+	timeline->setProgress(0, 8000, startOffset);
+	PaintCounter canvasPaints;
+	PaintCounter timelinePaints;
+	canvas->installEventFilter(&canvasPaints);
+	timeline->installEventFilter(&timelinePaints);
+	window.show();
+	waitForPaints(canvasPaints, timelinePaints);
+	ok &= expect(canvasPaints.paints > 0 && timelinePaints.paints > 0, "the window paints when shown");
+	canvasPaints.paints = 0;
+	timelinePaints.paints = 0;
+	canvas->update();
+	timeline->setProgress(100, 8000, startOffset);
+	ok &= expect(canvasPaints.paints == 0 && timelinePaints.paints == 0,
+		"a new step paints neither the bar nor the rest of the window at once");
+	waitForPaints(canvasPaints, timelinePaints);
+	ok &= expect(canvasPaints.paints > 0 && timelinePaints.paints > 0,
+		"the bar and the rest of the window paint the new step from the event loop");
 
 	return ok ? 0 : 1;
 }

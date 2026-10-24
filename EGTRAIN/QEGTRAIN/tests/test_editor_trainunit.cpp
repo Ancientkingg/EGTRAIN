@@ -547,24 +547,23 @@ int main(int argc, char** argv) {
 			"a linked source shows its file, with the path as tooltip, and the other source is not touched");
 		const QString missing = directory.filePath("missing.txt");
 		const auto shownText = [&panel](bool traction) { return QString(panel.sourceStatusLabel(traction)->text()).remove(QChar(0x200B)); };
-		const QString missingText = "Missing: " + display_path::format(missing) + "; Retry available";
+		const QString missingText = "File not found: " + display_path::format(missing);
 		panel.setSourceState(true, missing, QString());
 		ok &= expect(shownText(true) == missingText && panel.sourceStatusLabel(true)->toolTip() == display_path::format(missing)
 				&& panel.unlinkButton(true)->isEnabled() && panel.retryButton(true)->isEnabled(),
 			"a linked file that is gone is missing, with its path, and can be retried or unlinked");
-		for (const char* status : {"Rejected: The traction source could not be read; Retry available", "Kept local; Retry available",
-				 "Up to date", "Linked; waiting for reload"}) {
+		for (const char* status : {"Not loaded: The traction file could not be read", "Kept your edits", "Up to date", "Linked"}) {
 			panel.setSourceState(true, missing, status);
 			ok &= expect(shownText(true) == missingText, "a linked file that is gone is missing whatever the last status was");
 		}
-		panel.setSourceState(false, missing, "Kept local; Retry available");
+		panel.setSourceState(false, missing, "Kept your edits");
 		ok &= expect(shownText(false) == missingText && shownText(true) == missingText,
 			"the parameter source and the traction source each show their own missing file");
-		panel.setSourceState(false, existing, "Rejected: The parameter source could not be read; Retry available");
-		ok &= expect(panel.sourceStatusLabel(false)->text() == "Rejected: The parameter source could not be read; Retry available",
+		panel.setSourceState(false, existing, "Not loaded: The parameter file could not be read");
+		ok &= expect(panel.sourceStatusLabel(false)->text() == "Not loaded: The parameter file could not be read",
 			"a file that exists and cannot be read is rejected, not missing");
-		panel.setSourceState(false, existing, "Kept local; Retry available");
-		ok &= expect(panel.sourceStatusLabel(false)->text() == "Kept local; Retry available",
+		panel.setSourceState(false, existing, "Kept your edits");
+		ok &= expect(panel.sourceStatusLabel(false)->text() == "Kept your edits",
 			"a file that exists keeps the status of its link");
 		panel.setSourceState(true, existing, "Reloaded");
 		ok &= expect(panel.sourceStatusLabel(true)->text() == "Reloaded", "the status of the link replaces the default text");

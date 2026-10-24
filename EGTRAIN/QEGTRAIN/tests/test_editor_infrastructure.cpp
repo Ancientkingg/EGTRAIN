@@ -4,7 +4,9 @@
 
 #include <QApplication>
 #include <QComboBox>
+#include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMouseEvent>
 #include <QPushButton>
@@ -135,7 +137,7 @@ private:
 	Kind m_kind;
 };
 
-// A facet whose selection is made of two cells, like the one of platforms.
+// A facet whose selection is made of two cells, like the one of platforms. An edited cell changes nothing in the model.
 class PairFacet : public InfrastructureFacet {
 public:
 	QString key() const override { return "platforms"; }
@@ -158,7 +160,7 @@ public:
 	QString selectionId(const QTableWidget& table, int row) const override {
 		return table.item(row, 0)->text() + "+" + table.item(row, 1)->text();
 	}
-	void commitCell(InfrastructurePanel&, int, int) override {}
+	void commitCell(InfrastructurePanel& panel, int, int) override { panel.entityChanged("Edit platform"); }
 	void add(InfrastructurePanel&) override {}
 	void remove(InfrastructurePanel&) override {}
 };
@@ -277,7 +279,7 @@ int main(int argc, char** argv) {
 		for (int index = 0; index < panel.facetCombo()->count(); ++index)
 			comboKeys << panel.facetCombo()->itemData(index).toString();
 		ok &= expect(InfrastructurePanel::facetKeys() == keys && comboKeys == keys, "the combo offers the thirteen facets in order");
-		ok &= expect(panel.facetCombo()->itemText(0) == "Tracks" && panel.facetCombo()->itemText(8) == "Signalling area"
+		ok &= expect(panel.facetCombo()->itemText(0) == "Tracks" && panel.facetCombo()->itemText(8) == "Signalling areas"
 				&& panel.facetCombo()->itemText(11) == "Single-track restrictions",
 			"the combo names the facets");
 		ok &= expect(panel.facetKey() == "tracks" && panel.facetTitle() == "Tracks" && panel.facet("tracks") == nullptr,
@@ -408,11 +410,11 @@ int main(int argc, char** argv) {
 			"an empty arcs table asks for nodes while the scene has fewer than two");
 		panel.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 1.0, 0.0}};
 		panel.refresh();
-		ok &= expect(panel.guidanceLabel()->text().startsWith("No arcs yet. Add creates an arc"),
+		ok &= expect(panel.guidanceLabel()->text().startsWith("No arcs yet. Add one, then"),
 			"an empty arcs table does not ask for nodes that exist");
 		document.setEditable(false);
 		panel.refresh();
-		ok &= expect(panel.guidanceLabel()->text() == "No arcs yet. The scene cannot be edited while a run is in progress.",
+		ok &= expect(panel.guidanceLabel()->text() == "No arcs yet. Stop the run to edit.",
 			"an empty table says why Add is off while a run uses the scene");
 		document.setEditable(true);
 		panel.mutableModel().nodes.clear();
@@ -493,7 +495,7 @@ int main(int argc, char** argv) {
 		panel.table()->setCurrentCell(0, 0);
 		panel.deleteButton()->click();
 		ok &= expect(trackFacet->removeCount == 1 && prompts.errorCount == 1 && prompts.confirmCount == 0
-				&& prompts.errorMessage == "Cannot delete tracks 'T1' because it is still referenced by:\n\xE2\x80\xA2 block b1\nRemove or rebind those consumers first."
+				&& prompts.errorMessage == "Track 'T1' is used by:\n\xE2\x80\xA2 block b1\nRemove or change these first."
 				&& document.model().tracks.size() == 3 && events.log.empty(),
 			"an entity that is used cannot be deleted, and the user is told which items use it");
 		// a long list of consumers is cut short
@@ -514,7 +516,7 @@ int main(int argc, char** argv) {
 		}
 		panel.table()->setCurrentCell(1, 0);
 		panel.deleteButton()->click();
-		ok &= expect(prompts.confirmCount == 1 && prompts.confirmQuestion == "Delete tracks 'T9'?" && document.model().tracks.size() == 3
+		ok &= expect(prompts.confirmCount == 1 && prompts.confirmQuestion == "Delete track 'T9'?" && document.model().tracks.size() == 3
 				&& events.log.empty() && panel.selectionId() == "T9",
 			"nothing is deleted when the user answers no");
 		prompts.confirmAnswer = true;
@@ -530,12 +532,12 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Select a row to delete.",
 			"the delete button says why it is off while no row is selected");
 		panel.table()->setCurrentCell(0, 0);
-		ok &= expect(panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip().contains("cannot be deleted"),
+		ok &= expect(panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Delete the selected row.",
 			"choosing a row turns the delete button on");
 		panel.table()->setCurrentCell(-1, -1);
 		document.setEditable(false);
 		panel.refresh();
-		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip().contains("while a run is in progress"),
+		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Stop the run to edit.",
 			"the delete button says why it is off while a run uses the scene");
 		document.setEditable(true);
 		panel.refresh();
@@ -561,7 +563,7 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.blockTrackFilterCombo()->isHidden() && !panel.insertBlockButton()->isHidden()
 				&& !panel.moveBlockUpButton()->isHidden() && !panel.moveBlockDownButton()->isHidden(),
 			"the filter on the track and the buttons of blocks are shown with blocks");
-		ok &= expect(choices(panel.blockTrackFilterCombo()) == QStringList({"T1", "T2", "Invalid track: ghost"})
+		ok &= expect(choices(panel.blockTrackFilterCombo()) == QStringList({"T1", "T2", "ghost (missing)"})
 				&& panel.blockTrackFilterCombo()->currentIndex() == 0 && panel.blockTrackFilterCombo()->isEnabled(),
 			"the filter offers the tracks, and a track that the scene does not have if a block names it");
 		ok &= expect(firstColumn(panel.table()) == QStringList({"b1", "b2"}) && panel.blockRowModelIndices() == std::vector<int>({0, 1})
@@ -569,7 +571,7 @@ int main(int argc, char** argv) {
 				&& !panel.moveBlockDownButton()->isEnabled() && !panel.deleteButton()->isEnabled(),
 			"the blocks of the chosen track are listed, and the buttons wait for a selected block");
 		ok &= expect(!panel.guidanceLabel()->isHidden()
-				&& panel.guidanceLabel()->text() == "Blocks are ordered on the chosen track; select a row to insert or move it.",
+				&& panel.guidanceLabel()->text() == "Select a block to insert a new one in its place or to move it.",
 			"blocks come with their guidance");
 
 		panel.table()->setCurrentCell(0, 0);
@@ -658,7 +660,7 @@ int main(int argc, char** argv) {
 
 		panel.table()->setCurrentCell(1, 0);
 		ok &= expect(items(panel.routeSectionListWidget())
-					== QStringList({"T1 0.000 to 1.000 km (legacy: b1)", "Invalid: missing"})
+					== QStringList({"T1 0.000 to 1.000 km (legacy: b1)", "missing (missing)"})
 				&& panel.routeSectionListWidget()->item(1)->toolTip() == "missing",
 			"a section that the scene does not have is listed as invalid");
 
@@ -782,6 +784,48 @@ int main(int argc, char** argv) {
 		table->setCurrentCell(1, 0);
 		QApplication::processEvents();
 		ok &= expect(table->indexWidget(table->currentIndex()) != nullptr, "the current cell has an editor");
+	}
+
+	// Return ends the edit of a cell and Add selects the new row, and neither opens an editor on the first cell
+	{
+		SceneDocument document;
+		InfrastructurePanel panel;
+		panel.setFacet(std::make_unique<ListFacet>(ListFacet::Kind::Tracks));
+		panel.setFacet(std::make_unique<PairFacet>());
+		panel.setDocument(&document);
+		document.replace(infrastructureScene(), false);
+		panel.refresh();
+		panel.show();
+		panel.activateWindow();
+		QApplication::processEvents();
+		QTableWidget* table = panel.table();
+		const auto shownEditors = [table] {
+			int count = 0;
+			for (const QWidget* child : table->viewport()->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+				count += child->isHidden() ? 0 : 1;
+			return count;
+		};
+
+		chooseFacet(panel, "platforms");
+		table->setCurrentCell(1, 1);
+		auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->currentIndex()));
+		ok &= expect(editor != nullptr, "a cell that becomes current opens its editor");
+		if (editor) {
+			editor->setText("P9");
+			QKeyEvent press(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+			QApplication::sendEvent(editor, &press);
+			// The delegate commits the editor in a queued call.
+			QApplication::processEvents();
+		}
+		ok &= expect(document.isDirty() && shownEditors() == 0 && table->currentRow() == 1 && table->currentColumn() == 1
+				&& table->hasFocus(),
+			"Return ends the edit, and the cell stays current in the table without an editor");
+
+		chooseFacet(panel, "tracks");
+		panel.addButton()->click();
+		QApplication::processEvents();
+		ok &= expect(document.model().tracks.size() == 3 && table->currentRow() == 2 && shownEditors() == 0,
+			"Add selects the new row without an editor");
 	}
 
 	return ok ? 0 : 1;

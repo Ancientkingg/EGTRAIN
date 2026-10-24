@@ -24,9 +24,9 @@ The minimum dwell is 60 s at both stops and the running performance is 100 %. Th
 
 ## Open the case and keep your own copy
 
-1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case Study...** instead; see [Opening an `.egscene` case study](opening-a-case-study.md).
-2. Choose **File > Save Case Study As...** and save a `.egscene` file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Scene saved** and your file is the open case.
-3. From then on **File > Save Scene** saves to your file. If you edit an installed case before making a copy, **Save Scene** asks for a new `.egscene` file instead of overwriting the installed case. Cancelling keeps the edit and the current case.
+1. Click **Open Case** in the toolbar. In the dialog **Open a Case**, select `Amsterdam_Hilversum_Student` under **Bundled cases** (the first entry) and click **Open**. The network appears and the window title names the case. If the list does not show the case, open the downloaded `Amsterdam_Hilversum_Student.egscene` with **File > Open Case...** instead; see [Opening an `.egscene` case](opening-a-case-study.md).
+2. Choose **File > Save As...** and save a `.egscene` file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads **Case saved** and your file is the open case.
+3. From then on **File > Save** saves to your file. If you edit a bundled case before making a copy, **Save** asks for a new `.egscene` file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.
 
 The saved file holds the inputs of the case. It holds neither results nor the selection of runs.
 
@@ -35,11 +35,11 @@ The saved file holds the inputs of the case. It holds neither results nor the se
 ### 1. Inspect the inputs
 
 1. Choose **Editors > Services**. The panel **Services** opens with the tabs **Service**, **Timetable** and **Run occurrences**. Choosing the entry while the panel is showing hides it. You can use the panel only while no run is active.
-2. On **Service**, read **Composition**, **Route** (the entry that ends in `[route32]`), **Entry Time (s)**, **Repeat Headway (s)**, **Configured total**, **Running performance (parameter) %** and **Maximum speed restriction km/h**. A field beside a check box works only while its box is checked.
+2. On **Service**, read **Composition**, **Route** (the entry that ends in `[route32]`), **Entry time (s)**, **Repeat every (s)**, **Repeat count**, **Performance (%)** and **Maximum speed (km/h)**. A field beside a check box works only while its box is checked.
 3. Open the tab **Timetable** and read the table: **Station**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**. Switch **Planned time display** between **Elapsed offsets (s)** and **Clock time**. This changes how the times are shown, not the case. Leave it on **Elapsed offsets (s)**. Neither stop names a platform.
-4. A click on a row of the table opens the dialog **Edit timetable stop**. Choose **Cancel** unless you mean to change the stop.
-5. Open the tab **Run occurrences**. The text above the table starts with "Configured total: 4; Number of services in sim.: 4; Selected: 4; Selected in period: 4." The table has the columns **Include**, **Service code (number)**, **Generated service**, **Scheduled entry**, **Running performance (parameter) %** and **Maximum speed restriction (km/h)**.
-6. Choose **Editors > Case Settings** and read **Base time** and **Duration / horizon (s)**. Do not change them.
+4. A click on a row of the table opens the dialog **Edit Timetable Stop**. Choose **Cancel** unless you mean to change the stop.
+5. Open the tab **Run occurrences**. The text above the table reads "4 of 4 selected". The table has the columns **Run**, **Operating code**, **Route**, **Entry**, **Performance (%)** and **Maximum speed (km/h)**.
+6. Choose **Editors > Case Settings** and read **Base time** and **Duration (s)**. Do not change them.
 
 Explain the difference between the one service definition and the four generated runs. Name the inputs that are assumptions of the exercise, not sourced railway data.
 
@@ -47,12 +47,12 @@ Explain the difference between the one service definition and the four generated
 
 Run 1 alone at 100 % performance.
 
-1. On **Run occurrences**, click **Select none**, then tick **Include** in the first row, service code `IC_ASD_HVS_DEMO-1`. The text above the table contains "Selected: 1" and "Selected in period: 1". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
-2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Selected in period**, **Start clock**, **Duration** and **Active incidents**; **Run details** shows more. Check that **Selected in period** is 1, then click **Run simulation**.
+1. On **Run occurrences**, click **Select None**, then tick **Run** in the first row, operating code `IC_ASD_HVS_DEMO-1`. The text above the table reads "1 of 4 selected". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
+2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Trains**, **Start time** and **Duration**; **Run details** shows more. Check that **Trains** is 1, then click **Run simulation**.
 3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the lines at its top include "Status: Completed".
-4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **Export CSV...** in that window and save `baseline-timetable.csv` in your own folder. Close the window.
-5. Choose **Open result view...** > **Speed / distance**, click **Export PNG...** in that window and save `baseline-speed-distance.png`. Close the window.
-6. Click **Export CSV...** in the dock and save `baseline-run-summary.csv`. The two export buttons of the dock write the summary table only; every result window has its own **Export CSV...** and **Export PNG...**.
+4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **CSV...** in the panel of that window and save `baseline-timetable.csv` in your own folder. Close the window.
+5. Choose **Open result view...** > **Speed / distance**, click **PNG...** in the panel of that window and save `baseline-speed-distance.png`. Close the window.
+6. Click **Export CSV...** in the dock and save `baseline-run-summary.csv`. The two export buttons of the dock write the summary table only; every result window has its own CSV and PNG exports.
 
 Every edit of the case removes the current results and hides **Run Results**, so finish all exports of a run before you change an input.
 
@@ -62,8 +62,8 @@ Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time fr
 
 ### 3. Compare lower performance
 
-1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
-2. On **Run occurrences**, check that the text still contains "Selected: 1" and that the column **Running performance (parameter) %** shows 60. If the selection differs, repeat step 1 of task 2.
+1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service** and set **Performance (%)** to 60. Press Tab to finish the edit. Change nothing else.
+2. On **Run occurrences**, check that the text still reads "1 of 4 selected" and that the column **Performance (%)** shows 60. If the selection differs, repeat step 1 of task 2.
 3. Run and export as in task 2, with file names that start with `slower`.
 4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy (kWh)** with the baseline. Use the same energy column in every comparison.
 
@@ -78,7 +78,7 @@ Optional: choose **Open result view...** > **Tractive effort / distance** and co
 Keep the performance at 60 and move the `Hvs` planned times two minutes later, keeping the 60 s planned dwell.
 
 1. In the panel **Services**, open **Timetable** and click the `Hvs` row in the table.
-2. In **Edit timetable stop**, the time fields hold seconds from the base time while **Planned time display** is **Elapsed offsets (s)**, and HH:MM:SS clock times when it is **Clock time**. Set **Planned arrival** to 1620 and **Planned departure** to 1680, which are 06:55:20 and 06:56:20 for run 1. Leave both boxes ticked and **Minimum dwell (s)** at 60. Click **OK**.
+2. In **Edit Timetable Stop**, the time fields hold seconds from the base time while **Planned time display** is **Elapsed offsets (s)**, and HH:MM:SS clock times when it is **Clock time**. Set **Planned arrival** to 1620 and **Planned departure** to 1680, which are 06:55:20 and 06:56:20 for run 1. Leave both boxes ticked and **Minimum dwell (s)** at 60. Click **OK**.
 3. Check the table: `Hvs` shows 1620 and 1680, `Asd` still 120 and 180. Entry time, headway, total, composition and route stay as supplied. Check the selection of run 1 as in step 2 of task 3.
 4. Run and export as in task 2, with file names that start with `slower-revised`.
 
@@ -86,18 +86,18 @@ Explain whether the changed delay comes from faster movement, a changed target o
 
 ### 5. Check the repetition
 
-1. On **Run occurrences**, click **Select all**. The text contains "Selected: 4" and "Selected in period: 4". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
-2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
+1. On **Run occurrences**, click **Select All**. The text reads "4 of 4 selected". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
+2. Run as in steps 2 and 3 of task 2. **Trains** in **Run simulation** is 4.
 3. Open **Timetable**. Its train filter button reads `Trains (4/4)` while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
-4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
+4. Click **CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
 Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (h:mm:ss)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.
 
 ### 6. Recommend and hand in
 
 1. Choose a configuration: the performance, the `Hvs` planned times and the number of runs.
-2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The file keeps **Configured total** from **Service**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
-3. To check your file, choose **File > Open Case Study...** and select it. Check the performance on **Service** and the `Hvs` times on **Timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
+2. Set the open case to that configuration and choose **File > Save As...** with a new file name. The file keeps **Repeat count** from **Service**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
+3. To check your file, choose **File > Open Case...** and select it. Check the performance on **Service** and the `Hvs` times on **Timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
 
 Hand in:
 
@@ -119,6 +119,6 @@ Each export also writes a file with the same name plus `.provenance.json` next t
 
 ## Limits of the exercise
 
-The case has no validation errors. With **View > Advanced / Developer details** checked, the status bar shows "Validation: 0 error(s), 26 warning(s)". All 26 warnings have the code `scene.route.region_jump` (a route crosses an undeclared regional coordinate discontinuity). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
+The case has no validation errors. With **View > Advanced Details** checked, the status bar shows "26 warnings". All 26 warnings have the code `scene.route.region_jump` (a route jumps between two parts of the network that no connection joins). They concern routes other than `route32` and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.
 
 If a train meets planned times that you set yourself, that does not prove the plan is feasible in real operation.

@@ -1,5 +1,6 @@
 #include "editors/IncidentPanel.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneWriter.h"
 #include "widgets/ChoiceComboBox.h"
 
 #include <QApplication>
@@ -178,6 +179,7 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 }
 
 static bool addsIncidentWithTarget(const Log& edit);
+static bool namesTypes(const Log& edit);
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
@@ -186,6 +188,7 @@ int main(int argc, char** argv) {
 	bool ok = true;
 	const Log edit({"documentChanged", "panelChanged"});
 	ok &= addsIncidentWithTarget(edit);
+	ok &= namesTypes(edit);
 
 	{
 		IncidentPanel panel;
@@ -217,11 +220,11 @@ int main(int argc, char** argv) {
 		document.replace(incidentScene(), false);
 		selection.selectScenario("base");
 		panel.refresh();
-		ok &= expect(items(panel.listWidget()) == QStringList({"i1 (signal_failure)", "i2 (train_breakdown) #2 / 30 km/h"})
+		ok &= expect(items(panel.listWidget()) == QStringList({"i1: Signal failure", "i2: Train breakdown #2, 30 km/h"})
 				&& panel.listWidget()->currentRow() == 0 && panel.listWidget()->isEnabled() && panel.addButton()->isEnabled()
 				&& panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled(),
 			"the incidents of the selected scenario are listed, and the first is selected");
-		ok &= expect(panel.idEdit()->text() == "i1" && panel.typeCombo()->currentText() == "signal_failure"
+		ok &= expect(panel.idEdit()->text() == "i1" && panel.typeCombo()->currentData().toString() == "signal_failure"
 				&& panel.startSecondsEdit()->text() == "10" && panel.endSecondsEdit()->text() == "20" && panel.hasEndSecondsCheck()->isChecked()
 				&& !panel.hasReducedSpeedCheck()->isEnabled() && !panel.reducedSpeedKmhEdit()->isEnabled()
 				&& !panel.terminateAtDestinationCheck()->isEnabled() && !panel.hasReducedSpeedCheck()->isChecked(),
@@ -234,25 +237,25 @@ int main(int argc, char** argv) {
 
 		// a breakdown
 		panel.listWidget()->setCurrentRow(1);
-		ok &= expect(panel.idEdit()->text() == "i2" && panel.typeCombo()->currentText() == "train_breakdown"
+		ok &= expect(panel.idEdit()->text() == "i2" && panel.typeCombo()->currentData().toString() == "train_breakdown"
 				&& panel.hasReducedSpeedCheck()->isEnabled() && panel.hasReducedSpeedCheck()->isChecked()
 				&& panel.reducedSpeedKmhEdit()->isEnabled() && panel.reducedSpeedKmhEdit()->value() == 30.0
 				&& panel.terminateAtDestinationCheck()->isEnabled() && !panel.terminateAtDestinationCheck()->isChecked(),
 			"a breakdown shows its speed cap");
 		ok &= expect(choices(panel.targetCombo())
-					== QStringList({"Choose target", "s1-1 | route r1 | entry +0 s", "s1-2 | route r1 | entry +1200 s",
-						"s1-3 | route r1 | entry +2400 s", "s2 | route r1 | entry +0 s"})
+					== QStringList({"Choose target", "s1-1 (route r1, +0 s)", "s1-2 (route r1, +1200 s)",
+						"s1-3 (route r1, +2400 s)", "s2 (route r1, +0 s)"})
 				&& panel.targetCombo()->currentIndex() == 2
-				&& panel.targetCombo()->itemData(2, Qt::ToolTipRole).toString() == "s1-2 | route r1 | entry +1200 s [s1, #2]",
+				&& panel.targetCombo()->itemData(2, Qt::ToolTipRole).toString() == "s1-2 (route r1, +1200 s)\nService s1, run 2",
 			"the targets of a breakdown are the occurrences of the services, and the occurrence of the incident is chosen");
 		ok &= expect(events.log.empty(), "selecting an incident edits nothing");
 
 		// the type decides which targets are valid
 		panel.listWidget()->setCurrentRow(0);
-		panel.typeCombo()->setCurrentText("train_breakdown");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("train_breakdown"));
 		ok &= expect(document.model().scenarios[0].incidents[0].type == "train_breakdown" && document.model().scenarios[0].incidents[0].target.empty()
 				&& panel.targetCombo()->currentIndex() == 0 && panel.hasReducedSpeedCheck()->isEnabled()
-				&& choices(panel.targetCombo()).size() == 5 && panel.listWidget()->item(0)->text() == "i1 (train_breakdown)"
+				&& choices(panel.targetCombo()).size() == 5 && panel.listWidget()->item(0)->text() == "i1: Train breakdown"
 				&& events.log == edit && events.kinds == SceneDocument::Scenarios && document.lastChangeLabel() == "Change incident type"
 				&& selection.isScenarioModified("base"),
 			"a breakdown has no signal as its target, and the targets are the services");
@@ -261,15 +264,15 @@ int main(int argc, char** argv) {
 				&& document.model().scenarios[0].incidents[0].occurrence == 3 && document.lastChangeLabel() == "Change incident target",
 			"a chosen occurrence is the target of the breakdown");
 		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "s2", 1));
-		panel.typeCombo()->setCurrentText("signal_failure");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 		ok &= expect(document.model().scenarios[0].incidents[0].type == "signal_failure" && document.model().scenarios[0].incidents[0].target == "s2"
 				&& !document.model().scenarios[0].incidents[0].hasOccurrence && document.model().scenarios[0].incidents[0].occurrence == 1
 				&& panel.targetCombo()->currentText() == "s2" && !panel.hasReducedSpeedCheck()->isEnabled(),
 			"a target that is valid for both types stays, and a signal failure has no occurrence");
 		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "sig1", 0));
-		panel.typeCombo()->setCurrentText("train_breakdown");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("train_breakdown"));
 		ok &= expect(document.model().scenarios[0].incidents[0].target.empty(), "a signal is dropped as the target of a breakdown");
-		panel.typeCombo()->setCurrentText("signal_failure");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 		ok &= expect(document.model().scenarios[0].incidents[0].target.empty() && panel.targetCombo()->currentIndex() == 0,
 			"a signal failure starts without a target after the type changes");
 		panel.targetCombo()->setCurrentIndex(choice(panel.targetCombo(), "sig1", 0));
@@ -281,13 +284,13 @@ int main(int argc, char** argv) {
 
 		// a breakdown that loses its speed cap when it becomes a signal failure
 		panel.listWidget()->setCurrentRow(1);
-		panel.typeCombo()->setCurrentText("signal_failure");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("signal_failure"));
 		const SceneIncident& converted = document.model().scenarios[0].incidents[1];
 		ok &= expect(converted.type == "signal_failure" && !converted.hasReducedSpeed && converted.reducedSpeedKmh == 0.0 && !converted.hasOccurrence
 				&& converted.occurrence == 1 && !converted.terminateAtDestination && !panel.hasReducedSpeedCheck()->isChecked()
 				&& !panel.reducedSpeedKmhEdit()->isEnabled() && converted.target.empty(),
 			"a signal failure has none of the fields of a breakdown");
-		panel.typeCombo()->setCurrentText("train_breakdown");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("train_breakdown"));
 		ok &= expect(!panel.hasReducedSpeedCheck()->isChecked() && panel.hasReducedSpeedCheck()->isEnabled() && !panel.reducedSpeedKmhEdit()->isEnabled()
 				&& panel.reducedSpeedKmhEdit()->value() == 40.0,
 			"the speed cap of a new breakdown is off and offers 40 km/h");
@@ -301,7 +304,7 @@ int main(int argc, char** argv) {
 		panel.reducedSpeedKmhEdit()->setValue(45.5);
 		panel.commitReducedSpeed();
 		ok &= expect(converted.reducedSpeedKmh == 45.5 && converted.hasReducedSpeed
-				&& panel.listWidget()->item(1)->text() == "i2 (train_breakdown) / 45.5 km/h",
+				&& panel.listWidget()->item(1)->text() == "i2: Train breakdown, 45.5 km/h",
 			"a speed is written to the document and shown in the list");
 		events.log.clear();
 		panel.commitReducedSpeed();
@@ -311,7 +314,7 @@ int main(int argc, char** argv) {
 				&& panel.reducedSpeedKmhEdit()->value() == 40.0,
 			"switching the speed cap off removes it, and the field offers 40 km/h again");
 		panel.refresh();
-		ok &= expect(panel.listWidget()->item(1)->text() == "i2 (train_breakdown)", "the list shows the incident without a speed cap");
+		ok &= expect(panel.listWidget()->item(1)->text() == "i2: Train breakdown", "the list shows the incident without a speed cap");
 
 		// the end of the incident
 		events.log.clear();
@@ -345,13 +348,13 @@ int main(int argc, char** argv) {
 		prompts.errorCount = 0;
 		panel.idEdit()->setText("  i2b  ");
 		panel.commitIdEdit();
-		ok &= expect(converted.id == "i2b" && panel.listWidget()->item(1)->text() == "i2b (train_breakdown)" && events.log == edit
+		ok &= expect(converted.id == "i2b" && panel.listWidget()->item(1)->text() == "i2b: Train breakdown" && events.log == edit
 				&& document.lastChangeLabel() == "Rename incident",
 			"a new id is written to the document, trimmed, and the list shows it");
 		events.log.clear();
 		panel.idEdit()->setText("i3");
 		panel.commitIdEdit();
-		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Incident ID already exists" && panel.idEdit()->text() == "i2b"
+		ok &= expect(prompts.errorCount == 1 && prompts.errorTitle == "Duplicate Incident ID" && panel.idEdit()->text() == "i2b"
 				&& converted.id == "i2b" && events.log.empty(),
 			"an id that an incident of another scenario has is refused, and the field shows the old id again");
 		panel.idEdit()->setText(" ");
@@ -397,8 +400,8 @@ int main(int argc, char** argv) {
 		// the other scenario
 		selection.selectScenario("alt");
 		panel.refresh();
-		ok &= expect(items(panel.listWidget()) == QStringList({"i3 (train_breakdown)"}) && panel.idEdit()->text() == "i3"
-				&& panel.targetCombo()->currentIndex() == 1 && panel.targetCombo()->currentText().startsWith("Historical scope: all generated services [s2]"),
+		ok &= expect(items(panel.listWidget()) == QStringList({"i3: Train breakdown"}) && panel.idEdit()->text() == "i3"
+				&& panel.targetCombo()->currentIndex() == 1 && panel.targetCombo()->currentText().startsWith("All runs of s2"),
 			"the incidents of the selected scenario are shown, and a breakdown of every occurrence is a historical scope");
 		events.log.clear();
 		selection.clearModifiedScenarios();
@@ -446,7 +449,7 @@ int main(int argc, char** argv) {
 		panel.addIncident();
 		panel.duplicateIncident();
 		panel.deleteIncident();
-		panel.typeCombo()->setCurrentText("train_breakdown");
+		panel.typeCombo()->setCurrentIndex(panel.typeCombo()->findData("train_breakdown"));
 		ok &= expect(document.model().scenarios[0].incidents[0].id == "i1" && document.model().scenarios[0].incidents.size() == 4 && events.log.empty()
 				&& !document.isDirty(),
 			"pending text and actions change nothing while a run uses the scene");
@@ -460,7 +463,7 @@ int main(int argc, char** argv) {
 		other.scenarios[0].incidents.resize(1);
 		other.scenarios[0].incidents[0].id = "only";
 		document.replace(other, false);
-		ok &= expect(items(panel.listWidget()) == QStringList({"only (signal_failure)"}) && panel.idEdit()->text() == "only" && !document.isDirty(),
+		ok &= expect(items(panel.listWidget()) == QStringList({"only: Signal failure"}) && panel.idEdit()->text() == "only" && !document.isDirty(),
 			"opening another scene replaces unfinished text without an edit");
 
 		// detach
@@ -506,7 +509,7 @@ int main(int argc, char** argv) {
 
 		model.services.erase(model.services.begin());
 		document.markChanged(SceneDocument::Services, "Delete service");
-		ok &= expect(panel.targetCombo()->currentText() == "Invalid removed target [s1b, 2]" && panel.targetCombo()->currentData().toString() == "s1b"
+		ok &= expect(panel.targetCombo()->currentText() == "s1b #2 (missing)" && panel.targetCombo()->currentData().toString() == "s1b"
 				&& document.model().scenarios[0].incidents[1].target == "s1b",
 			"a target that is gone is shown as such and is not changed");
 
@@ -531,7 +534,7 @@ int main(int argc, char** argv) {
 			"a block that is deleted is no longer offered");
 		sceneSignals(model).erase(sceneSignals(model).begin());
 		document.markChanged(SceneDocument::Infrastructure, "Delete signal");
-		ok &= expect(panel.targetCombo()->currentText() == "Invalid removed target: sig1" && panel.targetCombo()->currentData().toString() == "sig1",
+		ok &= expect(panel.targetCombo()->currentText() == "sig1 (missing)" && panel.targetCombo()->currentData().toString() == "sig1",
 			"a signal that is gone is shown as the removed target of the signal failure");
 		sceneSignals(model).push_back(SceneSignal{"sig3", ""});
 		document.markChanged(SceneDocument::Scenarios, "Edit scenario");
@@ -616,7 +619,7 @@ int main(int argc, char** argv) {
 			"each check box is drawn above the field it switches on");
 		const auto inside = [&panel, &topLeft](const QWidget* widget) { return panel.rect().contains(QRect(topLeft(widget), widget->size())); };
 		ok &= expect(inside(panel.addButton()) && inside(panel.idEdit()), "the Add button and the first field are inside the panel");
-		ok &= expect(panel.hasEndSecondsCheck()->text() == "Use recovery end (s)", "the check box of the recovery end names its unit");
+		ok &= expect(panel.hasEndSecondsCheck()->text() == "End (s)", "the check box of the recovery end names its unit");
 	}
 
 	{
@@ -698,17 +701,17 @@ int main(int argc, char** argv) {
 			"a target that the combo does not offer for its type is refused and changes nothing");
 		ok &= expect(panel.applyTarget({"train_breakdown", "s1", 3}) && shown().type == "train_breakdown" && shown().target == "s1"
 				&& shown().hasOccurrence && shown().occurrence == 3 && events.log == edit
-				&& document.lastChangeLabel() == "Change incident target" && panel.typeCombo()->currentText() == "train_breakdown"
+				&& document.lastChangeLabel() == "Change incident target" && panel.typeCombo()->currentData().toString() == "train_breakdown"
 				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 3) && panel.hasReducedSpeedCheck()->isEnabled()
-				&& panel.listWidget()->item(0)->text() == "i1 (train_breakdown) #3",
+				&& panel.listWidget()->item(0)->text() == "i1: Train breakdown #3",
 			"an occurrence of a service makes a signal failure a breakdown of it, in one edit");
 		panel.hasReducedSpeedCheck()->setChecked(true);
 		panel.terminateAtDestinationCheck()->setChecked(true);
 		events.log.clear();
 		ok &= expect(panel.applyTarget({"signal_failure", "sig1", 0}) && shown().type == "signal_failure" && shown().target == "sig1"
 				&& !shown().hasOccurrence && shown().occurrence == 1 && !shown().hasReducedSpeed && shown().reducedSpeedKmh == 0.0
-				&& !shown().terminateAtDestination && events.log == edit && panel.typeCombo()->currentText() == "signal_failure"
-				&& panel.targetCombo()->currentText() == "sig1" && panel.listWidget()->item(0)->text() == "i1 (signal_failure)",
+				&& !shown().terminateAtDestination && events.log == edit && panel.typeCombo()->currentData().toString() == "signal_failure"
+				&& panel.targetCombo()->currentText() == "sig1" && panel.listWidget()->item(0)->text() == "i1: Signal failure",
 			"a signal makes a breakdown a signal failure, which loses what only a breakdown has, in one edit");
 
 		// the target of a new incident
@@ -723,9 +726,9 @@ int main(int argc, char** argv) {
 		const SceneIncident& added = document.model().scenarios[0].incidents.back();
 		ok &= expect(countAtCall == countBefore && added.id == "new_incident" && added.type == "train_breakdown" && added.target == "s1"
 				&& added.hasOccurrence && added.occurrence == 2 && added.hasEndSeconds && events.log == edit
-				&& document.lastChangeLabel() == "Add incident" && panel.typeCombo()->currentText() == "train_breakdown"
+				&& document.lastChangeLabel() == "Add incident" && panel.typeCombo()->currentData().toString() == "train_breakdown"
 				&& panel.targetCombo()->currentIndex() == choice(panel.targetCombo(), "s1", 2)
-				&& panel.listWidget()->currentItem()->text() == "new_incident (train_breakdown) #2",
+				&& panel.listWidget()->currentItem()->text() == "new_incident: Train breakdown #2",
 			"a new incident gets the target that the window gives before the edit, in the same edit");
 		panel.setDefaultTarget([] { return IncidentTarget{"signal_failure", "sig1", 0}; });
 		panel.addIncident();
@@ -794,7 +797,7 @@ int main(int argc, char** argv) {
 		const QFormLayout* form = panel.idEdit()->parentWidget()->findChild<QFormLayout*>();
 		ok &= expect(form && form->fieldGrowthPolicy() == QFormLayout::AllNonFixedFieldsGrow, "the fields of the incident grow to the width of the form");
 		const auto* target = dynamic_cast<const ChoiceComboBox*>(panel.targetCombo());
-		ok &= expect(target && target->currentText().startsWith("s1-2 | route rrr") && target->displayText().contains(QChar(0x2026)),
+		ok &= expect(target && target->currentText().startsWith("s1-2 (route rrr") && target->displayText().contains(QChar(0x2026)),
 			"a long target is cut with an ellipsis in a narrow panel");
 		// The tip of the target says what the type takes as its target, below the current target.
 		const QString trainTip = panel.targetCombo()->toolTip();
@@ -884,5 +887,39 @@ static bool addsIncidentWithTarget(const Log& edit) {
 	document.setEditable(false);
 	ok &= expect(!panel.addIncident(IncidentTarget{"signal_failure", "sig1", 0}) && incidents.size() == countBefore + 2 && events.log.empty(),
 		"nothing is added while a run uses the scene");
+	return ok;
+}
+
+// The type combo shows the names of the types and keeps the type of the file as the data of each item: choosing an item
+// by its name stores that type, and the file is written as before.
+static bool namesTypes(const Log& edit) {
+	bool ok = true;
+	SceneDocument document;
+	IncidentPanel panel;
+	RunSelection selection;
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	document.replace(incidentScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	QComboBox* type = panel.typeCombo();
+	ok &= expect(choices(type) == QStringList({"Signal failure", "Train breakdown"}) && type->itemData(0).toString() == "signal_failure"
+			&& type->itemData(1).toString() == "train_breakdown" && type->currentText() == "Signal failure",
+		"the types are shown by name, with the type of the file as data");
+	const nlohmann::json before = encodeScenarios(document.model());
+	Events events(panel, document);
+	type->setCurrentIndex(type->findText("Train breakdown"));
+	const nlohmann::json changed = encodeScenarios(document.model());
+	ok &= expect(document.model().scenarios[0].incidents[0].type == "train_breakdown"
+			&& changed["scenarios"][0]["incidents"][0]["type"] == "train_breakdown" && events.log == edit,
+		"choosing a type by its name stores the type of the file");
+	events.log.clear();
+	type->setCurrentIndex(type->findText("Signal failure"));
+	panel.targetCombo()->setCurrentIndex(panel.targetCombo()->findData("sig1"));
+	ok &= expect(document.model().scenarios[0].incidents[0].type == "signal_failure" && encodeScenarios(document.model()) == before,
+		"choosing the first type and target again writes the file as before");
+	panel.listWidget()->setCurrentRow(1);
+	ok &= expect(type->currentText() == "Train breakdown" && type->currentData().toString() == "train_breakdown",
+		"a breakdown shows the name of its type");
 	return ok;
 }

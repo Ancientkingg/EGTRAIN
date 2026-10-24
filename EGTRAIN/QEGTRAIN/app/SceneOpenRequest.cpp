@@ -9,7 +9,7 @@ SceneOpenChoice classifyOpenPaths(const QStringList& paths) {
 		return choice;
 	}
 	if (paths.size() != 1) {
-		choice.rejection = QStringLiteral("open exactly one .egscene file");
+		choice.rejection = QStringLiteral("more than one file was given");
 		return choice;
 	}
 	const QFileInfo info(paths.front());
@@ -18,11 +18,11 @@ SceneOpenChoice classifyOpenPaths(const QStringList& paths) {
 		return choice;
 	}
 	if (!info.isFile()) {
-		choice.rejection = QStringLiteral("an .egscene file is needed, not a directory");
+		choice.rejection = QStringLiteral("it is a folder, not an .egscene file");
 		return choice;
 	}
 	if (info.suffix().compare(QStringLiteral("egscene"), Qt::CaseInsensitive) != 0) {
-		choice.rejection = QStringLiteral("the file must use the .egscene extension");
+		choice.rejection = QStringLiteral("it is not an .egscene file");
 		return choice;
 	}
 	choice.path = info.absoluteFilePath();

@@ -29,7 +29,12 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 	const int clampedTimestep = safeTotalSteps > 0
 		? qBound(0, timestep, safeTotalSteps - 1)
 		: 0;
+	// QProgressBar::setValue() paints at once, as the bar draws its own text, and that paint also draws every other part
+	// of the window that waits for one, such as the network view, in the middle of a snapshot delivery. With updates off
+	// it only marks the bar, which then paints with the rest of the window.
+	setUpdatesEnabled(false);
 	setValue(clampedTimestep);
+	setUpdatesEnabled(true);
 
 	const auto formatCount = [](int count) {
 		QString text = QString::number(count);

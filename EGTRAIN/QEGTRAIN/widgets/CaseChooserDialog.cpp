@@ -14,7 +14,6 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSet>
 #include <QVBoxLayout>
@@ -132,7 +131,7 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 			// The row can be selected, so that its reason shows, but it has no path to open.
 			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 			item->setToolTip(rowToolTip(name, path));
-			item->setData(kReasonRole, QStringLiteral("This case is no longer at its saved location, so it cannot be opened."));
+			item->setData(kReasonRole, QStringLiteral("This case was moved or deleted."));
 		}
 	}
 	if (list->count() == 0) {
@@ -171,10 +170,10 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	// and Space opens the menu.
 	moreButton->setAutoDefault(false);
 	m_otherMenu = new QMenu(moreButton);
-	QAction* newCase = m_otherMenu->addAction("New Case Study...");
-	QAction* browseScene = m_otherMenu->addAction("Open Scene Folder...");
+	QAction* newCase = m_otherMenu->addAction("New Case...");
+	QAction* browseScene = m_otherMenu->addAction("Open Case Folder...");
 	QAction* legacy = m_otherMenu->addAction("Import Legacy Case...");
-	legacy->setToolTip("Convert an original text-input folder and choose where to save the scene.");
+	legacy->setToolTip("Convert a case from the original text files");
 	moreButton->setMenu(m_otherMenu);
 	bodyLayout->addWidget(moreButton, 0, Qt::AlignLeft);
 
@@ -202,16 +201,9 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	connect(newCase, &QAction::triggered, this, [this]() { choose(Outcome::NewCase); });
 	connect(browseScene, &QAction::triggered, this, [this]() { choose(Outcome::BrowseFolder); });
-	connect(legacy, &QAction::triggered, this, [this]() {
-		if (QMessageBox::question(this, "Import Legacy Case",
-				"Choose the original text-input folder, then a folder for the converted scene. Continue?",
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-			== QMessageBox::Yes)
-			choose(Outcome::ImportLegacy);
-	});
+	connect(legacy, &QAction::triggered, this, [this]() { choose(Outcome::ImportLegacy); });
 	DialogLayout::install(*this, "Open a Case",
-		options.currentCaseName.isEmpty() ? QStringLiteral("Choose a case to open.")
-										  : QString("Current case: %1. Choose another or continue.").arg(options.currentCaseName),
+		options.currentCaseName.isEmpty() ? QString() : QString("Current case: %1").arg(options.currentCaseName),
 		body, buttons, options.availableGeometry);
 	for (int row = 0; row < m_list->count(); ++row) {
 		if ((m_list->item(row)->flags() & Qt::ItemIsEnabled)

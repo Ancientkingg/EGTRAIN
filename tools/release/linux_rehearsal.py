@@ -16,12 +16,12 @@ the log of the script go to the evidence directory. A missing tool or display ex
 
 1. Start AppRun with a new home directory and no QEGTRAIN_ variable, close the case chooser, answer the question about
    automatic update checks, read the version of About EGTRAIN, and check that the toolbar icon buttons are not blank.
-2. File > Open Case Study... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
-3. The network is drawn, and View > Loaded Data shows the identity, the versions, the category counts, the scenarios and
-   the result readiness.
+2. File > Open Case... on the downloaded bundle, after a byte copy of it is taken and its modification time noted.
+3. The network is drawn, and View > Loaded Data shows the identity, the category counts, the scenarios, the result
+   readiness and, after View > Advanced Details is ticked, the versions.
 4. Type a new description into a text field of the Case Settings editor and into the scenario editor, type into a table
    cell, and check that the run review names the scenario.
-5. File > Save Case Study As... to a working copy in another folder. The downloaded bundle stays as it was.
+5. File > Save As... to a working copy in another folder. The downloaded bundle stays as it was.
 6. Simulation > Run and Run simulation in the review window, from the working copy, to the end of the run.
 7. Open the timetable table with its planned and simulated values, the delay, the speed and the blocking-time results.
 8. Export a CSV file and a PNG file with the buttons of Run Results.
@@ -53,7 +53,7 @@ from pathlib import Path
 
 STEPS = (
     (1, "Start the package"),
-    (2, "Open the downloaded case study"),
+    (2, "Open the downloaded case"),
     (3, "Check the network and Loaded Data"),
     (4, "Edit the case and a scenario"),
     (5, "Save a working copy"),
@@ -84,7 +84,15 @@ MIN_ICON_COLOURS = 2
 MIN_NETWORK_COLOURS = 16
 LOADED_DATA_COLUMNS = 4
 LOADED_DATA_CATEGORIES = ("Infrastructure", "Stations", "Timetable", "Rolling stock", "Signalling", "Scenarios")
-LOADED_DATA_VERSIONS = ("Canonical schema version", "Saved with app version", "Bundle format version")
+LOADED_DATA_CASE = "Case"
+LOADED_DATA_RUN = "Run"
+# The version rows show only with advanced details. The application stores that choice when its View entry is ticked, so
+# the rest of the rehearsal and the second start of step 9 keep it.
+LOADED_DATA_VERSIONS = ("Format version", "Saved with", "Bundle version")
+# The View entry that switches advanced details on, in any capitals.
+ADVANCED_DETAILS = r"(?i)^advanced\b.*details$"
+# The line of the run summary when the run has finished. With Advanced details the summary has more lines after it.
+RUN_COMPLETED = r"(?m)^Status: Completed$"
 TIMETABLE_COLUMNS = ("Planned arrival", "Planned departure", "Simulated arrival", "Simulated departure")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MIN_PNG_BYTES = 1000
@@ -186,8 +194,8 @@ def loaded_data_problems(rows, case_name: str) -> list:
     scenarios = by_category.get("Scenarios")
     if scenarios and scenarios[1].isdigit() and int(scenarios[1]) < 1:
         problems.append("a scenario")
-    if "Runtime and results" not in by_category:
-        problems.append("the row Runtime and results")
+    if LOADED_DATA_RUN not in by_category:
+        problems.append(f"the row {LOADED_DATA_RUN}")
     return problems
 
 
@@ -540,15 +548,19 @@ class Rehearsal:
         finally:
             Atspi.set_timeout(REPLY_MILLISECONDS, STARTUP_TIMEOUT_SECONDS * 1000)
 
-    def menu_item(self, name=None, pattern=None):
+    def menu_item(self, name=None, pattern=None, menu=None):
+        """The first entry of the menu bar with that name or pattern. With `menu` only the entries of the menu with that
+        title count, so that File > Run and Simulation > Run are told apart."""
         bar = find_first(self.main_frame(), "menu bar", max_depth=1)
-        item = find_first(bar, "menu item", name, pattern, max_depth=4) if bar else None
+        root = find_first(bar, name=menu, max_depth=1) if bar and menu else bar
+        item = find_first(root, "menu item", name, pattern, max_depth=4) if root else None
         if item is None:
-            raise StepFailed(f"the menu entry {name or pattern!r} is not there")
+            where = f" in the menu {menu}" if menu else ""
+            raise StepFailed(f"the menu entry {name or pattern!r} is not there{where}")
         return item
 
-    def choose(self, name: str, modal: bool = False) -> None:
-        self.press(self.menu_item(name), modal)
+    def choose(self, name: str, modal: bool = False, menu=None) -> None:
+        self.press(self.menu_item(name, menu=menu), modal)
 
     def show_dock(self, menu_name: str, frame_name: str):
         """Shows a dock through its checkable menu entry unless it is shown, and returns its frame."""
@@ -685,8 +697,8 @@ class Rehearsal:
         copy.parent.mkdir(parents=True)
         shutil.copyfile(self.bundle, copy)
         self.original_copy, self.original_mtime = copy, self.bundle.stat().st_mtime_ns
-        self.choose("Open Case Study...", modal=True)
-        dialog = self.wait_window("Open Case Study")
+        self.choose("Open Case...", modal=True)
+        dialog = self.wait_window("Open Case")
         self.set_file_name(dialog, self.bundle)
         self.press(self.button(dialog, "Open"))
         title = f"EGTRAIN - {self.case_name}"
@@ -717,9 +729,16 @@ class Rehearsal:
                                 limit=MIN_NETWORK_COLOURS)
         if colours < MIN_NETWORK_COLOURS:
             raise StepFailed(f"the network view has only {colours} colours")
+        advanced = self.menu_item(pattern=ADVANCED_DETAILS)
+        if not has_state(advanced, Atspi.StateType.CHECKED):
+            self.press(advanced)
         tree = wait_until(lambda: find_first(dock, "tree", max_depth=4), UI_TIMEOUT_SECONDS, "the Loaded Data table")
-        _, cells = table_texts(tree)
-        rows = chunk(cells, LOADED_DATA_COLUMNS)
+        # The tree is written again with the version rows after the switch.
+        deadline = time.monotonic() + UI_TIMEOUT_SECONDS
+        rows = self.loaded_rows(tree)
+        while loaded_data_problems(rows, self.case_name) and time.monotonic() < deadline:
+            time.sleep(POLL_SECONDS)
+            rows = self.loaded_rows(tree)
         problems = loaded_data_problems(rows, self.case_name)
         if problems:
             raise StepFailed("Loaded Data lacks " + ", ".join(problems))
@@ -727,12 +746,17 @@ class Rehearsal:
         return (f"the network is drawn with at least {MIN_NETWORK_COLOURS} colours, Loaded Data lists {len(rows)} rows "
                 f"for {self.case_name}")
 
+    def loaded_rows(self, tree) -> list:
+        _, cells = table_texts(tree)
+        return chunk(cells, LOADED_DATA_COLUMNS)
+
     def loaded_value(self, label: str) -> str:
+        """The Source column of the first row of Loaded Data with this category. The row Case holds the path of the open
+        case."""
         dock = self.dock("Loaded Data")
         if dock is None:
             dock = self.show_dock("Loaded Data", "Loaded Data")
-        _, cells = table_texts(find_first(dock, "tree", max_depth=4))
-        for row in chunk(cells, LOADED_DATA_COLUMNS):
+        for row in self.loaded_rows(find_first(dock, "tree", max_depth=4)):
             if row[0] == label:
                 return row[1]
         raise StepFailed(f"Loaded Data has no row {label!r}")
@@ -770,7 +794,7 @@ class Rehearsal:
                                  UI_TIMEOUT_SECONDS, "the Description field of Case Settings")
         self.type_into_field(description, CASE_NOTE)
         wait_until(lambda: name_of(self.main_frame()).endswith("*"), UI_TIMEOUT_SECONDS, "the unsaved mark in the title")
-        scenarios = self.show_dock("Incidents", "Incidents")
+        scenarios = self.show_dock("Scenarios", "Scenarios")
         library = wait_until(lambda: find_first(scenarios, "list", "Scenario library", max_depth=8, showing=True),
                              UI_TIMEOUT_SECONDS, "the scenario library")
         entry = find_first(library, "list item", max_depth=2)
@@ -791,7 +815,7 @@ class Rehearsal:
 
     def show_review(self, scenario: str) -> None:
         """Opens the run review from the Simulation menu and checks that it names the case and the scenario. Closes it."""
-        self.choose("Run", modal=True)
+        self.choose("Run", modal=True, menu="Simulation")
         review = self.wait_window("Run simulation")
         subtitle = f"{self.case_name} / {scenario}"
         wait_until(lambda: find_first(review, "label", subtitle, max_depth=8, showing=True), UI_TIMEOUT_SECONDS,
@@ -800,14 +824,14 @@ class Rehearsal:
         self.wait_closed("Run simulation")
 
     def step5(self) -> str:
-        self.choose("Save Case Study As...", modal=True)
-        dialog = self.wait_window("Save Case Study As")
+        self.choose("Save As...", modal=True)
+        dialog = self.wait_window("Save Case As")
         proposed = text_of(find_first(dialog, "text", "File name:", max_depth=4))
         self.note(f"the dialog proposes {proposed!r}")
         self.working_copy.parent.mkdir(parents=True)
         self.set_file_name(dialog, self.working_copy)
         self.press(self.button(dialog, "Save"))
-        self.wait_closed("Save Case Study As")
+        self.wait_closed("Save Case As")
         wait_until(lambda: not name_of(self.main_frame()).endswith("*"), UI_TIMEOUT_SECONDS, "the saved title")
         wait_until(lambda: self.working_copy.is_file() and self.working_copy.stat().st_size > 0, UI_TIMEOUT_SECONDS,
                    "the working copy file")
@@ -834,14 +858,14 @@ class Rehearsal:
             raise StepFailed("the downloaded bundle has a new modification time")
 
     def step6(self) -> str:
-        source = self.loaded_value("Source path")
+        source = self.loaded_value(LOADED_DATA_CASE)
         if source != str(self.working_copy):
             raise StepFailed(f"the open case is {source}, not the working copy")
-        self.choose("Run", modal=True)
+        self.choose("Run", modal=True, menu="Simulation")
         review = self.wait_window("Run simulation")
         self.press(self.button(review, "Run simulation"))
         self.wait_closed("Run simulation")
-        summary = wait_until(lambda: find_first(self.main_frame(), "label", pattern=r"Status: Completed$", max_depth=10),
+        summary = wait_until(lambda: find_first(self.main_frame(), "label", pattern=RUN_COMPLETED, max_depth=10),
                              RUN_TIMEOUT_SECONDS, "the finished run")
         return f"ran {name_of(summary)}"
 
@@ -849,7 +873,7 @@ class Rehearsal:
         opened = []
         self.choose("Timetable", modal=True)
         timetable = self.wait_window(pattern=r"^Timetable")
-        table = wait_until(lambda: find_first(timetable, "table", max_depth=4, showing=True), UI_TIMEOUT_SECONDS,
+        table = wait_until(lambda: find_first(timetable, "table", showing=True), UI_TIMEOUT_SECONDS,
                            "the timetable table")
         headers, cells = table_texts(table)
         problems = timetable_problems(headers, cells)
@@ -857,16 +881,23 @@ class Rehearsal:
             raise StepFailed("the timetable table lacks " + ", ".join(problems))
         opened.append(name_of(timetable))
         self.screenshot("timetable")
-        views = (("Delays", r"^Delays", "delay"),
-                 ("Speed / time", r"^Speed / time", "speed"))
-        for menu, pattern, label in views:
-            self.choose(menu, modal=True)
-            opened.append(name_of(self.wait_window(pattern=pattern)))
-            self.screenshot(label)
+        # Delays asks for its reference route first; OK takes the route that the dialog selects.
+        self.choose("Delays...", modal=True)
+        self.press(self.button(self.wait_window("Reference route"), "OK"))
+        opened.append(name_of(self.wait_window(pattern=r"^Delays")))
+        self.screenshot("delay")
+        self.choose("Speed / time", modal=True)
+        opened.append(name_of(self.wait_window(pattern=r"^Speed / time")))
+        self.screenshot("speed")
         self.choose("Blocking time...", modal=True)
-        scope = self.wait_window("Blocking-time scope")
+        # The choice of blocks and the chart are both titled Blocking time; only the choice has an OK button.
+        scope = self.wait_window("Blocking time")
         self.press(self.button(scope, "OK"))
-        opened.append(name_of(self.wait_window(pattern=r"^Blocking time")))
+
+        def chart():
+            window = self.window("Blocking time")
+            return window if window is not None and find_first(window, "push button", "OK", max_depth=10) is None else None
+        opened.append(name_of(wait_until(chart, UI_TIMEOUT_SECONDS, "the Blocking time chart")))
         self.screenshot("blocking-time")
         return ("opened " + "; ".join(opened)
                 + f"; the timetable has {len(headers)} columns and {len(cells) // len(headers)} rows")
@@ -921,20 +952,20 @@ class Rehearsal:
         self.wait_closed("Open a Case")
         if self.ask_about_updates(5) is not None:
             raise StepFailed("the question about update checks came again")
-        self.choose("Open Case Study...", modal=True)
-        dialog = self.wait_window("Open Case Study")
+        self.choose("Open Case...", modal=True)
+        dialog = self.wait_window("Open Case")
         self.set_file_name(dialog, self.working_copy)
         self.press(self.button(dialog, "Open"))
         wait_until(lambda: name_of(self.main_frame()) == f"EGTRAIN - {self.case_name}", UI_TIMEOUT_SECONDS,
                    "the reopened case")
-        if self.loaded_value("Source path") != str(self.working_copy):
+        if self.loaded_value(LOADED_DATA_CASE) != str(self.working_copy):
             raise StepFailed("the reopened case is not the working copy")
         settings = self.show_dock("Case Settings", "Case Settings")
         description = wait_until(lambda: find_first(settings, "text", "Description", max_depth=8, showing=True),
                                  UI_TIMEOUT_SECONDS, "the Description field of Case Settings")
         if text_of(description) != CASE_NOTE:
             raise StepFailed(f"the case description is {text_of(description)!r}, not the edit {CASE_NOTE!r}")
-        scenarios = self.show_dock("Incidents", "Incidents")
+        scenarios = self.show_dock("Scenarios", "Scenarios")
         scenario_field = wait_until(lambda: find_first(scenarios, "text", "Description", max_depth=8, showing=True),
                                     UI_TIMEOUT_SECONDS, "the Description field of the scenario")
         if text_of(scenario_field) != SCENARIO_NOTE:

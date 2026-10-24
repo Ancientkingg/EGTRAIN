@@ -54,15 +54,15 @@ static bool testClassify(const QString& base) {
 	ok &= expect(QFileInfo::exists(unicode), "the file with the non-ASCII name exists");
 
 	ok &= rejected({}, "no file was given", "an empty list is rejected");
-	ok &= rejected({plain, spaces}, "open exactly one .egscene file", "two valid files are rejected");
-	ok &= rejected({plain, missing}, "open exactly one .egscene file", "the count is checked before the files");
+	ok &= rejected({plain, spaces}, "more than one file was given", "two valid files are rejected");
+	ok &= rejected({plain, missing}, "more than one file was given", "the count is checked before the files");
 	ok &= rejected({missing}, "the file does not exist", "a missing file is rejected");
 	ok &= rejected({missingText}, "the file does not exist", "existence is checked before the extension");
 	ok &= rejected({QString()}, "the file does not exist", "an empty path is rejected as missing");
-	ok &= rejected({directory}, "an .egscene file is needed, not a directory", "a directory called x.egscene is rejected");
-	ok &= rejected({textDirectory}, "an .egscene file is needed, not a directory", "the kind is checked before the extension");
-	ok &= rejected({text}, "the file must use the .egscene extension", "a .txt file is rejected");
-	ok &= rejected({doubleBad}, "the file must use the .egscene extension", "x.egscene.txt is rejected");
+	ok &= rejected({directory}, "it is a folder, not an .egscene file", "a directory called x.egscene is rejected");
+	ok &= rejected({textDirectory}, "it is a folder, not an .egscene file", "the kind is checked before the extension");
+	ok &= rejected({text}, "it is not an .egscene file", "a .txt file is rejected");
+	ok &= rejected({doubleBad}, "it is not an .egscene file", "x.egscene.txt is rejected");
 
 	ok &= accepted(plain, "a plain name is accepted");
 	ok &= accepted(spaces, "a name with spaces is accepted");

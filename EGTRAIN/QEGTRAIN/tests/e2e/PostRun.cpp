@@ -9,10 +9,12 @@
 #include "diagrams/CapacityScope.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
+#include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
-#include "diagrams/TrainFilterButton.h"
+#include "diagrams/TrainColors.h"
+#include "diagrams/TrainKeyList.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/FollowCamera.h"
@@ -43,13 +45,13 @@
 #include <QEvent>
 #include <QFile>
 #include <QGraphicsItem>
+#include <QHash>
 #include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineF>
 #include <QList>
-#include <QListWidget>
 #include <QMenu>
 #include <QMetaObject>
 #include <QMetaType>
@@ -64,6 +66,7 @@
 #include <QRectF>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSet>
 #include <QSize>
 #include <QSlider>
 #include <QStatusBar>
@@ -228,6 +231,30 @@ DiagramWindow* newestWindow(const MainWindow& w) {
 	return windows.isEmpty() ? nullptr : windows.last();
 }
 
+// The Trains list of a result window knows the service of each train of the run, `services` by train id, and groups more
+// than six trains in six services or fewer.
+bool trainServicesShown(DiagramWindow* window, const QHash<QString, QString>& services) {
+	auto* list = window ? window->findChild<TrainKeyList*>() : nullptr;
+	if (!list)
+		return false;
+	bool ok = true;
+	QSet<QString> shared;
+	for (const QString& id : list->trainIds()) {
+		shared.insert(services.value(id, id));
+		if (list->serviceOf(id) != services.value(id, id)) {
+			std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: the Trains list has service %s for %s\n", qPrintable(window->windowTitle()),
+				qPrintable(list->serviceOf(id)), qPrintable(id));
+			ok = false;
+		}
+	}
+	if (list->isGrouped() != (list->trainIds().size() > 6 && shared.size() <= 6)) {
+		std::fprintf(stderr, "E2E_TRAINS_SERVICE_FAIL %s: %lld trains in %lld services, grouped %d\n", qPrintable(window->windowTitle()),
+			static_cast<long long>(list->trainIds().size()), static_cast<long long>(shared.size()), list->isGrouped() ? 1 : 0);
+		ok = false;
+	}
+	return ok;
+}
+
 // Writes the dump of the chart of a result window.
 bool exportChart(DiagramWindow* window, const QString& dir, const QString& name) {
 	if (!window)
@@ -240,17 +267,17 @@ bool exportChart(DiagramWindow* window, const QString& dir, const QString& name)
 // and for none, as the train filter sets them.
 bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name,
 	const std::function<bool(const QString&, const std::string&)>& dump) {
-	auto* filter = window ? window->findChild<TrainFilterButton*>() : nullptr;
-	auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
+	auto* list = window ? window->findChild<TrainKeyList*>() : nullptr;
 	if (!list)
 		return false;
 	bool ok = exportChart(window, dir, name);
 	ok &= dump(name + "_window_all.csv", window->csvContent());
-	for (int row = 1; row < list->count(); ++row)
-		list->item(row)->setCheckState(Qt::Unchecked);
+	const QStringList ids = list->trainIds();
+	for (int row = 1; row < ids.size(); ++row)
+		list->setTrainVisible(ids[row], false);
 	ok &= dump(name + "_window_one.csv", window->csvContent());
-	if (list->count())
-		list->item(0)->setCheckState(Qt::Unchecked);
+	if (!ids.isEmpty())
+		list->setTrainVisible(ids.first(), false);
 	ok &= dump(name + "_window_none.csv", window->csvContent());
 	return ok;
 }
@@ -378,13 +405,43 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			QApplication::processEvents();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			ok = windows.size() == 2;
+			// The distance axis spans the reference route exactly, and the header names the route after the run.
+			const auto diagram = routeDiagramData(*w.m_runController->m_completedRun, false, reference);
+			ok &= diagram.has_value();
+			const double origin = diagram ? diagram->referencePath.nodes.front().positionKm : 0.0;
+			const double end = diagram ? diagram->referencePath.nodes.back().positionKm : 0.0;
+			const double low = std::min(origin, end), high = std::max(low + 0.02, std::max(origin, end));
+			const QString route = QStringLiteral(" \u00b7 ") + QString::fromStdString(diagram ? diagram->referencePath.id : std::string());
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			for (DiagramWindow* window : windows) {
+				ok &= trainServicesShown(window, services);
 				auto* view = window->findChild<QChartView*>();
 				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
 				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
-				ok &= clock && clock->isReverse() && clock->min() == 0
-					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, w.m_runController->m_startOffsetSeconds)));
+				// The run start has a tick of its own, which reads HH:MM on a whole minute of an axis in minutes.
+				const QString start = QString::fromStdString(formatSimTime(0, w.m_runController->m_startOffsetSeconds));
+				bool startTick = false;
+				for (const QString& label : clock ? clock->categoriesLabels() : QStringList())
+					startTick = startTick || (clock->endValue(label) == 0 && (label == start || label == start.left(5)));
+				ok &= clock && clock->isReverse() && clock->min() == 0 && clock->titleText() == QStringLiteral("Time (hh:mm)") && startTick;
 				ok &= view && !view->chart()->axes(Qt::Horizontal).isEmpty();
+				const QValueAxis* distance = nullptr;
+				for (QAbstractAxis* axis : view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>())
+					if (axis->alignment() == Qt::AlignBottom) distance = qobject_cast<QValueAxis*>(axis);
+				ok &= distance && distance->titleText() == QStringLiteral("Distance (km)") && distance->min() == low && distance->max() == high;
+				// The station names above the plot say what that axis is, so it has no title.
+				for (QAbstractAxis* axis : view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>())
+					if (axis->alignment() == Qt::AlignTop && !axis->titleText().isEmpty()) {
+						std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_STATION_TITLE %s\n", axis->titleText().toStdString().c_str());
+						ok = false;
+					}
+				const auto* context = window->findChild<QLabel*>(QStringLiteral("diagramContext"));
+				ok &= context && (context->text().endsWith(route) || context->text().endsWith(route + QStringLiteral(", right to left")));
+				if (!ok)
+					std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_AXES %s: %s %s %g to %g, route %g to %g, context %s\n",
+						window->windowTitle().toStdString().c_str(), clock ? clock->titleText().toStdString().c_str() : "no clock",
+						distance ? distance->titleText().toStdString().c_str() : "no distance axis", distance ? distance->min() : 0.0,
+						distance ? distance->max() : 0.0, low, high, context ? context->text().toStdString().c_str() : "none");
 				if (view) {
 					for (auto* abstractSeries : view->chart()->series()) {
 						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
@@ -438,6 +495,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		bool ok = w.m_runController->m_resultsAvailable;
 		if (ok) {
 			const QStringList ids = trainIdsFrom(*w.m_runController->m_completedRun);
+			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_runController->m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_runController->m_completedRun, ids));
 			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_runController->m_completedRun, ids);
@@ -445,29 +503,49 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			auto* blocking = windows.isEmpty() ? nullptr : windows.last();
-			auto* filter = blocking ? blocking->findChild<TrainFilterButton*>() : nullptr;
-			auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
+			auto* list = blocking ? blocking->findChild<TrainKeyList*>() : nullptr;
 			// A scene with no routed train has no blocking-time window and nothing to export.
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
+				ok &= trainServicesShown(blocking, services);
 				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
-				for (int row = 1; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
+				const QStringList blockingIds = list->trainIds();
+				for (int row = 1; row < blockingIds.size(); ++row) list->setTrainVisible(blockingIds[row], false);
 				ok &= dump("blocking_time_window_one.csv", blocking->csvContent());
-				if (list->count()) list->item(0)->setCheckState(Qt::Unchecked);
+				if (!blockingIds.isEmpty()) list->setTrainVisible(blockingIds.first(), false);
 				ok &= dump("blocking_time_window_none.csv", blocking->csvContent());
 				QApplication::processEvents();
 				ok &= blocking->grab().save(dir + "/blocking_time_window_none.png");
 				const auto* view = blocking->findChild<QChartView*>();
-				ok &= view && view->chart()->findChild<QObject*>("blockSectionOverlay");
-				ok &= filter->visibleTrainIds().isEmpty();
-				for (int row = 0; row < list->count(); ++row) ok &= !list->item(row)->text().startsWith("Key:");
+				const QObject* strip = view ? view->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
+				ok &= strip != nullptr;
+				// The position axis spans the sections of the scope exactly and reads round positions.
+				const auto diagram = blockingTimeDiagramData(*w.m_runController->m_completedRun,
+					defaultBlockingTimeScopeFrom(*w.m_runController->m_completedRun));
+				const auto range = diagram ? blockSectionAxisRange(diagram->extents, diagram->referencePath) : std::make_pair(0.0, 0.0);
+				const auto horizontal = view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>();
+				const auto* position = horizontal.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(horizontal.first());
+				// The strip marks the sections that hold a station of the reference route.
+				const int stations = strip ? strip->property("stationSections").toInt() : 0;
+				const bool positionOk = position && position->titleText() == QStringLiteral("Position (km)") && position->count() >= 2
+					&& position->min() == range.first && position->max() == range.second && stations > 0;
+				ok &= positionOk;
+				std::fprintf(positionOk ? stdout : stderr,
+					"E2E_BLOCKING_AXIS %s %g to %g, sections %g to %g, %d labels, strip %d rows, %d ids, %d station sections\n",
+					position ? position->titleText().toStdString().c_str() : "no position axis", position ? position->min() : 0.0,
+					position ? position->max() : 0.0, range.first, range.second, position ? position->count() : 0,
+					strip ? strip->property("stripRows").toInt() : 0, strip ? static_cast<int>(strip->property("stripLabels").toStringList().size()) : 0,
+					stations);
+				ok &= list->visibleTrainIds().isEmpty();
+				for (const QString& id : list->trainIds()) ok &= !id.startsWith("Key:");
 				blocking->close();
 			}
 			w.showDelayDiagram();
 			DiagramWindow* delay = newestWindow(w);
+			ok &= trainServicesShown(delay, services);
 			ok &= exportWindow(delay, dir, "delay_diagram", dump);
 			if (delay)
 				delay->close();
@@ -484,6 +562,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			for (int mode = 0; mode < 4; ++mode) {
 				w.buildPerTrainDiagram(mode);
 				DiagramWindow* perTrain = newestWindow(w);
+				ok &= trainServicesShown(perTrain, services);
 				ok &= mode == 0 ? exportWindow(perTrain, dir, perTrainNames[mode], dump)
 								: exportChart(perTrain, dir, perTrainNames[mode]);
 				if (perTrain)
@@ -714,7 +793,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 				if (track && section.blocked && track->operationalState() != TrackOperationalState::Blocked)
 					return false;
 		}
-		return w.m_presenter->m_trainAnimations.isEmpty();
+		return !w.m_presenter->trainsMoving();
 	};
 	if (!coherent(expected)) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: middle replay incoherent\n");
@@ -843,8 +922,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			|| pixelsBetween(cameraBefore, staleItem->sceneBoundingRect().center()) <= 20.0)
 			return fail("before the entry, the train has no hidden item with the geometry of its run away from the view");
 		w.setFollowTrain(followedIndex);
-		const bool waiting = stillFollowing() && w.statusBar()->currentMessage() == name + " enters at " + scheduled
-			&& w.m_followStatusLabel->text() == w.statusBar()->currentMessage()
+		const bool waiting = stillFollowing() && w.m_followStatusLabel->text() == name + " enters at " + scheduled
 			&& w.m_followTrainCombo->itemText(followedRow) == name + " (scheduled " + scheduled + ")"
 			&& std::none_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 				[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
@@ -954,7 +1032,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_AFTER_OK\n");
 		std::fflush(stdout);
 		w.setFollowTrain(-1);
-		if (w.m_followAction->isChecked() || sentence() != name + " is running. Follow can be switched on now.")
+		if (w.m_followAction->isChecked() || sentence() != name + " is running.")
 			return fail("after switching off");
 
 		// With Follow off, the arrow keys of the train list change the sentence and keep the identity.
@@ -1199,7 +1277,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		// The trains of the run are gone, so Follow is off and says that the case has to run.
 		const QString runFirst = QStringLiteral("Run the case first, then you can follow a train.");
 		if (w.m_followTrainCombo->count() != 1 || w.m_followTrainCombo->currentData().toInt() != -1
-			|| w.m_followTrainCombo->currentText() != "Run the case to follow trains" || w.m_followAction->isEnabled()
+			|| w.m_followTrainCombo->currentText() != "Run the case first" || w.m_followAction->isEnabled()
 			|| w.m_followAction->isChecked() || w.m_followStatusLabel->toolTip() != runFirst || w.m_followAction->toolTip() != runFirst) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: Follow after the scenario changed\n");
 			QCoreApplication::exit(2);
@@ -1229,16 +1307,16 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 }
 
 // Checks the replay row of a run that was kept whole, as the completion wrote it: the slider covers
-// 0 s to the last time, which is the end of the run, the row says so, the texts follow a selected
+// 0 s to the last time, which is the end of the run, the row has no second line, the texts follow a selected
 // frame, Start goes to 0 s and the row keeps its size while the selection moves.
 bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QString& failure) {
 	const int last = w.m_completedReplay.lastTime();
-	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
 	const auto fail = [&failure](const QString& why) {
 		failure = why;
 		return false;
 	};
-	const QString whole = QStringLiteral("Whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	// Nothing of the run is missing, so the line under the controls is empty and hidden.
+	const QString whole;
 	// The label names the selected time as the clock time of the progress bar.
 	const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 	if (w.m_completedReplay.firstTime() != 0 || w.m_completedReplay.truncated() || !replaySliderCovers(w, 0, last))
@@ -1249,7 +1327,7 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 				.arg(last)
 				.arg(finalFrame ? finalFrame->totalTimesteps : 0));
 	if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != whole
-		|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
+		|| !w.m_replayCoverageLabel->isHidden() || w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))
 		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text(), w.m_replayStartButton->toolTip()));
 	w.m_replaySlider->setValue(middle);
@@ -1329,7 +1407,6 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		return false;
 	const int first = w.m_completedReplay.firstTime();
 	const int last = w.m_completedReplay.lastTime();
-	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
 	const auto fail = [&failure](const QString& why) {
 		failure = why;
 		return false;
@@ -1475,24 +1552,20 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	GuiReplayHistory run = std::move(w.m_completedReplay);
 	w.m_completedReplay = std::move(kept);
 	w.showReplayBar();
-	const auto droppedRow = [&w, last, &cadence]() -> QString {
+	const auto droppedRow = [&w, last]() -> QString {
 		const int from = w.m_completedReplay.firstTime();
-		const QString memory = QString::fromStdString(replayMemoryText(w.m_completedReplay.budgetBytes()));
 		// The second text and the tooltip of Start for a start clock.
-		const auto words = [from, last, &cadence, &memory](long long offset) {
-			const QString start = QString::fromStdString(formatSimTime(from, offset)) + QStringLiteral(" (%1 s)").arg(from);
-			const QString sentence = QStringLiteral("Starts at %1, ends at %2 s, a frame every %3 s. The earlier part was not kept because the run is "
-													"larger than the replay memory (%4).")
-										 .arg(start)
-										 .arg(last)
-										 .arg(cadence, memory);
-			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
+		const auto words = [from](long long offset) {
+			const QString start = QString::fromStdString(formatSimTime(from, offset));
+			const QString sentence = QStringLiteral("Replay starts at %1. Earlier times did not fit in memory.").arg(start);
+			return std::make_pair(sentence, QStringLiteral("Go to the start of the replay (%1)").arg(start));
 		};
 		const auto [dropped, tip] = words(w.m_runController->m_startOffsetSeconds);
 		const auto clock = [&w](int time) { return QString::fromStdString(formatSimTime(time, w.m_runController->m_startOffsetSeconds)); };
 		if (!replaySliderCovers(w, from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
-		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped)
+		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped
+			|| w.m_replayCoverageLabel->isHidden())
 			return QStringLiteral("the row says '%1' and '%2'").arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text());
 		if (w.m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("Start says '%1'").arg(w.m_replayStartButton->toolTip());
@@ -1548,7 +1621,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 		w.m_completedReplay = std::move(refused);
 		w.m_replayBar->hide();
 		w.showReplayBar();
-		const QString expected = QStringLiteral("One moment of this run needs more than the replay memory (1 MiB).");
+		const QString expected = QStringLiteral("This run is too large to replay.");
 		if (!w.m_completedReplay.oversize() || !w.m_completedReplay.empty() || !w.m_replayBar->isVisible() || w.m_replayLabel->text() != QStringLiteral("No replay")
 			|| w.m_replayCoverageLabel->text() != expected || w.m_replaySlider->isEnabled() || w.m_replayPlayButton->isEnabled()
 			|| w.m_replayStartButton->toolTip() != QStringLiteral("Go to the start of the run"))

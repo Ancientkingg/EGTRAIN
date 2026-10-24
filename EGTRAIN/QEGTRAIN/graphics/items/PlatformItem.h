@@ -10,8 +10,10 @@
 #include <QtMath>
 
 #include "graphics/items/PassengerItem.h"
+#include "simulation/Infrastructure.h"
 
-/// The bar of a platform next to a station node, with the icons of the passengers waiting on it. It draws over
+/// The bar of a platform next to a station node, drawn for every platform and shown with the station layer when the
+/// view is zoomed in. In a run with passengers it holds the icons of the passengers waiting on it. It draws over
 /// track lines, connections and nodes.
 class PlatformItem : public QGraphicsRectItem {
 public:
@@ -22,15 +24,19 @@ public:
 	/// Draws the bar with the pen and the brush of the item.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-	/// The id of the station of the platform; empty when the run has no such platform and in the preview.
+	/// The node of the run beside which the bar lies, which belongs to the run; null in the preview.
+	const Node* node;
+	/// The id of the station of the platform; empty when the run has no such platform or no passengers, and in the
+	/// preview.
 	std::string stationId;
-	/// The id of the platform; empty when the run has no such platform and in the preview.
+	/// The id of the platform; empty when the run has no such platform or no passengers, and in the preview.
 	std::string platformId;
-	/// The passenger capacity of the platform, computed from its area; 0 when the run has no such platform and
-	/// in the preview.
+	/// The passenger capacity of the platform, computed from its area; 0 when the run has no such platform or no
+	/// passengers, and in the preview.
 	int maxVolume;
 
-	/// The label with the number of passengers on the platform, which the scene owns; null in the preview.
+	/// The label with the number of passengers on the platform, which the scene owns; null in a run without passengers
+	/// and in the preview.
 	QGraphicsTextItem* textIcon;
 
 	/// The icon of each passenger on the platform, in the order of the snapshot. The scene owns them.

@@ -24,12 +24,12 @@ struct EmptyHint {
 
 constexpr EmptyHint kEmptyHints[] = {
 	{"tracks", "Add a track:"},
-	{"nodes", "Add creates a node"},
-	{"arcs", "Add creates an arc"},
+	{"nodes", "its track in the table"},
+	{"arcs", "No arcs yet. Add one"},
 	{"blocks", "this track"},
-	{"connections", "Add creates a connection"},
+	{"connections", "No connections yet. Add one"},
 	{"stations", "its platforms"},
-	{"platforms", "first station"},
+	{"platforms", "set its station"},
 	{"signals", "the section it protects"},
 	{"signalling_areas", "signalling system"},
 	{"routes", "sections from the catalog"},
@@ -82,7 +82,7 @@ int main() {
 	for (const QString& facet : facets) {
 		const QString listed = infrastructureGuidanceText(facet, false, sceneState());
 		if (facet == QLatin1String("blocks"))
-			ok &= check(listed == QLatin1String("Blocks are ordered on the chosen track; select a row to insert or move it."),
+			ok &= check(listed == QLatin1String("Select a block to insert a new one in its place or to move it."),
 				"blocks with rows: " + listed);
 		else if (facet == QLatin1String("routes"))
 			ok &= check(listed == QLatin1String("Select a route to edit its ordered sections below."), "routes with rows: " + listed);
@@ -120,11 +120,11 @@ int main() {
 		InfrastructureGuidanceState busy = sceneState();
 		busy.editable = false;
 		const QString empty = infrastructureGuidanceText(facet, true, busy);
-		ok &= check(empty.startsWith(QLatin1String("No ")) && empty.endsWith(QLatin1String("while a run is in progress.")),
+		ok &= check(empty.startsWith(QLatin1String("No ")) && empty.endsWith(QLatin1String("Stop the run to edit.")),
 			facet + " empty during a run: " + empty);
 		ok &= check(!empty.contains(QLatin1String("Add ")), facet + " empty during a run asks to add: " + empty);
 		const QString listed = infrastructureGuidanceText(facet, false, busy);
-		ok &= check(listed.isEmpty() || listed.startsWith(QLatin1String("The scene cannot be edited")),
+		ok &= check(listed.isEmpty() || listed == QLatin1String("Stop the run to edit."),
 			facet + " with rows during a run: " + listed);
 		// A missing scene wins over a missing edit right.
 		busy.loaded = false;

@@ -283,7 +283,7 @@ int main() {
 		const SceneService beforeAmbiguous = secondOnly.services[0];
 		const auto ambiguous = insertSceneStop(secondOnly, secondOnly.services[0], 0,
 			stop("station-a", "", 20.0, 50.0));
-		ok &= expect(!ambiguous.inserted && contains(ambiguous.error, "choose a platform")
+		ok &= expect(!ambiguous.inserted && ambiguous.error == "The new stop (A) has no platform and the route reaches more than one here. Choose a platform."
 				&& sameStops(secondOnly.services[0].stops, beforeAmbiguous.stops),
 			"a stop without a platform at a station with two reachable platforms asks for a platform");
 		ok &= expect(insertSceneStop(secondOnly, secondOnly.services[0], 0,
@@ -320,6 +320,16 @@ int main() {
 		const auto first = sceneStopInsertionWindow(scene, scene.services[0], 0);
 		ok &= expect(first.ok && stationsOf(first.visits) == Names({"station-a", "station-b"}),
 			"the position before an unresolved stop still has a window");
+		SceneModel noStation = withStops(line, {stop("", "", 0.0, 0.0), lineStop('C', 200.0)});
+		const auto afterNoStation = sceneStopInsertionWindow(noStation, noStation.services[0], 1);
+		ok &= expect(afterNoStation.problem
+				== "Cannot insert after stop 1: it has no station. Fix that stop first.",
+			"a stop without a station is named without empty brackets");
+		SceneModel empty = withStops(line, {});
+		const auto newWithoutStation = insertSceneStop(empty, empty.services[0], 0, stop("", "", 0.0, 0.0));
+		ok &= expect(newWithoutStation.error
+				== "The new stop has no station. Choose another position, station or platform.",
+			"a new stop without a station is named without empty brackets");
 		SceneModel noRouteScene = line;
 		noRouteScene.services[0].route = "missing";
 		const auto unresolved = sceneStopInsertionWindow(noRouteScene, noRouteScene.services[0], 0);

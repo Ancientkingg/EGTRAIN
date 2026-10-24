@@ -3,14 +3,18 @@
 #include <QGuiApplication>
 #include <QFontMetricsF>
 #include <QImage>
+#include <QMap>
 #include <QPainter>
 
+#include "graphics/NetworkPresenter.h"
 #include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/items/StationOverlayItem.h"
 #include "graphics/SignalGeometry.h"
 
 #include <iostream>
 #include <cmath>
+#include <tuple>
 #include <utility>
 
 static bool expect(bool condition, const char* message) {
@@ -53,6 +57,49 @@ static QImage renderHead(int code, bool failed, int size) {
 	return image;
 }
 
+// Paints with paint, antialiased as the canvas paints, on the canvas colour, under a scale at which 20 scene units are
+// size logical pixels, on an image of the device pixel ratio dpr. The image is 4 logical pixels wider than that, rounded
+// up, and the origin is in its middle.
+template <typename Paint>
+static QImage paintOnCanvas(qreal size, Paint paint, qreal dpr = 1.0) {
+	const int side = static_cast<int>(std::ceil(size)) + 4;
+	QImage image(static_cast<int>(side * dpr), static_cast<int>(side * dpr), QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(dpr);
+	image.fill(canvasColor());
+	QPainter painter(&image);
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.translate(side / 2.0, side / 2.0);
+	painter.scale(size / 20.0, size / 20.0);
+	paint(painter);
+	return image;
+}
+
+// A head 20 scene units wide with the outline that the canvas gives it, painted as paintOnCanvas() does.
+static QImage renderCanvasHead(int code, bool failed, qreal size, qreal dpr = 1.0) {
+	return paintOnCanvas(
+		size,
+		[&](QPainter& painter) {
+			SignalItem head(QRectF(-10, -10, 20, 20));
+			head.setPen(signalHeadPen());
+			head.setAspectCode(code);
+			head.setFailed(failed);
+			head.paint(&painter, nullptr, nullptr);
+		},
+		dpr);
+}
+
+// A green lamp 20 scene units wide in the hairline of the reference, painted as paintOnCanvas() does.
+static QImage hairlineLamp(qreal size, qreal dpr = 1.0) {
+	return paintOnCanvas(
+		size,
+		[](QPainter& painter) {
+			painter.setPen(signalHeadPen());
+			painter.setBrush(QColor(Qt::green));
+			painter.drawEllipse(QRectF(-10, -10, 20, 20));
+		},
+		dpr);
+}
+
 // Number of pixels of the mark colour (dark, or white for the failed cross) on
 // the face of the lamp, away from its outline.
 static int markPixels(const QImage& image, bool light = false) {
@@ -65,12 +112,43 @@ static int markPixels(const QImage& image, bool light = false) {
 	return count;
 }
 
+// Number of pixels of image that are nearer to colour than to the canvas colour.
+static int lampPixels(const QImage& image, const QColor& colour) {
+	const auto distance = [](const QColor& a, const QColor& b) {
+		return std::hypot(a.red() - b.red(), a.green() - b.green(), a.blue() - b.blue());
+	};
+	int count = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			count += distance(image.pixelColor(x, y), colour) < distance(image.pixelColor(x, y), canvasColor());
+	return count;
+}
+
 static int pixelsOfColor(const QImage& image, const QColor& color) {
 	int count = 0;
 	for (int y = 0; y < image.height(); ++y)
 		for (int x = 0; x < image.width(); ++x)
 			count += image.pixelColor(x, y) == color;
 	return count;
+}
+
+// The colour of most opaque pixels of image, then those of the light, dark and blue colours of the pins and of white
+// that three opaque pixels or more have.
+static QString pinColours(const QImage& image) {
+	QMap<QRgb, int> counts;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			if (const QColor colour = image.pixelColor(x, y); colour.alpha() == 255)
+				++counts[colour.rgb()];
+	QRgb most = 0;
+	for (auto count = counts.cbegin(); count != counts.cend(); ++count)
+		if (count.value() > counts.value(most))
+			most = count.key();
+	QString colours = QColor(most).name();
+	for (const QColor& colour : {stationMarkFill(), canvasColor(), QColor(80, 120, 210), QColor(Qt::white)})
+		if (counts.value(colour.rgb()) >= 3)
+			colours += " " + colour.name();
+	return colours;
 }
 
 int main(int argc, char* argv[]) {
@@ -174,7 +252,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyStation(false, 3).cls == StationClass::Major && classifyStation(true, 0).cls == StationClass::Station
 			&& classifyStation(false, 0).cls == StationClass::Halt,
 		"three connections make a major station, a platform a station, neither a halt");
-	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of the bar, D the
+	// The colour class of a pixel of a mark painted white with a black halo: W white, B the blue of a major station, D the
 	// halo, T transparent, ? anything else such as an edge that antialiasing blends.
 	const auto pixelClass = [](const QImage& image, int x, int y) {
 		const QColor colour = image.pixelColor(x, y);
@@ -194,55 +272,64 @@ int main(int argc, char* argv[]) {
 			row.append(pixelClass(image, point.x(), point.y()));
 		return row;
 	};
-	// The roundel in the frame (8, 8, 24, 24): ring radius 8.6 and width 2.9, bar 24.5 by 5.0 and its edge 0.75 of
-	// the halo of 2. The probes: the centre, the ring, inside the ring, the bar past the ring, the halo past the end of
-	// the bar and the halo outside the ring.
-	const QList<QPoint> roundelPoints{{20, 20}, {20, 12}, {20, 15}, {31, 20}, {33, 20}, {20, 10}};
-	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "BWWBDD"},
-			 std::pair<StationClass, QByteArray>{StationClass::Station, "BWDBDD"},
-			 std::pair<StationClass, QByteArray>{StationClass::Halt, "TWDTTD"}}) {
-		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
+	// The pin in the frame (8, 24, 48, 48) with a halo of 4, so at twice the pixel size: its tip on the bottom centre
+	// (32, 72), its head of radius 0.3 of 48 times the size of the class, centred 0.78 of 48 times the size above the
+	// tip. The probes: the centre of the head, the body below it, the left edge of the head, the halo above the head,
+	// the halo under the tip and the canvas left of, right of and below the tip.
+	for (const auto& [cls, size, expected] :
+		{std::tuple<StationClass, qreal, QByteArray>{StationClass::Major, 1.15, "WBWDDTTT"},
+			std::tuple<StationClass, qreal, QByteArray>{StationClass::Station, 1.0, "DWWDDTTT"},
+			std::tuple<StationClass, qreal, QByteArray>{StationClass::Halt, 0.8, "WDWDDTTT"}}) {
+		const int head = qRound(72.0 - 0.78 * 48.0 * size);
+		const int radius = qRound(0.3 * 48.0 * size);
+		QImage mark(64, 80, QImage::Format_ARGB32_Premultiplied);
 		mark.fill(Qt::transparent);
 		{
 			QPainter painter(&mark);
-			paintStationMark(&painter, QRectF(8.0, 8.0, 24.0, 24.0), cls, Qt::white, Qt::black, 2.0);
+			paintStationMark(&painter, QRectF(8.0, 24.0, 48.0, 48.0), cls, Qt::white, Qt::black, 4.0);
 		}
-		ok &= expect(probeRow(mark, roundelPoints) == expected,
-			"the far mark is a roundel: a disc and a bar for a major station, a ring and a bar for a station, a ring for a "
-			"halt, with a dark halo");
+		const QList<QPoint> pinPoints{{32, head}, {32, head + radius * 7 / 10}, {33 - radius, head},
+			{32, head - radius - 2}, {32, 74}, {24, 74}, {40, 74}, {32, 78}};
+		ok &= expect(probeRow(mark, pinPoints) == expected,
+			"the far mark is a pin with a dark halo and its tip on the bottom centre: blue with a light edge and dot for a "
+			"major station, light with a dark dot for a station, dark with a light edge and dot for a halt");
 	}
-	// The near mark for a frame of 24 on nodes at (20, 14) and (20, 26): dots of radius 5.3 with an edge of 1.7 for a
-	// station, the hull of the nodes widened by 5.5 for a major station, one dot of radius 3.6 on the first node for a
-	// halt. The probes: both nodes and the point between them, the halo beside the first node and the canvas past it.
-	const QList<QPoint> nearPoints{{20, 14}, {20, 20}, {20, 26}, {27, 14}, {31, 20}};
-	for (const auto& [cls, expected] : {std::pair<StationClass, QByteArray>{StationClass::Major, "WWWDT"},
-			 std::pair<StationClass, QByteArray>{StationClass::Station, "WDWDT"},
-			 std::pair<StationClass, QByteArray>{StationClass::Halt, "WTTTT"}}) {
-		QImage mark(40, 40, QImage::Format_ARGB32_Premultiplied);
-		mark.fill(Qt::transparent);
-		{
-			QPainter painter(&mark);
-			paintStationNodeMark(&painter, {QPointF(20.0, 14.0), QPointF(20.0, 26.0)}, cls, 24.0, Qt::white, Qt::black, 2.0);
-		}
-		ok &= expect(probeRow(mark, nearPoints) == expected,
-			"the near mark is a dot on each node of a station, a capsule over the nodes of a major station and one small "
-			"dot for a halt");
-	}
-	// The menu icon fits the roundel with the halo of the bar: the bar shows and ends inside the outer columns.
+	// The menu icon fits the whole pin with its halo and centres it: the outer columns stay empty, and the outer rows hold
+	// at most the dark halo, so that a pin cut at its top or its tip shows there. Only the pin of a major station is blue.
+	// At 32 pixels it has the colours of the pin of its class on the canvas.
 	for (const StationClass cls : {StationClass::Major, StationClass::Station, StationClass::Halt}) {
 		for (const int size : {16, 32}) {
 			const QImage icon = stationMarkIcon(cls).pixmap(QSize(size, size)).toImage();
-			const QColor accent(80, 120, 210);
-			bool barInside = icon.width() == size;
+			const QRectF area(0.0, 0.0, size, size);
+			const QRectF painted = stationMarkBounds(stationMarkFrameIn(area, cls, size / 16.0), cls, size / 16.0);
+			// Next to nothing, or dark as the halo: the pins are light or blue where they meet the halo.
+			const auto halo = [](const QColor& colour) { return colour.alpha() <= 8 || colour.value() < 96; };
+			bool edgesEmpty = icon.width() == size && icon.height() == size;
 			bool blue = false;
 			for (int y = 0; y < icon.height(); ++y) {
-				barInside = barInside && icon.pixelColor(0, y) != accent && icon.pixelColor(icon.width() - 1, y) != accent;
-				for (int x = 0; x < icon.width(); ++x)
-					blue = blue || icon.pixelColor(x, y) == accent;
+				edgesEmpty = edgesEmpty && icon.pixelColor(0, y).alpha() == 0
+					&& icon.pixelColor(icon.width() - 1, y).alpha() == 0;
+				for (int x = 0; x < icon.width(); ++x) {
+					blue = blue || icon.pixelColor(x, y) == QColor(80, 120, 210);
+					if (y == 0 || y == icon.height() - 1)
+						edgesEmpty = edgesEmpty && halo(icon.pixelColor(x, y));
+				}
 			}
-			ok &= expect(barInside && blue == (cls != StationClass::Halt),
-				"the menu icon shows the whole roundel, with the bar of a station or a major station");
+			ok &= expect(edgesEmpty && blue == (cls == StationClass::Major)
+					&& area.adjusted(-0.01, -0.01, 0.01, 0.01).contains(painted)
+					&& QLineF(painted.center(), area.center()).length() < 0.01,
+				"the menu icon shows the whole pin, centred, blue only for a major station");
 		}
+		StationMarkItem canvasPin(cls, 60);
+		QImage canvas(100, 100, QImage::Format_ARGB32_Premultiplied);
+		canvas.fill(Qt::transparent);
+		{
+			QPainter painter(&canvas);
+			painter.translate(20.0, 20.0);
+			canvasPin.paint(&painter, nullptr, nullptr);
+		}
+		const QImage icon = stationMarkIcon(cls).pixmap(QSize(32, 32)).toImage();
+		ok &= expect(pinColours(icon) == pinColours(canvas), "the menu icon has the colours of the pin of its class on the canvas");
 	}
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
@@ -250,8 +337,6 @@ int main(int argc, char* argv[]) {
 	ok &= expect(simulationSpeedLabel(0) == "Fastest", "fastest speed label");
 	ok &= expect(simulationSpeedLabel(250) == "4.0x", "delayed speed label");
 	ok &= expect(simulationSpeedLabel(10) == "100x", "fast factor speed label");
-	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
-	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
 	TrainBadgeItem badge;
 	badge.setIdentifier("1725");
@@ -294,6 +379,12 @@ int main(int argc, char* argv[]) {
 	badge.setSpeedVisible(true);
 	badge.setSpeedText(QString());
 	ok &= expect(drawsNothing(), "a badge without a speed draws nothing");
+	// The speed, promoted or not, stays under the station names, which stay readable.
+	const bool underNames = badge.zValue() < StationNameItem::NameZValue;
+	badge.setPromoted(true);
+	ok &= expect(underNames && badge.zValue() < StationNameItem::NameZValue,
+		"the speed of a train, promoted or not, is stacked under the station names");
+	badge.setPromoted(false);
 
 	const SignalGeometry horizontal = signalGeometry(QPointF(), QPointF(-8, 0),
 		QPointF(8, 0), QPointF(0, 1), 150);
@@ -318,9 +409,8 @@ int main(int argc, char* argv[]) {
 	head.setAspectCode(0);
 	ok &= expect(!head.flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
 		"signal heads scale with the scene");
-	ok &= expect(head.childItems().size() == 1
-			&& head.childItems().first()->flags().testFlag(QGraphicsItem::ItemIgnoresTransformations),
-		"signal retains an invisible device-space semantic target");
+	ok &= expect(head.childItems().isEmpty(),
+		"signal head has no invisible child for every paint to visit; the scene picks it in its pick circle");
 	QImage signalImage(48, 48, QImage::Format_ARGB32_Premultiplied);
 	signalImage.fill(Qt::black);
 	{
@@ -375,6 +465,19 @@ int main(int argc, char* argv[]) {
 	ok &= expect(renderHead(0, false, 5).pixelColor(3, 3) == QColor(Qt::red) && renderHead(75, false, 5).pixelColor(3, 3) == QColor(Qt::yellow)
 			&& renderHead(180, false, 5).pixelColor(3, 3) == QColor(Qt::green),
 		"colour remains below 6 device pixels");
+	// On the canvas a hairline covers a lamp of under a pixel, so a lit or failed head below the mark size is a disc in
+	// its lamp colour (issue #1109). From 6 device pixels the head keeps the hairline of the reference.
+	const int ringPixels = lampPixels(renderCanvasHead(-1, false, 0.8), QColor(150, 150, 150));
+	ok &= expect(ringPixels > 0, "an unavailable head of 0.8 device pixels shows its grey ring on the canvas");
+	for (const auto& [code, failedHead, lamp] : {std::tuple<int, bool, QColor>{180, false, Qt::green}, {0, false, Qt::red},
+			 {75, false, Qt::yellow}, {180, true, Qt::red}})
+		ok &= expect(lampPixels(renderCanvasHead(code, failedHead, 0.8), lamp) >= ringPixels,
+			"a lit or failed head of 0.8 device pixels shows its lamp colour as clearly as an unavailable head its ring");
+	for (const qreal size : {6.0, 10.0})
+		ok &= expect(renderCanvasHead(180, false, size) == hairlineLamp(size),
+			"a proceed head of 6 or 10 device pixels is the green lamp in the hairline of the reference");
+	ok &= expect(renderCanvasHead(180, false, 3.0, 2.0) == hairlineLamp(3.0, 2.0) && renderCanvasHead(180, false, 2.9, 2.0) != hairlineLamp(2.9, 2.0),
+		"on a screen of device pixel ratio 2 a proceed head has the hairline from 3 logical pixels, 6 device pixels");
 	if (!ok)
 		return 1;
 

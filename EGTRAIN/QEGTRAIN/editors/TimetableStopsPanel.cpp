@@ -16,7 +16,6 @@
 #include <QEvent>
 #include <QFormLayout>
 #include <QGridLayout>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeySequence>
 #include <QLabel>
@@ -47,9 +46,9 @@ namespace {
 constexpr int kTypicalValueChars = 10;
 constexpr int kMinimumStationChars = 6;
 
-// What the table shows for a platform or a planned time that a stop does not have: an em dash.
+// What the table shows for a platform or a planned time that a stop does not have.
 QString noValueText() {
-	return QStringLiteral("\u2014");
+	return QStringLiteral("-");
 }
 
 // Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
@@ -75,17 +74,24 @@ QString stationDisplayName(const SceneModel& model, const std::string& stationId
 	return stationId.empty() ? QStringLiteral("(missing station)") : QString::fromStdString(stationId);
 }
 
+// What is wrong with a stop on its route; empty for a stop that is on it.
 QString stopResolutionText(SceneStopResolutionStatus status) {
 	switch (status) {
-		case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
-		case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose an explicit reachable platform";
-		case SceneStopResolutionStatus::OffRouteContext: return "Off-route schedule context; no simulated stop";
-		case SceneStopResolutionStatus::OutOfOrder: return "Invalid: stop is before or at an already used route visit";
-		case SceneStopResolutionStatus::InvalidPlatform: return "Invalid: platform is not reachable on this route";
-		case SceneStopResolutionStatus::UnknownStation: return "Invalid: station is missing";
-		case SceneStopResolutionStatus::UnresolvedRoute: return "Invalid: route traversal is unresolved";
+		case SceneStopResolutionStatus::Resolved: return {};
+		case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose a platform: the route reaches more than one here.";
+		case SceneStopResolutionStatus::OffRouteContext: return "Not on the route. The train does not stop here.";
+		case SceneStopResolutionStatus::OutOfOrder: return "The route passes this station before the previous stop.";
+		case SceneStopResolutionStatus::InvalidPlatform: return "The route does not use this platform.";
+		case SceneStopResolutionStatus::UnknownStation: return "This station does not exist.";
+		case SceneStopResolutionStatus::UnresolvedRoute: return "The route cannot be followed. Fix the route first.";
 	}
 	return {};
+}
+
+// The line that names the base time while planned times show as seconds after it; empty for clock times.
+QString baseTimeText(const SceneModel& model, bool clockMode) {
+	return clockMode ? QString()
+					 : QString("Seconds after %1").arg(QString::fromStdString(model.baseTime.empty() ? std::string("00:00:00") : model.baseTime));
 }
 
 // How the stop dialog shows a resolution: as help when the stop is on the route, as a warning when the platform or the
@@ -230,12 +236,8 @@ void TimetableStopsPanel::refresh() {
 	const SceneModel noScene;
 	const SceneModel& model = m_document ? m_document->model() : noScene;
 	const long long baseOffset = baseTimeToSeconds(model.baseTime);
-	m_timeBaseLabel->setText(hasService
-			? QString("Case base %1; %2")
-				  .arg(QString::fromStdString(model.baseTime.empty() ? std::string("00:00:00") : model.baseTime))
-				  .arg(m_clockMode ? QStringLiteral("clock times include explicit day offsets")
-								   : QStringLiteral("planned times are elapsed seconds from this base"))
-			: QString());
+	m_timeBaseLabel->setText(hasService ? baseTimeText(model, m_clockMode) : QString());
+	m_timeBaseLabel->setVisible(!m_timeBaseLabel->text().isEmpty());
 	m_timeModeCombo->setEnabled(editorAvailable);
 	const int stopCount = hasService ? static_cast<int>(model.services[static_cast<std::size_t>(serviceIndex)].stops.size()) : 0;
 	QString emptyText;
@@ -392,7 +394,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		traversal = window.ok ? window.visits : SceneRouteTraversal();
 		windowProblem = window.ok ? std::string() : window.problem;
 		if (window.ok && traversal.visits.empty())
-			windowProblem = "No station visit is available at this position between the neighbouring stops.";
+			windowProblem = "The route has no station here between the stops before and after.";
 	};
 	if (append)
 		updateWindow();
@@ -414,7 +416,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 
 	QDialog dialog(this);
 	dialog.setObjectName("stopEditorDialog");
-	dialog.setWindowTitle(append ? "Add timetable stop" : "Edit timetable stop");
+	dialog.setWindowTitle(append ? "Add Timetable Stop" : "Edit Timetable Stop");
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
@@ -480,30 +482,26 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	form->addRow("Planned time display", modeCombo);
 	auto* baseLabel = new QLabel(&dialog);
 	baseLabel->setObjectName("stopEditorBaseTimeLabel");
-	DialogLayout::setHelp(baseLabel,
-		QString("Case base time: %1").arg(QString::fromStdString(model.baseTime.empty() ? std::string("00:00:00") : model.baseTime)));
+	DialogLayout::setHelp(baseLabel, baseTimeText(model, m_clockMode));
 	form->addRow(QString(), baseLabel);
 
 	auto* arrivalPresent = new QCheckBox("Planned arrival", &dialog);
 	arrivalPresent->setObjectName("stopEditorArrivalPresent");
 	auto* arrivalEdit = new QLineEdit(&dialog);
 	arrivalEdit->setObjectName("stopEditorArrivalEdit");
-	arrivalEdit->setPlaceholderText("blank = absent");
 	arrivalEdit->setAccessibleName("Planned arrival time");
-	auto* arrivalLayout = new QHBoxLayout();
-	arrivalLayout->addWidget(arrivalPresent);
-	arrivalLayout->addWidget(arrivalEdit, 1);
-	form->addRow("Arrival", arrivalLayout);
+	form->addRow(arrivalPresent, arrivalEdit);
 	auto* departurePresent = new QCheckBox("Planned departure", &dialog);
 	departurePresent->setObjectName("stopEditorDeparturePresent");
 	auto* departureEdit = new QLineEdit(&dialog);
 	departureEdit->setObjectName("stopEditorDepartureEdit");
-	departureEdit->setPlaceholderText("blank = absent");
 	departureEdit->setAccessibleName("Planned departure time");
-	auto* departureLayout = new QHBoxLayout();
-	departureLayout->addWidget(departurePresent);
-	departureLayout->addWidget(departureEdit, 1);
-	form->addRow("Departure", departureLayout);
+	form->addRow(departurePresent, departureEdit);
+	// The two boxes are labels of the form. With labels aligned to the right, as on macOS, boxes of different widths
+	// would not line up, so both take the width of the wider one.
+	const int presentWidth = std::max(arrivalPresent->sizeHint().width(), departurePresent->sizeHint().width());
+	arrivalPresent->setMinimumWidth(presentWidth);
+	departurePresent->setMinimumWidth(presentWidth);
 	auto* dwellEdit = new QLineEdit(&dialog);
 	dwellEdit->setObjectName("stopEditorDwellEdit");
 	dwellEdit->setAccessibleName("Minimum dwell seconds");
@@ -531,8 +529,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	buttons->setObjectName("stopEditorButtons");
 	buttons->button(QDialogButtonBox::Ok)->setObjectName("stopEditorAcceptButton");
 	buttons->button(QDialogButtonBox::Cancel)->setObjectName("stopEditorCancelButton");
-	DialogLayout::install(dialog, append ? "Add timetable stop" : "Edit timetable stop",
-		"Set the station, compatible platform and planned times.", body, buttons);
+	DialogLayout::install(dialog, append ? "Add Timetable Stop" : "Edit Timetable Stop", QString(), body, buttons);
 
 	const long long baseOffsetSeconds = baseTimeToSeconds(model.baseTime);
 	bool dialogClockMode = m_clockMode;
@@ -594,7 +591,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			platformCombo->addItem(QString::fromStdString(platform), QString::fromStdString(platform));
 		if (!draft.platformId.empty() && platformCombo->findData(QString::fromStdString(draft.platformId)) < 0) {
 			invalidPlatformIndex = platformCombo->count();
-			platformCombo->addItem(QString("Invalid: %1").arg(QString::fromStdString(draft.platformId)),
+			platformCombo->addItem(QString("%1 (not on the route)").arg(QString::fromStdString(draft.platformId)),
 				QString::fromStdString(draft.platformId));
 		}
 		int index = platformCombo->findData(QString::fromStdString(draft.platformId));
@@ -669,7 +666,8 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		return parsePlannedTime(edit->text().toStdString(), clock, baseOffsetSeconds, value);
 	};
 	const auto showParseError = [&](QLineEdit* edit, const QString& field) {
-		showError(QString("%1 is invalid. Enter a non-negative elapsed value or HH:MM:SS[.fraction] with an explicit +Nd day prefix.").arg(field));
+		showError(dialogClockMode ? QString("%1 must be a time such as 08:15:00, or +1d 00:10:00 for the next day.").arg(field)
+								  : QString("%1 must be seconds after the base time, such as 120.").arg(field));
 		edit->setFocus();
 	};
 	connect(modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
@@ -684,7 +682,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			|| !parseField(departurePresent, departureEdit, dialogClockMode, departure)) {
 			const QSignalBlocker blocker(modeCombo);
 			modeCombo->setCurrentIndex(dialogClockMode ? 1 : 0);
-			showError("Finish the invalid planned time before changing its display mode.");
+			showError("Fix the planned time before switching the display.");
 			return;
 		}
 		draft.hasPlannedArrival = arrival.has_value();
@@ -694,6 +692,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		if (draft.hasPlannedDeparture)
 			draft.plannedDepartureSeconds = *departure;
 		dialogClockMode = nextClockMode;
+		DialogLayout::setHelp(baseLabel, baseTimeText(model, dialogClockMode));
 		setTimeField(arrivalPresent, arrivalEdit, arrival);
 		setTimeField(departurePresent, departureEdit, departure);
 		showError(QString());
@@ -719,7 +718,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		bool dwellOk = false;
 		const double dwell = dwellEdit->text().trimmed().toDouble(&dwellOk);
 		if (!dwellOk || !std::isfinite(dwell) || dwell < 0.0) {
-			showError("Minimum dwell must be a finite non-negative number of seconds.");
+			showError("Minimum dwell must be 0 or more seconds.");
 			dwellEdit->setFocus();
 			return;
 		}
@@ -731,7 +730,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		const bool changedAssignment = append || draft.stationId != service.stops[stopIndex].stationId
 			|| draft.platformId != service.stops[stopIndex].platformId;
 		if (changedAssignment && updateEligibility() == SceneStopResolutionStatus::AmbiguousPlatform) {
-			showError("Choose a compatible platform: more than one is reachable at this station.");
+			showError("Choose a platform: the route reaches more than one here.");
 			platformCombo->setFocus();
 			return;
 		}
@@ -776,8 +775,7 @@ void TimetableStopsPanel::addStop() {
 			return;
 		}
 	}
-	QMessageBox::information(this, "No reachable stop",
-		"No station visit is available between any of the current stops. Check the route and stop order before adding a stop.");
+	QMessageBox::information(this, "No Reachable Stop", "No station on the route is left to stop at. Check the route and the stop order.");
 }
 
 void TimetableStopsPanel::insertStopAfterSelected() {

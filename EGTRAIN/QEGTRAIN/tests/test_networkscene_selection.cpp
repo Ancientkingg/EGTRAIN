@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	{
-		// The dots of the near look cover the station squares. A click on a square picks that square, also when the
-		// mark belongs to the square of another node, and a click in the dot of a track node under a dot picks the node;
-		// a click on a dot beside the squares and nodes picks the square that holds the mark.
+		// The near look draws no mark, so the station squares take the clicks again: a click on a square picks that
+		// square, the one that holds the mark too, a click beside the squares picks none and a click on a track node
+		// beside them picks the node.
 		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);
 		scaleView(view);
@@ -119,21 +119,24 @@ int main(int argc, char* argv[]) {
 		scene.addItem(&other);
 		auto* mark = new StationMarkItem(StationClass::Station, 24, &anchor);
 		mark->setNodeCentres({QPointF(0.0, 0.0), QPointF(0.0, 20.0)});
-		mark->setNearLook(24.0, 2.0);
+		mark->setNearLook(true);
 		StationNodeItem* picked = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem* item) { picked = item; });
 		sendLeftClick(scene, view, QPointF(0.0, 20.0));
-		ok &= expect(picked == &other, "a click on a station square under the dots of another node picks that square");
+		ok &= expect(picked == &other, "a click on a station square in the near look picks that square");
+		picked = nullptr;
+		sendLeftClick(scene, view, QPointF(0.0, 0.0));
+		ok &= expect(picked == &anchor, "a click on the square that holds the mark picks that square");
 		picked = nullptr;
 		sendLeftClick(scene, view, QPointF(4.0, 20.0));
-		ok &= expect(picked == &anchor, "a click on a dot beside the squares picks the square that holds the mark");
+		ok &= expect(!picked, "a click beside the squares in the near look picks no square");
 		NodeItem track(QRectF(2.0, -1.0, 2.0, 2.0));
 		scene.addItem(&track);
 		NodeItem* pickedNode = nullptr;
 		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { pickedNode = item; });
 		picked = nullptr;
 		sendLeftClick(scene, view, QPointF(3.0, 0.0));
-		ok &= expect(pickedNode == &track && !picked, "a click in the dot of a track node under the dots picks the node");
+		ok &= expect(pickedNode == &track && !picked, "a click on a track node beside the squares picks the node");
 	}
 
 	{
@@ -583,6 +586,38 @@ int main(int argc, char* argv[]) {
 		ok &= expect(clicked == &node, "zero-size node target wins over underlying line on click");
 		sendContextMenu(scene, view, QGraphicsSceneContextMenuEvent::Mouse, QPointF(1, 0), QPoint());
 		ok &= expect(context == &node, "zero-size node target wins over underlying line for context menu");
+	}
+
+	// The scene picks a node dot or a signal head in a circle that keeps its size on screen, at Fit and zoomed in.
+	for (const qreal scale : {0.05, 4.0}) {
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		view.scale(scale, scale);
+		const qreal pixel = 1.0 / scale;
+		// Both are smaller than a pixel on screen at either zoom.
+		NodeItem node(QRectF(-0.1, -0.1, 0.2, 0.2));
+		SignalItem signal(QRectF(-0.1, -0.1, 0.2, 0.2));
+		signal.setPos(100.0 * pixel, 100.0 * pixel);
+		TrackLineItem track(QLineF(-60.0 * pixel, 0.0, 20.0 * pixel, 0.0));
+		scene.addItem(&track);
+		scene.addItem(&node);
+		scene.addItem(&signal);
+		QGraphicsItem* picked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem* item) { picked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnSignal, [&](SignalItem* item) { picked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem* item) { picked = item; });
+		const auto pickedAt = [&](const QPointF& offset, const QGraphicsItem& item) {
+			picked = nullptr;
+			sendLeftClick(scene, view, item.scenePos() + offset * pixel);
+			return picked;
+		};
+		ok &= expect(pickedAt(QPointF(1.0, 0.0), node) == &node && pickedAt(QPointF(-1.0, -1.0), node) == &node,
+			"a click 1 px beside a node dot picks it over the track under it");
+		ok &= expect(pickedAt(QPointF(4.0, 0.0), node) == &track, "a click 4 px beside a node dot picks the track");
+		ok &= expect(pickedAt(QPointF(-5.0, 0.0), signal) == &signal && pickedAt(QPointF(0.0, 5.0), signal) == &signal,
+			"a click 5 px beside a signal head picks it");
+		ok &= expect(!pickedAt(QPointF(0.0, 8.0), signal), "a click 8 px beside a signal head picks nothing");
 	}
 
 	{

@@ -9,23 +9,34 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFrame>
 #include <QFontMetrics>
 #include <QHeaderView>
 #include <QHelpEvent>
 #include <QScreen>
 #include <QLabel>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QMenu>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionHeader>
 #include <QTableWidget>
+#include <QTemporaryDir>
+#include <QThread>
+#include <QTimer>
 #include <QTextDocument>
+#include <QToolButton>
 #include <QToolTip>
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iostream>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
@@ -69,15 +80,15 @@ static QColor swatchColor(const QListWidget* list, int row) {
 	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
 }
 
-static QPushButton* topButton(QDialog& window, const QString& text) {
-	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
-		if (button->text() == text) return button;
-	return nullptr;
+// An export button of the panel.
+static QPushButton* panelButton(QDialog& window, const char* name) {
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	return panel ? panel->findChild<QPushButton*>(name) : nullptr;
 }
 
 static bool buttonFlags(QDialog& window, const QString& prefix) {
 	bool ok = true;
-	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+	for (auto* button : window.findChildren<QPushButton*>()) {
 		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
 		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
 	}
@@ -99,10 +110,10 @@ static bool exerciseButtonDefaults() {
 	TimetableTableWindow window(rows, 0, provider);
 	window.show();
 	QApplication::processEvents();
-	auto* csv = topButton(window, "Export CSV...");
-	auto* png = topButton(window, "Export PNG...");
+	auto* csv = panelButton(window, "timetableExportCsv");
+	auto* png = panelButton(window, "timetableExportPng");
 	auto* table = window.findChild<QTableWidget*>();
-	bool ok = expect(csv && png && table, "timetable window has its top bar buttons");
+	bool ok = expect(csv && png && table, "timetable window has its export buttons in the panel");
 	if (!ok) return false;
 	ok &= buttonFlags(window, "timetable window button");
 	ok &= expect(csv->isVisible() && csv->isEnabled(), "timetable window shows Export CSV with a provider");
@@ -118,12 +129,110 @@ static bool exerciseButtonDefaults() {
 	TimetableTableWindow empty(rows, 0, {});
 	empty.show();
 	QApplication::processEvents();
-	auto* emptyCsv = topButton(empty, "Export CSV...");
-	auto* emptyPng = topButton(empty, "Export PNG...");
-	if (!expect(emptyCsv && emptyPng, "timetable window without provider has its top bar buttons")) return false;
+	auto* emptyCsv = panelButton(empty, "timetableExportCsv");
+	auto* emptyPng = panelButton(empty, "timetableExportPng");
+	if (!expect(emptyCsv && emptyPng, "timetable window without provider has its export buttons")) return false;
 	ok &= expect(emptyCsv->isHidden(), "a timetable window without a provider has no Export CSV button");
 	ok &= expect(emptyPng->isVisible(), "a timetable window without a provider keeps Export PNG");
 	ok &= buttonFlags(empty, "timetable window without provider button");
+	return ok;
+}
+
+static void pressTab(QWidget* widget) {
+	pressKey(widget, Qt::Key_Tab);
+}
+
+// Rows of two trains with the long ids and the times of a real timetable, so that the columns are wider than the table.
+static std::vector<TimetableResultRow> twoTrainRows() {
+	std::vector<TimetableResultRow> rows;
+	for (const char* train : {"Guin-Paim-ALL-STOPS-1-1", "Guin-Paim-EXPRESS-1-1"})
+		for (int stop = 0; stop < 4; ++stop) {
+			TimetableResultRow row;
+			row.trainId = train;
+			row.stationId = "Tregonneau_Squiffiec";
+			row.journeyIndex = stop + 1;
+			row.plannedArrivalSeconds = {true, 600.0 * stop};
+			row.plannedDepartureSeconds = {true, 600.0 * stop + 30.0};
+			row.simulatedArrivalSeconds = {true, 600.0 * stop + 42.0};
+			row.simulatedDepartureSeconds = {true, 600.0 * stop + 72.0};
+			row.arrivalDelaySeconds = {true, 42.0};
+			row.departureDelaySeconds = {true, 42.0};
+			rows.push_back(row);
+		}
+	return rows;
+}
+
+// The window of the chart windows: the run in the header with only the panel button at its right, the table at the left
+// and a panel of 200 px with the train filter without a heading and the exports under the heading Export. The table
+// scrolls sideways when its columns do not fit, and Tab goes through the header, the table and the panel.
+static bool exerciseFrame() {
+	TimetableTableWindow window(twoTrainRows(), 0, [](const QStringList&) { return std::string("csv"); });
+	RunProvenance provenance;
+	provenance.caseName = "Paimpol";
+	provenance.appliedScenario = "baseline";
+	window.setRunProvenance(provenance);
+	window.show();
+	QApplication::processEvents();
+	auto* header = window.findChild<QFrame*>("resultHeader");
+	auto* panel = window.findChild<QWidget*>("resultPanel");
+	auto* table = window.findChild<QTableWidget*>();
+	auto* trains = window.findChild<TrainFilterButton*>();
+	auto* png = panelButton(window, "timetableExportPng");
+	auto* csv = panelButton(window, "timetableExportCsv");
+	if (!expect(header && panel && table && trains && png && csv, "the window has a header, a table and a panel")) return false;
+	QStringList headerButtons;
+	for (const QToolButton* button : header->findChildren<QToolButton*>())
+		headerButtons << button->objectName();
+	bool ok = expect(headerButtons == QStringList({"timetablePanelToggle"}), qPrintable("the header has only the panel button: " + headerButtons.join(", ")));
+	ok &= expect(window.findChild<QLabel*>("timetableContext")->text() == "Paimpol / baseline", "the header names the run");
+	ok &= expect(panel->isAncestorOf(trains) && panel->isAncestorOf(png) && panel->isAncestorOf(csv) && !panel->isAncestorOf(table),
+		"the train filter and the exports lie in the panel and the table beside it");
+	ok &= expect(png->text() == "PNG..." && png->accessibleName() == "Export PNG" && csv->text() == "CSV..." && csv->accessibleName() == "Export CSV",
+		"the exports read PNG... and CSV...");
+	QStringList headings;
+	for (const QLabel* label : panel->findChildren<QLabel*>())
+		if (label->property("resultSectionHeading").toBool() && label->isVisible())
+			headings << label->text();
+	ok &= expect(headings == QStringList({"Export"}), qPrintable("only the exports have a heading: " + headings.join(", ")));
+	ok &= expect(window.width() <= 960 && panel->width() == 200,
+		qPrintable(QString("the window opens at most 960 px wide with a panel of 200 px: %1, %2").arg(window.width()).arg(panel->width())));
+	int columns = 0;
+	for (int column = 0; column < table->columnCount(); ++column)
+		columns += table->columnWidth(column);
+	ok &= expect(columns > table->viewport()->width() && table->horizontalScrollBar()->maximum() > 0,
+		"the table scrolls sideways when its columns do not fit");
+	// The table lies inside the margins of the white area beside the panel.
+	const QRect inArea = table->geometry();
+	ok &= expect(table->parentWidget()->objectName() == "resultTableArea" && inArea.left() >= 12 && inArea.top() >= 12
+			&& table->parentWidget()->width() - inArea.right() > 12,
+		"the table keeps the margins of its area");
+	ok &= expect(window.focusWidget() == table, "the window opens with the focus in the table");
+
+	window.findChild<QToolButton*>("timetablePanelToggle")->setFocus(Qt::TabFocusReason);
+	QStringList order;
+	for (int step = 0; step < 5 && QApplication::focusWidget(); ++step) {
+		QWidget* focused = QApplication::focusWidget();
+		order << (focused == table ? QStringLiteral("table") : focused == trains ? QStringLiteral("trains")
+																				 : focused->objectName());
+		pressTab(focused);
+	}
+	ok &= expect(order == QStringList({"timetablePanelToggle", "table", "trains", "timetableExportPng", "timetableExportCsv"}),
+		qPrintable("Tab goes through the header, the table and the panel: " + order.join(", ")));
+
+	// The picture holds every column and only the rows of the visible trains, without row numbers.
+	auto* list = trains->menu()->findChild<QListWidget*>();
+	list->item(1)->setCheckState(Qt::Unchecked);
+	QApplication::processEvents();
+	const QImage image = window.tableImage();
+	int rows = 0;
+	for (int row = 0; row < table->rowCount(); ++row)
+		rows += table->isRowHidden(row) ? 0 : table->rowHeight(row);
+	// The frame of the picture is a few pixels; row numbers or a hidden row would add more than a row of text.
+	const int frame = table->fontMetrics().height() / 2;
+	const int width = qRound(image.width() / image.devicePixelRatio());
+	const int height = qRound(image.height() / image.devicePixelRatio()) - table->horizontalHeader()->height();
+	ok &= expect(width >= columns && width < columns + frame && height >= rows && height < rows + frame && rows == 4 * table->rowHeight(0),
+		qPrintable(QString("the picture is %1 by %2 px, the columns %3 px and the visible rows %4 px").arg(width).arg(height).arg(columns).arg(rows)));
 	return ok;
 }
 
@@ -289,6 +398,59 @@ static bool exerciseTableImageHeaders() {
 	return ok;
 }
 
+// Handles events until `done` holds, for at most about a second.
+static bool waitFor(const std::function<bool()>& done) {
+	for (int round = 0; round < 200 && !done(); ++round) {
+		QApplication::processEvents(QEventLoop::AllEvents, 5);
+		QThread::msleep(5);
+	}
+	return done();
+}
+
+// After the save dialog of an export closes, cancelled or saved, the window is raised and active again, also when the
+// main window took the activation while the dialog was open, as AppKit gives it on macOS.
+static bool exerciseExportKeepsWindowInFront() {
+	QTemporaryDir directory;
+	QMainWindow mainWindow;
+	mainWindow.resize(500, 400);
+	mainWindow.show();
+	auto* window = new TimetableTableWindow(twoTrainRows(), 0, [](const QStringList&) { return std::string("csv"); }, &mainWindow);
+	window->show();
+	window->activateWindow();
+	bool ok = expect(directory.isValid() && waitFor([window] { return QApplication::activeWindow() == window; }),
+		"the window is active before the export");
+	if (!ok) return false;
+	for (const auto& [name, file] : {std::pair("timetableExportCsv", "front.csv"), std::pair("timetableExportPng", "front.png")}) {
+		QPushButton* button = panelButton(*window, name);
+		const QString saved = QDir(directory.path()).filePath(file);
+		for (const QString& path : {QString(), saved}) {
+			bool mainActive = false;
+			QTimer::singleShot(0, window, [&mainWindow, &mainActive, &path] {
+				for (QWidget* widget : QApplication::topLevelWidgets())
+					if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+						mainWindow.activateWindow();
+						mainActive = waitFor([&mainWindow] { return QApplication::activeWindow() == &mainWindow; });
+						if (path.isEmpty()) {
+							dialog->reject();
+						} else {
+							dialog->setDirectory(QFileInfo(path).absolutePath());
+							dialog->selectFile(QFileInfo(path).fileName());
+							// Through QDialog, as QFileDialog::accept is protected.
+							static_cast<QDialog*>(dialog)->accept();
+						}
+					}
+			});
+			if (button) button->click();
+			const bool active = waitFor([window] { return QApplication::activeWindow() == window; });
+			ok &= expect(button && mainActive && active,
+				qPrintable(QString("%1 %2 leaves the window active, though the main window took the activation")
+						.arg(path.isEmpty() ? "a cancelled" : "a saved", name)));
+		}
+		ok &= expect(QFile::exists(saved), qPrintable(QString("the saved export of %1 is written").arg(name)));
+	}
+	return ok;
+}
+
 // The text that the tooltip of `widget` shows once the pointer rests on it.
 static QString shownTip(QWidget* widget) {
 	const QPoint point(4, 4);
@@ -326,7 +488,7 @@ int main(int argc, char** argv) {
 	const QRect screen = window.screen()->availableGeometry();
 	bool ok = window.width() <= screen.width() * 9 / 10
 		&& window.height() <= screen.height() * 4 / 5
-		&& context && context->isVisible() && context->text().contains("Case A")
+		&& context && context->isVisible() && context->text() == "Case A / Scenario B"
 		&& context->textFormat() == Qt::PlainText
 		&& table && table->rowCount() == 1 && table->item(0, 0)->text() == "train-a"
 		&& window.findChild<TrainFilterButton*>()->isVisible();
@@ -350,7 +512,9 @@ int main(int argc, char** argv) {
 		"a train of a coloured service has its swatch and another train has none");
 	ok &= exerciseTrainColorsForRun();
 	ok &= exerciseButtonDefaults();
+	ok &= exerciseFrame();
 	ok &= exerciseDelayColors();
+	ok &= exerciseExportKeepsWindowInFront();
 	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
 			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
 		window.setPresentation("Timetable", text);

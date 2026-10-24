@@ -68,7 +68,7 @@ int main() {
 		FollowAvailabilityInput in;
 		in.sceneHasServices = true;
 		const FollowAvailability a = followAvailability(in);
-		require(a.phase == FollowPhase::NoRun && a.entryText == "Run the case to follow trains"
+		require(a.phase == FollowPhase::NoRun && a.entryText == "Run the case first"
 				&& a.statusText == "Run the case first, then you can follow a train." && !a.controlEnabled && !a.canArm && !a.switchOff && !a.canAct,
 			"a case that has not run was not reported as such");
 		in.followOn = true;
@@ -84,7 +84,7 @@ int main() {
 		in.train = nullptr;
 		const FollowAvailability off = followAvailability(in);
 		require(off.phase == FollowPhase::NotEntered && off.entryText == "Rail-1 (not entered yet)"
-				&& off.statusText == "Rail-1 has not entered the network yet. Follow can be switched on now and starts when it enters."
+				&& off.statusText == "Rail-1 has not entered the network yet."
 				&& off.controlEnabled && off.canArm && !off.switchOff && !off.canAct,
 			"a train missing from the snapshot was not reported as not entered");
 		const FollowAvailability on = followAvailability(withFollow(in, true));
@@ -100,7 +100,7 @@ int main() {
 	{
 		const FollowAvailability off = followAvailability(runOf(train, 1549));
 		require(off.phase == FollowPhase::NotEntered && off.entryText == "Rail-1 (scheduled 08:25:50)"
-				&& off.statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow can be switched on now and starts when it enters."
+				&& off.statusText == "Rail-1 is scheduled to enter at 08:25:50."
 				&& off.controlEnabled && off.canArm && !off.switchOff && !off.canAct,
 			"a train before its entry time was not reported as not entered with Follow off");
 		const FollowAvailability on = followAvailability(withFollow(runOf(train, 1549), true));
@@ -117,7 +117,7 @@ int main() {
 		FollowAvailabilityInput ended = inReplay(runOf(train, 1200));
 		ended.replayEndTime = 1549;
 		require(followAvailability(FollowAvailabilityInput{}).statusClause == "No trains to follow"
-				&& followAvailability(noRun).statusClause == "Run the case to follow trains"
+				&& followAvailability(noRun).statusClause == "Run the case first"
 				&& followAvailability(runOf(train, 1549)).statusClause == "Rail-1 enters at 08:25:50"
 				&& followAvailability(withFollow(runOf(train, 1549), true)).statusClause == "Rail-1 enters at 08:25:50"
 				&& followAvailability(ended).statusClause == "Rail-1 enters after this run"
@@ -141,7 +141,7 @@ int main() {
 		require(on.statusText == afterRun && on.canArm && !on.switchOff && !on.canAct,
 			"a train scheduled after the end of a completed run was promised that Follow starts, with Follow on");
 		ended.replayEndTime = 1550;
-		require(followAvailability(ended).statusText == "Rail-1 is scheduled to enter at 08:25:50. Follow can be switched on now and starts when it enters.",
+		require(followAvailability(ended).statusText == "Rail-1 is scheduled to enter at 08:25:50.",
 			"a train that enters at the last time of a completed run lost its sentence");
 	}
 
@@ -149,7 +149,7 @@ int main() {
 	{
 		const FollowAvailability off = followAvailability(runOf(train, 1550));
 		require(off.phase == FollowPhase::Running && off.entryText == "Rail-1 (running)"
-				&& off.statusText == "Rail-1 is running. Follow can be switched on now." && off.controlEnabled && off.canArm
+				&& off.statusText == "Rail-1 is running." && off.controlEnabled && off.canArm
 				&& !off.switchOff && !off.canAct,
 			"a train at its entry time was not reported as running with Follow off");
 		const FollowAvailability on = followAvailability(withFollow(runOf(train, 1550), true));
@@ -189,8 +189,7 @@ int main() {
 			"Follow that was on for a train that left a live run was not switched off");
 		const FollowAvailability back = followAvailability(inReplay(runOf(finished, 3000)));
 		require(back.phase == FollowPhase::Finished && back.entryText == "Rail-1 (finished)"
-				&& back.statusText == "Rail-1 has left the network at this time. "
-									  "Follow can be switched on now and continues when you go back in the replay."
+				&& back.statusText == "Rail-1 has left the network at this time."
 				&& back.controlEnabled && back.canArm && !back.switchOff && !back.canAct,
 			"a finished train in a replay was not accepted");
 		const FollowAvailability stay = followAvailability(withFollow(inReplay(runOf(finished, 3000)), true));
@@ -222,8 +221,7 @@ int main() {
 		hidden.trainsLayerVisible = false;
 		const FollowAvailability off = followAvailability(hidden);
 		require(off.phase == FollowPhase::HiddenByLayer && off.entryText == "Rail-1 (hidden)"
-				&& off.statusText == "Rail-1 is running, but the Trains layer is switched off. "
-									 "Follow can be switched on now and moves the view when the layer is switched on."
+				&& off.statusText == "Rail-1 is running, but the Trains layer is switched off. Turn on the Trains layer to follow it."
 				&& off.canArm && !off.switchOff && !off.canAct,
 			"a train hidden by the layer switch was not reported as hidden with Follow off");
 		hidden.followOn = true;

@@ -241,7 +241,7 @@ jobs:
             - Commit: ${{ github.sha }}
             - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Download the package for your platform. Case studies are also available as `.egscene` files.
+            Download the package for your platform. The bundled cases are also available as `.egscene` files.
 
       - name: Publish complete release
         env:
