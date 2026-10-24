@@ -37,6 +37,7 @@
 #include <QtCharts/QValueAxis>
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
@@ -68,8 +69,10 @@ void keepExactRange(QValueAxis* axis) {
 
 // The axes of a chart along a reference route: the distance along the bottom, spanning the route exactly, and the
 // stations above the plot, both attached to every series. Gives the station axis and its ticks for
-// DiagramWindow::setStationAxis, or null when the route has no station.
-QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath, std::vector<StationTick>& stationTicks) {
+// DiagramWindow::setStationAxis, or null when the route has no station. Each of `callPositions`, the route distances of
+// the calls that the chart shows, counts as a call at the station nearest to it.
+QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath, std::vector<StationTick>& stationTicks,
+	const std::vector<double>& callPositions) {
 	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
 	auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
 	distanceAxis->setTitleText(QStringLiteral("Distance (km)"));
@@ -94,6 +97,13 @@ QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath
 	for (const auto& station : stationLabels) {
 		const QString name = QString::fromStdString(station.second);
 		stationTicks.push_back({station.first, {name + QString(" (%1 km)").arg(station.first, 0, 'f', 2), name}});
+	}
+	for (const double call : callPositions) {
+		auto nearest = std::lower_bound(stationTicks.begin(), stationTicks.end(), call,
+			[](const StationTick& tick, double position) { return tick.position < position; });
+		if (nearest == stationTicks.end() || (nearest != stationTicks.begin() && call - std::prev(nearest)->position < nearest->position - call))
+			nearest = std::prev(nearest);
+		++nearest->calls;
 	}
 	return stationAxis;
 }
@@ -415,7 +425,9 @@ void ResultViews::showDelayDiagram() {
 	QChart* chart = new QChart();
 	const QString heading = ResultViewName::kDelays;
 
+	std::vector<double> calls;
 	for (const DelayDiagramSeries& source : diagram->series) {
+		for (const DelayDiagramPoint& point : source.points) calls.push_back(point.positionKm);
 		if (source.points.empty()) continue;
 		auto* series = new QLineSeries();
 		const QString trainName = QString::fromStdString(source.trainId);
@@ -430,7 +442,7 @@ void ResultViews::showDelayDiagram() {
 	}
 	chart->createDefaultAxes();
 	std::vector<StationTick> stationTicks;
-	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks);
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks, calls);
 	// The readout names the station nearest the pointer.
 	chart->axes(Qt::Horizontal).first()->setProperty("readoutStation", true);
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignLeft);
@@ -473,6 +485,13 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	const double end = referencePath.nodes.back().positionKm;
 	const QString heading = timetable ? ResultViewName::kTimetableGraph : ResultViewName::kTrainPaths;
 	auto* chart = new QChart();
+	// The stops of the trains, so that the busiest stations are named first. A train path chart takes them from the
+	// timetable graph of its reference route.
+	const std::optional<RouteDiagramData> timetableGraph = timetable ? std::nullopt : routeDiagramData(*run, true, referenceIndex);
+	std::vector<double> calls;
+	for (const RouteDiagramSeries& source : (timetableGraph ? *timetableGraph : *diagram).series)
+		if (source.kind == RouteDiagramSeries::Kind::Event)
+			for (const RouteDiagramPoint& point : source.points) calls.push_back(point.positionKm);
 	for (const RouteDiagramSeries& source : diagram->series) {
 		const QString name = QString::fromStdString(source.trainId);
 		auto* series = new QLineSeries();
@@ -507,7 +526,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	}
 	chart->createDefaultAxes();
 	std::vector<StationTick> stationTicks;
-	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks);
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks, calls);
 	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
 	axisY->setTitleText("Time (s)");

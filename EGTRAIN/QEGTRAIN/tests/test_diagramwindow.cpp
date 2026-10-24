@@ -1512,6 +1512,50 @@ static bool exerciseStationAxis() {
 	return ok;
 }
 
+// When not all station names fit, a station with calls is named before one without, with as many names as before.
+// When they all fit, every station is named.
+static bool exerciseBusyStationLabels() {
+	const QStringList names = {"Amsterdam Centraal", "Utrecht Centraal", "Den Bosch", "Eindhoven Centraal", "Venlo", "Roermond",
+		"Maastricht", "Sittard", "Heerlen", "G&d<g"};
+	// The stations named on a chart of `stations` at the given size, with `calls` at the station of index `busy`.
+	const auto named = [](const QStringList& stations, int width, int height, int busy, int calls) {
+		DiagramWindow window("Timetable graph");
+		QCategoryAxis* axis = nullptr;
+		std::vector<StationTick> ticks;
+		window.setChart(routeChartWithStations(stations, &axis, &ticks));
+		if (busy >= 0) ticks[static_cast<std::size_t>(busy)].calls = calls;
+		window.setStationAxis(axis, ticks);
+		window.setTimeAxisY(true, 8 * 3600);
+		window.setMaximumSize(width, height);
+		window.resize(width, height);
+		window.show();
+		QApplication::processEvents();
+		QStringList result;
+		for (const QString& label : axis->categoriesLabels()) {
+			QTextDocument plain;
+			plain.setHtml(label);
+			const QString text = plain.toPlainText();
+			const auto name = std::find_if(stations.begin(), stations.end(), [&](const QString& one) { return text.startsWith(one); });
+			if (name != stations.end()) result << *name;
+		}
+		return result;
+	};
+	bool ok = true;
+	const QStringList quiet = named(names, 768, 426, -1, 0);
+	int busy = -1;
+	for (int i = 1; i + 1 < names.size() && busy < 0; ++i)
+		if (!quiet.contains(names[i])) busy = i;
+	ok &= expect(busy > 0, "at 768 by 426 px some station between the ends is not named");
+	if (busy > 0) {
+		const QStringList withCalls = named(names, 768, 426, busy, 5);
+		ok &= expect(withCalls.contains(names[busy]) && withCalls.size() == quiet.size(),
+			qPrintable(QString("the busy station %1 is named, with %2 names as before: %3").arg(names[busy]).arg(quiet.size()).arg(withCalls.join(", "))));
+	}
+	const QStringList few = {"Gouda", "Woerden", "Utrecht"};
+	ok &= expect(named(few, 1152, 640, -1, 0) == few && named(few, 1152, 640, 1, 5) == few, "when all names fit, every station is named");
+	return ok;
+}
+
 // The Key lists the kinds of mark of the shown series, each with the pen and brush of its series, in a fixed order: the
 // kind of a series is its "keyKind" property, else its layer, else planned or simulated. Simulated is left out while it
 // is the only kind of line, and the Key hides while it has no row.
@@ -3976,6 +4020,7 @@ int main(int argc, char* argv[]) {
 	ok &= exercisePlainToolTips();
 	ok &= exerciseLongToolTips();
 	ok &= exerciseStationAxis();
+	ok &= exerciseBusyStationLabels();
 	ok &= exerciseLongAxisTitle();
 	ok &= exerciseRoundTicks();
 	ok &= exerciseClockTicks();
