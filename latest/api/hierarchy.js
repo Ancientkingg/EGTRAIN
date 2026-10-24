@@ -23,6 +23,7 @@ var hierarchy =
     [ "BlockingTimeTrajectory", "struct_blocking_time_trajectory.html", null ],
     [ "BlockSectionExtent", "struct_block_section_extent.html", null ],
     [ "BlockSectionInput", "struct_block_section_input.html", null ],
+    [ "BlockSectionMarks", "struct_block_section_marks.html", null ],
     [ "BlockSet", "class_block_set.html", null ],
     [ "Train::BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", null ],
     [ "CapacityAnalysisResult", "struct_capacity_analysis_result.html", null ],
@@ -44,9 +45,14 @@ var hierarchy =
     [ "DelayBaselineComparison", "struct_delay_baseline_comparison.html", null ],
     [ "RunController::DelayBaselineState", "struct_run_controller_1_1_delay_baseline_state.html", null ],
     [ "DelayDiagnostic", "struct_delay_diagnostic.html", null ],
+    [ "DelayDiagramData", "struct_delay_diagram_data.html", null ],
+    [ "DelayDiagramPoint", "struct_delay_diagram_point.html", null ],
+    [ "DelayDiagramSeries", "struct_delay_diagram_series.html", null ],
     [ "DelayDifference", "struct_delay_difference.html", null ],
     [ "DelayEvent", "struct_delay_event.html", null ],
     [ "DelayFilter", "struct_delay_filter.html", null ],
+    [ "DelayHistogram", "struct_delay_histogram.html", null ],
+    [ "DelayHistogramClass", "struct_delay_histogram_class.html", null ],
     [ "DelayOccurrence", "struct_delay_occurrence.html", null ],
     [ "DelayRunSnapshot", "struct_delay_run_snapshot.html", null ],
     [ "DelayShare", "struct_delay_share.html", null ],
@@ -54,7 +60,9 @@ var hierarchy =
     [ "DelaySummary", "struct_delay_summary.html", null ],
     [ "telemetry::DiagnosticRecord", "structtelemetry_1_1_diagnostic_record.html", null ],
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
+    [ "DiagramKeyEntry", "struct_diagram_key_entry.html", null ],
     [ "DispatchLive", "struct_dispatch_live.html", null ],
+    [ "FigureColumn", "struct_figure_column.html", null ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", null ],
     [ "FollowAvailability", "struct_follow_availability.html", null ],
     [ "FollowAvailabilityInput", "struct_follow_availability_input.html", null ],
@@ -101,6 +109,9 @@ var hierarchy =
     [ "InstallerRecord", "struct_installer_record.html", null ],
     [ "telemetry::TelemetrySender::Shared::Intent", "structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html", null ],
     [ "Journey", "class_journey.html", null ],
+    [ "PositionScale::Jump", "struct_position_scale_1_1_jump.html", null ],
+    [ "KeepInFront", "class_keep_in_front.html", null ],
+    [ "PositionScale::Label", "struct_position_scale_1_1_label.html", null ],
     [ "LegacyPassengerParseResult", "struct_legacy_passenger_parse_result.html", null ],
     [ "LegacyPassengerSources", "struct_legacy_passenger_sources.html", null ],
     [ "LegacyPassengerStationReference", "struct_legacy_passenger_station_reference.html", null ],
@@ -132,6 +143,7 @@ var hierarchy =
     [ "PassengerIndex", "class_passenger_index.html", null ],
     [ "PlatformIndex", "class_platform_index.html", null ],
     [ "PlaybackProfiler", "class_playback_profiler.html", null ],
+    [ "PositionScale", "class_position_scale.html", null ],
     [ "telemetry::PreparedBatch", "structtelemetry_1_1_prepared_batch.html", null ],
     [ "NetworkPresenter::PreviewOptions", "struct_network_presenter_1_1_preview_options.html", null ],
     [ "NetworkPresenter::PreviewOutcome", "struct_network_presenter_1_1_preview_outcome.html", null ],
@@ -146,6 +158,7 @@ var hierarchy =
       [ "AboutDialog", "class_about_dialog.html", null ],
       [ "AreaCapacityScopeDialog", "class_area_capacity_scope_dialog.html", null ],
       [ "AreaCapacityWindow", "class_area_capacity_window.html", null ],
+      [ "CapacityWindow", "class_capacity_window.html", null ],
       [ "CaseChooserDialog", "class_case_chooser_dialog.html", null ],
       [ "DelayAnalysisWindow", "class_delay_analysis_window.html", null ],
       [ "DiagramWindow", "class_diagram_window.html", null ],
@@ -201,6 +214,9 @@ var hierarchy =
     [ "QGraphicsScene", null, [
       [ "NetworkScene", "class_network_scene.html", null ]
     ] ],
+    [ "QGraphicsTextItem", null, [
+      [ "StationNameItem", "class_station_name_item.html", null ]
+    ] ],
     [ "QGraphicsView", null, [
       [ "NetworkView", "class_network_view.html", null ]
     ] ],
@@ -252,8 +268,12 @@ var hierarchy =
     ] ],
     [ "QWidget", null, [
       [ "ColorChoiceButton", "class_color_choice_button.html", null ],
+      [ "DiagramKey", "class_diagram_key.html", null ],
       [ "ManualWindow", "class_manual_window.html", null ],
       [ "NetworkLegendWidget", "class_network_legend_widget.html", null ],
+      [ "ResultFigure", "class_result_figure.html", null ],
+      [ "ResultFrame", "class_result_frame.html", null ],
+      [ "ResultPanel", "class_result_panel.html", null ],
       [ "SceneEditorPanel", "class_scene_editor_panel.html", [
         [ "CaseSettingsPanel", "class_case_settings_panel.html", null ],
         [ "CompositionPanel", "class_composition_panel.html", null ],
@@ -265,7 +285,8 @@ var hierarchy =
         [ "ServicePanel", "class_service_panel.html", null ],
         [ "TimetableStopsPanel", "class_timetable_stops_panel.html", null ],
         [ "TrainUnitPanel", "class_train_unit_panel.html", null ]
-      ] ]
+      ] ],
+      [ "TrainKeyList", "class_train_key_list.html", null ]
     ] ],
     [ "RecoveryCandidate", "struct_recovery_candidate.html", null ],
     [ "RecoveryResult", "struct_recovery_result.html", null ],
@@ -398,6 +419,7 @@ var hierarchy =
     [ "std::streambuf", null, [
       [ "ConsoleStreambuf", "class_console_streambuf.html", null ]
     ] ],
+    [ "PositionScale::Stretch", "struct_position_scale_1_1_stretch.html", null ],
     [ "TDS", "class_t_d_s.html", null ],
     [ "TelemetryContext", "struct_telemetry_context.html", null ],
     [ "telemetry::TelemetryEvent", "structtelemetry_1_1_telemetry_event.html", null ],
@@ -416,6 +438,9 @@ var hierarchy =
     [ "Train", "class_train.html", [
       [ "Regional", "class_regional.html", null ]
     ] ],
+    [ "TrainKeyList::Train", "struct_train_key_list_1_1_train.html", null ],
+    [ "TrainColourInput", "struct_train_colour_input.html", null ],
+    [ "TrainColourPlan", "struct_train_colour_plan.html", null ],
     [ "TrainEvent", "class_train_event.html", null ],
     [ "TrainRunResult", "struct_train_run_result.html", null ],
     [ "TrainVisual", "struct_train_visual.html", null ],

@@ -1,0 +1,6 @@
+<map id="telemetry::TelemetrySender::tryEnqueue" name="telemetry::TelemetrySender::tryEnqueue">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,208,62"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="256,29,415,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,39,242,39,242,45,208,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="298,31,290,21,295,11,310,5,335,3,367,7,379,16,376,20,365,11,335,8,311,10,298,15,296,20,302,27"/>
+</map>

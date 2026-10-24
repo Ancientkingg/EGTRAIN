@@ -1,0 +1,18 @@
+<map id="ResultFrame::installInDialog" name="ResultFrame::installInDialog">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,212,132"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="260,107,416,132"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,117,246,117,246,122,212,122"/>
+<area shape="poly" id="edge10_Node000002_Node000002" title=" " alt="" coords="304,108,297,98,301,88,315,82,338,80,367,84,378,93,375,97,364,89,338,85,316,87,305,92,302,98,308,105"/>
+<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="464,65,627,91"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,104,467,91,468,96,403,109"/>
+<area shape="rect" id="Node000006" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="469,139,622,179"/>
+<area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="405,129,456,139,455,145,404,135"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="512,67,504,57,508,47,522,41,545,39,574,42,585,51,582,56,572,47,545,44,523,46,512,51,510,56,516,64"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="695,29,841,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="624,63,681,53,682,59,625,68"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="675,103,861,128"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="622,88,679,98,678,103,621,93"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="732,31,724,21,728,11,743,5,768,3,799,6,811,15,808,20,797,11,768,8,744,10,732,15,729,20,736,28"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="732,104,724,94,728,84,743,78,768,76,799,80,811,89,808,93,797,85,768,81,744,83,732,88,729,94,736,101"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="507,140,504,130,511,121,524,115,545,113,569,116,583,123,580,128,568,121,545,118,526,120,514,125,510,131,512,138"/>
+</map>

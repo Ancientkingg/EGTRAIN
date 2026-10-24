@@ -1,0 +1,10 @@
+<map id="legacyBoundaryToken" name="legacyBoundaryToken">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,55"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="49,31,41,21,45,11,61,5,87,3,120,7,133,16,130,20,118,11,87,8,62,10,49,15,46,20,53,27"/>
+<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#aad950abdec606049de6ad0e476ccf2f1" title=" " alt="" coords="217,29,428,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,39,203,39,203,45,169,45"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="285,31,276,21,281,11,296,5,323,3,356,7,368,16,365,20,354,11,323,8,298,10,284,15,281,20,288,27"/>
+<area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f" title=" " alt="" coords="476,29,672,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,39,462,39,462,45,428,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="533,31,525,21,529,11,546,5,574,3,609,7,619,11,623,17,619,20,616,15,608,12,574,8,547,10,533,15,530,20,537,27"/>
+</map>

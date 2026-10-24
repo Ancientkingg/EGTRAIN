@@ -1,0 +1,7 @@
+<map id="describeUpdateRecord" name="describeUpdateRecord">
+<area shape="rect" id="Node000001" title="The text that tells the user about record." alt="" coords="5,29,175,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="54,31,47,21,51,11,65,5,90,3,120,6,132,15,129,20,118,11,90,8,67,10,54,15,52,20,58,28"/>
+<area shape="rect" id="Node000002" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="223,29,397,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="175,39,209,39,209,45,175,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="274,31,267,21,271,11,285,5,310,3,340,6,352,15,349,20,338,11,310,8,287,10,274,15,272,20,278,28"/>
+</map>

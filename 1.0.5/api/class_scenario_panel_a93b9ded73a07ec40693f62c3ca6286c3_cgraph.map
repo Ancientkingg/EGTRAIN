@@ -1,0 +1,14 @@
+<map id="ScenarioPanel::updatePresentation" name="ScenarioPanel::updatePresentation">
+<area shape="rect" id="Node000001" title="Writes the label of each scenario in the list again." alt="" coords="5,104,253,129"/>
+<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="355,29,441,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,101,301,63,342,53,343,58,302,69,172,107"/>
+<area shape="rect" id="Node000003" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="301,79,495,104"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="253,102,287,99,288,104,254,108"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="543,104,693,129"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="254,114,529,114,529,119,254,119"/>
+<area shape="rect" id="Node000005" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="301,179,495,219"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="172,127,319,173,318,178,171,132"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="362,31,355,21,359,11,373,5,398,3,428,6,440,15,437,20,426,11,398,8,375,10,362,15,360,20,366,28"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="496,100,529,104,529,109,495,105"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="582,106,575,96,579,86,593,80,618,77,648,81,660,90,657,94,646,86,618,83,595,85,582,90,580,95,586,102"/>
+</map>

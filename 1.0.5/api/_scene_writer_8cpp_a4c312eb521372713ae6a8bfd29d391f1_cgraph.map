@@ -1,0 +1,61 @@
+<map id="writeSceneGeneration" name="writeSceneGeneration">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,396,172,421"/>
+<area shape="poly" id="edge39_Node000001_Node000001" title=" " alt="" coords="53,398,46,388,50,378,64,372,89,369,119,373,131,382,127,386,117,378,89,375,66,377,53,382,51,387,57,394"/>
+<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#acb13735e78ea2d1590bc29fbdcbde1a4" title="The content of infrastructure.json." alt="" coords="227,29,384,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,396,96,336,116,247,132,198,155,149,183,104,218,64,223,60,227,64,222,68,187,107,159,152,137,200,121,248,101,337,94,396"/>
+<area shape="rect" id="Node000003" href="$_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147" title="The content of passengers.json. A journey without an activity leaves the key out." alt="" coords="234,103,377,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="90,395,101,347,125,277,142,239,163,202,188,167,218,137,225,132,228,137,222,141,192,171,167,205,147,242,130,279,106,348,95,396"/>
+<area shape="rect" id="Node000004" href="$_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314" title="The content of rolling_stock.json." alt="" coords="230,176,381,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="92,395,108,358,135,309,171,256,194,232,218,211,227,205,230,209,222,215,197,235,176,259,139,311,113,361,97,397"/>
+<area shape="rect" id="Node000006" href="$_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17" title="The content of scenarios.json." alt="" coords="239,249,371,275"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="98,394,146,341,180,310,219,284,232,277,234,282,221,288,184,314,150,345,102,398"/>
+<area shape="rect" id="Node000009" href="$_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de" title="The content of scene.json." alt="" coords="220,323,391,348"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="120,393,219,357,243,349,244,355,221,362,122,398"/>
+<area shape="rect" id="Node000010" href="$_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486" title="The content of services.json." alt="" coords="243,396,367,421"/>
+<area shape="poly" id="edge17_Node000001_Node000010" title=" " alt="" coords="172,406,229,406,229,411,172,411"/>
+<area shape="rect" id="Node000012" href="$_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc" title="The content of signalling.json." alt="" coords="239,469,372,495"/>
+<area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="128,419,255,462,253,467,126,424"/>
+<area shape="rect" id="Node000014" href="$_scene_writer_8cpp.html#ac8fb536b94b4e2cf2b6a0e3d8299e19c" title="The content of stations.json." alt="" coords="244,543,367,568"/>
+<area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="108,419,221,504,271,534,268,538,219,508,104,424"/>
+<area shape="rect" id="Node000015" href="$_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12" title="The content of views.json." alt="" coords="251,616,359,641"/>
+<area shape="poly" id="edge27_Node000001_Node000015" title=" " alt="" coords="100,420,146,492,182,536,222,577,266,607,263,612,218,581,178,540,142,495,95,423"/>
+<area shape="rect" id="Node000016" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="264,689,347,715"/>
+<area shape="poly" id="edge29_Node000001_Node000016" title=" " alt="" coords="97,421,112,463,138,523,175,590,197,622,222,651,241,667,263,681,260,685,238,672,218,655,193,625,170,593,133,526,107,465,92,423"/>
+<area shape="rect" id="Node000017" href="$_scene_writer_8cpp.html#a0661b745dc8f255625b50d690ec1e593" title=" " alt="" coords="253,763,358,788"/>
+<area shape="poly" id="edge31_Node000001_Node000017" title=" " alt="" coords="95,421,106,475,130,554,168,643,193,685,222,724,240,741,261,754,258,759,237,745,218,728,188,688,163,645,125,556,101,476,90,422"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="270,31,262,21,266,11,281,5,305,3,335,6,347,15,344,20,333,11,305,8,282,10,270,15,268,20,274,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="270,104,262,94,266,84,281,78,305,76,335,80,347,89,344,93,333,85,305,81,282,83,270,88,268,94,274,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="270,178,262,168,266,158,281,152,305,149,335,153,347,162,344,166,333,158,305,155,282,157,270,162,268,167,274,174"/>
+<area shape="rect" id="Node000005" href="$_scene_writer_8cpp.html#a9f704ed2bf3a6d752874400c6a256212" title=" " alt="" coords="469,176,579,201"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="381,186,456,186,456,191,381,191"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="493,177,486,168,490,158,503,152,524,149,550,153,561,162,558,166,548,158,524,155,504,157,493,161,491,167,497,174"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="270,251,262,241,266,231,281,225,305,223,335,226,347,235,344,240,333,231,305,228,282,230,270,235,268,240,274,248"/>
+<area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="439,249,609,275"/>
+<area shape="poly" id="edge11_Node000006_Node000007" title=" " alt="" coords="371,259,425,259,425,265,371,265"/>
+<area shape="rect" id="Node000008" href="$_scene_writer_8cpp.html#a2937bfe822fa84a0fd4ec1e474744733" title=" " alt="" coords="451,323,597,348"/>
+<area shape="poly" id="edge13_Node000006_Node000008" title=" " alt="" coords="354,272,392,283,479,315,477,320,390,289,353,277"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="493,251,486,241,490,231,503,225,524,223,550,226,561,235,558,239,548,231,524,228,504,230,493,235,491,240,497,248"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="493,324,486,314,490,304,503,298,524,296,550,300,561,308,558,312,548,304,524,301,504,303,493,308,491,314,497,321"/>
+<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="270,324,262,314,266,304,281,298,305,296,335,300,347,309,344,313,333,305,305,301,282,303,270,308,268,314,274,321"/>
+<area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="270,398,262,388,266,378,281,372,305,369,335,373,347,382,344,386,333,378,305,375,282,377,270,382,268,387,274,394"/>
+<area shape="rect" id="Node000011" href="$_scene_writer_8cpp.html#a82473a27d2a88c63033aff4368eb6d83" title=" " alt="" coords="471,396,577,421"/>
+<area shape="poly" id="edge19_Node000010_Node000011" title=" " alt="" coords="367,406,458,406,458,411,367,411"/>
+<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="493,397,486,388,490,378,503,372,524,369,550,373,561,382,558,386,548,378,524,375,504,377,493,381,491,387,497,394"/>
+<area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="270,471,262,461,266,451,281,445,305,443,335,446,347,455,344,460,333,451,305,448,282,450,270,455,268,460,274,468"/>
+<area shape="rect" id="Node000013" href="$_scene_writer_8cpp.html#a365e1207efc8426c85c8332a74c4dadd" title="A signalling area as signalling.json holds it." alt="" coords="443,469,605,495"/>
+<area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="372,479,429,479,429,485,372,485"/>
+<area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="493,471,486,461,490,451,503,445,524,443,550,446,561,455,558,459,548,451,524,448,504,450,493,455,491,460,497,468"/>
+<area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="270,544,262,534,266,524,281,518,305,516,335,520,347,529,344,533,333,525,305,521,282,523,270,528,268,534,274,541"/>
+<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="270,618,262,608,266,598,281,592,305,589,335,593,347,602,344,606,333,598,305,595,282,597,270,602,268,607,274,614"/>
+<area shape="poly" id="edge30_Node000016_Node000016" title=" " alt="" coords="270,691,262,681,266,671,281,665,305,663,335,666,347,675,344,680,333,671,305,668,282,670,270,675,268,680,274,688"/>
+<area shape="poly" id="edge38_Node000017_Node000017" title=" " alt="" coords="270,764,262,754,266,744,281,738,305,736,335,740,347,749,344,753,333,745,305,741,282,743,270,748,268,754,274,761"/>
+<area shape="rect" id="Node000018" href="$_scene_writer_8cpp.html#a13d90d8066135562db9ad8368921daa6" title=" " alt="" coords="472,725,576,751"/>
+<area shape="poly" id="edge32_Node000017_Node000018" title=" " alt="" coords="358,764,458,746,459,752,359,769"/>
+<area shape="rect" id="Node000020" href="$_scene_writer_8cpp.html#acbf21f0e79ec9a4378269c094e2e6aa4" title=" " alt="" coords="478,799,570,824"/>
+<area shape="poly" id="edge35_Node000017_Node000020" title=" " alt="" coords="359,781,465,799,464,804,358,787"/>
+<area shape="poly" id="edge34_Node000018_Node000018" title=" " alt="" coords="493,727,486,717,490,707,503,701,524,699,550,702,561,711,558,715,548,707,524,704,504,706,493,711,491,716,497,724"/>
+<area shape="rect" id="Node000019" href="$_scene_writer_8cpp.html#af5f545848c06ad26a0846c61f022f460" title=" " alt="" coords="657,763,769,788"/>
+<area shape="poly" id="edge33_Node000018_Node000019" title=" " alt="" coords="577,746,644,759,643,764,576,751"/>
+<area shape="poly" id="edge36_Node000020_Node000019" title=" " alt="" coords="570,800,643,786,644,791,571,805"/>
+<area shape="poly" id="edge37_Node000020_Node000020" title=" " alt="" coords="493,800,486,790,490,780,503,774,524,772,550,776,561,784,558,788,548,780,524,777,504,779,493,784,491,790,497,797"/>
+</map>

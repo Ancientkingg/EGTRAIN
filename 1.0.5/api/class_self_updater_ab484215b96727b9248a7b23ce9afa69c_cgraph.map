@@ -1,0 +1,11 @@
+<map id="SelfUpdater::removeUpdateBackup" name="SelfUpdater::removeUpdateBackup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,209,99"/>
+<area shape="rect" id="Node000002" href="$class_self_updater.html#a7e4e41bec9b7f8372da7f28a53a6f274" title=" " alt="" coords="257,67,428,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,77,244,77,244,82,209,82"/>
+<area shape="rect" id="Node000003" href="$_update_preparation_8cpp.html#a35dbcff4565ea28466fb4fa64c0d4e11" title=" " alt="" coords="486,29,617,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,64,472,53,473,59,415,69"/>
+<area shape="rect" id="Node000004" href="$_update_preparation_8cpp.html#a49f8aad16df96158db11db9b2bea4635" title=" " alt="" coords="476,103,627,128"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="417,89,464,98,463,103,416,95"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="517,31,510,21,514,11,528,5,551,3,580,6,592,15,588,20,578,11,551,8,529,10,517,15,515,20,521,28"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="517,104,510,94,514,84,528,78,551,76,580,80,592,89,588,93,578,85,551,81,529,83,517,88,515,94,521,101"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="telemetry::TelemetryQueue::purgeOtherStamps" name="telemetry::TelemetryQueue::purgeOtherStamps">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,205,87"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="253,5,453,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,47,239,42,240,47,206,53"/>
+<area shape="rect" id="Node000003" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="276,94,431,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,80,263,89,262,95,205,85"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="314,96,305,86,309,76,326,70,353,67,388,71,398,76,402,82,397,85,394,80,387,76,353,73,327,75,313,80,310,85,317,92"/>
+</map>

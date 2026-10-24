@@ -1,0 +1,10 @@
+<map id="NetworkPresenter::NetworkPresenter" name="NetworkPresenter::NetworkPresenter">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,208,63"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a61db168bbc0140862acb972d21b97ed7" title=" " alt="" coords="256,31,469,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,41,242,41,242,46,208,46"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a58fe73a4dac419d214616a42ecd2c579" title=" " alt="" coords="517,5,737,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,30,503,27,504,32,470,36"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#a4527dcc6ce8e7d9660a23224b897555d" title="The train group of the run with this index, or null." alt="" coords="785,31,1001,56"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="470,41,771,41,771,46,470,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="738,26,772,29,772,34,737,31"/>
+</map>

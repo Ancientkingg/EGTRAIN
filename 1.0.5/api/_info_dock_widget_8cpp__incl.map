@@ -1,0 +1,11 @@
+<map id="widgets/InfoDockWidget.cpp" name="widgets/InfoDockWidget.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="155,5,363,31"/>
+<area shape="rect" id="Node000002" href="$_info_dock_widget_8h.html" title=" " alt="" coords="5,79,199,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,33,141,75,139,71,233,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="223,79,296,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="262,31,262,65,257,65,257,31"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="321,79,390,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="276,29,330,68,327,72,273,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="47,152,157,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,104,105,138,99,138,99,104"/>
+</map>

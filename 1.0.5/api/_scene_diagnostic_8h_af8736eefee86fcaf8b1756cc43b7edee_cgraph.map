@@ -1,0 +1,7 @@
+<map id="toJson" name="toJson">
+<area shape="rect" id="Node000001" title="An object with every field of the diagnostic, the severity as its label, for tools and tests." alt="" coords="5,29,68,55"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="14,30,9,21,12,11,21,5,37,3,55,6,63,14,59,18,52,11,37,8,23,10,16,14,14,20,18,28"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="116,29,227,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,39,102,39,102,45,69,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="148,30,144,21,146,11,156,5,171,3,190,6,198,14,194,18,187,11,171,8,158,10,151,14,149,20,153,28"/>
+</map>

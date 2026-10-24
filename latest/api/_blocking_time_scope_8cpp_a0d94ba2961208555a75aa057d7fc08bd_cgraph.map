@@ -1,16 +1,18 @@
 <map id="chooseBlockingTimeScope" name="chooseBlockingTimeScope">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,161,201,187"/>
-<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="64,163,56,153,60,143,76,137,103,135,137,139,150,148,147,152,135,143,103,140,78,142,64,147,61,152,68,159"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,203,201,228"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="64,204,56,194,60,184,76,178,103,176,137,180,150,189,147,194,135,185,103,181,78,183,64,188,61,194,68,201"/>
 <area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a0415bf2e4f4f3533261f04d38c69bfc4" title=" " alt="" coords="249,29,441,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,159,174,117,248,72,284,57,286,62,251,76,177,121,122,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,201,166,140,205,103,248,72,279,57,281,62,251,76,208,108,170,143,116,204"/>
 <area shape="rect" id="Node000003" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="489,80,749,105"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="130,159,184,136,249,115,364,97,475,90,476,95,364,103,250,121,185,141,132,164"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="116,201,171,157,208,134,248,115,305,100,363,90,475,83,475,88,363,95,306,105,250,121,211,138,174,161,120,205"/>
 <area shape="rect" id="Node000005" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="255,154,436,194"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="202,171,241,171,241,177,202,177"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="178,200,240,189,241,194,179,205"/>
 <area shape="rect" id="Node000007" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="267,243,423,268"/>
-<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="143,184,295,236,293,241,141,189"/>
-<area shape="rect" id="Node000010" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="270,293,421,333"/>
-<area shape="poly" id="edge19_Node000001_Node000010" title=" " alt="" coords="121,185,176,230,212,255,251,278,265,285,263,290,248,283,209,260,172,234,117,189"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="181,225,255,238,254,243,181,231"/>
+<area shape="rect" id="Node000010" href="$_blocking_time_diagram_8cpp.html#a3bb2c1995320c79d30288260f90e0bd3" title=" " alt="" coords="264,316,427,341"/>
+<area shape="poly" id="edge19_Node000001_Node000010" title=" " alt="" coords="133,226,306,308,304,313,131,231"/>
+<area shape="rect" id="Node000012" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="568,381,671,407"/>
+<area shape="poly" id="edge26_Node000001_Node000012" title=" " alt="" coords="115,227,136,254,167,289,206,324,251,352,289,367,329,378,410,393,488,397,554,397,554,402,488,403,410,398,327,384,287,372,248,356,203,328,163,293,132,257,111,230"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,31,298,21,302,11,318,5,345,3,379,7,392,16,389,20,377,11,345,8,320,10,306,15,303,20,310,27"/>
 <area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="818,125,963,151"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="696,103,805,121,804,126,695,108"/>
@@ -28,4 +30,12 @@
 <area shape="rect" id="Node000009" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="797,243,984,268"/>
 <area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="701,253,784,253,784,258,701,258"/>
 <area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="847,244,838,234,843,224,861,218,891,216,929,220,940,225,943,231,939,234,936,229,928,225,891,221,862,223,846,228,843,234,851,241"/>
+<area shape="poly" id="edge21_Node000010_Node000010" title=" " alt="" coords="306,318,298,308,302,298,318,292,345,289,379,293,392,303,389,307,377,298,345,295,320,297,306,302,303,307,310,314"/>
+<area shape="rect" id="Node000011" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="544,293,695,333"/>
+<area shape="poly" id="edge20_Node000010_Node000011" title=" " alt="" coords="427,321,530,315,531,320,427,327"/>
+<area shape="poly" id="edge22_Node000010_Node000012" title=" " alt="" coords="400,339,555,376,554,381,399,344"/>
+<area shape="poly" id="edge25_Node000012_Node000012" title=" " alt="" coords="576,383,566,373,571,363,589,357,619,355,658,359,668,364,672,370,668,372,665,368,656,364,619,360,590,362,575,367,572,372,580,379"/>
+<area shape="rect" id="Node000013" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="801,381,980,407"/>
+<area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="671,391,787,391,787,397,671,397"/>
+<area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="847,383,838,373,843,363,861,357,891,355,929,359,940,364,943,370,939,372,936,368,928,364,891,360,862,362,846,367,843,372,851,379"/>
 </map>

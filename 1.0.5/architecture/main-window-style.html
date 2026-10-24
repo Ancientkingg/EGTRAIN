@@ -1,0 +1,446 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Interface style" href="interface-style.html"><link rel="prev" title="Custom dialog presentation contract" href="dialog-presentation.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Main window - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/main-window-style.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="main-window">
+<h1>Main window<a class="headerlink" href="#main-window" title="Link to this heading">¶</a></h1>
+<section id="playback">
+<h2>Playback<a class="headerlink" href="#playback" title="Link to this heading">¶</a></h2>
+<p>The Pause button reads <strong>Resume</strong> while a run is paused. It is as wide as the longer text, so the toolbar does not move, and its outline shows the whole button, so the gaps from Run to Pause and from Pause to Stop are equal.</p>
+<p>The replay row starts with the icon buttons <strong>Start</strong>, <strong>Play</strong> and <strong>End</strong>, each with a tooltip and an accessible name; Tab goes from Start to Play and End and then to the slider. While the replay plays, <strong>Play</strong> shows the pause icon, the tooltip and the name <strong>Pause</strong>. The icons have one size, so End and the slider do not move. The label after the slider shows the clock time of the shown frame in the format of the progress bar and is as wide as its longest text, so the slider keeps its width while the user seeks.</p>
+<p>The speed slider in the toolbar sets how fast a run plays; right is faster. The filled part of the track, <code class="docutils literal notranslate"><span class="pre">#315a70</span></code>, shows how far the slider is towards the fastest setting; the rest of the track is <code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code>. The handle is a solid <code class="docutils literal notranslate"><span class="pre">#315a70</span></code> circle with a white border. It turns <code class="docutils literal notranslate"><span class="pre">#26495c</span></code> under the pointer and while it is dragged, gets a <code class="docutils literal notranslate"><span class="pre">#24313a</span></code> border when it has keyboard focus, and the handle and the filled part turn <code class="docutils literal notranslate"><span class="pre">#9aa5ab</span></code> when the slider is disabled. The replay slider in the replay row has the same look.</p>
+<p>The readout next to the slider shows the current speed as <strong>Fastest</strong> or as a factor of real time such as <strong>4.0x</strong> or <strong>100x</strong>. Its width fits the longest text, so the toolbar does not move while the slider is dragged. The slider has no Slower and Faster words beside it: with them the toolbar needs about 1070 px and no longer shows every control in a 1024 px window.</p>
+</section>
+<section id="toolbar-buttons-and-follow">
+<h2>Toolbar buttons and Follow<a class="headerlink" href="#toolbar-buttons-and-follow" title="Link to this heading">¶</a></h2>
+<p>Every toolbar button has the face of a push button: a white fill, a <code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code> outline and a 6 px radius. Under the pointer the outline turns <code class="docutils literal notranslate"><span class="pre">#5b6871</span></code>, while pressed the fill turns <code class="docutils literal notranslate"><span class="pre">#e3eaee</span></code>, and with keyboard focus the button has a 2 px <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> outline with 1 px less padding, so its text and icon do not move. A disabled button, such as Pause and Stop before a run, has a grey <code class="docutils literal notranslate"><span class="pre">#eceeec</span></code> fill, a light <code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code> outline and grey text. <strong>Open Case</strong> keeps its darker <code class="docutils literal notranslate"><span class="pre">#e3eaee</span></code> fill and bold text.</p>
+<p>The two group separators of the toolbar are 1 px wide lines as tall as the toolbar row less the margins of the style sheet, at every window width. A menu separator is a 1 px <code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code> line, the colour of the menu border, at every scale.</p>
+<p>A tooltip names the shortcut of its button as the platform writes it, such as Ctrl+R, or ⌘R on macOS.</p>
+<p><strong>Follow</strong> shows a crosshair icon beside its text. While Follow is on, the button has a light <code class="docutils literal notranslate"><span class="pre">#d3e3ec</span></code> fill, a <code class="docutils literal notranslate"><span class="pre">#315a70</span></code> outline and dark text; under the pointer the fill turns <code class="docutils literal notranslate"><span class="pre">#bcd2df</span></code> and the outline <code class="docutils literal notranslate"><span class="pre">#24313a</span></code>, and with keyboard focus it has the 2 px <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> outline of the other toolbar buttons.</p>
+<p>The closed train list ends a name that does not fit its 180 px with an ellipsis; the open list and the tooltip show the whole text.</p>
+<p>The status bar shows the zoom of the network view as <strong>Zoom: Fit</strong> for the whole network and as a factor such as <strong>Zoom: 2x</strong> otherwise. The Follow label beside it shows one clause, such as <strong>Rail-1 enters at 08:25:50</strong> or <strong>Following Rail-1</strong>, at most 400 px wide and elided with an ellipsis beyond that; its tooltip gives the whole explanation. The left of the status bar does not repeat that clause: it names a change, such as <strong>Follow off</strong> when Follow switches off, and a run that ends says <strong>Simulation complete</strong>. A message wider than the room left of the fields on the right ends in an ellipsis.</p>
+</section>
+<section id="run-results-header">
+<h2>Run results header<a class="headerlink" href="#run-results-header" title="Link to this heading">¶</a></h2>
+<p>The dialog <strong>Run simulation</strong> shows the duration of the run as H:MM:SS, the format of the <strong>Travel time</strong> column of Run Results, followed by the clock time at which the run ends, as in <code class="docutils literal notranslate"><span class="pre">2:30:00,</span> <span class="pre">until</span> <span class="pre">09:40:40</span></code>.</p>
+<p>The text at the top of Run Results puts each entry on a line of its own: <code class="docutils literal notranslate"><span class="pre">Run:</span> <span class="pre">&lt;case&gt;</span> <span class="pre">/</span> <span class="pre">&lt;scenario&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">...</span></code> and <code class="docutils literal notranslate"><span class="pre">Status:</span> <span class="pre">Completed</span></code>. With advanced details on, the direct incident evidence and <code class="docutils literal notranslate"><span class="pre">Destination</span> <span class="pre">terminations:</span> <span class="pre">&lt;count&gt;</span></code> follow, and <code class="docutils literal notranslate"><span class="pre">Delay</span> <span class="pre">baseline:</span> <span class="pre">&lt;run&gt;</span></code> comes last when a baseline is set. A long entry wraps inside its own line.</p>
+<p>When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs with the table header and three rows when that is more, but at most about half of the height that it shares with the network view, so the network and the replay row keep the rest. A dock lower than its content scrolls, and the table shows at least its header and one row. The delay comparison follows the table, so that in a maximised window on a 1024 by 768 screen the table header and a row show without scrolling. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets that height again.</p>
+<p>The Case and Layers dock opens at the width of its widest layer toggle, <strong>Stations and platforms</strong>, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.</p>
+<p>The toggle that opens the map key has the white fill, <code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code> border, 6 px radius and states of a push button, with small grey bold text, and keeps that face while the key is open. The map key has a <strong>Passenger count</strong> row only while the network shows passengers: the run started with passengers on, the case has passengers and the Passengers layer is on.</p>
+<p>The editor docks share one group of tabs on the right of the window. The group takes the whole height between the toolbar and the status bar, and Run Results and the other docks below the network end at its left edge, so each open editor shows several rows of fields, also after a run in a short window. Choosing an editor in the Editors menu opens it, or brings it to the front when it is open behind another tab. An editor dock, such as Rolling Stock Units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways. An editor dock floated with its button or a double click opens inside the screen, as large as its content asks where the screen allows. In a narrow group the names of the tabs end in an ellipsis, each tab keeps at least 3 em for its name, and the tooltip of each tab gives its whole name; when the tabs still do not fit, the bar scrolls. Two scroll buttons with the face and border of a tab then end the bar; each shows a <code class="docutils literal notranslate"><span class="pre">#5b6871</span></code> arrow of the size of a drop-down arrow, turned to the side, which is <code class="docutils literal notranslate"><span class="pre">#9aa5ab</span></code> when the bar cannot scroll further that way.</p>
+<p>The Services dock shows its list above its tabs, so that beside Case and Layers in a window of 819 px it needs no horizontal scroll bar. Tabs that do not fit scroll and keep their whole names.</p>
+<p>The lists of Rolling Stock Units, Services, Incidents and Entrance delays show about three rows, with their three buttons in one row below, so that the fields of the selected item keep the height of a short dock. The title of the dock names the list of Rolling Stock Units and the list of Services. The list of Services keeps its height on the Timetable tab.</p>
+</section>
+<section id="light-look">
+<h2>Light look<a class="headerlink" href="#light-look" title="Link to this heading">¶</a></h2>
+<p>EGTRAIN has one light look, also when the system uses a dark appearance. On macOS the application keeps the light Aqua appearance, so native controls, menus, dialogs and title bars stay light. On other systems a dark system palette is replaced by the light standard palette of the widget style, or by the light palette of Fusion when the style follows the dark desktop as Fusion does from Qt 6.5, at startup and whenever the desktop hands over a dark palette later, as a dark XDG desktop portal does, so selected rows, tooltips and charts stay light; Qt 6.8 and later is also asked for the light colour scheme. The title bar belongs to the window manager outside macOS and can still follow a dark system setting.</p>
+</section>
+<section id="widget-style-on-windows">
+<h2>Widget style on Windows<a class="headerlink" href="#widget-style-on-windows" title="Link to this heading">¶</a></h2>
+<p>Qt 6.7 and later give Windows 11 the <code class="docutils literal notranslate"><span class="pre">windows11</span></code> widget style. EGTRAIN takes <code class="docutils literal notranslate"><span class="pre">windowsvista</span></code>, the style of Qt 5 that its windows were laid out in: with <code class="docutils literal notranslate"><span class="pre">windows11</span></code> the menu bar is 33 px tall instead of 22 px at 100 %, spin boxes are 2 px taller, and with Paimpol open on a 1024 x 768 screen Case and Layers needs a scroll bar. The <code class="docutils literal notranslate"><span class="pre">-style</span></code> option and <code class="docutils literal notranslate"><span class="pre">QT_STYLE_OVERRIDE</span></code> still choose another style.</p>
+</section>
+<section id="focus-and-buttons">
+<h2>Focus and buttons<a class="headerlink" href="#focus-and-buttons" title="Link to this heading">¶</a></h2>
+<p>A focused push button shows a 2 px <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> border and no rectangle around its text. The filled default button of a dialog shows focus as a 2 px <code class="docutils literal notranslate"><span class="pre">#0b2430</span></code> border. In <strong>Run simulation</strong> only <strong>Run simulation</strong> is filled: <strong>Cancel</strong> keeps the plain face when it has the focus, although Enter then presses it.</p>
+<p>A button that opens a menu, such as <strong>Open result view…</strong> in Run Results and <strong>Trains</strong> in a table window, keeps 20 px on its right for the arrow. <strong>Trains</strong>, <strong>Occurrences</strong> and <strong>Stations</strong> in the result windows have the white face, border, radius, states, height and font size of the push buttons beside them. macOS gives a tool button a smaller font, so <code class="docutils literal notranslate"><span class="pre">TrainFilterButton</span></code> takes the application font. A drop-down list, such as the train list beside <strong>Follow</strong>, draws its arrow without a frame of its own. The train list beside <strong>Follow</strong> opens as wide as its longest entry; where the style draws the list as a menu, as on macOS, that width includes the room it keeps for a check mark before each entry.</p>
+</section>
+<section id="tables-and-progress-bar">
+<h2>Tables and progress bar<a class="headerlink" href="#tables-and-progress-bar" title="Link to this heading">¶</a></h2>
+<p>Tables follow <a class="reference internal" href="interface-style.html#tables"><span class="std std-ref">Interface style</span></a>. Their colours are set in the stylesheet, so a dark system theme does not darken them under the dark text.</p>
+<p>In the Run Results table the train and the operating code are left-aligned; the numbers and times are right-aligned.</p>
+<p>The timetable table colours a delay above 60 s <code class="docutils literal notranslate"><span class="pre">#81352d</span></code>, a delay above 0 s <code class="docutils literal notranslate"><span class="pre">#74451c</span></code> and any other delay <code class="docutils literal notranslate"><span class="pre">#006400</span></code>. Each has a contrast of at least 6.9:1 on both row colours.</p>
+<p>The progress bar of a run fills in <code class="docutils literal notranslate"><span class="pre">#315a70</span></code>. Its text is <code class="docutils literal notranslate"><span class="pre">#24313a</span></code> on the empty part, 11.4:1 on <code class="docutils literal notranslate"><span class="pre">#eceeec</span></code>, and white on the fill, 7.4:1: <code class="docutils literal notranslate"><span class="pre">TimeProgressBar</span></code> draws the text itself, 6 px inside the edges of the bar, and in the stylesheet’s <code class="docutils literal notranslate"><span class="pre">selection-color</span></code> over the fill. A new step of the run shows at the next paint of the window: the bar does not paint at once, as that paint would also draw the network view in the middle of a snapshot delivery.</p>
+<p>In Run Results the <strong>Open result view…</strong> button has the white face, height, text size, grey border and padding of the <strong>Export CSV…</strong> and <strong>Export PNG…</strong> buttons beside it, the same <code class="docutils literal notranslate"><span class="pre">#5b6871</span></code> border under the pointer, 2 px <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> border with focus and <code class="docutils literal notranslate"><span class="pre">#e3eaee</span></code> fill while pressed, and the same grey face when disabled.</p>
+</section>
+<section id="keyboard">
+<h2>Keyboard<a class="headerlink" href="#keyboard" title="Link to this heading">¶</a></h2>
+<p>Every menu of the menu bar has an Alt mnemonic: <strong>F</strong>ile, <strong>E</strong>dit, <strong>V</strong>iew, Ed<strong>i</strong>tors, <strong>S</strong>imulation, <strong>H</strong>elp and <strong>D</strong>iagrams. macOS does not show them.</p>
+<p>In Run Results, Tab reaches <strong>Open result view…</strong>, <strong>Export CSV…</strong> and <strong>Export PNG…</strong> before the table, and leaves the table for the delay baseline buttons after it; the arrow keys move between the cells. The tables of the editors work the same way, and while a cell is being edited, Tab moves on to the next cell. The Run Results table has a <code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code> border that turns <code class="docutils literal notranslate"><span class="pre">#315a70</span></code> while the table has the focus. The lists and tables of the editors, the Case Validation table and the Loaded Data tree have a <code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code> border that becomes a 2 px <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> border with the focus, and their rows stay in place. A tab bar inside an editor, such as the tabs of Rolling Stock Units, shows the focus on its selected tab: a <code class="docutils literal notranslate"><span class="pre">#2e7491</span></code> face inside a 2 px <code class="docutils literal notranslate"><span class="pre">#0b2430</span></code> border, with the name in place. The tab bars of tabbed docks, the scroll buttons of all tab bars in the docks and the scroll areas of the docks and their panels are not in the Tab order: Tab reaches the controls inside a dock, and the menus raise a dock. Tab and Shift+Tab pass over the docks behind the front tab of a group, which Qt keeps in the window out of sight; a floating dock has a Tab order of its own. The network view takes the arrow keys and the zoom shortcuts, and its 2 px <code class="docutils literal notranslate"><span class="pre">#3a4a54</span></code> border turns <code class="docutils literal notranslate"><span class="pre">#8fbcd4</span></code>, 4.5:1 with <code class="docutils literal notranslate"><span class="pre">#3a4a54</span></code>, while it has the focus.</p>
+<p>Some platform behaviour is left as it is. Space activates a focused toolbar button and Enter does not, the platform convention for buttons. The native file dialog on Windows follows the dark mode of Windows while the window stays light. On Windows, <code class="docutils literal notranslate"><span class="pre">QT_SCALE_FACTOR</span></code> enlarges the text but not the check box indicators of the default <code class="docutils literal notranslate"><span class="pre">windowsvista</span></code> style, while Windows display scaling enlarges the indicators and the icons as well as the text (#955, #956).</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="interface-style.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Interface style</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="dialog-presentation.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Custom dialog presentation contract</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Main window</a><ul>
+<li><a class="reference internal" href="#playback">Playback</a></li>
+<li><a class="reference internal" href="#toolbar-buttons-and-follow">Toolbar buttons and Follow</a></li>
+<li><a class="reference internal" href="#run-results-header">Run results header</a></li>
+<li><a class="reference internal" href="#light-look">Light look</a></li>
+<li><a class="reference internal" href="#widget-style-on-windows">Widget style on Windows</a></li>
+<li><a class="reference internal" href="#focus-and-buttons">Focus and buttons</a></li>
+<li><a class="reference internal" href="#tables-and-progress-bar">Tables and progress bar</a></li>
+<li><a class="reference internal" href="#keyboard">Keyboard</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

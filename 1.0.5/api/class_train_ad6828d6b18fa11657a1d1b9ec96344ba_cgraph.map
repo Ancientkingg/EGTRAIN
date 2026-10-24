@@ -1,0 +1,38 @@
+<map id="Train::ComputeBlockingTimesInMixedSignallingAreas" name="Train::ComputeBlockingTimesInMixedSignallingAreas">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,179,221,219"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a875f0eaa5ed019bfe9e9ec44486874e8" title=" " alt="" coords="293,5,502,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,177,186,116,225,83,268,55,282,48,285,53,271,60,228,87,190,120,133,180"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a5d3788a334ff231b4e9fa35a96a5cb4a" title=" " alt="" coords="303,70,492,125"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,176,268,135,293,126,294,132,270,140,164,181"/>
+<area shape="rect" id="Node000013" href="$class_train.html#a20daa1ddd39245f4bca371639115a2ce" title="Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually ente..." alt="" coords="303,149,492,189"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="221,185,289,178,289,183,222,190"/>
+<area shape="rect" id="Node000014" href="$class_train.html#a645056dd24bb65948f221b5bbe429c6a" title=" " alt="" coords="269,264,525,304"/>
+<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="181,216,318,257,316,263,180,221"/>
+<area shape="rect" id="Node000015" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="665,258,755,283"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="222,209,652,261,651,266,221,214"/>
+<area shape="rect" id="Node000016" href="$class_train.html#adc0264bf5618b838c3ca1f6027038102" title=" " alt="" coords="300,329,495,354"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="136,217,194,266,231,292,270,314,294,322,292,327,268,318,228,297,190,270,133,221"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a9919b5df2c04fa5c9be99f738d5471f3" title=" " alt="" coords="573,27,847,53"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="492,77,626,53,627,58,493,83"/>
+<area shape="rect" id="Node000011" href="$class_train.html#ae67e8c5e364a38ec05fe9fd268b1a064" title=" " alt="" coords="613,77,807,117"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="492,95,599,95,599,100,492,100"/>
+<area shape="rect" id="Node000012" href="$class_blocking_times.html#a65dcbd103eb1f25b1edcbb17c345a519" title=" " alt="" coords="597,142,823,197"/>
+<area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="493,116,584,138,582,143,491,122"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="904,77,1032,117"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="785,50,847,63,891,74,890,79,846,68,784,55"/>
+<area shape="rect" id="Node000010" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="895,27,1041,53"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="847,37,881,37,881,43,847,43"/>
+<area shape="rect" id="Node000006" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="1089,6,1293,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1012,75,1088,40,1114,32,1116,37,1090,45,1014,80"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="1093,55,1289,81"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="1032,86,1081,80,1082,85,1033,92"/>
+<area shape="rect" id="Node000008" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="1120,105,1263,145"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="1033,103,1107,112,1106,117,1032,108"/>
+<area shape="rect" id="Node000009" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="1095,170,1287,195"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="1006,115,1090,155,1118,164,1117,169,1088,160,1004,120"/>
+<area shape="poly" id="edge11_Node000011_Node000005" title=" " alt="" coords="808,95,890,95,890,100,808,100"/>
+<area shape="poly" id="edge14_Node000013_Node000011" title=" " alt="" coords="484,147,608,118,610,123,486,152"/>
+<area shape="poly" id="edge15_Node000013_Node000012" title=" " alt="" coords="492,167,583,167,583,172,492,172"/>
+<area shape="poly" id="edge17_Node000014_Node000015" title=" " alt="" coords="526,276,651,270,651,276,526,281"/>
+<area shape="poly" id="edge18_Node000015_Node000015" title=" " alt="" coords="669,260,660,250,664,240,681,233,710,231,746,235,756,240,760,246,756,249,753,244,745,240,710,237,682,239,668,244,665,249,672,256"/>
+</map>

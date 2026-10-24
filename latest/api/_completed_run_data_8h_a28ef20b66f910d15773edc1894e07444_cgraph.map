@@ -1,7 +1,7 @@
 <map id="captureCompletedRun" name="captureCompletedRun">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,279,172,304"/>
 <area shape="poly" id="edge20_Node000001_Node000001" title=" " alt="" coords="51,280,43,270,47,260,63,254,89,252,121,256,134,265,130,270,119,261,89,257,64,259,51,264,48,270,55,277"/>
-<area shape="rect" id="Node000002" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title="The block sections of the route in route order, with their ends in km." alt="" coords="220,95,423,120"/>
+<area shape="rect" id="Node000002" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="220,95,423,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,277,112,247,139,206,175,164,219,129,230,123,232,128,221,134,179,168,143,210,116,250,99,280"/>
 <area shape="rect" id="Node000003" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="258,168,385,193"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="104,276,153,240,219,202,243,193,245,198,221,207,156,244,107,281"/>

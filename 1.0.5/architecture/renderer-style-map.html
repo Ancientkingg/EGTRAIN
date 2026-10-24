@@ -1,0 +1,562 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Historical track presentation" href="historical-track-comparison.html"><link rel="prev" title="Interface style" href="interface-style.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Network renderer style map - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface-style.html">Interface style</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/renderer-style-map.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="network-renderer-style-map">
+<h1>Network renderer style map<a class="headerlink" href="#network-renderer-style-map" title="Link to this heading">¶</a></h1>
+<p>The first imported renderer (<code class="docutils literal notranslate"><span class="pre">472d0b5</span></code>, <code class="docutils literal notranslate"><span class="pre">mainwindow.cpp</span></code>) is the railway-symbol
+reference. Preview, playback and replay share current scene geometry, inspection
+and layer controls. Canonical authored track/node geometry supersedes historical
+case-specific drawing branches.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Primitive</p></th>
+<th class="head"><p>Historical function (<code class="docutils literal notranslate"><span class="pre">472d0b5</span></code>)</p></th>
+<th class="head"><p>Presentation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Canvas</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsView</span></code> constructor: background <code class="docutils literal notranslate"><span class="pre">rgb(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>, no grid.</p></td>
+<td><p>Background <code class="docutils literal notranslate"><span class="pre">#101a22</span></code> with a faint <code class="docutils literal notranslate"><span class="pre">#182832</span></code> grid in preview, live simulation and replay. Grid lines are cosmetic one-device-pixel lines on multiples of the spacing in scene coordinates, so they move with the scene while panning. Spacing starts at 80 scene units and is doubled or halved until it is 24 to 96 pixels on screen.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Speed-class track</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">arcDrawing</span></code> with <code class="docutils literal notranslate"><span class="pre">classifyTrackSpeed</span></code>: cosmetic pen of width <code class="docutils literal notranslate"><span class="pre">max(line_width,</span> <span class="pre">visual.width)</span></code>.</p></td>
+<td><p>At least 200 km/h: RGB (30,130,210), cosmetic width 4; at least 120: RGB (160,160,160), width 3; otherwise RGB (120,120,120), width 2.</p></td>
+</tr>
+<tr class="row-even"><td><p>Connection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintConnection</span></code>: white, cosmetic, width <code class="docutils literal notranslate"><span class="pre">line_width</span></code>. The drawing code adds every connection before the track lines.</p></td>
+<td><p>White cosmetic width 2, drawn below the track lines.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Segment/switch node</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintNode</span></code>: light-gray ellipse of size <code class="docutils literal notranslate"><span class="pre">node_size</span></code>, cosmetic hairline pen; size 0 at the arc starts of a track with four nodes. In <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code> a track with four nodes draws only its middle arc and no last node.</p></td>
+<td><p>Shared preview/runtime scene-sized light-gray circular dot, without a device-pixel minimum. The current runnable-chain rule uses an ordinary first point and zero painted size for ordinary starts on four-node tracks; the final endpoint remains visible. A track whose view sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> paints no ordinary dot and draws neither its first nor its last arc. A click in a circle 3 logical pixels across at the centre of the dot picks it at every zoom, without painting a minimum dot. The scene tests that circle at the click, so it is not an item and no paint has to visit it.</p></td>
+</tr>
+<tr class="row-even"><td><p>Station/platform node</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintStationNode</span></code> with <code class="docutils literal notranslate"><span class="pre">classifyStation</span></code>; <code class="docutils literal notranslate"><span class="pre">paintStationPlatform</span></code> for the white platform bars in passenger-GUI mode.</p></td>
+<td><p>Shared preview/runtime square at later station endpoints. A square with three or more connections is the interchange blue (80,120,210); the square at the end of a line with a platform is the platform dark gray (70,70,70); every other square, including an interior station square with a platform, is the ordinary gray (120,120,120). Every station node with a platform, one whose platform id is neither empty nor “None”, has a white platform bar in the preview and in every run, with or without passengers, except at a virtual station, one whose name contains “virtual”, which has no overlay either. The bars show with the station layer in the near look of the station marks and are hidden in the far look. A bar lies along its track at its node, centred 1.15 square sides from the node on the upper side of the track (on the left of a vertical track); its counter stays level above it and its passenger icons are spread along it. Only a run with passengers has the counters and the icons, and they show only on a bar that shows, while <strong>Passengers</strong> is on, a counter also from a zoom of 3x; the preview has no passenger counters. Station and name layers do not hide structural squares. In the near look the mark of a station with squares draws nothing, so the squares show and a click on a square selects it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Station name and pictogram</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintStationName</span></code>: white text, font <code class="docutils literal notranslate"><span class="pre">size</span> <span class="pre">/</span> <span class="pre">5</span></code>, a space before every capital after the first letter. <code class="docutils literal notranslate"><span class="pre">paintStationIcon</span></code>: raster <code class="docutils literal notranslate"><span class="pre">station_pixmap</span></code> scaled to <code class="docutils literal notranslate"><span class="pre">station_size</span></code>.</p></td>
+<td><p>White name, font <code class="docutils literal notranslate"><span class="pre">station_size</span> <span class="pre">/</span> <span class="pre">5</span></code>, and a mark, both at scene scale where the authored station anchor plus its derived decoration offset puts them. On a schematic line, one that the station views of its region place at a single latitude, the offset counts from level 0, as in the reference, and the offset of a station with a named nudge counts in the reference spacing of the levels, 150 historical units, so that its name stays between the same rows of track. On the canvas both are placed by the station squares at the place of the station: those at most 32 mark frames at scene size from its anchor, so the platform nodes of a station on another line are left out of the mark and the area. A station without one is placed by its anchor alone. The mark has two looks. The near look applies once the tracks at the stations are at least 12 logical pixels apart on screen, measured as the median, over the stations with two or more squares, of the smallest distance between two of their squares. In the far look the mark is a map pin with a halo of 2 logical pixels in the canvas colour, (16,26,34), painted as vectors at the device resolution: a circle of radius 0.3 k of a square frame whose centre lies 0.78 k of the frame above the tip, and the two tangents from the tip to the circle. The tip is the bottom centre of the frame and stands on the top edge of the convex hull of the centres of the squares, at the x of the middle of the squares. So the pin of a station or major station stands on the top centre of the box of the squares for one square, a row or a stack, a halt stands on its first square, and a diagonal or triangular station has the pin on its own area. A station (at least one platform) has k 1 and a light (232,238,242) pin with a dark disc of 0.4 of its radius at the centre of the circle; a halt (no platform) has k 0.8 and a dark pin with a light edge of 1.6 logical pixels and a light dot of 0.38 of the radius; a major station (three or more connections at its node) has k 1.15 and a blue (80,120,210) pin with a light edge of 1.2 logical pixels and a light dot of 0.42 of the radius. Under the tracks the area of the station shows in both looks: the convex hull of the centres of its squares, widened by 6 logical pixels on every side, in the pin blue at an alpha of 56 of 255. In the near look the hull also takes the corners of the platform bars at the place of the station, so that the area covers them. The area takes no clicks and shows and hides with the mark. In the near look the mark of a station with squares at its place draws nothing and has no bounds and no shape, so the squares, the platform bars, the area and the name show; a station without such a square keeps its pin in both looks, so that it can still be seen and clicked, and in the near look that pin and its name keep 24 px and 12 px on screen at every zoom. Before a run, as in a run, a station without platforms has the squares of the nodes at its position. A run without the shared preview does not count connections, so it draws no major station. The mark is parented to its authored structural node where available for artwork hits; a pin is picked on the pin itself, its edge included. The name goes a quarter frame under the squares, centred on the mark, where the squares count as a disc of 0.22 frame on each square of a station, one disc of 0.15 frame on the first square of a halt and the hull of the squares widened by 0.23 frame for a major station. Where its text there crosses a visible track line or the mark of another station, shown or hidden, it goes to the first free spot of: above the pin, right of the squares, left of them, and above a frame on the top of the box of the squares, at the x of the squares; with none free it stays under the squares. In the near look a station that draws no pin has its spot above the squares instead of above the pin, and no last spot, so that its name stays by the squares. The frame is at least 24 px on screen and the name font at least 12 px; above that the scene size applies. The name has a halo of 2 logical pixels in the canvas colour around its letters, so that a track, a pin or a train under it does not cross them. The halo is drawn on every paint, without a cached picture: while Qt draws the letters from its glyph cache, up to 64 device pixels, it is the letters drawn sixteen times around their place, in eight directions at 1 and at 2 pixels, and for larger letters a stroke along their outlines that reaches 2 pixels past them. The name is stacked over everything else on the canvas: tracks, switches, signals, squares, pins, areas, platform bars, passenger counters and icons, trains, their speed and the notices of a virtual coupling. Only the boxes that a click opens, the callouts of a train and the details of a passenger, go over it. It takes no click, so a click on it goes to what lies under it. Names that overlap on screen are hidden in order of selected, followed, platform count, then the existing tie breaks, and a name gives way to another station as it is drawn: to the area of its pin and its squares when it draws its pin, and to the area of its squares in the near look. The mark and its hit target stay. Preview artwork keeps its own canonical station identity; position-only artwork has no invented node. The map key has one row for each class on the canvas (“Major station”, “Station”, “Halt”), each with the whole pin of the class centred in its swatch at the scale of the pin of a major station, so that the classes keep their sizes; the map key and the menu icon draw the pins in the colours of the canvas, halo included, and the dark halo outlines a light pin on the light panel.</p></td>
+</tr>
+<tr class="row-even"><td><p>Signal</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintSignal</span></code>: white post and base, head of size <code class="docutils literal notranslate"><span class="pre">node_size</span></code> with a hairline pen (width 0), one head per direction. A head starts green; <code class="docutils literal notranslate"><span class="pre">updateSignalAspect</span></code> sets green for codes 270 and 180, yellow for 75 and red for 0, and keeps the colour for any other code.</p></td>
+<td><p>Each authored direction has its own scene-sized aspect head, white cosmetic post and white base. No viewport slots, grouping, sectors, multiplicity labels or direction ticks. A click in a circle 12 logical pixels across at the centre of the head selects the signal at every zoom, even where a track or connection lies under it, while station artwork keeps its priority. The scene tests that circle at the click, so it is not an item and no paint has to visit it. Selection does not overwrite aspects. A head has one of five states, with one text for the tooltip, the inspector and the end-to-end checks: Stop (red, codes 0 and 751), Caution (yellow, code 75), Proceed (green, codes 180 and 270), Unavailable (a gray ring, RGB (150,150,150)) and Failed (a red lamp with a white cross). A head is unavailable when its section has no signalling level, when no route runs through its section in its direction, and for a code that no aspect uses. A head is failed, on every head of the failed section that has a state, for the steps in which a signal failure incident is active. Levels 3 and 4 keep red and green. Heads in the preview before a run stay green. A lit head (every state except Unavailable, whose gray ring has its own stroke) has a black outline of one device pixel when it is at least 6 device pixels wide. A narrower lit or failed head is a disc in its lamp colour without an outline, 1.5 device pixels wider than the head, as wide as the Unavailable ring, so its colour still shows. Marks add a second cue to the colour: a dark bar on Stop, a dark dot on Caution, a short gray dash in the Unavailable ring, the white cross on Failed; Proceed has none. A head draws its mark only when it is at least 6 device pixels wide; narrower heads show colour only. The map key has a row for each of the five states.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Train and passengers</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">paintTrain</span></code>: one polygon per wagon, outline pen width 3, colours from <code class="docutils literal notranslate"><span class="pre">classifyTrainType</span></code> (keyword colours for freight, high speed, sprinter and intercity, a default yellow otherwise). Passengers: <code class="docutils literal notranslate"><span class="pre">pax_icon.png</span></code> scaled to <code class="docutils literal notranslate"><span class="pre">station_size</span> <span class="pre">/</span> <span class="pre">10</span></code>. <code class="docutils literal notranslate"><span class="pre">updateTrainPosition</span></code>: a black <code class="docutils literal notranslate"><span class="pre">addSimpleText</span></code> speed label for each train, such as “102 km/h”, at the centre of the train plus (6,-18) scene units.</p></td>
+<td><p>Historical train polygons in one default yellow, (235,210,55) with outline (110,90,20), whatever the rolling-stock type; the keyword colours of <code class="docutils literal notranslate"><span class="pre">classifyTrainType</span></code> are not used. A body with its outline is at least 8 logical pixels thick on screen: where the view shows it thinner, it is stroked in its fill colour to that thickness with round corners, and the stroke is part of its click target. Above that zoom the body is drawn as authored. A train whose service has a valid <code class="docutils literal notranslate"><span class="pre">visualization_color</span></code> (Services dock, Colour) is drawn with that fill and its darker shade as the outline, for every occurrence on the canvas and in replay; an unknown service or an invalid text gives the default. The map key has a “Train” row in the default yellow when a train uses it, then one row per other fill colour labelled with the service ids that use it (the first three, then “and N more”; the tooltip lists all), ordered by the smallest service id of each row. Original scene-sized <code class="docutils literal notranslate"><span class="pre">pax_icon.png</span></code> passenger glyph, also used by the map key. Passenger information callouts remain separate operational overlays; no train category badge is drawn. From a zoom of 3x, and for a selected or followed train at any zoom, the speed of the train, such as “102 km/h”, is drawn beside it in white 8 pt text with a dark (16,26,34) outline of 1 logical pixel. The text starts 8 logical pixels right of the centre of the train, the bottom of its line is 8 above it, it keeps its size at every zoom, it is stacked under the station names and it takes no click. <strong>Train speed labels</strong> hides it.</p></td>
+</tr>
+<tr class="row-even"><td><p>Selection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">myQGraphicsColorizeEffect(Qt::blue,</span> <span class="pre">1)</span></code> on the clicked item.</p></td>
+<td><p>A ring in the cue colour (61,214,255) with a dark casing, drawn in screen pixels just below the item in the stacking order, so it keeps its size at every zoom. A line item gets a halo along its line, any other item a rounded ring of at least 16 by 16 pixels with 3 pixels of padding; a station node is ringed together with its pictogram. The ring never recolours or covers the item, is covered by the item and by everything stacked over it, and takes no mouse input.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Track state</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">updateBlockOccupationStatus</span></code>: a red <code class="docutils literal notranslate"><span class="pre">myQGraphicsColorizeEffect</span></code> on the blocks occupied by a train. <code class="docutils literal notranslate"><span class="pre">releaseBlockOccupationStatus</span></code>: a white effect on every track at the start of each step of <code class="docutils literal notranslate"><span class="pre">updateTrainPosition</span></code>. Prepared and blocked do not exist.</p></td>
+<td><p>In a run and a replay <code class="docutils literal notranslate"><span class="pre">TrackLineItem::paint</span></code> draws a track line that a train occupies, every arc of the block section the train is in, in red (255,0,0) instead of its speed colour, at the width of its speed class. The red ends with the run, after Stop and when the run fails; a replay shows the occupied lines of its frame. Prepared and blocked are not painted. An occupied line in a section that a signal failure blocks is red as well, and the arc inspector shows it as blocked; otherwise the arc inspector shows occupied, blocked or prepared. The map key of the run canvas has an “Occupied section” row, also after the run ends, and the key of the preview has none.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="intentional-differences-from-the-historical-renderer">
+<h2>Intentional differences from the historical renderer<a class="headerlink" href="#intentional-differences-from-the-historical-renderer" title="Link to this heading">¶</a></h2>
+<p>These are the only intentional differences. A difference from the reference that is not listed here is not intended. The numbers are the pull requests that made the change, or the issue where none did; <a class="reference internal" href="historical-track-comparison.html"><span class="std std-doc">Historical track presentation</span></a> gives the detail and the captures.</p>
+<ul class="simple">
+<li><p>Station pictogram and its size on screen (#579, #822, #1063): a mark per station class with a dark halo replaces the raster pictogram, and the pictogram and the name have a minimum size on screen. Zoomed out the mark is a map pin over a faint area that covers the station squares; zoomed in the pin gives way to the squares, the platform bars and the area. The name sits under the station, or off the tracks above the mark or beside the squares, where the reference centred it on the anchor. The name has a halo in the canvas colour and is stacked over the tracks, the pins and the trains, where the reference stacked the trains over it.</p></li>
+<li><p>Canvas (#509): a soft background and a faint grid replace solid black.</p></li>
+<li><p>Selection (#606): a ring replaces the blue recolouring of the selected item.</p></li>
+<li><p>Train colours (#549, #555, #572): one default colour replaces the keyword colours, and a service can set its own colour on the canvas and in the result windows.</p></li>
+<li><p>Signal head states (#586): an empty ring for a head without signalling data, a red lamp with a white cross for a failed head, and a dark bar or dot on Stop and Caution. A lit head keeps the hairline outline of the reference from 6 device pixels, the width at which the marks appear; a narrower lit or failed head is a disc in its lamp colour, without the outline.</p></li>
+<li><p>Presentation scale (#422): symbol sizes, text and offsets are converted from the historical construction units.</p></li>
+<li><p>Mainline track grey (#822): track of 120 km/h and above is (160,160,160) instead of (80,80,80), which is below the 3:1 contrast target.</p></li>
+<li><p>Train size on screen (#822): a train body is at least 8 logical pixels on screen, so a running train stays visible at Fit. Signal heads keep their 6 pixel rule.</p></li>
+<li><p>Station names (issue #387): a space goes before a capital only after a lowercase letter or at the end of an acronym.</p></li>
+<li><p>Platform bars (issue #1060): a bar lies along its track, where the reference drew every bar level above its node.</p></li>
+<li><p>Platform bars on every platform: each platform has a bar in the preview and in every run, shown once the view is zoomed in to the near look of the stations, where the reference drew the bars only in passenger-GUI mode. <strong>Passengers</strong> adds the counters and the passenger icons on the bars that show.</p></li>
+<li><p>Train speed: the speed beside a train is white with a dark outline, keeps its size on screen and is shown from a zoom of 3x or for a selected or followed train. The reference drew a black label at scene scale beside every running train.</p></li>
+<li><p>Track states (issue #387): blocked and prepared sections are shown in the inspector and not painted. An occupied section is plain red (255,0,0) at the width of its speed class, where the reference tinted it with a red colour effect.</p></li>
+<li><p>Running state (issue #387): the white repaint of every track at each step is not reproduced.</p></li>
+</ul>
+</section>
+<section id="contrast-and-presentation-notes">
+<h2>Contrast and presentation notes<a class="headerlink" href="#contrast-and-presentation-notes" title="Link to this heading">¶</a></h2>
+<p>Contrast against the canvas <code class="docutils literal notranslate"><span class="pre">#101a22</span></code> (WCAG relative-luminance contrast ratio,
+(L1 + 0.05) / (L2 + 0.05)). The grid is deliberately close to the canvas (1.16:1).</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Primitive</p></th>
+<th class="head"><p>Colour</p></th>
+<th class="head"><p>Contrast</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Track at least 200 km/h</p></td>
+<td><p>(30,130,210)</p></td>
+<td><p>4.34</p></td>
+</tr>
+<tr class="row-odd"><td><p>Track at least 120 km/h</p></td>
+<td><p>(160,160,160)</p></td>
+<td><p>6.73</p></td>
+</tr>
+<tr class="row-even"><td><p>Other track</p></td>
+<td><p>(120,120,120)</p></td>
+<td><p>3.99</p></td>
+</tr>
+<tr class="row-odd"><td><p>Connection, station name</p></td>
+<td><p>White</p></td>
+<td><p>17.60</p></td>
+</tr>
+<tr class="row-even"><td><p>Pin of a station, light edge and dot of the other pins</p></td>
+<td><p>(232,238,242)</p></td>
+<td><p>15.04, and 15.04 against the dark disc of a station</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pin of a major station</p></td>
+<td><p>(80,120,210)</p></td>
+<td><p>4.16, and 3.62 against its light edge and dot</p></td>
+</tr>
+<tr class="row-even"><td><p>Pin of a halt</p></td>
+<td><p>(16,26,34) inside its light edge</p></td>
+<td><p>1.00; the light edge gives 15.04</p></td>
+</tr>
+<tr class="row-odd"><td><p>Station area</p></td>
+<td><p>(80,120,210) at alpha 56, (30,47,73) over the canvas</p></td>
+<td><p>1.31; on the area the tracks keep 3.32, 5.15 and 3.05, an occupied track 3.37, a light pin 11.52, the blue pin 3.18, a name 13.48 and a train 8.86</p></td>
+</tr>
+<tr class="row-even"><td><p>Selection cue, track selected in the editor table</p></td>
+<td><p>(61,214,255)</p></td>
+<td><p>10.27</p></td>
+</tr>
+<tr class="row-odd"><td><p>Signal Stop, Caution, Proceed</p></td>
+<td><p>Red, yellow, green</p></td>
+<td><p>4.40, 16.39, 12.83</p></td>
+</tr>
+<tr class="row-even"><td><p>Signal Unavailable ring</p></td>
+<td><p>(150,150,150)</p></td>
+<td><p>5.95</p></td>
+</tr>
+<tr class="row-odd"><td><p>Train default</p></td>
+<td><p>(235,210,55)</p></td>
+<td><p>11.57</p></td>
+</tr>
+<tr class="row-even"><td><p>Train speed</p></td>
+<td><p>White</p></td>
+<td><p>17.60</p></td>
+</tr>
+<tr class="row-odd"><td><p>Track state prepared, occupied, blocked</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#4C8DAE</span></code>, red (255,0,0), <code class="docutils literal notranslate"><span class="pre">#D6A13A</span></code></p></td>
+<td><p>4.80, 4.40, 7.56</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Operational prepared and blocked states remain in scene data and inspectors,
+but do not change ordinary historical track paint; an occupied line is red in a
+run and a replay. Selection draws a
+ring around the item and never recolours it, so a selected track keeps its
+speed-class color. The exception is the preview, where the track of the row selected in the Infrastructure table is
+drawn in the cue colour, width 4. A refresh of the table keeps a selected row and selects none otherwise, so Run, Stop, Save and New case
+draw no track in it unless the user selected a row. The cue colour is reserved: no built-in track, signal or default train colour uses
+it; a service colour chosen by the user is not checked. The map key shows only visible track styles. Layer/Follow/replay controls are
+unchanged.</p>
+<p>Preview uses canonical read-only fields and shows the placeholder “After a run”
+in the fields that only a run fills. Signal head identity is the rendered canonical track,
+section and direction, plus any authored signal IDs, not a numeric runtime
+placeholder. Runtime numeric inspection remains separate. Expanded hit shapes
+do not determine preview topology bounds or Fit. These implementation and
+semantic checks do not establish matched-scale historical visual acceptance.</p>
+<p>Scene-space presentation distances use the fixed measured historical
+construction convention <code class="docutils literal notranslate"><span class="pre">Q_h</span> <span class="pre">=</span> <span class="pre">800000</span> <span class="pre">*</span> <span class="pre">100</span> <span class="pre">/</span> <span class="pre">360</span></code>, converted by TrackPreview’s
+actual normalization <code class="docutils literal notranslate"><span class="pre">S_c</span> <span class="pre">/</span> <span class="pre">Q_h</span></code>. This includes artwork/text geometry and
+annotation nudges, node/signal dimensions, platform/passenger adornments, train
+lateral thickness and callouts. It does not rescale physical interpolation or
+cosmetic strokes. Fonts retain their original metrics through fractional item
+scaling. Only wholly successful visible authored station-view projections enable
+conversion; raw, mixed, invalid, empty, degenerate or nonfinite scenes keep factor</p>
+<ol class="arabic simple">
+<li><p>See <a class="reference internal" href="historical-track-comparison.html"><span class="std std-doc">Historical track presentation</span></a> for the
+reference convention and remaining visual acceptance limits.</p></li>
+</ol>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="historical-track-comparison.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Historical track presentation</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="interface-style.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Interface style</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Network renderer style map</a><ul>
+<li><a class="reference internal" href="#intentional-differences-from-the-historical-renderer">Intentional differences from the historical renderer</a></li>
+<li><a class="reference internal" href="#contrast-and-presentation-notes">Contrast and presentation notes</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

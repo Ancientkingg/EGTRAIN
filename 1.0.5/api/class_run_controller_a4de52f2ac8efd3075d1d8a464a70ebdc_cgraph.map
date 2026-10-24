@@ -1,0 +1,16 @@
+<map id="RunController::chooseOutputFolder" name="RunController::chooseOutputFolder">
+<area shape="rect" id="Node000001" title="Asks for the folder that the next runs write to. A run that is going on keeps its folder." alt="" coords="5,87,215,127"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="282,5,450,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,84,262,55,287,47,288,52,263,60,173,89"/>
+<area shape="rect" id="Node000003" href="$namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982" title="The status bar text that names the output folder of the next runs." alt="" coords="263,94,469,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,104,249,104,249,109,215,109"/>
+<area shape="rect" id="Node000006" href="$class_dispatch_controller.html#af3f0690a12a2103a1e80aca5cc5a8be9" title=" " alt="" coords="271,144,461,184"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="201,124,263,138,262,144,199,129"/>
+<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="329,96,321,86,325,76,340,70,366,67,398,71,411,81,407,85,396,76,366,73,341,75,328,80,326,85,333,92"/>
+<area shape="rect" id="Node000004" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="517,94,675,119"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="470,104,504,104,504,109,470,109"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="561,96,554,86,557,76,572,70,596,67,626,71,637,80,634,84,624,76,596,73,573,75,561,80,559,85,565,92"/>
+<area shape="rect" id="Node000005" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="723,94,897,119"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="675,104,709,104,709,109,675,109"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="775,96,768,86,771,76,786,70,810,67,840,71,851,80,848,84,838,76,810,73,787,75,775,80,773,85,779,92"/>
+</map>

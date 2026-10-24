@@ -1,0 +1,15 @@
+<map id="capacityScopeBlocksText" name="capacityScopeBlocksText">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,54,192,79"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="63,56,55,46,59,36,74,30,99,27,129,31,142,40,138,44,127,36,99,33,75,35,62,40,60,45,67,52"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a3bb2c1995320c79d30288260f90e0bd3" title=" " alt="" coords="240,54,403,79"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="192,64,226,64,226,69,192,69"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="288,56,281,46,285,36,298,30,321,27,350,31,361,40,357,44,347,36,321,33,300,35,288,39,286,45,292,52"/>
+<area shape="rect" id="Node000003" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="451,5,601,45"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="384,51,437,41,438,46,385,57"/>
+<area shape="rect" id="Node000004" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="475,94,577,119"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="388,77,461,91,460,97,387,82"/>
+<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="493,96,486,86,489,76,503,70,526,67,554,71,566,80,562,84,552,76,526,73,504,75,493,79,491,85,497,92"/>
+<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="649,94,828,119"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="578,104,635,104,635,109,578,109"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="704,96,697,86,701,76,715,70,739,67,768,71,780,80,776,84,766,76,739,73,716,75,704,79,702,85,708,92"/>
+</map>

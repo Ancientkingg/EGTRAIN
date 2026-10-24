@@ -1,8 +1,14 @@
 var searchData=
 [
-  ['openedscene_0',['OpenedScene',['../struct_scene_session_1_1_opened_scene.html',1,'SceneSession']]],
-  ['openrequestrelay_1',['OpenRequestRelay',['../class_open_request_relay.html',1,'']]],
-  ['operationobservation_2',['OperationObservation',['../classtelemetry_1_1_operation_observation.html',1,'telemetry']]],
-  ['operationtoken_3',['OperationToken',['../classtelemetry_1_1_telemetry_sender_1_1_operation_token.html',1,'telemetry::TelemetrySender']]],
-  ['options_4',['Options',['../struct_case_chooser_dialog_1_1_options.html',1,'CaseChooserDialog']]]
+  ['narrowrowdelegate_0',['NarrowRowDelegate',['../class_narrow_row_delegate.html',1,'']]],
+  ['networklegendcontent_1',['NetworkLegendContent',['../struct_network_legend_content.html',1,'']]],
+  ['networklegendentry_2',['NetworkLegendEntry',['../struct_network_legend_entry.html',1,'']]],
+  ['networklegendtrain_3',['NetworkLegendTrain',['../struct_network_legend_train.html',1,'']]],
+  ['networklegendwidget_4',['NetworkLegendWidget',['../class_network_legend_widget.html',1,'']]],
+  ['networkpresenter_5',['NetworkPresenter',['../class_network_presenter.html',1,'']]],
+  ['networkscene_6',['NetworkScene',['../class_network_scene.html',1,'']]],
+  ['networkview_7',['NetworkView',['../class_network_view.html',1,'']]],
+  ['node_8',['Node',['../class_node.html',1,'']]],
+  ['nodeitem_9',['NodeItem',['../class_node_item.html',1,'']]],
+  ['numbergenerator_10',['NumberGenerator',['../class_number_generator.html',1,'']]]
 ];

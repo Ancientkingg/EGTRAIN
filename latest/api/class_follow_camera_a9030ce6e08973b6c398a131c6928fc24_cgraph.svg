@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" target="_top" xlink:title="Forgets the target and stops the timer.">
+<g id="a_Node000002"><a xlink:href="class_follow_camera.html#a90668ade85e90015e042c15ad3c765e4" target="_top" xlink:title="Forgets the target and ends a catch&#45;up.">
 <polygon fill="white" stroke="#666666" points="341,-93 228,-93 228,-74 341,-74 341,-93"/>
 <text text-anchor="middle" x="284.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">FollowCamera::stop</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" target="_top" xlink:title="One step of the glide. The timer calls it; tests call it with a clock set by setClock().">
+<g id="a_Node000003"><a xlink:href="class_follow_camera.html#a388b88dfd824d48b7d1209d158e6e907" target="_top" xlink:title="One step of a catch&#45;up. The timer calls it; tests call it with a clock set by setClock().">
 <polygon fill="white" stroke="#666666" points="339.5,-56 229.5,-56 229.5,-37 339.5,-37 339.5,-56"/>
 <text text-anchor="middle" x="284.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">FollowCamera::tick</text>
 </a>

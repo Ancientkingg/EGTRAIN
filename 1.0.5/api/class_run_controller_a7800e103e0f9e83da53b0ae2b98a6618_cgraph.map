@@ -1,0 +1,7 @@
+<map id="RunController::clearSimulationWorker" name="RunController::clearSimulationWorker">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,227,67"/>
+<area shape="rect" id="Node000002" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title="Asks the run to stop. Returns whether a run existed." alt="" coords="275,5,472,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,32,261,28,262,33,227,37"/>
+<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="279,55,467,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,57,266,61,265,66,227,62"/>
+</map>

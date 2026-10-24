@@ -123,13 +123,14 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af48c07ffcfcfddd1faf073a7c2747531" id="r_af48c07ffcfcfddd1faf073a7c2747531"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af48c07ffcfcfddd1faf073a7c2747531">routeIndex</a> = -1</td></tr>
 <tr class="memdesc:af48c07ffcfcfddd1faf073a7c2747531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_completed_run_data.html#a9a547516bc17d291896b61deb5466dfb" title="In the order of the simulation&#39;s routes.">CompletedRunData::routes</a>, -1 for none.  <br /></td></tr>
 <tr class="memitem:a7cd4bcf09530fe99be2902a7f14a6b96" id="r_a7cd4bcf09530fe99be2902a7f14a6b96"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7cd4bcf09530fe99be2902a7f14a6b96">blockIds</a></td></tr>
-<tr class="memdesc:a7cd4bcf09530fe99be2902a7f14a6b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">In route order; the first is the reference of every train.  <br /></td></tr>
+<tr class="memdesc:a7cd4bcf09530fe99be2902a7f14a6b96"><td class="mdescLeft">&#160;</td><td class="mdescRight">The analysed blocks, a range of the route, in route order.  <br /></td></tr>
 <tr class="memitem:a8b08aeffde34d6972e3ab6ce4a9cf0d9" id="r_a8b08aeffde34d6972e3ab6ce4a9cf0d9"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8b08aeffde34d6972e3ab6ce4a9cf0d9">sectionIndices</a></td></tr>
 <tr class="memdesc:a8b08aeffde34d6972e3ab6ce4a9cf0d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions of those blocks in the route, from 0.  <br /></td></tr>
 <tr class="memitem:a9f4b77a20d02a7fcdbb6985f9e5e3793" id="r_a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9f4b77a20d02a7fcdbb6985f9e5e3793">occurrenceIds</a></td></tr>
 <tr class="memdesc:a9f4b77a20d02a7fcdbb6985f9e5e3793"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> ids in chain order; empty for every train with occupations.  <br /></td></tr>
 <tr class="memitem:ab9f9b770bf1b0a49e5785b511b520e3e" id="r_ab9f9b770bf1b0a49e5785b511b520e3e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab9f9b770bf1b0a49e5785b511b520e3e">cycleEndOccurrenceId</a></td></tr>
-<tr class="memdesc:ab9f9b770bf1b0a49e5785b511b520e3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train that closes the cycle, empty for none.  <br /></td></tr>
+<tr class="memitem:a33f5ce427ec5c7dc846156d034415a73" id="r_a33f5ce427ec5c7dc846156d034415a73"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a33f5ce427ec5c7dc846156d034415a73">repeatFirstTrain</a> = false</td></tr>
+<tr class="memdesc:a33f5ce427ec5c7dc846156d034415a73"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the first train one period later (capacityNextPeriodTrain) follows the last train and closes the cycle.  <br /></td></tr>
 <tr class="memitem:a2714699baf4443ce76cf1e2c92728389" id="r_a2714699baf4443ce76cf1e2c92728389"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2714699baf4443ce76cf1e2c92728389">periodSeconds</a> = 3600.0</td></tr>
 <tr class="memdesc:a2714699baf4443ce76cf1e2c92728389"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analysis period in seconds.  <br /></td></tr>
 </table>
@@ -148,7 +149,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>In route order; the first is the reference of every train. </p>
+<p>The analysed blocks, a range of the route, in route order. </p>
 
 </div>
 </div>
@@ -163,8 +164,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The train that closes the cycle, empty for none. </p>
+<p>The train that closes the cycle, empty for none; unused with repeatFirstTrain </p>
 
 </div>
 </div>
@@ -197,6 +197,22 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Analysis period in seconds. </p>
+
+</div>
+</div>
+<a id="a33f5ce427ec5c7dc846156d034415a73" name="a33f5ce427ec5c7dc846156d034415a73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33f5ce427ec5c7dc846156d034415a73">&#9670;&#160;</a></span>repeatFirstTrain</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool CapacityAnalysisScope::repeatFirstTrain = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True when the first train one period later (capacityNextPeriodTrain) follows the last train and closes the cycle. </p>
 
 </div>
 </div>

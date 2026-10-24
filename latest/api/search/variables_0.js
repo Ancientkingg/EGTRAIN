@@ -57,6 +57,6 @@ var searchData=
   ['assetsize_54',['assetSize',['../struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb',1,'UpdateManifest']]],
   ['authoredstationprojection_55',['authoredStationProjection',['../struct_track_preview_line.html#abf9d965ab7c2744a82e976a310eb5478',1,'TrackPreviewLine']]],
   ['av_5farrival_5fdelay_56',['Av_Arrival_Delay',['../class_stations.html#af8ece16482a6e3ff222e68ce36fd09f6',1,'Stations']]],
-  ['available_57',['available',['../struct_delay_statistics.html#a5db86bb809677830bf07bf8fcd3d1274',1,'DelayStatistics::available'],['../struct_run_result_value.html#aeb064508c6ffa1194da336157de4b286',1,'RunResultValue::available'],['../struct_network_presenter_1_1_preview_outcome.html#a49ac49ce5f1bd2dc31a4bf05c563d026',1,'NetworkPresenter::PreviewOutcome::available']]],
+  ['available_57',['available',['../struct_delay_statistics.html#a5db86bb809677830bf07bf8fcd3d1274',1,'DelayStatistics::available'],['../struct_delay_histogram.html#aa917c93d5865b448efa9eb0d845731a3',1,'DelayHistogram::available'],['../struct_run_result_value.html#aeb064508c6ffa1194da336157de4b286',1,'RunResultValue::available'],['../struct_network_presenter_1_1_preview_outcome.html#a49ac49ce5f1bd2dc31a4bf05c563d026',1,'NetworkPresenter::PreviewOutcome::available']]],
   ['availablegeometry_58',['availableGeometry',['../struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7',1,'CaseChooserDialog::Options']]]
 ];

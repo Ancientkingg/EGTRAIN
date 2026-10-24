@@ -1,0 +1,675 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Opening an .egscene case" href="opening-a-case-study.html"><link rel="prev" title="Bundled cases" href="case-studies.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>How-to - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/how-to.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="how-to">
+<h1>How-to<a class="headerlink" href="#how-to" title="Link to this heading">¶</a></h1>
+<p>Short recipes for the common tasks. Each says what you need, what to do and what you should see. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> is the walk from a download to a first run, and the <a class="reference internal" href="glossary.html"><span class="std std-doc">glossary</span></a> defines the words. On macOS the key Ctrl in a shortcut is the Command key, and <a class="reference internal" href="keyboard-shortcuts.html"><span class="std std-doc">Keyboard shortcuts</span></a> lists every shortcut.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#open-a-case">Open a case</a></p></li>
+<li><p><a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a></p></li>
+<li><p><a class="reference internal" href="#fix-validation-errors">Fix validation errors</a></p></li>
+<li><p><a class="reference internal" href="#run-a-case">Run a case</a></p></li>
+<li><p><a class="reference internal" href="#answer-the-unsaved-changes-question">Answer the unsaved changes question</a></p></li>
+<li><p><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></p></li>
+<li><p><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></p></li>
+<li><p><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></p></li>
+<li><p><a class="reference internal" href="#move-around-the-network-view-and-follow-a-train">Move around the network view and follow a train</a></p></li>
+<li><p><a class="reference internal" href="#replay-a-completed-run">Replay a completed run</a></p></li>
+<li><p><a class="reference internal" href="#results-and-exports">Results and exports</a></p></li>
+<li><p><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></p></li>
+<li><p><a class="reference internal" href="#close-start-a-new-case-or-open-another-during-a-run">Close, start a new case or open another during a run</a></p></li>
+<li><p><a class="reference internal" href="#change-the-application-settings">Change the application settings</a></p></li>
+<li><p><a class="reference internal" href="#if-egtrain-closes-unexpectedly">If EGTRAIN closes unexpectedly</a></p></li>
+<li><p><a class="reference internal" href="#why-a-command-is-disabled">Why a command is disabled</a></p></li>
+</ul>
+<section id="open-a-case">
+<h2>Open a case<a class="headerlink" href="#open-a-case" title="Link to this heading">¶</a></h2>
+<p>You need a case: a bundled case, an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file or a case folder.</p>
+<p>Use one of these:</p>
+<ul class="simple">
+<li><p>Click <strong>Open Case</strong> in the toolbar. In <strong>Open a Case</strong>, select an entry under <strong>Bundled cases</strong> or <strong>Recent cases</strong> and click <strong>Open</strong>. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. <strong>Other ways to open…</strong> offers <strong>New Case…</strong>, <strong>Open Case Folder…</strong> and <strong>Import Legacy Case…</strong>.</p></li>
+<li><p>Choose <strong>File &gt; Open Case…</strong> (Ctrl+O) and select an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file.</p></li>
+<li><p>Choose <strong>File &gt; Open Case Folder…</strong> and select a folder that holds <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>.</p></li>
+<li><p>Choose <strong>File &gt; Recent Cases</strong>. It lists the last 8 cases you opened or saved, each under the name that <strong>Open a Case</strong> shows (a saved <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file without its extension). The bundled cases are not listed there; <strong>Open a Case</strong> has them under <strong>Bundled cases</strong>. The menu checks the files each time it opens. An entry whose file is gone reads <code class="docutils literal notranslate"><span class="pre">Unavailable:</span></code> and is disabled, and the menu is greyed out while the list is empty.</p></li>
+<li><p>Drag one <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file onto the window. A folder or several files are refused with <code class="docutils literal notranslate"><span class="pre">Cannot</span> <span class="pre">open</span> <span class="pre">the</span> <span class="pre">dropped</span> <span class="pre">file:</span> <span class="pre">&lt;reason&gt;</span></code> in the status bar.</p></li>
+<li><p>On Windows and macOS, double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file (<a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a>).</p></li>
+<li><p>From a terminal, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">--scene</span> <span class="pre">path/to/case.egscene</span></code> opens a bundle or a case folder, and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span> <span class="pre">path/to/case.egscene</span></code> opens a bundle (<a class="reference internal" href="command-line.html"><span class="std std-doc">command-line options</span></a>).</p></li>
+</ul>
+<p>The dialogs of <strong>Open Case…</strong> and <strong>Open Case Folder…</strong> start in the folder above the open case. With no case open, they start in the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the app on macOS, and in your home folder on other systems.</p>
+<p>You should see the window title <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">-</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;</span></code>, the network in the view and the status bar <code class="docutils literal notranslate"><span class="pre">Opened</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;</span></code>. Opening a case does not run it and does not change the file.</p>
+<p>If the case does not open, a dialog says why: <strong>Cannot Open Case</strong>, <strong>Older Case Not Supported</strong> or <strong>Newer Case</strong>. <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a> explains each. While the current case has unsaved edits, see <a class="reference internal" href="#answer-the-unsaved-changes-question">the unsaved changes question</a>.</p>
+<p>Normal mode keeps the network view and the editors uncluttered. <strong>View &gt; Advanced Details</strong> switches to advanced mode, which raises the dock <strong>Loaded Data</strong> automatically after a case opens and shows the full validation counts, the non-blocking warnings and the technical inventories. In normal mode <strong>View &gt; Loaded Data</strong> and <strong>View &gt; Case Validation</strong> still open those docks. The choice changes what is shown, not what a run does.</p>
+</section>
+<section id="copy-and-save-a-case">
+<h2>Copy and save a case<a class="headerlink" href="#copy-and-save-a-case" title="Link to this heading">¶</a></h2>
+<p>A bundled case is read-only in practice: EGTRAIN never saves into the installation. Make your own copy before you edit.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>File &gt; Save As…</strong>.</p></li>
+<li><p>Choose a folder of your own and a file name. EGTRAIN adds <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> when you leave it off. The dialog starts in the folder of your open case, or in your Documents folder for a bundled case.</p></li>
+<li><p>Save.</p></li>
+</ol>
+<p>You should see <code class="docutils literal notranslate"><span class="pre">Case</span> <span class="pre">saved</span></code> in the status bar. Your file is now the open case, and it appears in <strong>File &gt; Recent Cases</strong>. The original is unchanged. The file holds the inputs of the case and no results, replay or delay baseline.</p>
+<p>Other ways to save:</p>
+<ul class="simple">
+<li><p><strong>File &gt; Save</strong> (Ctrl+S) writes the case back to the bundle or case folder it came from. For a bundled case, and for a new case that has no file yet, it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead, as <strong>Save As…</strong> does, and Cancel keeps the edit. A case folder outside the installation, such as one in a source checkout, is saved in place.</p></li>
+<li><p><strong>File &gt; Save As Folder…</strong> writes the case as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, EGTRAIN asks <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">folder</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">empty.</span> <span class="pre">Save</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">there</span> <span class="pre">anyway?</span></code>. A folder that already holds a <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> is written over without a question; other files in it are kept.</p></li>
+<li><p>A destination inside the installation is refused with <strong>Cannot Save Case</strong>: <code class="docutils literal notranslate"><span class="pre">Bundled</span> <span class="pre">cases</span> <span class="pre">cannot</span> <span class="pre">be</span> <span class="pre">overwritten.</span> <span class="pre">Choose</span> <span class="pre">a</span> <span class="pre">location</span> <span class="pre">outside</span> <span class="pre">the</span> <span class="pre">EGTRAIN</span> <span class="pre">installation.</span></code></p></li>
+</ul>
+<p>To check a saved case, open it again from <strong>File &gt; Recent Cases</strong>. The three save commands are enabled whenever a case is open, also during a run.</p>
+</section>
+<section id="run-a-case">
+<h2>Run a case<a class="headerlink" href="#run-a-case" title="Link to this heading">¶</a></h2>
+<p>You need an open case with no validation error. <a class="reference internal" href="getting-started.html#run-the-simulation"><span class="std std-ref">Getting started</span></a> walks through a first run.</p>
+<ol class="arabic simple">
+<li><p>Click <strong>Run</strong> in the toolbar, or choose <strong>Simulation &gt; Run</strong> (Ctrl+R).</p></li>
+<li><p>Read the dialog <strong>Run simulation</strong> and click <strong>Run simulation</strong>. <strong>Cancel</strong> returns to the window without a run.</p></li>
+</ol>
+<p>The trains move on the network view, and the status bar reads <code class="docutils literal notranslate"><span class="pre">Running</span></code>. <strong>Pause</strong> and <strong>Stop</strong> are in the toolbar.</p>
+<p>A run starts its clock at the <strong>Base time</strong> in <strong>Editors &gt; Case Settings</strong>.</p>
+</section>
+<section id="fix-validation-errors">
+<h2>Fix validation errors<a class="headerlink" href="#fix-validation-errors" title="Link to this heading">¶</a></h2>
+<p>You need an open case. EGTRAIN checks it when it opens, after every edit and before every run. An error disables <strong>Run</strong> and a warning does not.</p>
+<ol class="arabic">
+<li><p>Look in the dock <strong>Case and Layers</strong>. It names the case, and when an error blocks the run, the line under the name shows the first error.</p></li>
+<li><p>Choose <strong>View &gt; Case Validation</strong> (Ctrl+Shift+V). The table lists the findings, errors first, with <strong>Severity</strong>, <strong>Code</strong>, <strong>Message</strong>, <strong>File</strong>, <strong>Path</strong> and <strong>Fix</strong>. Without <strong>View &gt; Advanced Details</strong>, <strong>Code</strong>, <strong>File</strong> and <strong>Path</strong> are in the tooltip of a row instead.</p>
+<p><img alt="The dock Case Validation of Paimpol practice, a copy of Paimpol, after a dwell edit, with the columns Severity, Message and Fix. Row 1 is the warning Minimum dwell is longer than the time from arrival to departure; the rows below it read Journey has no route-choice legs." src="../_images/how-to-scene-validation.png" /></p>
+</li>
+<li><p>Fix the first error in the editor that matches its <strong>File</strong> and <strong>Path</strong> (menu <strong>Editors</strong>), and read the table again. It updates after each edit.</p></li>
+<li><p>Repeat until no error is left. <strong>Run</strong> is then enabled.</p></li>
+</ol>
+<p>You can save a case that has errors. Warnings do not stop a run, but read them: the dialog <strong>Run simulation</strong> repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:</p>
+<ul class="simple">
+<li><p>A service names a composition or a route that does not exist. Choose an existing one in <strong>Services</strong>, or add the missing record.</p></li>
+<li><p>A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab <strong>Timetable</strong> of <strong>Services</strong>.</p></li>
+<li><p>A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in <strong>Rolling Stock Units</strong>.</p></li>
+</ul>
+<p><strong>Run</strong> stays disabled while any error remains. From a terminal, <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span> <span class="pre">--runnable</span> <span class="pre">path/to/case</span></code> prints the same findings (<a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">scene_tool</span></a>).</p>
+</section>
+<section id="answer-the-unsaved-changes-question">
+<h2>Answer the unsaved changes question<a class="headerlink" href="#answer-the-unsaved-changes-question" title="Link to this heading">¶</a></h2>
+<p>After an edit the case is unsaved. EGTRAIN then asks (<code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">the</span> <span class="pre">changes</span> <span class="pre">to</span> <span class="pre">&lt;case</span> <span class="pre">name&gt;?</span></code>) before it replaces the case, which happens when you open another case, choose <strong>New Case…</strong>, load a legacy case or close the window. On Windows and Linux the box is titled <strong>Unsaved Case</strong> and offers <strong>Save</strong>, <strong>Discard</strong> and <strong>Cancel</strong>. On macOS it is a sheet without a title that offers <strong>Save</strong>, <strong>Cancel</strong> and <strong>Don’t Save</strong>, which does what <strong>Discard</strong> does.</p>
+<ul class="simple">
+<li><p><strong>Save</strong> saves the case first. For a bundled case or a new case it asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file, and if you cancel that dialog, the open or close is cancelled too.</p></li>
+<li><p><strong>Discard</strong> (<strong>Don’t Save</strong> on macOS) drops the edits.</p></li>
+<li><p><strong>Cancel</strong> keeps the case and its edits.</p></li>
+</ul>
+<p>If EGTRAIN closes without an answer, for example after a crash, it offers the edits again at the next start in <strong>Recover Unsaved Work</strong> (see <a class="reference internal" href="getting-started.html#if-something-goes-wrong"><span class="std std-ref">Getting started</span></a>). <strong>Edit &gt; Undo</strong> and <strong>Edit &gt; Redo</strong> step through the edits of the session.</p>
+</section>
+<section id="edit-a-timetable-stop">
+<h2>Edit a timetable stop<a class="headerlink" href="#edit-a-timetable-stop" title="Link to this heading">¶</a></h2>
+<p>You need an open case that you have copied (<a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a>) and no active run. The contents of the dock <strong>Services</strong> are disabled during a run; the menu entry still opens it.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Editors &gt; Services</strong> and select the service in the list at the top of the dock. The dock has the tabs <strong>Service</strong>, <strong>Timetable</strong> and <strong>Run occurrences</strong>. Open the tab <strong>Timetable</strong>.</p></li>
+<li><p>In the table of stops, click the row of the stop. The dialog <strong>Edit Timetable Stop</strong> opens with the station, the platform, <strong>Minimum dwell (s)</strong>, <strong>Planned arrival</strong> and <strong>Planned departure</strong>.</p></li>
+<li><p>Change the field. <strong>Planned time display</strong> switches the dialog between <strong>Elapsed offsets (s)</strong> (seconds from the base time of the case) and <strong>Clock time</strong>. Blank means the time is absent, and <code class="docutils literal notranslate"><span class="pre">0</span></code> is the start of the simulation.</p></li>
+<li><p>Click <strong>OK</strong> to apply the fields together, or <strong>Cancel</strong> to leave the stop as it was.</p></li>
+</ol>
+<p>The buttons <strong>Add Stop</strong>, <strong>Insert After Selected</strong>, <strong>Remove Stop</strong>, <strong>Move Up</strong> and <strong>Move Down</strong> change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. <strong>Edit &gt; Undo</strong> reverts the edit. The rules for the times, the platforms and the insert positions are in <a class="reference internal" href="editing-a-case.html"><span class="std std-doc">Edit and validate</span></a>.</p>
+<p>For the whole exercise of changing a copy, saving it, opening it again, validating it and running it while the original stays as it was, follow the <a class="reference internal" href="tutorial-modify-a-case.html"><span class="std std-doc">tutorial</span></a>.</p>
+</section>
+<section id="edit-rolling-stock">
+<h2>Edit rolling stock<a class="headerlink" href="#edit-rolling-stock" title="Link to this heading">¶</a></h2>
+<p>You need an open case that you have copied and no active run. The editors <strong>Rolling Stock Units</strong> and <strong>Compositions</strong> are not disabled during a run, but an edit there discards the results of that run.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Editors &gt; Rolling Stock Units</strong>. <strong>Add Unit</strong>, <strong>Duplicate</strong> and <strong>Delete</strong> change the list. Select a unit to edit its physical values and its traction rows (<strong>Add Row</strong>, <strong>Delete Row</strong>). <strong>Plot Traction Curve</strong> plots the curve. The number fields stop at wide limits, and a number that no rail vehicle has, for example one read from a file, gives the warning <code class="docutils literal notranslate"><span class="pre">scene.train.value.implausible</span></code> in <strong>Case Validation</strong>. The limits are in <a class="reference internal" href="scene-schema.html#rolling-stock"><span class="std std-ref">Rolling stock</span></a>.</p></li>
+<li><p>Choose <strong>Editors &gt; Compositions</strong> to put units in order for a train: <strong>Add Composition</strong>, <strong>Add Unit</strong>, <strong>Remove Unit</strong>, <strong>Move Up</strong>, <strong>Move Down</strong>.</p></li>
+<li><p>Choose the composition of a service in <strong>Editors &gt; Services</strong>.</p></li>
+</ol>
+<p><strong>Link File…</strong> on the tabs <strong>Physical</strong> and <strong>Traction</strong> of the editor of a unit reads the values of a unit from a parameter file or a traction file. The links last for the session: <strong>Unlink</strong> removes one, and reopening or replacing the case clears them. <a class="reference internal" href="main-window.html#review-what-loaded"><span class="std std-ref">Review what loaded</span></a> gives the file formats and the rules for a changed file.</p>
+</section>
+<section id="compare-a-scenario-with-a-baseline">
+<h2>Compare a scenario with a baseline<a class="headerlink" href="#compare-a-scenario-with-a-baseline" title="Link to this heading">¶</a></h2>
+<p>A scenario is a named set of incidents and entrance delays. <strong>Set delay baseline</strong> freezes a completed run without them, and <strong>Compare delays</strong> shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>Editors &gt; Scenarios</strong>. The list <strong>Scenarios</strong> holds each scenario. Click <strong>New</strong>, or select a scenario and click <strong>Duplicate</strong>, to create the scenario to test.</p></li>
+<li><p>In the incident editor of the dock, click <strong>Add Incident</strong> and fill its fields. A signal head or a train that is selected on the network view becomes the target of the new incident. The icon button <strong>Pick</strong> beside <strong>Target</strong> waits for the next one that you click and takes it as the target; Esc or a second click on <strong>Pick</strong> stops the wait. A signal head gives a signal failure of its block, or of the authored signal when exactly one protects its section, and a train of a completed run gives a breakdown of its occurrence. You can also start on the network view: right-click a signal head and choose <strong>Add signal failure</strong>, or right-click a train after a run and choose <strong>Add train breakdown</strong>. The information panel of a signal or a train has the same action as a button under its fields. It adds the incident to the selected scenario as one edit, which Undo takes back, opens the tab <strong>Incidents</strong> with the new incident selected and puts the cursor in <strong>Start (s)</strong>. It is disabled while the case runs and when the item gives no target, and its tooltip says why. After a run the new incident discards the results, as any edit does, and the status bar says so. For an entrance delay, open the tab <strong>Entrance delays</strong> and click <strong>Add</strong>. This adds a row for the first service that has a planned departure, at its first stop with one, with a delay of 0 s. With the row selected, change <strong>Service</strong>, <strong>Occurrence</strong>, <strong>Station</strong> and <strong>Delay (s)</strong>; the line in the list follows each change, and <strong>Delay (s)</strong> takes effect when you press Enter or leave the field.</p></li>
+<li><p>Select the scenario without incidents and entrance delays (the bundled cases have one, <code class="docutils literal notranslate"><span class="pre">baseline</span></code>). Click <strong>Run</strong>, and <strong>Run simulation</strong>. When the run has ended, click <strong>Set delay baseline</strong> in the dock <strong>Run Results</strong>. The line under <strong>Delay comparison</strong> names the baseline.</p></li>
+<li><p>Select the scenario with the incident in the list <strong>Scenarios</strong>. This keeps the baseline and discards the results. Run it.</p></li>
+<li><p>Click <strong>Compare delays</strong>. The window <strong>Delay analysis</strong> opens on the tab <strong>Against baseline</strong>.</p></li>
+</ol>
+<p>The two buttons say why they are disabled in their tooltips and in the line above them. <strong>Set delay baseline</strong> needs a completed run whose scenario has no incident and no entrance delay. <strong>Compare delays</strong> needs a baseline and a completed run whose scenario has at least one of them. The tab lists every reason when the baseline does not fit the run: the runs need different scenarios and the same case revision, base time, duration, timestep and occurrences. <a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">How delays are calculated</span></a> has the rules. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the library. <strong>Import…</strong> and <strong>Export…</strong> in the dock move a single scenario between cases.</p>
+</section>
+<section id="move-around-the-network-view-and-follow-a-train">
+<h2>Move around the network view and follow a train<a class="headerlink" href="#move-around-the-network-view-and-follow-a-train" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Zoom.</strong> Turn the mouse wheel to zoom around the pointer, or use the zoom buttons of the toolbar (Ctrl++ and Ctrl+-). On a trackpad, a pinch zooms. <strong>Fit</strong> (Ctrl+0) shows the whole network. A network that is fitted has no room to move, so zoom in first.</p></li>
+<li><p><strong>Pan.</strong> Drag the view. On a trackpad, two fingers move it.</p></li>
+<li><p><strong>Select.</strong> Click a track, connection, node, station, signal, train or passenger. The information panel for it opens, or for a passenger a box of its details above it, and a light blue ring marks the item. Click an empty part of the view, or close the panel, to remove the ring.</p></li>
+<li><p><strong>Find.</strong> Choose <strong>Edit &gt; Find…</strong> (Ctrl+F) and type part of the name or ID of a station, signal or train. A signal is listed by its track, its place and its direction, such as <code class="docutils literal notranslate"><span class="pre">Signal:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>; during a run the list adds the ids of the signals of the case that protect its section, such as <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">S1:</span> <span class="pre">track</span> <span class="pre">B0</span> <span class="pre">at</span> <span class="pre">0.23</span> <span class="pre">km,</span> <span class="pre">facing</span> <span class="pre">right</span></code>. The label or the id of one of its sections, such as <code class="docutils literal notranslate"><span class="pre">&#64;1-B0&#64;</span></code>, finds it too. Up and Down choose one in the list and Enter goes to it: the view centres on the item, zooms in so that it can be read, and selects it as a click does, so a running train is also followed. Esc closes the box. Trains are listed while a run or a replay shows them; signals are not listed while the Signals layer is off.</p></li>
+<li><p><strong>Context menu.</strong> Right-click an item. A train offers <strong>Show details</strong>, <strong>Add train breakdown</strong>, <strong>Center in view</strong>, <strong>Follow train</strong> and <strong>Copy train index</strong>. Most other items offer <strong>Show details</strong>, <strong>Center in view</strong> and a copy command, and a signal head also offers <strong>Add signal failure</strong> after <strong>Show details</strong> (<a class="reference internal" href="#compare-a-scenario-with-a-baseline">compare a scenario</a>). During a run a signal head offers <strong>Copy signal location</strong> and <strong>Copy section ID</strong>, which copies the id of the section that <strong>Protected section</strong> shows in its information panel. Right-click the empty view for <strong>Fit whole network</strong>, <strong>Clear selection</strong> and <strong>Stop following train</strong>.</p></li>
+<li><p><strong>Layers.</strong> The check boxes in <strong>Case and Layers</strong> hide stations, station names, trains, speed labels, signals and passengers. <strong>Passengers</strong> is the same switch as <strong>View &gt; Passengers</strong>. It is off at the first start and keeps the last choice; turning it on takes effect from the next run.</p></li>
+<li><p><strong>Follow.</strong> Choose a train in the list next to <strong>Follow</strong> in the toolbar and click <strong>Follow</strong>. The view moves with the train, also while the run is paused. Click <strong>Follow</strong> again, or choose <strong>Stop following train</strong>, to stop.</p></li>
+</ul>
+<p><strong>Follow</strong> is disabled before a run and in a case without services, and its tooltip says why. A train that has not entered the network is listed with its scheduled entry time, for example <code class="docutils literal notranslate"><span class="pre">Rail-1</span> <span class="pre">(scheduled</span> <span class="pre">08:25:50)</span></code>, and Follow starts when it enters. The label at the right of the status bar names the state of the selected train, and its tooltip says whether the train is followed and why not. In a live run Follow switches off when the train leaves the network. In the replay of a completed run it stays on after the train has left, and it continues when you go back in time. <a class="reference internal" href="scenarios.html"><span class="std std-doc">Scenario library and student loop</span></a> describes the camera in detail. For the result windows, see <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p>
+</section>
+<section id="replay-a-completed-run">
+<h2>Replay a completed run<a class="headerlink" href="#replay-a-completed-run" title="Link to this heading">¶</a></h2>
+<p>You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.</p>
+<ol class="arabic">
+<li><p>When the run has ended, the <strong>Replay</strong> row appears under the network. Click <strong>Start</strong>, <strong>Play</strong> or <strong>End</strong>, the icon buttons left of the slider, or move the slider. The arrow keys and the mouse wheel move the slider too.</p></li>
+<li><p>Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider shows the clock time of the frame in the format of the progress bar, for example <code class="docutils literal notranslate"><span class="pre">08:20:30</span></code>. <strong>Play</strong> advances one simulated second for each second of real time, and the button then turns into <strong>Pause</strong>.</p></li>
+<li><p>When the replay holds the whole run, the row has no further text. A frame is recorded every 5 simulated seconds.</p>
+<p><img alt="The Replay row under the network after a run of Paimpol, with Start, Play, End and the slider at 08:09:00, Follow on Guin-Paim-ALL-STOPS-1-1, and the context menu of that train open: Show details, Add train breakdown, Center in view, Follow train and Copy train index." src="../_images/how-to-replay-menu.png" /></p>
+</li>
+</ol>
+<p>The replay has 128 MiB of memory. A run that is larger loses its oldest frames. A line under the controls then says from which time the replay starts, for example <code class="docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">starts</span> <span class="pre">at</span> <span class="pre">10:00:20.</span> <span class="pre">Earlier</span> <span class="pre">times</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">fit</span> <span class="pre">in</span> <span class="pre">memory.</span></code> The slider covers only the kept part, and <strong>Start</strong> goes to its first time. The tooltip of <strong>Start</strong> says so. If not even one moment fits, the row says <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">replay</span></code> and <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">run</span> <span class="pre">is</span> <span class="pre">too</span> <span class="pre">large</span> <span class="pre">to</span> <span class="pre">replay.</span></code>, and the slider and <strong>Play</strong> are disabled.</p>
+<p>Train, station and signal selections stay across seeks. A train that has no position at the selected time is not drawn. Passenger journey details are not available in a replay, but the counts and statuses are. A new run, an edit of the case or another scenario clears the replay and returns the view to the preview. An edit or another scenario also closes the info dock of the selection.</p>
+</section>
+<section id="results-and-exports">
+<h2>Results and exports<a class="headerlink" href="#results-and-exports" title="Link to this heading">¶</a></h2>
+<p>You need a run that reached its end. Until then the result commands are disabled.</p>
+<ol class="arabic simple">
+<li><p>The dock <strong>Run Results</strong> opens when the run ends. If it is closed, choose its entry in the menu <strong>View</strong>, which starts with Run Results.</p></li>
+<li><p>Click <strong>Open result view…</strong> and choose an entry, or use the menu <strong>Diagrams</strong>. An entry in <strong>Diagrams</strong> that asks for more input ends in an ellipsis.</p></li>
+<li><p><strong>Timetable graph</strong>, <strong>Train paths</strong> and <strong>Delays</strong> first ask for a reference route, and <strong>Blocking time</strong> asks for its scope. <strong>Capacity</strong> needs at least two trains on the chosen blocks: choose a route, a From block and a To block, which default to the whole route, and check the trains. All the trains on these blocks are checked at first.</p></li>
+<li><p>In a chart window, <strong>Fit</strong> in the header returns to the full chart. The panel at the right has <strong>Trains</strong>, which filters the trains, and <strong>CSV…</strong> and <strong>PNG…</strong>, which save the data and the picture of the visible trains. After a CSV export, the status bar of the main window names the saved file for a few seconds. Hover, click, zoom and pan are described in <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Inspecting diagrams</span></a>.</p></li>
+</ol>
+<p>The buttons <strong>Export CSV…</strong> and <strong>Export PNG…</strong> in the dock save the summary table as <code class="docutils literal notranslate"><span class="pre">run_summary.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">run_summary.png</span></code>. Each export asks for a path, adds the extension when you leave it off and writes a second file, <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.provenance.json</span></code>, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message <strong>Export failed</strong> names the path.</p>
+<p>Delay figures are explained in <a class="reference internal" href="delay-analysis.html"><span class="std std-doc">How delays are calculated</span></a>, capacity in <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a> and the text files of a run in <a class="reference internal" href="run-output.html"><span class="std std-doc">Run output</span></a>.</p>
+</section>
+<section id="convert-a-legacy-case-and-write-legacy-files">
+<h2>Convert a legacy case and write legacy files<a class="headerlink" href="#convert-a-legacy-case-and-write-legacy-files" title="Link to this heading">¶</a></h2>
+<p>A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new case folder and leaves the source unchanged.</p>
+<ol class="arabic simple">
+<li><p>Choose <strong>File &gt; Import Legacy Case…</strong>, or <strong>Other ways to open… &gt; Import Legacy Case…</strong> in <strong>Open a Case</strong>. Both go straight to the folder dialogs.</p></li>
+<li><p>Select the legacy case folder in <strong>Select Legacy Case Folder</strong>, then a destination in <strong>Select Case Destination</strong>. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives <code class="docutils literal notranslate"><span class="pre">Directory</span> <span class="pre">not</span> <span class="pre">found</span></code>. It must be separate from the source and outside it, or <strong>Cannot Import Legacy Case</strong> says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.</p></li>
+<li><p>If the import reports errors, warnings or notes, the box <strong>Legacy Case Imported</strong> counts them, for example <code class="docutils literal notranslate"><span class="pre">Import:</span> <span class="pre">1</span> <span class="pre">error,</span> <span class="pre">2</span> <span class="pre">warnings</span></code>, and lists the first findings. An import without findings shows no box. The converted case then opens. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and the simulation settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, and the import reads that file. A legacy case without it whose name is not a known case has no base time and no duration: the case reports two validation errors and cannot run until you set both in <strong>Editors &gt; Case Settings</strong>. The details are in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and the dock <strong>Loaded Data</strong> shows the counts.</p></li>
+</ol>
+<p>From a terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scene_tool<span class="w"> </span>import<span class="w"> </span>path/to/legacy-case<span class="w"> </span>path/to/new-case<span class="w"> </span>CaseName
+scene_tool<span class="w"> </span>validate<span class="w"> </span>path/to/new-case
+</pre></div>
+</div>
+<p>The window cannot write legacy files. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span> <span class="pre">path/to/case</span> <span class="pre">path/to/legacy-output</span></code> writes them for another tool, and edits to those files do not flow back into the case. <a class="reference internal" href="scene-schema.html#convert-a-legacy-case"><span class="std std-ref">Convert a legacy case</span></a> lists what the conversion preserves, and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a> says what each legacy file becomes.</p>
+</section>
+<section id="close-start-a-new-case-or-open-another-during-a-run">
+<h2>Close, start a new case or open another during a run<a class="headerlink" href="#close-start-a-new-case-or-open-another-during-a-run" title="Link to this heading">¶</a></h2>
+<p>Closing the window, <strong>New Case…</strong>, the open commands and <strong>Import Legacy Case…</strong> first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows <code class="docutils literal notranslate"><span class="pre">Stopping</span> <span class="pre">simulation...</span></code> and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.</p>
+</section>
+<section id="change-the-application-settings">
+<h2>Change the application settings<a class="headerlink" href="#change-the-application-settings" title="Link to this heading">¶</a></h2>
+<p><strong>Edit &gt; Settings…</strong> opens the window <strong>Settings</strong>. On macOS the entry is in the <strong>EGTRAIN</strong> menu (Command+,). The window holds the settings that apply to every case:</p>
+<ul class="simple">
+<li><p><strong>General</strong>: the recent cases that <strong>File &gt; Recent Cases</strong> and <strong>Open a Case</strong> offer, and <strong>Clear Recent Cases</strong>.</p></li>
+<li><p><strong>Display</strong>: <strong>Show passengers</strong>, the same switch as <strong>View &gt; Passengers</strong>, and <strong>Show advanced details</strong>, the same as <strong>View &gt; Advanced Details</strong>.</p></li>
+<li><p><strong>Updates and privacy</strong>: <strong>Automatically check for updates</strong>, the same as the Help entry, and the two choices of <strong>Help &gt; Privacy &amp; diagnostics…</strong>. A build that collects nothing shows them disabled.</p></li>
+</ul>
+<p><strong>OK</strong> saves the changes, and the menu entries show them at once. <strong>Restore Defaults</strong> clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with <strong>OK</strong>. The settings of the open case, such as its base time and duration, are in <strong>Case Settings</strong>.</p>
+</section>
+<section id="if-egtrain-closes-unexpectedly">
+<h2>If EGTRAIN closes unexpectedly<a class="headerlink" href="#if-egtrain-closes-unexpectedly" title="Link to this heading">¶</a></h2>
+<p>When EGTRAIN crashes, it saves a short crash note with the version, the cause and, on macOS and Linux, where in the program it stopped. The system may show its own crash message as well. At the next start EGTRAIN says that it closed unexpectedly and where the note is: in <strong>Recover Unsaved Work</strong> when it has unsaved edits to offer, otherwise in the notice <strong>EGTRAIN Closed Unexpectedly</strong>, whose <strong>Show Crash Note</strong> opens the note. Each note is reported once. Attach it when you report the problem; EGTRAIN does not send it anywhere.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>System</p></th>
+<th class="head"><p>Crash notes folder</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>macOS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/Library/Application</span> <span class="pre">Support/EGTRAIN/EGTRAIN/Crashes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\EGTRAIN\EGTRAIN\Crashes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Linux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/.local/share/EGTRAIN/EGTRAIN/Crashes</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>EGTRAIN keeps the 10 newest notes that it has reported.</p>
+</section>
+<section id="why-a-command-is-disabled">
+<h2>Why a command is disabled<a class="headerlink" href="#why-a-command-is-disabled" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head"><p>It is disabled when</p></th>
+<th class="head"><p>What to do</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Run</strong> (toolbar), <strong>Simulation &gt; Run</strong>, <strong>File &gt; Run</strong></p></td>
+<td><p>No case is open, a run is active, or validation reports an error</p></td>
+<td><p>Read the first error in <strong>View &gt; Case Validation</strong> (<a class="reference internal" href="#fix-validation-errors">fix validation errors</a>) or wait for the run</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Pause</strong>, <strong>Stop</strong></p></td>
+<td><p>No run is active, or the run is already stopping</p></td>
+<td><p>Start a run, or wait for the run to stop</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>File &gt; Save</strong>, <strong>Save As…</strong>, <strong>Save As Folder…</strong></p></td>
+<td><p>No case is open</p></td>
+<td><p>Open or create a case. A normal start always has one open</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>File &gt; Set Output Folder…</strong></p></td>
+<td><p>A run is active</p></td>
+<td><p>Wait for the run to end. The folder applies from the next run</p></td>
+</tr>
+<tr class="row-even"><td><p>The contents of the editors <strong>Services</strong>, <strong>Passengers</strong>, <strong>Infrastructure</strong> and <strong>Scenarios</strong> (the menu <strong>Editors</strong> still opens them)</p></td>
+<td><p>A run uses the case</p></td>
+<td><p>Stop the run or wait. <strong>Case Settings</strong>, <strong>Rolling Stock Units</strong> and <strong>Compositions</strong> stay usable during a run, and an edit there discards the results of that run</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Edit &gt; Undo</strong>, <strong>Edit &gt; Redo</strong></p></td>
+<td><p>A run uses the case, or there is nothing to undo or redo</p></td>
+<td><p>Stop the run or wait</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Diagrams</strong> entries, <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong> in <strong>Run Results</strong></p></td>
+<td><p>No run has reached its end since the last edit</p></td>
+<td><p>Run again. A stopped run, an edit, a new case and another scenario all discard results</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Set delay baseline</strong></p></td>
+<td><p>There is no completed run, or its scenario has an incident or an entrance delay</p></td>
+<td><p><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Compare delays</strong></p></td>
+<td><p>There is no baseline, or the completed run has neither an incident nor an entrance delay</p></td>
+<td><p>Same</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Follow</strong></p></td>
+<td><p>No run has started, or the case has no services</p></td>
+<td><p>Run the case and choose a train</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>When <strong>Run</strong> is enabled but a message refuses the run, it names the problem, for example <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">one</span> <span class="pre">occurrence</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">Run</span> <span class="pre">occurrences</span> <span class="pre">tab</span> <span class="pre">of</span> <span class="pre">Services.</span></code> On Windows and Linux the message is titled <strong>Cannot Run Case</strong>. In the tab <strong>Run occurrences</strong> of <strong>Services</strong>, tick <strong>Run</strong> for at least one occurrence.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="opening-a-case-study.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="case-studies.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Bundled cases</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">How-to</a><ul>
+<li><a class="reference internal" href="#open-a-case">Open a case</a></li>
+<li><a class="reference internal" href="#copy-and-save-a-case">Copy and save a case</a></li>
+<li><a class="reference internal" href="#run-a-case">Run a case</a></li>
+<li><a class="reference internal" href="#fix-validation-errors">Fix validation errors</a></li>
+<li><a class="reference internal" href="#answer-the-unsaved-changes-question">Answer the unsaved changes question</a></li>
+<li><a class="reference internal" href="#edit-a-timetable-stop">Edit a timetable stop</a></li>
+<li><a class="reference internal" href="#edit-rolling-stock">Edit rolling stock</a></li>
+<li><a class="reference internal" href="#compare-a-scenario-with-a-baseline">Compare a scenario with a baseline</a></li>
+<li><a class="reference internal" href="#move-around-the-network-view-and-follow-a-train">Move around the network view and follow a train</a></li>
+<li><a class="reference internal" href="#replay-a-completed-run">Replay a completed run</a></li>
+<li><a class="reference internal" href="#results-and-exports">Results and exports</a></li>
+<li><a class="reference internal" href="#convert-a-legacy-case-and-write-legacy-files">Convert a legacy case and write legacy files</a></li>
+<li><a class="reference internal" href="#close-start-a-new-case-or-open-another-during-a-run">Close, start a new case or open another during a run</a></li>
+<li><a class="reference internal" href="#change-the-application-settings">Change the application settings</a></li>
+<li><a class="reference internal" href="#if-egtrain-closes-unexpectedly">If EGTRAIN closes unexpectedly</a></li>
+<li><a class="reference internal" href="#why-a-command-is-disabled">Why a command is disabled</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

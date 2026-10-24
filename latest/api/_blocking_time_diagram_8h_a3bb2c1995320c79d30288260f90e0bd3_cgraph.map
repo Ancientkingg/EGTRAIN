@@ -1,0 +1,12 @@
+<map id="readableSectionLabel" name="readableSectionLabel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,54,168,79"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="53,56,46,46,50,36,64,30,87,27,115,31,126,40,123,44,113,36,87,33,65,35,54,39,51,45,58,52"/>
+<area shape="rect" id="Node000002" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="216,5,367,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,51,202,41,203,46,151,57"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="240,94,343,119"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="153,77,227,91,226,97,152,82"/>
+<area shape="poly" id="edge6_Node000003_Node000003" title=" " alt="" coords="258,96,251,86,255,76,268,70,291,67,320,71,331,80,327,84,317,76,291,73,270,75,258,79,256,85,262,92"/>
+<area shape="rect" id="Node000004" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="415,94,593,119"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="343,104,401,104,401,109,343,109"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="469,96,462,86,466,76,480,70,504,67,533,71,545,80,542,84,531,76,504,73,482,75,470,79,467,85,474,92"/>
+</map>

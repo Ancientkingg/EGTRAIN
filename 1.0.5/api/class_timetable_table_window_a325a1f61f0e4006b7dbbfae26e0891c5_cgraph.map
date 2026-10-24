@@ -1,0 +1,5 @@
+<map id="TimetableTableWindow::setRunProvenance" name="TimetableTableWindow::setRunProvenance">
+<area shape="rect" id="Node000001" title="Writes provenance as a sidecar with every export and shows its case and scenario as the context." alt="" coords="5,5,180,45"/>
+<area shape="rect" id="Node000002" href="$class_timetable_table_window.html#a0c2e12aacca56a4eac3d960b67658ccc" title="Sets the window title to heading and shows context in the header in one line; an empty context hides ..." alt="" coords="228,5,403,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
+</map>

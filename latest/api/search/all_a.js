@@ -7,7 +7,7 @@ var searchData=
   ['joinsforward_4',['joinsForward',['../struct_scene_section_transition.html#ad35d53a46153d1e601b6a580fc126f1a',1,'SceneSectionTransition']]],
   ['joinsreverse_5',['joinsReverse',['../struct_scene_section_transition.html#af98ea1791ac955ee656c17d3e9162b7c',1,'SceneSectionTransition']]],
   ['journey_6',['Journey',['../class_journey.html',1,'Journey'],['../class_journey.html#a3954ca791d38e4bd21509ee1555e1dd7',1,'Journey::Journey()']]],
-  ['journey_7',['journey',['../struct_route_diagram_point.html#aa83a0f9a6cf7aa9db6127c38f6935d95',1,'RouteDiagramPoint']]],
+  ['journey_7',['journey',['../struct_route_diagram_point.html#aa83a0f9a6cf7aa9db6127c38f6935d95',1,'RouteDiagramPoint::journey'],['../struct_delay_diagram_point.html#a187bf08968bb19f74325cf1ffb27f520',1,'DelayDiagramPoint::journey']]],
   ['journey_5factivity_5ftype_8',['Journey_Activity_Type',['../class_journey.html#a58aa8d8290237bad0a219383c8ee5244',1,'Journey']]],
   ['journeyactivityedit_9',['journeyActivityEdit',['../class_passenger_panel.html#a6d747c33740f14c80c442f3e81326a3f',1,'PassengerPanel']]],
   ['journeydestinationcombo_10',['journeyDestinationCombo',['../class_passenger_panel.html#a22f80c8aac9992c31c6966ce38b700c5',1,'PassengerPanel']]],
@@ -19,5 +19,7 @@ var searchData=
   ['journeys_16',['Journeys',['../class_passenger.html#afea5b6b4995a1e735b80009e7bbd64aa',1,'Passenger']]],
   ['journeys_17',['journeys',['../struct_scene_passenger.html#adaa6b80986c464519662ee69dc97a832',1,'ScenePassenger']]],
   ['journeywindowedits_18',['journeyWindowEdits',['../class_passenger_panel.html#a741498019ad59a4da4fa9a5d3e388c31',1,'PassengerPanel']]],
-  ['json_19',['json',['../_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d',1,'SceneBundle.cpp']]]
+  ['json_19',['json',['../_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d',1,'SceneBundle.cpp']]],
+  ['jump_20',['Jump',['../struct_position_scale_1_1_jump.html',1,'PositionScale']]],
+  ['jumps_21',['jumps',['../class_position_scale.html#a810876eae4af9658f7faf9464accbb4d',1,'PositionScale']]]
 ];

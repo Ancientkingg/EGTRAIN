@@ -5,6 +5,8 @@ var struct_blocking_time_diagram_data =
     [ "plannedLines", "struct_blocking_time_diagram_data.html#ac09b3fa31ed1b52180305482a96c3c2f", null ],
     [ "plannedReferences", "struct_blocking_time_diagram_data.html#a564370d9c527495bc5c264a0dcba47e6", null ],
     [ "referencePath", "struct_blocking_time_diagram_data.html#aed5d75e7638bfd362ad4bf68f64f366d", null ],
+    [ "repeatedTrains", "struct_blocking_time_diagram_data.html#aad9de93696e0dce0837c32060f4dead9", null ],
+    [ "routeSectionCount", "struct_blocking_time_diagram_data.html#afc66c70ef70923880e54f7ef8cb3b617", null ],
     [ "segments", "struct_blocking_time_diagram_data.html#a08e9a9798dd54be419fd5ce02c02166a", null ],
     [ "timeRange", "struct_blocking_time_diagram_data.html#a1b70af28b923e32fd73b8f18d56da7bf", null ],
     [ "trajectories", "struct_blocking_time_diagram_data.html#a6d67e63b924312daad1bbda42adf3861", null ],

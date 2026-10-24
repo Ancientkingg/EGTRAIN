@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "category": "usage",
+  "sent_at": "2026-01-20T10:00:00Z",
+  "application": { "name": "EGTRAIN", "version": "1.2.3", "platform": "macos", "architecture": "arm64" },
+  "installation_id": "5b54c480-518e-4d47-93f9-b501c2e8d58d",
+  "events": [
+    { "event_id": "9749ecf0-36c3-4ae0-a4c0-bc1a623118a8", "occurred_at": "2026-01-20T09:59:00Z", "name": "session.started", "properties": {} },
+    { "event_id": "4a93850e-84b4-44a0-8146-c30914179939", "occurred_at": "2026-01-20T09:59:30Z", "name": "scene.opened", "properties": { "scene_kind": "bundled" } },
+    { "event_id": "becb96e6-0040-4722-871d-2dfec1a32d5a", "occurred_at": "2026-01-20T09:59:50Z", "name": "simulation.completed", "properties": { "duration_bucket": "10s_to_1m" } }
+  ]
+}

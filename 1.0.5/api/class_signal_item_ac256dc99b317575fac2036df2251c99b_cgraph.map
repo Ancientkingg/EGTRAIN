@@ -1,0 +1,5 @@
+<map id="SignalItem::setFailed" name="SignalItem::setFailed">
+<area shape="rect" id="Node000001" title="A failed signal is a red lamp with a cross, whatever its code is." alt="" coords="5,5,164,31"/>
+<area shape="rect" id="Node000002" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="212,5,349,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,15,198,15,198,21,164,21"/>
+</map>

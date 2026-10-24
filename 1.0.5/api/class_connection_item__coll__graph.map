@@ -1,0 +1,7 @@
+<map id="ConnectionItem" name="ConnectionItem">
+<area shape="rect" id="Node000001" title="The line of a connection between two track lines, in scene coordinates." alt="" coords="91,101,216,127"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,152,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,40,146,99,142,103,94,43"/>
+<area shape="rect" id="Node000003" href="$class_connections.html" title="A connection between two tracks, such as a switch." alt="" coords="177,5,279,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,43,165,103,160,99,208,40"/>
+</map>

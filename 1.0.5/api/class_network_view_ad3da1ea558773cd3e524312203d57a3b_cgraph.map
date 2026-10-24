@@ -1,0 +1,6 @@
+<map id="NetworkView::NetworkView" name="NetworkView::NetworkView">
+<area shape="rect" id="Node000001" title="A view with the dark canvas, antialiasing and panning by drag." alt="" coords="5,29,208,55"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="256,29,359,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,39,242,39,242,45,208,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="274,31,267,21,271,11,285,5,307,3,335,6,346,16,343,20,333,11,307,8,286,10,275,15,273,20,279,28"/>
+</map>

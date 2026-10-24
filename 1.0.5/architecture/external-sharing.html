@@ -1,0 +1,1008 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Sharing a live run" href="../development/live-sharing.html"><link rel="prev" title="Scene Editor Flow" href="scene-editor-flow.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>External state sharing - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/external-sharing.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="external-state-sharing">
+<h1>External state sharing<a class="headerlink" href="#external-state-sharing" title="Link to this heading">¶</a></h1>
+<p>A run shares its state as the <a class="reference internal" href="#live-stream">live stream</a> of <code class="docutils literal notranslate"><span class="pre">--live</span></code>, whose promises are in <a class="reference internal" href="#live-contract-version-1">Live contract version 1</a>. <a class="reference internal" href="../development/live-sharing.html"><span class="std std-doc">Sharing a live run</span></a> is the guide for a client. The options <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code> are removed: a start that passes either stops with exit code 1 and an error that names <code class="docutils literal notranslate"><span class="pre">--live</span></code>.</p>
+<p>This page describes the code as it is. Function names are given so that a maintainer can find them.</p>
+<section id="the-step-loop">
+<h2>The step loop<a class="headerlink" href="#the-step-loop" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>) runs the step loop. At the top of each step the loop waits while a pause is requested and ends when a stop is requested. Pause, stop, the step delay and a bounded queue of 16 commands belong to a <a class="reference external" href="../api/class_run_control.html"><code class="docutils literal notranslate"><span class="pre">RunControl</span></code></a> (<code class="docutils literal notranslate"><span class="pre">simulation/RunControl.h</span></code>), which every run has. At the top of the step, before any train moves, <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code> applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the <a class="reference external" href="../api/class_simulation_worker.html"><code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code></a>, which forwards the window’s requests to it, and <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> finds it through <code class="docutils literal notranslate"><span class="pre">SimulationWorker::active()</span></code>. A <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run makes a control for itself. With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code>, <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> hands the commands of live clients to that control (see <a class="reference internal" href="#commands">Commands</a>); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (<a class="reference external" href="../api/class_run_controller.html"><code class="docutils literal notranslate"><span class="pre">RunController::startSimulation</span></code></a>). In a <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run it runs on the main thread (<code class="docutils literal notranslate"><span class="pre">main</span></code>).</p>
+</section>
+<section id="what-is-not-an-interface">
+<h2>What is not an interface<a class="headerlink" href="#what-is-not-an-interface" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The files written during a run are results and not a protocol, and no code in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> reads them. <code class="docutils literal notranslate"><span class="pre">printCurrentPassengerStatus</span></code> writes <code class="docutils literal notranslate"><span class="pre">PassengerStatus/PassengerStatus.txt</span></code> once, after the step loop. <code class="docutils literal notranslate"><span class="pre">Train::printTrainArrDepMsg</span></code>, called from <code class="docutils literal notranslate"><span class="pre">Train::checkTrainArrDep</span></code>, appends one line to <code class="docutils literal notranslate"><span class="pre">Rescheduling/EGTRAINOutput.txt</span></code> when a train has stopped at its last station.</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> the application opens no listening socket, local server or named pipe. The live server below binds sockets, and only a start with <code class="docutils literal notranslate"><span class="pre">--live</span></code> creates it. The only reads from standard input are the <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> questions in <code class="docutils literal notranslate"><span class="pre">parseCmdOptions</span></code>.</p></li>
+<li><p>The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see <a class="reference internal" href="#commands">Commands</a>).</p></li>
+</ul>
+</section>
+<section id="live-stream">
+<h2>Live stream<a class="headerlink" href="#live-stream" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">--live</span> <span class="pre">&lt;port&gt;</span></code> makes every run of the process publish its state. <code class="docutils literal notranslate"><span class="pre">main</span></code> starts the live server (see <a class="reference internal" href="#live-server">Live server</a>) after the output folder is known and before the scene is prepared, and stops it when <code class="docutils literal notranslate"><span class="pre">main</span></code> returns. <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> owns it (<code class="docutils literal notranslate"><span class="pre">startLive</span></code>, <code class="docutils literal notranslate"><span class="pre">stopLive</span></code>) and feeds it from the step loop.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--live</span> <span class="pre">&lt;port&gt;</span></code></p></td>
+<td><p>Binds the state socket to <code class="docutils literal notranslate"><span class="pre">127.0.0.1:&lt;port&gt;</span></code>. 0 takes a free port.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--live-every</span> <span class="pre">&lt;steps&gt;</span></code></p></td>
+<td><p>Makes a state frame for each <code class="docutils literal notranslate"><span class="pre">&lt;steps&gt;</span></code>-th step, counted from step 0. The default is 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--live-commands</span></code></p></td>
+<td><p>Also binds the command socket, and writes the token to the endpoint file.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--live-every</span></code> and <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code> without <code class="docutils literal notranslate"><span class="pre">--live</span></code>, a port that is not a whole number from 0 to 65535, and an interval below 1 stop the start with exit code 1. A server that cannot start, for example on a port that is in use, stops it with exit code 2 and the line <code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">Cannot</span> <span class="pre">start</span> <span class="pre">the</span> <span class="pre">live</span> <span class="pre">stream:</span> <span class="pre">&lt;reason&gt;</span></code> on standard error; a window launch also shows the reason in a message box. The start never leaves a run half shared.</p>
+<p><code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> is written to the output folder of the scene that the command line names (see <a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>), and the start prints <code class="docutils literal notranslate"><span class="pre">Live</span> <span class="pre">stream</span> <span class="pre">on</span> <span class="pre">&lt;endpoint&gt;;</span> <span class="pre">the</span> <span class="pre">endpoints</span> <span class="pre">are</span> <span class="pre">in</span> <span class="pre">&lt;path&gt;</span></code> on standard error. Nothing is printed on standard output, so the standard output of a run is the same with and without <code class="docutils literal notranslate"><span class="pre">--live</span></code>. <code class="docutils literal notranslate"><span class="pre">stop</span></code> removes the file when <code class="docutils literal notranslate"><span class="pre">main</span></code> returns. A process that is killed leaves it behind, with a port that nothing listens on.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">--live</span></code>, <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> holds no server. The process has no live thread, no ZeroMQ context for it and no socket, and a run builds no frame and no extra snapshot: each place that publishes tests one null pointer.</p>
+<section id="what-a-run-publishes">
+<h3>What a run publishes<a class="headerlink" href="#what-a-run-publishes" title="Link to this heading">¶</a></h3>
+<p>Each run begins with a new run id, 16 hexadecimal digits from <code class="docutils literal notranslate"><span class="pre">std::random_device</span></code>, and <code class="docutils literal notranslate"><span class="pre">seq</span></code> starts at 0. Every frame of the run carries the run id and its <code class="docutils literal notranslate"><span class="pre">seq</span></code>, and the frames leave in the order of the table below. The frames are those of <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.h</span></code>; their members and units are in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Frame</p></th>
+<th class="head"><p>Sent</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hello</span></code></p></td>
+<td><p>at the start of <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code>, after <code class="docutils literal notranslate"><span class="pre">executionBegan</span></code> and before the first step</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_name</span></code> from the <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> that <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code> was given, <code class="docutils literal notranslate"><span class="pre">base_time_s</span></code> (<code class="docutils literal notranslate"><span class="pre">startingSimulationTime</span></code> of the settings of the run), <code class="docutils literal notranslate"><span class="pre">horizon_steps</span></code> (<code class="docutils literal notranslate"><span class="pre">times</span></code> of the settings of the run), <code class="docutils literal notranslate"><span class="pre">step_s</span></code> (<code class="docutils literal notranslate"><span class="pre">timestep</span></code>), and one entry for each train of the run, in the order of <a class="reference external" href="../api/struct_simulation_run.html"><code class="docutils literal notranslate"><span class="pre">SimulationRun::trains</span></code></a>, with its service id, occurrence, operating code and route index</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
+<td><p>at the end of each step <code class="docutils literal notranslate"><span class="pre">t</span></code> that is a multiple of the interval, in <code class="docutils literal notranslate"><span class="pre">publishSimulationSnapshot</span></code></p></td>
+<td><p>the trains of that step, and the signal list when it is due</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code> <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code></p></td>
+<td><p>when the step loop has ended, with the number of steps that ran</p></td>
+<td><p>nothing else; the positions are final</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code> <code class="docutils literal notranslate"><span class="pre">run_finished</span></code></p></td>
+<td><p>at the end of <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code>, just before <code class="docutils literal notranslate"><span class="pre">executionReturned</span></code> is emitted, or <code class="docutils literal notranslate"><span class="pre">executionFailed</span></code> when an error ended the run after the <code class="docutils literal notranslate"><span class="pre">hello</span></code> frame</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">status</span></code> <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when a stop was requested or an error ended the run</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code> <code class="docutils literal notranslate"><span class="pre">applied</span></code>, <code class="docutils literal notranslate"><span class="pre">rejected</span></code></p></td>
+<td><p>when the run takes a command, or turns it down; see <a class="reference internal" href="#commands">Commands</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">command_id</span></code>, <code class="docutils literal notranslate"><span class="pre">cmd</span></code> and, for <code class="docutils literal notranslate"><span class="pre">rejected</span></code>, <code class="docutils literal notranslate"><span class="pre">reason</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">run_finished</span></code> means that the stages of <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> have ended. It does not mean that the output folder is complete: <code class="docutils literal notranslate"><span class="pre">printLastTrainServicePathDiagram</span></code> writes <code class="docutils literal notranslate"><span class="pre">TrainTrajectories/</span></code> after <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> returns (in <code class="docutils literal notranslate"><span class="pre">main</span></code> for a headless run, in the handler of <code class="docutils literal notranslate"><span class="pre">executionReturned</span></code> for a window run), and a window run does more end-of-run work there. A client must not read the output folder on this event.</p>
+<p>A run in which no train was loaded publishes nothing. A run that is stopped publishes <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code> with the steps that ran (0 when the stop came first) and then <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> with <code class="docutils literal notranslate"><span class="pre">cancelled</span></code>.</p>
+<p>The signal list is part of the first state frame of a run and of each later state frame in which it differs from the list of the last frame that held one (<code class="docutils literal notranslate"><span class="pre">liveSignalsChanged</span></code>). A subscriber that joins late, or that sees a gap in <code class="docutils literal notranslate"><span class="pre">seq</span></code>, has no signal list until the next frame that holds one; the list is not repeated for it.</p>
+<p>A state frame is made for a sampled step only. The snapshot of a step comes from <code class="docutils literal notranslate"><span class="pre">buildGuiSimulationSnapshot</span></code>, as for the window. A window run has built it for the window already and the frame shares it. A run with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> builds no snapshot unless a frame is due, builds the one for that step, and drops it after the frame is made; the replay history and the mailbox of the window stay unused.</p>
+</section>
+<section id="threads-and-loss">
+<h3>Threads and loss<a class="headerlink" href="#threads-and-loss" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The thread that runs the steps (the worker thread of a window run, the main thread of a <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run) makes the text of each frame and passes it to <code class="docutils literal notranslate"><span class="pre">pushHello</span></code>, <code class="docutils literal notranslate"><span class="pre">pushState</span></code> or <code class="docutils literal notranslate"><span class="pre">pushEvent</span></code>, and takes the commands with <code class="docutils literal notranslate"><span class="pre">tryPopCommand</span></code>. It never calls ZeroMQ and never waits for a socket, a subscriber or a client, so a stream that nobody reads, a client that leaves and a client that is slow do not slow a run beyond the cost of making the frames. <code class="docutils literal notranslate"><span class="pre">seq</span></code> is given by that thread alone.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startLive</span></code> and <code class="docutils literal notranslate"><span class="pre">stopLive</span></code> are called while no run goes on. A new run in the same process (a second run in the window) gets a new run id and a new hello, and the subscribers stay connected.</p></li>
+<li><p>The live server keeps 8 state frames. A run that makes frames faster than the I/O thread sends them (a few thousand frames a second) loses the oldest, and the gap shows in <code class="docutils literal notranslate"><span class="pre">seq</span></code>. <code class="docutils literal notranslate"><span class="pre">hello</span></code> and <code class="docutils literal notranslate"><span class="pre">event</span></code> frames are never dropped to make room for a state frame. The scripted window run of the 600-step Assignment scene is fast enough to lose frames at an interval of 10, and loses none at an interval of 100.</p></li>
+<li><p>A subscriber that joins after the hello has not seen it. With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code> it sends <code class="docutils literal notranslate"><span class="pre">describe</span></code>, and the server publishes the hello of the latest run again. Without commands it waits for the next run, or reads state frames without a hello.</p></li>
+</ul>
+</section>
+<section id="cost">
+<h3>Cost<a class="headerlink" href="#cost" title="Link to this heading">¶</a></h3>
+<p>The frames are made on the thread of the run, so a run with <code class="docutils literal notranslate"><span class="pre">--live</span></code> takes longer than one without, also when nobody reads. The cost has two parts: building the snapshot of the step, and making the JSON text of the frame.</p>
+<p>Measured once on a macOS machine that other jobs were using, a headless run of a committed scene with <code class="docutils literal notranslate"><span class="pre">--live</span> <span class="pre">0</span></code> and no client took 2% (Copenhagen) to 140% (Amsterdam_Hilversum_Student) longer than a run without <code class="docutils literal notranslate"><span class="pre">--live</span></code>, and with <code class="docutils literal notranslate"><span class="pre">--live-every</span> <span class="pre">10</span></code> it took 2% to 29% longer. These numbers show the order of the cost and are not a promise.</p>
+<p>A scene with cheap steps and many signal sections pays most per frame, because the snapshot walks all sections of all routes and the signal list is the largest part of a frame. A scene with expensive steps, such as Copenhagen, pays little. <code class="docutils literal notranslate"><span class="pre">--live-every</span></code> is the control: a run that is read once every 10 steps makes a tenth of the frames.</p>
+<p>The size of a state frame depends on the number of trains and on the signal list, which is the largest part of a frame that holds it. At an interval of 10 most frames of Netherlands hold it (711 of 800); of Paimpol, 307 of the 849 frames that a client received hold it.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scene</p></th>
+<th class="head text-right"><p>Trains</p></th>
+<th class="head text-right"><p>Hello</p></th>
+<th class="head text-right"><p>State frame without signals</p></th>
+<th class="head text-right"><p>State frame with signals</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td class="text-right"><p>2</p></td>
+<td class="text-right"><p>414 B</p></td>
+<td class="text-right"><p>507 B</p></td>
+<td class="text-right"><p>22165 B</p></td>
+</tr>
+<tr class="row-odd"><td><p>Amsterdam_Hilversum_Student</p></td>
+<td class="text-right"><p>4</p></td>
+<td class="text-right"><p>620 B</p></td>
+<td class="text-right"><p>865 B</p></td>
+<td class="text-right"><p>107341 B</p></td>
+</tr>
+<tr class="row-even"><td><p>Assignment_Gvc_Gdg_Ut</p></td>
+<td class="text-right"><p>24</p></td>
+<td class="text-right"><p>2187 B</p></td>
+<td class="text-right"><p>4256 B</p></td>
+<td class="text-right"><p>9246 B</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>40</p></td>
+<td class="text-right"><p>3436 B</p></td>
+<td class="text-right"><p>6802 B</p></td>
+<td class="text-right"><p>113301 B</p></td>
+</tr>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>52</p></td>
+<td class="text-right"><p>6311 B</p></td>
+<td class="text-right"><p>10953 B</p></td>
+<td class="text-right"><p>114950 B</p></td>
+</tr>
+<tr class="row-odd"><td><p>Milano_Brescia</p></td>
+<td class="text-right"><p>65</p></td>
+<td class="text-right"><p>5480 B</p></td>
+<td class="text-right"><p>11174 B</p></td>
+<td class="text-right"><p>32199 B</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a frame of it: the history of a whole run of Copenhagen in the window holds 82722909 of the 134217728 bytes that it may hold.</p>
+</section>
+<section id="commands">
+<h3>Commands<a class="headerlink" href="#commands" title="Link to this heading">¶</a></h3>
+<p>With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code> the server also answers <code class="docutils literal notranslate"><span class="pre">describe</span></code>, <code class="docutils literal notranslate"><span class="pre">pause</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code> and <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> as described under <a class="reference internal" href="#requests">Requests</a>, and the run takes the four commands that control it. None of them changes the railway: they change when the steps run, or end the run. A run that receives only <code class="docutils literal notranslate"><span class="pre">pause</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code> and <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> gives the same result files, the same standard output and the same state at every step as a run that receives nothing.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pause</span></code></p></td>
+<td><p>The run stops at the top of the step and waits. No step runs and no state frame is made.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resume</span></code></p></td>
+<td><p>Ends a pause. The run goes on with the step at which it stopped. Without a pause it changes nothing.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stop</span></code></p></td>
+<td><p>Ends the run as the Stop button of the window does: <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code> with the steps that ran, then <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> with the status <code class="docutils literal notranslate"><span class="pre">cancelled</span></code>. The stages after the steps are skipped, so the energy, delay and blocking-time files are not written. A headless run still ends with exit code 0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code></p></td>
+<td><p>Sets the time that the run waits at the top of each step, in milliseconds from 0 to 1000. A window run does not show it on its speed slider or the readout next to it.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>The effect point is the top of a step. <code class="docutils literal notranslate"><span class="pre">Train_Simulation_Mixed_Signalling_With_Passengers</span></code> calls <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code> with a function that takes the accepted commands from the server (<code class="docutils literal notranslate"><span class="pre">tryPopCommand</span></code>) and submits them to the control, in the order in which the server accepted them. <code class="docutils literal notranslate"><span class="pre">beginStep</span></code> applies them before any train moves. A paused run calls the function again every 50 ms, so a <code class="docutils literal notranslate"><span class="pre">resume</span></code> or a <code class="docutils literal notranslate"><span class="pre">stop</span></code> reaches it. A command never acts in the middle of a step.</p></li>
+<li><p>Each command is reported as an <code class="docutils literal notranslate"><span class="pre">event</span></code> frame, made by the thread of the run. <code class="docutils literal notranslate"><span class="pre">applied</span></code> means that the run takes the command before the next step; <code class="docutils literal notranslate"><span class="pre">step</span></code> is the number of steps that have run then. <code class="docutils literal notranslate"><span class="pre">rejected</span></code> means that it does not take it, and <code class="docutils literal notranslate"><span class="pre">reason</span></code> says why:</p></li>
+</ul>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Reason</p></th>
+<th class="head"><p>The command</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">run_ended</span></code></p></td>
+<td><p>was still waiting when the steps of the run ended. This includes a command that arrives while the result files are written. The frame comes before <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code>, or before <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> for a command that arrived later.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_active_run</span></code></p></td>
+<td><p>was accepted while no run went on, before the first run or between two runs. The frame comes right after the hello of the next run, so the command never reaches that run.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">queue_full</span></code></p></td>
+<td><p>found 16 commands in the control that it had not applied yet.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>Both frames carry <code class="docutils literal notranslate"><span class="pre">command_id</span></code>, the id that the client gave the request, and <code class="docutils literal notranslate"><span class="pre">cmd</span></code>, the name of the command. The members are in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>.</p></li>
+<li><p>The accepted reply of the server means only that the command is queued. A client that needs to know that the run took it waits for the event with its <code class="docutils literal notranslate"><span class="pre">command_id</span></code>.</p></li>
+<li><p>A window run has the same control, so a command works there as well. A command does not change the buttons of the window: a run that a client has paused shows the buttons of a running run.</p></li>
+</ul>
+</section>
+<section id="a-client-and-its-test">
+<h3>A client and its test<a class="headerlink" href="#a-client-and-its-test" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tests/live_client.cpp</span></code> is a small client with cppzmq and nlohmann-json and nothing else. It reads <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>, subscribes to the state endpoint, sends <code class="docutils literal notranslate"><span class="pre">describe</span></code> until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a <code class="docutils literal notranslate"><span class="pre">seq</span></code> that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. With <code class="docutils literal notranslate"><span class="pre">--set-delay-ms</span> <span class="pre">&lt;ms&gt;</span></code> it also sends one <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> request as soon as it has the hello of a run, and the line of that run holds the reply of the server (<code class="docutils literal notranslate"><span class="pre">command</span></code>: the status and, for a rejection, the reason) and the <code class="docutils literal notranslate"><span class="pre">applied</span></code> and <code class="docutils literal notranslate"><span class="pre">rejected</span></code> events of the run. The comment at the top of the file lists the options.</p>
+<p><code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code> (<code class="docutils literal notranslate"><span class="pre">tools/e2e/live_stream_smoke.py</span></code>, integration) starts the application and the client and runs these cases:</p>
+<ul class="simple">
+<li><p>A headless Paimpol run that the client follows from start to end, and a run without <code class="docutils literal notranslate"><span class="pre">--live</span></code>: the two output folders are equal file by file, except <code class="docutils literal notranslate"><span class="pre">Computing_Times.txt</span></code>, the standard output is equal, and no endpoint file is left.</p></li>
+<li><p>A client that sends <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> with <code class="docutils literal notranslate"><span class="pre">--set-delay-ms</span></code>: the server accepts it, the run reports one <code class="docutils literal notranslate"><span class="pre">applied</span></code> event for it, and the output folder and the standard output are equal to those of a run without <code class="docutils literal notranslate"><span class="pre">--live</span></code>. A delay above the limit is answered with <code class="docutils literal notranslate"><span class="pre">bad_argument</span></code>, and the run reports no event for it.</p></li>
+<li><p>A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.</p></li>
+<li><p>A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.</p></li>
+<li><p>A window run (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART</span></code>) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.</p></li>
+<li><p>A window run that the test closes at its first displayed step (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_CLOSE_DURING_RUN</span></code>): the client sees <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code> with fewer steps than the horizon and then <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> with <code class="docutils literal notranslate"><span class="pre">cancelled</span></code>.</p></li>
+<li><p>A scripted window run that runs the case twice (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPERATIONAL_COMPLETION</span></code>), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.</p></li>
+<li><p>Each option that is not valid, and a port that is in use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code>: refused with exit code 1 and an error that names <code class="docutils literal notranslate"><span class="pre">--live</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="live-contract-version-1">
+<h2>Live contract version 1<a class="headerlink" href="#live-contract-version-1" title="Link to this heading">¶</a></h2>
+<p>This section is what a consumer of the live stream can rely on. It holds for contract version 1, the value of <code class="docutils literal notranslate"><span class="pre">v</span></code> in every frame, request, reply and in <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>. The sections around it describe the code that keeps these promises. <a class="reference internal" href="../development/live-sharing.html"><span class="std std-doc">Sharing a live run</span></a> shows how to start a run with the stream and has a small client.</p>
+<section id="transport">
+<h3>Transport<a class="headerlink" href="#transport" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The run publishes frames on a ZeroMQ PUB socket and, with <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code>, takes requests on a REP socket. Both listen on <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code>. There is no host option and no other address, so only programs on the same machine can connect.</p></li>
+<li><p>A client subscribes to the PUB socket, and sends each request through a REQ socket. The addresses and the token of the requests are in <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> in the output folder of the scene (see <a class="reference internal" href="#sockets">Sockets</a>).</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> nothing is bound and nothing listens.</p></li>
+</ul>
+</section>
+<section id="frames">
+<h3>Frames<a class="headerlink" href="#frames" title="Link to this heading">¶</a></h3>
+<p>A frame is two ZeroMQ parts: the topic, which is <code class="docutils literal notranslate"><span class="pre">hello</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code> or <code class="docutils literal notranslate"><span class="pre">event</span></code>, and the frame as UTF-8 JSON text. A subscriber can filter on the topic. Every frame is a JSON object with these members:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">v</span></code></p></td>
+<td><p>The contract version, 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run_id</span></code></p></td>
+<td><p>16 hexadecimal digits that name the run. All frames of a run carry the same value, and each run has a new one.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seq</span></code></p></td>
+<td><p>The position of the frame in its run, counted from 0 across all kinds of frame.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">hello</span></code> opens a run, and the server publishes it again when a client sends <code class="docutils literal notranslate"><span class="pre">describe</span></code>:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene_name</span></code></p></td>
+<td><p>text</p></td>
+<td><p>The name of the scene.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">base_time_s</span></code></p></td>
+<td><p>s</p></td>
+<td><p>The time of day of step 0, in seconds from midnight.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">horizon_steps</span></code></p></td>
+<td><p>steps</p></td>
+<td><p>The number of steps of the run.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">step_s</span></code></p></td>
+<td><p>s</p></td>
+<td><p>The seconds in one step.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">units</span></code></p></td>
+<td><p></p></td>
+<td><p>The unit of each kind of value: <code class="docutils literal notranslate"><span class="pre">distance</span></code> <code class="docutils literal notranslate"><span class="pre">m</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code> <code class="docutils literal notranslate"><span class="pre">s</span></code>, <code class="docutils literal notranslate"><span class="pre">speed</span></code> <code class="docutils literal notranslate"><span class="pre">m/s</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> <code class="docutils literal notranslate"><span class="pre">km</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trains</span></code></p></td>
+<td><p></p></td>
+<td><p>Every train of the run, also one that has not entered, in a fixed order. Each has <code class="docutils literal notranslate"><span class="pre">service_id</span></code>, <code class="docutils literal notranslate"><span class="pre">occurrence</span></code> (counted from 1), <code class="docutils literal notranslate"><span class="pre">operating_code</span></code> and <code class="docutils literal notranslate"><span class="pre">route_index</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A train is named by <code class="docutils literal notranslate"><span class="pre">service_id</span></code> and <code class="docutils literal notranslate"><span class="pre">occurrence</span></code> together, for the whole run.</p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code> is the state of one step. <code class="docutils literal notranslate"><span class="pre">trains</span></code> has one entry for each train of the <code class="docutils literal notranslate"><span class="pre">hello</span></code>, in the same order:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Unit</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">step</span></code></p></td>
+<td><p>steps</p></td>
+<td><p>The number of the step, counted from 0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sim_time_s</span></code></p></td>
+<td><p>s</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">step</span></code> times <code class="docutils literal notranslate"><span class="pre">step_s</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clock_s</span></code></p></td>
+<td><p>s</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">base_time_s</span></code> plus <code class="docutils literal notranslate"><span class="pre">sim_time_s</span></code>. It is not reduced to one day.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trains</span></code></p></td>
+<td><p></p></td>
+<td><p>One entry for each train: <code class="docutils literal notranslate"><span class="pre">service_id</span></code>, <code class="docutils literal notranslate"><span class="pre">occurrence</span></code>, <code class="docutils literal notranslate"><span class="pre">operating_code</span></code>, <code class="docutils literal notranslate"><span class="pre">in_network</span></code>, <code class="docutils literal notranslate"><span class="pre">direction</span></code>, <code class="docutils literal notranslate"><span class="pre">route_pos_m</span></code>, <code class="docutils literal notranslate"><span class="pre">x_km</span></code>, <code class="docutils literal notranslate"><span class="pre">speed_ms</span></code> and <code class="docutils literal notranslate"><span class="pre">onboard</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">signals</span></code></p></td>
+<td><p></p></td>
+<td><p>The signal state of every section and direction, as entries with <code class="docutils literal notranslate"><span class="pre">section_id</span></code>, <code class="docutils literal notranslate"><span class="pre">code</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code>, <code class="docutils literal notranslate"><span class="pre">failed</span></code> and <code class="docutils literal notranslate"><span class="pre">reversed</span></code>. It is in the first <code class="docutils literal notranslate"><span class="pre">state</span></code> frame of a run and in each later frame in which it differs from the last frame that had it.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">event</span></code> reports a change in the life of the run. Its <code class="docutils literal notranslate"><span class="pre">kind</span></code> says which:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">kind</span></code></p></th>
+<th class="head"><p>Other members</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">steps_finished</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">step</span></code></p></td>
+<td><p>The step loop has ended and the positions are final. <code class="docutils literal notranslate"><span class="pre">step</span></code> is the number of steps that ran. The result files may still be written.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">run_finished</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code></p></td>
+<td><p>The stages of the run have ended. <code class="docutils literal notranslate"><span class="pre">status</span></code> is <code class="docutils literal notranslate"><span class="pre">completed</span></code>, or <code class="docutils literal notranslate"><span class="pre">cancelled</span></code> when the run was stopped or an error ended it. Not every result file is written yet.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">applied</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">command_id</span></code>, <code class="docutils literal notranslate"><span class="pre">cmd</span></code></p></td>
+<td><p>The run takes the command before the next step.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rejected</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">command_id</span></code>, <code class="docutils literal notranslate"><span class="pre">cmd</span></code>, <code class="docutils literal notranslate"><span class="pre">reason</span></code></p></td>
+<td><p>The run does not take a command that the server accepted. See <a class="reference internal" href="#errors">Errors</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="units-and-coordinates">
+<h3>Units and coordinates<a class="headerlink" href="#units-and-coordinates" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Time is in seconds. <code class="docutils literal notranslate"><span class="pre">clock_s</span></code> is the time of day of the scene, with no date and no time zone, and it keeps counting past 24 hours.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">route_pos_m</span></code> is the position of the head of the train on the axis of its route, in metres. A route has its own axis, so positions compare for trains with the same <code class="docutils literal notranslate"><span class="pre">route_index</span></code> of the <code class="docutils literal notranslate"><span class="pre">hello</span></code> only. It is a position and not the distance that the train has run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x_km</span></code> is the coordinate of the head along the line, in km: the x of the block section that holds the head plus the distance into it, minus the distance on a reversed route. <code class="docutils literal notranslate"><span class="pre">direction</span></code> is <code class="docutils literal notranslate"><span class="pre">reversed</span></code> for a train on a reversed route.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">speed_ms</span></code> is in metres per second. The simulation holds km/h, and the frame divides it by 3.6.</p></li>
+<li><p>A value that the run does not hold is <code class="docutils literal notranslate"><span class="pre">null</span></code>: the position, the coordinate and the speed of a train that has not entered or has left, and a coordinate of a head that lies in no block section. The internal marks for these (<code class="docutils literal notranslate"><span class="pre">-9999</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>) never leave the process. A number that is not finite is <code class="docutils literal notranslate"><span class="pre">null</span></code> too.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">in_network</span></code> is true from the step in which the train is due until it has left the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code> of a signal is the signalling code of the section (270 green, 180 yellow, 75 red, 751 red_red, 0 occupied or failed; see <a class="reference internal" href="../guides/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a>). <code class="docutils literal notranslate"><span class="pre">level</span></code> is the signalling level, 0 to 5. Both are <code class="docutils literal notranslate"><span class="pre">null</span></code> for a section without a level. The frames have no aspect ahead of a train and no section of a train: only the list of signals.</p></li>
+</ul>
+</section>
+<section id="ordering">
+<h3>Ordering<a class="headerlink" href="#ordering" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The thread of the run gives <code class="docutils literal notranslate"><span class="pre">seq</span></code>, so it is one order for the whole run: the <code class="docutils literal notranslate"><span class="pre">hello</span></code> is 0, and each frame that the run makes takes the next number, also a <code class="docutils literal notranslate"><span class="pre">state</span></code> frame that the server then drops.</p></li>
+<li><p>Frames reach a subscriber in the order of <code class="docutils literal notranslate"><span class="pre">seq</span></code>. A <code class="docutils literal notranslate"><span class="pre">hello</span></code> that was published again keeps its <code class="docutils literal notranslate"><span class="pre">seq</span></code>, and it can arrive in the middle of a run.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">state</span></code> frame is made at the end of its step. An <code class="docutils literal notranslate"><span class="pre">applied</span></code> event with <code class="docutils literal notranslate"><span class="pre">step</span></code> N comes after the <code class="docutils literal notranslate"><span class="pre">state</span></code> frame of step N-1 and before that of step N, because the run takes a command at the top of a step. The <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code> event comes after the last <code class="docutils literal notranslate"><span class="pre">state</span></code> frame, and <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> is the last frame of the run.</p></li>
+<li><p>A subscriber that joins later gets no earlier frame. A subscriber that is too slow loses frames, and the gap shows in <code class="docutils literal notranslate"><span class="pre">seq</span></code>. The run does not wait for it.</p></li>
+</ul>
+</section>
+<section id="sampling">
+<h3>Sampling<a class="headerlink" href="#sampling" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--live-every</span> <span class="pre">N</span></code> makes a <code class="docutils literal notranslate"><span class="pre">state</span></code> frame for the steps 0, N, 2N and so on. The last step has a frame only if it is a multiple of N. <code class="docutils literal notranslate"><span class="pre">hello</span></code> and <code class="docutils literal notranslate"><span class="pre">event</span></code> frames are never thinned.</p></li>
+<li><p>With N above 1 the <code class="docutils literal notranslate"><span class="pre">signals</span></code> of a frame can differ from those of the frame before in more than one section, because the frames between them were not made.</p></li>
+<li><p>The stream does not set the pace of a run. A run goes as fast as it can, and <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> slows it for a viewer. The server keeps 8 <code class="docutils literal notranslate"><span class="pre">state</span></code> frames for its I/O thread and drops the oldest when the run is faster; see <a class="reference internal" href="#threads-and-loss">Threads and loss</a>.</p></li>
+</ul>
+</section>
+<section id="compatibility">
+<h3>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The server speaks one version. It sets <code class="docutils literal notranslate"><span class="pre">v</span></code> to 1 in every frame, reply and in the endpoint file, and it rejects a request with another <code class="docutils literal notranslate"><span class="pre">v</span></code> as <code class="docutils literal notranslate"><span class="pre">bad_version</span></code>.</p></li>
+<li><p>Within version 1 a frame, a reply or the endpoint file can get new members, an <code class="docutils literal notranslate"><span class="pre">event</span></code> can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know.</p></li>
+<li><p>A change that removes a member, changes a unit or the meaning of a member, or changes the rules of ordering or sampling raises <code class="docutils literal notranslate"><span class="pre">v</span></code>. A consumer stops when it sees a <code class="docutils literal notranslate"><span class="pre">v</span></code> that it does not know.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code> names every member of every frame. <code class="docutils literal notranslate"><span class="pre">test_liveframe</span></code> checks the frames of the code against it and fails for a member that the schema does not name.</p></li>
+</ul>
+</section>
+<section id="threads-and-where-commands-act">
+<h3>Threads and where commands act<a class="headerlink" href="#threads-and-where-commands-act" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>One thread runs the steps: the worker thread of a window run, the main thread of a <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run. It builds the snapshot of a step, makes the text of each frame, gives <code class="docutils literal notranslate"><span class="pre">seq</span></code>, pushes the frame to the server and takes the commands. It never calls ZeroMQ and never waits for a socket or a client.</p></li>
+<li><p>One I/O thread owns every ZeroMQ socket. It sends the frames, and it checks each request, answers it within about 10 ms and queues the commands that it accepts. It never touches the run.</p></li>
+<li><p>A command acts at the top of a step, before any train moves, never in the middle of one. The thread of the run takes the accepted commands from the server and submits them to the <code class="docutils literal notranslate"><span class="pre">RunControl</span></code> of the run, which applies them in the order of arrival. While the run is paused it looks again every 50 ms.</p></li>
+<li><p>A command that is accepted while no step is going to start, because no run goes on or the steps have ended, does not act. It gets a <code class="docutils literal notranslate"><span class="pre">rejected</span></code> event.</p></li>
+<li><p>Any number of clients can subscribe. Each has its own buffer, so a slow client loses frames without effect on the run or on other clients.</p></li>
+</ul>
+</section>
+<section id="errors">
+<h3>Errors<a class="headerlink" href="#errors" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Where</p></th>
+<th class="head"><p>What</p></th>
+<th class="head"><p>What happens</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Start</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">--live</span></code> option that is not valid.</p></td>
+<td><p>The start stops with exit code 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Start</p></td>
+<td><p>The port is in use, or the endpoint file cannot be written.</p></td>
+<td><p>The start stops with exit code 2 and the reason on standard error, before a run begins.</p></td>
+</tr>
+<tr class="row-even"><td><p>Reply</p></td>
+<td><p>The server rejects the request with <code class="docutils literal notranslate"><span class="pre">bad_json</span></code>, <code class="docutils literal notranslate"><span class="pre">too_large</span></code>, <code class="docutils literal notranslate"><span class="pre">bad_version</span></code>, <code class="docutils literal notranslate"><span class="pre">bad_argument</span></code>, <code class="docutils literal notranslate"><span class="pre">bad_token</span></code>, <code class="docutils literal notranslate"><span class="pre">unknown_command</span></code> or <code class="docutils literal notranslate"><span class="pre">queue_full</span></code>.</p></td>
+<td><p>The reply has <code class="docutils literal notranslate"><span class="pre">status</span></code> <code class="docutils literal notranslate"><span class="pre">rejected</span></code> and the <code class="docutils literal notranslate"><span class="pre">reason</span></code>. Nothing is queued and the run does not see it. <a class="reference internal" href="#requests">Requests</a> gives the order of the checks.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Reply</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">describe</span></code> when no run has begun.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rejected</span></code> with <code class="docutils literal notranslate"><span class="pre">no_active_run</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Event</p></td>
+<td><p>An accepted command was waiting when the steps of the run ended.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rejected</span></code> with <code class="docutils literal notranslate"><span class="pre">run_ended</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Event</p></td>
+<td><p>A command was accepted between two runs, or before the first.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rejected</span></code> with <code class="docutils literal notranslate"><span class="pre">no_active_run</span></code> right after the <code class="docutils literal notranslate"><span class="pre">hello</span></code> of the next run.</p></td>
+</tr>
+<tr class="row-even"><td><p>Event</p></td>
+<td><p>The control of the run held 16 commands that it had not applied.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rejected</span></code> with <code class="docutils literal notranslate"><span class="pre">queue_full</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stream</p></td>
+<td><p>A client disconnects, never reads, or is slow.</p></td>
+<td><p>The run and the other clients go on. The client loses frames.</p></td>
+</tr>
+<tr class="row-even"><td><p>Stream</p></td>
+<td><p>The I/O thread cannot hand a frame to its socket, or a socket call fails.</p></td>
+<td><p>It logs the problem once for each kind in the category <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code> and goes on.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stream</p></td>
+<td><p>Text that is not UTF-8.</p></td>
+<td><p>The frame has U+FFFD in its place.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A client that sends garbage, a request that is too large or a request with the wrong token cannot stop or change a run. Only an accepted command reaches it, and an accepted command is one of the four in <a class="reference internal" href="#commands">Commands</a>.</p>
+</section>
+</section>
+<section id="live-server">
+<h2>Live server<a class="headerlink" href="#live-server" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="../api/class_live_server.html"><code class="docutils literal notranslate"><span class="pre">LiveServer</span></code></a> (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.h</span></code>) is the transport of the live contract. The frames are made by <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.h</span></code> and described in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>; the server carries the text of a frame and neither reads nor changes it. A <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> that is not started holds no thread, no ZeroMQ context and no socket.</p>
+<section id="sockets">
+<h3>Sockets<a class="headerlink" href="#sockets" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Socket</p></th>
+<th class="head"><p>Created by</p></th>
+<th class="head"><p>Endpoint</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>PUB</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">start</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp://127.0.0.1:&lt;port&gt;</span></code>; port 0 takes a free port</p></td>
+</tr>
+<tr class="row-odd"><td><p>REP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">start</span></code> with commands enabled</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tcp://127.0.0.1:&lt;port&gt;</span></code>, always a free port</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Both sockets listen on the loopback address, and there is no host option. A published frame is two parts: a topic (<code class="docutils literal notranslate"><span class="pre">state</span></code>, <code class="docutils literal notranslate"><span class="pre">hello</span></code> or <code class="docutils literal notranslate"><span class="pre">event</span></code>) and the frame text.</p>
+<p><code class="docutils literal notranslate"><span class="pre">start</span></code> writes <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> to the output directory it is given, and creates the directory when it is missing:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"v"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp://127.0.0.1:40123"</span><span class="p">,</span><span class="w"> </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp://127.0.0.1:40124"</span><span class="p">,</span><span class="w"> </span><span class="nt">"token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0123456789abcdef0123456789abcdef"</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">command</span></code> and <code class="docutils literal notranslate"><span class="pre">token</span></code> are <code class="docutils literal notranslate"><span class="pre">null</span></code> without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. Where the platform supports it, only the owner of the file can read it. <code class="docutils literal notranslate"><span class="pre">stop</span></code> removes the file. <code class="docutils literal notranslate"><span class="pre">start</span></code> fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.</p>
+</section>
+<section id="threading">
+<h3>Threading<a class="headerlink" href="#threading" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>One I/O thread, started by <code class="docutils literal notranslate"><span class="pre">start</span></code>, creates, binds, uses and closes both sockets. A ZeroMQ socket is never shared between threads. The thread creates the ZeroMQ context and ends it after the sockets are closed.</p></li>
+<li><p>Any other thread calls <code class="docutils literal notranslate"><span class="pre">pushState</span></code>, <code class="docutils literal notranslate"><span class="pre">pushHello</span></code>, <code class="docutils literal notranslate"><span class="pre">pushEvent</span></code>, <code class="docutils literal notranslate"><span class="pre">tryPopCommand</span></code>, <code class="docutils literal notranslate"><span class="pre">droppedStates</span></code>, <code class="docutils literal notranslate"><span class="pre">running</span></code> and the endpoint functions. Each takes the mutex of the server for a few instructions, or reads an atomic, and does not call ZeroMQ, wait for the I/O thread, or wait for a subscriber or a client. A step of the simulation therefore cannot stall on the transport. <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code> are called by one thread at a time.</p></li>
+<li><p>The caller makes the text of a frame before it pushes it, so making the text takes time on the thread of the caller.</p></li>
+<li><p>The I/O thread sends the waiting frames, then answers the requests that have arrived. After a pass that sent nothing it waits up to 10 ms for a request, and after a pass that sent frames it waits up to 1 ms. A pushed frame is therefore sent within about 10 ms, a request is answered within about 10 ms, and neither waits for the simulation.</p></li>
+<li><p>An exception on the I/O thread does not leave it. A problem with a socket is logged once for each kind of text, in the category <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>, and the thread waits one poll interval before it goes on.</p></li>
+</ul>
+</section>
+<section id="queues-and-the-drop-policy">
+<h3>Queues and the drop policy<a class="headerlink" href="#queues-and-the-drop-policy" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Queue</p></th>
+<th class="head"><p>Size</p></th>
+<th class="head"><p>When it is full</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>State frames</p></td>
+<td><p>8</p></td>
+<td><p>The oldest waiting state frame is dropped, and <code class="docutils literal notranslate"><span class="pre">droppedStates</span></code> grows by one.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hello and event frames</p></td>
+<td><p>64</p></td>
+<td><p>The push returns <code class="docutils literal notranslate"><span class="pre">false</span></code> and the frame is not queued.</p></td>
+</tr>
+<tr class="row-even"><td><p>Accepted commands</p></td>
+<td><p>16</p></td>
+<td><p>The request is rejected with <code class="docutils literal notranslate"><span class="pre">queue_full</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>The frames of the three kinds leave in the order of the pushes, so an event pushed after a state frame never arrives before it.</p></li>
+<li><p>The caller gives each frame its <code class="docutils literal notranslate"><span class="pre">seq</span></code>. A state frame that was dropped shows as a gap in <code class="docutils literal notranslate"><span class="pre">seq</span></code>.</p></li>
+<li><p>The queue is emptied once in each pass of the I/O thread, so a producer that pushes more than a few thousand state frames a second loses the rest.</p></li>
+<li><p>A subscriber that reads too slowly loses frames when 1000 messages, which is 500 frames, wait for it. ZeroMQ drops further frames for that subscriber only, and the I/O thread never waits (<code class="docutils literal notranslate"><span class="pre">dontwait</span></code>).</p></li>
+<li><p>A subscriber that joins late does not get earlier frames. A client that sends <code class="docutils literal notranslate"><span class="pre">describe</span></code> makes the server publish the latest hello again. Any subscriber can get the hello twice.</p></li>
+</ul>
+</section>
+<section id="requests">
+<h3>Requests<a class="headerlink" href="#requests" title="Link to this heading">¶</a></h3>
+<p>A request is one JSON object of at most 4096 bytes with the members <code class="docutils literal notranslate"><span class="pre">v</span></code> (1), <code class="docutils literal notranslate"><span class="pre">id</span></code> (a string of at most 64 bytes), <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">cmd</span></code> and, for <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code>, <code class="docutils literal notranslate"><span class="pre">args</span></code> with <code class="docutils literal notranslate"><span class="pre">delay_ms</span></code>, a whole number from 0 to 1000. The commands are <code class="docutils literal notranslate"><span class="pre">pause</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> and <code class="docutils literal notranslate"><span class="pre">describe</span></code>. Every request gets a reply, which has the members <code class="docutils literal notranslate"><span class="pre">v</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code> (<code class="docutils literal notranslate"><span class="pre">null</span></code> when the request had none that is valid), <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">reason</span></code> (only when rejected) and <code class="docutils literal notranslate"><span class="pre">run_id</span></code> (the run of the latest hello, or <code class="docutils literal notranslate"><span class="pre">null</span></code>).</p>
+<p>The checks run in this order, and the first that fails gives the reason:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Reason</p></th>
+<th class="head"><p>The request</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">too_large</span></code></p></td>
+<td><p>has more than 4096 bytes. This is checked before the text is parsed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bad_json</span></code></p></td>
+<td><p>is no JSON text, or is JSON that is not an object.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bad_version</span></code></p></td>
+<td><p>has no <code class="docutils literal notranslate"><span class="pre">v</span></code>, or a <code class="docutils literal notranslate"><span class="pre">v</span></code> that is not the integer 1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bad_argument</span></code></p></td>
+<td><p>has no <code class="docutils literal notranslate"><span class="pre">id</span></code>, an <code class="docutils literal notranslate"><span class="pre">id</span></code> that is not a string, or one that is too long; or <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> has no <code class="docutils literal notranslate"><span class="pre">args.delay_ms</span></code> that is a whole number from 0 to 1000.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bad_token</span></code></p></td>
+<td><p>has no <code class="docutils literal notranslate"><span class="pre">token</span></code> equal to the token in <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>. The comparison takes a time that depends on the length only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">unknown_command</span></code></p></td>
+<td><p>has no <code class="docutils literal notranslate"><span class="pre">cmd</span></code> that is a string, or a name that is not in the list.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">queue_full</span></code></p></td>
+<td><p>is valid, and 16 commands already wait.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_active_run</span></code></p></td>
+<td><p>is <code class="docutils literal notranslate"><span class="pre">describe</span></code>, and no hello was pushed since the server started.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The owner of the server takes the commands with <code class="docutils literal notranslate"><span class="pre">tryPopCommand</span></code>, which never waits, and applies them; <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> does this at the top of each step (see <a class="reference internal" href="#commands">Commands</a>). <code class="docutils literal notranslate"><span class="pre">describe</span></code> is not queued: the hello is published before the reply is sent.</p>
+<p>A message of more than 64 KiB closes the connection of the client that sent it, without a reply. Parts after the first part of a request are ignored.</p>
+</section>
+<section id="stopping-and-starting-again">
+<h3>Stopping and starting again<a class="headerlink" href="#stopping-and-starting-again" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">stop</span></code> sets a flag, and the I/O thread sends the frames that are still queued, closes both sockets with a linger of 500 ms, and then ends the context. Stopping therefore takes about half a second longer at most when a subscriber does not read. <code class="docutils literal notranslate"><span class="pre">stop</span></code> removes <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>, and the destructor calls <code class="docutils literal notranslate"><span class="pre">stop</span></code>.</p>
+<p>After a stop, <code class="docutils literal notranslate"><span class="pre">start</span></code> begins with empty queues, no hello, no command and a drop count of 0. It makes a new token, and takes new ports unless a port is given. A given port can be used again at once.</p>
+</section>
+</section>
+<section id="tests-and-code">
+<h2>Tests and code<a class="headerlink" href="#tests-and-code" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> (unit) starts a <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for <code class="docutils literal notranslate"><span class="pre">describe</span></code> until the hello arrives, not by waiting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_livecommand</span></code> (unit) checks <code class="docutils literal notranslate"><span class="pre">parseLiveRequest</span></code> (<code class="docutils literal notranslate"><span class="pre">io/LiveCommand.h</span></code>) on every request that the contract names: each accepted command, each reason, the limits of the size, the id and the delay, the order of the checks, and the id that comes back. It also checks the event frame that reports a command. It uses no socket, thread or run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> (integration) plays the commands of the JSON-lines files in <code class="docutils literal notranslate"><span class="pre">tests/live/commands</span></code> against the line fixture in the test process. A <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> with commands takes the requests, which the test sends through a REQ socket from the thread of the run just before the step each line names, and a reader on another thread follows the stream. The test compares a run that receives <code class="docutils literal notranslate"><span class="pre">pause</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code> and <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> with a run that receives nothing: the same files, standard output and state at each of the 1500 steps. It checks the events with their step numbers, that no state frame comes while the run is paused, a <code class="docutils literal notranslate"><span class="pre">stop</span></code> before step 100 (<code class="docutils literal notranslate"><span class="pre">cancelled</span></code>, 100 steps), a command that arrives before the run (<code class="docutils literal notranslate"><span class="pre">no_active_run</span></code>), a command that arrives after the last step (<code class="docutils literal notranslate"><span class="pre">run_ended</span></code>) and a full control (<code class="docutils literal notranslate"><span class="pre">queue_full</span></code>). It also checks the <code class="docutils literal notranslate"><span class="pre">fetchCommands</span></code> argument of <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code> (integration) runs the application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and reads the stream with <code class="docutils literal notranslate"><span class="pre">live_client</span></code>; see <a class="reference internal" href="#a-client-and-its-test">A client and its test</a>.</p></li>
+</ul>
+<p>The live server is in <code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code>, which is built from <code class="docutils literal notranslate"><span class="pre">io/LiveCommand.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code> and links <code class="docutils literal notranslate"><span class="pre">nlohmann_json</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code> and cppzmq. It does not use Qt. <code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> links it, and <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> is its only user in the application.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../development/live-sharing.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Sharing a live run</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="scene-editor-flow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Scene Editor Flow</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">External state sharing</a><ul>
+<li><a class="reference internal" href="#the-step-loop">The step loop</a></li>
+<li><a class="reference internal" href="#what-is-not-an-interface">What is not an interface</a></li>
+<li><a class="reference internal" href="#live-stream">Live stream</a><ul>
+<li><a class="reference internal" href="#what-a-run-publishes">What a run publishes</a></li>
+<li><a class="reference internal" href="#threads-and-loss">Threads and loss</a></li>
+<li><a class="reference internal" href="#cost">Cost</a></li>
+<li><a class="reference internal" href="#commands">Commands</a></li>
+<li><a class="reference internal" href="#a-client-and-its-test">A client and its test</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#live-contract-version-1">Live contract version 1</a><ul>
+<li><a class="reference internal" href="#transport">Transport</a></li>
+<li><a class="reference internal" href="#frames">Frames</a></li>
+<li><a class="reference internal" href="#units-and-coordinates">Units and coordinates</a></li>
+<li><a class="reference internal" href="#ordering">Ordering</a></li>
+<li><a class="reference internal" href="#sampling">Sampling</a></li>
+<li><a class="reference internal" href="#compatibility">Compatibility</a></li>
+<li><a class="reference internal" href="#threads-and-where-commands-act">Threads and where commands act</a></li>
+<li><a class="reference internal" href="#errors">Errors</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#live-server">Live server</a><ul>
+<li><a class="reference internal" href="#sockets">Sockets</a></li>
+<li><a class="reference internal" href="#threading">Threading</a></li>
+<li><a class="reference internal" href="#queues-and-the-drop-policy">Queues and the drop policy</a></li>
+<li><a class="reference internal" href="#requests">Requests</a></li>
+<li><a class="reference internal" href="#stopping-and-starting-again">Stopping and starting again</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests-and-code">Tests and code</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

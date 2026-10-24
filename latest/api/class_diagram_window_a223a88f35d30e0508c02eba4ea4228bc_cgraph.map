@@ -1,5 +1,7 @@
 <map id="DiagramWindow::trainSelected" name="DiagramWindow::trainSelected">
-<area shape="rect" id="Node000001" title="A click on a series selected this train." alt="" coords="5,5,228,31"/>
-<area shape="rect" id="Node000002" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title="Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view." alt="" coords="276,5,483,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,15,262,15,262,21,228,21"/>
+<area shape="rect" id="Node000001" title="A click on a series selected this train." alt="" coords="5,31,228,56"/>
+<area shape="rect" id="Node000002" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title=" " alt="" coords="289,5,495,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,30,275,26,275,31,228,36"/>
+<area shape="rect" id="Node000003" href="$class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939" title="Escape ends a selection, and closes the window only while nothing is selected." alt="" coords="276,55,508,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,50,263,53,262,59,228,56"/>
 </map>

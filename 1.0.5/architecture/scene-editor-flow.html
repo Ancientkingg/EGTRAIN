@@ -1,0 +1,658 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="External state sharing" href="external-sharing.html"><link rel="prev" title="V1 Scene Model" href="scene-model.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Scene Editor Flow - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/scene-editor-flow.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="scene-editor-flow">
+<h1>Scene Editor Flow<a class="headerlink" href="#scene-editor-flow" title="Link to this heading">¶</a></h1>
+<section id="purpose-and-users">
+<h2>Purpose and users<a class="headerlink" href="#purpose-and-users" title="Link to this heading">¶</a></h2>
+<p>The scene editor gives instructors one window flow for creating a railway case,
+authoring its canonical data, running EGTRAIN, and packaging the result. Students
+can edit the supplied timetable and scenarios and inspect the same result views.
+Researchers retain readable JSON inputs and reproducible native runs without
+using legacy files.</p>
+</section>
+<section id="window-flow">
+<h2>Window flow<a class="headerlink" href="#window-flow" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Start state: a scene is already loaded when the window first shows. <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code> loads and validates the scene that the startup options name (Netherlands by default) and opens it in the window. Unless a startup option such as <code class="docutils literal notranslate"><span class="pre">-n</span></code> or <code class="docutils literal notranslate"><span class="pre">--scene</span></code>, or a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file name on the command line that opens, skips it, the window then shows the case chooser <strong>Open a Case</strong> over that scene. The recovery prompt comes first when an earlier run left unsaved edits that can be recovered (Recovery at the start, below). A file name that does not open is reported and leaves the usual start: the default scene loads and the chooser is shown. <a class="reference internal" href="../guides/command-line.html#startup-of-the-window"><span class="std std-ref">Startup of the window</span></a> names the options that skip it. The chooser lists <strong>Bundled cases</strong> (scene folders and <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files in a <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder in the working directory or next to the executable, and in <code class="docutils literal notranslate"><span class="pre">../Resources/Scenes</span></code> and <code class="docutils literal notranslate"><span class="pre">../share/EGTRAIN/Scenes</span></code> relative to the executable) and <strong>Recent cases</strong>. <strong>Other ways to open…</strong> offers <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Case...</span></code>, <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code> and <code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code>. <strong>Continue</strong> keeps the loaded scene and <strong>Open</strong> opens the selected case. The toolbar button <strong>Open Case</strong> shows the same chooser later. A window without a scene exists only in the creator acceptance smoke test (<code class="docutils literal notranslate"><span class="pre">tools/e2e/creator_acceptance_smoke.sh</span></code> sets <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_CREATOR_ACCEPTANCE</span></code>). There Save, the scene edit panes, and scene Run are disabled until a scene is created or opened.</p></li>
+<li><p>New scene: <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Case...</span></code> creates the smallest structurally valid <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a>. It remains editable and saveable while semantic diagnostics identify the railway data still required for Run.</p></li>
+<li><p>Open scene: <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Case...</span></code> selects an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle; <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code> selects an editable canonical directory. Both load the same canonical JSON into <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and add the selected path to the recent-scenes list in <code class="docutils literal notranslate"><span class="pre">QSettings</span></code>, unless it lies in a folder of installed scenes beside the executable (<code class="docutils literal notranslate"><span class="pre">isInstalledScenePath</span></code> in <code class="docutils literal notranslate"><span class="pre">app/SceneSavePolicy.h</span></code>). The chooser lists those under <strong>Bundled cases</strong>, and their folder can change at every start, as the mount folder of an AppImage does. A <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file name on the command line is loaded and validated like the picker’s choice and added to the recent scenes in the same way. No unsaved scene exists at that moment, and a failed open continues with the usual start. A bundle of an older or newer format is reported at once, without the upgrade copy or update check that the picker offers. Normal mode opens quietly; <code class="docutils literal notranslate"><span class="pre">View</span> <span class="pre">&gt;</span> <span class="pre">Advanced</span> <span class="pre">Details</span></code> persists the choice and exposes the automatic Loaded Data and full validation detail. The existing Loaded Data and Validation View actions remain explicit in either mode. File, recent-scene, drop, and chooser opens resolve focused edits through one Save, Discard, or Cancel decision after the target is selected. Cancelled pickers and failed loads retain the current scene; teardown starts only after the incoming scene loads successfully.</p></li>
+<li><p>Compatibility: opening probes schema, bundle, and descriptive saved-with metadata before loading. Current scenes open directly; older scenes offer only an explicit upgrade copy when a registered migration reaches the current format, and are otherwise reported as unsupported and not opened (no migration is registered today); newer scenes offer <strong>Check for Updates…</strong> and Cancel. Automated/headless flows do not show these dialogs or start network checks. <a class="reference internal" href="scene-model.html#compatibility-boundary"><span class="std std-ref">Compatibility boundary</span></a> lists which scenes open.</p></li>
+<li><p>Validation: opening a scene populates the validation panel with <a class="reference external" href="../api/struct_scene_diagnostic.html"><code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code></a> entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors; the full table remains available from the View menu and Loaded Data diagnostics. Normal mode keeps actionable errors and readiness visible while omitting automatic non-blocking warning counts; advanced mode also shows the summary counts and technical inventory.</p></li>
+<li><p>Edit panes: after a valid enough model loads, the editor panes show scene data from <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>. V1 edits update <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>; they do not edit legacy files directly. The window holds the model in a <a class="reference external" href="../api/class_scene_document.html"><code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code></a>, which keeps the unsaved-changes state and counts every change; an editor changes the model in place and then calls <code class="docutils literal notranslate"><span class="pre">markChanged</span></code> (<a class="reference internal" href="#editor-panels">Editor panels</a>).</p></li>
+<li><p>Undo and Redo: the Edit menu holds <code class="docutils literal notranslate"><span class="pre">Undo</span></code> and <code class="docutils literal notranslate"><span class="pre">Redo</span></code> with the standard keys of the platform (Ctrl+Z on Windows and Linux with Ctrl+Y or Ctrl+Shift+Z for Redo, Cmd+Z and Cmd+Shift+Z on macOS). They also work while an editor dock floats as a window of its own. The window keeps the scene as it was after each committed edit: a field whose editing has finished, a choice, a toggle, an add, duplicate, delete or move, an accepted dialog. One such edit is one step. Text that is still being typed and a dialog that is cancelled add no step. The menu names the step, for example <code class="docutils literal notranslate"><span class="pre">Undo</span> <span class="pre">Delete</span> <span class="pre">service</span></code>, and <code class="docutils literal notranslate"><span class="pre">Undo</span> <span class="pre">Edit</span></code> when the change is not one part added or removed. A new edit after Undo discards the steps that Redo would repeat. The history keeps at most 100 steps and an estimated 128 MiB of snapshots, drops the oldest first, and lasts for the session (<a class="reference internal" href="scene-model.html#edit-history"><span class="std std-ref">Edit history</span></a>). Undo and Redo put back every authored part of the scene, so identifiers, references and the order of lists return as they were, and every editor shows the result. The loaded-data summary, the list of source files and the version that saved the scene come from the files and the checks, so they stay as they are. Validation runs again, and run results, a replay and the delay baseline are cleared as after any edit; Undo does not bring them back. The network view keeps its zoom and its centre. Both actions are disabled while a run uses the scene. A text that is still being typed in an editor is committed as an edit first, and Undo then reverts it. While a text field or a number field has the focus it takes the shortcut for its own text, so use the menu or leave the field first.</p></li>
+<li><p>Unsaved mark and history: the scene is clean at the state that was opened or saved, and unsaved at every other state. Undo past that state and Redo away from it mark the scene unsaved again, and Save keeps the history. When the saved state has left the history, by a new edit after Undo or by the limits, the scene stays unsaved until the next save. Reverting a value by hand is two edits and leaves the scene unsaved. Opening, creating or importing a scene starts a new history once the new scene is in place; an open that fails leaves the history of the current scene.</p></li>
+<li><p>Not undone: opening, creating and saving a scene, the links of rolling stock units to their source files (a link stays with a unit that keeps its identifier and goes with one that is gone), the selected scenario, the generated service occurrences left out of a run, run results and replays, diagrams, the result rows of a passenger import, the selection in lists and the layout of the window.</p></li>
+<li><p>Autosave: while a scene has unsaved edits, the window keeps a recovery copy of it in a folder of its own below <code class="docutils literal notranslate"><span class="pre">Recovery</span></code> in the local application data folder of the user (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> names another folder). The first edit after a write starts a timer of 30 seconds (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_INTERVAL_MS</span></code> sets it in milliseconds). When the timer ends, a worker thread writes the newest state once, as an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle with the writer that Save uses, so the window stays usable while a large scene is written. Later edits do not move the timer, and a state that is on disk is not written again. A new case that was never saved is copied the same way. The copy holds the authored scene and a small record: the name, the time, and the source, which is a bundle, a folder or a new case, with the absolute path of the file and the size and modification time that it had when the scene was opened or saved. Other files in a scene folder are not part of the copy. Autosave never writes to the file or folder that the scene came from, never marks the scene as saved, never changes the history, shows no dialog and sends nothing; the usage events do not see it (<a class="reference internal" href="../telemetry/README.html#recovery-files"><span class="std std-ref">Recovery files</span></a>). Every window keeps one copy, in a folder that only the user can read. A second window of EGTRAIN keeps its own, and the copy of a window that runs is never offered.</p></li>
+<li><p>Lifetime of a copy: the copy goes when the scene is saved with Save or Save As, when Undo returns to the saved state, when New or an open that succeeds replaces the scene, when the window closes after Save or Discard, and when the user discards it in the recovery prompt. An open that fails after Discard leaves the scene in the window and its copy where it was, and Cancel keeps the copy. A copy that a crash or a power loss left behind stays until the user decides; no age removes it. The application keeps at most 20 such copies, removes the oldest beyond that and says so in the prompt. A copy is a bundle, so the limits of a saved bundle apply to it: 16 MiB for one entry and 64 MiB in all. If the folder cannot be made or written, for example because it is read-only or the disk is full, the status bar says <code class="docutils literal notranslate"><span class="pre">Autosave</span> <span class="pre">unavailable</span></code> once for that scene, and the message goes when a copy is written again. It says why in words: a case with an incomplete entry, such as an incident without a target or a new service without a composition, cannot be written as a copy, and the message names the entry by its list and position (<code class="docutils literal notranslate"><span class="pre">incident</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">service</span> <span class="pre">1</span></code>) and not the diagnostic code. Editing, saving and runs go on, and nothing is marked as saved.</p></li>
+<li><p>Recovery at the start: an interactive start looks for the copies that earlier runs left, after the window shows and before the case chooser. If at least one can be opened, <strong>Recover Unsaved Work</strong> lists them, newest first. A row names the case, the time of the copy and its source, which is the path or <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">saved</span> <span class="pre">yet</span></code>, and says when the original changed after the copy was made, is newer than the copy, is missing or could not be compared. <strong>Recover</strong> opens the selected copy and is the default button unless the original may hold newer work, in which case <strong>Decide Later</strong> is. <strong>Discard</strong> asks for a second click that names the case, and it is the only way to delete a copy that can be opened. <strong>Decide Later</strong>, Escape and closing the dialog keep every copy for the next start. A copy that a newer version or another scene version made is listed and can only be discarded. After Recover the chooser stays closed. Scripted, offscreen and headless runs neither keep nor offer copies unless <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_RECOVERY_DIR</span></code> is set, which tests do for a folder of their own.</p></li>
+<li><p>Recovered scene: Recover opens the copy as an unsaved scene without a file, so it has no saved state to return to. Save leads to <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As...</span></code>, whose dialog starts at the file that the copy came from. The original is written only when the user chooses it there and confirms the overwrite. The recovered scene is not added to the recent scenes and is not counted as an opened scene in the usage events. Its copy moves to the folder of the window, so a crash right after the recovery loses nothing, and a later copy still names the original, so a second prompt can tell that it changed.</p></li>
+<li><p>Save: <code class="docutils literal notranslate"><span class="pre">Save</span></code> writes back to the opened bundle or directory. <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As...</span></code> writes a portable <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>; <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As</span> <span class="pre">Folder...</span></code> writes canonical JSON to a directory.</p></li>
+<li><p>Run handoff: Run revalidates the current model. Error diagnostics block Run, and so does a run with no selected service occurrence. If validation passes, the review window <strong>Run simulation</strong> opens. It names the scene and the scenario and shows the selected services, the start clock, the duration and the active incidents. Only its button <strong>Run simulation</strong> goes on: the shared native setup then builds the run directly from the model.</p></li>
+<li><p>Back to results: after the run, students can inspect speed, time, applied tractive effort, blocking-time, timetable, delay, and capacity results. Existing tables and diagrams provide CSV or PNG export where applicable. Run Results keeps the completed-run identity and, when relevant, the delay baseline identity beside the baseline/compare actions; the adjacent message states the next valid action or why a control is disabled. Compare delays opens the Delay analysis window on its Against baseline tab, which states a zero positive additional delay and the number of unchanged occurrences explicitly.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code> is an explicit conversion action. It reads a selected
+external legacy directory into a new canonical scene; the source files are not
+an editable or runtime fallback. After the source and destination are
+validated, pending edits are resolved before conversion and the imported scene
+opens without a second prompt.</p>
+</section>
+<section id="main-window-layout">
+<h2>Main window layout<a class="headerlink" href="#main-window-layout" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Area</p></th>
+<th class="head"><p>Contents</p></th>
+<th class="head"><p>Enabled state</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>File menu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Case...</span></code>, <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Case...</span></code>, <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code>, <code class="docutils literal notranslate"><span class="pre">Save</span></code>, <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As...</span></code>, <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As</span> <span class="pre">Folder...</span></code>, <code class="docutils literal notranslate"><span class="pre">Run</span></code>, <code class="docutils literal notranslate"><span class="pre">Recent</span> <span class="pre">Cases</span></code>, <code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code>, <code class="docutils literal notranslate"><span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code>, <code class="docutils literal notranslate"><span class="pre">Quit</span></code></p></td>
+<td><p>New, Open, Open Case Folder, the legacy case picker, and Quit are always enabled. An open or New during a run waits until the run has stopped, and so does the opening of an imported legacy case; the import itself, which writes the destination scene, runs at once (<a class="reference internal" href="../development/smoke-tests.html#close-new-and-open-during-a-run"><span class="std std-ref">Close, New and Open during a run</span></a>). Recent Cases is enabled when the list has entries. Save is enabled when a scene is loaded. Both Save As actions are enabled when a scene is loaded. File &gt; Run follows Simulation &gt; Run. Set Output Folder is disabled while a run is active.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Edit menu</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Undo</span></code>, <code class="docutils literal notranslate"><span class="pre">Redo</span></code>, <code class="docutils literal notranslate"><span class="pre">Find...</span></code></p></td>
+<td><p>Undo and Redo are enabled when a scene is loaded, no run is active and the history has a step to go back or forward; the text names the step. Find is always enabled.</p></td>
+</tr>
+<tr class="row-even"><td><p>Simulation menu and toolbar</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Run</span></code>, <code class="docutils literal notranslate"><span class="pre">Pause</span></code>, <code class="docutils literal notranslate"><span class="pre">Stop</span></code>, speed control</p></td>
+<td><p>Run is enabled when a scene is loaded, no run is active and no scene error diagnostics are current. Pause and Stop are enabled only while simulation is running.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Central view</p></td>
+<td><p>Existing network view and progress bar</p></td>
+<td><p>Shows canonical scene infrastructure after open and simulation state after setup and run.</p></td>
+</tr>
+<tr class="row-even"><td><p>Editor docks</p></td>
+<td><p>Case settings, infrastructure, rolling stock units, compositions, services and timetable, scenarios with their incidents and entrance delays, passengers</p></td>
+<td><p>Enabled for a new or opened canonical scene. The Infrastructure, Services and Passengers docks are disabled while a run is active. A legacy case must first be imported as a scene.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Validation panel</p></td>
+<td><p>Dockable table of diagnostics</p></td>
+<td><p>Available from View in every mode. Updated on open, edit, save, and pre-run validation; automatic summary detail is richer in Advanced mode.</p></td>
+</tr>
+<tr class="row-even"><td><p>Loaded Data panel</p></td>
+<td><p>Case/source metadata, parsed category counts, scenarios, provenance, validation status, editor links, runtime and result readiness</p></td>
+<td><p>Automatically raised after scene open only in Advanced mode; the existing View action remains explicit. Item activation reuses the existing network view, validation table, and domain editors.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Existing info dock (the inspector)</p></td>
+<td><p>Read-only selected item details for nodes, stations, arcs, connections, signals, trains. Its entry in the View menu is <code class="docutils literal notranslate"><span class="pre">Details</span></code>. Before a run the title names the item: <code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code> (with <code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">platform</span> <span class="pre">&lt;id&gt;</span></code> for a platform node), <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Track</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span> <span class="pre">&lt;id&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">Signal</span> <span class="pre">&lt;label&gt;</span></code>. During a run it is <code class="docutils literal notranslate"><span class="pre">Node</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span> <span class="pre">&lt;name&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc</span> <span class="pre">&lt;id&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Connection</span></code>, <code class="docutils literal notranslate"><span class="pre">Signal</span></code> or <code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">&lt;name&gt;</span></code>. A field that only a run fills shows the placeholder <code class="docutils literal notranslate"><span class="pre">After</span> <span class="pre">a</span> <span class="pre">run</span></code> in the preview.</p></td>
+<td><p>Enabled when the network view has selectable items. It stays read-only outside explicit editor controls. It closes when a run stops or its results are discarded.</p></td>
+</tr>
+<tr class="row-even"><td><p>Status bar</p></td>
+<td><p>Transient messages, for example <code class="docutils literal notranslate"><span class="pre">Opened</span> <span class="pre">&lt;name&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Running</span></code> and <code class="docutils literal notranslate"><span class="pre">Simulation</span> <span class="pre">complete</span></code>, which an edit replaces with <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">results</span> <span class="pre">discarded:</span> <span class="pre">the</span> <span class="pre">case</span> <span class="pre">changed.</span></code>; three permanent fields: the follow status of the selected train, the validation summary and the zoom of the network view</p></td>
+<td><p>Always visible. The scene name and the unsaved mark are in the window title. Normal mode calls out actionable validation errors; Advanced mode also shows warning/info counts.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="validation-lifecycle">
+<h2>Validation lifecycle<a class="headerlink" href="#validation-lifecycle" title="Link to this heading">¶</a></h2>
+<p>Validation runs when a bundle or directory opens, after each committed editor change, after Save or Save As, and immediately before Run. The pre-run validation is mandatory even when the panel already shows no errors.</p>
+<p>Structural diagnostics come from the bundle reader or directory loader and the required JSON files. If structural loading has errors, semantic validation is skipped to avoid duplicate noise from a partial model. Semantic diagnostics check topology, identifiers and references, rolling-stock values and traction intervals, timetable values, signalling coverage, incidents, base time, and repeated-service rules.</p>
+<p>Save is allowed with semantic errors so students can preserve work in progress. Run is not allowed with any <code class="docutils literal notranslate"><span class="pre">SceneSeverity::Error</span></code>. Warnings and info diagnostics remain available in the full Validation table but do not block Run; normal-mode automatic presentation omits their non-blocking summary counts. Native builder diagnostics appear under <strong>Run</strong> in Loaded Data, and builder errors block Run.</p>
+<p>The Advanced Details choice changes presentation only. It does not
+commit focused editor values, replace the full diagnostic table, change run
+gating, or change the scene/result model. The scenario library retains incident
+and entrance-delay counts in normal mode; an invalid scenario remains marked
+<code class="docutils literal notranslate"><span class="pre">Invalid</span></code>, while non-blocking <code class="docutils literal notranslate"><span class="pre">Warning</span></code> detail is reserved for Advanced mode.</p>
+</section>
+<section id="simulation-handoff-mechanics">
+<h2>Simulation handoff mechanics<a class="headerlink" href="#simulation-handoff-mechanics" title="Link to this heading">¶</a></h2>
+<p>Run uses the current <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>, including unsaved editor changes.
+<a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code></a> clears the previous runtime state, checks
+that the scene is runnable, invokes the infrastructure/signalling builder, then
+the operations builder, and prepares the configured output directory. An error
+found before the output directory is prepared resets the runtime state. It does
+not serialize, export, or stage a second input representation.</p>
+<p>Simulation parameters are canonical:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">numTrackLines</span></code>: number of entries in <code class="docutils literal notranslate"><span class="pre">infrastructure.json.tracks</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">N_Routes</span></code>: number of routes in <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startingSimulationTime</span></code>: <code class="docutils literal notranslate"><span class="pre">scene.json.base_time</span></code>, converted from <code class="docutils literal notranslate"><span class="pre">HH:MM:SS</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">times</span></code>: <code class="docutils literal notranslate"><span class="pre">scene.json.simulation_settings.duration_seconds</span></code>, or the value of <code class="docutils literal notranslate"><span class="pre">-h</span></code>
+when that option is given (see <a class="reference internal" href="../guides/command-line.html#options"><span class="std std-ref">Options</span></a>).</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> sets these values from the scene. Run calls
+it in the current main window with this sequence:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>teardownGUI
+simulation.prepareScene(SceneModel)
+setupGUI
+</pre></div>
+</div>
+<p>Only after setup succeeds does the simulation worker start. Opening or creating
+a scene calls <code class="docutils literal notranslate"><span class="pre">teardownGUI</span></code> and <code class="docutils literal notranslate"><span class="pre">simulation.resetState</span></code> before it replaces the
+current scene. Case replacement waits for the old worker to stop and ignores any
+queued completion from that worker. Disabled scenario controls are not pending
+edits.</p>
+<p>The Loaded Data panel reports one global runtime state instead of claiming each
+input file built a separate runtime model. It is <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">built</span></code>, shown as <strong>Not run</strong>, after open or an
+edit, <code class="docutils literal notranslate"><span class="pre">Ready</span></code> after <code class="docutils literal notranslate"><span class="pre">prepareScene</span></code> succeeds, <code class="docutils literal notranslate"><span class="pre">Running</span></code> while the worker runs,
+<code class="docutils literal notranslate"><span class="pre">Completed</span></code> when a run ends with results, <code class="docutils literal notranslate"><span class="pre">Stopped</span></code> when a stop request ends a
+run before it completes, and <code class="docutils literal notranslate"><span class="pre">Failed</span></code> with builder diagnostics after preparation
+fails. <code class="docutils literal notranslate"><span class="pre">Failed</span></code> also covers a run that ends without results, unless a stop
+request ended it before it completed, and a run whose scene changed while it ran. Completed simulation output
+is reported as available, but remains outside canonical input.</p>
+</section>
+<section id="editor-panels">
+<h2>Editor panels<a class="headerlink" href="#editor-panels" title="Link to this heading">¶</a></h2>
+<p>Each editor dock holds one panel from <code class="docutils literal notranslate"><span class="pre">editors/</span></code>, a <a class="reference external" href="../api/class_scene_editor_panel.html"><code class="docutils literal notranslate"><span class="pre">SceneEditorPanel</span></code></a>. A panel shows the model of the window’s <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>, changes it in place and then calls <code class="docutils literal notranslate"><span class="pre">markChanged</span></code> with the parts that it changed and a label. It also emits <code class="docutils literal notranslate"><span class="pre">changed</span></code>, which the window answers by running validation again. The window creates the docks, gives every panel the document, and connects the panels with each other and with the run. It holds no editing code of its own.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code> owns the <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>. It knows whether a scene is loaded, whether it differs from what was saved, whether a run lets it be edited, and how often it has changed. Its signal <code class="docutils literal notranslate"><span class="pre">changed</span></code> names the parts that changed, <code class="docutils literal notranslate"><span class="pre">replaced</span></code> follows the opening or creating of a scene, and <code class="docutils literal notranslate"><span class="pre">dirtyChanged</span></code> and <code class="docutils literal notranslate"><span class="pre">editableChanged</span></code> follow the two flags. The window answers <code class="docutils literal notranslate"><span class="pre">changed</span></code> by adding an Undo step and by clearing the run results and the delay baseline. A panel that shows data derived from another part of the scene, such as the targets of an incident, refreshes itself from the same signal. Undo and Redo put an earlier state back with <code class="docutils literal notranslate"><span class="pre">restore</span></code>, which emits no <code class="docutils literal notranslate"><span class="pre">changed</span></code>, so the window refreshes the panels itself.</p>
+<p>Saving, the question about unsaved changes, validation and Undo first take the text of every field that is still being typed: the window calls <code class="docutils literal notranslate"><span class="pre">commitPendingEditors</span></code> on each panel in turn. While a run uses the scene the document is not editable, and the service, scenario, incident and entrance delay panels take nothing.</p>
+<p>The Infrastructure panel lists one kind of entity at a time in a table. Each kind is an <a class="reference external" href="../api/class_infrastructure_facet.html"><code class="docutils literal notranslate"><span class="pre">InfrastructureFacet</span></code></a> in <code class="docutils literal notranslate"><span class="pre">editors/infrastructure/</span></code> that knows its columns and rows and what an edited cell, an addition and a deletion do to the model. <code class="docutils literal notranslate"><span class="pre">TopologyFacets</span></code> holds tracks, nodes, arcs and connections, <code class="docutils literal notranslate"><span class="pre">BlockRouteFacets</span></code> blocks, routes, block dependencies and single-track restrictions, <code class="docutils literal notranslate"><span class="pre">StationFacets</span></code> stations, platforms and station boundaries, and <code class="docutils literal notranslate"><span class="pre">SignalFacets</span></code> signals and signalling areas. Renaming an entity rewrites what refers to it (<code class="docutils literal notranslate"><span class="pre">scene/SceneReferences</span></code>), and an entity that others use cannot be deleted.</p>
+<p>The facet combo is on top of the panel, and the buttons that add and delete an entity are in a row under the table, with the buttons that insert and move a block. The sections of a route are listed under the heading “Route sections” below the table, in a splitter that the user can drag. The sentence above the table comes from <code class="docutils literal notranslate"><span class="pre">infrastructureGuidanceText</span></code>, which has a sentence of its own for each of the thirteen kinds when its table is empty. It names a prerequisite (a track, two nodes, a station) only while the scene lacks it, says that the scene cannot be edited while a run is in progress when Add is off, and asks for a case when none is open.</p>
+<p>The Validation and Loaded Data docks hold the table and the tree of a <a class="reference external" href="../api/class_validation_panel.html"><code class="docutils literal notranslate"><span class="pre">ValidationPanel</span></code></a>, which is not an editor. Its <code class="docutils literal notranslate"><span class="pre">refresh</span></code> validates the scene of the document, writes the diagnostics to the list that the window and the scenario and passenger panels read, fills the table, the validation summary of the status bar and the tree, and emits <code class="docutils literal notranslate"><span class="pre">refreshed</span></code>, which the window answers by refreshing the scenario and passenger panels and the actions. The window gives the panel the duration of the next run, the Advanced details choice, and what the tree shows of the scene file and the run. A row of the tree that stands for a scene item emits <code class="docutils literal notranslate"><span class="pre">targetActivated</span></code>, and the window opens the editor or the view.</p>
+<p>Each panel has a widget test, and each group of facets one. The editor smoke and the creator acceptance smoke run the panels in the whole window (<a class="reference internal" href="../development/smoke-tests.html#editor-smoke-test"><span class="std std-ref">Editor Smoke Test</span></a>).</p>
+</section>
+<section id="v1-edit-panes">
+<h2>V1 edit panes<a class="headerlink" href="#v1-edit-panes" title="Link to this heading">¶</a></h2>
+<p>Editing uses explicit fields, table cells, and add, duplicate, move, and delete
+controls. The network view previews canonical infrastructure; it is not a CAD
+surface.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Pane</p></th>
+<th class="head"><p>Editable in V1</p></th>
+<th class="head"><p>Derived or read-only</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Case settings</p></td>
+<td><p>Name, description, base time, duration, buffer, recovery</p></td>
+<td><p>Schema version, units, scene path, validation summary</p></td>
+</tr>
+<tr class="row-odd"><td><p>Infrastructure</p></td>
+<td><p>Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries</p></td>
+<td><p>Network geometry preview and runtime diagnostics</p></td>
+</tr>
+<tr class="row-even"><td><p>Rolling Stock Units</p></td>
+<td><p>ID; Traction tab with the engine section (traction source, rows and plot); Physical tab with the characteristics section (nine native physical fields and parameter source); session-only Link/Unlink/Retry controls for physical and traction files</p></td>
+<td><p>Static traction plot; composition usage; live link status</p></td>
+</tr>
+<tr class="row-odd"><td><p>Compositions</p></td>
+<td><p>ID and ordered rolling-stock-unit membership</p></td>
+<td><p>Selected-unit source references and traction plot</p></td>
+</tr>
+<tr class="row-even"><td><p>Services and timetable</p></td>
+<td><p>ID, operating code, composition, route, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stop matrix and stop dialog</p></td>
+<td><p>Generated occurrence identities and offsets</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scenarios</p></td>
+<td><p>Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination</p></td>
+<td><p>Target choices derived from signals, blocks, routes, services, and timetable stops</p></td>
+</tr>
+<tr class="row-even"><td><p>Passengers</p></td>
+<td><p>Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair</p></td>
+<td><p>Row-specific import outcomes and validation diagnostics; errors of the selection in one callout and warnings and notes in a second</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The signalling area table of the Infrastructure pane has a list for the
+signalling system and a list for the track. The system list holds the six levels
+with the names of <a class="reference internal" href="../guides/signalling-levels.html"><span class="std std-doc">Signalling levels</span></a>, which also says what
+each level does. The track list holds “(all tracks)” and each track of the scene
+with the extent of its blocks. A value that does not exist is listed first as
+“Invalid level N” or “X (missing)”. An area whose system is not chosen lists
+“Choose a signalling system” first. A new area starts with the extent of the
+network and no system, and the case cannot run until a system is chosen.</p>
+<p>Rolling-stock links are UI session state, not scene schema. The watcher keeps an
+absolute selected file and its parent directory armed through atomic replacement,
+deletion, and recreation; a short debounce groups callbacks for one file. A
+complete validated candidate is compared with the last accepted values before
+the canonical unit changes. Shared links use one grouped Keep Edits/Reload
+decision; a focused local edit prompts for a conflict decision, while an update
+observed during a run is deferred and offered after completion. New scenes,
+successful opens, unlink, deletion, and relinking clear
+the corresponding observers; failed or cancelled opens leave the current links
+intact. Saved scenes therefore remain portable when their source files are
+absent.</p>
+<p>The scenario editor can create and delete non-default scenarios and edit the
+canonical entrance-delay rows used by native staging.</p>
+<p>Services show their service code, configured total and count within the
+simulation period separately. Selected-in-period counts exclude unchecked
+generated services. Maximum speed restriction uses six significant display
+digits; focusing or saving an untouched value preserves its stored precision.
+Running performance is applied when editing of the box ends (Enter, Tab or
+leaving the box), not for each digit typed; Save and Run apply a value that is
+still being typed.
+The Category chooser edits only service metadata. It offers six presets and No
+category; an imported unknown value is shown explicitly and retained until
+changed. The Colour control follows it: a swatch, Choose…
+(a Qt colour dialog without alpha, written as lower-case <code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>) and Default,
+which removes the value. A stored text that is not <code class="docutils literal notranslate"><span class="pre">#RRGGBB</span></code> is shown as
+“Invalid: <text>” and retained until changed. Both edits mark the scene
+modified. Duplication copies the category and the colour with the other service
+settings. The window resolves a train’s colour from the service id that the
+simulation snapshot carries, so every occurrence of a service shares it.
+Route choices show endpoints and traversal direction, with canonical IDs as
+secondary labels and item data. Tooltips list traversed stations, not scheduled
+calls. The dialog for a new stop has a position chooser whose item data is the
+insertion index, so a repeated station gives distinct entries. Stop choices are the
+route visits between the neighbours of that position
+(<code class="docutils literal notranslate"><span class="pre">sceneStopInsertionWindow</span></code>); a position without a window shows the reason, offers
+no station and blocks Accept. Accept calls <code class="docutils literal notranslate"><span class="pre">insertSceneStop</span></code>, which inserts only
+when the new stop resolves and no resolved stop changes its visit, and otherwise
+leaves the service unchanged. Add Stop opens after the last stop or at the last
+position that has choices and shows a message only when no position has any;
+Insert After Selected opens after the selected row. Editing a stop keeps the
+remaining-route choices. Existing invalid assignments remain visible and
+saveable, with a reason beside the platform selector. Route edits never delete
+or silently retarget stops.</p>
+<p>Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
+Accept validates the focused fields and commits once; Cancel changes nothing,
+including when adding a stop. The matrix and dialog offer Elapsed/Clock time
+with the canonical case base time shown. Blank arrival or departure means absent,
+not zero. Clock input uses <code class="docutils literal notranslate"><span class="pre">HH:MM:SS[.fraction]</span></code> and explicit <code class="docutils literal notranslate"><span class="pre">+Nd</span> </code> prefixes for
+later days; a clock before base is not silently interpreted as tomorrow.
+Representation changes preserve stored offsets and untouched precision. The
+dialog blocks malformed, nonfinite or newly negative input; chronology errors
+can be saved as drafts but block Run. A short dwell window remains advisory.
+An empty stop matrix is a service with no scheduled calls, with no extra switch.</p>
+<p>Train incidents use one generated-service chooser, with code, route, scheduled
+entry and secondary canonical identity. Selecting a row stores both service ID
+and occurrence. Historical all-occurrence targets retain an explicit scope row;
+removed targets remain visibly invalid until deliberately changed.</p>
+</section>
+<section id="explicit-out-of-scope-list">
+<h2>Explicit out-of-scope list<a class="headerlink" href="#explicit-out-of-scope-list" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Drag-and-drop railway CAD, route painting, or automatic signal placement.</p></li>
+<li><p>Automatic timetable optimization or performance sweeps.</p></li>
+<li><p>A generic scenario scripting language.</p></li>
+<li><p>Treating legacy files as the editable source of truth.</p></li>
+<li><p>Editing legacy source files from the UI.</p></li>
+<li><p>Treating an explicit interoperability export as a scene directory.</p></li>
+<li><p>General-purpose JSON text editing inside the application.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="external-sharing.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">External state sharing</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="scene-model.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">V1 Scene Model</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Scene Editor Flow</a><ul>
+<li><a class="reference internal" href="#purpose-and-users">Purpose and users</a></li>
+<li><a class="reference internal" href="#window-flow">Window flow</a></li>
+<li><a class="reference internal" href="#main-window-layout">Main window layout</a></li>
+<li><a class="reference internal" href="#validation-lifecycle">Validation lifecycle</a></li>
+<li><a class="reference internal" href="#simulation-handoff-mechanics">Simulation handoff mechanics</a></li>
+<li><a class="reference internal" href="#editor-panels">Editor panels</a></li>
+<li><a class="reference internal" href="#v1-edit-panes">V1 edit panes</a></li>
+<li><a class="reference internal" href="#explicit-out-of-scope-list">Explicit out-of-scope list</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

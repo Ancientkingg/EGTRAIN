@@ -1,5 +1,5 @@
 <map id="toDisplayText" name="toDisplayText">
-<area shape="rect" id="Node000001" title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix." alt="" coords="5,29,116,55"/>
+<area shape="rect" id="Node000001" title="One line for the log and the console: severity, code, file, item, path, message and suggested fix." alt="" coords="5,29,116,55"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="34,31,29,21,32,11,43,5,61,3,82,6,92,15,88,19,80,11,61,8,44,10,36,15,34,20,39,28"/>
 <area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="164,29,275,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,39,150,39,150,45,116,45"/>

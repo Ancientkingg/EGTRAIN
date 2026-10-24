@@ -1,0 +1,5 @@
+<map id="NetworkLegendWidget" name="NetworkLegendWidget">
+<area shape="rect" id="Node000001" title="The map key of the canvas: a &quot;Map key&quot; button that folds a list of rows, each a swatch and a label." alt="" coords="5,79,176,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="51,5,130,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,44,93,79,88,79,88,44"/>
+</map>

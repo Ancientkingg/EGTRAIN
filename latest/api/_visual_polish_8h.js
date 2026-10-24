@@ -34,6 +34,7 @@ var _visual_polish_8h =
       [ "HighSpeed", "_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97a419dcbabdbac74acb57d4d21aa110da8", null ],
       [ "Freight", "_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97aa2eca8f6be5b0bf0f2cddcda7cfca376", null ]
     ] ],
+    [ "canvasColor", "_visual_polish_8h.html#a2e7d09af69daec1cb464c65129b19737", null ],
     [ "classifySignalAspect", "_visual_polish_8h.html#ac90f4bc2aaf513636a1b81df1096bc61", null ],
     [ "classifySignalCue", "_visual_polish_8h.html#a2511e34f95b2de260988d67c627468bf", null ],
     [ "classifyStation", "_visual_polish_8h.html#a7ea3f93e7d09822b4b13415ffc8f307d", null ],
@@ -46,16 +47,16 @@ var _visual_polish_8h =
     [ "freeTrackVisual", "_visual_polish_8h.html#a805626f8aa909690d0870ba92fabc89a", null ],
     [ "occupiedTrackColor", "_visual_polish_8h.html#af4d1772532a63c691de494ce9f3f9471", null ],
     [ "paintStationMark", "_visual_polish_8h.html#acd5376d75de6b86816b9fbc03adf30cc", null ],
-    [ "paintStationNodeMark", "_visual_polish_8h.html#a157bdee33c409d7a3ad52deb958bd831", null ],
     [ "resolveTrainVisual", "_visual_polish_8h.html#aa7bdb2ea7d61624407538aebde558b10", null ],
     [ "simulationSpeedLabel", "_visual_polish_8h.html#a390edc9c1e6f62d5b3ed847698920d13", null ],
-    [ "simulationSpeedMode", "_visual_polish_8h.html#aa804be580241cfa9cdccbe40f94779f4", null ],
     [ "stationAreaColor", "_visual_polish_8h.html#ad15b0a7441e0e9f52022e4a3a89d81d8", null ],
     [ "stationAreaShape", "_visual_polish_8h.html#aad6e3639cb92ebdb855e80911a082344", null ],
+    [ "stationFootprintRect", "_visual_polish_8h.html#aa164be426ade64b2fd1bebe183b15674", null ],
     [ "stationMarkBounds", "_visual_polish_8h.html#ab5821bb5e3b802765eef37c3ccc25547", null ],
+    [ "stationMarkFill", "_visual_polish_8h.html#a533b0acec8e0aa932ee206a07c02a1d8", null ],
     [ "stationMarkFrameIn", "_visual_polish_8h.html#a2420ddd0ca6f0c9af6acb01c987d2ed4", null ],
     [ "stationMarkIcon", "_visual_polish_8h.html#aedc5fcbf783bda97fca3dc74d3a5098b", null ],
-    [ "stationNodeMarkShape", "_visual_polish_8h.html#ae56b53fb10f33d26c14e38709a0833df", null ],
+    [ "stationMarkShape", "_visual_polish_8h.html#a53bf883918011b406bcde8613aa0354d", null ],
     [ "trackStatePriority", "_visual_polish_8h.html#a436626af4d350c743238ab619ecd6066", null ],
     [ "trainBadgeCornerRadius", "_visual_polish_8h.html#a4d53d9a2a4bde8099d883e9a982680c1", null ]
 ];

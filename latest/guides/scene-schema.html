@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -389,7 +389,7 @@ nested ZIP entries are excluded; see
 </ul>
 <p>Inside a bundle, <code class="docutils literal notranslate"><span class="pre">format</span></code> is the required string <code class="docutils literal notranslate"><span class="pre">&quot;egscene&quot;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> is the required integer <code class="docutils literal notranslate"><span class="pre">1</span></code>. They are optional transport
-metadata for directory scenes and do not change the V1 data schema.</p>
+metadata for case folders and do not change the V1 data schema.</p>
 <p>An <code class="docutils literal notranslate"><span class="pre">import_report</span></code> row has <code class="docutils literal notranslate"><span class="pre">category</span></code>, <code class="docutils literal notranslate"><span class="pre">source_count</span></code>, <code class="docutils literal notranslate"><span class="pre">converted_count</span></code>,
 <code class="docutils literal notranslate"><span class="pre">skipped_count</span></code>, and <code class="docutils literal notranslate"><span class="pre">unresolved_references</span></code>; <code class="docutils literal notranslate"><span class="pre">source_file</span></code> is optional. The
 counts describe the conversion source, not simulation results.</p>
@@ -716,7 +716,7 @@ the scenario-only contract. Infrastructure, services, rolling stock, and
 results are deliberately excluded. The same scenario serializer is used for
 the entries inside <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, so incident and entrance-delay values do
 not diverge between the two forms. The editor checks incident types/targets
-and entrance-delay references against the open scene before importing. A
+and entrance-delay references against the open case before importing. A
 conflicting scenario or incident ID is never used as-is; the imported object
 is added with a reported unique ID.</p>
 <p>An occurrence-specific reduced-speed breakdown can instead be authored as:</p>
@@ -765,7 +765,7 @@ importer recognizes passenger data only when both exact source files
 <code class="docutils literal notranslate"><span class="pre">Passengers/RouteChoiceFC_EQ1.csv</span></code> exist. Once converted, the native runtime
 uses <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and does not reopen those CSVs. The passenger editor can
 append records from the same exact file pair. Its transient result table reports
-accepted, unresolved, malformed, and ID-collision rows before the scene is saved.</p>
+accepted, unresolved, malformed, and ID-collision rows before the case is saved.</p>
 </section>
 <section id="views-json-and-runtime-metadata">
 <h2><code class="docutils literal notranslate"><span class="pre">views.json</span></code> and runtime metadata<a class="headerlink" href="#views-json-and-runtime-metadata" title="Link to this heading">¶</a></h2>
@@ -801,7 +801,7 @@ integers; region IDs are unique non-negative integers; <code class="docutils lit
 Invalid rows are skipped with load warnings. The legacy importer creates this
 file from <code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">GUI/unusedTracks.txt</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code>. For the Copenhagen case, which it recognises by the
-scene or folder name, it also sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the tracks
+case or folder name, it also sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the tracks
 with four nodes, which the original drew as double switches. Legacy export omits
 <code class="docutils literal notranslate"><span class="pre">double_switch</span></code>, because the legacy files have no field for it, and warns.
 Directory saves and V2 bundles preserve the file when present.</p>
@@ -865,8 +865,8 @@ it is used when the report exposes ambiguous source relationships.</p>
 legacy files authoritative, and the normal runtime never invokes it. Canonical
 scenario selection and passengers execute directly from <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a>.</p>
 </section>
-<section id="scene-directory">
-<h2>Scene directory<a class="headerlink" href="#scene-directory" title="Link to this heading">¶</a></h2>
+<section id="case-folder">
+<h2>Case folder<a class="headerlink" href="#case-folder" title="Link to this heading">¶</a></h2>
 <p>The application loads the six required JSON files, accepts optional scenarios,
 passengers, display metadata in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>, and historical
 compatibility aliases, and validates before a run. Infrastructure, signalling,
@@ -934,7 +934,7 @@ sections above.</p>
 </section>
 <section id="links-between-records">
 <h2>Links between records<a class="headerlink" href="#links-between-records" title="Link to this heading">¶</a></h2>
-<p>Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
+<p>Edit canonical JSON or use the editors. Keep IDs unique and keep service
 links consistent:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>service.composition -&gt; rolling_stock.compositions[].id
 service.route       -&gt; signalling.routes[].id
@@ -958,20 +958,20 @@ require a newer app.</p>
 <p>An <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file packages the canonical JSON files of a scene in a deterministic ZIP archive.
 The bundle version describes the container; <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> still describes
 the canonical data. Bundles include <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, omit generated results
-and legacy input, and do not replace editable directory scenes.</p>
+and legacy input, and do not replace editable case folders.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> to pack, inspect, or unpack a bundle:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build/scene_tool<span class="w"> </span>pack<span class="w"> </span>path/to/scene<span class="w"> </span>case-study.egscene
-./build/scene_tool<span class="w"> </span>validate<span class="w"> </span>case-study.egscene
-./build/scene_tool<span class="w"> </span>unpack<span class="w"> </span>case-study.egscene<span class="w"> </span>path/to/unpacked-scene
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build/scene_tool<span class="w"> </span>pack<span class="w"> </span>path/to/case<span class="w"> </span><span class="k">case</span>.egscene
+./build/scene_tool<span class="w"> </span>validate<span class="w"> </span><span class="k">case</span>.egscene
+./build/scene_tool<span class="w"> </span>unpack<span class="w"> </span><span class="k">case</span>.egscene<span class="w"> </span>path/to/unpacked-case
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</span></a> for the student
+<p>See <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a> for the student
 workflow and <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">Scene bundle format</span></a> for the
 entry allowlist and size limits.</p>
 </section>
 <section id="convert-a-legacy-case">
 <h2>Convert a legacy case<a class="headerlink" href="#convert-a-legacy-case" title="Link to this heading">¶</a></h2>
-<p>Use the GUI’s <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Load</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code> or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code>. Select a
+<p>Use the GUI’s <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Import</span> <span class="pre">Legacy</span> <span class="pre">Case...</span></code> or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code>. Select a
 separate destination; the importer never modifies the source. A legacy train
 definition is seven whitespace tokens:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>operating_code entry_time_seconds headway_seconds route_index data_file traction_file timetable_file
@@ -1005,7 +1005,7 @@ with the scene for repair.</p>
 </section>
 <section id="editing-examples">
 <h2>Editing examples<a class="headerlink" href="#editing-examples" title="Link to this heading">¶</a></h2>
-<p>Use these examples when editing a scene by hand. Keys are case-sensitive and the
+<p>Use these examples when editing a case by hand. Keys are case-sensitive and the
 preferred spellings are the ones shown here. The complete type and validation
 reference is in the sections above.</p>
 <section id="id1">
@@ -1352,7 +1352,7 @@ file pair and keeps unresolved references visible for correction or deletion.</p
 </section>
 <section id="save-load-and-run">
 <h3>Save, load, and run<a class="headerlink" href="#save-load-and-run" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">Scene</span></code> writes the canonical files and removes stale flat incident data.
+<p><code class="docutils literal notranslate"><span class="pre">Save</span></code> writes the canonical files and removes stale flat incident data.
 <code class="docutils literal notranslate"><span class="pre">loaded_data</span></code> is runtime metadata, not an editable source section. <code class="docutils literal notranslate"><span class="pre">views.json</span></code>
 is display-only.</p>
 <p>The editor and simulator use canonical data directly. <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> is not a V1
@@ -1445,7 +1445,7 @@ legacy consumers and derived/output families.</p>
 <li><a class="reference internal" href="#views-json-and-runtime-metadata"><code class="docutils literal notranslate"><span class="pre">views.json</span></code> and runtime metadata</a></li>
 <li><a class="reference internal" href="#historical-compatibility-aliases">Historical compatibility aliases</a></li>
 <li><a class="reference internal" href="#validation-and-conversion">Validation and conversion</a></li>
-<li><a class="reference internal" href="#scene-directory">Scene directory</a></li>
+<li><a class="reference internal" href="#case-folder">Case folder</a></li>
 <li><a class="reference internal" href="#links-between-records">Links between records</a></li>
 <li><a class="reference internal" href="#versions">Versions</a></li>
 <li><a class="reference internal" href="#portable-bundles">Portable bundles</a></li>

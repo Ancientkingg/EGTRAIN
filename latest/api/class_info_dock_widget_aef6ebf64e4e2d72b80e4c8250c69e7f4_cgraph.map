@@ -1,0 +1,5 @@
+<map id="InfoDockWidget::closed" name="InfoDockWidget::closed">
+<area shape="rect" id="Node000001" title="The dock is about to close." alt="" coords="5,5,181,31"/>
+<area shape="rect" id="Node000002" href="$class_info_dock_widget.html#a7c103fad05fe3fbf25b4f3ed7ecfccee" title="QDockWidget names its toggle action after the window title; this puts the first title back." alt="" coords="229,5,448,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,15,216,15,216,21,182,21"/>
+</map>

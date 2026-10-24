@@ -1,0 +1,16 @@
+<map id="diagrams/PositionScale.h" name="diagrams/PositionScale.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="276,5,463,31"/>
+<area shape="rect" id="Node000002" href="$_result_views_8cpp.html" title=" " alt="" coords="5,152,163,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="263,33,200,51,170,64,142,81,124,97,110,117,91,153,86,150,105,114,120,94,138,77,167,59,198,46,262,28"/>
+<area shape="rect" id="Node000003" href="$_diagram_window_8h.html" title=" " alt="" coords="153,79,359,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="341,40,276,81,273,76,338,36"/>
+<area shape="rect" id="Node000006" href="$_position_scale_8cpp.html" title=" " alt="" coords="383,79,585,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="401,35,467,76,464,81,398,40"/>
+<area shape="rect" id="Node000007" href="$_run_exports_8cpp.html" title=" " alt="" coords="609,79,797,104"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="437,31,649,76,648,81,436,36"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="217,112,113,154,111,149,215,107"/>
+<area shape="rect" id="Node000004" href="$_main_window_8cpp.html" title=" " alt="" coords="187,152,347,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="262,117,268,151,262,152,257,118"/>
+<area shape="rect" id="Node000005" href="$_diagram_window_8cpp.html" title=" " alt="" coords="371,152,592,177"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="306,106,446,149,444,154,304,111"/>
+</map>

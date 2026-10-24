@@ -1,0 +1,7 @@
+<map id="previewPointAtNode" name="previewPointAtNode">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="47,31,39,21,43,11,58,5,83,3,113,6,125,15,122,20,111,11,83,8,59,10,47,15,44,20,51,28"/>
+<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title="The point of the line at the node. Returns false when the line has none." alt="" coords="208,29,396,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="160,39,194,39,194,45,160,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="266,31,259,21,263,11,277,5,302,3,332,6,344,15,341,20,330,11,302,8,279,10,266,15,264,20,270,28"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="SimulationRun::reset" name="SimulationRun::reset">
+<area shape="rect" id="Node000001" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="5,112,164,137"/>
+<area shape="rect" id="Node000002" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="262,5,426,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,110,147,74,178,55,211,40,248,28,250,33,213,44,181,60,150,79,103,114"/>
+<area shape="rect" id="Node000003" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="267,55,421,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,109,211,90,260,80,261,85,213,95,134,114"/>
+<area shape="rect" id="Node000004" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="273,105,415,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,122,260,122,260,127,164,127"/>
+<area shape="rect" id="Node000006" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="212,169,476,195"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="134,135,213,154,261,164,260,169,211,159,133,140"/>
+<area shape="rect" id="Node000007" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="276,219,412,244"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="103,135,151,170,213,204,263,218,262,223,211,208,148,174,100,140"/>
+<area shape="rect" id="Node000005" href="$class_initial_parameters.html#af0cffe214c1366a11fab292eaf4fd48d" title=" " alt="" coords="524,105,665,145"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="415,122,510,122,510,127,415,127"/>
+</map>

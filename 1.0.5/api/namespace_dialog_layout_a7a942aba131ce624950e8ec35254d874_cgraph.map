@@ -1,0 +1,16 @@
+<map id="DialogLayout::install" name="DialogLayout::install">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,161,132"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="50,108,42,98,46,88,60,82,83,80,112,84,123,93,120,97,110,89,83,85,61,87,50,92,48,98,54,105"/>
+<area shape="rect" id="Node000002" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="209,65,372,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,104,213,91,214,96,148,109"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="214,139,367,179"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="150,129,201,139,200,145,149,135"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="257,67,250,57,253,47,267,41,291,39,319,42,331,51,327,56,317,47,291,44,269,46,257,51,255,56,261,64"/>
+<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="441,29,586,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="369,63,427,53,428,59,370,68"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="420,103,607,128"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="368,88,424,98,423,103,367,93"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="477,31,469,21,473,11,488,5,513,3,544,6,556,15,553,20,542,11,513,8,490,10,477,15,475,20,481,28"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="477,104,469,94,473,84,488,78,513,76,544,80,556,89,553,93,542,85,513,81,490,83,477,88,475,94,481,101"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="252,140,250,130,256,121,270,115,291,113,315,116,328,123,325,128,313,121,291,118,271,120,259,125,255,131,257,138"/>
+</map>

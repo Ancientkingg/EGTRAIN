@@ -124,7 +124,7 @@ Include dependency graph for SceneDiagnostic.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8h__dep__incl.svg" width="4710" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8h__dep__incl.svg" width="4911" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_scene_diagnostic_8h_source.html">Go to the source code of this file.</a></p>
@@ -149,7 +149,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a25e67cc6987a7e66789ede5ae08fe7f4" id="r_a25e67cc6987a7e66789ede5ae08fe7f4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25e67cc6987a7e66789ede5ae08fe7f4">readJsonInt</a> (const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;value, int min, int max, int &amp;output)</td></tr>
 <tr class="memitem:a8d88ff4b3062ad07eacd7e35c5be6426" id="r_a8d88ff4b3062ad07eacd7e35c5be6426"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8d88ff4b3062ad07eacd7e35c5be6426">severityLabel</a> (<a class="el" href="#ad54a3c52947445d98edbf5629d80a29d">SceneSeverity</a> s)</td></tr>
 <tr class="memitem:a610ae58f0e5af2938f73ae86e01c9eec" id="r_a610ae58f0e5af2938f73ae86e01c9eec"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a610ae58f0e5af2938f73ae86e01c9eec">toDisplayText</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
-<tr class="memdesc:a610ae58f0e5af2938f73ae86e01c9eec"><td class="mdescLeft">&#160;</td><td class="mdescRight">One line for the log and the UI list: severity, code, file, item, path, message and suggested fix.  <br /></td></tr>
+<tr class="memdesc:a610ae58f0e5af2938f73ae86e01c9eec"><td class="mdescLeft">&#160;</td><td class="mdescRight">One line for the log and the console: severity, code, file, item, path, message and suggested fix.  <br /></td></tr>
+<tr class="memitem:a757664039e68baa3d8e4d84eb8f0fb9a" id="r_a757664039e68baa3d8e4d84eb8f0fb9a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a757664039e68baa3d8e4d84eb8f0fb9a">toDialogText</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
 <tr class="memitem:af8736eefee86fcaf8b1756cc43b7edee" id="r_af8736eefee86fcaf8b1756cc43b7edee"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#af8736eefee86fcaf8b1756cc43b7edee">toJson</a> (const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;d)</td></tr>
 <tr class="memdesc:af8736eefee86fcaf8b1756cc43b7edee"><td class="mdescLeft">&#160;</td><td class="mdescRight">An object with every field of the diagnostic, the severity as its label, for tools and tests.  <br /></td></tr>
 <tr class="memitem:a371a00fbe71f997f368bf0c4e90b61f6" id="r_a371a00fbe71f997f368bf0c4e90b61f6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a371a00fbe71f997f368bf0c4e90b61f6">hasErrors</a> (const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;ds)</td></tr>
@@ -306,6 +307,29 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a757664039e68baa3d8e4d84eb8f0fb9a" name="a757664039e68baa3d8e4d84eb8f0fb9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a757664039e68baa3d8e4d84eb8f0fb9a">&#9670;&#160;</a></span>toDialogText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string toDialogText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>d</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The text of a dialog that shows the diagnostic: the message, and the suggested fix as a second paragraph when there is one. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_diagnostic_8h_a757664039e68baa3d8e4d84eb8f0fb9a_cgraph.svg" width="115" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a610ae58f0e5af2938f73ae86e01c9eec" name="a610ae58f0e5af2938f73ae86e01c9eec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a610ae58f0e5af2938f73ae86e01c9eec">&#9670;&#160;</a></span>toDisplayText()</h2>
 
@@ -321,7 +345,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>One line for the log and the UI list: severity, code, file, item, path, message and suggested fix. </p>
+<p>One line for the log and the console: severity, code, file, item, path, message and suggested fix. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

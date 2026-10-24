@@ -1,0 +1,27 @@
+<map id="ServicePanel::commitHasMaximumSpeed" name="ServicePanel::commitHasMaximumSpeed">
+<area shape="rect" id="Node000001" title="Sets whether the service has a maximum speed; one that has none gets 100 km/h." alt="" coords="5,155,260,195"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="325,133,523,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,160,311,155,312,160,260,165"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="308,183,540,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,185,294,188,294,194,260,190"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="588,69,815,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="513,181,539,169,553,159,562,148,572,137,587,125,614,112,616,116,589,130,575,140,566,151,556,163,541,174,515,186"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="863,29,1141,55"/>
+<area shape="poly" id="edge12_Node000003_Node000005" title=" " alt="" coords="522,181,538,169,550,156,556,142,560,112,565,82,572,67,586,55,629,31,676,15,724,7,773,4,867,9,944,24,943,29,866,15,773,9,725,12,677,20,632,36,590,59,577,71,570,84,565,112,561,143,554,159,542,173,525,185"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="897,113,1107,139"/>
+<area shape="poly" id="edge13_Node000003_Node000006" title=" " alt="" coords="520,181,588,169,742,148,884,134,884,139,742,154,588,174,521,186"/>
+<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="606,183,797,223"/>
+<area shape="poly" id="edge8_Node000003_Node000007" title=" " alt="" coords="540,201,592,201,592,206,540,206"/>
+<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="609,247,793,287"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="512,221,602,242,600,247,511,226"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="592,336,811,361"/>
+<area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="458,221,589,297,657,328,655,333,587,302,456,226"/>
+<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="616,409,787,435"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="442,222,502,294,544,335,590,372,618,388,648,402,646,407,615,393,586,376,540,339,498,297,438,225"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="814,68,906,54,907,59,815,74"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="815,100,886,109,885,114,815,105"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="954,31,944,21,949,11,969,5,1002,3,1046,7,1057,13,1060,19,1055,21,1053,16,1045,12,1002,8,970,10,952,15,949,20,958,27"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="954,115,944,105,949,95,969,89,1002,87,1046,91,1057,97,1060,103,1055,105,1053,100,1045,96,1002,92,970,94,952,99,949,104,958,111"/>
+<area shape="poly" id="edge11_Node000009_Node000009" title=" " alt="" coords="657,338,647,328,652,318,670,311,701,309,742,314,752,319,756,325,751,327,749,323,740,319,701,315,671,317,655,322,652,327,660,334"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="657,411,647,401,652,391,670,385,701,383,742,387,752,392,756,398,751,401,749,396,740,392,701,388,671,390,655,395,652,400,660,407"/>
+</map>

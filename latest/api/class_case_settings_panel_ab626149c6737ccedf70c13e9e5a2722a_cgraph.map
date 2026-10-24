@@ -1,30 +1,18 @@
 <map id="CaseSettingsPanel::CaseSettingsPanel" name="CaseSettingsPanel::CaseSettingsPanel">
-<area shape="rect" id="Node000001" title="Makes the fields, disabled until a loaded document is set." alt="" coords="5,195,156,235"/>
+<area shape="rect" id="Node000001" title="Makes the fields, disabled until a loaded document is set." alt="" coords="5,163,156,203"/>
 <area shape="rect" id="Node000002" href="$class_case_settings_panel.html#a98fc2e3ca7e313d5fd05fe3cfd172d09" title=" " alt="" coords="238,63,389,103"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,192,146,154,203,116,226,105,229,110,205,121,149,159,105,197"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,160,203,116,233,105,235,110,205,121,118,165"/>
 <area shape="rect" id="Node000005" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="220,131,407,171"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="153,192,226,172,228,177,155,197"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="156,170,206,163,207,168,156,175"/>
 <area shape="rect" id="Node000007" href="$class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" title="Shows the current state of the document." alt="" coords="238,195,389,235"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="156,212,224,212,224,217,156,217"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="156,190,224,200,224,205,156,196"/>
 <area shape="rect" id="Node000008" href="$class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88" title="A panel without a document." alt="" coords="204,259,423,299"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="155,232,228,252,226,258,153,237"/>
-<area shape="rect" id="Node000009" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="230,347,397,373"/>
-<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="106,233,151,270,205,308,268,340,265,344,203,313,147,274,102,237"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="117,200,205,244,225,252,223,257,203,249,115,205"/>
 <area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="494,5,645,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,63,480,42,481,48,390,68"/>
 <area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="471,70,668,95"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,80,457,80,457,85,389,85"/>
 <area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="497,143,642,169"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="407,150,483,152,483,157,407,155"/>
-<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="531,145,522,135,527,125,543,119,569,117,603,121,615,130,612,134,601,125,569,122,544,124,530,129,528,134,535,141"/>
-<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="276,349,267,339,272,329,287,323,313,321,346,325,358,334,355,338,344,329,313,326,288,328,275,333,273,338,280,345"/>
-<area shape="rect" id="Node000010" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="493,340,646,380"/>
-<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="397,357,479,357,479,363,397,363"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="525,340,522,330,530,321,545,315,569,313,597,316,612,323,610,328,596,321,569,319,546,321,533,325,528,331,530,339"/>
-<area shape="rect" id="Node000011" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="716,340,897,380"/>
-<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="646,357,702,357,702,363,646,363"/>
-<area shape="poly" id="edge13_Node000011_Node000011" title=" " alt="" coords="767,340,764,330,771,321,785,315,807,313,832,316,845,324,843,328,830,321,807,319,786,321,774,325,769,331,772,339"/>
-<area shape="rect" id="Node000012" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="945,340,1099,380"/>
-<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="898,357,932,357,932,363,898,363"/>
-<area shape="poly" id="edge15_Node000012_Node000012" title=" " alt="" coords="982,340,980,330,986,321,1000,315,1022,313,1047,316,1061,324,1058,328,1045,321,1022,319,1002,321,989,325,985,331,987,339"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="528,145,519,135,524,125,541,119,569,117,605,121,616,125,620,131,615,134,612,129,604,126,569,122,542,124,527,129,524,134,532,141"/>
 </map>

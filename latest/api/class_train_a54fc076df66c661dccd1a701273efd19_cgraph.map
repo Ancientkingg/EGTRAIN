@@ -1,6 +1,6 @@
 <map id="Train::needsSingleTrackReservation" name="Train::needsSingleTrackReservation">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,316,257,341"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a7db162f3326726463763a63d6190bd9f" title=" " alt="" coords="305,215,465,240"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a86fe06b963d9fe57ec35dae0764265aa" title=" " alt="" coords="305,215,465,240"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,313,339,243,341,248,165,318"/>
 <area shape="rect" id="Node000006" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="1047,182,1175,222"/>
 <area shape="poly" id="edge29_Node000001_Node000006" title=" " alt="" coords="239,339,388,348,478,350,574,347,675,340,777,326,878,304,975,274,1024,252,1067,227,1070,232,1026,257,977,279,880,310,778,331,676,345,575,353,478,355,388,354,238,344"/>

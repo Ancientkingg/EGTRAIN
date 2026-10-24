@@ -1,0 +1,7 @@
+<map id="writeFailedUpdateVersion" name="writeFailedUpdateVersion">
+<area shape="rect" id="Node000001" title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;." alt="" coords="5,29,193,55"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="62,31,54,21,58,11,74,5,99,3,132,7,144,16,141,20,130,11,99,8,75,10,62,15,59,20,66,27"/>
+<area shape="rect" id="Node000002" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="241,29,416,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,39,228,39,228,45,194,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="291,31,283,21,287,11,303,5,329,3,361,7,373,16,370,20,359,11,329,8,304,10,291,15,288,20,295,27"/>
+</map>

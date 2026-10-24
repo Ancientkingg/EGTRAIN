@@ -1,0 +1,5 @@
+<map id="SceneModel" name="SceneModel">
+<area shape="rect" id="Node000001" title="The whole scene: the content of the scene files and the summaries derived from them." alt="" coords="47,101,148,127"/>
+<area shape="rect" id="Node000002" href="$struct_scene_simulation_settings.html" title="The simulation_settings of scene.json. Each value counts only when its has* flag is set." alt="" coords="5,5,189,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,45,100,101,95,101,95,45"/>
+</map>

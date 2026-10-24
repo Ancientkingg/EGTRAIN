@@ -1,0 +1,583 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Signalling levels" href="signalling-levels.html"><link rel="prev" title="V2 Transparent Scene Bundle" href="scene-bundle.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>V1 active-input migration matrix - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/v1-scene-migration-matrix.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="v1-active-input-migration-matrix">
+<h1>V1 active-input migration matrix<a class="headerlink" href="#v1-active-input-migration-matrix" title="Link to this heading">¶</a></h1>
+<p>This matrix records the V1 boundary traced from live consumers, not from
+filenames alone. The Milestone 4 runtime consumes canonical infrastructure and
+operations through one native setup path. Legacy readers remain only behind the
+explicit importer/exporter boundary. <code class="docutils literal notranslate"><span class="pre">canonical</span></code> means structured V1 input, <code class="docutils literal notranslate"><span class="pre">derived</span></code> means
+reconstructed from canonical topology, <code class="docutils literal notranslate"><span class="pre">output/interoperability</span></code> means it is
+not authored simulation input, <code class="docutils literal notranslate"><span class="pre">dead/inert</span></code> means the normal run path does not
+activate it, and <code class="docutils literal notranslate"><span class="pre">unresolved</span></code> marks a relationship that cannot yet be mapped
+without guessing.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Legacy family</p></th>
+<th class="head"><p>Classification</p></th>
+<th class="head"><p>V1 handling and consumer evidence</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> base time, duration, buffer, recovery</p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code> use <code class="docutils literal notranslate"><span class="pre">base_time</span></code> plus the three <code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code> values. The native operations builder applies these values and derives service-line/station reporting maps; UI switches, output paths, and network flags remain runtime configuration. Numeric case shortcuts now choose case folders, not compiled input-folder tables. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes the base time and settings to <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, which <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> reads before the compiled case table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NodiCumPari</span></code>, <code class="docutils literal notranslate"><span class="pre">ArchiCumPari</span></code>, <code class="docutils literal notranslate"><span class="pre">BlockCumPari</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> maps node coordinates, arc endpoints, curvature, gradient, speed, and block-row lengths to stable track-scoped node/arc IDs and runtime-compatible block IDs, including the UTF-16LE block files supplied by Lebanon. The normal runtime consumes only the resulting canonical model.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> resolves track/coordinate endpoints and optional speed to canonical node IDs and reports zero or ambiguous matches instead of guessing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>track-line <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> maps exact station coordinates to V1 station positions and platform-to-node references; unmatched coordinates remain reported.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts ordered block and switch-transition tokens. The native scene builder consumes the resulting V1 route order and resolves services to stable route IDs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/caseStudyRouteCorridors.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> stores each route/corridor row on the corresponding V1 route; it is not treated as a second route definition.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/caseStudyTrackData.txt</span></code></p></td>
+<td><p>canonical display metadata</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> preserves each known track’s authored graphical level and non-negative region in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>; the native preview and runtime consume it before using automatic fallback layout. The exporter writes the level and region of each track view.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/unusedTracks.txt</span></code></p></td>
+<td><p>canonical display metadata</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> preserves authored inactive tracks as <code class="docutils literal notranslate"><span class="pre">visible:</span> <span class="pre">false</span></code> view rows. Preview rendering omits those tracks and their connections without removing simulation infrastructure. The exporter lists the hidden track views.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/StationsCoord.txt</span></code></p></td>
+<td><p>canonical display metadata</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> resolves station rows to canonical station IDs and preserves finite coordinates, region positions, and optional corridors in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>; the native runtime applies them before calculating screen geometry. The exporter writes them from <code class="docutils literal notranslate"><span class="pre">views.json</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Copenhagen four-node track drawing</p></td>
+<td><p>canonical display metadata</p></td>
+<td><p>The original drew only the middle arc of each four-node track of <code class="docutils literal notranslate"><span class="pre">Input/Input_EGTRAIN_Banedanmark</span></code>, the double switches of the case. <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> sets <code class="docutils literal notranslate"><span class="pre">double_switch</span></code> on the views of the four-node tracks of the Copenhagen case, which it recognises by case or folder name, and the native preview and runtime leave out the first and last arc and the ordinary node dots of such a track. The simulation keeps every arc. The legacy files have no field for it: the exporter omits it with a warning, and an import of the export as the Copenhagen case sets it again.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code></p></td>
+<td><p>canonical when populated</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> materializes each non-empty row as an appended route with concatenated blocks and <code class="docutils literal notranslate"><span class="pre">reversed</span></code> metadata. Committed files are empty, so they add no entities today. A row with <code class="docutils literal notranslate"><span class="pre">Reverse</span></code> over sections that run forward produces a route that validation rejects.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ordinary block dependencies, signals, virtual signals, TDS</p></td>
+<td><p>derived</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Signalling</span></code> derives these from blocks, routes, switches, and connections. They are documented derivations rather than duplicate authored inputs; the historical <code class="docutils literal notranslate"><span class="pre">signals</span></code> array remains load-compatible but is not runnable completeness.</p></td>
+</tr>
+<tr class="row-even"><td><p>Copenhagen <code class="docutils literal notranslate"><span class="pre">5-B6</span></code> dependency exception</p></td>
+<td><p>dead/inert</p></td>
+<td><p>The hard-coded target names track <code class="docutils literal notranslate"><span class="pre">B30</span></code>, but the switch at <code class="docutils literal notranslate"><span class="pre">4.592/4.620</span></code> is generated from <code class="docutils literal notranslate"><span class="pre">B31</span></code> and <code class="docutils literal notranslate"><span class="pre">B7</span></code>. No runtime section has the hard-coded ID, so occupancy and node-connection scans never resolve it. V1 does not turn that stale string into an active dependency or guess a replacement by coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/singleTrackLimits.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts four distinct block roles to <code class="docutils literal notranslate"><span class="pre">start_block</span></code>, <code class="docutils literal notranslate"><span class="pre">end_block</span></code>, <code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code>, and <code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code>. The native builder consumes those V1 fields directly.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/stationBoundarySections.txt</span></code></p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts entrance block, optional exit block, and direction; the native builder consumes those V1 fields directly.</p></td>
+</tr>
+<tr class="row-odd"><td><p>seven-token <code class="docutils literal notranslate"><span class="pre">Trains</span></code> definitions</p></td>
+<td><p>canonical</p></td>
+<td><p>The native operations builder consumes canonical service/composition links, entry, repetition, and timetable values without opening provenance files. It gives occurrences stable <code class="docutils literal notranslate"><span class="pre">(service</span> <span class="pre">id,</span> <span class="pre">1-based</span> <span class="pre">occurrence)</span></code> identities and the existing <code class="docutils literal notranslate"><span class="pre">&lt;service</span> <span class="pre">id&gt;-&lt;occurrence&gt;</span></code> runtime key. The seven-token form is now read only by the explicit importer.</p></td>
+</tr>
+<tr class="row-even"><td><p>train-unit physical files</p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts nine physical/operating values to a generic V1 train unit, independent of <code class="docutils literal notranslate"><span class="pre">LITRA</span></code> terminology. The native operations builder consumes those values in memory.</p></td>
+</tr>
+<tr class="row-odd"><td><p>tractive-effort files</p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> converts five-number curve rows. The train manifest, not <code class="docutils literal notranslate"><span class="pre">T_</span></code> or another filename convention, associates a curve with its train unit; the native operations builder consumes the canonical curve.</p></td>
+</tr>
+<tr class="row-even"><td><p>compositions</p></td>
+<td><p>canonical</p></td>
+<td><p>V1 compositions contain ordered train-unit references. Current legacy manifests yield one-unit compositions, without making the source filename a universal train type.</p></td>
+</tr>
+<tr class="row-odd"><td><p>planned timetable arrival, departure, dwell, repetition</p></td>
+<td><p>canonical</p></td>
+<td><p>Native operations expands repeats as <code class="docutils literal notranslate"><span class="pre">ceil(duration/headway)</span></code> when <code class="docutils literal notranslate"><span class="pre">repeat.count</span></code> is omitted, or as the explicit positive total count (including the base). Entry and stop offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence-1)*headway</span></code>; absent arrival/departure values remain runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code>, including repeats. Finite negative planned values remain valid for pre-horizon timetable rows; route-external rows remain inert without an invented platform. A nonzero <code class="docutils literal notranslate"><span class="pre">operating_code_step</span></code> requires a decimal base and yields stepped occurrence codes; without one, repeated codes use a readable base-plus-occurrence form. <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> is a derived compatibility value from the existing hourly-retiming algorithm; it is not canonical input.</p></td>
+</tr>
+<tr class="row-even"><td><p>service performance and speed controls</p></td>
+<td><p>canonical</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">performance_percent</span></code> defaults to 100% and is limited to finite <code class="docutils literal notranslate"><span class="pre">1..100</span></code>; <code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code> is an optional positive finite service cap. Native runtime applies <code class="docutils literal notranslate"><span class="pre">min(composition</span> <span class="pre">max,</span> <span class="pre">service</span> <span class="pre">cap)</span></code> first, then performance once; 100% preserves the raw path. Braking, mass, shared compositions, buffer, and recovery remain unchanged. Each <code class="docutils literal notranslate"><span class="pre">Train</span></code> and <code class="docutils literal notranslate"><span class="pre">TrainRunResult</span></code> retains operating code, service/occurrence identity, performance, configured cap, composition maximum, and applied maximum-speed provenance.</p></td>
+</tr>
+<tr class="row-odd"><td><p>run occurrence selection</p></td>
+<td><p>derived/runtime</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SceneRunSelection</span></code> is a set of <code class="docutils literal notranslate"><span class="pre">(service</span> <span class="pre">id,</span> <span class="pre">occurrence)</span></code> identities. Empty means all; a non-empty selection is validated, limits capacity to selected trains, and omits delays/passenger legs for excluded occurrences while leaving <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> untouched. <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code> and the native operations builder share this selection boundary.</p></td>
+</tr>
+<tr class="row-even"><td><p>flat <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> / historical <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code></p></td>
+<td><p>canonical compatibility</p></td>
+<td><p>Import places flat incidents in the baseline and copies them into each imported rollout scenario where the source relationship is explicit. Preferred persistence and native execution use <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Rollout_&lt;n&gt;.txt</span></code> entrance delays</p></td>
+<td><p>canonical when resolvable</p></td>
+<td><p>Native operations maps canonical service/occurrence/station delays, preserves absent timetable values as errors rather than numbers, and applies only the selected scenario. Positional rollout files are importer input only.</p></td>
+</tr>
+<tr class="row-even"><td><p>DAS plus RouteChoice passenger CSVs</p></td>
+<td><p>canonical</p></td>
+<td><p>Native operations maps canonical windows and ordered service/occurrence legs directly to existing <code class="docutils literal notranslate"><span class="pre">Passenger</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span></code>, and <code class="docutils literal notranslate"><span class="pre">Trip</span></code> objects, including legless journeys; actual planned times are sampled in memory. The CSV pair is read only during explicit import.</p></td>
+</tr>
+<tr class="row-odd"><td><p>generated <code class="docutils literal notranslate"><span class="pre">TrackandStations</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualizeConnections</span></code>, <code class="docutils literal notranslate"><span class="pre">ShowElements</span></code>, <code class="docutils literal notranslate"><span class="pre">List_of_Blocks</span></code></p></td>
+<td><p>derived/output</p></td>
+<td><p>Infrastructure and signalling produce these display and route-authoring aids from topology. They are not additional authoritative case inputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> and historical <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code></p></td>
+<td><p>dead/inert in the current source</p></td>
+<td><p>No current simulation reader consumes these files. The legacy exporter writes current signalling areas to <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code>, removes stale/copied TXT when the assignment is empty, and always writes the versioned <code class="docutils literal notranslate"><span class="pre">EGTRAINSignallingAreas.json</span></code> sidecar. Import preserves that authoritative canonical assignment, validating it before publication. Without a sidecar, import reports <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code> and converts no row; the <code class="docutils literal notranslate"><span class="pre">Areas*.TXT</span></code> variants are not looked at. Historical capacity/signalling rows remain ambiguous. See <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">Signalling levels</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Draisy-acceleration.txt</span></code></p></td>
+<td><p>dead/inert</p></td>
+<td><p>No normal runtime consumer references this related file; only the explicitly selected physical and traction paths are loaded. It therefore does not justify another canonical data type.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TimeTable/Scenarios_DW*</span></code></p></td>
+<td><p>dead/inert</p></td>
+<td><p>The dwell-disturbance loader call in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> is commented out. Directory presence alone does not activate it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>OL train-order lists</p></td>
+<td><p>dead/inert</p></td>
+<td><p>The simulation has no order lists, and no scene field or native step creates one. The code that held and printed them is gone, matching the traced inactive path.</p></td>
+</tr>
+<tr class="row-even"><td><p>normal <code class="docutils literal notranslate"><span class="pre">Rescheduling</span></code>, ROMA, and legacy TMS/TDS input trees</p></td>
+<td><p>dead/inert or derived</p></td>
+<td><p>ROMA closed-loop loading is not active in normal setup, and TDS is built from topology. Files remain compatibility passthrough where needed, not canonical fields without a live consumer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAINOutput</span></code>, ROMA/TDS artifacts, <code class="docutils literal notranslate"><span class="pre">FolderEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">OL_LastEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledOrder</span></code></p></td>
+<td><p>output/interoperability</p></td>
+<td><p>Simulation and integration code write these artifacts. They are not case input.</p></td>
+</tr>
+<tr class="row-even"><td><p>Other GUI coordinate/display files</p></td>
+<td><p>derived/output</p></td>
+<td><p>The native GUI derives fallback layout from canonical node and station coordinates when the explicit <code class="docutils literal notranslate"><span class="pre">views.json</span></code> sources are absent. Historical virtual-link and HTML-template files are not a second infrastructure model and are no longer normal runtime input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rand1.seed</span></code></p></td>
+<td><p>dead/inert</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NumberGenerator</span></code> does not read or write a seed file. The seed of the random draws is the run setting <code class="docutils literal notranslate"><span class="pre">--seed</span></code>, which defaults to 789350715 and is recorded as <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> in result provenance. It is not case input and not a scene field.</p></td>
+</tr>
+<tr class="row-even"><td><p>unknown-case compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> mapping</p></td>
+<td><p>unresolved</p></td>
+<td><p>The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a <code class="docutils literal notranslate"><span class="pre">set_case</span></code> branch. Without an <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> import leaves them absent and records the unresolved mapping.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="resolved-source-corrections-and-remaining-ambiguities">
+<h2>Resolved source corrections and remaining ambiguities<a class="headerlink" href="#resolved-source-corrections-and-remaining-ambiguities" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Copenhagen source service <code class="docutils literal notranslate"><span class="pre">E-Holte-Koge_2</span></code> records Koge Nord arrival at 4660
+seconds and departure at 4460 seconds. The prior canonical case corrected
+departure to 4660; the native conversion retains and documents that correction.</p></li>
+<li><p>Paimpol’s <code class="docutils literal notranslate"><span class="pre">Draisy-traction.txt</span></code> contains two overlapping three-band alternatives.
+The prior validated case retained the second group; the native conversion does
+the same and records three converted plus three skipped rows.</p></li>
+<li><p>Paimpol B4 arc 108 incorrectly restarts at node 1 after the source’s ordered
+1→2→…→9 chain. V1 corrects it to 9→10, consistent with the ordered nodes,
+neighboring B0/B1 track files, and the runtime’s linear TrackLine model.</p></li>
+<li><p>The Paimpol passenger source has 376 DAS journeys and 10 route-choice rows.
+The exact <code class="docutils literal notranslate"><span class="pre">Tregonnau</span> <span class="pre">Squiffiec</span></code> source alias maps to canonical
+<code class="docutils literal notranslate"><span class="pre">Tregonneau_Squiffiec</span></code>, and <code class="docutils literal notranslate"><span class="pre">Guin-Paim_EXPRESS-1-1</span></code> maps to service
+<code class="docutils literal notranslate"><span class="pre">Guin-Paim-EXPRESS-1</span></code>, occurrence 1. Two reverse-service tokens have no active
+service definition; their legs are omitted, the journeys remain, and the import
+report records two unresolved references. The committed result contains 12
+resolved legs.</p></li>
+<li><p>Six Netherlands <code class="docutils literal notranslate"><span class="pre">virtual*Link</span></code> station markers have no exact platform-node
+anchor. They are retained as stations without platforms and reported; no service
+stop refers to them.</p></li>
+<li><p>Netherlands block <code class="docutils literal notranslate"><span class="pre">0-B265</span></code> was the sole source block with a negative length
+(<code class="docutils literal notranslate"><span class="pre">-1.597</span></code> km) even though its nodes and arcs run in increasing coordinate order.
+V1 corrects the sign while retaining the source magnitude; the standard
+final-block extension covers the remaining 20 metres of track geometry.</p></li>
+<li><p>No committed <code class="docutils literal notranslate"><span class="pre">Rollout_&lt;n&gt;.txt</span></code> exists. The importer supports its known
+positional relationship only where case duration and service headway make the
+occurrence mapping explicit.</p></li>
+<li><p>Legacy cases outside the compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> case table have no
+reliable timing association. Their V1 timing fields remain absent and the
+import report records the unresolved mapping, unless the folder holds the
+<code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> that <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes.</p></li>
+</ul>
+<p>The bundled cases no longer contain compatibility <code class="docutils literal notranslate"><span class="pre">legacy/</span></code> trees, and the
+obsolete committed <code class="docutils literal notranslate"><span class="pre">Input/</span></code> cases are removed after conversion parity. Their
+filenames remain only as compact provenance in the import reports.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="signalling-levels.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Signalling levels</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="scene-bundle.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">V2 Transparent Scene Bundle</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">V1 active-input migration matrix</a><ul>
+<li><a class="reference internal" href="#resolved-source-corrections-and-remaining-ambiguities">Resolved source corrections and remaining ambiguities</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

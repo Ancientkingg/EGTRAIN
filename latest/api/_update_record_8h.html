@@ -134,7 +134,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:UpdateRecord" id="r_UpdateRecord"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_update_record.html">UpdateRecord</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A record of an update that was not kept, as <a class="el" href="_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b">parseUpdateRecord()</a> reads it.  <a href="struct_update_record.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A record of an update in place, as <a class="el" href="_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b">parseUpdateRecord()</a> reads it.  <a href="struct_update_record.html#details">More...</a><br /></td></tr>
 <tr class="memitem:InstallerRecord" id="r_InstallerRecord"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_installer_record.html">InstallerRecord</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The record of an installer-mode update.  <a href="struct_installer_record.html#details">More...</a><br /></td></tr>
 <tr class="memitem:UpdateRecordText" id="r_UpdateRecordText"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_update_record_text.html">UpdateRecordText</a></td></tr>
@@ -143,6 +143,7 @@ Classes</h2></td></tr>
 Enumerations</h2></td></tr>
 <tr class="memitem:a47d839c793e341182c4d3564973b669a" id="r_a47d839c793e341182c4d3564973b669a"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a47d839c793e341182c4d3564973b669a">UpdateOutcome</a> { <a class="el" href="#a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86">RolledBack</a>
 , <a class="el" href="#a47d839c793e341182c4d3564973b669aafd3b8487e028269caf0bc898960bc554">NotApplied</a>
+, <a class="el" href="#a47d839c793e341182c4d3564973b669aa733d43480c8589b1368e5def6b480415">Applied</a>
  }</td></tr>
 <tr class="memitem:ac6941a6382d1b766f796098a749f5396" id="r_ac6941a6382d1b766f796098a749f5396"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#ac6941a6382d1b766f796098a749f5396">InstallerCheck</a> { <a class="el" href="#ac6941a6382d1b766f796098a749f5396aff0a3b7f3daef040faf89a88fdac01b7">Updated</a>
 , <a class="el" href="#ac6941a6382d1b766f796098a749f5396a4daba810688506940b293282fcc91567">NotUpdated</a>
@@ -219,11 +220,13 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The record that the update helper leaves when the update was not kept. The helper writes it in <a class="el" href="_update_helper_8cpp.html">update/UpdateHelper.cpp</a>, which holds the same format. A text file in <a class="el" href="#a9310fdab574108ed07cc653140b5daad">updateRecordPath()</a> of three lines, each ended by a line feed: outcome=rolled-back or not-applied version=X.Y.Z time=YYYY-MM-DDTHH:MM:SSZ rolled-back: the new version failed to start and the previous installation was put back. not-applied: the installation could not be renamed, so the previous installation was never replaced. The version is the one that was to be installed and the time is the UTC time of the write. In installer mode the helper runs the installer of an installer-managed copy instead and leaves outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same version (the one to install) and time. A failed installer that ended with an exit code adds a fourth line, exit-code=N. Only the first two records are an <a class="el" href="struct_update_record.html" title="A record of an update that was not kept, as parseUpdateRecord() reads it.">UpdateRecord</a>: parseUpdateRecord does not accept the others, so they never produce the message about a failed update. The others are an <a class="el" href="struct_installer_record.html" title="The record of an installer-mode update.">InstallerRecord</a>. </p>
+<p>The record that the update helper leaves after it replaced the installation, or tried to. The helper writes it in <a class="el" href="_update_helper_8cpp.html">update/UpdateHelper.cpp</a>, which holds the same format. A text file in <a class="el" href="#a9310fdab574108ed07cc653140b5daad">updateRecordPath()</a> of three lines, each ended by a line feed: outcome=applied, rolled-back or not-applied version=X.Y.Z time=YYYY-MM-DDTHH:MM:SSZ applied: the new version is in place; the helper writes this before it starts that version. rolled-back: the new version failed to start and the previous installation was put back. not-applied: the installation could not be renamed, so the previous installation was never replaced. The version is the one that was to be installed and the time is the UTC time of the write. Versions up to 1.0.4 know no applied record: their takeUpdateRecord removes it and returns nothing. In installer mode the helper runs the installer of an installer-managed copy instead and leaves outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same version (the one to install) and time. A failed installer that ended with an exit code adds a fourth line, exit-code=N. Only the first three records are an <a class="el" href="struct_update_record.html" title="A record of an update in place, as parseUpdateRecord() reads it.">UpdateRecord</a>: parseUpdateRecord does not accept the others, so they never produce the message about an update in place. The others are an <a class="el" href="struct_installer_record.html" title="The record of an installer-mode update.">InstallerRecord</a>. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86" name="a47d839c793e341182c4d3564973b669aae01daed8f2af5888e53470aff7955d86"></a>RolledBack&#160;</td><td class="fielddoc"><p>outcome=rolled-back. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a47d839c793e341182c4d3564973b669aafd3b8487e028269caf0bc898960bc554" name="a47d839c793e341182c4d3564973b669aafd3b8487e028269caf0bc898960bc554"></a>NotApplied&#160;</td><td class="fielddoc"><p>outcome=not-applied. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a47d839c793e341182c4d3564973b669aa733d43480c8589b1368e5def6b480415" name="a47d839c793e341182c4d3564973b669aa733d43480c8589b1368e5def6b480415"></a>Applied&#160;</td><td class="fielddoc"><p>outcome=applied. </p>
 </td></tr>
 </table>
 
@@ -319,7 +322,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must each occur (the first occurrence counts) and other keys are ignored. The outcome must be rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z. </p>
+<p>Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must each occur (the first occurrence counts) and other keys are ignored. The outcome must be applied, rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -369,7 +372,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and its version is newer than the installed one; any other record is stale. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
+<p>Reads the record at path and removes the file, whether or not it could be read. Returns the record only when it is valid and names the installed version (applied) or a newer one (rolled-back and not-applied); any other record is stale. The helper replaces an applied record when it puts the previous version back, so an applied record that names another version is out of date. Nothing is done unless path is a regular file, and a file of more than 4096 bytes is not a record. A file that cannot be removed does not stop the record from being returned. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

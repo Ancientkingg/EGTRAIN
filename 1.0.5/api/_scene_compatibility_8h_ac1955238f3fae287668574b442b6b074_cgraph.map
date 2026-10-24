@@ -1,0 +1,7 @@
+<map id="probeSceneCompatibility" name="probeSceneCompatibility">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,192,62"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="60,38,52,28,56,18,72,12,99,10,132,14,145,23,141,28,130,19,99,15,73,17,60,22,57,28,64,35"/>
+<area shape="rect" id="Node000002" href="$_scene_migration_8cpp.html#a34c152459f18cd16c84e714e1fbb3385" title=" " alt="" coords="240,29,432,69"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="192,47,226,47,226,52,192,52"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="292,30,289,20,296,10,312,5,336,3,364,6,379,13,376,18,362,11,336,8,313,10,299,15,294,21,297,28"/>
+</map>

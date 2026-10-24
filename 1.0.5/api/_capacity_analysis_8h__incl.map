@@ -1,0 +1,19 @@
+<map id="diagrams/CapacityAnalysis.h" name="diagrams/CapacityAnalysis.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="148,5,359,31"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8h.html" title=" " alt="" coords="131,79,375,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,31,256,65,251,65,251,31"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,152,64,177"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="219,33,171,53,120,81,84,111,55,143,51,139,80,108,117,76,168,48,217,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="463,152,526,177"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="287,28,336,49,389,76,436,109,474,140,470,145,432,113,387,81,334,54,284,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="88,152,173,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="235,106,164,147,161,143,232,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,152,256,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="251,105,238,140,233,138,246,103"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="219,107,78,152,76,147,217,101"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="280,152,355,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="266,103,300,140,296,144,262,106"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="379,152,439,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="279,102,372,144,370,149,277,106"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="293,101,451,148,449,153,291,107"/>
+</map>

@@ -5,6 +5,7 @@ var dir_1948df3512c5e67e4e193fcd5f36c8c2 =
     [ "CaseSettingsPanel.h", "_case_settings_panel_8h.html", "_case_settings_panel_8h" ],
     [ "CompositionPanel.cpp", "_composition_panel_8cpp.html", null ],
     [ "CompositionPanel.h", "_composition_panel_8h.html", "_composition_panel_8h" ],
+    [ "CountText.h", "_count_text_8h.html", "_count_text_8h" ],
     [ "EntranceDelayPanel.cpp", "_entrance_delay_panel_8cpp.html", null ],
     [ "EntranceDelayPanel.h", "_entrance_delay_panel_8h.html", "_entrance_delay_panel_8h" ],
     [ "IncidentPanel.cpp", "_incident_panel_8cpp.html", null ],

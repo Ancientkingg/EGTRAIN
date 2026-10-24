@@ -5,7 +5,7 @@ var class_train =
     [ "~Train", "class_train.html#aa6129d2e460d7abdfb98939484357f09", null ],
     [ "AccelerationTimeFollowingMode", "class_train.html#a9919b5df2c04fa5c9be99f738d5471f3", null ],
     [ "authorityRoutePosition", "class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df", null ],
-    [ "BrakDist_Block", "class_train.html#a7db162f3326726463763a63d6190bd9f", null ],
+    [ "BrakDist_Block", "class_train.html#a86fe06b963d9fe57ec35dae0764265aa", null ],
     [ "brakingArc", "class_train.html#a57f7e9d2d2b854fa1214fda170635bbc", null ],
     [ "brakingCurveSpeed", "class_train.html#ab5547152846ad249a7121a1678375531", null ],
     [ "BrakingDistanceFastComputation", "class_train.html#ae67e8c5e364a38ec05fe9fd268b1a064", null ],

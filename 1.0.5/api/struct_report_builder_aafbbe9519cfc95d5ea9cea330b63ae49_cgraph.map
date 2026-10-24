@@ -1,0 +1,8 @@
+<map id="ReportBuilder::append" name="ReportBuilder::append">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,172,31"/>
+<area shape="rect" id="Node000002" href="$struct_report_builder.html#a697a600292838993657d858261933b62" title=" " alt="" coords="431,5,573,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,15,417,15,417,21,172,21"/>
+<area shape="rect" id="Node000003" href="$struct_report_builder.html#a53209906bc123c7ba8b53a0110d826f8" title=" " alt="" coords="220,31,383,56"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,25,207,29,206,35,172,31"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="383,30,417,26,417,31,384,36"/>
+</map>

@@ -144,6 +144,9 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The statistics of the events at one station.  <a href="struct_station_delay_summary.html#details">More...</a><br /></td></tr>
 <tr class="memitem:DelaySummary" id="r_DelaySummary"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_summary.html">DelaySummary</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The statistics of the selected events, for each station and for the network.  <a href="struct_delay_summary.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayHistogramClass" id="r_DelayHistogramClass"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_histogram_class.html">DelayHistogramClass</a></td></tr>
+<tr class="memitem:DelayHistogram" id="r_DelayHistogram"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_histogram.html">DelayHistogram</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The available events of a set in classes of delay, and the counts of the events without a delay.  <a href="struct_delay_histogram.html#details">More...</a><br /></td></tr>
 <tr class="memitem:DelayDifference" id="r_DelayDifference"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_difference.html">DelayDifference</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The simulated time of one event in the baseline and in the scenario run.  <a href="struct_delay_difference.html#details">More...</a><br /></td></tr>
 <tr class="memitem:BaselineCall" id="r_BaselineCall"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_baseline_call.html">BaselineCall</a></td></tr>
@@ -199,6 +202,8 @@ Functions</h2></td></tr>
 <tr class="memitem:ad8491edb84439158fe447805bae82f55" id="r_ad8491edb84439158fe447805bae82f55"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad8491edb84439158fe447805bae82f55">defaultDelayThresholdsSeconds</a> ()</td></tr>
 <tr class="memitem:adb7135699c8672176c5752352f814ae0" id="r_adb7135699c8672176c5752352f814ae0"><td class="memItemLeft"><a class="el" href="struct_delay_summary.html">DelaySummary</a>&#160;</td><td class="memItemRight"><a class="el" href="#adb7135699c8672176c5752352f814ae0">summarizeDelays</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events, const <a class="el" href="struct_delay_filter.html">DelayFilter</a> &amp;filter, const std::vector&lt; double &gt; &amp;thresholdsSeconds=<a class="el" href="#ad8491edb84439158fe447805bae82f55">defaultDelayThresholdsSeconds</a>())</td></tr>
 <tr class="memdesc:adb7135699c8672176c5752352f814ae0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The statistics of the events that the filter selects, with one share for each finite threshold in seconds.  <br /></td></tr>
+<tr class="memitem:acfba7de5efd85bcb7be7b131bd182cac" id="r_acfba7de5efd85bcb7be7b131bd182cac"><td class="memItemLeft"><a class="el" href="struct_delay_histogram.html">DelayHistogram</a>&#160;</td><td class="memItemRight"><a class="el" href="#acfba7de5efd85bcb7be7b131bd182cac">delayHistogram</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events)</td></tr>
+<tr class="memdesc:acfba7de5efd85bcb7be7b131bd182cac"><td class="mdescLeft">&#160;</td><td class="mdescRight">The histogram of the delays of all <span class="tt">events</span>, of whatever kind; the caller selects the events.  <br /></td></tr>
 <tr class="memitem:a1f9eca401d0a3e572b4e7a63d8682e2c" id="r_a1f9eca401d0a3e572b4e7a63d8682e2c"><td class="memItemLeft"><a class="el" href="struct_baseline_totals.html">BaselineTotals</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1f9eca401d0a3e572b4e7a63d8682e2c">baselineTotals</a> (const std::vector&lt; <a class="el" href="struct_baseline_occurrence.html">BaselineOccurrence</a> &gt; &amp;occurrences)</td></tr>
 <tr class="memdesc:a1f9eca401d0a3e572b4e7a63d8682e2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The totals over the final arrival of each of the occurrences.  <br /></td></tr>
 <tr class="memitem:acb545fe8bb0a8c7be03694784d1d9009" id="r_acb545fe8bb0a8c7be03694784d1d9009"><td class="memItemLeft"><a class="el" href="struct_delay_baseline_comparison.html">DelayBaselineComparison</a>&#160;</td><td class="memItemRight"><a class="el" href="#acb545fe8bb0a8c7be03694784d1d9009">compareAgainstBaseline</a> (const <a class="el" href="struct_delay_run_snapshot.html">DelayRunSnapshot</a> &amp;baseline, const <a class="el" href="struct_delay_run_snapshot.html">DelayRunSnapshot</a> &amp;scenario)</td></tr>
@@ -474,6 +479,30 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_8h_a97182d2fe96662af16156a111973b86c_cgraph.svg" width="171" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="acfba7de5efd85bcb7be7b131bd182cac" name="acfba7de5efd85bcb7be7b131bd182cac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfba7de5efd85bcb7be7b131bd182cac">&#9670;&#160;</a></span>delayHistogram()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_delay_histogram.html">DelayHistogram</a> delayHistogram </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>events</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The histogram of the delays of all <span class="tt">events</span>, of whatever kind; the caller selects the events. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_8h_acfba7de5efd85bcb7be7b131bd182cac_cgraph.svg" width="416" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

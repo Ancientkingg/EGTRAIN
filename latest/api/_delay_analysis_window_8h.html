@@ -137,7 +137,6 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:DelayAnalysisWindow" id="r_DelayAnalysisWindow"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_delay_analysis_window.html">DelayAnalysisWindow</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result window. Not modal. It holds the runs as values, so it can outlive them.  <a href="class_delay_analysis_window.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -152,6 +151,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a0872d5edc20a704e65330700116e31bd" id="r_a0872d5edc20a704e65330700116e31bd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0872d5edc20a704e65330700116e31bd">delayCallsCsv</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events)</td></tr>
 <tr class="memdesc:a0872d5edc20a704e65330700116e31bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The CSV text of the Calls tab: one record for each event.  <br /></td></tr>
 <tr class="memitem:a4769d7cd8c2d15ebcaa158460a195466" id="r_a4769d7cd8c2d15ebcaa158460a195466"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4769d7cd8c2d15ebcaa158460a195466">delaySummaryCsv</a> (const <a class="el" href="struct_delay_summary.html">DelaySummary</a> &amp;summary, <a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a> kind)</td></tr>
+<tr class="memitem:ace658299672c842be4db041640dbf0fb" id="r_ace658299672c842be4db041640dbf0fb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ace658299672c842be4db041640dbf0fb">delayHistogramCsv</a> (const <a class="el" href="struct_delay_histogram.html">DelayHistogram</a> &amp;histogram, <a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a> kind)</td></tr>
 <tr class="memitem:a65142327add13df2eb78b6df7769d277" id="r_a65142327add13df2eb78b6df7769d277"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a65142327add13df2eb78b6df7769d277">delayBaselineCsv</a> (const <a class="el" href="struct_delay_baseline_comparison.html">DelayBaselineComparison</a> &amp;comparison)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -270,6 +270,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8h_af5e0ccade70745b9d0016cdfb022c18b_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ace658299672c842be4db041640dbf0fb" name="ace658299672c842be4db041640dbf0fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace658299672c842be4db041640dbf0fb">&#9670;&#160;</a></span>delayHistogramCsv()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string delayHistogramCsv </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_delay_histogram.html">DelayHistogram</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>histogram</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a></td>          <td class="paramname"><span class="paramname"><em>kind</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The CSV text of the Punctuality tab: one record for each class, then one for each status without a delay with its count of events. Empty when no event is available. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8h_ace658299672c842be4db041640dbf0fb_cgraph.svg" width="730" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

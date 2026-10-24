@@ -1,0 +1,19 @@
+<map id="sceneDirectDeleteConsumers" name="sceneDirectDeleteConsumers">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,87,220,112"/>
+<area shape="poly" id="edge10_Node000001_Node000001" title=" " alt="" coords="68,88,58,78,63,68,82,62,113,60,153,64,164,69,167,76,162,78,160,73,152,69,113,65,83,67,67,72,64,78,72,85"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="289,29,491,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,84,314,55,315,60,176,89"/>
+<area shape="rect" id="Node000004" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="305,79,475,119"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="220,97,290,97,290,102,220,102"/>
+<area shape="rect" id="Node000007" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="268,168,512,193"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="158,109,333,161,332,167,156,115"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="345,31,336,21,341,11,359,5,390,3,430,7,441,12,444,18,440,21,437,16,429,12,390,8,360,10,344,15,341,20,349,27"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="560,29,784,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="491,39,547,39,547,45,491,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="627,31,617,21,622,11,641,5,672,3,713,7,723,12,727,18,722,21,720,16,711,12,672,8,642,10,626,15,622,20,631,27"/>
+<area shape="rect" id="Node000005" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="587,79,757,119"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="476,97,573,97,573,102,476,102"/>
+<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="587,143,757,183"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="476,116,574,139,573,144,475,121"/>
+<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="345,170,336,160,341,150,359,143,390,141,430,146,441,151,444,157,440,159,437,155,429,151,390,147,360,149,344,154,341,159,349,166"/>
+</map>

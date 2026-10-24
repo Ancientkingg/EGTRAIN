@@ -128,6 +128,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab0f66d2f494d42627ebb3d8af6d31c10" id="r_ab0f66d2f494d42627ebb3d8af6d31c10"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab0f66d2f494d42627ebb3d8af6d31c10">endKm</a> = 0.0</td></tr>
 <tr class="memitem:acb866d657bbda8f2dd43c82c0b4fbec0" id="r_acb866d657bbda8f2dd43c82c0b4fbec0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acb866d657bbda8f2dd43c82c0b4fbec0">geometryValid</a> = false</td></tr>
 <tr class="memitem:a1b4556e2147384458557d0ea7ea0d89f" id="r_a1b4556e2147384458557d0ea7ea0d89f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1b4556e2147384458557d0ea7ea0d89f">issue</a></td></tr>
+<tr class="memitem:ab30816b10d6cfcf2a0c72d04b032b036" id="r_ab30816b10d6cfcf2a0c72d04b032b036"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab30816b10d6cfcf2a0c72d04b032b036">geoStartKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memdesc:ab30816b10d6cfcf2a0c72d04b032b036"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the start in km. The route distance when the input lacks the geo X of an end, so NaN only when the route distance is NaN.  <br /></td></tr>
+<tr class="memitem:a56eb65c223e6fcc636ba0b3cfb757504" id="r_a56eb65c223e6fcc636ba0b3cfb757504"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a56eb65c223e6fcc636ba0b3cfb757504">geoEndKm</a> = std::numeric_limits&lt;double&gt;::quiet_NaN()</td></tr>
+<tr class="memdesc:a56eb65c223e6fcc636ba0b3cfb757504"><td class="mdescLeft">&#160;</td><td class="mdescRight">Geo X of the end in km, as geoStartKm.  <br /></td></tr>
+<tr class="memitem:a7cd65ed2fcadd0afe6eadc2a10230987" id="r_a7cd65ed2fcadd0afe6eadc2a10230987"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7cd65ed2fcadd0afe6eadc2a10230987">isSwitch</a> = false</td></tr>
+<tr class="memdesc:a7cd65ed2fcadd0afe6eadc2a10230987"><td class="mdescLeft">&#160;</td><td class="mdescRight">The section holds a diverging switch.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ae3ac53b4733f8cd5abebd6ae09ea6e68" name="ae3ac53b4733f8cd5abebd6ae09ea6e68"></a>
@@ -195,6 +201,22 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a56eb65c223e6fcc636ba0b3cfb757504" name="a56eb65c223e6fcc636ba0b3cfb757504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56eb65c223e6fcc636ba0b3cfb757504">&#9670;&#160;</a></span>geoEndKm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double BlockSectionExtent::geoEndKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Geo X of the end in km, as geoStartKm. </p>
+
+</div>
+</div>
 <a id="acb866d657bbda8f2dd43c82c0b4fbec0" name="acb866d657bbda8f2dd43c82c0b4fbec0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acb866d657bbda8f2dd43c82c0b4fbec0">&#9670;&#160;</a></span>geometryValid</h2>
 
@@ -206,6 +228,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab30816b10d6cfcf2a0c72d04b032b036" name="ab30816b10d6cfcf2a0c72d04b032b036"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab30816b10d6cfcf2a0c72d04b032b036">&#9670;&#160;</a></span>geoStartKm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double BlockSectionExtent::geoStartKm = std::numeric_limits&lt;double&gt;::quiet_NaN()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Geo X of the start in km. The route distance when the input lacks the geo X of an end, so NaN only when the route distance is NaN. </p>
 
 </div>
 </div>
@@ -234,6 +272,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7cd65ed2fcadd0afe6eadc2a10230987" name="a7cd65ed2fcadd0afe6eadc2a10230987"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cd65ed2fcadd0afe6eadc2a10230987">&#9670;&#160;</a></span>isSwitch</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool BlockSectionExtent::isSwitch = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The section holds a diverging switch. </p>
 
 </div>
 </div>

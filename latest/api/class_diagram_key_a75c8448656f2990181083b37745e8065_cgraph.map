@@ -1,0 +1,5 @@
+<map id="DiagramKey::setEntries" name="DiagramKey::setEntries">
+<area shape="rect" id="Node000001" title="Shows entries, one per row, in the order given." alt="" coords="5,5,180,31"/>
+<area shape="rect" id="Node000002" href="$class_diagram_key.html#a2e9049e51e399bbc2b0adccc9925266a" title="The rows of the key." alt="" coords="228,5,383,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,15,214,15,214,21,180,21"/>
+</map>

@@ -156,11 +156,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae0b84da365cd871666ea6850514c86be" id="r_ae0b84da365cd871666ea6850514c86be"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ae0b84da365cd871666ea6850514c86be">listWidget</a> () const</td></tr>
 <tr class="memdesc:ae0b84da365cd871666ea6850514c86be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delays of the selected scenario, one row each.  <br /></td></tr>
 <tr class="memitem:ad2721b9ff3daa7064c4787e4325a407a" id="r_ad2721b9ff3daa7064c4787e4325a407a"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ad2721b9ff3daa7064c4787e4325a407a">serviceCombo</a> () const</td></tr>
-<tr class="memdesc:ad2721b9ff3daa7064c4787e4325a407a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The services of the scene, each with its id as the data. A service that the scene lacks is shown as invalid.  <br /></td></tr>
+<tr class="memdesc:ad2721b9ff3daa7064c4787e4325a407a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The services of the scene, each with its id as the data. A service that the scene lacks is shown as missing.  <br /></td></tr>
 <tr class="memitem:a88cb07f6c953475af8ec23c2e2f33b2e" id="r_a88cb07f6c953475af8ec23c2e2f33b2e"><td class="memItemLeft">QSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a88cb07f6c953475af8ec23c2e2f33b2e">occurrenceEdit</a> () const</td></tr>
-<tr class="memdesc:a88cb07f6c953475af8ec23c2e2f33b2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrence of the service, counted from 1, up to the number of occurrences in the counted time.  <br /></td></tr>
 <tr class="memitem:a99ea31d7433c523a6709eb3728772cd7" id="r_a99ea31d7433c523a6709eb3728772cd7"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a99ea31d7433c523a6709eb3728772cd7">occurrenceContextLabel</a> () const</td></tr>
-<tr class="memdesc:a99ea31d7433c523a6709eb3728772cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The valid range of occurrences and the label of the chosen occurrence.  <br /></td></tr>
+<tr class="memdesc:a99ea31d7433c523a6709eb3728772cd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the chosen occurrence; empty when the delay names no service of the scene.  <br /></td></tr>
 <tr class="memitem:a1a61d54815ec7c8da265ca8f5db8b55f" id="r_a1a61d54815ec7c8da265ca8f5db8b55f"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a1a61d54815ec7c8da265ca8f5db8b55f">emptyStateLabel</a> () const</td></tr>
 <tr class="memdesc:a1a61d54815ec7c8da265ca8f5db8b55f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The message above the fields while no entrance delay is selected; hidden otherwise.  <br /></td></tr>
 <tr class="memitem:a9a6535f2f650eb77490c69daff5f1540" id="r_a9a6535f2f650eb77490c69daff5f1540"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a9a6535f2f650eb77490c69daff5f1540">stationCombo</a> () const</td></tr>
@@ -577,7 +576,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The valid range of occurrences and the label of the chosen occurrence. </p>
+<p>The label of the chosen occurrence; empty when the delay names no service of the scene. </p>
 
 </div>
 </div>
@@ -603,8 +602,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The occurrence of the service, counted from 1, up to the number of occurrences in the counted time. </p>
+<p>The occurrence of the service, counted from 1, up to the number of occurrences in the counted time, which its suffix gives. </p>
 
 </div>
 </div>
@@ -710,7 +708,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The services of the scene, each with its id as the data. A service that the scene lacks is shown as invalid. </p>
+<p>The services of the scene, each with its id as the data. A service that the scene lacks is shown as missing. </p>
 
 </div>
 </div>

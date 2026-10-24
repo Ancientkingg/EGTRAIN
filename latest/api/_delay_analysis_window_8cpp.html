@@ -114,32 +114,46 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_delay_analysi
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_delay_analysis_window_8h_source.html">diagrams/DelayAnalysisWindow.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dialog_folders_8h_source.html">app/DialogFolders.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_result_frame_8h_source.html">diagrams/ResultFrame.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_run_exports_8h_source.html">diagrams/RunExports.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_train_filter_button_8h_source.html">diagrams/TrainFilterButton.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_csv_writer_8h_source.html">util/CsvWriter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_choice_combo_box_8h_source.html">widgets/ChoiceComboBox.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dialog_layout_8h_source.html">widgets/DialogLayout.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_editor_layout_8h_source.html">widgets/EditorLayout.h</a>&quot;</code><br />
+<code>#include &lt;QCursor&gt;</code><br />
+<code>#include &lt;QEvent&gt;</code><br />
 <code>#include &lt;QDialogButtonBox&gt;</code><br />
 <code>#include &lt;QFileDialog&gt;</code><br />
 <code>#include &lt;QFileInfo&gt;</code><br />
 <code>#include &lt;QFont&gt;</code><br />
-<code>#include &lt;QHBoxLayout&gt;</code><br />
 <code>#include &lt;QHeaderView&gt;</code><br />
 <code>#include &lt;QLabel&gt;</code><br />
 <code>#include &lt;QLineEdit&gt;</code><br />
 <code>#include &lt;QMessageBox&gt;</code><br />
+<code>#include &lt;QPalette&gt;</code><br />
+<code>#include &lt;QPen&gt;</code><br />
 <code>#include &lt;QPushButton&gt;</code><br />
 <code>#include &lt;QSet&gt;</code><br />
 <code>#include &lt;QStringList&gt;</code><br />
 <code>#include &lt;QTabWidget&gt;</code><br />
 <code>#include &lt;QTableWidget&gt;</code><br />
+<code>#include &lt;QToolTip&gt;</code><br />
 <code>#include &lt;QVBoxLayout&gt;</code><br />
+<code>#include &lt;QtCharts/QBarCategoryAxis&gt;</code><br />
+<code>#include &lt;QtCharts/QBarSeries&gt;</code><br />
+<code>#include &lt;QtCharts/QBarSet&gt;</code><br />
+<code>#include &lt;QtCharts/QChart&gt;</code><br />
+<code>#include &lt;QtCharts/QChartView&gt;</code><br />
+<code>#include &lt;QtCharts/QValueAxis&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;initializer_list&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for DelayAnalysisWindow.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp__incl.svg" width="4360" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp__incl.svg" width="5580" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -155,6 +169,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a0872d5edc20a704e65330700116e31bd" id="r_a0872d5edc20a704e65330700116e31bd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0872d5edc20a704e65330700116e31bd">delayCallsCsv</a> (const std::vector&lt; <a class="el" href="struct_delay_event.html">DelayEvent</a> &gt; &amp;events)</td></tr>
 <tr class="memdesc:a0872d5edc20a704e65330700116e31bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The CSV text of the Calls tab: one record for each event.  <br /></td></tr>
 <tr class="memitem:a4769d7cd8c2d15ebcaa158460a195466" id="r_a4769d7cd8c2d15ebcaa158460a195466"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4769d7cd8c2d15ebcaa158460a195466">delaySummaryCsv</a> (const <a class="el" href="struct_delay_summary.html">DelaySummary</a> &amp;summary, <a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a> kind)</td></tr>
+<tr class="memitem:ace658299672c842be4db041640dbf0fb" id="r_ace658299672c842be4db041640dbf0fb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ace658299672c842be4db041640dbf0fb">delayHistogramCsv</a> (const <a class="el" href="struct_delay_histogram.html">DelayHistogram</a> &amp;histogram, <a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a> kind)</td></tr>
 <tr class="memitem:a65142327add13df2eb78b6df7769d277" id="r_a65142327add13df2eb78b6df7769d277"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a65142327add13df2eb78b6df7769d277">delayBaselineCsv</a> (const <a class="el" href="struct_delay_baseline_comparison.html">DelayBaselineComparison</a> &amp;comparison)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -273,6 +288,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_af5e0ccade70745b9d0016cdfb022c18b_cgraph.svg" width="166" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ace658299672c842be4db041640dbf0fb" name="ace658299672c842be4db041640dbf0fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace658299672c842be4db041640dbf0fb">&#9670;&#160;</a></span>delayHistogramCsv()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string delayHistogramCsv </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_delay_histogram.html">DelayHistogram</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>histogram</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="_delay_analysis_8h.html#a8adddb4c8e2295552bc026a9d5973024">DelayEventKind</a></td>          <td class="paramname"><span class="paramname"><em>kind</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The CSV text of the Punctuality tab: one record for each class, then one for each status without a delay with its count of events. Empty when no event is available. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_delay_analysis_window_8cpp_ace658299672c842be4db041640dbf0fb_cgraph.svg" width="730" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

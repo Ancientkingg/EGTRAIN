@@ -1,8 +1,8 @@
-# Tutorial: the smallest useful scene
+# Tutorial: the smallest useful case
 
-This tutorial builds a complete case study from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
+This tutorial builds a complete case from nothing with the editors of EGTRAIN, runs it, saves it as a folder and as a bundle, and opens it again. The case has one track of 2 km, a station at each end and one train that runs from one station to the other.
 
-You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a supplied case](tutorial-modify-a-case.md). The words case study, scene, bundle and validation are in the [glossary](glossary.md).
+You need EGTRAIN running, and you should have done [Getting started](getting-started.md) once. To change a case that already exists, see [Tutorial: modify a bundled case](tutorial-modify-a-case.md). The words case, case folder, bundle and validation are in the [glossary](glossary.md).
 
 ## What the editors do not do
 
@@ -23,33 +23,33 @@ Every row below keeps the identifier that the editor proposes (`track`, `node`, 
 
 ## 1. Create the case
 
-1. Choose **File > New Case Study...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
-2. Click the tab **Case Settings** and replace **Name** (`Untitled Case Study`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration / horizon (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
+1. Choose **File > New Case...** (Ctrl+N). The docks **Case Settings** and **Infrastructure** open as tabs on the right, with **Infrastructure** in front. If you have unsaved changes, EGTRAIN asks first.
+2. Click the tab **Case Settings** and replace **Name** (`Untitled case`) with `Minimal line` and press Enter. Leave **Base time** at `08:00:00`, **Duration (s)** at 3600, **Buffer (s)** at 0 and **Recovery (%)** at 0.
 
-A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Runnable scene has no tracks". The status bar counts them ("Not ready: N validation error(s) must be fixed") and the title bar shows the mark for unsaved changes.
+A new case holds one scenario, `baseline`, and nothing else. **Run** stays disabled while validation reports errors for the railway data that is still missing, such as "Add a track to run this case". The status bar counts them after "Cannot run:", and the title bar shows the mark for unsaved changes.
 
 ## 2. Infrastructure, in dependency order
 
-Everything in this part happens in the dock **Infrastructure**; click its tab. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
+Everything in this part happens in the dock **Infrastructure**; click its tab. The list above the table chooses it. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. While a table is empty, a line of text above it says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
 
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
 
-   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with node_3 selected. The canvas shows the track with its three nodes, and the status bar says that 9 validation errors must be fixed.](../images/tutorial-minimal-nodes.png)
+   ![The dock Infrastructure on Nodes of the new case Minimal line, listing node, node_2 and node_3 on track at X 0, 1 and 2 km and Y 0, with node_3 selected. The canvas highlights the selected track with its three nodes; the status bar reads Cannot run: 9 errors.](../images/tutorial-minimal-nodes.png)
 3. **Arcs.** Choose **Add** twice. The arcs `arc` (from `node` to `node_2`) and `arc_2` (from `node_2` to `node_3`) join the nodes in order. They get a **Curvature radius (m)** of 0, a **Gradient (rise/length)** of 0 and a **Speed limit (m/s)** of 20, which you keep.
 4. **Blocks.** The blocks have a filter above the table that names a track; choose `track`. Choose **Add** twice. The blocks `block` and `block_2` are 1 km long each, so together they cover the 2 km of the track.
 5. **Stations.** Choose **Add** twice. The stations are `station` and `station_2`, and each is named after its identifier.
 6. **Platforms.** Choose **Add** twice. Both platforms (`platform` and `platform_2`) start at the first station. In the second row, set **Station ID** to `station_2`. Then set **Nodes**, a comma-separated list of nodes: `node` for the first row and `node_3` for the second, so that each platform is at the end node of the track. Leave **Length (m)** and **Width (m)** at their proposed values.
 
-   ![The dock Infrastructure on Platforms, with platform at node in station and platform_2 at node_3 in station_2, each 100 m long, and platform_2 selected. The canvas shows the track with a station at each end, and the status bar counts 3 validation errors.](../images/tutorial-minimal-platforms.png)
+   ![The dock Infrastructure on Platforms: platform at node in station and platform_2 at node_3 in station_2, 100 m each, platform_2 selected. The canvas highlights the selected track, with a station at each end; the status bar reads Cannot run: 3 errors.](../images/tutorial-minimal-platforms.png)
 7. **Signalling area.** Choose **Add**. The area `signalling-area` covers **Start km** 0 to **End km** 2 and applies to all tracks. In the column **Signalling system**, choose `0 ATB fixed block`. An area without a system is an error. Without any area the case still runs, and validation only warns that the sections run without signalling. What the level means is in [Signalling levels](signalling-levels.md), and it is the level that the committed Paimpol case uses.
 8. **Routes.** Choose **Add**. The route is `route`, and it is selected. Below the table, choose `track 0.000 to 1.000 km` in **Section catalog** and choose **Add Section**; then choose `track 1.000 to 2.000 km` and **Add Section** again. Each entry names a section by its track and the kilometres of its ends; its tooltip gives the section ID, such as `@block@`. The list of sections shows both in this order. Leave **Has corridor** and **Reversed** as they are.
 
-The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either.
+The tables **Connections** (joins between two nodes), **Signals**, **Block dependencies**, **Single-track restrictions** and **Station boundaries** stay empty. A single track needs none of them, and the committed Paimpol case has no signals either. The canvas still draws a pair of signal heads where `block_2` starts, as the picture of step 6 shows: it marks the boundaries between the blocks of a track, whatever the table **Signals** holds.
 
 ## 3. A rolling stock unit
 
-Open **Editors > Rolling stock units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
+Open **Editors > Rolling Stock Units** and choose **Add Unit**. The unit is `new_train_unit`. A run needs physical values and a traction curve. This tutorial does not make up railway data: it copies the placeholder unit `SLT_Sprinter` of the case `Assignment_Gvc_Gdg_Ut`, the stock that its [own documentation](assignment-workflow.md) calls a placeholder. Treat it as a stand-in, not as data of a real train.
 
 On the tab **Physical**, enter these values, pressing Enter after each:
 
@@ -65,7 +65,7 @@ On the tab **Physical**, enter these values, pressing Enter after each:
 | Jerk (m/s³) | 0.75 |
 | Length (m) | 70 |
 
-On the tab **Traction**, choose **Add Traction Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
+On the tab **Traction**, choose **Add Row** twice and fill the columns **Lower speed (m/s)**, **Upper speed (m/s)**, **C0**, **C1** and **C2**: click a cell, type the number and press Enter. The force in N at speed v is C0 + C1 v + C2 v².
 
 | Row | Lower speed | Upper speed | C0 | C1 | C2 |
 | --- | --- | --- | --- | --- | --- |
@@ -80,35 +80,35 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 
 ## 5. A service with two stops
 
-1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry Time (s)** enters at the planned departure of its first stop.
-2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
+1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry time (s)** enters at the planned departure of its first stop.
+2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add Timetable Stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
-   ![The dock Services on the tab Timetable for new_service, with two stops: station on platform with departure 120, and station_2 on platform_2 with arrival 250. The case base reads 08:00:00 and the dock Case and Layers says Ready to run.](../images/tutorial-minimal-service.png)
+   ![The dock Services on the tab Timetable for new_service: station on platform with departure 120 and station_2 on platform_2 with arrival 250, in Seconds after 08:00:00. Run is enabled, and the dock Case and Layers shows no error.](../images/tutorial-minimal-service.png)
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
 
 ## 6. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows "Ready to run" and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors while the case is incomplete: "Not ready: N validation error(s) must be fixed". Follow the message, usually a missing reference such as a route without sections or a service without a composition.
+Choose **View > Case Validation** (Ctrl+Shift+V). The table is empty: the case has no error, warning or information. The dock **Case and Layers** shows no error under the name of the case, and **Run** is enabled. If an error is left, its message names the part to fix, and the status bar counts the errors after "Cannot run:" while the case is incomplete. Follow the message, usually a missing reference such as a route without sections or a service without a composition.
 
 ## 7. Run
 
-Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, **Active incidents** 0) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
+Choose **Run**, check the dialog **Run simulation** (**Trains** 1, and no **Incidents** row) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
 
 ## 8. Save as a folder and as a bundle
 
-1. Choose **File > Save Scene As Folder...**. In the dialog **Save Scene As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a scene](scene-schema.md#version-and-files)).
-2. Choose **File > Save Case Study As...**. In the dialog **Save Case Study As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save Scene** writes to this bundle.
+1. Choose **File > Save As Folder...**. In the dialog **Save Case As Folder**, make or choose an empty folder `minimal-line` and confirm. The folder holds `scene.json`, `infrastructure.json`, `stations.json`, `signalling.json`, `rolling_stock.json`, `services.json` and `scenarios.json` ([files of a case](scene-schema.md#version-and-files)).
+2. Choose **File > Save As...**. In the dialog **Save Case As**, name the file `minimal-line.egscene` and save it. Type the extension too: the folder `minimal-line` of step 1 has the same name without it, and the dialog can open that folder instead of saving. After this, **File > Save** writes to this bundle.
 
-Both are now listed under **File > Recent Scenes**.
+Both are now listed under **File > Recent Cases**.
 
 ## 9. Reopen and confirm
 
-1. Choose **File > Open Scene Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling stock units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
-2. Choose **File > Recent Scenes** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
+1. Choose **File > Open Case Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling Stock Units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
+2. Choose **File > Recent Cases** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
-## 10. Check the saved scene outside the window
+## 10. Check the saved case outside the window
 
 `scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`). With the macOS app and the folder and bundle in the current folder:
 
@@ -134,6 +134,6 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 - **Add** is disabled in Blocks, and the text above the table reads "No blocks yet. Add a track first, then add blocks on it.": add a track first. With a track, the filter above the table names it and **Add** works.
 - **Add** in Platforms leaves the table as it is and the status bar reads "Add a station before adding a platform": add the stations first.
-- **Add Stop** shows the message "No reachable stop: No station visit is available between any of the current stops. Check the route and stop order before adding a stop.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
-- A refused edit says "Infrastructure IDs must be non-empty and unique": choose another name.
-- **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Scene Validation** lists all of them.
+- **Add Stop** shows the message "No Reachable Stop: No station on the route is left to stop at. Check the route and the stop order.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
+- A refused edit says "IDs must be unique and not empty": choose another name.
+- **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Case Validation** lists all of them.

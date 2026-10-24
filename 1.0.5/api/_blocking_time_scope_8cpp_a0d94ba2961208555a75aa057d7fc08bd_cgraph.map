@@ -1,0 +1,41 @@
+<map id="chooseBlockingTimeScope" name="chooseBlockingTimeScope">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,203,201,228"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="64,204,56,194,60,184,76,178,103,176,137,180,150,189,147,194,135,185,103,181,78,183,64,188,61,194,68,201"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a0415bf2e4f4f3533261f04d38c69bfc4" title=" " alt="" coords="249,29,441,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,201,166,140,205,103,248,72,279,57,281,62,251,76,208,108,170,143,116,204"/>
+<area shape="rect" id="Node000003" href="$class_choice_combo_box.html#a8280dfc03486d6055079170bcdf8f539" title="A combo box that expands across its row and fits its size hint to its entries." alt="" coords="489,80,749,105"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="116,201,171,157,208,134,248,115,305,100,363,90,475,83,475,88,363,95,306,105,250,121,211,138,174,161,120,205"/>
+<area shape="rect" id="Node000005" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="255,154,436,194"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="178,200,240,189,241,194,179,205"/>
+<area shape="rect" id="Node000007" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="267,243,423,268"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="181,225,255,238,254,243,181,231"/>
+<area shape="rect" id="Node000010" href="$_blocking_time_diagram_8cpp.html#a3bb2c1995320c79d30288260f90e0bd3" title=" " alt="" coords="264,316,427,341"/>
+<area shape="poly" id="edge19_Node000001_Node000010" title=" " alt="" coords="133,226,306,308,304,313,131,231"/>
+<area shape="rect" id="Node000012" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="568,381,671,407"/>
+<area shape="poly" id="edge26_Node000001_Node000012" title=" " alt="" coords="115,227,136,254,167,289,206,324,251,352,289,367,329,378,410,393,488,397,554,397,554,402,488,403,410,398,327,384,287,372,248,356,203,328,163,293,132,257,111,230"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,31,298,21,302,11,318,5,345,3,379,7,392,16,389,20,377,11,345,8,320,10,306,15,303,20,310,27"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="818,125,963,151"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="696,103,805,121,804,126,695,108"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="847,127,838,117,843,107,861,101,891,99,929,103,940,108,943,114,939,116,936,112,928,108,891,104,862,106,846,111,843,116,851,123"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="301,154,298,144,305,135,321,129,345,127,373,130,388,137,386,142,372,135,345,133,322,135,308,139,303,145,306,153"/>
+<area shape="rect" id="Node000006" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="543,154,696,194"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="436,171,529,171,529,177,436,177"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="569,154,566,144,575,135,592,129,619,127,651,130,668,137,665,142,649,135,619,133,593,135,577,139,572,145,575,153"/>
+<area shape="poly" id="edge17_Node000007_Node000006" title=" " alt="" coords="380,240,489,203,529,192,530,198,490,209,382,245"/>
+<area shape="poly" id="edge18_Node000007_Node000007" title=" " alt="" coords="306,244,298,234,302,224,318,218,345,216,379,220,392,229,389,234,377,225,345,221,320,223,306,228,303,234,310,241"/>
+<area shape="rect" id="Node000008" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="538,243,701,268"/>
+<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="424,253,525,253,525,258,424,258"/>
+<area shape="poly" id="edge13_Node000008_Node000004" title=" " alt="" coords="656,240,748,204,852,154,854,159,750,208,657,245"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="576,244,566,234,571,224,589,218,619,216,658,220,668,225,672,231,668,234,665,229,656,225,619,221,590,223,575,228,572,234,580,241"/>
+<area shape="rect" id="Node000009" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="797,243,984,268"/>
+<area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="701,253,784,253,784,258,701,258"/>
+<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="847,244,838,234,843,224,861,218,891,216,929,220,940,225,943,231,939,234,936,229,928,225,891,221,862,223,846,228,843,234,851,241"/>
+<area shape="poly" id="edge21_Node000010_Node000010" title=" " alt="" coords="306,318,298,308,302,298,318,292,345,289,379,293,392,303,389,307,377,298,345,295,320,297,306,302,303,307,310,314"/>
+<area shape="rect" id="Node000011" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="544,293,695,333"/>
+<area shape="poly" id="edge20_Node000010_Node000011" title=" " alt="" coords="427,321,530,315,531,320,427,327"/>
+<area shape="poly" id="edge22_Node000010_Node000012" title=" " alt="" coords="400,339,555,376,554,381,399,344"/>
+<area shape="poly" id="edge25_Node000012_Node000012" title=" " alt="" coords="576,383,566,373,571,363,589,357,619,355,658,359,668,364,672,370,668,372,665,368,656,364,619,360,590,362,575,367,572,372,580,379"/>
+<area shape="rect" id="Node000013" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="801,381,980,407"/>
+<area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="671,391,787,391,787,397,671,397"/>
+<area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="847,383,838,373,843,363,861,357,891,355,929,359,940,364,943,370,939,372,936,368,928,364,891,360,862,362,846,367,843,372,851,379"/>
+</map>

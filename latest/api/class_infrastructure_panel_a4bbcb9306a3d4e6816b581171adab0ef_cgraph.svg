@@ -21,10 +21,10 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#a61ff0dbc34d7c80ed1d05f771a4a9a19" target="_top" xlink:title="The name that the combo shows for the chosen facet.">
+<g id="a_Node000002"><a xlink:href="class_infrastructure_panel.html#afb09d53bfc86597cdcee9e0b586e9792" target="_top" xlink:title="The key of the chosen facet, one of facetKeys().">
 <polygon fill="white" stroke="#666666" points="254,-30 145,-30 145,0 254,0 254,-30"/>
 <text text-anchor="start" x="153" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfrastructurePanel</text>
-<text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::facetTitle</text>
+<text text-anchor="middle" x="199.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::facetKey</text>
 </a>
 </g>
 </g>

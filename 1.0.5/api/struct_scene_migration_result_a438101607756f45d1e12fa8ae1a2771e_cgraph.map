@@ -1,0 +1,6 @@
+<map id="SceneMigrationResult::success" name="SceneMigrationResult::success">
+<area shape="rect" id="Node000001" title="True when migrated is set and no diagnostic is an error." alt="" coords="5,22,169,62"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="217,29,300,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,39,204,39,204,45,170,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="230,31,224,21,227,11,239,5,259,3,282,6,292,15,289,19,280,11,259,8,241,10,231,15,229,20,235,28"/>
+</map>

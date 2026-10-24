@@ -1,0 +1,1372 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="TU Delft assignment workflow in EGTRAIN" href="assignment-workflow.html"><link rel="prev" title="V1 active-input migration matrix" href="v1-scene-migration-matrix.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Signalling levels - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/signalling-levels.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="signalling-levels">
+<h1>Signalling levels<a class="headerlink" href="#signalling-levels" title="Link to this heading">¶</a></h1>
+<p>This page says what the simulation does at each signalling level, how a
+signalling area gives a section its level, and how signalling areas differ from
+block sections and from the scope of a capacity analysis. It describes the
+code, not a real railway. The names of the levels are labels for what the model
+does. Nothing here is checked against a source about a real system; see
+<a class="reference internal" href="#what-is-not-established">What is not established</a>.</p>
+<p>Function names are given so that a maintainer can find them. Test cases are named
+in code font. They are the characterization cases in
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/characterization</span></code>; see
+the Simulation characterization tests page of the developer documentation.</p>
+<section id="what-a-signalling-level-is">
+<h2>What a signalling level is<a class="headerlink" href="#what-a-signalling-level-is" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>A signalling level is a whole number from 0 to 5 that belongs to a runtime
+section (<a class="reference external" href="../api/class_section.html"><code class="docutils literal notranslate"><span class="pre">Section::SignallingLevel</span></code></a>). A section is a block of one track, or a
+section that a connection builds from two blocks. See
+<a class="reference internal" href="#signalling-areas-block-sections-and-capacity-areas">Signalling areas, block sections and capacity areas</a>.</p></li>
+<li><p>A section can also have no level. Its value is -99999999
+(<code class="docutils literal notranslate"><span class="pre">kSignallingLevelUnset</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">scene/SignallingLevel.h</span></code>). This page
+calls it “no level”.</p></li>
+<li><p>The case stores no level on a block. It stores signalling areas in
+<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>. When the case is prepared for a run, the builder gives
+each section the level of the area that covers it; see
+<a class="reference internal" href="#how-an-area-gives-sections-their-level">How an area gives sections their level</a>.</p></li>
+<li><p>A route holds copies of its sections. The copies carry the level of the
+section. A route that runs in the opposite direction has its own copies with
+the same level.</p></li>
+<li><p>The word “level” also appears in <code class="docutils literal notranslate"><span class="pre">views.json</span></code>, for the display level of a
+track in the network view. That has nothing to do with the signalling level.</p></li>
+</ul>
+<p>The level numbers and the checks on them (whether a number is a level, a
+fixed-block level or a moving-block level) are defined in
+<code class="docutils literal notranslate"><span class="pre">scene/SignallingLevel.h</span></code>. The labels are defined in
+<code class="docutils literal notranslate"><span class="pre">scene/SignallingLevelNames.h</span></code>. The validation message about areas that give one
+section different levels shows them. The editor shows the labels of the levels
+0 to 5 in its list of signalling systems.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Label</p></th>
+<th class="head"><p>One line from the program</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>none</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">signalling</span></code></p></td>
+<td><p>Trains in this area are not separated.</p></td>
+</tr>
+<tr class="row-odd"><td><p>0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+<td><p>Fixed block. The block before an occupied one is limited to 40 km/h.</p></td>
+</tr>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">1</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+<td><p>Fixed block, without blocking times.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">2</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+<td><p>Fixed block, with blocking times.</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">3</span> <span class="pre">moving</span> <span class="pre">block</span></code></p></td>
+<td><p>Movement authority ends 50 m behind the train ahead.</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">Virtual</span> <span class="pre">coupling</span></code></p></td>
+<td><p>Moving block. A train can follow the train ahead at its speed.</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span> <span class="pre">BACC</span> <span class="pre">track</span> <span class="pre">circuits</span></code></p></td>
+<td><p>Fixed block, with one extra empty block (double red) before an occupied one.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="what-happens-in-a-step">
+<h3>What happens in a step<a class="headerlink" href="#what-happens-in-a-step" title="Link to this heading">¶</a></h3>
+<p>The order is fixed in <a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController</span></code></a>.</p>
+<ol class="arabic simple">
+<li><p>Every train moves. It reads the codes and speed limits that the previous
+step wrote.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Occupy_Block_Sections_Of_Route</span></code> lists the sections that each train covers
+from its tail to its head (<code class="docutils literal notranslate"><span class="pre">blocksOccupied</span></code>). It also decides which
+direction holds each single-track section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Apply_Signal_Failures_Mixed_Signalling</span></code> adds the failed sections to the
+occupied sections and makes their ends of authority.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ReportAllTrainPositionsToRBC</span></code> makes the ends of authority of levels 3 and 4,
+with a margin of 50 m (see level 3 for the start of a section).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">protectStationAreas</span></code> can mark the entrance section of a configured station
+boundary as occupied.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">releaseMixedSignallingSystem</span></code> resets the sections that trains have left.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">activateMixedSignallingSystem</span></code> goes through every route copy. It adds the
+single-track sections that the copy has to treat as occupied, and then runs
+the routine of each level that has a section on the copy. A routine writes
+only on sections of its own level, with the exceptions in
+<a class="reference internal" href="#sections-of-different-levels-on-one-route">Sections of different levels on one route</a>.</p></li>
+<li><p>The simulation hands the codes to the window.</p></li>
+</ol>
+<p>The signalling delay <code class="docutils literal notranslate"><span class="pre">signallingDelay</span></code> is 0 and nothing else sets it, so the signalling
+uses the train positions of the current step.</p>
+</section>
+</section>
+<section id="codes-and-what-they-do-to-a-following-train">
+<h2>Codes and what they do to a following train<a class="headerlink" href="#codes-and-what-they-do-to-a-following-train" title="Link to this heading">¶</a></h2>
+<p>A section has a code, a state and, on each of its arcs, a signal speed limit.
+The routines write these values. The numbers are the values the program uses
+internally.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Code</p></th>
+<th class="head"><p>State</p></th>
+<th class="head"><p>Written</p></th>
+<th class="head"><p>Signal head in the window</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>270</p></td>
+<td><p>green</p></td>
+<td><p>at the start, when a section is released, and as the last code of a chain</p></td>
+<td><p>green</p></td>
+</tr>
+<tr class="row-odd"><td><p>180</p></td>
+<td><p>yellow</p></td>
+<td><p>two sections behind an occupied section (levels 0, 1, 2); three behind at level 5</p></td>
+<td><p>green</p></td>
+</tr>
+<tr class="row-even"><td><p>75</p></td>
+<td><p>red</p></td>
+<td><p>one section behind an occupied section (levels 0, 1, 2); two behind at level 5</p></td>
+<td><p>yellow with a dark dot</p></td>
+</tr>
+<tr class="row-odd"><td><p>751</p></td>
+<td><p>red_red</p></td>
+<td><p>one section behind an occupied section, level 5 only</p></td>
+<td><p>red with a dark bar</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>keeps its state</p></td>
+<td><p>on an occupied or failed section</p></td>
+<td><p>red with a dark bar</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A head shows the code of the section ahead of it. If route copies of one
+section disagree, it shows the most restrictive code, in the order 0, 751, 75,
+180, 270. A copy without a level never replaces one with a level. The snapshot
+also carries the level and a failed flag for each signal
+(<code class="docutils literal notranslate"><span class="pre">app/GuiSimulationSnapshot.h</span></code>). A head whose section has no level, and a head
+that no route passes in its direction, is a grey ring with a short grey bar. The head of a
+failed signal is a red lamp with a white cross for as long as the failure
+lasts. The marks are drawn when a head is at least 6 pixels wide.</p>
+<p>A code changes what a following train does in four ways.</p>
+<ol class="arabic simple">
+<li><p><strong>Speed limit.</strong> The limit in force is the lowest of the maximum speed of the
+train, the speed limit of its arc and the signal speed limit of its arc.
+A limit of 0 holds a train that stands.</p></li>
+<li><p><strong>Speed at the end of a section.</strong> After the aspects are written, a speed
+pass of the level sets the speed at the end of each section of that level.
+It is 0 when the next section has code 0. Otherwise it is the lower of the
+speed limit and the signal speed limit of the first arc of the next section.
+A train looks at its own section and the eight after it
+(<code class="docutils literal notranslate"><span class="pre">europeanVitalComputerWithListsImproved</span></code>) and brakes along a braking curve
+so that it has the end speed at the end of each of them. A train that is
+closer to a target than its braking distance cannot follow the curve. It
+brakes with full force from where it is, and its position never goes back.</p></li>
+<li><p><strong>Hold at a red state.</strong> A train that stands within 4 m of the end of an arc
+waits there while the state of its section is <code class="docutils literal notranslate"><span class="pre">red</span></code>. A train that has
+finished its dwell at a platform at the end of a block waits in the same way.</p></li>
+<li><p><strong>Entry.</strong> A train enters the route when the code of the first section is 270
+or 180. This rule applies at the levels other than 3 and 4.</p></li>
+</ol>
+<p>The signal speed limit is 999, which means none, unless a routine writes one.
+Levels 0 and 5 write 11.111 m/s, about 40 km/h, on the section with code 75.
+Level 5 writes 0 on the section with code 751.</p>
+<p><code class="docutils literal notranslate"><span class="pre">releaseBlocksMixedSignalling</span></code> clears the codes. It runs for the sections that
+trains have left, and in each step for the section before each occupied section.
+For each of them it sets the code of the section and of the four sections before
+it to 270, their state to green and removes their signal speed limits. Fewer
+sections are cleared at the start of a route.
+It does not depend on the level.
+When a train leaves the last section of its route, <code class="docutils literal notranslate"><span class="pre">relLastSectionMixedSignalling</span></code>
+hands that section to the release function. It also sets the code of that
+section and of the two before it to 270 (three before it at level 5), according
+to the level of the last section. Levels 3 and 4 and sections without a level get
+nothing more. Level 5 also sets all of its sections to clear at the start of
+every step and writes the aspects again (<code class="docutils literal notranslate"><span class="pre">applyFixedBlockAspects</span></code>).</p>
+<section id="braking-steps-and-published-states">
+<h3>Braking steps and published states<a class="headerlink" href="#braking-steps-and-published-states" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">BrakDist_Block</span></code> and <code class="docutils literal notranslate"><span class="pre">DrawBrakingCurve</span></code> use the same actual-start force
+sample: resistance is evaluated at the starting speed and arc. A curve step
+uses its right-endpoint speed for displacement (<code class="docutils literal notranslate"><span class="pre">x1</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">v1</span> <span class="pre">*</span> <span class="pre">timestep</span></code>).
+The inverse follows the unique increasing branch of that step. Before choosing
+acceleration or cruising, the phase selector checks the proposed position and
+speed against the braking point. A live, force-valid cached successor is the
+default proposal, including gradient recovery. The selector examines all collected
+targets against that actual successor before retaining it; a competing stop or
+speed restriction can interrupt the plan from the previous actual state.
+Without a cached successor, the selector refines the braking point of a target
+only when the bracket of its inverse pass starts before the earliest point found
+so far, because a later point cannot be chosen. A signalled stop within one
+step is always refined.
+A retained stop ends before farther targets, so those cannot invalidate its
+stopping prefix. They are reconsidered when that stop is no longer retained.
+Satisfied positive ceilings do not reclaim an already compliant continuation.
+An otherwise non-braking hold or cap below the actual-start full-braking speed
+uses the full-braking fallback, without diverting an already selected plan.</p>
+<p><code class="docutils literal notranslate"><span class="pre">brakingStep</span></code> continues a stored plan only from a matching actual state with
+valid force bounds. Otherwise it predicts a target-reaching continuation from
+that state, without linearly interpolating the nonlinear flow or changing an
+already published position or speed. First-step and positive-target terminal
+controls stay within full braking and traction available at the actual starting
+speed. A positive target is a ceiling, not a required terminal-speed equality;
+a stop retains its anchored zero-speed endpoint. Curve effort and power use
+the selected speed change, and a reached speed ceiling remains in force while
+its target boundary is still present.</p>
+<p>A genuinely late target or a state without an admissible plan uses the separate
+full-braking fallback (<code class="docutils literal notranslate"><span class="pre">fullBrakingStep</span></code>), whose displacement uses mean endpoint
+speeds. That fallback does not establish that the train can still reach the
+target. The crossover regression checks live motion, immutable published
+positions and speeds, actual-start force bounds and B stop/arrival/dwell in
+both directions at levels 0, 1, 2 and 5. Its displacement check separately
+recognizes only the prescribed Eq5/Eq6 hold/release endpoints and their actual
+dwell, departure, authority and signal predicates. These legacy coordinate
+transitions are bookkeeping, not physically integrated steps. These finite
+checks do not establish correctness on every route.</p>
+</section>
+</section>
+<section id="common-behaviour">
+<h2>Common behaviour<a class="headerlink" href="#common-behaviour" title="Link to this heading">¶</a></h2>
+<p><strong>Platforms.</strong> At every level, including none, a train stops at the platform of a
+station it serves. It leaves after the dwell time. A platform at the end of a
+block adds a condition: the train waits while the state of that block is <code class="docutils literal notranslate"><span class="pre">red</span></code>.
+A train that is stopped for an end of authority also waits.</p>
+<p><strong>Route entry.</strong> A train enters when its departure time has come and the entry
+rule of its level holds (code 270 or 180 at levels none, 0, 1, 2 and 5; no
+foreign end of authority at the start of the first section at levels 3 and 4).
+Where the first section has a level, only one train enters a route per step: the
+train that enters puts the first section in <code class="docutils literal notranslate"><span class="pre">blocksOccupied</span></code> at once, and the
+trains that wait are visited in the order in which they are due. A train waits
+while the first section is failed, at every level (<code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code>). Cases:
+<code class="docutils literal notranslate"><span class="pre">same-entry-level-*</span></code>, <code class="docutils literal notranslate"><span class="pre">entry-order-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">sf-first-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>, <code class="docutils literal notranslate"><span class="pre">-2</span></code> and <code class="docutils literal notranslate"><span class="pre">-none</span></code>.</p>
+<p><strong>Signal failure.</strong> A <code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> incident fails one or more sections from
+its start second to its end second. A case has to give the end second:
+validation rejects a signal failure without one (<code class="docutils literal notranslate"><span class="pre">scene.incident.window</span></code>). In
+each step:</p>
+<ul class="simple">
+<li><p>The failed section is added to <code class="docutils literal notranslate"><span class="pre">blocksOccupied</span></code>. The routines of levels 0, 1,
+2 and 5 then write the same aspects behind it as behind a train, and levels 3
+and 4 give it code 0.</p></li>
+<li><p>For every route that contains the section, an end of authority is made
+at the end of the section before it. If the failed section is the first of
+the route, it is made at its start. The authority has the direction of its
+route, and a train obeys only the authorities of its own direction.</p></li>
+<li><p>The authority is a stop target at every level, including none.</p></li>
+<li><p>A train that the failure holds records it as direct incident evidence: a train
+that stops at the authority, or a train that stands at a red aspect within
+4 m of the authority when the failed section is the next section on its
+route. Only levels 0, 1 and 2 show that red aspect. A train held only by the
+train ahead does not record it (<code class="docutils literal notranslate"><span class="pre">sf-adjacent-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sf-staggered-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code>).</p></li>
+<li><p>A train that waits to enter does not enter while the first section of its route
+is failed.</p></li>
+<li><p>A train that is already inside the section when the failure starts is not
+stopped: the authority lies behind it (<code class="docutils literal notranslate"><span class="pre">sf-entered-level-none</span></code>).</p></li>
+<li><p>A train that is closer to the authority than its braking distance when the
+failure starts brakes with full force until it passes the authority. The
+authority then lies behind it as for a train inside the section, so the train
+accelerates again and runs through the failed section (<code class="docutils literal notranslate"><span class="pre">sf-late-level-*</span></code>).
+The same holds when a second failure turns a speed target into a stop at the
+point the train is about to reach (<code class="docutils literal notranslate"><span class="pre">sf-retarget-level-0</span></code>).</p></li>
+<li><p>On the first step after the incident has ended, the failed sections are handed
+to the release function.</p></li>
+<li><p>The heads of a failed section show the failure, and its track is drawn as
+blocked.</p></li>
+</ul>
+<p>Cases: <code class="docutils literal notranslate"><span class="pre">sf-forward-level-*</span></code> and <code class="docutils literal notranslate"><span class="pre">sf-reverse-level-*</span></code> for the levels 0 to 5 and
+none; <code class="docutils literal notranslate"><span class="pre">sf-adjacent-level-*</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-staggered-level-*</span></code>, <code class="docutils literal notranslate"><span class="pre">sf-last-level-*</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sf-first-level-*</span></code> for the levels 0, 1, 2 and none; <code class="docutils literal notranslate"><span class="pre">sf-entered-level-none</span></code>;
+<code class="docutils literal notranslate"><span class="pre">sf-late-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> and <code class="docutils literal notranslate"><span class="pre">-3</span></code>; <code class="docutils literal notranslate"><span class="pre">sf-retarget-level-0</span></code>.</p>
+<p><strong>Single-track restrictions.</strong> While a train of one direction is inside a
+single-track stretch, the sections of the stretch count as occupied for the route
+copies of the other direction (<code class="docutils literal notranslate"><span class="pre">updateSingleTrackLocks</span></code>,
+<code class="docutils literal notranslate"><span class="pre">occupySingleTrackForRoute</span></code>). The stretch is described in
+<a class="reference internal" href="scene-schema.html#single-track-restrictions"><span class="std std-ref">Single-track restrictions</span></a>. What this
+does to a train depends on the level, as the sections below say. An approaching
+train reserves before its next movement could consume the last opportunity to
+brake for the entry or the approach aspects. One request is enough; simultaneous
+requests on a free stretch go to the forward direction. Pending owners retain
+the stretch through temporary stops. Every opposing route gets a direction-filtered
+entry stop authority at levels 0 to 5, in addition to its aspects. Cases: <code class="docutils literal notranslate"><span class="pre">single-track-level-*</span></code>,
+<code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">stub-arrival-first-level-0</span></code> and
+<code class="docutils literal notranslate"><span class="pre">stub-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code> and <code class="docutils literal notranslate"><span class="pre">stub-zero-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code> for a restriction
+over a stub track; <code class="docutils literal notranslate"><span class="pre">running-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code> for two moving approaches.</p>
+<p><strong>Double switches.</strong> A double switch is two route sections: a first half with a
+virtual signal at its end and a second half with one at its start. A train that
+covers a half puts both halves, the plain blocks named in their ids and the
+sections whose ids contain those block ids in <code class="docutils literal notranslate"><span class="pre">blocksOccupied</span></code>.
+<code class="docutils literal notranslate"><span class="pre">unlockDoubleSwitches</span></code> then gives every second half of a route copy that has
+code 0 the code 270 and exit speed 0, and the section before it state <code class="docutils literal notranslate"><span class="pre">green</span></code>.
+The section after the double switch is not held by that lock: when it shares a
+plain block with the double switch, as the first half of a second double switch
+does, <a class="reference external" href="../api/class_train.html"><code class="docutils literal notranslate"><span class="pre">Train::Det_Section_Occupied_By_Train</span></code></a> takes it out again if only the lock
+put it there. At fixed-block levels 0, 1, 2 and 5, an occupied exit also closes the approach
+before the first half. This route-local check does not propagate recursively
+through a chain of crossovers. Internal unlocking remains in place so a train
+already inside can clear both halves. A departing train cannot enter an origin
+that would occupy the exit after an approaching train has lost its last braking
+opportunity. <code class="docutils literal notranslate"><span class="pre">checkEntrance</span></code> uses the previous trajectory sample and the existing
+single-track next-step braking lookahead, independent of train movement order.
+A train safely stopped outside does not retain this admission protection.
+The crossover chain test runs two double switches in a row and checks late
+origin admission in both directions; see
+the Simulation characterization tests page of the developer documentation.</p>
+</section>
+<section id="levels">
+<h2>Levels<a class="headerlink" href="#levels" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Train separation</p></th>
+<th class="head"><p>Stops before an occupied section</p></th>
+<th class="head"><p>Blocking times</p></th>
+<th class="head"><p>Single-track restriction</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>none</p></td>
+<td><p>none</p></td>
+<td><p>no</p></td>
+<td><p>none</p></td>
+<td><p>no effect</p></td>
+</tr>
+<tr class="row-odd"><td><p>0</p></td>
+<td><p>fixed block</p></td>
+<td><p>at the end of the block before it</p></td>
+<td><p>yes</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>fixed block</p></td>
+<td><p>at the end of the block before it</p></td>
+<td><p>none</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>fixed block</p></td>
+<td><p>at the end of the block before it</p></td>
+<td><p>yes</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>moving block</p></td>
+<td><p>50 m behind its tail</p></td>
+<td><p>yes, per infrastructure element</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>moving block, following mode</p></td>
+<td><p>50 m behind its tail, or at the speed of the train ahead</p></td>
+<td><p>yes, per infrastructure element</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>fixed block, one block more</p></td>
+<td><p>at the end of the second block before it</p></td>
+<td><p>none</p></td>
+<td><p>yes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The cases below use the characterization line. It is one track of 16 km in eight
+blocks of 2 km, with a station at 8 km and a train length of 70 m. <code class="docutils literal notranslate"><span class="pre">F1</span></code> runs
+ahead of <code class="docutils literal notranslate"><span class="pre">F2</span></code> and stands at the station at 8 km while <code class="docutils literal notranslate"><span class="pre">F2</span></code> arrives
+(<code class="docutils literal notranslate"><span class="pre">follow-level-*</span></code>).</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Where <code class="docutils literal notranslate"><span class="pre">F2</span></code> stops behind <code class="docutils literal notranslate"><span class="pre">F1</span></code></p></th>
+<th class="head"><p>Smallest gap</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>none</p></td>
+<td><p>8000 m, at the position of <code class="docutils literal notranslate"><span class="pre">F1</span></code></p></td>
+<td><p>-70 m</p></td>
+</tr>
+<tr class="row-odd"><td><p>0, 1 and 2</p></td>
+<td><p>6000 m, the end of the block before the one that holds <code class="docutils literal notranslate"><span class="pre">F1</span></code></p></td>
+<td><p>1930 m</p></td>
+</tr>
+<tr class="row-even"><td><p>3 and 4</p></td>
+<td><p>7880 m, 50 m behind the tail of <code class="docutils literal notranslate"><span class="pre">F1</span></code></p></td>
+<td><p>50 m</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>4000 m, the end of the second block before the one that holds <code class="docutils literal notranslate"><span class="pre">F1</span></code></p></td>
+<td><p>3930 m</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="no-level-no-signalling">
+<h3>No level (<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">signalling</span></code>)<a class="headerlink" href="#no-level-no-signalling" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Separation.</strong> None. The routines of levels 0, 3, 4 and 5 write nothing on a
+section without a level. A code of 270 stays on the section, so a train
+enters and runs without regard to other trains. <code class="docutils literal notranslate"><span class="pre">follow-level-none</span></code> and
+<code class="docutils literal notranslate"><span class="pre">same-entry-level-none</span></code> show two trains at one position (gap -70 m).</p></li>
+<li><p><strong>Codes.</strong> Only a train on a section of level 1 or 2 ahead of the section can
+write a code onto it; see
+<a class="reference internal" href="#sections-of-different-levels-on-one-route">Sections of different levels</a>.</p></li>
+<li><p><strong>Platform and route entry.</strong> As in
+<a class="reference internal" href="#common-behaviour">Common behaviour</a>. The rule of one train per step does not
+apply where the first section has no level.</p></li>
+<li><p><strong>Signal failure.</strong> The authority at the end of the section before the failed
+one is the only effect. The train brakes to a stop there; no code or signal
+speed limit changes (<code class="docutils literal notranslate"><span class="pre">sf-forward-level-none</span></code>: <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> stop at 10000 m).</p></li>
+<li><p><strong>Blocking times.</strong> None (<code class="docutils literal notranslate"><span class="pre">blocktime</span> <span class="pre">n=0</span></code>).</p></li>
+<li><p><strong>Single-track restriction.</strong> No effect. Validation warns with
+<code class="docutils literal notranslate"><span class="pre">scene.single_track.no_effect</span></code>.</p></li>
+<li><p><strong>Window.</strong> The head shows green (code 270). A green head on a section
+without a level does not mean that the line is clear; nothing separates trains.</p></li>
+<li><p>Validation warns about route sections without a level with
+<code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code>.</p></li>
+</ul>
+</section>
+<section id="level-0-0-atb-fixed-block">
+<h3>Level 0 (<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code>)<a class="headerlink" href="#level-0-0-atb-fixed-block" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Separation.</strong> Fixed blocks. A train stops at the end of the block before the
+block that is occupied (<code class="docutils literal notranslate"><span class="pre">applyFixedBlockAspects</span></code>, <code class="docutils literal notranslate"><span class="pre">applyBlockSpeedForLevel</span></code>).</p></li>
+<li><p><strong>Codes behind an occupied section.</strong> The occupied section gets code 0. The
+section behind it gets code 75, state red and a signal speed limit of 11.111 m/s.
+The next gets 180, state yellow. The next gets 270, state green. A train
+therefore slows to 11.111 m/s at the entry of the block behind the occupied
+one, and stops at its end. The yellow section has no limit of its own; its end
+speed is 11.111 m/s because the next section has that limit.
+<code class="docutils literal notranslate"><span class="pre">follow-level-0</span></code>: <code class="docutils literal notranslate"><span class="pre">F2</span></code> runs at 11.111 m/s before it stops at 6000 m.</p></li>
+<li><p><strong>Platform and route entry.</strong> As in
+<a class="reference internal" href="#common-behaviour">Common behaviour</a>.</p></li>
+<li><p><strong>Signal failure.</strong> The chain of aspects is written behind the failed section.
+In <code class="docutils literal notranslate"><span class="pre">sf-forward-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">F1</span></code> slows to 11.111 m/s and stops at 10000 m from
+854 s to 1002 s.</p></li>
+<li><p><strong>Blocking times.</strong> Computed (“Conventional”). The approach of a section starts
+when the head of the train enters the section before it
+(<code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimeForSingleLocation</span></code>).</p></li>
+<li><p><strong>Single-track restriction.</strong> Has an effect. In <code class="docutils literal notranslate"><span class="pre">single-track-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">R1</span></code>
+waits 41 s in front of the stretch. In <code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">U1</span></code>
+waits 221 s at the entry of its route until <code class="docutils literal notranslate"><span class="pre">D1</span></code> has left the stub, and in
+<code class="docutils literal notranslate"><span class="pre">stub-arrival-first-level-0</span></code> <code class="docutils literal notranslate"><span class="pre">D1</span></code> waits 220 s until <code class="docutils literal notranslate"><span class="pre">U1</span></code> has left it.</p></li>
+<li><p><strong>Window.</strong> The heads show red, yellow, green, green behind an occupied
+section.</p></li>
+</ul>
+</section>
+<section id="levels-1-and-2-1-etcs-level-1-fixed-block-2-etcs-level-2-fixed-block">
+<h3>Levels 1 and 2 (<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">1</span> <span class="pre">fixed</span> <span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">2</span> <span class="pre">fixed</span> <span class="pre">block</span></code>)<a class="headerlink" href="#levels-1-and-2-1-etcs-level-1-fixed-block-2-etcs-level-2-fixed-block" title="Link to this heading">¶</a></h3>
+<p>The aspects of levels 1 and 2 are written by <code class="docutils literal notranslate"><span class="pre">applyFixedBlockAspects</span></code>, from two
+tables that differ in the level number only. Their speed pass and the release of
+the last section are shared with levels 0 and 5 (<code class="docutils literal notranslate"><span class="pre">applyBlockSpeedForLevel</span></code> and
+<code class="docutils literal notranslate"><span class="pre">releaseLastSections</span></code>). Trains move the same way at both levels. The levels
+differ in the blocking times only.</p>
+<ul class="simple">
+<li><p><strong>Separation.</strong> Fixed blocks. A train stops at the end of the block before the
+occupied one, as at level 0, with no speed limit.</p></li>
+<li><p><strong>Codes behind an occupied section.</strong> Code 0 on the occupied section, 75 and
+state red on the section behind it, 180 and state yellow on the next, then 270
+and state green. No signal speed limit is written, so the codes 180 and 270
+change nothing for the train; the speed at the end of the section behind the
+occupied one is 0.</p></li>
+<li><p><strong>Platform and route entry.</strong> As in
+<a class="reference internal" href="#common-behaviour">Common behaviour</a>.</p></li>
+<li><p><strong>Signal failure.</strong> As at level 0, without the speed limit. <code class="docutils literal notranslate"><span class="pre">F1</span></code> stops at
+10000 m in <code class="docutils literal notranslate"><span class="pre">sf-forward-level-1</span></code> and <code class="docutils literal notranslate"><span class="pre">sf-forward-level-2</span></code>.</p></li>
+<li><p><strong>Blocking times.</strong> Level 1: none. Level 2: computed (“ETCS2”). The approach
+of a section starts when the position of the train plus <code class="docutils literal notranslate"><span class="pre">v^2</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">a)</span></code> reaches
+the start of the section, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is the maximum deceleration.</p></li>
+<li><p><strong>Single-track restriction.</strong> Has an effect. In <code class="docutils literal notranslate"><span class="pre">single-track-level-1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">single-track-level-2</span></code>, <code class="docutils literal notranslate"><span class="pre">R1</span></code> waits 161 s.</p></li>
+<li><p><strong>Window.</strong> Red, yellow, green, green, as at level 0.</p></li>
+<li><p><strong>Difference from level 0.</strong> Levels 1 and 2 write no 11.111 m/s limit. They
+also write the chain onto a section without a level behind an occupied section
+of their level, which level 0 does not (see
+<a class="reference internal" href="#sections-of-different-levels-on-one-route">Sections of different levels</a>).</p></li>
+</ul>
+</section>
+<section id="level-3-3-etcs-level-3-moving-block">
+<h3>Level 3 (<code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">3</span> <span class="pre">moving</span> <span class="pre">block</span></code>)<a class="headerlink" href="#level-3-3-etcs-level-3-moving-block" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Separation.</strong> Moving block. For every train, the program makes an end of
+authority 50 m behind its tail and one 50 m ahead of its head, each on the
+section of level 3 or 4 that holds that point (<code class="docutils literal notranslate"><span class="pre">ReportPositionToRBC</span></code>). A train
+looks at the authorities of other trains on its own section and the eight after
+it, where those have level 3 or 4. While the tail has been inside its section
+for less than 50 m, the authority is at the start of that section instead. The
+authority is a stop target (speed 0).
+The train brakes along its braking curve and stops before it. <code class="docutils literal notranslate"><span class="pre">follow-level-3</span></code>:
+<code class="docutils literal notranslate"><span class="pre">F2</span></code> stops at 7880 m, 50 m behind the tail of <code class="docutils literal notranslate"><span class="pre">F1</span></code>, which stands at 8000 m.</p></li>
+<li><p><strong>Codes.</strong> <code class="docutils literal notranslate"><span class="pre">rbcSendsMasToRouteMixedSignalling</span></code> gives code 0 to an occupied
+section of level 3 or 4 and writes nothing else. The section shows only 0 and
+270, so the window shows red or green. The end speed of a section is 0 only if
+the next section has code 0 and is not of level 3 or 4.</p></li>
+<li><p><strong>Platform and route entry.</strong> A train enters when no other train has an
+authority at the start node of the first section. The routines of this level
+never set the state <code class="docutils literal notranslate"><span class="pre">red</span></code>, so at a platform at a block end only an authority
+holds a train.</p></li>
+<li><p><strong>Signal failure.</strong> The failed section gets code 0 and the authority is the
+stop target. <code class="docutils literal notranslate"><span class="pre">F1</span></code> stops at 10000 m in <code class="docutils literal notranslate"><span class="pre">sf-forward-level-3</span></code>; <code class="docutils literal notranslate"><span class="pre">F2</span></code> stops at
+9880 m, 50 m behind the tail of <code class="docutils literal notranslate"><span class="pre">F1</span></code>.</p></li>
+<li><p><strong>Blocking times.</strong> Computed, but as records for the infrastructure elements
+of the route, not for the sections
+(<code class="docutils literal notranslate"><span class="pre">ComputeBlockTime_ETCSLevel_3_ForSection</span></code>). <code class="docutils literal notranslate"><span class="pre">follow-level-3</span></code> lists none
+(<code class="docutils literal notranslate"><span class="pre">blocktime</span> <span class="pre">n=0</span></code>).</p></li>
+<li><p><strong>Single-track restriction.</strong> Has an effect. A train of level 3 or 4 does not
+follow aspects, so every route against the holder gets an end of authority at
+the end of the section before the stretch, for as long as the stretch is held
+(<code class="docutils literal notranslate"><span class="pre">Apply_Single_Track_Authorities_Mixed_Signalling</span></code>). In <code class="docutils literal notranslate"><span class="pre">single-track-level-3</span></code>,
+<code class="docutils literal notranslate"><span class="pre">R1</span></code> waits 161 s. A train that follows the holder is not delayed
+(<code class="docutils literal notranslate"><span class="pre">single-track-follow-level-3</span></code>).</p></li>
+<li><p><strong>Window.</strong> Red on an occupied section, otherwise green.</p></li>
+</ul>
+</section>
+<section id="level-4-4-virtual-coupling">
+<h3>Level 4 (<code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">Virtual</span> <span class="pre">coupling</span></code>)<a class="headerlink" href="#level-4-4-virtual-coupling" title="Link to this heading">¶</a></h3>
+<p>Level 4 uses the same routines as level 3 for codes, authorities, entry and
+failures. It adds a following mode.</p>
+<ul class="simple">
+<li><p><strong>Separation.</strong> The end of authority of a train that goes the same way and
+has the same next section, or is at the end of its route, has the speed of
+that train as its target, not 0. For a train end authority that does not meet
+these conditions the target is 0, as at level 3. The authority of an occupied
+diverging switch is not described here. A train that is faster than the train
+ahead moves its braking point and can couple. It couples when its speed differs by less than
+0.278 m/s from that of the train ahead and it is within 30 m of the authority.
+<code class="docutils literal notranslate"><span class="pre">follow-level-4</span></code>: <code class="docutils literal notranslate"><span class="pre">F2</span></code> stops 50 m behind the tail of <code class="docutils literal notranslate"><span class="pre">F1</span></code>, which stands at
+8000 m.</p></li>
+<li><p><strong>Following mode.</strong> Coupling requires a currently reported same-direction tail
+authority ahead of the train, before any virtual projection. A coupled train
+uses the selected live leader’s speed and acceleration as a proposal. After
+the first coupling step it can publish that proposal only within its own
+actual-start force bounds and the already approved non-braking position and
+speed envelope, strictly before the selected braking point. Native braking,
+full-braking fallback, terminal stops and service holds take precedence.
+Accepted following effort includes actual-start resistance.
+It stops following the leader (unintentional decoupling) when it falls
+more than 30 m behind the authority, and it can couple again. It leaves the
+mode when the routes diverge, or when the leader reports no authority any more.
+The characterization cases do not record whether a train enters the following
+mode.</p></li>
+<li><p><strong>Blocking times.</strong> Computed per infrastructure element, as at level 3
+(<code class="docutils literal notranslate"><span class="pre">ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved</span></code>).
+<code class="docutils literal notranslate"><span class="pre">follow-level-4</span></code> lists none.</p></li>
+<li><p><strong>Single-track restriction.</strong> Has an effect, as at level 3
+(<code class="docutils literal notranslate"><span class="pre">single-track-level-4</span></code>, <code class="docutils literal notranslate"><span class="pre">single-track-follow-level-4</span></code>).</p></li>
+<li><p><strong>A leader that slows down.</strong> A train that is not coupled yet treats a leader
+that is slowing down as a leader that stops. The end of authority moves to
+where the leader comes to a stand, estimated with the braking curve of the
+follower from the speed of the leader, and its target speed is 0. The inverse
+curve’s 2 mm terminal holdback is not part of the predicted travel. At zero
+leader speed the reported tail remains the target.
+<code class="docutils literal notranslate"><span class="pre">same-entry-level-4</span></code> checks separation and service stops when a train
+approaches a leader that brakes for a platform.</p></li>
+</ul>
+<p>A saved stopped authority holds the actual previous position only while its
+identity, direction, position and nonnegative distance below 4 m remain valid.
+Removal or movement releases that hold to the normal actual-state successor,
+not to another authority’s position. Station, checkpoint and signal handling
+also respect a newly selected authority’s stationary braking step, including
+when the previous saved hold has just been invalidated. From rest, a selected braking constraint
+uses the existing full-braking fallback without restarting a station dwell
+clock. Its force-limited motion on an unholdable descent is not a guarantee
+that the new target can still be respected.</p>
+</section>
+<section id="level-5-5-bacc-track-circuits">
+<h3>Level 5 (<code class="docutils literal notranslate"><span class="pre">5</span> <span class="pre">BACC</span> <span class="pre">track</span> <span class="pre">circuits</span></code>)<a class="headerlink" href="#level-5-5-bacc-track-circuits" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Separation.</strong> Fixed blocks, like level 0, with one more block held free
+(<code class="docutils literal notranslate"><span class="pre">applyFixedBlockAspects</span></code>, <code class="docutils literal notranslate"><span class="pre">applyBlockSpeedForLevel</span></code>).</p></li>
+<li><p><strong>Codes behind an occupied section.</strong> Code 0 on the occupied section. The
+section behind gets 751, state red_red and a signal speed limit of 0, so a
+train cannot move inside it. The next gets 75, state red and 11.111 m/s. The
+next gets 180 and the next 270. A train stops at the end of the block that is
+second behind the occupied one: in <code class="docutils literal notranslate"><span class="pre">follow-level-5</span></code>, <code class="docutils literal notranslate"><span class="pre">F2</span></code> stops at 4000 m,
+one block before the stop of level 0. Only the train order code reads the state
+red_red, and native cases do not use it; the hold comes from the limit of 0.</p></li>
+<li><p><strong>Differences from level 0.</strong> One block more is held free; the chain is one
+code longer; and all level 5 sections are set to clear at the start of every
+step, where levels 0, 1 and 2 clear a section when a train leaves it.</p></li>
+<li><p><strong>Platform and route entry.</strong> As in
+<a class="reference internal" href="#common-behaviour">Common behaviour</a>.</p></li>
+<li><p><strong>Signal failure.</strong> The chain is written behind the failed section. In
+<code class="docutils literal notranslate"><span class="pre">sf-forward-level-5</span></code>, <code class="docutils literal notranslate"><span class="pre">F1</span></code> stands at the platform at 8 km from 331 s to 1002 s.
+After its dwell (661 s in <code class="docutils literal notranslate"><span class="pre">follow-level-5</span></code>) it is held by the red state of that
+block, not by its timetable.</p></li>
+<li><p><strong>Blocking times.</strong> None.</p></li>
+<li><p><strong>Single-track restriction.</strong> Has an effect. In <code class="docutils literal notranslate"><span class="pre">single-track-level-5</span></code>, <code class="docutils literal notranslate"><span class="pre">R1</span></code>
+waits 129 s.</p></li>
+<li><p><strong>Window.</strong> The head of the section behind the occupied one is grey (code
+751), then yellow, green, green.</p></li>
+</ul>
+</section>
+</section>
+<section id="sections-of-different-levels-on-one-route">
+<h2>Sections of different levels on one route<a class="headerlink" href="#sections-of-different-levels-on-one-route" title="Link to this heading">¶</a></h2>
+<p>A route can cross sections of several levels. This is what the code does at the
+border. The cases <code class="docutils literal notranslate"><span class="pre">border-*</span></code> pin it on the characterization line for a border at
+8 km between levels 0 and 2, 2 and 0, 0 and 3, and 0 and 1. The cases
+<code class="docutils literal notranslate"><span class="pre">border-0-2-near-fwd</span></code> and <code class="docutils literal notranslate"><span class="pre">border-0-1-near-fwd</span></code> have the border at 4 km, the
+edge between <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">2-B0</span></code>, so that the first section of the second level
+is the third section of the route. On both sides of a border between level 0
+and level 1 or 2, a section that a train occupies keeps code 0 and the section
+before it shows 75, as inside one level. A level 0 section that shows 75 next to
+a section of level 1 or 2 keeps its 11.111 m/s limit (<code class="docutils literal notranslate"><span class="pre">test_operationsbuilder</span></code>).
+No case has a border with level 4 or 5, or between levels 1 and 2.</p>
+<ul class="simple">
+<li><p>Which sections a routine writes on:</p>
+<ul>
+<li><p>Levels 0, 1, 2 and 5 test the level of the section they write. They write
+the chain behind an occupied section when the sections behind have their
+level, whatever the level of the occupied section. They set code 0 on the
+occupied section only when it has their level.</p></li>
+<li><p>Levels 1 and 2 also write the chain onto a section without a level behind
+an occupied section of their level. The first section of a route is the
+exception: an occupied second section gives it code 75 only when the first
+section has the level of the routine.</p></li>
+<li><p>Levels 3 and 4 write code 0 on an occupied section of their level and
+nothing else.</p></li>
+</ul>
+</li>
+<li><p>A speed pass sets the end speed of the sections of its own level. It reads
+the code and signal speed limit of the next section whatever the level of the
+next section. The pass of levels 3 and 4 sets 0 only when the next section has
+code 0 and is not of level 3 or 4. This is the one place that compares
+neighbouring levels (<code class="docutils literal notranslate"><span class="pre">manageEtcs3TransitionsToOtherSignalling</span></code>).</p></li>
+<li><p>An authority of level 3 or 4 is made only where its point lies in a section of
+level 3 or 4. The exception is a train whose tail is still before the start of
+its route, on a route that has at least one section of level 3 or 4: it gets
+an authority on the first section of the route whatever the level of that
+section (<code class="docutils literal notranslate"><span class="pre">ReportPositionToRBC</span></code>). A train of any level reads authorities on its own section and the
+eight after it where the section has level 3 or 4, or where a signal failure
+or single-track restriction has made one.</p></li>
+<li><p>The entry rule is the rule of the level of the first section of the route.</p></li>
+<li><p>A release does not depend on the level.</p></li>
+<li><p>The blocking times of a section follow its own level.</p></li>
+</ul>
+</section>
+<section id="how-an-area-gives-sections-their-level">
+<h2>How an area gives sections their level<a class="headerlink" href="#how-an-area-gives-sections-their-level" title="Link to this heading">¶</a></h2>
+<p>A signalling area is <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, <code class="docutils literal notranslate"><span class="pre">end_km</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">track</span></code>
+(see the <a class="reference internal" href="scene-schema.html"><span class="std std-doc">scene schema</span></a>). The rule is in
+<code class="docutils literal notranslate"><span class="pre">analyzeSignallingAreas</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp</span></code>), which the validator
+uses. The builder repeats it in <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code>
+(<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>); unit tests compare the two on
+small cases.</p>
+<ul class="simple">
+<li><p><strong>Which sections.</strong> The unit is a runtime section from the section inventory
+(<code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code>). The blocks of a track follow each other from the
+first node of the track. The last block is cut at the last node, or extended
+to it when the blocks are too short. A switch section is made for each
+connection and each pair of blocks that hold its two nodes. It runs from the
+start of the block that holds the node with the lower <code class="docutils literal notranslate"><span class="pre">x_km</span></code> to the end of
+the block that holds the other node, and it has two tracks.</p></li>
+<li><p><strong>Containment.</strong> A section belongs to an area only when the whole section lies
+inside the area: <code class="docutils literal notranslate"><span class="pre">section.start</span> <span class="pre">&gt;=</span> <span class="pre">area.start</span> <span class="pre">-</span> <span class="pre">1e-8</span></code> and
+<code class="docutils literal notranslate"><span class="pre">section.end</span> <span class="pre">&lt;=</span> <span class="pre">area.end</span> <span class="pre">+</span> <span class="pre">1e-8</span></code>, in kilometres. The edges are inclusive. A
+tolerance of 1e-8 km is 0.01 mm. The numbers are compared with the
+<code class="docutils literal notranslate"><span class="pre">x_km</span></code> chainage of the track of the section. For a switch section, the start
+is on its first track and the end on its second.</p></li>
+<li><p><strong>Network-wide and track-scoped areas.</strong> An area without <code class="docutils literal notranslate"><span class="pre">track</span></code> is
+network-wide. It is compared with every section, whatever its track. An area
+with a <code class="docutils literal notranslate"><span class="pre">track</span></code> applies to the sections that have that track as their first or
+second track. A track-scoped area wins over network-wide areas: if any
+track-scoped area contains the section, its level is used and the network-wide
+level is dropped.</p></li>
+<li><p><strong>Chainage.</strong> The numbers are not converted between tracks. In the
+<code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> case, track <code class="docutils literal notranslate"><span class="pre">B0</span></code> runs from 0 to 64 km and track <code class="docutils literal notranslate"><span class="pre">B1</span></code>
+from 100 to 164 km, so one network-wide area has to span 0 to 164 km or more
+to cover both, and it says nothing about the part from 64 to 100 km.</p></li>
+<li><p><strong>Conflict.</strong> Two areas of the same kind (both network-wide, or both
+track-scoped for a track of the section) that contain the same section and
+have different levels conflict. Equal levels do not. A switch section has two
+tracks, so track-scoped areas of its two tracks with different levels conflict
+on it. A conflict is the error
+<code class="docutils literal notranslate"><span class="pre">scene.signalling_area.conflict</span></code>, reported once for each pair of areas, with
+the number of sections, the first of them and the labels of both levels. The
+builder reports <code class="docutils literal notranslate"><span class="pre">scene.native.signalling_area.conflict</span></code> and does not build.
+Two areas that overlap but contain no common section do not conflict.</p></li>
+<li><p><strong>A section that an edge cuts.</strong> A section that crosses the edge of an area
+is not inside that area. If no other area contains the whole section, it has
+no level. This holds for the edge between two adjacent areas too: with areas
+0 to 2.5 km and 2.5 to 4 km, a section from 2 to 3 km has no level unless a
+third area contains it. Switch sections span two blocks, so an edge between
+two blocks can leave the switch section without a level while both blocks are
+covered. Validation warns with <code class="docutils literal notranslate"><span class="pre">scene.signalling_area.splits_section</span></code> when the
+cut section is on a route.</p></li>
+<li><p><strong>Areas with no section.</strong> An area that contains no complete section changes
+nothing. Validation warns with <code class="docutils literal notranslate"><span class="pre">scene.signalling_area.empty</span></code>.</p></li>
+<li><p><strong>Routes used in reverse.</strong> The level belongs to the section ID. A route in
+decreasing chainage is built from copies of the sections
+(<a class="reference external" href="../api/class_route.html"><code class="docutils literal notranslate"><span class="pre">Route::createRouteFromBlockIds</span></code></a>, <code class="docutils literal notranslate"><span class="pre">Section::reverseBlockSection</span></code>), which copy
+the level. The area range is not mirrored; the same area covers a section
+whichever way a route runs.</p></li>
+<li><p><strong>Sections on no route.</strong> They get a level, but no train uses them. The
+missing-level warning does not name them.</p></li>
+</ul>
+<p>Checks on the areas themselves, in <code class="docutils literal notranslate"><span class="pre">scene/SceneValidator.cpp</span></code>:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Code</p></th>
+<th class="head"><p>Severity</p></th>
+<th class="head"><p>When</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.range</span></code></p></td>
+<td><p>error</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">start_km</span></code> or <code class="docutils literal notranslate"><span class="pre">end_km</span></code> is not finite, or <code class="docutils literal notranslate"><span class="pre">start_km</span></code> is not below <code class="docutils literal notranslate"><span class="pre">end_km</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.level</span></code></p></td>
+<td><p>error</p></td>
+<td><p>the level is not from 0 to 5; an area whose system is not chosen (stored as -99999999) has its own message</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code></p></td>
+<td><p>error</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">track</span></code> does not exist</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.conflict</span></code></p></td>
+<td><p>error</p></td>
+<td><p>see above</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.splits_section</span></code></p></td>
+<td><p>warning</p></td>
+<td><p>an edge of the area lies inside a route section</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling_area.empty</span></code></p></td>
+<td><p>warning</p></td>
+<td><p>the area contains no complete section</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code></p></td>
+<td><p>warning</p></td>
+<td><p>route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the case has areas</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene.single_track.no_effect</span></code></p></td>
+<td><p>warning</p></td>
+<td><p>a block of a single-track restriction has no level</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_scenebuilder.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">runAreaMappingChecks</span></code>),
+<code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/test_scenebundle.cpp</span></code>.</p>
+</section>
+<section id="signalling-areas-block-sections-and-capacity-areas">
+<h2>Signalling areas, block sections and capacity areas<a class="headerlink" href="#signalling-areas-block-sections-and-capacity-areas" title="Link to this heading">¶</a></h2>
+<p>Three things that are easy to confuse are all about stretches of track. They are
+independent. Changing one does not change the others.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>Signalling area</p></th>
+<th class="head"><p>Physical block section</p></th>
+<th class="head"><p>Scope of a capacity analysis</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>What it is</p></td>
+<td><p>A range of chainage that gives sections a signalling level</p></td>
+<td><p>A part of one track that a train occupies; the unit of the aspects</p></td>
+<td><p>A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis</p></td>
+</tr>
+<tr class="row-odd"><td><p>Where it is stored</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>, <code class="docutils literal notranslate"><span class="pre">blocks[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code> and <code class="docutils literal notranslate"><span class="pre">length_km</span></code>; blocks follow each other along the track. Connections derive switch sections</p></td>
+<td><p>Not stored in the case. There is no such object</p></td>
+</tr>
+<tr class="row-even"><td><p>Where it is computed</p></td>
+<td><p>Builder, <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code>; the runtime sections are <code class="docutils literal notranslate"><span class="pre">infra.sections</span></code> of the run and the route copies</p></td>
+<td><p>The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityAnalysis</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>What it decides</p></td>
+<td><p>The level of every section that it contains</p></td>
+<td><p>What a train occupies, and where an aspect is written</p></td>
+<td><p>Which blocking times enter the analysis</p></td>
+</tr>
+<tr class="row-even"><td><p>Depends on</p></td>
+<td><p>The sections</p></td>
+<td><p>The tracks and blocks</p></td>
+<td><p>The blocking times, which are computed only at levels 0, 2, 3 and 4</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Areas are measured against block sections, never the other way round. A
+block section has the level of the area that contains it, or none. The capacity
+analysis uses a range of blocks of one route. Its scope does not follow the
+signalling areas, and a signalling area does not follow the scope. A section
+without a level or with level 1 or 5 has no blocking times, so the capacity
+analysis has no data for it.</p>
+<p>Older versions used one row of <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> for both the
+signalling level and the statistics of an area (the removed <code class="docutils literal notranslate"><span class="pre">NetworkArea</span></code>
+class). No simulation code reads that file. The legacy export writes the
+signalling areas of the case to it, one row per area, and removes stale or
+copied TXT rows when the case has no areas. Original passthrough files stay
+untouched.</p>
+<p>Every export also writes <code class="docutils literal notranslate"><span class="pre">TrackLines/EGTRAINSignallingAreas.json</span></code>, including
+an empty assignment. This sidecar has integer <code class="docutils literal notranslate"><span class="pre">format_version:</span> <span class="pre">1</span></code> and a
+<code class="docutils literal notranslate"><span class="pre">signalling_areas</span></code> array with the native <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, <code class="docutils literal notranslate"><span class="pre">end_km</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code>
+and optional <code class="docutils literal notranslate"><span class="pre">track</span></code> fields. IDs, array order, bounds and levels are preserved;
+track scope uses the exported <code class="docutils literal notranslate"><span class="pre">B&lt;n&gt;</span></code> directory ID rather than the original
+canonical track ID. Import resolves that directory scope to its reconstructed
+numeric track ID. This legacy representation requires every candidate track
+directory to have a unique integer number in canonical decimal spelling.
+Leading-zero names such as <code class="docutils literal notranslate"><span class="pre">B07</span></code> are refused, even for unscoped tracks or an
+empty assignment, because import would reconstruct <code class="docutils literal notranslate"><span class="pre">B7</span></code> while route references
+can still name <code class="docutils literal notranslate"><span class="pre">B07</span></code>. A lowercase <code class="docutils literal notranslate"><span class="pre">b</span></code> prefix remains accepted by import when
+its numeric suffix reconstructs correctly. Export checks both the canonical
+mapping and actual output directories, including retained or passthrough data;
+it does not renumber aliases or rewrite their references. Native area validation
+applies. An unmappable track fails export rather than dropping an area.</p>
+<p>The export destination must not overlap the source or legacy passthrough tree,
+including resolved symlink aliases. Export rejects overlap before deleting
+metadata or changing compatibility files. Export removes an old destination
+sidecar before changing compatibility files and publishes a new one only after
+compatibility generation and track reconstruction checks succeed. The sidecar
+path is reserved from legacy passthrough copying, including case variants
+recognised by import.</p>
+<p>A valid sidecar is authoritative on import: editing <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code> does
+not override it. A malformed sidecar, unsupported version or unresolved track
+fails import without replacing an existing destination. Noncanonical or duplicate
+track numbers also fail a sidecar-marked import before publication. Without a sidecar,
+import still reports the historical TXT file and converts none of its rows.
+This preserves canonical assignments exported by EGTRAIN without interpreting
+ambiguous historical signalling/capacity rows or creating capacity areas.</p>
+<p>The Capacity window uses a route and a range of its blocks as its scope, not
+signalling areas; <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a>
+describes the scope and the area calculation that older versions had.</p>
+<p>Signals and track detection sections are a fourth thing. <code class="docutils literal notranslate"><span class="pre">signals[]</span></code> bind to a
+section only to resolve signal failures. See the
+<a class="reference internal" href="scene-schema.html"><span class="std std-doc">scene schema</span></a> and the
+<a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>.</p>
+</section>
+<section id="the-bundled-cases">
+<h2>The bundled cases<a class="headerlink" href="#the-bundled-cases" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head"><p>Signalling areas</p></th>
+<th class="head"><p>Runs with</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Netherlands</span></code></p></td>
+<td><p>one network-wide area, 0 to 64 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code></p></td>
+<td><p>one network-wide area, 0 to 165 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code></p></td>
+<td><p>one network-wide area, 0 to 79 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Milano_Brescia</span></code></p></td>
+<td><p>one network-wide area, 0 to 79 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Paimpol</span></code></p></td>
+<td><p>one network-wide area, 0 to 38 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code></p></td>
+<td><p>one network-wide area, 0 to 64 km, level 0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The case descriptions of <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code>, <code class="docutils literal notranslate"><span class="pre">Milano_Brescia</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code> call their area a placeholder.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Netherlands</span></code> and <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> use level 0 (<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code>) by
+project decision, with no line and no year. Their descriptions say that the
+level is a project decision, and so does the description of
+<code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code>, which uses the Netherlands network.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code> also has four single-track restrictions, two at Hellerup, one at
+Hoje Taastrup and one at Farum. With the area and without them an arriving and a
+departing train stand head to head at each of these places until the end of the
+run, with the trains behind them queued. The entries are set for the timetable
+of the case.</p>
+</section>
+<section id="known-limits-and-open-issues">
+<h2>Known limits and open issues<a class="headerlink" href="#known-limits-and-open-issues" title="Link to this heading">¶</a></h2>
+<p>Decided, not open:</p>
+<ul class="simple">
+<li><p>#439: historical cases without the canonical area sidecar report
+<code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> in the warning <code class="docutils literal notranslate"><span class="pre">scene.import.areas.skipped</span></code> and
+convert none of its rows. The case has no signalling area until the user adds
+one in Infrastructure &gt; Signalling area. Canonical exports keep their
+assignment in the sidecar.</p></li>
+</ul>
+<p>Limits that no issue tracks:</p>
+<ul class="simple">
+<li><p>The characterization cases do not record whether a train of level 4 enters the
+following mode.</p></li>
+<li><p>At level 4 a train that is not coupled treats every leader that slows down as
+a leader that stops, also one that only brakes for a speed restriction. A
+train that lost its coupling unintentionally still takes the speed of a
+braking leader as its target. No case covers either.</p></li>
+<li><p>A train that cannot stop before a stop target passes it. The target then lies
+behind the train, so nothing holds it in front of the failed or occupied
+section that the target protected, and the train can end inside a section
+that another train occupies. The model does not hold the train that takes the
+section.</p></li>
+<li><p>When several authorities compete at levels 3 and 4 or at a signal failure, the
+closest one is chosen with a braking distance whose formula subtracts the
+squared target speed only after dividing it (<code class="docutils literal notranslate"><span class="pre">V^2</span> <span class="pre">-</span> <span class="pre">Vt^2</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">a)</span></code>). The effect
+is not measured.</p></li>
+<li><p>A stub track has no rule of its own. Without a single-track restriction,
+trains of opposite directions on it pass through each other or, when they meet
+at a block edge, stand head to head until the end of the run. The restriction
+keeps them apart (<code class="docutils literal notranslate"><span class="pre">stub-*</span></code> cases). <code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code> has restrictions at Hellerup,
+Hoje Taastrup and Farum, and they are set for its timetable.</p></li>
+</ul>
+</section>
+<section id="what-is-not-established">
+<h2>What is not established<a class="headerlink" href="#what-is-not-established" title="Link to this heading">¶</a></h2>
+<p>The labels name what the model does. They are not claims that the model matches
+the real system of the same name. Each of the following is not checked against a
+source about a real system:</p>
+<ul class="simple">
+<li><p>whether level 0 matches any national system, and what the codes 270, 180, 75,
+751 and 0 and the limit of 11.111 m/s mean outside this program;</p></li>
+<li><p>whether the stop at the end of the block before an occupied block, with no
+overlap, matches a real rule;</p></li>
+<li><p>whether level 1 matches the system named in the comment of its table, and
+whether level 2 can be modelled as fixed block with the aspects of level 1;</p></li>
+<li><p>whether the margin of 50 m, the release without delay, and the braking curve
+at every block end match a real system;</p></li>
+<li><p>whether level 3 matches a real moving block, and whether level 4 matches any
+real concept called virtual coupling; the distances of 30 m and 0.278 m/s are
+constants of the model;</p></li>
+<li><p>whether level 5 matches a real system, and its double red block;</p></li>
+<li><p>whether the level 0 of <code class="docutils literal notranslate"><span class="pre">Netherlands</span></code> and <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> matches the
+Dutch signalling. The project assigned it, with no line and no year, and the
+assignment is not checked against a source;</p></li>
+<li><p>what a real traffic controller allows at a failed signal. The model lets no
+train enter a failed section until the failure ends.</p></li>
+</ul>
+<p>Where the code does not settle a point, this page says so. It does not describe
+how diverging switches are handled at levels 3 and 4
+(<code class="docutils literal notranslate"><span class="pre">activateBlocksWithSwitchesDiv</span></code> and the fixed block routine next to it), and it
+does not say what creates the infrastructure elements that levels 3 and 4 make
+blocking times for; the characterization line has none.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="assignment-workflow.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">TU Delft assignment workflow in EGTRAIN</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="v1-scene-migration-matrix.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">V1 active-input migration matrix</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Signalling levels</a><ul>
+<li><a class="reference internal" href="#what-a-signalling-level-is">What a signalling level is</a><ul>
+<li><a class="reference internal" href="#what-happens-in-a-step">What happens in a step</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#codes-and-what-they-do-to-a-following-train">Codes and what they do to a following train</a><ul>
+<li><a class="reference internal" href="#braking-steps-and-published-states">Braking steps and published states</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#common-behaviour">Common behaviour</a></li>
+<li><a class="reference internal" href="#levels">Levels</a><ul>
+<li><a class="reference internal" href="#no-level-no-signalling">No level (<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">signalling</span></code>)</a></li>
+<li><a class="reference internal" href="#level-0-0-atb-fixed-block">Level 0 (<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code>)</a></li>
+<li><a class="reference internal" href="#levels-1-and-2-1-etcs-level-1-fixed-block-2-etcs-level-2-fixed-block">Levels 1 and 2 (<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">1</span> <span class="pre">fixed</span> <span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">2</span> <span class="pre">fixed</span> <span class="pre">block</span></code>)</a></li>
+<li><a class="reference internal" href="#level-3-3-etcs-level-3-moving-block">Level 3 (<code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">3</span> <span class="pre">moving</span> <span class="pre">block</span></code>)</a></li>
+<li><a class="reference internal" href="#level-4-4-virtual-coupling">Level 4 (<code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">Virtual</span> <span class="pre">coupling</span></code>)</a></li>
+<li><a class="reference internal" href="#level-5-5-bacc-track-circuits">Level 5 (<code class="docutils literal notranslate"><span class="pre">5</span> <span class="pre">BACC</span> <span class="pre">track</span> <span class="pre">circuits</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sections-of-different-levels-on-one-route">Sections of different levels on one route</a></li>
+<li><a class="reference internal" href="#how-an-area-gives-sections-their-level">How an area gives sections their level</a></li>
+<li><a class="reference internal" href="#signalling-areas-block-sections-and-capacity-areas">Signalling areas, block sections and capacity areas</a></li>
+<li><a class="reference internal" href="#the-bundled-cases">The bundled cases</a></li>
+<li><a class="reference internal" href="#known-limits-and-open-issues">Known limits and open issues</a></li>
+<li><a class="reference internal" href="#what-is-not-established">What is not established</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

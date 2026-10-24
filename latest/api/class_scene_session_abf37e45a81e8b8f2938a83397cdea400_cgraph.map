@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Puts the absolute form of path first in the recent scenes, which keep at most 8. An installed scene i..." alt="" coords="5,219,232,245"/>
 <area shape="rect" id="Node000002" href="$_scene_save_policy_8h.html#a9a9a7226bd3f4dcae503800dae27fff2" title=" " alt="" coords="307,125,463,150"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,217,334,152,336,157,156,222"/>
-<area shape="rect" id="Node000005" href="$class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" title="Fills the Recent Scenes menu again from the settings." alt="" coords="280,248,489,288"/>
+<area shape="rect" id="Node000005" href="$class_scene_session.html#abfac19dbf4a4e635b08c82235d436227" title="Fills the Recent Cases menu again from the settings." alt="" coords="280,248,489,288"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="213,242,266,249,266,255,212,247"/>
 <area shape="rect" id="Node000008" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="537,182,744,207"/>
 <area shape="poly" id="edge19_Node000001_Node000008" title=" " alt="" coords="232,221,523,200,524,206,232,227"/>

@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -353,9 +353,9 @@
 <section id="open-the-case-and-keep-your-own-copy">
 <h2>Open the case and keep your own copy<a class="headerlink" href="#open-the-case-and-keep-your-own-copy" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>File &gt; Open Case Study…</strong> instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</span></a>.</p></li>
-<li><p>Choose <strong>File &gt; Save Case Study As…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For an installed case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Scene saved</strong> and your file is the open case.</p></li>
-<li><p>From then on <strong>File &gt; Save Scene</strong> saves to your file. If you edit an installed case before making a copy, <strong>Save Scene</strong> asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead of overwriting the installed case. Cancelling keeps the edit and the current case.</p></li>
+<li><p>Click <strong>Open Case</strong> in the toolbar. In the dialog <strong>Open a Case</strong>, select <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student</span></code> under <strong>Bundled cases</strong> (the first entry) and click <strong>Open</strong>. The network appears and the window title names the case. If the list does not show the case, open the downloaded <code class="docutils literal notranslate"><span class="pre">Amsterdam_Hilversum_Student.egscene</span></code> with <strong>File &gt; Open Case…</strong> instead; see <a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</span></a>.</p></li>
+<li><p>Choose <strong>File &gt; Save As…</strong> and save a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in a folder of your own. For a bundled case, the dialog starts in your Documents folder, or in your home folder when there is none. The status bar reads <strong>Case saved</strong> and your file is the open case.</p></li>
+<li><p>From then on <strong>File &gt; Save</strong> saves to your file. If you edit a bundled case before making a copy, <strong>Save</strong> asks for a new <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file instead of overwriting the bundled case. Cancelling keeps the edit and the current case.</p></li>
 </ol>
 <p>The saved file holds the inputs of the case. It holds neither results nor the selection of runs.</p>
 </section>
@@ -365,11 +365,11 @@
 <h3>1. Inspect the inputs<a class="headerlink" href="#inspect-the-inputs" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Choose <strong>Editors &gt; Services</strong>. The panel <strong>Services</strong> opens with the tabs <strong>Service</strong>, <strong>Timetable</strong> and <strong>Run occurrences</strong>. Choosing the entry while the panel is showing hides it. You can use the panel only while no run is active.</p></li>
-<li><p>On <strong>Service</strong>, read <strong>Composition</strong>, <strong>Route</strong> (the entry that ends in <code class="docutils literal notranslate"><span class="pre">[route32]</span></code>), <strong>Entry Time (s)</strong>, <strong>Repeat Headway (s)</strong>, <strong>Configured total</strong>, <strong>Running performance (parameter) %</strong> and <strong>Maximum speed restriction km/h</strong>. A field beside a check box works only while its box is checked.</p></li>
+<li><p>On <strong>Service</strong>, read <strong>Composition</strong>, <strong>Route</strong> (the entry that ends in <code class="docutils literal notranslate"><span class="pre">[route32]</span></code>), <strong>Entry time (s)</strong>, <strong>Repeat every (s)</strong>, <strong>Repeat count</strong>, <strong>Performance (%)</strong> and <strong>Maximum speed (km/h)</strong>. A field beside a check box works only while its box is checked.</p></li>
 <li><p>Open the tab <strong>Timetable</strong> and read the table: <strong>Station</strong>, <strong>Stop platform</strong>, <strong>Minimum dwell (s)</strong>, <strong>Planned arrival</strong> and <strong>Planned departure</strong>. Switch <strong>Planned time display</strong> between <strong>Elapsed offsets (s)</strong> and <strong>Clock time</strong>. This changes how the times are shown, not the case. Leave it on <strong>Elapsed offsets (s)</strong>. Neither stop names a platform.</p></li>
-<li><p>A click on a row of the table opens the dialog <strong>Edit timetable stop</strong>. Choose <strong>Cancel</strong> unless you mean to change the stop.</p></li>
-<li><p>Open the tab <strong>Run occurrences</strong>. The text above the table starts with “Configured total: 4; Number of services in sim.: 4; Selected: 4; Selected in period: 4.” The table has the columns <strong>Include</strong>, <strong>Service code (number)</strong>, <strong>Generated service</strong>, <strong>Scheduled entry</strong>, <strong>Running performance (parameter) %</strong> and <strong>Maximum speed restriction (km/h)</strong>.</p></li>
-<li><p>Choose <strong>Editors &gt; Case Settings</strong> and read <strong>Base time</strong> and <strong>Duration / horizon (s)</strong>. Do not change them.</p></li>
+<li><p>A click on a row of the table opens the dialog <strong>Edit Timetable Stop</strong>. Choose <strong>Cancel</strong> unless you mean to change the stop.</p></li>
+<li><p>Open the tab <strong>Run occurrences</strong>. The text above the table reads “4 of 4 selected”. The table has the columns <strong>Run</strong>, <strong>Operating code</strong>, <strong>Route</strong>, <strong>Entry</strong>, <strong>Performance (%)</strong> and <strong>Maximum speed (km/h)</strong>.</p></li>
+<li><p>Choose <strong>Editors &gt; Case Settings</strong> and read <strong>Base time</strong> and <strong>Duration (s)</strong>. Do not change them.</p></li>
 </ol>
 <p>Explain the difference between the one service definition and the four generated runs. Name the inputs that are assumptions of the exercise, not sourced railway data.</p>
 </section>
@@ -377,12 +377,12 @@
 <h3>2. Establish a baseline<a class="headerlink" href="#establish-a-baseline" title="Link to this heading">¶</a></h3>
 <p>Run 1 alone at 100 % performance.</p>
 <ol class="arabic simple">
-<li><p>On <strong>Run occurrences</strong>, click <strong>Select none</strong>, then tick <strong>Include</strong> in the first row, service code <code class="docutils literal notranslate"><span class="pre">IC_ASD_HVS_DEMO-1</span></code>. The text above the table contains “Selected: 1” and “Selected in period: 1”. Highlighting a row is not enough; the box must be ticked. <strong>Run</strong> refuses to start while no run is selected.</p></li>
-<li><p>Click <strong>Run</strong> in the toolbar. The dialog <strong>Run simulation</strong> shows <strong>Selected in period</strong>, <strong>Start clock</strong>, <strong>Duration</strong> and <strong>Active incidents</strong>; <strong>Run details</strong> shows more. Check that <strong>Selected in period</strong> is 1, then click <strong>Run simulation</strong>.</p></li>
+<li><p>On <strong>Run occurrences</strong>, click <strong>Select None</strong>, then tick <strong>Run</strong> in the first row, operating code <code class="docutils literal notranslate"><span class="pre">IC_ASD_HVS_DEMO-1</span></code>. The text above the table reads “1 of 4 selected”. Highlighting a row is not enough; the box must be ticked. <strong>Run</strong> refuses to start while no run is selected.</p></li>
+<li><p>Click <strong>Run</strong> in the toolbar. The dialog <strong>Run simulation</strong> shows <strong>Trains</strong>, <strong>Start time</strong> and <strong>Duration</strong>; <strong>Run details</strong> shows more. Check that <strong>Trains</strong> is 1, then click <strong>Run simulation</strong>.</p></li>
 <li><p>Move the speed slider to the right to shorten the wait. Do not click <strong>Stop</strong>: a run you stop before it ends leaves no results. When the run has ended, the dock <strong>Run Results</strong> appears and the lines at its top include “Status: Completed”.</p></li>
-<li><p>In the dock, click <strong>Open result view…</strong> and choose <strong>Timetable</strong>. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click <strong>Export CSV…</strong> in that window and save <code class="docutils literal notranslate"><span class="pre">baseline-timetable.csv</span></code> in your own folder. Close the window.</p></li>
-<li><p>Choose <strong>Open result view…</strong> &gt; <strong>Speed / distance</strong>, click <strong>Export PNG…</strong> in that window and save <code class="docutils literal notranslate"><span class="pre">baseline-speed-distance.png</span></code>. Close the window.</p></li>
-<li><p>Click <strong>Export CSV…</strong> in the dock and save <code class="docutils literal notranslate"><span class="pre">baseline-run-summary.csv</span></code>. The two export buttons of the dock write the summary table only; every result window has its own <strong>Export CSV…</strong> and <strong>Export PNG…</strong>.</p></li>
+<li><p>In the dock, click <strong>Open result view…</strong> and choose <strong>Timetable</strong>. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click <strong>CSV…</strong> in the panel of that window and save <code class="docutils literal notranslate"><span class="pre">baseline-timetable.csv</span></code> in your own folder. Close the window.</p></li>
+<li><p>Choose <strong>Open result view…</strong> &gt; <strong>Speed / distance</strong>, click <strong>PNG…</strong> in the panel of that window and save <code class="docutils literal notranslate"><span class="pre">baseline-speed-distance.png</span></code>. Close the window.</p></li>
+<li><p>Click <strong>Export CSV…</strong> in the dock and save <code class="docutils literal notranslate"><span class="pre">baseline-run-summary.csv</span></code>. The two export buttons of the dock write the summary table only; every result window has its own CSV and PNG exports.</p></li>
 </ol>
 <p>Every edit of the case removes the current results and hides <strong>Run Results</strong>, so finish all exports of a run before you change an input.</p>
 <p>The arrival delay is the simulated arrival minus the planned arrival, so a negative value is an early arrival. The table of <strong>Run Results</strong> has one row per run and a last row <strong>Network total</strong>. <strong>Start time (hh:mm:ss)</strong> and <strong>End time (hh:mm:ss)</strong> show clock times; <strong>Travel time (h:mm:ss)</strong> shows a duration. <strong>Export PNG…</strong> uses these displayed formats. <strong>Export CSV…</strong> writes these three columns as numeric seconds, with start and end relative to the simulation start.</p>
@@ -391,8 +391,8 @@
 <section id="compare-lower-performance">
 <h3>3. Compare lower performance<a class="headerlink" href="#compare-lower-performance" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>In the panel <strong>Services</strong> (<strong>Editors &gt; Services</strong>, if it is closed), open <strong>Service</strong> and set <strong>Running performance (parameter) %</strong> to 60. Press Tab to finish the edit. Change nothing else.</p></li>
-<li><p>On <strong>Run occurrences</strong>, check that the text still contains “Selected: 1” and that the column <strong>Running performance (parameter) %</strong> shows 60. If the selection differs, repeat step 1 of task 2.</p></li>
+<li><p>In the panel <strong>Services</strong> (<strong>Editors &gt; Services</strong>, if it is closed), open <strong>Service</strong> and set <strong>Performance (%)</strong> to 60. Press Tab to finish the edit. Change nothing else.</p></li>
+<li><p>On <strong>Run occurrences</strong>, check that the text still reads “1 of 4 selected” and that the column <strong>Performance (%)</strong> shows 60. If the selection differs, repeat step 1 of task 2.</p></li>
 <li><p>Run and export as in task 2, with file names that start with <code class="docutils literal notranslate"><span class="pre">slower</span></code>.</p></li>
 <li><p>Compare the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> arrival delay, the whole <strong>Travel time (h:mm:ss)</strong>, <strong>Maximum speed (km/h)</strong> and <strong>Energy (kWh)</strong> with the baseline. Use the same energy column in every comparison.</p></li>
 </ol>
@@ -405,7 +405,7 @@
 <p>Keep the performance at 60 and move the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> planned times two minutes later, keeping the 60 s planned dwell.</p>
 <ol class="arabic simple">
 <li><p>In the panel <strong>Services</strong>, open <strong>Timetable</strong> and click the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> row in the table.</p></li>
-<li><p>In <strong>Edit timetable stop</strong>, the time fields hold seconds from the base time while <strong>Planned time display</strong> is <strong>Elapsed offsets (s)</strong>, and HH:MM:SS clock times when it is <strong>Clock time</strong>. Set <strong>Planned arrival</strong> to 1620 and <strong>Planned departure</strong> to 1680, which are 06:55:20 and 06:56:20 for run 1. Leave both boxes ticked and <strong>Minimum dwell (s)</strong> at 60. Click <strong>OK</strong>.</p></li>
+<li><p>In <strong>Edit Timetable Stop</strong>, the time fields hold seconds from the base time while <strong>Planned time display</strong> is <strong>Elapsed offsets (s)</strong>, and HH:MM:SS clock times when it is <strong>Clock time</strong>. Set <strong>Planned arrival</strong> to 1620 and <strong>Planned departure</strong> to 1680, which are 06:55:20 and 06:56:20 for run 1. Leave both boxes ticked and <strong>Minimum dwell (s)</strong> at 60. Click <strong>OK</strong>.</p></li>
 <li><p>Check the table: <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> shows 1620 and 1680, <code class="docutils literal notranslate"><span class="pre">Asd</span></code> still 120 and 180. Entry time, headway, total, composition and route stay as supplied. Check the selection of run 1 as in step 2 of task 3.</p></li>
 <li><p>Run and export as in task 2, with file names that start with <code class="docutils literal notranslate"><span class="pre">slower-revised</span></code>.</p></li>
 </ol>
@@ -414,10 +414,10 @@
 <section id="check-the-repetition">
 <h3>5. Check the repetition<a class="headerlink" href="#check-the-repetition" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
-<li><p>On <strong>Run occurrences</strong>, click <strong>Select all</strong>. The text contains “Selected: 4” and “Selected in period: 4”. Keep the performance at 60 and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times at 1620 and 1680.</p></li>
-<li><p>Run as in steps 2 and 3 of task 2. <strong>Selected in period</strong> in <strong>Run simulation</strong> is 4.</p></li>
+<li><p>On <strong>Run occurrences</strong>, click <strong>Select All</strong>. The text reads “4 of 4 selected”. Keep the performance at 60 and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times at 1620 and 1680.</p></li>
+<li><p>Run as in steps 2 and 3 of task 2. <strong>Trains</strong> in <strong>Run simulation</strong> is 4.</p></li>
 <li><p>Open <strong>Timetable</strong>. Its train filter button reads <code class="docutils literal notranslate"><span class="pre">Trains</span> <span class="pre">(4/4)</span></code> while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the <strong>End time (hh:mm:ss)</strong> of every run in <strong>Run Results</strong> is before 08:41:40, the base time plus the duration of 8000 s. The row <strong>Duration</strong> in <strong>Run simulation</strong> shows the same end.</p></li>
-<li><p>Click <strong>Export CSV…</strong> in the timetable window and save <code class="docutils literal notranslate"><span class="pre">revised-four-runs-timetable.csv</span></code>.</p></li>
+<li><p>Click <strong>CSV…</strong> in the timetable window and save <code class="docutils literal notranslate"><span class="pre">revised-four-runs-timetable.csv</span></code>.</p></li>
 </ol>
 <p>Report results per run. The <strong>Network total</strong> row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its <strong>Travel time (h:mm:ss)</strong> is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.</p>
 </section>
@@ -425,8 +425,8 @@
 <h3>6. Recommend and hand in<a class="headerlink" href="#recommend-and-hand-in" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Choose a configuration: the performance, the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> planned times and the number of runs.</p></li>
-<li><p>Set the open case to that configuration and choose <strong>File &gt; Save Case Study As…</strong> with a new file name. The file keeps <strong>Configured total</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
-<li><p>To check your file, choose <strong>File &gt; Open Case Study…</strong> and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
+<li><p>Set the open case to that configuration and choose <strong>File &gt; Save As…</strong> with a new file name. The file keeps <strong>Repeat count</strong> from <strong>Service</strong>, not the ticks on <strong>Run occurrences</strong>, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.</p></li>
+<li><p>To check your file, choose <strong>File &gt; Open Case…</strong> and select it. Check the performance on <strong>Service</strong> and the <code class="docutils literal notranslate"><span class="pre">Hvs</span></code> times on <strong>Timetable</strong>. Opening a case resets the selection of runs, so select the runs again on <strong>Run occurrences</strong>, run, and compare with your exports.</p></li>
 </ol>
 <p>Hand in:</p>
 <ul class="simple">
@@ -451,7 +451,7 @@
 </section>
 <section id="limits-of-the-exercise">
 <h2>Limits of the exercise<a class="headerlink" href="#limits-of-the-exercise" title="Link to this heading">¶</a></h2>
-<p>The case has no validation errors. With <strong>View &gt; Advanced / Developer details</strong> checked, the status bar shows “Validation: 0 error(s), 26 warning(s)”. All 26 warnings have the code <code class="docutils literal notranslate"><span class="pre">scene.route.region_jump</span></code> (a route crosses an undeclared regional coordinate discontinuity). They concern routes other than <code class="docutils literal notranslate"><span class="pre">route32</span></code> and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.</p>
+<p>The case has no validation errors. With <strong>View &gt; Advanced Details</strong> checked, the status bar shows “26 warnings”. All 26 warnings have the code <code class="docutils literal notranslate"><span class="pre">scene.route.region_jump</span></code> (a route jumps between two parts of the network that no connection joins). They concern routes other than <code class="docutils literal notranslate"><span class="pre">route32</span></code> and are inherited from the Netherlands case. By default the status bar shows nothing for a case without errors.</p>
 <p>If a train meets planned times that you set yourself, that does not prove the plan is feasible in real operation.</p>
 </section>
 </section>

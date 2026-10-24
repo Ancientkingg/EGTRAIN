@@ -156,6 +156,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a7e4e41bec9b7f8372da7f28a53a6f274" id="r_a7e4e41bec9b7f8372da7f28a53a6f274"><td class="memItemLeft">static <a class="el" href="struct_self_update_capability.html">SelfUpdateCapability</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7e4e41bec9b7f8372da7f28a53a6f274">capability</a> ()</td></tr>
 <tr class="memitem:aa1bb90da2d756e38b8384ea94521a064" id="r_aa1bb90da2d756e38b8384ea94521a064"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#aa1bb90da2d756e38b8384ea94521a064">cleanupStaleStaging</a> ()</td></tr>
 <tr class="memdesc:aa1bb90da2d756e38b8384ea94521a064"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes staging folders that an earlier update left next to the installation.  <br /></td></tr>
+<tr class="memitem:ab484215b96727b9248a7b23ce9afa69c" id="r_ab484215b96727b9248a7b23ce9afa69c"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ab484215b96727b9248a7b23ce9afa69c">removeUpdateBackup</a> ()</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Downloads the update manifest and the package of a release, prepares the package on a worker thread and starts the update helper that installs it. </p>
@@ -466,6 +467,37 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The bytes of the package received so far and the total in bytes, or -1 when the total is not known. </p>
+
+</div>
+</div>
+<a id="ab484215b96727b9248a7b23ce9afa69c" name="ab484215b96727b9248a7b23ce9afa69c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab484215b96727b9248a7b23ce9afa69c">&#9670;&#160;</a></span>removeUpdateBackup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfUpdater::removeUpdateBackup </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Removes the backup of the previous installation that an update in place keeps next to the installation: the folder or file named like currentPath plus ".egtrain-old", never a symbolic link or a junction. It does nothing for a copy that updates with the installer, which has no backup, and while a staging folder is next to the installation. Failures are ignored. The update helper needs the backup until its observation window ends, so the application calls this kSecondSweepDelayMs after its start (<a class="el" href="_update_timing_8h.html">update/UpdateTiming.h</a>), after cleanupStaleStaging, and never in the sweep at its start. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_self_updater_ab484215b96727b9248a7b23ce9afa69c_cgraph.svg" width="632" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

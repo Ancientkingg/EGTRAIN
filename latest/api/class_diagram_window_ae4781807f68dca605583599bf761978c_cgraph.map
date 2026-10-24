@@ -1,9 +1,0 @@
-<map id="DiagramWindow::setPresentation" name="DiagramWindow::setPresentation">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,244,55"/>
-<area shape="rect" id="Node000002" href="$_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2" title=" " alt="" coords="292,29,392,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,39,278,39,278,45,244,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="311,31,305,21,308,11,321,5,342,3,367,6,378,15,375,19,365,11,342,8,323,10,312,15,310,20,316,28"/>
-<area shape="rect" id="Node000003" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="440,29,616,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="392,39,427,39,427,45,392,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="497,31,491,21,494,11,507,5,528,3,553,6,564,15,561,19,551,11,528,8,509,10,498,15,496,20,502,28"/>
-</map>

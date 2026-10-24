@@ -15,7 +15,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | Area | Where | Behaviour |
 | --- | --- | --- |
 | Simulation run | `DispatchController::runSimulation` (`app/DispatchController.cpp`), around the stages in `runSimulationStages` | The run ends as failed. See [What happens when one is caught](#what-happens-when-one-is-caught). |
-| Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the scene: <what>"). |
+| Run preparation and scene reading in the window | `RunController::runScene` around `prepareScene`, `SceneSession::openSceneDirectory` around `readScene` | Becomes `run.prepare.exception` ("Cannot prepare the run: <what>") or `scene.read.exception` ("Cannot read the case: <what>"). |
 | Window events | `GuardedApplication::notify` | Logged as `Unexpected error in <class> (event <type>): <what>` in `app.ui`, and the event counts as not handled. Not on macOS. |
 | Process entry | `main` in `app/main.cpp` and in `scene/SceneTool.cpp` | Exit code 70 with an `app.ui` error line, or exit code 1 with `error: <what>`. |
 | Telemetry | `telemetry/TelemetrySender.cpp` (`catch (...)` around every operation and the timer pump), `app/UpdateTelemetryController.cpp`, `app/RunController.cpp` | Fails closed and silently, by design. |
@@ -29,9 +29,9 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 
 | Check | Diagnostic | What the user sees |
 | --- | --- | --- |
-| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Scene** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
+| The output folder of a run and its subfolders (`ensureDirectory` in `prepareScene`) | `run.output.folder`: "Cannot create the output folder <path>: <reason>" | Window: **Cannot Run Case** with that text, Run Results status "Failed", the case stays open. Without a window: the diagnostic on standard error and exit code 1. |
 | `<output>/TEMP` of a run with `--detailed-trajectories` | none; the run throws "Cannot create the folder <path>: <reason>", which `runSimulation` catches | The run fails as below. |
-| The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the scene folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case Study**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
+| The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the case folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
 | The legacy folder of an import and its passenger files (`scene/SceneImporter.cpp`) | `scene.import.missing` with the reason; passenger files that cannot be checked count as absent | **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. |
 
 ### Where they still escape
@@ -40,13 +40,13 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | --- | --- | --- | --- |
 | `scene/SceneExporter.cpp` `fs::exists`/`is_directory` without `error_code` | `scene_tool export` only | main | `scene_tool`'s `main`: exit code 1 |
 | Range-for over `fs::directory_iterator(dir, ec)`: the increment still throws (`SceneImporter.cpp`, `SceneExporter.cpp`) | import and export; needs an I/O error during a listing | GUI or main | `GuardedApplication` (not on macOS) or `scene_tool`'s `main` |
-| `std::bad_alloc` | Train vectors sized `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp`, `simulation/RollingStock.cpp`), built on the GUI thread; the scene validator checks only that the duration is positive and finite | GUI, or main without a window | `RunController::runScene`: **Cannot Run Scene**; without a window, `main`: exit code 70 |
+| `std::bad_alloc` | Train vectors sized `ceil(duration / timestep)` (`simulation/builders/OperationsBuilder.cpp`, `simulation/RollingStock.cpp`), built on the GUI thread; the scene validator checks only that the duration is positive and finite | GUI, or main without a window | `RunController::runScene`: **Cannot Run Case**; without a window, `main`: exit code 70 |
 
 ### What happens when one is caught
 
 | Where it is thrown | Outcome |
 | --- | --- |
-| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error: ... The case is still open and unchanged."), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window the exit code is 1. |
+| A run, on the simulation `QThread` or with `-g 0` | `runSimulation` returns normally, so `SimulationWorker::simulationFinished` is still emitted. `lastRunError()` holds the text, `app.run` logs "The run stopped because of an error: <what>", and the live stream gets `run_cancelled` once the run has sent its hello frame, because contract version 1 has no event for a failed run. The window shows **Simulation Failed** ("The run stopped because of an error:" and the reason), the status bar says "Simulation failed", Run Results says "Failed" and the case stays open and editable. Without a window the exit code is 1. |
 | A slot or event handler on the GUI thread | Linux and Windows: `GuardedApplication` logs it, the event counts as not handled, and an **Unexpected Error** box says that the case is still open and should be saved. Further exceptions while that box waits or is open are only logged. What the slot had done before the throw is not undone. macOS: `std::terminate` at the throw, because an exception cannot pass the frames of QtWidgets. |
 | Startup, before `application.exec()` | `main` logs "EGTRAIN stopped because of an unexpected error: <what>" in `app.ui` and exits with 70. |
 | `scene_tool` | `error: <what>` on standard error and exit code 1. |
@@ -84,15 +84,15 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 
 | Failure | User sees | Logged |
 | --- | --- | --- |
-| Scene cannot be read, in the window | "Cannot Open Case Study" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Scene unchanged: ... could not be opened." The text says that the file is damaged or not a case study, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
+| Scene cannot be read, in the window | "Cannot Open Case" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Could not open <file name>". The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
 | Scene of another version | Question box with Check for Updates or the upgrade offer | No |
 | Scene named on the command line cannot be read | Box, then the default case opens (`main.cpp`) | Standard error |
 | Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`) | Standard error |
-| Save fails | "Cannot Save Scene" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
-| Legacy import fails | Status bar "Legacy import failed. Scene unchanged." and a box with the summary | Yes |
-| Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Scene" box with the first diagnostic; Run Results status "Failed" | Yes |
+| Save fails | "Cannot Save Case" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
+| Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
+| Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Case" box with the first diagnostic; Run Results status "Failed" | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
-| Run with zero trains | Nothing visible: one error line in the Console Log dock (`DispatchController.cpp`) | Dock |
+| Run with zero trains | Nothing visible: one error line in the Log dock (`DispatchController.cpp`) | Dock |
 | Run ends without results and was not stopped | Run Results says "Failed" and the status bar says "Simulation ended without results" | No |
 | Run output files cannot be written | Nothing: `ofstream::open` is not checked (for example `simulation/Simulation.cpp`), and the run reports success | One line for one file (`RollingStock.cpp`) |
 | Result export fails | "Export failed" warning with the path, without the reason from the OS | No |
@@ -108,7 +108,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 ## Logging
 
 - `util/Log.h` has the categories `sim.setup`, `sim.step`, `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`, and the levels debug to error. `EGTRAIN_LOG` sets the rules.
-- In the application the sink (`consoleLogSink`, `widgets/ConsoleWidget.cpp`) writes to the Console Log dock, to standard output or standard error, and to the file named by `EGTRAIN_LOG_FILE`. Without that variable nothing is written to disk.
+- In the application the sink (`consoleLogSink`, `widgets/ConsoleWidget.cpp`) writes to the Log dock, to standard output or standard error, and to the file named by `EGTRAIN_LOG_FILE`. Without that variable nothing is written to disk.
 - The dock is hidden at start (`app/MainWindow.cpp`, View menu or Ctrl+Shift+L), keeps its text in memory only and does not draw attention to an error.
 
 ## Safety nets
@@ -119,7 +119,7 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Crash note (`app/CrashNote.cpp`) | A fatal signal or an uncaught exception in the window build writes a note, and the next start reports it. See [Crash notes](#crash-notes). | No note for headless runs, `scene_tool`, a forced quit or a power loss. No stack on Windows. |
 | Diagnostics consent (`telemetry/`) | With consent, sends enum-only events such as `operation.failed` with an operation (`scene_open`, `simulation`, `export`) and an error code (`invalid_input`, `unsupported_format`, `io_failure`, `internal_failure`). A run that an exception ends after it has started sends `simulation.failed` and `operation.failed` with `simulation` and `internal_failure`. | The consent text promises no native crash dumps and no raw error messages. Schema version 1 has no name for a crash, and new names need a new schema version (`docs/telemetry/README.md`). |
 | Logging core (`util/Log.h`) | Categories, levels and one sink | No log file unless `EGTRAIN_LOG_FILE` is set. |
-| Startup notice of the previous run | `reportRolledBackUpdate` (`update/UpdateNotices.cpp`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only. |
+| Startup notice of the previous run | `reportInPlaceUpdate` (`update/UpdateNotices.cpp`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only. |
 
 ### Crash notes
 

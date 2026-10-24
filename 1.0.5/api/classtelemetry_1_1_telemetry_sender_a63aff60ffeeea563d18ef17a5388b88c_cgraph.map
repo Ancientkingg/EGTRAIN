@@ -1,0 +1,10 @@
+<map id="telemetry::TelemetrySender::TelemetrySender" name="telemetry::TelemetrySender::TelemetrySender">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,208,95"/>
+<area shape="rect" id="Node000002" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="257,5,454,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,53,286,31,287,36,195,58"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_sender_thread.html#a5f4f1231c4faf7082ca94f7fce022dde" title=" " alt="" coords="264,55,447,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,73,251,73,251,78,208,78"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="256,144,455,169"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,93,303,137,301,142,168,98"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="315,146,306,136,311,126,328,120,355,117,390,121,400,126,404,132,400,135,397,130,389,126,355,123,329,125,315,130,312,135,319,142"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="ResultFigure::setFigure" name="ResultFigure::setFigure">
+<area shape="rect" id="Node000001" title="Shows value over caption. The tooltip has the value and the caption, then toolTip when given." alt="" coords="5,79,176,104"/>
+<area shape="rect" id="Node000002" href="$class_result_figure.html#adfb8e557bd581188e04593f6b160736f" title="The caption under the value, such as &quot;Cycle&quot;." alt="" coords="224,5,383,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,76,223,39,245,32,247,37,225,45,125,81"/>
+<area shape="rect" id="Node000003" href="$_plain_tool_tip_8h.html#af52b32a95e15749255a0578bd8a4a8d2" title=" " alt="" coords="253,79,353,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,89,239,89,239,94,176,94"/>
+<area shape="rect" id="Node000005" href="$class_result_figure.html#ae3ab2f1266b72f09db848c5f0fffbdd5" title="The value, such as &quot;471.5 s&quot;." alt="" coords="230,128,377,153"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="147,101,235,122,234,127,145,107"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="269,80,261,70,265,60,280,54,303,52,333,56,344,65,341,69,331,61,303,57,281,59,269,64,267,70,273,77"/>
+<area shape="rect" id="Node000004" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="431,79,607,104"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="353,89,417,89,417,94,353,94"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="484,80,476,70,480,60,495,54,519,52,548,56,560,65,557,69,546,61,519,57,496,59,484,64,481,70,488,77"/>
+</map>

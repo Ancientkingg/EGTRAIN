@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -307,7 +307,7 @@
         <article role="main" id="furo-main-content">
           <section id="keyboard-shortcuts">
 <h1>Keyboard shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Link to this heading">¶</a></h1>
-<p>This page lists the keys that EGTRAIN sets, grouped as the menus are. The other pages write a shortcut as Windows and Linux show it, such as Ctrl+0 for <strong>Fit</strong>. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. <strong>Preferences…</strong> has a shortcut only on macOS, and the other pages write it with the Command key (Command+,). A key that the table shows once works the same on every system.</p>
+<p>This page lists the keys that EGTRAIN sets, grouped as the menus are. The other pages write a shortcut as Windows and Linux show it, such as Ctrl+0 for <strong>Fit</strong>. On macOS, Ctrl in a shortcut is the Command key (⌘), and the menus show the shortcut with the macOS symbols of the third column: ⇧ is Shift and ⎋ is Esc. <strong>Settings…</strong> has a shortcut only on macOS, and the other pages write it with the Command key (Command+,). A key that the table shows once works the same on every system.</p>
 <section id="file">
 <h2>File<a class="headerlink" href="#file" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -319,15 +319,15 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>File &gt; New Case Study…</strong></p></td>
+<tr class="row-even"><td><p><strong>File &gt; New Case…</strong></p></td>
 <td><p>Ctrl+N</p></td>
 <td><p>⌘N</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>File &gt; Open Case Study…</strong></p></td>
+<tr class="row-odd"><td><p><strong>File &gt; Open Case…</strong></p></td>
 <td><p>Ctrl+O</p></td>
 <td><p>⌘O</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>File &gt; Save Scene</strong></p></td>
+<tr class="row-even"><td><p><strong>File &gt; Save</strong></p></td>
 <td><p>Ctrl+S</p></td>
 <td><p>⌘S</p></td>
 </tr>
@@ -362,9 +362,9 @@
 <td><p>Ctrl+F</p></td>
 <td><p>⌘F</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Edit &gt; Preferences…</strong></p></td>
+<tr class="row-odd"><td><p><strong>Edit &gt; Settings…</strong></p></td>
 <td><p>none</p></td>
-<td><p>⌘, as <strong>EGTRAIN &gt; Preferences…</strong></p></td>
+<td><p>⌘, in the <strong>EGTRAIN</strong> menu</p></td>
 </tr>
 </tbody>
 </table>
@@ -393,11 +393,11 @@
 <td><p>Ctrl+0</p></td>
 <td><p>⌘0</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>View &gt; Console Log</strong></p></td>
+<tr class="row-odd"><td><p><strong>View &gt; Log</strong></p></td>
 <td><p>Ctrl+Shift+L</p></td>
 <td><p>⇧⌘L</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>View &gt; Scene Validation</strong></p></td>
+<tr class="row-even"><td><p><strong>View &gt; Case Validation</strong></p></td>
 <td><p>Ctrl+Shift+V</p></td>
 <td><p>⇧⌘V</p></td>
 </tr>
@@ -518,11 +518,11 @@
 <td><p><strong>Close</strong></p></td>
 <td><p><strong>Close</strong></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Unsaved Scene</strong></p></td>
+<tr class="row-odd"><td><p><strong>Unsaved Case</strong></p></td>
 <td><p><strong>Save</strong></p></td>
 <td><p><strong>Cancel</strong></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Save Scene As Folder</strong>, <strong>Import Legacy Case</strong>, and the delete questions of the editors, such as <strong>Delete Service</strong></p></td>
+<tr class="row-even"><td><p><strong>Save Case As Folder</strong> and the delete questions of the editors, such as <strong>Delete Service</strong></p></td>
 <td><p><strong>No</strong></p></td>
 <td><p><strong>No</strong></p></td>
 </tr>
@@ -530,13 +530,13 @@
 <td><p><strong>Check Automatically</strong></p></td>
 <td><p><strong>Don’t Check Automatically</strong></p></td>
 </tr>
-<tr class="row-even"><td><p>EGTRAIN <em>version</em> is Available</p></td>
+<tr class="row-even"><td><p>EGTRAIN <em>version</em> Is Available</p></td>
 <td><p><strong>Update and Restart</strong> when EGTRAIN can update itself; otherwise <strong>Open Release Page</strong></p></td>
 <td><p><strong>Later</strong></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Linked source changed</strong></p></td>
-<td><p><strong>Keep local</strong></p></td>
-<td><p><strong>Keep local</strong></p></td>
+<tr class="row-odd"><td><p><strong>Linked File Changed</strong></p></td>
+<td><p><strong>Keep Edits</strong></p></td>
+<td><p><strong>Keep Edits</strong></p></td>
 </tr>
 </tbody>
 </table>
@@ -544,7 +544,7 @@
 </section>
 <section id="result-windows">
 <h2>Result windows<a class="headerlink" href="#result-windows" title="Link to this heading">¶</a></h2>
-<p>The chart windows of <strong>Diagrams</strong>, such as <strong>Speed / distance</strong>, <strong>Delays</strong>, <strong>Timetable graph…</strong> and <strong>Blocking time…</strong>, and the chart of <strong>Plot input traction characteristic</strong> take these keys while the chart has the focus. <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Diagram navigation</span></a> describes the mouse and the trackpad.</p>
+<p>The chart windows of <strong>Diagrams</strong>, such as <strong>Speed / distance</strong>, <strong>Delays…</strong>, <strong>Timetable graph…</strong> and <strong>Blocking time…</strong>, and the chart of <strong>Plot Traction Curve</strong> take these keys while the chart has the focus. <a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">Diagram navigation</span></a> describes the mouse and the trackpad.</p>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
@@ -571,10 +571,10 @@
 </section>
 <section id="editors">
 <h2>Editors<a class="headerlink" href="#editors" title="Link to this heading">¶</a></h2>
-<p>In the table of stops on the tab <strong>Timetable</strong> of <strong>Editors &gt; Services</strong>, Return or Enter opens <strong>Edit timetable stop</strong> for the selected row, as a click does.</p>
-<p>In the traction curve on the tab <strong>Traction</strong> of <strong>Editors &gt; Rolling stock units</strong>, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.</p>
+<p>In the table of stops on the tab <strong>Timetable</strong> of <strong>Editors &gt; Services</strong>, Return or Enter opens <strong>Edit Timetable Stop</strong> for the selected row, as a click does.</p>
+<p>In the traction curve on the tab <strong>Traction</strong> of <strong>Editors &gt; Rolling Stock Units</strong>, the arrow keys move between the cells and change no number, and Tab leaves the table. Typing into a cell replaces its number; a double click or F2 (Return on macOS) opens the cell with its number. In an open cell, Return or Enter keeps the new number, Esc restores the old one, and Tab keeps the number and opens the next cell.</p>
 <p>The tables on the tabs <strong>Run occurrences</strong> and <strong>Timetable</strong> of <strong>Editors &gt; Services</strong> and the table <strong>Import results</strong> of <strong>Editors &gt; Passengers</strong> open no field in a cell: the arrow keys move in the table, and Tab leaves it. In the table of <strong>Editors &gt; Infrastructure</strong>, the arrow keys move between the cells, and moving to a cell that can be changed opens its field. Tab leaves the table, but while a field is open, Tab keeps its value and moves to the next cell. Tab passes over an editor whose dock is behind the tab of another dock.</p>
-<p>While the icon button <strong>Pick</strong> beside <strong>Target</strong> on the tab <strong>Incidents</strong> of <strong>Editors &gt; Incidents</strong> is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.</p>
+<p>While the icon button <strong>Pick</strong> beside <strong>Target</strong> on the tab <strong>Incidents</strong> of <strong>Editors &gt; Scenarios</strong> is on, the network view waits for a click on a signal head or a train, and Esc turns the button off.</p>
 </section>
 </section>
 

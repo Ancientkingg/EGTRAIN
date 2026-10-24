@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -586,13 +586,13 @@ default is <code class="docutils literal notranslate"><span class="pre">Assignme
 second scene, <code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code> by default. The application creates, edits,
 validates, saves and reloads cases through the editors. When the first scene has
 no passengers, it turns the passengers on in <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code> and checks that the first
-scene then draws no platform bars and shows the switch off, and that <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code>
-shows it on again. It then edits a copy of
+scene then shows the switch off and still draws its platform bars, and that
+<code class="docutils literal notranslate"><span class="pre">Paimpol</span></code> shows the switch on again. It then edits a copy of
 the first scene in each editor and checks that every edit is one step of the
 history, that Undo and Redo return the scene to the state before and after each
 step (the bytes that Save writes, the editors, the validation, the unsaved mark
 and the run results) and keep the zoom and the centre of the network view, that an
-edit in a replay closes the Train Info dock of a train that is selected in it, that an edit
+edit in a replay closes the inspector of a train that is selected in it, that an edit
 after a run replaces the message that the run is complete and gives the focus that was in the
 Run Results dock to the network view, that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
@@ -653,7 +653,7 @@ with Recover as the default button. Recover opens an unsaved scene without a
 file that holds the three edits, Save As starts in the folder of the bundle with its
 file name, and the bundle keeps its bytes and its modification time. The window
 closes after Save As, no recovery folder is left and the next start has no prompt.</p></li>
-<li><p>New case: a case that was never saved is offered as <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">case</span> <span class="pre">study,</span> <span class="pre">not</span> <span class="pre">saved</span></code> and
+<li><p>New case: a case that was never saved is offered as <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">saved</span> <span class="pre">yet</span></code> and
 recovered in the same way.</p></li>
 <li><p>Changed original: an original that changed, is newer than the copy or is missing is
 named in the prompt, and Decide Later is the default button for the first two.
@@ -785,10 +785,13 @@ budget in the Assignment run.</p>
 <p>The explanation of Follow is checked by several smoke scripts. <code class="docutils literal notranslate"><span class="pre">app/FollowAvailability.h</span></code>
 decides whether the control is offered, whether Follow can be switched on, whether it has
 to be switched off, whether the view and the station emphasis follow the train, whether
-the view glides to the train (a live run) or cuts to it (a replay) and which clause and
+the view moves with the train (a live run) or cuts to it (a replay) and which clause and
 sentence are shown; the window writes the answer into the train list, the status label and the
-tooltips of the control. <code class="docutils literal notranslate"><span class="pre">graphics/FollowCamera</span></code> moves the view: a glide runs on a timer
-of its own, and the window cuts to a train, stops the camera and settles it on its last
+tooltips of the control. <code class="docutils literal notranslate"><span class="pre">graphics/FollowCamera</span></code> moves the view: the window passes it the
+place where the train is drawn at every step of the glide of the train, and the camera
+centres the view there at once. While the user holds a drag, scrolls or pinches, it leaves
+the view alone. It has a timer only for the catch-up after a pan, a zoom or a resize of the
+user. The window cuts to a train, stops the camera and settles it on its last
 position. Each check reads that widget state, or the centre of the view, in the window’s
 own E2E code and prints a marker:</p>
 <ul class="simple">
@@ -816,25 +819,31 @@ write of the text a row already has),
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_LAYER_OK</span></code> (Trains layer off and on again, with the station emphasis) and
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_LIVE_END_OK</span></code> (Follow is switched off with its sentence when the followed
 train leaves).</p></li>
-<li><p>The camera in the same live run. The checks give the camera a clock of their own: a
-frame is delivered while the clock stands still, and each tick advances it by one timer
-interval, so that they do not depend on wall time. <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_GLIDE_OK</span></code> (a frame
-does not move the view, a tick moves it part of the way to the train, and without further
-frames, as in a paused run, the view settles on the train and the timer stops),
-<code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_RESUME_OK</span></code> (the first frame after a long pause does not move the view
-and starts a glide from where the view is), <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_PAN_OK</span></code> (after a pan of
-the user and after a resize of the window, Follow stays on and the next frame starts a
-glide from where the view was left, which ends on the train),
+<li><p>The camera in the same live run. The checks run the steps of the trains by hand and give
+the camera and the motion of the trains a clock of their own, which only the checks
+advance, so that they do not depend on wall time. <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_GLIDE_OK</span></code> (a frame
+starts the glide where the train is drawn, so the view does not move yet; at every step
+of the glide the view is on the train as it is drawn, within a pixel and a half to allow
+for the edge of the scene, no timer of the camera runs, and the view moves on in the first
+and in the second quarter of the glide),
+<code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_RESUME_OK</span></code> (a frame that interrupts the glide starts the next glide
+where the train is drawn, so the view does not jump), <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_OVERLAYS_OK</span></code> (a
+frame that moves the view with the train does not run the whole pass over the overlays:
+a station name hidden by hand stays hidden while the station of the train stays the same),
+<code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_PAN_OK</span></code> (after a pan of the user and after a resize of the window,
+Follow stays on, the next frame leaves the view where it was left, and a catch-up brings
+it back to the train),
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_ZOOM_OK</span></code> (the zoom of the toolbar, in and out, centres the view on the
-train at once while the view lags behind it, and Fit stops the camera),
+train at once during a catch-up, and Fit ends the catch-up),
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_CUT_OK</span></code> (choosing another train, and switching Follow on with the
 view panned away from the train, move the view to the train at once),
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_STOP_OK</span></code> (switching Follow off, switching the Trains layer off, a
-train with no position on the map and the end of the followed train stop the timer and
+train with no position on the map and the end of the followed train stop the camera and
 forget the target; with the layer on again and the position back, the view is on the
-train at once) and <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_RUN_STOP_OK</span></code> (the Stop button ends a glide in
-progress). The check of the follow animation reads the centre of the view once the glide
-has ended, so it requires the view to end on the train.</p></li>
+train at once) and <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_CAMERA_RUN_STOP_OK</span></code> (the Stop button ends a catch-up in
+progress). The check of the follow animation runs the glide to its end and requires the
+view to end on the train, the badge to stay at the centre of the drawn train and the train
+to have the shape of the last frame.</p></li>
 <li><p>In the replay of the Assignment run (<code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code>):
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_REPLAY_BEFORE_OK</span></code>, <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_REPLAY_DURING_OK</span></code> and
 <code class="docutils literal notranslate"><span class="pre">E2E_FOLLOW_REPLAY_AFTER_OK</span></code> (Follow stays on and the view moves only while the
@@ -916,7 +925,7 @@ most of its checks, so run it locally to read its logs.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> replaces the base folder, and <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Set</span> <span class="pre">Output</span> <span class="pre">Folder...</span></code> replaces the folder of every later run in that session (<a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">Output folder</span></a>)</p></td>
 </tr>
 <tr class="row-even"><td><p>Messages of a run</p></td>
-<td><p>Standard output and error, the <strong>Console Log</strong> dock, and the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code></p></td>
+<td><p>Standard output and error, the <strong>Log</strong> dock, and the file named by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG_FILE</span></code> (<a class="reference internal" href="../guides/command-line.html#log-output"><span class="std std-ref">Log output</span></a>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>User settings of a test that starts the window</p></td>

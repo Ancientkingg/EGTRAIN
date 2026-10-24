@@ -1,0 +1,27 @@
+<map id="ServicePanel::commitPerformancePercent" name="ServicePanel::commitPerformancePercent">
+<area shape="rect" id="Node000001" title="Takes the running performance in percent, held between 1 and 100." alt="" coords="5,155,252,195"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="317,133,515,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,160,304,155,304,160,253,165"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="300,183,532,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,185,286,188,286,193,252,190"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="580,69,807,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="505,181,531,169,545,159,554,148,564,137,579,125,606,112,608,116,581,130,567,140,558,151,548,163,533,174,507,186"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="855,29,1133,55"/>
+<area shape="poly" id="edge12_Node000003_Node000005" title=" " alt="" coords="514,181,530,169,542,156,548,142,552,112,557,82,564,67,578,55,621,31,668,15,716,7,765,4,859,9,936,24,935,29,858,15,765,9,717,12,669,20,624,36,582,59,569,71,562,84,557,112,553,143,546,159,534,173,517,185"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="889,113,1099,139"/>
+<area shape="poly" id="edge13_Node000003_Node000006" title=" " alt="" coords="512,181,580,169,734,148,876,134,876,139,734,154,580,174,513,186"/>
+<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="598,183,789,223"/>
+<area shape="poly" id="edge8_Node000003_Node000007" title=" " alt="" coords="532,201,584,201,584,206,532,206"/>
+<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="601,247,785,287"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="504,221,594,242,592,247,503,226"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="584,336,803,361"/>
+<area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="450,221,581,297,649,328,647,333,579,302,448,226"/>
+<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="608,409,779,435"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="434,222,494,294,536,335,582,372,610,388,640,402,638,407,607,393,578,376,532,339,490,297,430,225"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="806,68,898,54,899,59,807,74"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="807,100,878,109,877,114,807,105"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="946,31,936,21,941,11,961,5,994,3,1038,7,1049,13,1052,19,1047,21,1045,16,1037,12,994,8,962,10,944,15,941,20,950,27"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="946,115,936,105,941,95,961,89,994,87,1038,91,1049,97,1052,103,1047,105,1045,100,1037,96,994,92,962,94,944,99,941,104,950,111"/>
+<area shape="poly" id="edge11_Node000009_Node000009" title=" " alt="" coords="649,338,639,328,644,318,662,311,693,309,734,314,744,319,748,325,743,327,741,323,732,319,693,315,663,317,647,322,644,327,652,334"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="649,411,639,401,644,391,662,385,693,383,734,387,744,392,748,398,743,401,741,396,732,392,693,388,663,390,647,395,644,400,652,407"/>
+</map>

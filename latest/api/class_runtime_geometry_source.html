@@ -141,7 +141,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4ff05420c2d46ebac0d4cd9978ad2a2a" id="r_a4ff05420c2d46ebac0d4cd9978ad2a2a"><td class="memItemLeft">virtual const <a class="el" href="class_station_platform.html">StationPlatform</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a4ff05420c2d46ebac0d4cd9978ad2a2a">platform</a> (const std::string &amp;stationId, const std::string &amp;platformId) const =0</td></tr>
 <tr class="memdesc:a4ff05420c2d46ebac0d4cd9978ad2a2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first platform with this station id and platform id, or null.  <br /></td></tr>
 <tr class="memitem:a2106204f883578d6bd1b23bceae503e3" id="r_a2106204f883578d6bd1b23bceae503e3"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a2106204f883578d6bd1b23bceae503e3">passengerGui</a> () const =0</td></tr>
-<tr class="memdesc:a2106204f883578d6bd1b23bceae503e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run shows the platforms and the passengers.  <br /></td></tr>
+<tr class="memdesc:a2106204f883578d6bd1b23bceae503e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run shows the passengers on the platforms and the passenger load of a train.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Where <a class="el" href="class_network_presenter.html">NetworkPresenter</a> takes the infrastructure of a run from: the track lines with their arcs and nodes, the stations, the connections between track lines, the signalling block sections, the routes of the trains and the platforms of the stations. The presenter works out scene coordinates and display levels and writes them into the same objects, so the objects stay where they are until the presenter has cleared the scene, because the items on the canvas point to their arcs and nodes. The objects belong to the run, not to the presenter.</p>
@@ -250,7 +250,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The run shows the platforms and the passengers. </p>
+<p>The run shows the passengers on the platforms and the passenger load of a train. </p>
 
 </div>
 </div>

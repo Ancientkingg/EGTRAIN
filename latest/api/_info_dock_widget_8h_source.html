@@ -129,12 +129,19 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_info_dock_wid
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>signals:</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">   20</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">closed</a>();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>};</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_info_dock_widget.html#a7c103fad05fe3fbf25b4f3ed7ecfccee">changeEvent</a>(QEvent* event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <span class="keyword">const</span> QString m_menuName;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>};</div>
 </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#endif </span><span class="comment">// INFODOCKWIDGET_H</span></div>
-<div class="ttc" id="aclass_info_dock_widget_html_a99e76e4143aa82b589c8eff768ae6866"><div class="ttname"><a href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">InfoDockWidget::closeEvent</a></div><div class="ttdeci">void closeEvent(QCloseEvent *event) override</div><div class="ttdoc">Emits closed() and then closes the dock.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:12</div></div>
-<div class="ttc" id="aclass_info_dock_widget_html_ac27adee9004df5d97b994806f3f2f816"><div class="ttname"><a href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget::InfoDockWidget</a></div><div class="ttdeci">InfoDockWidget(const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</div><div class="ttdoc">A dock with this window title.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:3</div></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#endif </span><span class="comment">// INFODOCKWIDGET_H</span></div>
+<div class="ttc" id="aclass_info_dock_widget_html_a7c103fad05fe3fbf25b4f3ed7ecfccee"><div class="ttname"><a href="class_info_dock_widget.html#a7c103fad05fe3fbf25b4f3ed7ecfccee">InfoDockWidget::changeEvent</a></div><div class="ttdeci">void changeEvent(QEvent *event) override</div><div class="ttdoc">QDockWidget names its toggle action after the window title; this puts the first title back.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:23</div></div>
+<div class="ttc" id="aclass_info_dock_widget_html_a99e76e4143aa82b589c8eff768ae6866"><div class="ttname"><a href="class_info_dock_widget.html#a99e76e4143aa82b589c8eff768ae6866">InfoDockWidget::closeEvent</a></div><div class="ttdeci">void closeEvent(QCloseEvent *event) override</div><div class="ttdoc">Emits closed() and then closes the dock.</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:15</div></div>
+<div class="ttc" id="aclass_info_dock_widget_html_ac27adee9004df5d97b994806f3f2f816"><div class="ttname"><a href="class_info_dock_widget.html#ac27adee9004df5d97b994806f3f2f816">InfoDockWidget::InfoDockWidget</a></div><div class="ttdeci">InfoDockWidget(const QString &amp;title, QWidget *parent=nullptr, Qt::WindowFlags flags=Qt::WindowFlags())</div><div class="ttdoc">A dock with this window title. Its entry in the menus keeps this title when the window title changes ...</div><div class="ttdef"><b>Definition</b> InfoDockWidget.cpp:6</div></div>
 <div class="ttc" id="aclass_info_dock_widget_html_aef6ebf64e4e2d72b80e4c8250c69e7f4"><div class="ttname"><a href="class_info_dock_widget.html#aef6ebf64e4e2d72b80e4c8250c69e7f4">InfoDockWidget::closed</a></div><div class="ttdeci">void closed()</div><div class="ttdoc">The dock is about to close.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

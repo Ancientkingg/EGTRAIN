@@ -1,10 +1,10 @@
 # Editing and validating a case
 
-This page describes the editors of a case and the rules for editing and validating it. For a first edit, follow [Tutorial: modify a supplied case](tutorial-modify-a-case.md).
+This page describes the editors of a case and the rules for editing and validating it. For a first edit, follow [Tutorial: modify a bundled case](tutorial-modify-a-case.md).
 
 ## Infrastructure
 
-The dock **Infrastructure** has a list **Entity** that chooses the table: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the scene has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "The scene cannot be edited while a run is in progress." **Delete** is off until a row is selected, and its tooltip says why it is off. **Delete** asks for confirmation. A row that other rows refer to is refused with **Cannot Delete Infrastructure Entity**, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful scene](tutorial-minimal-scene.md).
+The dock **Infrastructure** has a list above the table that chooses it: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** follow **Delete**. While the table is empty, a line above it says what to add first, and **Add** stays off in Blocks until the case has a track. While a run uses the case, the table, **Add** and **Delete** are off, and the tooltip of **Delete** reads "Stop the run to edit." **Delete** is off until a row is selected. **Delete** asks for confirmation. A row that other rows refer to is refused with a message titled after the kind of row, such as Cannot Delete Track, which lists the first ten of them and counts the rest. The tables are built in dependency order in the [tutorial for the smallest useful case](tutorial-minimal-scene.md).
 
 ## Services
 
@@ -16,23 +16,26 @@ visible until you choose a replacement. This label does not change train
 performance, composition or stops. It survives duplication and folder/bundle
 saves, but not legacy export.
 
-Service visualization colour, directly below Category, sets the colour of the
+Colour, directly below Category, sets the colour of the
 service's trains. Choose... opens a colour dialog; Default removes the colour.
 Without a colour, every train is drawn in the default yellow. The colour applies
 to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
-replay, and the Map key lists it with the service id. The colour applies from
-the next run: the Map key keeps the colour of the last run until then, also
+replay, and the Map Key lists it with the service id. The colour applies from
+the next run: the Map Key keeps the colour of the last run until then, also
 after Default. In the result windows of
 a run, the lines of those trains in the speed, time, distance and tractive
 effort diagrams, the delay diagram, the timetable graph and the train-path
-graph take the colour with their line widths and dash patterns unchanged, and
-the train filter shows it as the swatch of each train; the timetable table
-shows the swatch too. Trains without a colour keep the chart colours. The
-blocking-time charts keep the colours that show the block types and show the
-service colour in the train filter only. A stored value that is not
+graph take the colour instead of a colour of the palette, with their line
+widths and dash patterns unchanged, and the Trains list of the window shows it
+as the line of each train; the timetable table shows it as a swatch in its train
+filter. Trains without a colour take the colours of the palette. Where a window
+has too many trains to give each train or service a colour, the trains are grey
+and only the selected train takes its colour. The blocking-time charts give the
+colour to the lines and the outlines of the blocking times of the train; critical
+blocks and conflicts keep their own colours. A stored value that is not
 a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
 you choose a colour or press Default; trains of that service use the default
-yellow. Changing the colour counts as a scene edit, so it discards the run
+yellow. Changing the colour counts as a case edit, so it discards the run
 results and replay like any other service edit. It survives duplication and
 folder/bundle saves, but not legacy export.
 
@@ -77,7 +80,7 @@ Keep IDs unique and keep service links consistent; [Links between records](scene
 journeys and ordered legs and can append the supported DAS/RouteChoice CSV pair.
 The import result table identifies malformed, unresolved, accepted, and
 ID-collision rows. The native runtime does not reopen those files. Random
-passenger draws and simulation results are excluded from scene input. Likewise, legacy OL, TDS,
+passenger draws and simulation results are excluded from case input. Likewise, legacy OL, TDS,
 Rescheduling, and GUI files have their own active/inert/output classifications;
 see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
 behavior from a filename.
@@ -88,38 +91,38 @@ from canonical data. The runtime applies only the selected/default scenario.
 ## Validation
 
 Run the structural and semantic validation command after edits. The path can
-name a scene directory or bundle:
+name a case folder or bundle:
 
 ```bash
-./build/scene_tool validate path/to/scene
+./build/scene_tool validate path/to/case
 ```
 
 The command preserves support for structurally valid, incomplete historical
-scenes. Run gating additionally uses `validateRunnableScene`; the equivalent
+cases. Run gating additionally uses `validateRunnableScene`; the equivalent
 directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
---runnable path/to/scene` prints the diagnostics of that run gating. Structural
+--runnable path/to/case` prints the diagnostics of that run gating. Structural
 loading is checked first so semantic reference diagnostics do not cascade from
 malformed JSON.
 
-Before committing a scene, validate it and run the native scene path. Use
+Before committing a case, validate it and run it on the native path. Use
 `scene_tool export` only when a downstream legacy tool needs interoperability
 files; edits to that export do not flow back into canonical JSON. The exporter
 generates legacy infrastructure, signalling constraints, rolling stock,
 timetables, and supported passenger CSVs from canonical data. It reports an
 error when a canonical passenger window cannot be represented by the legacy
 half-hour bucket format instead of silently changing it. The signalling areas of
-the scene are exported to `TrackLines/AreasCaseStudy.txt`, with their exact
+the case are exported to `TrackLines/AreasCaseStudy.txt`, with their exact
 values in `TrackLines/EGTRAINSignallingAreas.json`; an edit of those files does
 not flow back. The station and track layout goes to `GUI/StationsCoord.txt` and
-`GUI/caseStudyTrackData.txt`, from `views.json` when the scene has one and
+`GUI/caseStudyTrackData.txt`, from `views.json` when the case has one and
 otherwise from the station positions. `GUI/unusedTracks.txt` lists the tracks
 that `views.json` hides, and is written only when it hides one. Route
 corridors, single-track restrictions and station boundaries go to
 `GUI/caseStudyRouteCorridors.txt`, `GUI/singleTrackLimits.txt` and
-`GUI/stationBoundarySections.txt` when the scene has them. The base time and
-the simulation settings go to `EGTRAINInitialParameters.json`. A scene without
-legacy files prints the information `scene.export.info` that the files were
-generated from canonical data. The export warns (`scene.export.compatibility`)
+`GUI/stationBoundarySections.txt` when the case has them. The base time and
+the simulation settings go to `EGTRAINInitialParameters.json`. A case without
+original legacy files prints the information `scene.export.info` that the legacy
+files were generated from the case. The export warns (`scene.export.compatibility`)
 about a station name with a tab or line break, about an empty corridor name or
 one with a comma, tab or line break, and about the tracks that `views.json` draws
 as double switches, because the text files cannot hold them.

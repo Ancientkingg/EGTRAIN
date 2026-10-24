@@ -1,0 +1,7 @@
+<map id="diagrams/TimetableTableWindow.h" name="diagrams/TimetableTableWindow.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="76,5,327,31"/>
+<area shape="rect" id="Node000002" href="$_result_views_8cpp.html" title=" " alt="" coords="5,79,163,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,40,105,81,102,76,169,35"/>
+<area shape="rect" id="Node000003" href="$_timetable_table_window_8cpp.html" title=" " alt="" coords="187,79,453,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,35,302,76,299,81,231,40"/>
+</map>

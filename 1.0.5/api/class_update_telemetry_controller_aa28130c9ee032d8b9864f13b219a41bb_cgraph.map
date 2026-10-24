@@ -1,0 +1,21 @@
+<map id="UpdateTelemetryController::showPrivacySettings" name="UpdateTelemetryController::showPrivacySettings">
+<area shape="rect" id="Node000001" title="Opens the privacy dialog. The first prompt opens only when the consent is still to be given." alt="" coords="5,159,204,199"/>
+<area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="252,29,463,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,157,181,115,251,72,289,56,291,61,253,76,184,119,130,161"/>
+<area shape="rect" id="Node000004" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="526,203,734,228"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="141,157,192,134,251,115,311,104,358,99,405,102,463,115,504,130,543,150,604,192,601,196,540,155,502,135,462,121,404,108,358,105,311,109,253,121,194,139,144,162"/>
+<area shape="rect" id="Node000005" href="$class_update_telemetry_controller.html#aac2b0fdf1128dc0fdd1304a0708d7488" title="The consent that the sender follows, or null while telemetry is off." alt="" coords="258,130,457,170"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="204,165,244,160,245,166,204,170"/>
+<area shape="rect" id="Node000006" href="$struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" title="Host of endpoint, shown as the receiving domain; empty when endpoint has none." alt="" coords="260,195,455,220"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="204,188,247,192,246,198,204,193"/>
+<area shape="rect" id="Node000007" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="270,268,445,293"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="156,197,313,260,311,265,154,202"/>
+<area shape="rect" id="Node000008" href="$class_telemetry_consent.html#a2a83addd5760a40db273657a4eae3bd4" title=" " alt="" coords="260,318,455,358"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="126,197,180,250,215,279,253,304,267,310,264,315,251,308,212,283,176,254,122,201"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="317,31,308,21,312,11,329,5,357,3,393,7,403,11,407,17,402,20,399,15,391,12,357,8,330,10,316,15,313,20,321,27"/>
+<area shape="rect" id="Node000003" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="511,29,749,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="463,39,497,39,497,45,463,45"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="586,31,577,21,582,11,600,5,630,3,669,7,680,12,683,18,679,20,676,16,668,12,630,8,601,10,585,15,582,20,590,27"/>
+<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="317,270,308,260,312,250,329,244,357,241,393,245,403,250,407,256,402,259,399,254,391,250,357,247,330,249,316,254,313,259,321,266"/>
+<area shape="poly" id="edge11_Node000008_Node000004" title=" " alt="" coords="430,315,462,304,534,268,596,233,598,238,537,273,464,308,432,320"/>
+</map>

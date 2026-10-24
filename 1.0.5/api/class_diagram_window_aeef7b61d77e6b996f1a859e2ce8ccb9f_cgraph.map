@@ -1,0 +1,8 @@
+<map id="DiagramWindow::exportedFigure" name="DiagramWindow::exportedFigure">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,240,55"/>
+<area shape="rect" id="Node000002" href="$class_diagram_window.html#a66d6e64434954e6ba58990c584eef5b4" title=" " alt="" coords="288,29,503,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,39,274,39,274,45,240,45"/>
+<area shape="rect" id="Node000003" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="551,29,727,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="503,39,537,39,537,45,503,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="599,31,591,21,595,11,612,5,639,3,673,7,683,11,686,17,682,20,679,15,672,12,639,8,613,10,599,15,596,20,603,27"/>
+</map>

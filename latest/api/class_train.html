@@ -177,7 +177,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a34b9e3944d6a89b3ce1310cfa1e07633" id="r_a34b9e3944d6a89b3ce1310cfa1e07633"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a34b9e3944d6a89b3ce1310cfa1e07633">constructBrakingTerminal</a> (double head, double speed, double anchor, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;terminal)</td></tr>
 <tr class="memitem:ab7c0931ae832319456ae4b4f65acd580" id="r_ab7c0931ae832319456ae4b4f65acd580"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab7c0931ae832319456ae4b4f65acd580">planPositiveBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count, int suggested)</td></tr>
 <tr class="memdesc:ab7c0931ae832319456ae4b4f65acd580"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.  <br /></td></tr>
-<tr class="memitem:a7db162f3326726463763a63d6190bd9f" id="r_a7db162f3326726463763a63d6190bd9f"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a7db162f3326726463763a63d6190bd9f">BrakDist_Block</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
+<tr class="memitem:a86fe06b963d9fe57ec35dae0764265aa" id="r_a86fe06b963d9fe57ec35dae0764265aa"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a86fe06b963d9fe57ec35dae0764265aa">BrakDist_Block</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, double cutoff=std::numeric_limits&lt; double &gt;::infinity())</td></tr>
 <tr class="memitem:a54fc076df66c661dccd1a701273efd19" id="r_a54fc076df66c661dccd1a701273efd19"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a54fc076df66c661dccd1a701273efd19">needsSingleTrackReservation</a> (double head, double speed, double entry, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a384f38f04a720e0a4f01338d6465ac84" id="r_a384f38f04a720e0a4f01338d6465ac84"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a384f38f04a720e0a4f01338d6465ac84">cachedBrakingSuccessor</a> (int previousInstant, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, double target, double targetSpeed)</td></tr>
 <tr class="memitem:ad8b349c94f8a0f31bdff97899672573d" id="r_ad8b349c94f8a0f31bdff97899672573d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad8b349c94f8a0f31bdff97899672573d">europeanVitalComputerWithListsImproved</a> (double S, double V, int PreviousInstant, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, bool &amp;continueCached)</td></tr>
@@ -588,8 +588,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7db162f3326726463763a63d6190bd9f" name="a7db162f3326726463763a63d6190bd9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7db162f3326726463763a63d6190bd9f">&#9670;&#160;</a></span>BrakDist_Block()</h2>
+<a id="a86fe06b963d9fe57ec35dae0764265aa" name="a86fe06b963d9fe57ec35dae0764265aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86fe06b963d9fe57ec35dae0764265aa">&#9670;&#160;</a></span>BrakDist_Block()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -620,7 +620,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>cutoff</em></span><span class="paramdefsep"> = </span><span class="paramdefval">std::numeric_limits&lt;double&gt;::infinity()</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -629,11 +634,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m). X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. </p>
+<p>The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m). X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a7db162f3326726463763a63d6190bd9f_cgraph.svg" width="1156" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a86fe06b963d9fe57ec35dae0764265aa_cgraph.svg" width="1156" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

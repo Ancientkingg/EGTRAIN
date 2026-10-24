@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#a7db162f3326726463763a63d6190bd9f" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_train.html#a86fe06b963d9fe57ec35dae0764265aa" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="337,-189 217,-189 217,-170 337,-170 337,-189"/>
 <text text-anchor="middle" x="277" y="-177" font-family="Helvetica,sans-Serif" font-size="10.00">Train::BrakDist_Block</text>
 </a>

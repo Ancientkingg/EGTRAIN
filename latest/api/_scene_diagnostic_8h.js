@@ -11,6 +11,7 @@ var _scene_diagnostic_8h =
     [ "hasErrors", "_scene_diagnostic_8h.html#a371a00fbe71f997f368bf0c4e90b61f6", null ],
     [ "readJsonInt", "_scene_diagnostic_8h.html#a25e67cc6987a7e66789ede5ae08fe7f4", null ],
     [ "severityLabel", "_scene_diagnostic_8h.html#a8d88ff4b3062ad07eacd7e35c5be6426", null ],
+    [ "toDialogText", "_scene_diagnostic_8h.html#a757664039e68baa3d8e4d84eb8f0fb9a", null ],
     [ "toDisplayText", "_scene_diagnostic_8h.html#a610ae58f0e5af2938f73ae86e01c9eec", null ],
     [ "toJson", "_scene_diagnostic_8h.html#af8736eefee86fcaf8b1756cc43b7edee", null ]
 ];

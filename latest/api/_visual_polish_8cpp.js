@@ -1,5 +1,6 @@
 var _visual_polish_8cpp =
 [
+    [ "canvasColor", "_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737", null ],
     [ "classifySignalAspect", "_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61", null ],
     [ "classifySignalCue", "_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf", null ],
     [ "classifyStation", "_visual_polish_8cpp.html#a9d91a4372e0f0f446b48ea6c6ea4aace", null ],
@@ -12,16 +13,16 @@ var _visual_polish_8cpp =
     [ "freeTrackVisual", "_visual_polish_8cpp.html#a805626f8aa909690d0870ba92fabc89a", null ],
     [ "occupiedTrackColor", "_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471", null ],
     [ "paintStationMark", "_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc", null ],
-    [ "paintStationNodeMark", "_visual_polish_8cpp.html#a157bdee33c409d7a3ad52deb958bd831", null ],
     [ "resolveTrainVisual", "_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db", null ],
     [ "simulationSpeedLabel", "_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13", null ],
-    [ "simulationSpeedMode", "_visual_polish_8cpp.html#aa804be580241cfa9cdccbe40f94779f4", null ],
     [ "stationAreaColor", "_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8", null ],
     [ "stationAreaShape", "_visual_polish_8cpp.html#aad6e3639cb92ebdb855e80911a082344", null ],
+    [ "stationFootprintRect", "_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674", null ],
     [ "stationMarkBounds", "_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547", null ],
+    [ "stationMarkFill", "_visual_polish_8cpp.html#a533b0acec8e0aa932ee206a07c02a1d8", null ],
     [ "stationMarkFrameIn", "_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4", null ],
     [ "stationMarkIcon", "_visual_polish_8cpp.html#aedc5fcbf783bda97fca3dc74d3a5098b", null ],
-    [ "stationNodeMarkShape", "_visual_polish_8cpp.html#ae56b53fb10f33d26c14e38709a0833df", null ],
+    [ "stationMarkShape", "_visual_polish_8cpp.html#a53bf883918011b406bcde8613aa0354d", null ],
     [ "trackStatePriority", "_visual_polish_8cpp.html#a436626af4d350c743238ab619ecd6066", null ],
     [ "trainBadgeCornerRadius", "_visual_polish_8cpp.html#a4d53d9a2a4bde8099d883e9a982680c1", null ]
 ];

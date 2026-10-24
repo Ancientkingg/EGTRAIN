@@ -83,7 +83,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title="The last choice of View &gt; Show Passengers, which the start uses when &#45;pax is not given.">
+<g id="a_Node000005"><a xlink:href="class_main_window.html#a647da5369ac34e0cc68a7e6d9e7a410f" target="_top" xlink:title="The last choice of View &gt; Passengers, which the start uses when &#45;pax is not given.">
 <polygon fill="white" stroke="#666666" points="335,-67.5 140,-67.5 140,-48.5 335,-48.5 335,-67.5"/>
 <text text-anchor="middle" x="237.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">MainWindow::savedShowPassengers</text>
 </a>

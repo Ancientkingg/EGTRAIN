@@ -1,0 +1,10 @@
+<map id="CompositionPanel::setDocument" name="CompositionPanel::setDocument">
+<area shape="rect" id="Node000001" title="Refreshes when the document is replaced." alt="" coords="5,55,240,80"/>
+<area shape="rect" id="Node000002" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="288,29,481,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,53,274,50,274,55,240,59"/>
+<area shape="rect" id="Node000004" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="289,79,481,104"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="240,75,275,79,275,84,240,81"/>
+<area shape="rect" id="Node000003" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="529,29,624,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="482,39,515,39,515,45,482,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="545,31,538,21,542,11,555,5,577,3,603,6,614,15,611,19,601,11,577,8,556,10,546,15,543,20,549,28"/>
+</map>

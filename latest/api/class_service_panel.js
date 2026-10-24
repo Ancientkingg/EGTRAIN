@@ -42,6 +42,7 @@ var class_service_panel =
     [ "maximumSpeedKmhEdit", "class_service_panel.html#ac2b6e8bddf2719c612453e0d7f079089", null ],
     [ "occurrencesChanged", "class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085", null ],
     [ "occurrenceSelectionLabel", "class_service_panel.html#a589efeaa3e8d0a6123fd63a73460d776", null ],
+    [ "occurrenceSummaryText", "class_service_panel.html#a102353b015ec1123d7cb6832739e787e", null ],
     [ "occurrenceTable", "class_service_panel.html#a0a9505cf6202e55c6851cf65f9f1e838", null ],
     [ "operatingCodeEdit", "class_service_panel.html#aa6d1c548a7085e8438dd3e02db14fdab", null ],
     [ "operatingCodeStepEdit", "class_service_panel.html#a295546154c49799959e09f1c68467aff", null ],

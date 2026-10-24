@@ -65,6 +65,7 @@ var class_station_overlay_item =
     [ "setNameVisible", "class_station_overlay_item.html#a42be28ad0472e4336cfc82af83497094", null ],
     [ "setNetworkDegree", "class_station_overlay_item.html#a7a7c813886508eb8d1c610cfc4f64dbf", null ],
     [ "setNodeCentres", "class_station_overlay_item.html#a3b1f250f682ada19ae6e1abfdf36e905", null ],
+    [ "setPlatformBars", "class_station_overlay_item.html#a734ae5c6831616982d03f6a547648b7f", null ],
     [ "setSceneDecoration", "class_station_overlay_item.html#afc6ba38a8407612b23bbec973b02b10a", null ],
     [ "setSourceIdentities", "class_station_overlay_item.html#ad04912289100fc9e6a99252cd148a5f4", null ],
     [ "setViewportOffset", "class_station_overlay_item.html#a95b78cb2957fb91033f800a6651c6d42", null ],

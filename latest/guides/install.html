@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -307,11 +307,11 @@
         <article role="main" id="furo-main-content">
           <section id="installing-egtrain">
 <h1>Installing EGTRAIN<a class="headerlink" href="#installing-egtrain" title="Link to this heading">¶</a></h1>
-<p>This page says which file to download for your system, how to install and start EGTRAIN, what macOS and Windows show at the first start, and how to check a download. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> continues with a first run.</p>
+<p>This page says which file to download for your system, how to install and start EGTRAIN, what macOS and Windows show at the first start, how to check a download and how to remove EGTRAIN. <a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a> continues with a first run.</p>
 <section id="download-and-start">
 <h2>Download and start<a class="headerlink" href="#download-and-start" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
-<li><p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>: <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> (Apple silicon Macs with macOS 26 or later; <a class="reference internal" href="#macos-disk-image">details</a>), <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> (64-bit Windows; <a class="reference internal" href="#windows-installer-and-portable-archive">choose one</a>) or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-linux-x86_64.AppImage</span></code> (64-bit Linux). <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> is the version of the release. Download a case study file from the same page too, such as <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>.</p></li>
+<li><p>Download the package for your system from the <a class="reference external" href="https://github.com/Ancientkingg/EGTRAIN/releases">releases page</a>: <code class="docutils literal notranslate"><span class="pre">EGTRAIN-&lt;version&gt;-macOS-arm64.dmg</span></code> (Apple silicon Macs with macOS 26 or later; <a class="reference internal" href="#macos-disk-image">details</a>), <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> (64-bit Windows; <a class="reference internal" href="#windows-installer-and-portable-archive">choose one</a>) or <code class="docutils literal notranslate"><span class="pre">QEGTRAIN-linux-x86_64.AppImage</span></code> (64-bit Linux). <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;</span></code> is the version of the release. Download a case file from the same page too, such as <code class="docutils literal notranslate"><span class="pre">Paimpol.egscene</span></code>.</p></li>
 <li><p>Start the application.</p>
 <ul class="simple">
 <li><p>macOS: open the disk image, drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code> in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the <a class="reference internal" href="#macos-disk-image">first start</a> below says what to do.</p></li>
@@ -328,10 +328,10 @@
 <li><p><strong>Install.</strong> Open the image and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> onto <code class="docutils literal notranslate"><span class="pre">Applications</span></code>, then eject the image. The app is self-contained and needs no installer, so a copy in any other folder that you can write to works the same way. Run EGTRAIN from a copy and not from the image: an app on the image is read-only and cannot update itself.</p></li>
 <li><p><strong>First start.</strong> Unless the release notes say that the app is notarized, expect that it is not notarized by Apple and that macOS refuses the first start with <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">Not</span> <span class="pre">Opened</span></code>, which offers <strong>Move to Trash</strong> and <strong>Done</strong>. To allow the app, choose <strong>Done</strong>, open <strong>System Settings &gt; Privacy &amp; Security</strong> and, in the section <strong>Security</strong>, choose <strong>Open Anyway</strong> for <code class="docutils literal notranslate"><span class="pre">&quot;QEGTRAIN&quot;</span> <span class="pre">was</span> <span class="pre">blocked</span> <span class="pre">to</span> <span class="pre">protect</span> <span class="pre">your</span> <span class="pre">Mac.</span></code> Choose <strong>Open Anyway</strong> again in <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">&quot;QEGTRAIN&quot;?</span></code>. macOS then asks for the name and password of an administrator. These are the dialogs of macOS 26.6; other versions may word them differently. This is the normal macOS override. Do not turn Gatekeeper off or remove the download mark with a command.</p></li>
 <li><p><strong>Notarized releases.</strong> When the release notes say that the app is signed with a Developer ID and notarized, macOS is expected to ask only for the usual confirmation for an app that was downloaded. <a class="reference internal" href="#first-start-of-a-notarized-build">First start of a notarized build</a> has the details.</p></li>
-<li><p><strong>Open a case study.</strong> Double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder to open it in EGTRAIN, or Control-click it and choose <strong>Open With</strong> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. When EGTRAIN is open, the file opens in its window. <a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a> has the details.</p></li>
+<li><p><strong>Open a case.</strong> Double-click an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> file in Finder to open it in EGTRAIN, or Control-click it and choose <strong>Open With</strong> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. When EGTRAIN is open, the file opens in its window. <a class="reference internal" href="opening-a-case-study.html#open-by-double-click"><span class="std std-ref">Open by double-click</span></a> has the details.</p></li>
 <li><p><strong>Update.</strong> For a copy outside the image, <strong>Help &gt; Check for Updates…</strong> offers <strong>Update and Restart</strong> when a newer release exists.</p></li>
-<li><p><strong>Remove.</strong> Quit EGTRAIN and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.</p></li>
-<li><p><strong>Inside the app.</strong> The case studies are in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/Resources/Scenes</span></code> and the command-line tool is <code class="docutils literal notranslate"><span class="pre">Contents/MacOS/scene_tool</span></code> (see <a class="reference internal" href="command-line.html"><span class="std std-doc">Command-line options and scene_tool</span></a>). The image shows no other file.</p></li>
+<li><p><strong>Remove.</strong> Quit EGTRAIN and drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> to the Trash. Your cases, your exported files and the settings of EGTRAIN stay; <a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a> has the details.</p></li>
+<li><p><strong>Inside the app.</strong> The bundled cases are in <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app/Contents/Resources/Scenes</span></code> and the command-line tool is <code class="docutils literal notranslate"><span class="pre">Contents/MacOS/scene_tool</span></code> (see <a class="reference internal" href="command-line.html"><span class="std std-doc">Command-line options and scene_tool</span></a>). The image shows no other file.</p></li>
 </ul>
 <section id="first-start-of-an-ad-hoc-build">
 <h3>First start of an ad hoc build<a class="headerlink" href="#first-start-of-an-ad-hoc-build" title="Link to this heading">¶</a></h3>
@@ -381,8 +381,8 @@ only when the app carries a ticket and fails for an ad hoc build.</p>
 <li><p><strong>Install.</strong> <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> installs for the current user and needs no administrator rights. The default folder is <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\Programs\EGTRAIN</span></code>, and the wizard offers another folder on a first install. It adds the Start Menu entry <strong>EGTRAIN</strong>, an entry in the list of installed apps in Windows Settings and, only if you tick it, a desktop shortcut. It also registers EGTRAIN for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files of your user, so a double-click opens them in EGTRAIN unless you chose another program for them with <strong>Open with</strong>.</p></li>
 <li><p><strong>First start.</strong> The Windows files are not code signed. On Windows 11 in October 2026, with files that carried the download mark, starting the installer showed the dialog <code class="docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">protected</span> <span class="pre">your</span> <span class="pre">PC</span></code> with the text <code class="docutils literal notranslate"><span class="pre">Microsoft</span> <span class="pre">Defender</span> <span class="pre">SmartScreen</span> <span class="pre">prevented</span> <span class="pre">an</span> <span class="pre">unrecognized</span> <span class="pre">app</span> <span class="pre">from</span> <span class="pre">starting.</span> <span class="pre">Running</span> <span class="pre">this</span> <span class="pre">app</span> <span class="pre">might</span> <span class="pre">put</span> <span class="pre">your</span> <span class="pre">PC</span> <span class="pre">at</span> <span class="pre">risk.</span></code> Its only buttons are a <strong>More info</strong> link and <strong>Don’t run</strong>. <strong>More info</strong> shows <code class="docutils literal notranslate"><span class="pre">App:</span> <span class="pre">EGTRAIN-Setup-&lt;version&gt;-x64.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">Publisher:</span> <span class="pre">Unknown</span> <span class="pre">publisher</span></code>, and adds <strong>Run anyway</strong>, which starts Setup. No administrator prompt follows. The dialog comes back each time you start Setup. The portable <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>, extracted with <strong>Extract All</strong>, started without a warning in the same test. Other Windows versions may word this differently. Do not turn SmartScreen off. <a class="reference internal" href="#first-start-of-an-unsigned-build">First start of an unsigned build</a> has the details.</p></li>
 <li><p><strong>Upgrade.</strong> Run the Setup of the newer version over the installed copy. It updates that installation and does not add a second one. Setup offers to close EGTRAIN if it is running. It replaces the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder of the installation, so keep your own cases outside it. <strong>Update and Restart</strong> in an installed copy does the same for you: it downloads the Setup of the newer version, closes EGTRAIN, runs the Setup without windows and starts EGTRAIN again, which then tells you which version runs.</p></li>
-<li><p><strong>Uninstall.</strong> Remove EGTRAIN from the list of installed apps in Windows Settings. This removes the program files, the shortcuts, the entry in the list and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> setting that the installer made. Your case studies, your exported CSV and PNG files, the run output (see the <a class="reference internal" href="command-line.html#output-folder"><span class="std std-ref">output folder</span></a>) and the settings of EGTRAIN stay. A file that you or the program put into the installation folder stays, and so does the folder.</p></li>
-<li><p><strong>Portable archive.</strong> <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> needs no installation and no administrator rights. Unzip it into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>. It adds no Start Menu entry, no shortcut, no entry in the list of installed apps and no setting for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files. To remove it, close EGTRAIN and delete the folder. To use a newer version, unzip the newer archive into another new folder, or use <strong>Update and Restart</strong> in EGTRAIN. A portable copy of v1.0.3 or earlier cannot update itself to a release that is built with Qt 6, as every release after v1.0.3 is: unzip the archive of the newer release into a new folder instead.</p></li>
+<li><p><strong>Uninstall.</strong> Remove EGTRAIN from the list of installed apps in Windows Settings. <a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a> says what this removes and what stays.</p></li>
+<li><p><strong>Portable archive.</strong> <code class="docutils literal notranslate"><span class="pre">EGTRAIN-Portable-&lt;version&gt;-x64.zip</span></code> needs no installation and no administrator rights. Unzip it into a new, empty folder and run <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>. It adds no Start Menu entry, no shortcut, no entry in the list of installed apps and no setting for <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> files. To remove it, close EGTRAIN and delete the folder (<a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a>). To use a newer version, unzip the newer archive into another new folder, or use <strong>Update and Restart</strong> in EGTRAIN, which does not keep files that you added to the folder. A portable copy of v1.0.3 or earlier cannot update itself to a release that is built with Qt 6, as every release after v1.0.3 is: unzip the archive of the newer release into a new folder instead.</p></li>
 </ul>
 <section id="first-start-of-an-unsigned-build">
 <h3>First start of an unsigned build<a class="headerlink" href="#first-start-of-an-unsigned-build" title="Link to this heading">¶</a></h3>
@@ -429,6 +429,43 @@ and ignore the other lines.</p>
 mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
 signed. Until signing is enabled and a release is built with it, the Windows downloads show <code class="docutils literal notranslate"><span class="pre">NotSigned</span></code>.</p>
 </section>
+</section>
+<section id="removing-egtrain">
+<h2>Removing EGTRAIN<a class="headerlink" href="#removing-egtrain" title="Link to this heading">¶</a></h2>
+<p>Close EGTRAIN first, then remove the copy that you installed:</p>
+<ul class="simple">
+<li><p><strong>Windows Setup.</strong> In Windows Settings, find EGTRAIN in the list of installed apps (Apps &gt; Installed apps on Windows 11) and choose Uninstall. This removes the program files, the shortcuts, the entry in the list and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> setting that the installer made. A file that you or the program put into the installation folder stays, and so does the folder.</p></li>
+<li><p><strong>Windows portable copy.</strong> Delete the folder that you unzipped the archive into.</p></li>
+<li><p><strong>macOS.</strong> Drag <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app</span></code> from the Applications folder to the Trash.</p></li>
+<li><p><strong>Linux.</strong> Delete the AppImage file.</p></li>
+</ul>
+<p>After an update with <strong>Update and Restart</strong>, the previous version stays next to the installation under the same name followed by <code class="docutils literal notranslate"><span class="pre">.egtrain-old</span></code>, such as <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.app.egtrain-old</span></code>. EGTRAIN removes it about 20 seconds after the new version has started. EGTRAIN 1.0.4 and earlier do not remove it, so a copy that runs one of those versions keeps it until its next update. If it is there, delete it together with the app. A copy installed with Setup has none.</p>
+<p>Removing the program leaves the settings of EGTRAIN and the files that it keeps for you, such as the run output in the <a class="reference internal" href="command-line.html#output-folder"><span class="std std-ref">output folder</span></a>. To leave nothing behind, delete these as well:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>System</p></th>
+<th class="head"><p>Settings</p></th>
+<th class="head"><p>Data</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Windows</p></td>
+<td><p>The registry key <code class="docutils literal notranslate"><span class="pre">HKCU\Software\EGTRAIN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">%APPDATA%\EGTRAIN</span></code> (the run output) and <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\EGTRAIN</span></code> (recovery copies, crash notes and other working files)</p></td>
+</tr>
+<tr class="row-odd"><td><p>macOS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/Library/Preferences/com.egtrain.EGTRAIN.plist</span></code>, and <code class="docutils literal notranslate"><span class="pre">~/Library/Preferences/com.egtrain.simulator.plist</span></code>, where macOS keeps the state of the open and save dialogs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/Library/Application</span> <span class="pre">Support/EGTRAIN</span></code> (the run output, recovery copies, crash notes and other working files)</p></td>
+</tr>
+<tr class="row-even"><td><p>Linux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/.config/EGTRAIN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/.local/share/EGTRAIN</span></code> (the same files as on macOS)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Cases and exported files that you saved elsewhere are yours, and they stay where you saved them.</p>
 </section>
 </section>
 
@@ -500,6 +537,7 @@ signed. Until signing is enabled and a release is built with it, the Windows dow
 <li><a class="reference internal" href="#checking-a-download">Checking a download</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#removing-egtrain">Removing EGTRAIN</a></li>
 </ul>
 </li>
 </ul>

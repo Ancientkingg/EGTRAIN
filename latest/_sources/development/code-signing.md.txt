@@ -43,7 +43,7 @@ of each file it publishes for `update-manifest.json`. A ZIP file carries no Auth
 Signatures use SHA-256 and a trusted timestamp where the signing service supports them.
 
 This project does not sign the Qt, ZeroMQ and other runtime libraries and plugins in the package; they keep whatever
-signature they have, which may be none. The scenes, the guide and the `.egscene` case studies are data and are never
+signature they have, which may be none. The scenes, the guide and the `.egscene` cases are data and are never
 signed.
 
 ## Choosing a signing path

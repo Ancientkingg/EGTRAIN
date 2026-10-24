@@ -7,6 +7,8 @@ var _delay_analysis_8h =
     [ "DelayStatistics", "struct_delay_statistics.html", "struct_delay_statistics" ],
     [ "StationDelaySummary", "struct_station_delay_summary.html", "struct_station_delay_summary" ],
     [ "DelaySummary", "struct_delay_summary.html", "struct_delay_summary" ],
+    [ "DelayHistogramClass", "struct_delay_histogram_class.html", "struct_delay_histogram_class" ],
+    [ "DelayHistogram", "struct_delay_histogram.html", "struct_delay_histogram" ],
     [ "DelayDifference", "struct_delay_difference.html", "struct_delay_difference" ],
     [ "BaselineCall", "struct_baseline_call.html", "struct_baseline_call" ],
     [ "BaselineOccurrence", "struct_baseline_occurrence.html", "struct_baseline_occurrence" ],
@@ -47,5 +49,6 @@ var _delay_analysis_8h =
     [ "compareAgainstBaseline", "_delay_analysis_8h.html#acb545fe8bb0a8c7be03694784d1d9009", null ],
     [ "defaultDelayThresholdsSeconds", "_delay_analysis_8h.html#ad8491edb84439158fe447805bae82f55", null ],
     [ "delayDiagnosticCode", "_delay_analysis_8h.html#a97182d2fe96662af16156a111973b86c", null ],
+    [ "delayHistogram", "_delay_analysis_8h.html#acfba7de5efd85bcb7be7b131bd182cac", null ],
     [ "summarizeDelays", "_delay_analysis_8h.html#adb7135699c8672176c5752352f814ae0", null ]
 ];

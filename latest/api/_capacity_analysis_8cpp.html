@@ -119,12 +119,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_anal
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CapacityAnalysis.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp__incl.svg" width="566" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp__incl.svg" width="588" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa2d628e9a6d19056454846df4785c094" id="r_aa2d628e9a6d19056454846df4785c094"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2d628e9a6d19056454846df4785c094">analyzeCapacity</a> (const std::vector&lt; <a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a> &gt; &amp;trains, double periodSeconds, const std::string &amp;cycleEndIdentity)</td></tr>
+<tr class="memitem:a2e351fad4243c80b6986c4b1f7a614c8" id="r_a2e351fad4243c80b6986c4b1f7a614c8"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2e351fad4243c80b6986c4b1f7a614c8">capacityNextPeriodIdentity</a> (const std::string &amp;runtimeId)</td></tr>
+<tr class="memdesc:a2e351fad4243c80b6986c4b1f7a614c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The runtime id of the copy of a train one period later: "&lt;runtimeId&gt; (next period)".  <br /></td></tr>
+<tr class="memitem:a8c99415d983b8a0fbf2a069c3e0bda96" id="r_a8c99415d983b8a0fbf2a069c3e0bda96"><td class="memItemLeft"><a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8c99415d983b8a0fbf2a069c3e0bda96">capacityNextPeriodTrain</a> (const <a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a> &amp;train, double periodSeconds)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="aa2d628e9a6d19056454846df4785c094" name="aa2d628e9a6d19056454846df4785c094"></a>
@@ -154,7 +157,58 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp_aa2d628e9a6d19056454846df4785c094_cgraph.svg" width="396" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp_aa2d628e9a6d19056454846df4785c094_cgraph.svg" width="623" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2e351fad4243c80b6986c4b1f7a614c8" name="a2e351fad4243c80b6986c4b1f7a614c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e351fad4243c80b6986c4b1f7a614c8">&#9670;&#160;</a></span>capacityNextPeriodIdentity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string capacityNextPeriodIdentity </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>runtimeId</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The runtime id of the copy of a train one period later: "&lt;runtimeId&gt; (next period)". </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp_a2e351fad4243c80b6986c4b1f7a614c8_cgraph.svg" width="210" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8c99415d983b8a0fbf2a069c3e0bda96" name="a8c99415d983b8a0fbf2a069c3e0bda96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c99415d983b8a0fbf2a069c3e0bda96">&#9670;&#160;</a></span>capacityNextPeriodTrain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a> capacityNextPeriodTrain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_train.html">CapacityAnalysisTrain</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>train</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>periodSeconds</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The train one period later: capacityNextPeriodIdentity as its runtime id, the operating code, reference label and reference source of <span class="tt">train</span>, and its occupations and references moved by <span class="tt">periodSeconds</span>. A time of an occupation that is not available stays as it is. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_analysis_8cpp_a8c99415d983b8a0fbf2a069c3e0bda96_cgraph.svg" width="438" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

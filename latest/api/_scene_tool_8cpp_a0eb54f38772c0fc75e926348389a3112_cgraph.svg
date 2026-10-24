@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix.">
+<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title="One line for the log and the console: severity, code, file, item, path, message and suggested fix.">
 <polygon fill="white" stroke="#666666" points="186,-19 103,-19 103,0 186,0 186,-19"/>
 <text text-anchor="middle" x="144.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">toDisplayText</text>
 </a>

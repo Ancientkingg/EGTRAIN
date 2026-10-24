@@ -1,0 +1,6 @@
+<map id="ScenarioPanel::addBlankScenario" name="ScenarioPanel::addBlankScenario">
+<area shape="rect" id="Node000001" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,..." alt="" coords="5,29,244,55"/>
+<area shape="rect" id="Node000002" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="292,29,467,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,39,278,39,278,45,244,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="338,31,329,21,334,11,351,5,379,3,415,7,425,11,429,17,425,20,422,15,414,12,379,8,352,10,338,15,335,20,342,27"/>
+</map>

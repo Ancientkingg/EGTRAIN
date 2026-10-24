@@ -145,10 +145,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a7476713caf7e3df9d643ead6abc26cd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Centres the view on a point in scene coordinates and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a> when the centre moved.  <br /></td></tr>
 <tr class="memitem:ad2058481034183e0dc4f6de02c2d1f57" id="r_ad2058481034183e0dc4f6de02c2d1f57"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad2058481034183e0dc4f6de02c2d1f57">centerOn</a> (QGraphicsItem *item)</td></tr>
 <tr class="memdesc:ad2058481034183e0dc4f6de02c2d1f57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Centres the view on the centre of the bounds of the item in the scene. Nothing happens for null.  <br /></td></tr>
+<tr class="memitem:a1b99ce091ab7e0b2f4426af03fbd59c3" id="r_a1b99ce091ab7e0b2f4426af03fbd59c3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1b99ce091ab7e0b2f4426af03fbd59c3">centerOnExactly</a> (const QPointF &amp;scenePos)</td></tr>
 <tr class="memitem:a50f02412e1c7a8f8ef6301e28f94114b" id="r_a50f02412e1c7a8f8ef6301e28f94114b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a50f02412e1c7a8f8ef6301e28f94114b">mousePressEvent</a> (QMouseEvent *mouseEvent) override</td></tr>
 <tr class="memdesc:a50f02412e1c7a8f8ef6301e28f94114b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hands the press to QGraphicsView.  <br /></td></tr>
 <tr class="memitem:ac364c881dac18f0c3efc98501b2b5d06" id="r_ac364c881dac18f0c3efc98501b2b5d06"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac364c881dac18f0c3efc98501b2b5d06">mouseReleaseEvent</a> (QMouseEvent *mouseEvent) override</td></tr>
 <tr class="memdesc:ac364c881dac18f0c3efc98501b2b5d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hands the release to QGraphicsView and emits <a class="el" href="#a56b38d1a10617499bcbed678d3feb7ff" title="A mouse button was released over the view.">interactionFinished()</a>.  <br /></td></tr>
+<tr class="memitem:a628d8b4c2dd8b78da0e5061078fc7083" id="r_a628d8b4c2dd8b78da0e5061078fc7083"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a628d8b4c2dd8b78da0e5061078fc7083">interacting</a> () const</td></tr>
 <tr class="memitem:a76aea6ea237091520ac41b0fe569a8a0" id="r_a76aea6ea237091520ac41b0fe569a8a0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a76aea6ea237091520ac41b0fe569a8a0">fitToTopology</a> ()</td></tr>
 <tr class="memdesc:a76aea6ea237091520ac41b0fe569a8a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fits the view, as <a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds()</a> does, to the ends of the track lines and connections in the scene.  <br /></td></tr>
 <tr class="memitem:aee9647a6c31887862f82e0b18b65b610" id="r_aee9647a6c31887862f82e0b18b65b610"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds</a> (const QRectF &amp;bounds)</td></tr>
@@ -167,6 +169,11 @@ Public Member Functions</h2></td></tr>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:af1efa7710811d8837e43eff52971cd3a" id="r_af1efa7710811d8837e43eff52971cd3a"><td class="memItemLeft">static constexpr qreal&#160;</td><td class="memItemRight"><a class="el" href="#af1efa7710811d8837e43eff52971cd3a">maximumZoomRatio</a> ()</td></tr>
 <tr class="memdesc:af1efa7710811d8837e43eff52971cd3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The largest zoom ratio.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:aa570040d941a0a478af198978b1235e1" id="r_aa570040d941a0a478af198978b1235e1"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aa570040d941a0a478af198978b1235e1">interactionQuietMs</a> = 150</td></tr>
+<tr class="memdesc:aa570040d941a0a478af198978b1235e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">How long after the last event of a scroll or a pinch the view is no longer moved by the user, in milliseconds.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -197,6 +204,11 @@ Protected Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>A view with the dark canvas, antialiasing and panning by drag. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_view_ad3da1ea558773cd3e524312203d57a3b_cgraph.svg" width="364" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -244,7 +256,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Starts a timer for the next paint of the viewport, which emits <a class="el" href="#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call.">timingPaintCompleted()</a> with kind and generation. </p>
+<p>Starts a timer and asks for the next paint of the viewport, which emits <a class="el" href="#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call.">timingPaintCompleted()</a> with kind and generation. </p>
 
 </div>
 </div>
@@ -286,6 +298,24 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a1b99ce091ab7e0b2f4426af03fbd59c3" name="a1b99ce091ab7e0b2f4426af03fbd59c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b99ce091ab7e0b2f4426af03fbd59c3">&#9670;&#160;</a></span>centerOnExactly()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkView::centerOnExactly </td>
+          <td>(</td>
+          <td class="paramtype">const QPointF &amp;</td>          <td class="paramname"><span class="paramname"><em>scenePos</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Centres the view on a point in scene coordinates to a fraction of a pixel and emits <a class="el" href="#ac759eb59c9af28946b90f56ced8205ac" title="The centre or the scale of the view changed.">viewportChanged()</a> when the centre moved. The scroll bars take the whole pixels and a translation of the transform the rest. An axis on which the view cannot move that far, at the edge of the scene or with the whole scene in view, is centred to the pixel as <a class="el" href="#a7476713caf7e3df9d643ead6abc26cd1" title="Centres the view on a point in scene coordinates and emits viewportChanged() when the centre moved.">centerOn()</a> does. </p>
+
+</div>
+</div>
 <a id="a0c96daed10a6235d1bc2b5c147fe7ad0" name="a0c96daed10a6235d1bc2b5c147fe7ad0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c96daed10a6235d1bc2b5c147fe7ad0">&#9670;&#160;</a></span>drawBackground()</h2>
 
@@ -313,6 +343,11 @@ Protected Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>Fills the canvas and draws a grid of lines one device pixel wide on multiples of a spacing in scene units. The spacing starts at 80 and is doubled or halved until it is 24 to 96 logical pixels on screen. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_view_a0c96daed10a6235d1bc2b5c147fe7ad0_cgraph.svg" width="387" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -369,6 +404,24 @@ Protected Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Fits the view, as <a class="el" href="#aee9647a6c31887862f82e0b18b65b610">fitToBounds()</a> does, to the ends of the track lines and connections in the scene. </p>
+
+</div>
+</div>
+<a id="a628d8b4c2dd8b78da0e5061078fc7083" name="a628d8b4c2dd8b78da0e5061078fc7083"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a628d8b4c2dd8b78da0e5061078fc7083">&#9670;&#160;</a></span>interacting()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkView::interacting </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The user is moving the view: the left button, which drags the view, is held on it, or the last event of a scroll or a pinch came less than interactionQuietMs ago. </p>
 
 </div>
 </div>
@@ -796,6 +849,31 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_view_a0d88c5bd66451f6986a8ad733995e521_cgraph.svg" width="467" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="aa570040d941a0a478af198978b1235e1" name="aa570040d941a0a478af198978b1235e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa570040d941a0a478af198978b1235e1">&#9670;&#160;</a></span>interactionQuietMs</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int NetworkView::interactionQuietMs = 150</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>How long after the last event of a scroll or a pinch the view is no longer moved by the user, in milliseconds. </p>
 
 </div>
 </div>

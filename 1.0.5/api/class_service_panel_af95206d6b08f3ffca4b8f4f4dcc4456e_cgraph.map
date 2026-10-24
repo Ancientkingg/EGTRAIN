@@ -1,0 +1,29 @@
+<map id="ServicePanel::commitRoute" name="ServicePanel::commitRoute">
+<area shape="rect" id="Node000001" title="Takes the route at index of the route combo." alt="" coords="5,191,207,216"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="272,133,469,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,188,298,159,299,164,166,193"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="255,183,487,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,201,241,201,241,206,207,206"/>
+<area shape="rect" id="Node000011" href="$class_service_panel.html#a8a400164f094d35a68eff39d27d55480" title=" " alt="" coords="263,247,479,287"/>
+<area shape="poly" id="edge16_Node000001_Node000011" title=" " alt="" coords="160,214,274,241,273,247,159,219"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="535,69,761,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="460,181,485,169,500,159,509,148,518,137,533,125,560,112,563,116,536,130,522,140,513,151,503,163,488,174,462,186"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="809,29,1088,55"/>
+<area shape="poly" id="edge12_Node000003_Node000005" title=" " alt="" coords="468,181,485,169,496,156,503,142,507,112,511,82,519,67,533,55,576,31,623,15,671,7,720,4,813,9,890,24,889,29,813,15,720,9,672,12,624,20,578,36,536,59,523,71,516,84,512,112,508,143,501,159,488,173,471,185"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="844,113,1053,139"/>
+<area shape="poly" id="edge13_Node000003_Node000006" title=" " alt="" coords="466,181,534,169,688,148,830,134,831,139,689,154,535,174,467,186"/>
+<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="553,183,743,223"/>
+<area shape="poly" id="edge8_Node000003_Node000007" title=" " alt="" coords="487,201,539,201,539,206,487,206"/>
+<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="556,247,740,287"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="459,221,548,242,547,247,458,226"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="539,336,757,361"/>
+<area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="466,221,488,233,505,249,514,265,522,281,536,297,563,315,593,329,590,333,561,320,533,301,517,284,509,268,501,252,485,237,464,226"/>
+<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="563,409,733,435"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="472,221,489,233,503,251,511,268,514,303,518,338,524,355,537,372,557,389,582,402,579,407,555,394,533,376,519,357,513,339,509,304,505,270,498,254,485,237,469,226"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="761,68,852,54,853,59,762,74"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="762,100,833,109,832,114,761,105"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="901,31,890,21,896,11,915,5,949,3,993,7,1004,13,1007,19,1002,21,1000,16,991,12,949,8,916,10,899,15,896,20,904,27"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="901,115,890,105,896,95,915,89,949,87,993,91,1004,97,1007,103,1002,105,1000,100,991,96,949,92,916,94,899,99,896,104,904,111"/>
+<area shape="poly" id="edge11_Node000009_Node000009" title=" " alt="" coords="603,338,594,328,599,318,617,311,648,309,688,314,699,319,702,325,698,327,695,323,687,319,648,315,618,317,602,322,599,327,607,334"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="603,411,594,401,599,391,617,385,648,383,688,387,699,392,702,398,698,401,695,396,687,392,648,388,618,390,602,395,599,400,607,407"/>
+</map>

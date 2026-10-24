@@ -1,0 +1,741 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Keyboard shortcuts" href="keyboard-shortcuts.html"><link rel="prev" title="Privacy and diagnostics" href="privacy-and-diagnostics.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Glossary of application terms - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/glossary.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="glossary-of-application-terms">
+<h1>Glossary of application terms<a class="headerlink" href="#glossary-of-application-terms" title="Link to this heading">¶</a></h1>
+<p>This page says what the words of the program and of its documents mean. Every entry says what a word means in EGTRAIN and where a user meets it: in a menu, a window, a field or a file. Railway words are explained only as far as the documents of this repository define them; <a class="reference internal" href="signalling-levels.html#what-is-not-established"><span class="std std-ref">What is not established</span></a> says what they do not claim. The schema and the guides stay the authority, so an entry links to them instead of repeating them.</p>
+<section id="cases-and-files">
+<h2>Cases and files<a class="headerlink" href="#cases-and-files" title="Link to this heading">¶</a></h2>
+<section id="case">
+<h3>Case<a class="headerlink" href="#case" title="Link to this heading">¶</a></h3>
+<p>A case is what the program opens, edits, runs and saves: everything a run needs, that is infrastructure, signalling, rolling stock, services with timetables, scenarios and, optionally, passengers. It is stored as a case folder or as a bundle. You meet it in <strong>File &gt; New Case…</strong>, <strong>File &gt; Open Case…</strong> (which opens a bundle), <strong>File &gt; Save As…</strong>, the dock <strong>Case and Layers</strong>, which names the open case, and the command-line option <code class="docutils literal notranslate"><span class="pre">-n</span></code> (<a class="reference internal" href="command-line.html#bundled-case-numbers"><span class="std std-ref">bundled case numbers</span></a>). The toolbar button <strong>Open Case</strong> shows the chooser <strong>Open a Case</strong>, which lists “Bundled cases” and “Recent cases” and has the button <strong>Other ways to open…</strong>.</p>
+</section>
+<section id="case-folder">
+<h3>Case folder<a class="headerlink" href="#case-folder" title="Link to this heading">¶</a></h3>
+<p>A case folder is a case as the program reads it: a folder of JSON files. The required files are <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>, <code class="docutils literal notranslate"><span class="pre">stations.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">rolling_stock.json</span></code> and <code class="docutils literal notranslate"><span class="pre">services.json</span></code>, and <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code> and <code class="docutils literal notranslate"><span class="pre">views.json</span></code> are optional on load (<a class="reference internal" href="scene-schema.html#case-folder"><span class="std std-ref">case folder</span></a>, <a class="reference internal" href="scene-schema.html#version-and-files"><span class="std std-ref">contents of the files</span></a>). You meet it in <strong>File &gt; Open Case Folder…</strong>, <strong>File &gt; Save</strong> (it writes back to an ordinary open folder or bundle; for a bundled case or a new case without a location it asks for a new bundle name, like <strong>File &gt; Save As…</strong>) and <strong>File &gt; Save As Folder…</strong>. The word “scene” names only the format of these files and the tools that read them, as in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, the <a class="reference internal" href="scene-schema.html"><span class="std std-doc">scene schema</span></a> and <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>. “Canonical” means this form: the case folder is the editable source of truth, loading, validating and running use only it, and legacy files enter or leave only through the explicit import and export.</p>
+</section>
+<section id="bundle">
+<h3>Bundle<a class="headerlink" href="#bundle" title="Link to this heading">¶</a></h3>
+<p>A bundle is one file for moving a case: a ZIP archive that holds the JSON files of a case folder and has the extension <code class="docutils literal notranslate"><span class="pre">.egscene</span></code>. It holds no results and no legacy input. <strong>File &gt; Save As…</strong> and <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">pack</span></code> make it, and <strong>File &gt; Open Case…</strong>, the chooser, the option <code class="docutils literal notranslate"><span class="pre">--scene</span></code>, a file name on the command line and a double-click in Explorer or Finder open it. The folder stays the editable source format and the bundle is its transport form (<a class="reference internal" href="opening-a-case-study.html"><span class="std std-doc">opening a case</span></a>, <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">bundle format</span></a>).</p>
+</section>
+<section id="v1-and-v2">
+<h3>V1 and V2<a class="headerlink" href="#v1-and-v2" title="Link to this heading">¶</a></h3>
+<p>V1 and V2 are names of formats that appear in page titles and file names. V1 is the scene data, a folder of JSON files numbered by <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and V2 is the bundle container, numbered by <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code>. The two numbers are independent. A reader of the program needs only the words case folder and bundle; see <a class="reference internal" href="scene-bundle.html"><span class="std std-doc">the bundle page</span></a>.</p>
+</section>
+<section id="scene-version">
+<h3>Scene version<a class="headerlink" href="#scene-version" title="Link to this heading">¶</a></h3>
+<p>These version numbers are independent: the version of the application, the <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> of the scene data and the <code class="docutils literal notranslate"><span class="pre">bundle_version</span></code> of a bundle. The application version that a case was saved with is provenance and does not by itself lead to an upgrade offer. When you open a case the program checks the versions and never changes the file, and a case that it can open opens directly. Otherwise it shows one of these dialogs: <strong>Older Case Not Supported</strong>, <strong>Newer Case</strong> (with the button <strong>Check for Updates…</strong>), <strong>Cannot Open Case</strong> (the message names the first problem) or <strong>Older Case</strong>. <strong>Older Case</strong> offers <strong>Upgrade a Copy…</strong>, which writes an upgraded copy and leaves the original unchanged, and it appears only for a version that has a registered migration. <a class="reference internal" href="opening-a-case-study.html#cases-that-do-not-open"><span class="std std-ref">Cases that do not open</span></a> describes the dialogs.</p>
+</section>
+<section id="legacy-case">
+<h3>Legacy case<a class="headerlink" href="#legacy-case" title="Link to this heading">¶</a></h3>
+<p>A legacy case is the input format of earlier versions: a folder of text files, for example <code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code>, with a train definition as one line of whitespace-separated tokens. The program does not run it. <strong>File &gt; Import Legacy Case…</strong> (also <strong>Other ways to open… &gt; Import Legacy Case…</strong> in the chooser) and <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> convert it into a new case folder at a destination you choose and leave the source unchanged; what could not be converted is listed in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code>, and the dock <strong>Loaded Data</strong> shows its counts. <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">export</span></code> writes legacy files from a case for other tools, and edits to them do not flow back. See <a class="reference internal" href="scene-schema.html#convert-a-legacy-case"><span class="std std-ref">convert a legacy case</span></a>, <a class="reference internal" href="command-line.html#scene-tool"><span class="std std-ref">scene_tool</span></a> and the <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>, which says what each legacy file becomes.</p>
+</section>
+<section id="provenance">
+<h3>Provenance<a class="headerlink" href="#provenance" title="Link to this heading">¶</a></h3>
+<p>Provenance names two things. Each export of results (<strong>Export CSV…</strong>, <strong>Export PNG…</strong>) writes a file with the same name plus <code class="docutils literal notranslate"><span class="pre">.provenance.json</span></code> beside it; it records the run that produced the export, and <a class="reference internal" href="command-line.html#random-seed"><span class="std std-ref">Random seed</span></a> names the seed that it holds. Rolling stock units carry descriptive source references, shown as <strong>Parameter file</strong> and <strong>Traction file</strong> in the dock <strong>Rolling Stock Units</strong> (the keys <code class="docutils literal notranslate"><span class="pre">data_file</span></code> and <code class="docutils literal notranslate"><span class="pre">traction_file</span></code> under <code class="docutils literal notranslate"><span class="pre">source</span></code>). The program does not reopen those files for a run (<a class="reference internal" href="main-window.html#review-what-loaded"><span class="std std-ref">review what loaded</span></a>).</p>
+</section>
+<section id="views-file">
+<h3>Views file<a class="headerlink" href="#views-file" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">views.json</span></code> is optional display data: the drawing level, region and visibility of tracks and the coordinates of stations in the network view. It changes nothing in topology, signalling, services or results, and folders and bundles keep it. The “level” in it is a drawing level and has nothing to do with a signalling level. See <a class="reference internal" href="scene-schema.html#views-json-and-runtime-metadata"><span class="std std-ref">views.json</span></a>.</p>
+</section>
+<section id="output-folder">
+<h3>Output folder<a class="headerlink" href="#output-folder" title="Link to this heading">¶</a></h3>
+<p>The output folder is the folder where a run writes its text output. <strong>File &gt; Set Output Folder…</strong> chooses it for the next run. <a class="reference internal" href="command-line.html#output-folder"><span class="std std-ref">Output folder</span></a> gives the default and the environment variable that replaces it. <a class="reference internal" href="run-output.html"><span class="std std-doc">Run output files</span></a> lists the files of a run. The exports (<strong>Export CSV…</strong>, <strong>Export PNG…</strong>) ask for their own path and are not written there.</p>
+</section>
+</section>
+<section id="checking-running-and-results">
+<h2>Checking, running and results<a class="headerlink" href="#checking-running-and-results" title="Link to this heading">¶</a></h2>
+<section id="validation">
+<h3>Validation<a class="headerlink" href="#validation" title="Link to this heading">¶</a></h3>
+<p>Validation is the program’s check of a case; each finding is a diagnostic with a severity (error, warning or info), a code such as <code class="docutils literal notranslate"><span class="pre">scene.ref.unresolved</span></code>, a message, a file and path and a suggested fix. Its layers are structural (files, JSON shape, required sections), semantic (references, identifiers, values, timetables, incidents) and runnable (the minimum a run needs). It runs when a case opens, after each edit, after a save and just before a run: an error disables <strong>Run</strong>, warnings and info do not, and <strong>Save</strong> stays allowed with semantic errors. You meet it in the dock <strong>Case Validation</strong> (<strong>View &gt; Case Validation</strong>; columns <strong>Severity</strong>, <strong>Code</strong>, <strong>Message</strong>, <strong>File</strong>, <strong>Path</strong> and <strong>Fix</strong>) and in <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code>, where <code class="docutils literal notranslate"><span class="pre">--runnable</span></code> applies the check that Run applies.</p>
+</section>
+<section id="run">
+<h3>Run<a class="headerlink" href="#run" title="Link to this heading">¶</a></h3>
+<p>A run is a simulation of the open case with the selected scenario and the ticked occurrences. You start it with the toolbar button <strong>Run</strong>, <strong>Simulation &gt; Run</strong> (Ctrl+R) or <strong>File &gt; Run</strong>. They are disabled while no case is loaded, while a run is active and while validation reports an error; with no occurrence ticked, starting a run shows the message <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">one</span> <span class="pre">occurrence</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">Run</span> <span class="pre">occurrences</span> <span class="pre">tab</span> <span class="pre">of</span> <span class="pre">Services.</span></code>, titled <strong>Cannot Run Case</strong> on Windows and Linux. Otherwise the dialog <strong>Run simulation</strong> shows <strong>Trains</strong>, <strong>Start time</strong>, <strong>Duration</strong> and, when the scenario has any, <strong>Incidents</strong>, and its button <strong>Run simulation</strong> starts the run. A run uses the case as it is in the window, including unsaved edits.</p>
+</section>
+<section id="runtime">
+<h3>Runtime<a class="headerlink" href="#runtime" title="Link to this heading">¶</a></h3>
+<p>The runtime is the working data that a run builds in memory from the case: the infrastructure and signalling, the services and their trains, the selected scenario and the passengers. It is not part of the case. The dock <strong>Loaded Data</strong> (<strong>View &gt; Loaded Data</strong>; columns <strong>Category</strong>, <strong>Source</strong>, <strong>Count</strong> and <strong>Status</strong>) shows its state in the row “Run”: “Not run” (after a case is opened or edited), “Ready”, “Running”, “Completed”, “Stopped” or “Failed”. In the same dock “Not present” marks an optional part that the case does not have, for example an optional file that the case can do without (<a class="reference internal" href="main-window.html#review-what-loaded"><span class="std std-ref">review what loaded</span></a>).</p>
+</section>
+<section id="playback">
+<h3>Playback<a class="headerlink" href="#playback" title="Link to this heading">¶</a></h3>
+<p>Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. <strong>Pause</strong> (the button then reads <strong>Resume</strong>), <strong>Stop</strong> and the speed slider, with the speed shown next to it, control it, and the tooltip of the slider reads “Simulation speed”, and the readout beside it shows <strong>Fastest</strong> or a factor such as <code class="docutils literal notranslate"><span class="pre">4.0x</span></code>. A run that you stop before its end leaves no results. Playback is not the replay and not the results; <a class="reference internal" href="how-to.html#replay-a-completed-run"><span class="std std-ref">Replay a completed run</span></a> says what a stopped run leaves.</p>
+</section>
+<section id="replay">
+<h3>Replay<a class="headerlink" href="#replay" title="Link to this heading">¶</a></h3>
+<p>The replay is the row under the network that appears after a successful run. It has the buttons <strong>Start</strong>, <strong>Play</strong> (which then turns into <strong>Pause</strong>) and <strong>End</strong>, a slider, the clock time of the shown frame and a line that states the interval between frames. It shows the recorded frames of the latest completed run: a position shows the last recorded frame at or before the chosen time. A stopped run has none, and a new run or any edit of the case clears it (<a class="reference internal" href="how-to.html#replay-a-completed-run"><span class="std std-ref">Replay a completed run</span></a>).</p>
+</section>
+<section id="results">
+<h3>Results<a class="headerlink" href="#results" title="Link to this heading">¶</a></h3>
+<p>Results are what a completed run leaves in memory: the dock <strong>Run Results</strong> (one row per train and a last row <strong>Network total</strong>, with the buttons <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong>, <strong>Set delay baseline</strong> and <strong>Compare delays</strong>) and the result windows, which open from the <strong>Diagrams</strong> menu or from <strong>Open result view…</strong>. The line <code class="docutils literal notranslate"><span class="pre">Occurrences</span></code> at the top of the dock counts the ticked occurrences against all configured ones, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected</span></code>. When some ticked occurrences enter outside the run period, it adds the number that are inside, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected,</span> <span class="pre">185</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">run</span> <span class="pre">period</span></code>; that number is the <strong>Trains</strong> of the dialog <strong>Run simulation</strong>. The entries that open them stay disabled until a run has completed. Results are not part of the case, so saving the case does not save them; any edit of the case, creating or opening a case and selecting another scenario discard them, and only a new run rebuilds them. A run also writes text files to the output folder (<a class="reference internal" href="scenarios.html"><span class="std std-doc">scenario library and student loop</span></a>, <a class="reference internal" href="delay-analysis.html#what-this-guide-covers"><span class="std std-ref">what this guide covers</span></a>).</p>
+</section>
+<section id="normal-mode-and-advanced-mode">
+<h3>Normal mode and advanced mode<a class="headerlink" href="#normal-mode-and-advanced-mode" title="Link to this heading">¶</a></h3>
+<p><strong>View &gt; Advanced Details</strong> (a check mark that the program remembers) switches between normal mode and advanced mode. Advanced mode adds technical inventories, validation details, non-blocking warnings and, after a case opens, the dock <strong>Loaded Data</strong>. It changes the presentation only: not what <strong>Run</strong> requires, what <strong>Save</strong> writes or what a run produces.</p>
+</section>
+</section>
+<section id="scenarios-and-incidents">
+<h2>Scenarios and incidents<a class="headerlink" href="#scenarios-and-incidents" title="Link to this heading">¶</a></h2>
+<section id="scenario">
+<h3>Scenario<a class="headerlink" href="#scenario" title="Link to this heading">¶</a></h3>
+<p>A scenario is a named set of incidents and entrance delays; a case can hold several of them, and a scenario is not a bundle. They are stored in <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>, where <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> names the default one, and infrastructure, rolling stock and services are shared by all of them. A run applies one scenario: the selected one, otherwise the default one. You meet scenarios in the tab <strong>Scenario</strong> of the dock <strong>Scenarios</strong> (<strong>Editors &gt; Scenarios</strong>), under a line that names the selected scenario: the list “Scenarios” (accessible name “Scenario library”) with <strong>New</strong>, <strong>Duplicate</strong>, <strong>Delete</strong>, <strong>Import…</strong>, <strong>Export…</strong> and the fields <strong>Scenario ID</strong>, <strong>Name</strong> and <strong>Description</strong>, and in the dialog <strong>Run simulation</strong>, which shows the case name and the scenario ID under its title (<a class="reference internal" href="scene-schema.html#scenarios-json"><span class="std std-ref">scenarios.json</span></a>, <a class="reference internal" href="scenarios.html"><span class="std std-doc">scenario library</span></a>).</p>
+</section>
+<section id="baseline">
+<h3>Baseline<a class="headerlink" href="#baseline" title="Link to this heading">¶</a></h3>
+<p>The word baseline has two meanings. The baseline scenario has the ID <code class="docutils literal notranslate"><span class="pre">baseline</span></code> and the name “Baseline”; a new case starts with it, with no incidents and no entrance delays, and loading a case without <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code> creates a scenario with that ID and name. The delay baseline is a completed run without incidents and entrance delays that you freeze with <strong>Set delay baseline</strong> in the dock <strong>Run Results</strong>, so that <strong>Compare delays</strong> can compare a later run with incidents or entrance delays against it. An edit of the case, creating a case and opening another one clear the delay baseline, and selecting another scenario does not (<a class="reference internal" href="delay-analysis.html#delay-comparison-against-a-baseline"><span class="std std-ref">delay comparison against a baseline</span></a>).</p>
+</section>
+<section id="incident">
+<h3>Incident<a class="headerlink" href="#incident" title="Link to this heading">¶</a></h3>
+<p>An incident is a disturbance in a scenario. In the dock <strong>Scenarios</strong> the tab <strong>Incidents</strong> has the fields <strong>Type</strong> (<strong>Signal failure</strong> or <strong>Train breakdown</strong>, stored as <code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> and <code class="docutils literal notranslate"><span class="pre">train_breakdown</span></code>), <strong>Target</strong>, <strong>Start (s)</strong>, the box <strong>End (s)</strong> with its field, <strong>Reduced speed</strong> and <strong>Terminate at destination</strong>; a box stands in front of the field it switches on. The icon button <strong>Pick</strong> beside <strong>Target</strong> takes the target from the next signal head or train that you click on the network view, and <strong>Add Incident</strong> takes it from the one that is selected there. <strong>Add signal failure</strong> in the context menu of a signal head, <strong>Add train breakdown</strong> in that of a train after a run, and the same button in the information panel of either add an incident with that target and open it on this tab (<a class="reference internal" href="how-to.html#compare-a-scenario-with-a-baseline"><span class="std std-ref">compare a scenario</span></a>). A signal failure needs an end; from its start to its end the sections of its target count as occupied and a stop target lies before them (<a class="reference internal" href="signalling-levels.html#common-behaviour"><span class="std std-ref">common behaviour</span></a>). A train breakdown acts on a service and may name one occurrence: it holds the train in place from its start to its end, or, with a <strong>Reduced speed</strong>, limits its speed, and a cap without an end lasts until the train reaches the end of its route. <strong>Terminate at destination</strong> marks the occurrence when it reaches its authored route end (<a class="reference internal" href="scene-schema.html#scenarios-json"><span class="std std-ref">scenarios.json</span></a>).</p>
+</section>
+<section id="entrance-delay">
+<h3>Entrance delay<a class="headerlink" href="#entrance-delay" title="Link to this heading">¶</a></h3>
+<p>An entrance delay is a number of seconds that a scenario adds to the planned departure of the named stop of one occurrence of a service. Planned arrivals stay as authored. It is an input of a scenario, not a result, and <strong>Compare delays</strong> shows it as the input delay of the occurrence. You meet it on the tab <strong>Entrance delays</strong> of the dock <strong>Scenarios</strong>, with the fields <strong>Service</strong>, <strong>Occurrence</strong>, <strong>Station</strong> and <strong>Delay (s)</strong> (<a class="reference internal" href="delay-analysis.html#units-and-the-reference-timetable"><span class="std std-ref">units and the reference timetable</span></a>).</p>
+</section>
+</section>
+<section id="services-timetables-and-rolling-stock">
+<h2>Services, timetables and rolling stock<a class="headerlink" href="#services-timetables-and-rolling-stock" title="Link to this heading">¶</a></h2>
+<section id="service">
+<h3>Service<a class="headerlink" href="#service" title="Link to this heading">¶</a></h3>
+<p>A service is a train service as the case defines it: an ID, a composition, a route, stops, and optionally an operating code, an entry time, a repetition, a performance, a speed cap, a category and a colour. You meet it in the dock <strong>Services</strong> (<strong>Editors &gt; Services</strong>), tab <strong>Service</strong>, where <strong>Service ID</strong> is the unique key that other files use. A service can run more than once, and each run is an <a class="reference internal" href="#occurrence">occurrence</a> (<a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">services.json</span></a>).</p>
+</section>
+<section id="service-code">
+<h3>Service code<a class="headerlink" href="#service-code" title="Link to this heading">¶</a></h3>
+<p>The editor label <strong>Operating code</strong> is the key <code class="docutils literal notranslate"><span class="pre">operating_code</span></code>; the results and the delay comparison use the same name. It defaults to the service ID and need not be unique. For a repeated service each occurrence has its own code: the base code followed by the occurrence number, or, when the box <strong>Code step</strong> is ticked and the base code is digits only, a stepped number, for example 1723, 1725, 1727 (<a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">services.json</span></a>).</p>
+</section>
+<section id="occurrence">
+<h3>Occurrence<a class="headerlink" href="#occurrence" title="Link to this heading">¶</a></h3>
+<p>An occurrence is one generated run of a service. Its identity is the pair of the service ID and an occurrence number counted from 1, written <code class="docutils literal notranslate"><span class="pre">&lt;service</span> <span class="pre">ID&gt;-&lt;number&gt;</span></code> where a single string is needed, and in the results one occurrence is one <strong>Train</strong>. A service without <strong>Repeat every (s)</strong> has one occurrence; with it, the number is the value of the box <strong>Repeat count</strong> if that box is ticked, otherwise the duration divided by the headway, rounded up (<a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">services.json</span></a>). You meet occurrences on the tab <strong>Run occurrences</strong> of the dock <strong>Services</strong>: one row per occurrence with the columns <strong>Run</strong>, <strong>Operating code</strong>, <strong>Route</strong>, <strong>Entry</strong>, <strong>Performance (%)</strong> and <strong>Maximum speed (km/h)</strong>, the buttons <strong>Select All</strong> and <strong>Select None</strong>, and a line such as “3 of 4 selected, 2 in the run period”. It counts the ticked occurrences of all occurrences of all services, and, when they differ, the ticked ones whose scheduled entry lies from zero up to, but not including, the duration. <strong>Run</strong> needs at least one ticked occurrence, and the ticks are not saved with the case and are reset when a case is created or opened.</p>
+</section>
+<section id="entry-time">
+<h3>Entry time<a class="headerlink" href="#entry-time" title="Link to this heading">¶</a></h3>
+<p>The entry time is the second at which an occurrence of a service enters its route, counted as elapsed time. It is the key <code class="docutils literal notranslate"><span class="pre">entry_time_seconds</span></code> and the box <strong>Entry time (s)</strong> (the field works only while the box is ticked). When it is not set, the planned departure of the first stop is used, and zero when that is absent too; a repeated service adds (n - 1) times the headway, where n is the occurrence number. <strong>Entry</strong> on the tab <strong>Run occurrences</strong> shows the result (<a class="reference internal" href="delay-analysis.html#units-and-the-reference-timetable"><span class="std std-ref">units and the reference timetable</span></a>).</p>
+</section>
+<section id="headway">
+<h3>Headway<a class="headerlink" href="#headway" title="Link to this heading">¶</a></h3>
+<p>In the editor the headway is the time between the entries of consecutive occurrences of one service: the key <code class="docutils literal notranslate"><span class="pre">repeat.headway_seconds</span></code> and the box <strong>Repeat every (s)</strong>. Occurrence n is shifted by (n - 1) times the headway, for its entry and for its stop times (<a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">services.json</span></a>). The capacity analysis window uses the word for results of an ordered pair of trains, not for this setting; see <a class="reference internal" href="#capacity-analysis">Capacity analysis</a>.</p>
+</section>
+<section id="timetable-stop">
+<h3>Timetable stop<a class="headerlink" href="#timetable-stop" title="Link to this heading">¶</a></h3>
+<p>A timetable stop is one scheduled call of a service at a station: the station, an optional platform, <strong>Planned arrival</strong>, <strong>Planned departure</strong> and <strong>Minimum dwell (s)</strong> (the keys <code class="docutils literal notranslate"><span class="pre">station</span></code>, <code class="docutils literal notranslate"><span class="pre">platform</span></code>, <code class="docutils literal notranslate"><span class="pre">planned_arrival_seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">planned_departure_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code>). Arrival and departure are each optional, where blank means absent and 0 is the simulation zero, and both are planned input counted from the base time of the case, never results (<a class="reference internal" href="editing-a-case.html"><span class="std std-doc">edit and validate</span></a>). You meet stops in the table on the tab <strong>Timetable</strong> of the dock <strong>Services</strong> (columns <strong>Station</strong>, <strong>Stop platform</strong>, <strong>Minimum dwell (s)</strong>, <strong>Planned arrival</strong> and <strong>Planned departure</strong>). The dialog <strong>Edit Timetable Stop</strong> (<strong>Add Timetable Stop</strong> for a new stop) opens from <strong>Add Stop</strong>, <strong>Insert After Selected</strong> or a click on a row.</p>
+</section>
+<section id="dwell">
+<h3>Dwell<a class="headerlink" href="#dwell" title="Link to this heading">¶</a></h3>
+<p>The dwell is the time that has to pass before a train that has reached a stop can leave it: the key <code class="docutils literal notranslate"><span class="pre">dwell_seconds</span></code> and the field <strong>Minimum dwell (s)</strong>, which is required and not negative. A train that has reached a stop leaves it no earlier than the dwell has passed and no earlier than the planned departure of the stop, when it has one. Passengers who board or alight can make the stop longer than the dwell, never shorter, and a stop where nobody boards or alights lasts exactly the dwell (<a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">the rule</span></a>). A train that begins its route at a stop is not held there (<a class="reference internal" href="delay-analysis.html#units-and-the-reference-timetable"><span class="std std-ref">units and the reference timetable</span></a>).</p>
+</section>
+<section id="elapsed-time-and-clock-time">
+<h3>Elapsed time and clock time<a class="headerlink" href="#elapsed-time-and-clock-time" title="Link to this heading">¶</a></h3>
+<p>Planned times and entry times count elapsed seconds from the base time of the case (the key <code class="docutils literal notranslate"><span class="pre">base_time</span></code>, the field <strong>Base time</strong>, written <code class="docutils literal notranslate"><span class="pre">HH:MM:SS</span></code>; the rules are in <a class="reference internal" href="editing-a-case.html"><span class="std std-doc">edit and validate</span></a>). Clock time is the base time plus the elapsed seconds: with the base time 08:00:00, 90 seconds is 08:01:30. <strong>Planned time display</strong> in the dock <strong>Services</strong> and in the stop dialog chooses <strong>Elapsed offsets (s)</strong> or <strong>Clock time</strong>, and switching changes the display only, not the stored seconds. A later day is written with the prefix <code class="docutils literal notranslate"><span class="pre">+1d</span></code>, and passenger windows count differently (see <a class="reference internal" href="#passenger">Passenger</a>).</p>
+</section>
+<section id="case-settings">
+<h3>Case settings<a class="headerlink" href="#case-settings" title="Link to this heading">¶</a></h3>
+<p>The dock <strong>Case Settings</strong> (<strong>Editors &gt; Case Settings</strong>) holds <strong>Name</strong>, <strong>Description</strong>, <strong>Base time</strong>, <strong>Duration (s)</strong>, <strong>Buffer (s)</strong> and <strong>Recovery (%)</strong>; in <code class="docutils literal notranslate"><span class="pre">scene.json</span></code> they are <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, <code class="docutils literal notranslate"><span class="pre">base_time</span></code> and, under <code class="docutils literal notranslate"><span class="pre">simulation_settings</span></code>, <code class="docutils literal notranslate"><span class="pre">duration_seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">buffer_time_seconds</span></code> and <code class="docutils literal notranslate"><span class="pre">recovery_time_percent</span></code>. The duration is the length of the simulated period (the option <code class="docutils literal notranslate"><span class="pre">-h</span></code> calls it the simulation horizon), and the occurrences counted “in period” are those whose scheduled entry lies within it. Buffer and recovery are numbers that the blocking-time calculation reads, and <code class="docutils literal notranslate"><span class="pre">-b</span></code> and <code class="docutils literal notranslate"><span class="pre">-c</span></code> replace them for a command-line start. <strong>Recovery (%)</strong> has nothing to do with <strong>End (s)</strong> of an incident (<a class="reference internal" href="scene-schema.html#scene-json"><span class="std std-ref">scene.json</span></a>, <a class="reference internal" href="command-line.html#options"><span class="std std-ref">options</span></a>).</p>
+</section>
+<section id="performance-and-speed-cap">
+<h3>Performance and speed cap<a class="headerlink" href="#performance-and-speed-cap" title="Link to this heading">¶</a></h3>
+<p>Performance and speed cap are two settings of a service. <strong>Performance (%)</strong> (<code class="docutils literal notranslate"><span class="pre">performance_percent</span></code>; the default is in <a class="reference internal" href="scene-schema.html#services-json"><span class="std std-ref">services.json</span></a>) scales the available tractive effort and the commanded maximum speed, not braking, mass or composition data. <strong>Maximum speed (km/h)</strong> (<code class="docutils literal notranslate"><span class="pre">maximum_speed_kmh</span></code>, a box) caps the speed: the commanded maximum is the composition maximum limited by the cap, then multiplied by the performance. <strong>Performance (%)</strong> and <strong>Maximum speed (km/h)</strong> in <strong>Run Results</strong> show the applied values per train, and the <strong>Reduced speed</strong> of a train breakdown is a different, temporary limit.</p>
+</section>
+<section id="rolling-stock-unit-and-composition">
+<h3>Rolling stock unit and composition<a class="headerlink" href="#rolling-stock-unit-and-composition" title="Link to this heading">¶</a></h3>
+<p>A rolling stock unit (<code class="docutils literal notranslate"><span class="pre">train_units[]</span></code>; the files and the schema call it a train unit) has physical values, a traction curve of rows <code class="docutils literal notranslate"><span class="pre">v_lower</span></code>, <code class="docutils literal notranslate"><span class="pre">v_upper</span></code>, <code class="docutils literal notranslate"><span class="pre">c0</span></code>, <code class="docutils literal notranslate"><span class="pre">c1</span></code>, <code class="docutils literal notranslate"><span class="pre">c2</span></code> and descriptive source references. A composition is an ordered list of units, and a service names one composition. You meet them in the docks <strong>Rolling Stock Units</strong> and <strong>Compositions</strong> (<strong>Editors &gt; Rolling Stock Units</strong>, <strong>Editors &gt; Compositions</strong>). The traction curve is input: the button <strong>Plot Traction Curve</strong> draws it, and that plot shows rolling stock input, not simulated effort, while the result view <strong>Tractive effort / distance</strong> shows what the run applied (<a class="reference internal" href="scene-schema.html#rolling-stock-json"><span class="std std-ref">rolling_stock.json</span></a>, which lists the keys).</p>
+</section>
+<section id="passenger">
+<h3>Passenger<a class="headerlink" href="#passenger" title="Link to this heading">¶</a></h3>
+<p>A passenger record is optional input in <code class="docutils literal notranslate"><span class="pre">passengers.json</span></code>: passengers with journeys, where a journey has an origin station and a destination station, a planned departure window and a planned arrival window, and legs. A leg rides one occurrence of a service from one station to a later one. The windows are absolute seconds from midnight, not from the base time. You meet them in the dock <strong>Passengers</strong> (<strong>Editors &gt; Passengers</strong>; lists <strong>Passengers</strong>, <strong>Journeys</strong> and <strong>Legs</strong>) and in the option <code class="docutils literal notranslate"><span class="pre">-pax</span></code> (<a class="reference internal" href="scene-schema.html#passengers-json"><span class="std std-ref">passengers.json</span></a>, <a class="reference internal" href="command-line.html#options"><span class="std std-ref">options</span></a>).</p>
+</section>
+</section>
+<section id="network-and-signalling">
+<h2>Network and signalling<a class="headerlink" href="#network-and-signalling" title="Link to this heading">¶</a></h2>
+<section id="infrastructure-entities">
+<h3>Infrastructure entities<a class="headerlink" href="#infrastructure-entities" title="Link to this heading">¶</a></h3>
+<p>The dock <strong>Infrastructure</strong> (<strong>Editors &gt; Infrastructure</strong>) has a chooser above the table with one entry for each row of this table, in the order of the chooser.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Entity</p></th>
+<th class="head"><p>What the documents say</p></th>
+<th class="head"><p>Stored in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tracks</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>. Nodes, arcs and blocks name their track; positions along a track are in km.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Nodes</p></td>
+<td><p>A point of a track, with <code class="docutils literal notranslate"><span class="pre">x_km</span></code> and <code class="docutils literal notranslate"><span class="pre">y_km</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Arcs</p></td>
+<td><p>Join two nodes of a track (<code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code>) and carry the curvature radius, the gradient (percent, used unchanged as rise per length) and the speed limit (m/s).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Blocks</p></td>
+<td><p>Follow each other along a track, each with <code class="docutils literal notranslate"><span class="pre">length_km</span></code>. A block is the part of a track that a train occupies and the unit in which aspects are written (<a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">block sections</span></a>). A block ID cannot contain “/”.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Connections</p></td>
+<td><p>Join two nodes (<code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code>), with an optional speed limit; a connection makes a switch section for each pair of blocks that hold its two nodes (<a class="reference internal" href="signalling-levels.html#how-an-area-gives-sections-their-level"><span class="std std-ref">how an area gives sections their level</span></a>).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Stations</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, an optional <code class="docutils literal notranslate"><span class="pre">position_km</span></code> and platforms.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stations.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Platforms</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>, node IDs and an optional <code class="docutils literal notranslate"><span class="pre">length_m</span></code> and <code class="docutils literal notranslate"><span class="pre">width_m</span></code>, which set the passenger capacity (<a class="reference internal" href="scene-schema.html#stations-json"><span class="std std-ref">stations.json</span></a> gives the defaults).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">stations.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Signals</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">protected_section</span></code>, used to resolve the targets of signal failures; the heads on the canvas show the aspect of a section (see <a class="reference internal" href="#signal-head">Signal head</a>).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Signalling area</p></td>
+<td><p>See <a class="reference internal" href="#signalling-area">Signalling area</a>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Routes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">blocks</span></code> in authored order, an optional <code class="docutils literal notranslate"><span class="pre">corridor</span></code> and <code class="docutils literal notranslate"><span class="pre">reversed</span></code>; a service names a route by its ID.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Block dependencies</p></td>
+<td><p>A pair <code class="docutils literal notranslate"><span class="pre">block</span></code> and <code class="docutils literal notranslate"><span class="pre">depends_on</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Single-track restrictions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">start_block</span></code>, <code class="docutils literal notranslate"><span class="pre">end_block</span></code>, <code class="docutils literal notranslate"><span class="pre">protected_start_block</span></code> and <code class="docutils literal notranslate"><span class="pre">protected_end_block</span></code>; they keep trains of opposite directions out of a stretch (<a class="reference internal" href="scene-schema.html#single-track-restrictions"><span class="std std-ref">single-track restrictions</span></a>).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Station boundaries</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">entrance_block</span></code>, an optional <code class="docutils literal notranslate"><span class="pre">exit_block</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">direction</span></code>; the simulation can mark the entrance section as occupied (<a class="reference internal" href="signalling-levels.html#what-happens-in-a-step"><span class="std std-ref">what happens in a step</span></a>).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="section">
+<h3>Section<a class="headerlink" href="#section" title="Link to this heading">¶</a></h3>
+<p>A section is the unit of signalling at run time: a block of one track, or a switch section that a connection builds from two blocks. It is not stored in the case, because the program derives it from tracks, blocks, arcs and connections. A section has a signalling level or none, a code and a state, and the validation warning <code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code> names route sections that have no level (<a class="reference internal" href="signalling-levels.html#what-a-signalling-level-is"><span class="std std-ref">what a signalling level is</span></a>, <a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">block sections</span></a>).</p>
+</section>
+<section id="ids-and-labels">
+<h3>Ids and labels<a class="headerlink" href="#ids-and-labels" title="Link to this heading">¶</a></h3>
+<p>The case names tracks, blocks and sections by ids. Where the program lists or names a section, it shows a label that it derives from the layout instead.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>What it is</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Track id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> of a track in <code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>. An imported case calls its tracks <code class="docutils literal notranslate"><span class="pre">B</span></code> and the number of the legacy folder.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Block id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0-B0</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">id</span></code> of a block. An imported block is named by its row in the legacy file, counted from 0, and its track. A block that the editor adds is called <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">block_2</span></code> and so on.</p></td>
+</tr>
+<tr class="row-even"><td><p>Block section id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;0-B0&#64;</span></code></p></td>
+<td><p>The block id between <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> signs. The run and the exports name a block section by this id; routes and incident targets may name it by its block id.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Switch section id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code></p></td>
+<td><p>The two blocks that hold the nodes of a connection, each followed by <code class="docutils literal notranslate"><span class="pre">-</span></code> and the kilometre of its node. The <code class="docutils literal notranslate"><span class="pre">-</span></code> is a separator, not a minus sign: this is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from the node at 21.252 km.</p></td>
+</tr>
+<tr class="row-even"><td><p>Label</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">0.000</span> <span class="pre">to</span> <span class="pre">0.230</span> <span class="pre">km</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span> <span class="pre">21.010</span> <span class="pre">to</span> <span class="pre">21.235,</span> <span class="pre">B1</span> <span class="pre">21.252</span> <span class="pre">to</span> <span class="pre">21.450</span> <span class="pre">km</span></code></p></td>
+<td><p>The track and the kilometres of the two ends of a block section, or the piece on each track of a switch section, with three decimals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Short block id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">71-B0</span></code>, <code class="docutils literal notranslate"><span class="pre">71-B0/0-B1</span></code></p></td>
+<td><p>The block ids of a block section or a switch section, joined with <code class="docutils literal notranslate"><span class="pre">/</span></code>. The section strip of the blocking-time charts and the tables of the capacity windows show it, and the block lists of the result windows give it as a tooltip.</p></td>
+</tr>
+<tr class="row-even"><td><p>Track number</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
+<td><p>The number that a run gives a track: its place in the list of track ids sorted as text. It matches the digits of the track id only in cases with at most ten tracks: in Netherlands, B10 is track 2. The information panels of a run show the track id, with this number in the tooltip.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The section choices of the dock <strong>Infrastructure</strong> and the <strong>Target</strong> list of a signal failure show labels, with the id as the tooltip of an entry. The block lists of the result windows show labels too, with the short block id as the tooltip of an entry. The section strip of the blocking-time charts shows the short block id instead, with the label in its hover. The information panels name a track by its id and a section by its label, and the tooltip of the field gives the track number or the section id. The tooltip of a signal head names its track and position, and in the preview the label of its section; <strong>Edit &gt; Find…</strong> lists a signal by its track and position and finds it by the labels and the ids of its sections too; <strong>Copy section ID</strong> in the context menu of a signal head during a run copies the id. A validation message gives the id with the label in parentheses. The case files and the exports keep the ids, and the tables of the capacity windows their short block ids; a table cell that holds an id has the label as its tooltip. A label is not a reference: it changes when an earlier block of the same track changes length, so notes and scripts use the id. When two sections would get the same label, both labels end with the id in parentheses, and a reference that names no section is shown as it is.</p>
+</section>
+<section id="position">
+<h3>Position<a class="headerlink" href="#position" title="Link to this heading">¶</a></h3>
+<p>A position is the X of the case in kilometres, the geo X, at a point of a route. Within a section it follows the distance along the route linearly between the X of the end nodes of the section. It counts down where the route runs against the case coordinate, as Paimpol route1 does, and it jumps where the route continues in another display region: on Netherlands route0, 18.298 km continues at 30.569 km. The blocking-time charts plot the distance along the reference route and label their bottom axis with positions, titled <code class="docutils literal notranslate"><span class="pre">Position</span> <span class="pre">(km)</span></code>, with a break mark at each jump (<a class="reference internal" href="diagram-navigation.html"><span class="std std-doc">inspecting diagrams</span></a>). The blocking-time exports give positions in their geo X columns. The route charts, <strong>Timetable graph</strong> and <strong>Train paths</strong>, plot the distance along the route, titled <code class="docutils literal notranslate"><span class="pre">Distance</span> <span class="pre">(km)</span></code>.</p>
+</section>
+<section id="signalling-area">
+<h3>Signalling area<a class="headerlink" href="#signalling-area" title="Link to this heading">¶</a></h3>
+<p>A signalling area is a range along a track that gives the sections inside it their signalling level: <code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code> in <code class="docutils literal notranslate"><span class="pre">signalling.json</span></code> with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_km</span></code>, <code class="docutils literal notranslate"><span class="pre">end_km</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">track</span></code>. A section belongs to an area only when it lies wholly inside; an area without a track applies to every track, an area with a track applies to that track and takes precedence, and a section that no area contains has no level. The positions are chainage, the <code class="docutils literal notranslate"><span class="pre">x_km</span></code> values along the track of the section, and are not converted between tracks. You meet it in the dock <strong>Infrastructure</strong>, entity <strong>Signalling area</strong> (<a class="reference internal" href="signalling-levels.html#how-an-area-gives-sections-their-level"><span class="std std-ref">how an area gives sections their level</span></a>).</p>
+</section>
+<section id="signalling-level">
+<h3>Signalling level<a class="headerlink" href="#signalling-level" title="Link to this heading">¶</a></h3>
+<p>A signalling level is the whole number from 0 to 5 that a section has, or none (“No signalling”). The case stores no level on a block; the program takes it from the signalling area. The levels differ in how trains are kept apart: with a fixed block (the levels that the table calls fixed block) a train stops at the end of a block in front of an occupied block, with a moving block (the levels that the table calls moving block) the stop point lies behind the tail of the train ahead or the train takes the speed of the train ahead, and without a level trains are not separated; <a class="reference internal" href="signalling-levels.html#levels"><span class="std std-ref">the table of levels</span></a> says which block and which levels. The editor offers the labels in <a class="reference internal" href="signalling-levels.html#what-a-signalling-level-is"><span class="std std-ref">what a signalling level is</span></a> in a list; they name what the model does and are not claims about real systems (<a class="reference internal" href="signalling-levels.html#what-is-not-established"><span class="std std-ref">what is not established</span></a>).</p>
+</section>
+<section id="end-of-authority">
+<h3>End of authority<a class="headerlink" href="#end-of-authority" title="Link to this heading">¶</a></h3>
+<p>An end of authority is, in the model, a point on a route that a train takes as a target: a stop or, in the following mode that <a class="reference internal" href="signalling-levels.html#levels"><span class="std std-ref">the table of levels</span></a> names, the speed of the train ahead. The program makes one behind the tail of a train at the moving block levels and, for a signal failure, at the end of the section before the failed one; a train obeys only the ends of authority of its own direction (<a class="reference internal" href="signalling-levels.html#common-behaviour"><span class="std std-ref">common behaviour</span></a>).</p>
+</section>
+<section id="signal-head">
+<h3>Signal head<a class="headerlink" href="#signal-head" title="Link to this heading">¶</a></h3>
+<p>A signal head is the mark that the canvas draws for a signal. It shows what the simulation holds for the displayed time: the code that the program writes on the section ahead (a section has a code and a state, and each of its arcs has a signal speed limit). The <strong>Map Key</strong> (<strong>View &gt; Map Key</strong>, in the dock <strong>Case and Layers</strong>) lists, when the case has signals, “Stop signal”, “Caution signal”, “Proceed signal”, “Unavailable signal” and “Failed signal”. A head is unavailable when its section has no level, and failed while a signal failure is active (<a class="reference internal" href="signalling-levels.html#codes-and-what-they-do-to-a-following-train"><span class="std std-ref">codes and what they do to a following train</span></a>).</p>
+</section>
+</section>
+<section id="delay-blocking-time-and-capacity">
+<h2>Delay, blocking time and capacity<a class="headerlink" href="#delay-blocking-time-and-capacity" title="Link to this heading">¶</a></h2>
+<section id="blocking-time">
+<h3>Blocking time<a class="headerlink" href="#blocking-time" title="Link to this heading">¶</a></h3>
+<p>Blocking time is the time that the program calculates for a train on a block: an envelope from the approach minus the setup and sight reaction time to the clearance plus the release and run margin. It is calculated, not observed occupation (<a class="reference internal" href="diagram-navigation.html#timetable-graphs-and-train-paths"><span class="std std-ref">timetable graphs and train paths</span></a>). The table of <a class="reference internal" href="signalling-levels.html#levels"><span class="std std-ref">levels</span></a> says which levels have blocking times. You meet it in <strong>Diagrams &gt; Blocking time…</strong> and <strong>Run Results &gt; Open result view… &gt; Blocking time</strong>, which need a completed run; the case settings <strong>Buffer (s)</strong> and <strong>Recovery (%)</strong> feed the calculation.</p>
+</section>
+<section id="delay">
+<h3>Delay<a class="headerlink" href="#delay" title="Link to this heading">¶</a></h3>
+<p>A delay is, in the timetable results, the simulated time minus the planned time, in seconds and signed, so that early is negative. The Delay analysis window (<strong>Diagrams &gt; Delay analysis</strong>) shows the delay of each call, a summary, a histogram of the delays and the comparison against a delay baseline. Delay figures also appear in the timetable results (<strong>Diagrams &gt; Timetable</strong>, <strong>Diagrams &gt; Delays…</strong>), in the station statistics files, in the comparison against a delay baseline and in the passenger journey delay, and they are different quantities. An entrance delay is an input, not a delay result. See <a class="reference internal" href="delay-analysis.html#what-this-guide-covers"><span class="std std-ref">what this guide covers</span></a> and <a class="reference internal" href="delay-analysis.html#where-delays-are-calculated"><span class="std std-ref">where delays are calculated</span></a>.</p>
+</section>
+<section id="capacity-analysis">
+<h3>Capacity analysis<a class="headerlink" href="#capacity-analysis" title="Link to this heading">¶</a></h3>
+<p>Capacity analysis is the window opened by <strong>Diagrams &gt; Capacity…</strong> or <strong>Run Results &gt; Open result view… &gt; Capacity</strong> after a run. It works on one route, on the blocks of it that the trains you select all occupy, and on the blocking times of those trains, not on signalling areas, so it has data only for sections that have blocking times (<a class="reference internal" href="signalling-levels.html#signalling-areas-block-sections-and-capacity-areas"><span class="std std-ref">block sections and capacity areas</span></a>). The table in <a class="reference internal" href="assignment-workflow.html#exercise-sequence"><span class="std std-ref">exercise sequence</span></a> names its results: the minimum headway and the scheduled headway of an ordered pair of trains, the compressed timetable, critical blocks, buffer times and capacity consumption. In this window “headway” names a result of an ordered pair of trains, not the setting <strong>Repeat every (s)</strong> of a service, and the buffer there is a result as well, not the case setting <strong>Buffer (s)</strong>. <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a> states what the window computes.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="keyboard-shortcuts.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Keyboard shortcuts</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="privacy-and-diagnostics.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Privacy and diagnostics</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Glossary of application terms</a><ul>
+<li><a class="reference internal" href="#cases-and-files">Cases and files</a><ul>
+<li><a class="reference internal" href="#case">Case</a></li>
+<li><a class="reference internal" href="#case-folder">Case folder</a></li>
+<li><a class="reference internal" href="#bundle">Bundle</a></li>
+<li><a class="reference internal" href="#v1-and-v2">V1 and V2</a></li>
+<li><a class="reference internal" href="#scene-version">Scene version</a></li>
+<li><a class="reference internal" href="#legacy-case">Legacy case</a></li>
+<li><a class="reference internal" href="#provenance">Provenance</a></li>
+<li><a class="reference internal" href="#views-file">Views file</a></li>
+<li><a class="reference internal" href="#output-folder">Output folder</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#checking-running-and-results">Checking, running and results</a><ul>
+<li><a class="reference internal" href="#validation">Validation</a></li>
+<li><a class="reference internal" href="#run">Run</a></li>
+<li><a class="reference internal" href="#runtime">Runtime</a></li>
+<li><a class="reference internal" href="#playback">Playback</a></li>
+<li><a class="reference internal" href="#replay">Replay</a></li>
+<li><a class="reference internal" href="#results">Results</a></li>
+<li><a class="reference internal" href="#normal-mode-and-advanced-mode">Normal mode and advanced mode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scenarios-and-incidents">Scenarios and incidents</a><ul>
+<li><a class="reference internal" href="#scenario">Scenario</a></li>
+<li><a class="reference internal" href="#baseline">Baseline</a></li>
+<li><a class="reference internal" href="#incident">Incident</a></li>
+<li><a class="reference internal" href="#entrance-delay">Entrance delay</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#services-timetables-and-rolling-stock">Services, timetables and rolling stock</a><ul>
+<li><a class="reference internal" href="#service">Service</a></li>
+<li><a class="reference internal" href="#service-code">Service code</a></li>
+<li><a class="reference internal" href="#occurrence">Occurrence</a></li>
+<li><a class="reference internal" href="#entry-time">Entry time</a></li>
+<li><a class="reference internal" href="#headway">Headway</a></li>
+<li><a class="reference internal" href="#timetable-stop">Timetable stop</a></li>
+<li><a class="reference internal" href="#dwell">Dwell</a></li>
+<li><a class="reference internal" href="#elapsed-time-and-clock-time">Elapsed time and clock time</a></li>
+<li><a class="reference internal" href="#case-settings">Case settings</a></li>
+<li><a class="reference internal" href="#performance-and-speed-cap">Performance and speed cap</a></li>
+<li><a class="reference internal" href="#rolling-stock-unit-and-composition">Rolling stock unit and composition</a></li>
+<li><a class="reference internal" href="#passenger">Passenger</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-and-signalling">Network and signalling</a><ul>
+<li><a class="reference internal" href="#infrastructure-entities">Infrastructure entities</a></li>
+<li><a class="reference internal" href="#section">Section</a></li>
+<li><a class="reference internal" href="#ids-and-labels">Ids and labels</a></li>
+<li><a class="reference internal" href="#position">Position</a></li>
+<li><a class="reference internal" href="#signalling-area">Signalling area</a></li>
+<li><a class="reference internal" href="#signalling-level">Signalling level</a></li>
+<li><a class="reference internal" href="#end-of-authority">End of authority</a></li>
+<li><a class="reference internal" href="#signal-head">Signal head</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#delay-blocking-time-and-capacity">Delay, blocking time and capacity</a><ul>
+<li><a class="reference internal" href="#blocking-time">Blocking time</a></li>
+<li><a class="reference internal" href="#delay">Delay</a></li>
+<li><a class="reference internal" href="#capacity-analysis">Capacity analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

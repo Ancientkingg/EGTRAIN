@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul>
@@ -319,7 +319,7 @@ writable, download the release and install it with the platform’s normal
 permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
 first.</p>
-<p>When a newer release exists, a message reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;new</span> <span class="pre">version&gt;</span> <span class="pre">is</span> <span class="pre">available.</span> <span class="pre">You</span> <span class="pre">are</span> <span class="pre">using</span> <span class="pre">&lt;your</span> <span class="pre">version&gt;.</span></code> (on Windows and Linux its title is <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;new</span> <span class="pre">version&gt;</span> <span class="pre">is</span> <span class="pre">Available</span></code>) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are <strong>Update and Restart</strong> (when this copy can update itself), <strong>Open Release Page</strong>, <strong>Later</strong> and <strong>Stop Checking</strong>.</p>
+<p>When a newer release exists, a message reads <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;new</span> <span class="pre">version&gt;</span> <span class="pre">is</span> <span class="pre">available.</span> <span class="pre">You</span> <span class="pre">are</span> <span class="pre">using</span> <span class="pre">&lt;your</span> <span class="pre">version&gt;.</span></code> (on Windows and Linux its title is <code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">&lt;new</span> <span class="pre">version&gt;</span> <span class="pre">Is</span> <span class="pre">Available</span></code>) and shows the release notes with their line breaks and lists. Long notes end at a word and point to the release page. The buttons are <strong>Update and Restart</strong> (when this copy can update itself), <strong>Open Release Page</strong>, <strong>Later</strong> and <strong>Stop Checking</strong>.</p>
 <p>Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt
 an already-running session when a release is published. Use <strong>Help &gt; Check for
@@ -352,6 +352,19 @@ started, or at its next start when it was closed before that. Folders left by an
 interrupted update are removed at a start of the application once they are older
 than an hour, and when the next update starts once nothing in them changed for five
 minutes.</p>
+<p>A copy that replaces its own files (the macOS app, the Linux AppImage and a
+portable Windows copy) keeps the previous version next to the installation while
+the new one starts, under the same name followed by <code class="docutils literal notranslate"><span class="pre">.egtrain-old</span></code>, so that the
+update helper can put it back. At its start the new version tells you once
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN</span> <span class="pre">was</span> <span class="pre">updated</span> <span class="pre">to</span> <span class="pre">version</span> <span class="pre">&lt;version&gt;.</span></code>, as an installed Windows copy does
+after the Setup. About 20 seconds after that start it removes the previous
+version, or about 20 seconds after a later start when it was closed sooner. The
+new version holds only the files of the release, so files that you added to the
+folder of a portable copy are removed with the previous version. Close other
+EGTRAIN windows of the same copy before you update: one that keeps running would
+run from the removed version. EGTRAIN 1.0.4 and earlier keep the previous version
+until the next update, and an update from one of those versions ends without the
+message, because the version that is replaced runs the update.</p>
 <p>When the new version cannot be started, the update helper puts the previous
 version back, removes the staging folder and starts it again. That version then tells you once which version
 could not be started. Automatic checks do not offer that version again, a newer

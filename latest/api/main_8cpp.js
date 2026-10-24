@@ -18,7 +18,7 @@ var main_8cpp =
     [ "readLiveOptions", "main_8cpp.html#abae69462edc5b89943c514c4fcb9231b", null ],
     [ "readSceneRequest", "main_8cpp.html#a79a98a2b14abc8a0e41e6f8e5b6fd24c", null ],
     [ "readWholeNumber", "main_8cpp.html#af8a37ec1c7793e1bc17c4db837211d73", null ],
-    [ "reportCannotOpen", "main_8cpp.html#a7d6f46c0f2bd16f29457baf398a1605f", null ],
+    [ "reportCannotOpen", "main_8cpp.html#ad47a6cebbd1a41c709a8c3cf60e92337", null ],
     [ "resolveOutputDirectory", "main_8cpp.html#ae6ca41b4597eb4b15649b894f99ba7dd", null ],
     [ "resolveScenePath", "main_8cpp.html#ab13d1f8855e80edeffbcd6e0c3818eb6", null ],
     [ "runMain", "main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd", null ],

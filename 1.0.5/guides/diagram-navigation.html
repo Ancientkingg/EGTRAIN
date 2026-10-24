@@ -1,0 +1,449 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Tutorial: modify a bundled case" href="tutorial-modify-a-case.html"><link rel="prev" title="How capacity is analysed" href="capacity-analysis.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Inspecting diagrams - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/guides/diagram-navigation.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="inspecting-diagrams">
+<h1>Inspecting diagrams<a class="headerlink" href="#inspecting-diagrams" title="Link to this heading">¶</a></h1>
+<p>This page describes the result windows: hover, select, zoom, pan and the data behind the charts. <a class="reference internal" href="how-to.html#results-and-exports"><span class="std std-ref">How-to</span></a> lists the result windows and the exports, <a class="reference internal" href="how-to.html#move-around-the-network-view-and-follow-a-train"><span class="std std-ref">How-to</span></a> covers the network view, and <a class="reference internal" href="#timetable-graphs-and-train-paths">Timetable graphs and train paths</a> describes what the two route charts plot.</p>
+<p>Hover near a plotted line or event marker to inspect its nearest <strong>recorded sample</strong>. The tooltip shows that sample’s values, units and available station, call or block context. A line between samples is useful for finding a train, but the tooltip does not interpolate a value at the pointer. Filled occupation regions can be inspected inside their boundaries when marked as such by the chart; ordinary closed outlines cannot.</p>
+<p>A chart window has a header over the chart and a panel at its right. The header names the run in one line, on the blocking-time charts also the scope, and on <strong>Timetable graph</strong>, <strong>Train paths</strong> and <strong>Delays</strong> also the reference route; the traction curve window names the rolling stock unit instead. Hover it for the whole text. Its buttons are <strong>Zoom Out</strong>, <strong>Zoom In</strong>, <strong>Fit</strong> and <strong>Panel</strong>, which shows and hides the panel. The panel has the sections <strong>Trains</strong>, <strong>Key</strong>, <strong>Selected</strong> and <strong>Export</strong>, with <strong>PNG…</strong> and <strong>CSV…</strong>; <strong>PNG…</strong> keeps its half of the row on a chart without a CSV export. Below them it shows the value under the pointer in the units of the axes, to the precision of one pixel of the plot, as the value of the left axis at the value of the bottom axis: “100.0 km/h at 30.00 km” on <strong>Speed / distance</strong>, “100.0 km/h at 07:14:32” on <strong>Speed / time</strong> and “07:14:32 at 9.860 km” on the blocking-time charts, where the distance is the position that the bottom axis reads. <strong>Delays</strong> names the station nearest the pointer at which a shown train has an arrival delay, as in “2.5 min at Treviglio”. The readout and the tooltip clear when the chart changes size, as when the panel shows or hides or the window is resized. The panel is 260 px wide, or 200 px while the window is narrower than 1000 px. Drag its left edge to give it another width, no narrower than 200 px, which it then keeps. A chart without any line leaves <strong>Trains</strong>, <strong>Key</strong> and <strong>Selected</strong> out of its panel. When no train has an arrival delay at a station of the reference route, as in a run whose timetable has no planned arrivals such as Netherlands, <strong>Delays</strong> says so in the middle of its plot with the name of the route, as in “No arrival delays at stations of route8”.</p>
+<p><strong>Trains</strong> is the train filter and the colour key in one list. Each row has a check box that shows or hides the train, a short line in the colour of the train and its id, and the heading gives the count of shown trains, such as “20 of 22”. More than six trains that run in six services or fewer are grouped by service: a group row names the service and the number of its trains, opens to its trains, and its check box shows or hides all of them; it is partly checked while only some are shown. Other lists are flat. The selected train comes first and is highlighted, then the shown trains, then the hidden ones. While the pointer is over the list, the rows stay where they are, and they move once it leaves, also when the list keeps the keyboard focus. A change made with the keyboard while the pointer is elsewhere moves them once the focus leaves. Above six trains <strong>All</strong> and <strong>None</strong> show or hide the trains of the rows in the list. Above 12 trains a search field beside them narrows the rows to the trains and services that hold its text; it never changes a check box, and Escape clears it. While you search, <strong>All</strong>, <strong>None</strong> and a group row act on the trains that the search shows, and a group row shows whether those trains are shown.</p>
+<p><strong>Key</strong> lists the kinds of mark that the shown trains and the section strip draw, each with the line or fill that the chart gives it: Blocking time, Critical block and Conflict for the envelopes, Planned and Simulated lines, Stop and Dwell on the timetable graph, and Station section, Switch section and Block boundary for the strip. Simulated is left out while every line is simulated, so <strong>Delays</strong> and the per-train charts have no Key; the traction curve window lists its curves by name. Hiding a train takes the kinds that only it draws out of the Key. The sample of Blocking time is a grey box with a grey outline, as the outline of a blocking time takes the colour of its train; the samples of Critical block and Conflict have their hatch and outline.</p>
+<p>Click a line or marker to select its train: its line is drawn wider, the others fade, and its row in <strong>Trains</strong> is highlighted. On the blocking-time charts a click inside an envelope selects that envelope instead, which a dark outline marks while the chart keeps its look. A click on a line inside an envelope, or within 4 px of it, still selects the train of the line. The selected train is drawn over the other trains. <strong>Selected</strong> shows the lines of the tooltip of what was selected, one fact per line and wrapped to the width of the panel, with the first in bold. <strong>Clear</strong> on its heading, Escape, hiding the selected train or a new chart ends the selection; Escape closes the window only while nothing is selected. <strong>Trains</strong> controls visibility; neither filtering nor navigation changes the underlying CSV data schema. Drag a rectangle to zoom into an area. Two-finger scrolling pans by the supplied pixel distance; an ordinary wheel pans using wheel steps. Ctrl or Command plus wheel zooms around the pointer. Pinch zooms on devices that deliver native or Qt pinch gestures. Use + or - to zoom, arrow keys to pan while the chart has focus, which it has when the window opens, and Home, 0 or <strong>Fit</strong> to return to the chart’s initial bounds. Fit does not remove a train selection or change filters. The tooltips of the header buttons list the keys. <strong>PNG…</strong> saves the figure of the window: the window title as its heading, the header text below it and the chart, at twice the pixels of the window, without the tooltip, the outline of a selected envelope or a zoom rectangle that is being dragged. A column at the right of the chart lists the shown trains under “Trains”, each with its line and without a check box, or the services with a shown train while the list is grouped, and the rows of the Key under “Key”. It suggests the name of the CSV export of the chart with the suffix <code class="docutils literal notranslate"><span class="pre">.png</span></code>, such as <code class="docutils literal notranslate"><span class="pre">blocking_time.png</span></code>, <code class="docutils literal notranslate"><span class="pre">delays.png</span></code> for <strong>Delays</strong>, or <code class="docutils literal notranslate"><span class="pre">diagram.png</span></code> for a chart without a CSV export. Copy (Ctrl+C, or Command+C on macOS) while the chart has focus puts the same figure on the clipboard.</p>
+<p>A result window shows and exports the run it was opened for. A later run does not change an open window or its CSV export.</p>
+<p>Every train has one colour. Its lines, its stop and dwell markers and the outlines of its blocking times take it, and its row in <strong>Trains</strong> shows it as a short line. Six shown trains or fewer each take a colour of the palette, in this order: blue <code class="docutils literal notranslate"><span class="pre">#2a78d6</span></code>, pink <code class="docutils literal notranslate"><span class="pre">#c2448a</span></code>, green <code class="docutils literal notranslate"><span class="pre">#4c8a12</span></code>, violet <code class="docutils literal notranslate"><span class="pre">#6127b1</span></code>, coral <code class="docutils literal notranslate"><span class="pre">#e35b6b</span></code> and plum <code class="docutils literal notranslate"><span class="pre">#842a65</span></code>. More shown trains that run in six services or fewer take one colour of the palette for each service. More trains in more services are grey, <code class="docutils literal notranslate"><span class="pre">#8a97a1</span></code>, and the selected train is blue. The palette goes to the trains or services in the order in which the chart has them. While the window has six trains or fewer, or six services or fewer for the colours by service, a train keeps its colour when another is hidden. With more, the shown trains take the palette in turn, so showing or hiding a train can change the colours of the others. Showing or hiding a train works out the colours again and never changes a check box. A hidden train has a light grey line, <code class="docutils literal notranslate"><span class="pre">#c3cbd1</span></code>, in <strong>Trains</strong>, and a group row has the line of the colour that its shown trains share, or no line where they differ; an exported figure then lists those trains one by one. When the service of a train has a visualization colour, the train takes that colour instead of the colour of the palette, and so does a selected train among grey trains. <code class="docutils literal notranslate"><span class="pre">DiagramWindow::setTrainColors</span></code> gives the window these colours, keyed by the train id that groups the series. The line width, the dash pattern and the alpha of a filled region stay as the chart builder set them. A series whose <code class="docutils literal notranslate"><span class="pre">ownColour</span></code> property is true keeps its colour: the fill of a blocking time and the outline of a critical block or a conflict. Setting the colours or the services again keeps which trains are shown and which is selected. <code class="docutils literal notranslate"><span class="pre">TimetableTableWindow::setTrainColors</span></code> shows the colour of the service as a swatch in the filter of the timetable table. The application builds the colours from the completed run and the case that was run; the input traction characteristic has no trains and is not recoloured.</p>
+<p>Timetable graphs plot planned and simulated station arrival/departure events and dwell; train-path graphs plot continuous simulated trajectory samples. Both use reference-route runtime X in kilometres horizontally and elapsed simulation time vertically, increasing downward from run start (0 s). Choose a reference from the routes used in the run; each choice lists the station ids the route passes in travel order (<code class="docutils literal notranslate"><span class="pre">route0</span> <span class="pre">--&gt;</span> <span class="pre">Gvc</span> <span class="pre">-</span> <span class="pre">Gdg</span> <span class="pre">-</span> <span class="pre">Ut</span></code>), and the tooltip holds the full text. The window title names the view, such as <strong>Timetable graph</strong>, and the header names the run and then the reference route, such as <code class="docutils literal notranslate"><span class="pre">Paimpol</span> <span class="pre">/</span> <span class="pre">baseline</span> <span class="pre">·</span> <span class="pre">route0</span></code>, with <code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">right</span> <span class="pre">to</span> <span class="pre">left</span></code> added when the reference route runs towards lower X. The horizontal axis, <code class="docutils literal notranslate"><span class="pre">Distance</span> <span class="pre">(km)</span></code>, spans the reference route from its first to its last node exactly, with round ticks inside; the vertical axis, <code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">(hh:mm)</span></code>, shows clock times. The station names stand above the plot, each with its position in kilometres where there is room. Only as many as fit side by side are named, so that no name is shortened, and zooming in names more of them. The chart shortens the title of an axis that is wider than the chart; the tooltip over that title holds all of it. The window shows no note about the method; this page describes it. These are runtime route coordinates, not authored absolute chainage: case nodes have X/Y and stations may have <code class="docutils literal notranslate"><span class="pre">position_km</span></code>, but the case has no explicit chainage datum. The native infrastructure builder copies node X into runtime nodes, the route builder derives route sections from those nodes, and the operations builder retains the resolved stop node in each train. Shared canonical node or station IDs anchor other routes; mapping is limited to monotonic shared-anchor intervals. Unmapped or ambiguous portions are omitted rather than extrapolated. The graph CSV files (<code class="docutils literal notranslate"><span class="pre">timetable_graph.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">train_path_graph.csv</span></code>) contain <code class="docutils literal notranslate"><span class="pre">Train</span></code>, <code class="docutils literal notranslate"><span class="pre">Reference</span> <span class="pre">route</span></code>, <code class="docutils literal notranslate"><span class="pre">Source</span> <span class="pre">route</span></code>, <code class="docutils literal notranslate"><span class="pre">Event</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span></code>, <code class="docutils literal notranslate"><span class="pre">Journey</span> <span class="pre">order</span></code>, <code class="docutils literal notranslate"><span class="pre">Call</span></code>, <code class="docutils literal notranslate"><span class="pre">Elapsed</span> <span class="pre">time[s]</span></code>, <code class="docutils literal notranslate"><span class="pre">Reference</span> <span class="pre">route</span> <span class="pre">X[km]</span></code>. Missing event times and unavailable projected positions are blank; CSV uses the displayed reference and currently visible trains. Existing timetable table and raw trajectory CSV schemas are unchanged.</p>
+<p>Blocking-time charts draw each complete calculated blocking envelope as a rectangle between the directed block endpoints and its displayed start/end times, with a light grey fill and an outline 1.4 px wide in the colour of its train. A station or switch block looks like any other block; its hover names its type. An envelope that overlaps one of another train on a shared block is a conflict, dark red, <code class="docutils literal notranslate"><span class="pre">#9e1b1b</span></code>, with a cross hatch and a dark red outline. A zero-length block is a thin boundary line. They do not measure occupation or reservation independently: the model combines approach minus setup and sight reaction through clearance plus release and run margin. The standard chart places recorded trajectory samples above the envelopes as solid lines and planned station arrival/departure references as dashed lines, both 2 px wide in the colour of the train. The compressed capacity chart is built by the same code: it moves the envelopes and the recorded samples of each train by the shift of its occupations, draws capacity-critical envelopes amber, <code class="docutils literal notranslate"><span class="pre">#e3a21a</span></code>, with a hatch of amber-brown lines at 45 degrees and an amber-brown outline, <code class="docutils literal notranslate"><span class="pre">#8f6200</span></code>, and draws no planned references. All plot the reference-route runtime X horizontally and elapsed time downward. The bottom axis, <code class="docutils literal notranslate"><span class="pre">Position</span> <span class="pre">(km)</span></code>, labels round <a class="reference internal" href="glossary.html#position"><span class="std std-ref">positions</span></a> at their place on the route, at least 60 px apart. The labels count down where the route runs against the case coordinate, as on Paimpol route1. Where the route continues in another display region, two short slanted strokes break the bottom edge of the plot and only one of the two positions there gets a label; hover the strokes for “Position jumps” and, on the next line, “18.298 km continues at 30.569 km”. The axis spans the sections of the scope exactly, also after <strong>Fit</strong>, with round labels inside, and an envelope of another route that sticks out is cut off at the edge of the plot. The left axis is <code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">(hh:mm)</span></code>. The standard chart spans the time interval of its scope. The compressed chart spans the compressed envelopes with a margin at each end of 5 % of their span, at least 1 s; it starts below 0 s only when a compressed envelope does, and otherwise no earlier than 0 s. For all routes, the first used route is the stated reference; segments and stops that cannot be projected from shared anchors, and incomplete blocks or missing clearance, are omitted rather than extrapolated. Selecting a route, train, block section or time window limits the displayed envelopes and recorded samples. A route scope shows every train that occupies a block in the chosen range, whatever route the train runs on, as the Capacity chooser does. The train filter lists the trains drawn. A note above the chart, with the look of a warning, appears only when something is missing, and the PNG export shows it under the header text. “2 blocks or stops could not be placed on route0 and are not shown.” counts what does not map onto the reference route, “No complete blocking times in this section and period.” means that the scope has no complete envelope, and “No blocking times could be placed on route0.” means that envelopes exist but none maps onto the reference route. The CSV keeps original and clipped envelope times, directed mapped endpoints and available components as separate columns; absent components stay blank. Trajectory rows identify actual recorded samples; planned event rows remain distinct. In <code class="docutils literal notranslate"><span class="pre">capacity_compressed_blocking_time.csv</span></code> the trajectory rows carry the moved times: the time of each recorded sample plus the shift of the occupations of its train. Filtering the visible trains also filters the export. Both blocking-time charts also draw neutral dotted section boundaries and a strip above the plot over the native directed section endpoints, which names each section by its block id, such as <code class="docutils literal notranslate"><span class="pre">71-B0</span></code>, or <code class="docutils literal notranslate"><span class="pre">71-B0/0-B1</span></code> for a switch section, centred in its cell. These are physical distance extents, not time envelopes. The strip has one row when every id fits at the full view of the chart in the width of the window, and two rows otherwise, where an id that collides with one in the first row takes the second; zooming keeps the number of rows. Ids keep their screen size. Where two rows cannot name every section, the ids of critical and conflicting sections come first, then those of the first and last section, of switch sections and of station sections, and a cell without an id keeps its rule and its hover. A dark bar on top marks a station section and a light hatch a switch section. An amber bar below marks the critical block of a compressed chart and a red bar a section with a conflict; their ids are bold. Hover the strip or a boundary for the section, one fact per line: the id, its <a class="reference internal" href="glossary.html#ids-and-labels"><span class="std std-ref">label</span></a>, the kind, such as “Switch section”, “Critical block” or “Conflict” where it applies, its place in the route, such as “Section 72 of 125”, its position, such as “Position 21.010 to 21.450 km”, and its directed coordinates, such as “21.010 to 21.450 km along route0”. Repeated/coincident sections remain separate occurrences in hover and export. The strip and any geometry notice occupy reserved chart space above the time plot, so they never hide early samples. They stay anchored while time pans, remain when every train is hidden, and appear in PNG export. Hovering an id reports the section of that id, also where the id is wider than its cell. The hover of an envelope names the train and the block by the id of the strip, such as “IC1723-2 on 0-B0”, and gives one fact per line: the block type when it is not an ordinary block, such as “Switch block”, the label of the block, such as “B0 0.000 to 0.230 km”, the position of the block’s own ends, such as “Position 10.810 to 11.110 km”, also for a block that sticks out of the scope, the time the block is blocked and each part of that time that the run recorded, such as “Clearance to 33 s”. On <strong>Compressed blocking time</strong> the approach, run and clearance times start with “Simulated”, such as “Simulated clearance to 33 s”, as the compression moves the envelope and not them. The notes name sections by the ids of the strip. The header names the run and then a route scope by its block numbers and the interval, such as “Paimpol / baseline · route0 (A), blocks 1 to 8, 08:00:00 to 09:00:00”, and its tooltip gives the labels of the first and last block. The header of <strong>Compressed blocking time</strong> ends with the figures of the Capacity window, such as “cycle 471.5 s, 13.1% of 1 h”, and its tooltip names the trains of the cycle. The block lists of the scope dialog read “1: B0 0.000 to 0.230 km”, with the short block id, “0-B0”, as tooltip. The CSV keeps the IDs. Unusable or absent geometry has an in-chart notice instead of invented widths.</p>
+<p>The CSV lists the displayed physical sections once after the train rows (Layer “block section extent”, or “block section extent (geometry missing)”), even with no visible trains or envelopes. Section scopes retain route occurrence indices, not first-match IDs. Unavailable coordinates are blank. An envelope that cannot be projected onto the reference route is listed without X values (Layer “unmapped blocking envelope”). Trains with only unmapped rows still appear in the filter and can be exported without adding a plotted series. The column “Reference section” is the 1-based order of a unique matching reference section. Exact ID and interval matches take precedence over shared-resource overlaps; several candidates leave the order blank and the hover text reports ambiguity. The model never matches by interval alone. Capacity analysis refuses scopes whose selected resource also appears outside the selected occurrence range or whose entry resource has several candidate occurrences; unrelated repeated sections do not block a representable scope. It does not change the capacity calculation to guess an occurrence.</p>
+<p>The last three columns give the positions as geo X, the X of the case in kilometres: “Geo position[km]” in every row with a “Position[km]” when the reference route has sections with a geometry, and “Start geo X[km]” and “End geo X[km]” in every row with a “Start X[km]” and an “End X[km]”. Within a section the geo X follows the route distance linearly between the X of the end nodes of the section. It counts down where the route runs against the case coordinate, as Paimpol route1 does from 37.062 km to 0 km. It jumps where the route continues in another display region: on Netherlands route0, 18.298 km continues at 30.569 km. At a jump, each end of an envelope takes the geo X of the envelope’s own section. Outside the sections of the export, for example at the end of an envelope of another route that sticks out, the geo X extends the first or last section linearly. Of the envelope times, a compression moves only “Occupation start[s]” and “Occupation end[s]”, so the columns named “Original”, from “Original start[s]” to “Original clearance[s]”, hold the times of the run in both CSVs.</p>
+<p>Numeric axes put their ticks on round values. Before you zoom or pan, and after Fit, each numeric axis ends on a round tick at both ends, so that both ends carry a label. The distance axes of the route charts and the position axis of the blocking-time charts are the exception: they span the route or the sections of the scope exactly. Time axes are titled <code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">(hh:mm)</span></code>, keep the range that the chart gives them and display clock labels without changing the simulation-second values; their ticks fall on round clock times, which read hours and minutes, such as 08:30, while the ticks are a minute apart or more, and keep their seconds while they are closer. Elapsed zero (run start) keeps a tick while it is in view, with its seconds when it is not on a whole minute. Tooltips, the readout and <strong>Selected</strong> give clock times with seconds. The plot has no legend of its own: <strong>Key</strong> explains the kinds of mark and <strong>Trains</strong> the colours of the trains. On <strong>Compressed blocking time</strong> the Key has Critical block (amber) and no Conflict, as that chart cannot have one. The blocking-time charts keep Block boundary in the Key whenever they draw section boundaries, also when no envelope is in view. A tooltip gets a break opportunity after every 32 characters of a run without a space, such as a long identifier, so that it wraps within the screen; the break opportunities are not drawn. A tooltip is dismissed when the pointer leaves the chart, its series is filtered, the window closes, or the chart is replaced.</p>
+<section id="timetable-graphs-and-train-paths">
+<h2>Timetable graphs and train paths<a class="headerlink" href="#timetable-graphs-and-train-paths" title="Link to this heading">¶</a></h2>
+<p>These two <strong>Diagrams</strong> and <strong>Run Results &gt; Open result view…</strong> actions use the
+same reference-route distance axis, but show different data:</p>
+<ul class="simple">
+<li><p><strong>Timetable graph</strong> connects available planned
+and simulated station arrivals and departures in separate series and shows
+dwell at each stop as a vertical segment. Planned lines are dashed, simulated
+lines solid. Connections between stops are not continuous train movement.</p></li>
+<li><p><strong>Train paths</strong> plots recorded position samples against
+simulation time. It does not plot planned timetable events.</p></li>
+</ul>
+<p>Both ask for a reference route in a list of the routes used in the run, and so does <strong>Delays</strong>. Each row
+shows the route id and the stations the route passes in travel order, for
+example <code class="docutils literal notranslate"><span class="pre">route0</span> <span class="pre">--&gt;</span> <span class="pre">Gvc</span> <span class="pre">-</span> <span class="pre">Gdg</span> <span class="pre">-</span> <span class="pre">Ut</span></code>. The list uses station ids; hover a row for
+the full text; a very long row is shortened in the middle. A route whose station
+order cannot be resolved shows <code class="docutils literal notranslate"><span class="pre">(station</span> <span class="pre">order</span> <span class="pre">unavailable)</span></code> and one without
+stations shows <code class="docutils literal notranslate"><span class="pre">(no</span> <span class="pre">stations</span> <span class="pre">on</span> <span class="pre">this</span> <span class="pre">route)</span></code>; both can still be chosen.
+Double-click a row, or select it and press Enter, to open the diagram.</p>
+<p>Distance increases to the right; time increases downward, with clock labels
+offset by the case base time (elapsed <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">s</span></code> is run start). Other routes are
+projected using shared node/station anchors. Ambiguous or unmapped portions are
+omitted without extrapolation; lines break at missing events or unprojectable
+samples. Train filtering, selection, zoom, and CSV/PNG
+export remain available. Diagrams have no Technical details panels, and these
+two charts have no note: the header names the run.</p>
+<p>Blocking-time diagrams show calculated envelopes, not independently observed
+occupation. The envelope extends from approach minus setup and sight reaction
+through clearance plus release and run margin. Incomplete, missing-clearance,
+or unprojectable blocks are omitted. Recorded movement is sampled only within
+the scoped envelopes; planned station references are a separate dashed layer.
+<strong>Compressed blocking time</strong> moves the calculated envelopes and the
+recorded movement of each train by the shift of its occupations, and shows no
+planned references. Neither view extrapolates missing route projections.
+Both charts show the sections of the reference route separately as neutral
+section boundaries and a strip of block ids above the plot, with the positions
+below it. Hover shows the id, the label, the kind, the position and the directed
+runtime coordinates; ids thin when crowded and remain with train filters and
+PNG export. Missing
+geometry is reported inside the chart, never replaced by equal-width blocks.
+Both CSVs list the displayed physical occurrences once, including a section-only
+export when no train is visible. A unique Reference section order is blank when
+matching is ambiguous. The last three columns give the positions as geo X.
+Envelopes that cannot be placed on the reference route are exported without X
+values. Capacity analysis reports an unavailable scope
+when its resource-ID calculation cannot distinguish the selected occurrences.</p>
+<p>Input traction plots show rolling-stock input, not simulated effort. Their
+warning remains visible, also in the PNG export, when a curve contains negative
+effort below the default <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">kN</span></code> lower bound; those values remain in the input,
+not removed or clamped by the plot.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="tutorial-modify-a-case.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Tutorial: modify a bundled case</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="capacity-analysis.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">How capacity is analysed</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Inspecting diagrams</a><ul>
+<li><a class="reference internal" href="#timetable-graphs-and-train-paths">Timetable graphs and train paths</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

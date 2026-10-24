@@ -1,0 +1,12 @@
+<map id="StationMarkItem::paint" name="StationMarkItem::paint">
+<area shape="rect" id="Node000001" title="Paints the pin of the class over the pixmap with a halo of 2 logical pixels; nothing in the near look..." alt="" coords="5,103,177,128"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="241,29,344,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,100,224,63,242,57,244,62,226,69,128,105"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="225,103,360,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="177,113,211,113,211,118,177,118"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#a533b0acec8e0aa932ee206a07c02a1d8" title=" " alt="" coords="233,176,352,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="128,126,245,169,243,174,126,131"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="260,31,253,21,256,11,270,5,293,3,321,6,332,16,328,20,318,11,293,8,271,10,260,15,258,20,264,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="260,104,253,94,256,84,270,78,293,76,321,80,332,89,328,93,318,85,293,81,271,83,260,88,258,94,264,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="260,177,253,168,256,158,270,152,293,149,321,153,332,162,328,166,318,158,293,155,271,157,260,161,258,167,264,174"/>
+</map>

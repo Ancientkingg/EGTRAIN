@@ -1,0 +1,19 @@
+<map id="app/DialogFolders.h" name="app/DialogFolders.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="239,5,390,31"/>
+<area shape="rect" id="Node000002" href="$_scene_save_policy_8h.html" title=" " alt="" coords="55,79,225,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="288,33,182,76,180,71,286,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,56,177"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="239,29,125,47,75,62,57,71,45,80,36,93,32,108,30,139,25,138,26,107,32,91,41,77,54,66,73,57,123,42,239,24"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="216,152,296,177"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="312,32,292,80,268,140,263,138,287,78,307,30"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="301,79,435,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="326,29,353,66,349,69,321,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="460,79,585,104"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="349,28,477,72,475,77,347,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="610,79,681,104"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="372,28,597,76,596,81,371,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,106,62,147,59,142,121,102"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="160,102,227,142,224,147,157,106"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="93,152,187,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="143,104,143,138,137,138,137,104"/>
+</map>

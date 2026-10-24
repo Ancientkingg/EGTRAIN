@@ -1,0 +1,7 @@
+<map id="StationNodeItem" name="StationNodeItem">
+<area shape="rect" id="Node000001" title="The square of a station node of a track line. It draws over track lines and connections." alt="" coords="76,101,208,127"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,41,136,100,132,103,93,44"/>
+<area shape="rect" id="Node000003" href="$class_node.html" title=" " alt="" coords="178,5,234,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,43,152,103,148,100,188,40"/>
+</map>

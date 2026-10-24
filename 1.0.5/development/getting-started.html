@@ -1,0 +1,749 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Build from source" href="build.html"><link rel="prev" title="TU Delft assignment workflow in EGTRAIN" href="../guides/assignment-workflow.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Getting started as a developer - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/main-window-style.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/interface-style.html">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/development/getting-started.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="getting-started-as-a-developer">
+<h1>Getting started as a developer<a class="headerlink" href="#getting-started-as-a-developer" title="Link to this heading">¶</a></h1>
+<p>This page takes you from a fresh clone to a built application, a first run, a changed test and the
+checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 6 and
+C++17 desktop application for railway micro-simulation, built with CMake.</p>
+<p>The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17; the macOS build was repeated with
+Qt 6.8.3 on 2026-10-20. On Linux the page was followed from a clean clone in a new Ubuntu 24.04 arm64 container with
+10 CPUs on 2026-10-20, with the Qt 6.4.2 packages of Ubuntu: installing the packages took 36 s, configuring under
+1 s, the build with four jobs 4 min 7 s, CTest 3 min 8 s (325 of 325 passed), the headless run of all six cases
+1 min 49 s, the round-trip smoke 7 s, the visual polish smoke 4 min 13 s and the test walkthrough below under a
+minute. The build with warnings as errors passed as well. On Windows the <a class="reference internal" href="build.html#configure"><span class="std std-ref">presets</span></a> were followed
+on 2026-10-21 in a Windows 11 Arm64 VM with Visual Studio Community 2026, from an x64 Developer PowerShell: the
+configure took 94 s with the vcpkg packages restored from its cache (148 s the day before, when vcpkg built them), the
+build 13 min 11 s and CTest 21 min 33 s. 317 of 319 tests passed; the other two create symbolic links and need
+Developer Mode, as <a class="reference internal" href="build.html#common-setup-failures"><span class="std std-ref">Common setup failures</span></a> says. Visual Studio opened the folder,
+built with the same presets and started EGTRAIN. CI installs the same packages as
+<a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a> lists, but it configures with more options; see
+<a class="reference internal" href="#which-checks-to-run">Which checks to run</a>. The Visual Studio generator path without a preset in the build guide
+is not what CI uses and was not checked for this page.</p>
+<section id="what-you-need">
+<h2>What you need<a class="headerlink" href="#what-you-need" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Version</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Git</p></td>
+<td><p>any recent release</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>CMake</p></td>
+<td><p>3.16 or newer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> at the repository root</p></td>
+</tr>
+<tr class="row-even"><td><p>C++ compiler</p></td>
+<td><p>C++17</p></td>
+<td><p>Apple Clang on macOS, MSVC 2022 or newer on Windows (x64 only), GCC on Ubuntu</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qt 6</p></td>
+<td><p>Core, Gui, Widgets, Charts, Svg, Network and Help</p></td>
+<td><p>CI uses Qt 6.8.3 from aqtinstall on all three systems; the Qt 6.4.2 of Ubuntu 24.04 also builds</p></td>
+</tr>
+<tr class="row-even"><td><p>ZeroMQ, cppzmq, nlohmann-json</p></td>
+<td><p>any release that CMake finds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">libzmq3-dev</span> <span class="pre">cppzmq-dev</span> <span class="pre">nlohmann-json3-dev</span></code> on Ubuntu, vcpkg on Windows</p></td>
+</tr>
+<tr class="row-odd"><td><p>Python</p></td>
+<td><p>3.9 or newer</p></td>
+<td><p>CMake looks for it when tests are on; CI uses 3.12</p></td>
+</tr>
+<tr class="row-even"><td><p>clang-format</p></td>
+<td><p>23.1.3 exactly</p></td>
+<td><p>Only to format C++ sources: <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">~/fmt-venv</span> <span class="pre">&amp;&amp;</span> <span class="pre">~/fmt-venv/bin/pip</span> <span class="pre">install</span> <span class="pre">clang-format==23.1.3</span></code>, then <code class="docutils literal notranslate"><span class="pre">~/fmt-venv/bin</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>clang-tidy</p></td>
+<td><p>23.1</p></td>
+<td><p>Only for <a class="reference internal" href="coding-guidelines.html#static-checks"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">tools/tidy.py</span></code></span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a class="reference internal" href="build.html#requirements"><span class="std std-ref">Requirements</span></a> lists the supported toolchains and the exact install
+commands for each system.</p>
+</section>
+<section id="clone-configure-and-build">
+<h2>Clone, configure and build<a class="headerlink" href="#clone-configure-and-build" title="Link to this heading">¶</a></h2>
+<p>Clone the repository and change into it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Ancientkingg/EGTRAIN.git
+<span class="nb">cd</span><span class="w"> </span>EGTRAIN
+</pre></div>
+</div>
+<p>On macOS, install Qt 6.8.3 with <a class="reference external" href="https://aqtinstall.readthedocs.io/en/latest/getting_started.html">aqtinstall</a>
+(or the Qt online installer) and the other libraries with Homebrew:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/aqt-venv
+~/aqt-venv/bin/pip<span class="w"> </span>install<span class="w"> </span>aqtinstall
+~/aqt-venv/bin/aqt<span class="w"> </span>install-qt<span class="w"> </span>mac<span class="w"> </span>desktop<span class="w"> </span><span class="m">6</span>.8.3<span class="w"> </span>clang_64<span class="w"> </span>-m<span class="w"> </span>qtcharts<span class="w"> </span>-O<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt"</span>
+brew<span class="w"> </span>install<span class="w"> </span>zeromq<span class="w"> </span>cppzmq<span class="w"> </span>nlohmann-json
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/macos;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>zeromq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>cppzmq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>nlohmann-json<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWrapOpenGL_AGL<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>xcrun<span class="w"> </span>--show-sdk-path<span class="k">)</span><span class="s2">/System/Library/Frameworks/OpenGL.framework"</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--parallel<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a> explains the prefix path and the AGL option.</p>
+<p>On Ubuntu and Windows, install Qt as <a class="reference internal" href="build.html#requirements"><span class="std std-ref">Requirements</span></a> says and take the
+install and configure lines from <a class="reference internal" href="build.html#configure"><span class="std std-ref">Configure</span></a>; the Ubuntu line installs <code class="docutils literal notranslate"><span class="pre">git</span></code>
+and <code class="docutils literal notranslate"><span class="pre">python3</span></code> too. The build, test and run commands below use the macOS and
+Linux form. With a multi-config generator such as Visual Studio, add <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">Release</span></code> to
+<code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code> and <code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">Release</span></code> to <code class="docutils literal notranslate"><span class="pre">ctest</span></code>, and run the executable from
+<a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">--parallel</span></code>, <code class="docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">--build</span></code> uses one job with the Makefile generator, which takes a long
+time; <code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_PARALLEL_LEVEL</span></code> sets the number of jobs as well. A first full build with tests
+and four jobs took about 14 minutes on one Apple silicon laptop and about 4 minutes in one Linux
+container with 10 CPUs; it will differ on other machines.</p>
+<p>A Release build, the default, links with link-time optimization. <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_IPO=OFF</span></code> at configure
+time makes the links shorter.</p>
+<p>The build makes three programs and, with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_BUILD_TESTS=ON</span></code>, one executable for each test:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Program</p></th>
+<th class="head"><p>What it is</p></th>
+<th class="head"><p>macOS path</p></th>
+<th class="head"><p>Other systems</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code></p></td>
+<td><p>The application</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code></p></td>
+<td><p><a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code></p></td>
+<td><p>Validates, packs, unpacks, imports and exports scenes without the window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">build/scene_tool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">build/scene_tool</span></code> or <code class="docutils literal notranslate"><span class="pre">build/Release/scene_tool.exe</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code></p></td>
+<td><p>Helper of the self-updater of release packages</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">build/egtrain_update_helper</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>If configure or the build stops, see <a class="reference internal" href="build.html#common-setup-failures"><span class="std std-ref">Common setup failures</span></a>.</p>
+</section>
+<section id="run-the-application">
+<h2>Run the application<a class="headerlink" href="#run-the-application" title="Link to this heading">¶</a></h2>
+<p>Run it from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code>. A relative <code class="docutils literal notranslate"><span class="pre">--scene</span></code> path and the <code class="docutils literal notranslate"><span class="pre">Scenes</span></code> folder that the case chooser
+lists are resolved from the working directory.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>EGTRAIN/QEGTRAIN
+../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN
+</pre></div>
+</div>
+<p>The window opens the Netherlands case with the <strong>Open a Case</strong> chooser on top. Choose a case there, or
+start with <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">2</span></code> (Paimpol) or <code class="docutils literal notranslate"><span class="pre">--scene</span> <span class="pre">Scenes/Paimpol</span></code> to skip the chooser; the other options are in
+<a class="reference internal" href="../guides/command-line.html"><span class="std std-doc">Command-line options</span></a>.</p>
+<p>These paths are for macOS. On Linux the executable is <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN</span></code>. On Windows it is
+<code class="docutils literal notranslate"><span class="pre">..\..\build\Release\QEGTRAIN.exe</span></code> with a multi-config generator and <code class="docutils literal notranslate"><span class="pre">..\..\build\QEGTRAIN.exe</span></code> with
+a single-config one; see <a class="reference internal" href="build.html#run-a-local-build"><span class="std std-ref">Run a local build</span></a>.</p>
+<p>A run without a window needs no display and exits when the run ends. It writes to the folder that
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_OUTPUT_DIR</span></code> names. On Linux, with the executable path of that system:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/egtrain-out
+<span class="nv">QEGTRAIN_OUTPUT_DIR</span><span class="o">=</span>/tmp/egtrain-out<span class="w"> </span>../../build/QEGTRAIN<span class="w"> </span>-n<span class="w"> </span><span class="m">2</span><span class="w"> </span>-g<span class="w"> </span><span class="m">0</span>
+ls<span class="w"> </span>/tmp/egtrain-out/Output/Paimpol
+</pre></div>
+</div>
+<p>On macOS use <code class="docutils literal notranslate"><span class="pre">../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> in the second line. The run prints its
+progress as one long line.</p>
+<p>The files are listed in <a class="reference internal" href="../guides/run-output.html"><span class="std std-doc">Run output</span></a>. On Windows a run without a window prints
+nothing to a terminal; see <a class="reference internal" href="testing.html#windows-headless-runs"><span class="std std-ref">Windows headless runs</span></a>.
+The bundled cases and their <code class="docutils literal notranslate"><span class="pre">-n</span></code> numbers are in <a class="reference internal" href="../guides/command-line.html#bundled-case-numbers"><span class="std std-ref">Bundled case numbers</span></a>.</p>
+</section>
+<section id="source-map">
+<h2>Source map<a class="headerlink" href="#source-map" title="Link to this heading">¶</a></h2>
+<p>All C++ sources are under <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code> and include each other by paths from that folder
+(<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;scene/SceneModel.h&quot;</span></code>). <a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a> has the full list
+of folders, the libraries and the renames.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>To find</p></th>
+<th class="head"><p>Look in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Start of the program, the command line</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>The main window, menus, docks and the glue between them</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/MainWindow.h</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>The scene editor panels and the open scene with its unsaved state</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code> (<code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>, <code class="docutils literal notranslate"><span class="pre">*Panel</span></code>, <code class="docutils literal notranslate"><span class="pre">infrastructure/</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Loading, validating, saving, bundling, importing and exporting scenes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code> (<code class="docutils literal notranslate"><span class="pre">SceneModel</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneBundle</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneValidator</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneWriter</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code>, <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Turning a scene into a runnable simulation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/builders/</span></code> (<code class="docutils literal notranslate"><span class="pre">InfrastructureBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">OperationsBuilder</span></code>) and <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>The simulation itself: trains, signalling, dynamics</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">simulation/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Results, charts, analysis windows, CSV export</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">diagrams/</span></code> (<code class="docutils literal notranslate"><span class="pre">CompletedRunCapture</span></code>, <code class="docutils literal notranslate"><span class="pre">RunResults</span></code>, <code class="docutils literal notranslate"><span class="pre">RunExports</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>The network canvas</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">graphics/</span></code> and <code class="docutils literal notranslate"><span class="pre">graphics/items/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Dock widgets, dialogs, small controls</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">widgets/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Logging, time and number formatting</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">util/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Live stream and legacy XML channels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Tests</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tests/</span></code> (C++), <code class="docutils literal notranslate"><span class="pre">tools/e2e/</span></code> (scripts)</p></td>
+</tr>
+<tr class="row-even"><td><p>Bundled cases</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Scenes/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Release, memory and performance scripts</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tools/release/</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/memory/</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/performance/</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="from-open-to-saved">
+<h2>From open to saved<a class="headerlink" href="#from-open-to-saved" title="Link to this heading">¶</a></h2>
+<p>This is the path of one case through the code, in the order a user takes it. It is the quickest way
+into <code class="docutils literal notranslate"><span class="pre">MainWindow.cpp</span></code>. <a class="reference internal" href="../architecture/scene-editor-flow.html"><span class="std std-doc">Scene editor flow</span></a> describes the same
+path from the user’s side, and <a class="reference internal" href="../architecture/scene-model.html"><span class="std std-doc">Scene model</span></a> describes the data.</p>
+<ol class="arabic simple">
+<li><p><strong>Open.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case...</span></code> (a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle), <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code> or the
+case chooser lead to <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code>. It probes the scene format, and the window
+loads the scene with <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> into a <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and hands it to its <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>.</p></li>
+<li><p><strong>Edit.</strong> An editor panel changes the model in place and calls <code class="docutils literal notranslate"><span class="pre">SceneDocument::markChanged</span></code>.
+<code class="docutils literal notranslate"><span class="pre">MainWindow::sceneDocumentChanged</span></code> records the step for Undo and Redo, discards the results of an
+earlier run and schedules the recovery copy.</p></li>
+<li><p><strong>Validate.</strong> <code class="docutils literal notranslate"><span class="pre">MainWindow::refreshValidationPanel</span></code> asks <code class="docutils literal notranslate"><span class="pre">ValidationPanel::refresh</span></code>, which calls
+<code class="docutils literal notranslate"><span class="pre">validateRunnableScene</span></code> and fills the validation table. Error diagnostics block Run; warnings do not.</p></li>
+<li><p><strong>Run.</strong> <code class="docutils literal notranslate"><span class="pre">Run</span></code> in the toolbar (Ctrl+R) or <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Run</span></code> reaches <code class="docutils literal notranslate"><span class="pre">RunController::runScene</span></code>, which
+validates again and opens the review window <strong>Run simulation</strong>. Its button goes on to
+<code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code>, which validates, builds the infrastructure and the operations
+with <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code> and <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>, and then to
+<code class="docutils literal notranslate"><span class="pre">RunController::startSimulation</span></code>. A <code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code> on its own thread calls
+<code class="docutils literal notranslate"><span class="pre">DispatchController::runSimulation</span></code>.</p></li>
+<li><p><strong>Results.</strong> When the worker finishes, <code class="docutils literal notranslate"><span class="pre">RunController::onSimulationFinished</span></code> copies what the views
+need into one <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code> with <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> and fills the <strong>Run Results</strong> dock.
+<strong>Open result view…</strong> in that dock opens the charts and tables, including the Delay analysis
+window. The output files are written to the <a class="reference internal" href="../guides/command-line.html#output-folder"><span class="std std-ref">output folder</span></a>.</p></li>
+<li><p><strong>Save.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Save</span></code> goes through <code class="docutils literal notranslate"><span class="pre">SceneSession::saveSceneToCurrentDir</span></code> to <code class="docutils literal notranslate"><span class="pre">saveSceneBundle</span></code>
+or <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SceneWriter</span></code>), and <code class="docutils literal notranslate"><span class="pre">SceneSession::finishSceneSave</span></code> marks the scene saved. A bundled case
+in the installation folder is never overwritten: Save leads to <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">As...</span></code>.</p></li>
+</ol>
+<p>Messages go through the logging core in <code class="docutils literal notranslate"><span class="pre">util/Log</span></code>. Switch categories on with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_LOG</span></code> and
+read them in the <strong>Log</strong> dock (<code class="docutils literal notranslate"><span class="pre">View</span> <span class="pre">&gt;</span> <span class="pre">Log</span></code>); see
+<a class="reference internal" href="../guides/command-line.html#log-output"><span class="std std-ref">Log output</span></a>.</p>
+</section>
+<section id="which-checks-to-run">
+<h2>Which checks to run<a class="headerlink" href="#which-checks-to-run" title="Link to this heading">¶</a></h2>
+<p>Run the smallest set that covers the change. <a class="reference internal" href="testing.html#verification-gates"><span class="std std-ref">Verification gates</span></a>
+is the full rule.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Your change</p></th>
+<th class="head"><p>Run</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Documentation only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/docs/check_docs.py</span></code>; no build</p></td>
+</tr>
+<tr class="row-odd"><td><p>Any C++ change</p></td>
+<td><p>build, then <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-L</span> <span class="pre">unit</span> <span class="pre">-LE</span> <span class="pre">slow</span> <span class="pre">--output-on-failure</span> <span class="pre">-j</span> <span class="pre">4</span></code> while you work and the whole <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">--output-on-failure</span> <span class="pre">-j</span> <span class="pre">4</span></code> before you push</p></td>
+</tr>
+<tr class="row-even"><td><p>UI or rendering</p></td>
+<td><p>the whole suite, then <code class="docutils literal notranslate"><span class="pre">tools/e2e/visual_polish_smoke.sh</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Simulation, scene model, conversion or memory</p></td>
+<td><p>the whole suite, which runs <code class="docutils literal notranslate"><span class="pre">tools/e2e/headless_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">tools/e2e/roundtrip_smoke.py</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Scene format</p></td>
+<td><p>the same, and validate and export the committed scenes with <code class="docutils literal notranslate"><span class="pre">build/scene_tool</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>CI configures with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_WARNINGS_AS_ERRORS=ON</span> <span class="pre">-DEGTRAIN_IPO=OFF</span></code> on all three systems; the
+warnings option is off by default. Add it to your configure line to see the warnings that CI rejects.
+The Windows leg also uses Ninja with <code class="docutils literal notranslate"><span class="pre">cl</span></code>, <code class="docutils literal notranslate"><span class="pre">-DCMAKE_BUILD_TYPE=Release</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>; see <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
+<p>The two Python smokes read the application that <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code> names, and otherwise the executable in
+<code class="docutils literal notranslate"><span class="pre">build/</span></code> for the system: <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN</span></code> on
+Linux and <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">build/Release/QEGTRAIN.exe</span></code> on Windows. They stop and name the paths
+they tried when none exists. <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> reads the macOS path, so on Linux run it as
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP=$PWD/build/QEGTRAIN</span> <span class="pre">tools/e2e/visual_polish_smoke.sh</span></code>. <code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code> runs the six committed cases one after the other; name case
+numbers to run fewer, for example <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/e2e/headless_smoke.py</span> <span class="pre">2</span></code>, because Copenhagen alone
+takes minutes. On Linux and Windows CTest registers the tests that run there
+(<a class="reference internal" href="testing.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
+<p>Formatting and static checks run in CI too: <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/format.py</span></code> (<code class="docutils literal notranslate"><span class="pre">--fix</span></code> to apply) for the C++
+sources, and <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/tidy.py</span></code> for the sources outside <code class="docutils literal notranslate"><span class="pre">simulation/</span></code>.</p>
+</section>
+<section id="a-first-change-one-more-test-assertion">
+<h2>A first change: one more test assertion<a class="headerlink" href="#a-first-change-one-more-test-assertion" title="Link to this heading">¶</a></h2>
+<p>This changes no product behavior. It shows the build, test and failure loop on <code class="docutils literal notranslate"><span class="pre">util/TimeFormat</span></code>,
+which has no Qt dependency and builds quickly. It starts from the finished build above.</p>
+<ol class="arabic">
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp</span></code>. Tests here are plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code> and a
+local <code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">message)</span></code>. After the line <code class="docutils literal notranslate"><span class="pre">formatSimTime</span> <span class="pre">negative</span> <span class="pre">clamp</span></code>, add an assertion that
+is wrong on purpose:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="n">expect</span><span class="p">(</span><span class="n">formatSimTime</span><span class="p">(</span><span class="mi">7200</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"02:00:01"</span><span class="p">,</span><span class="w"> </span><span class="s">"formatSimTime two hours"</span><span class="p">);</span>
+</pre></div>
+</div>
+</li>
+<li><p>Build and run only that test (with a multi-config generator, add <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">Release</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">Release</span></code> as above):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>test_timeformat
+ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_timeformat$'</span><span class="w"> </span>--output-on-failure
+</pre></div>
+</div>
+<p>CTest reports the test as failed and the output has the line <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">formatSimTime</span> <span class="pre">two</span> <span class="pre">hours</span></code>.</p>
+</li>
+<li><p>Correct the expected text to <code class="docutils literal notranslate"><span class="pre">&quot;02:00:00&quot;</span></code> and run the two commands again. The test passes.</p></li>
+<li><p>Run the unit tests that finish quickly. <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">4</span></code> runs four tests at a time. The set took about four
+minutes that way on one Apple silicon laptop and about one minute in one Linux container with 10 CPUs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-L<span class="w"> </span>unit<span class="w"> </span>-LE<span class="w"> </span>slow<span class="w"> </span>--output-on-failure<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+</li>
+<li><p>Format the file if you keep the change (<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/format.py</span> <span class="pre">--fix</span></code>), or drop it with
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">restore</span> <span class="pre">EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp</span></code>.</p></li>
+</ol>
+<p>For a validation rule, follow the same steps with <code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>: build a model that
+breaks the rule and check the diagnostic with <code class="docutils literal notranslate"><span class="pre">hasCodeAndSeverity</span></code>. A new test needs an entry in the
+root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> and a label; <a class="reference internal" href="coding-guidelines.html#tests"><span class="std std-ref">Tests</span></a> shows how.</p>
+</section>
+<section id="where-output-goes">
+<h2>Where output goes<a class="headerlink" href="#where-output-goes" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="smoke-tests.html#where-test-and-run-output-goes"><span class="std std-ref">Where test and run output goes</span></a> lists where a
+run, CTest and each smoke write their files.</p>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">¶</a></h2>
+<p>What the repository itself shows:</p>
+<ul class="simple">
+<li><p>Pull requests go to <code class="docutils literal notranslate"><span class="pre">main</span></code>. CI builds and runs the CTest suite on macOS, Windows and Linux without
+the tests labelled <code class="docutils literal notranslate"><span class="pre">network</span></code>, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
+<a class="reference internal" href="ci-and-release.html#ci-and-release-branches"><span class="std std-ref">CI and release branches</span></a> lists the workflows, and
+<a class="reference internal" href="ci-and-release.html#required-checks-on-main"><span class="std std-ref">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></span></a> the checks that must pass.</p></li>
+<li><p>Code follows <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">Coding guidelines</span></a>. <code class="docutils literal notranslate"><span class="pre">.clang-format</span></code> and <code class="docutils literal notranslate"><span class="pre">.editorconfig</span></code> set the
+format: tabs, braces attached, no column limit.</p></li>
+<li><p>Documentation changes pass <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">tools/docs/check_docs.py</span></code>, and every page is in the table of contents,
+<a class="reference internal" href="../index.html"><span class="std std-doc">docs/index.md</span></a>.</p></li>
+</ul>
+</section>
+<section id="related-documents">
+<h2>Related documents<a class="headerlink" href="#related-documents" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="build.html"><span class="std std-doc">Build from source</span></a>, <a class="reference internal" href="testing.html"><span class="std std-doc">Testing</span></a>, <a class="reference internal" href="smoke-tests.html"><span class="std std-doc">Smoke tests</span></a>, <a class="reference internal" href="characterization-tests.html"><span class="std std-doc">Simulation characterization tests</span></a> and <a class="reference internal" href="ci-and-release.html"><span class="std std-doc">CI and release</span></a>.</p></li>
+<li><p><a class="reference internal" href="../architecture/source-layout.html"><span class="std std-doc">Source layout</span></a> and <a class="reference internal" href="coding-guidelines.html"><span class="std std-doc">Coding guidelines</span></a>.</p></li>
+<li><p><a class="reference internal" href="release-testing-checklist.html"><span class="std std-doc">Release testing checklist</span></a> and <a class="reference internal" href="code-signing.html"><span class="std std-doc">Code signing</span></a>.</p></li>
+<li><p><a class="reference internal" href="playback-profiling.html"><span class="std std-doc">Playback profiling</span></a> and <a class="reference internal" href="memory-baselines.html"><span class="std std-doc">Peak-memory baselines</span></a>.</p></li>
+<li><p><a class="reference internal" href="../guides/glossary.html"><span class="std std-doc">Glossary of application terms</span></a>.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="build.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Build from source</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../guides/assignment-workflow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">TU Delft assignment workflow in EGTRAIN</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Getting started as a developer</a><ul>
+<li><a class="reference internal" href="#what-you-need">What you need</a></li>
+<li><a class="reference internal" href="#clone-configure-and-build">Clone, configure and build</a></li>
+<li><a class="reference internal" href="#run-the-application">Run the application</a></li>
+<li><a class="reference internal" href="#source-map">Source map</a></li>
+<li><a class="reference internal" href="#from-open-to-saved">From open to saved</a></li>
+<li><a class="reference internal" href="#which-checks-to-run">Which checks to run</a></li>
+<li><a class="reference internal" href="#a-first-change-one-more-test-assertion">A first change: one more test assertion</a></li>
+<li><a class="reference internal" href="#where-output-goes">Where output goes</a></li>
+<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#related-documents">Related documents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

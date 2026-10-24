@@ -1,0 +1,7 @@
+<map id="NetworkPresenter::paxTextVisible" name="NetworkPresenter::paxTextVisible">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,204,45"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a25054ca92ca10e3228c384769e6fcf90" title="The passengers on a platform show where its bar shows, with the passenger layer." alt="" coords="252,5,455,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,23,239,23,239,28,204,28"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#acd9ae8da79343e2686907d5f71fb86f0" title="A platform bar shows with the stations in the near look." alt="" coords="503,5,705,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="455,23,489,23,489,28,455,28"/>
+</map>

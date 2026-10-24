@@ -4,16 +4,18 @@ This page describes the scenario library, the student loop of a case, and what t
 
 ## Scenarios
 
-Open the **Incidents** dock to choose the canonical default or another named
-scenario. The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**,
-and a line above them names the selected scenario. The library on the **Scenario**
-tab shows each scenario's ID, name, incident and entrance-delay counts, default
-marker, and an in-memory modified marker. The authored description remains
-available; Advanced mode adds the full validation status. Normal mode still marks
-an actionable invalid scenario as `Invalid` but does not surface non-blocking
-warning detail. **Blank** and **Duplicate** create isolated scenarios; editing incidents, names, or
-descriptions changes only the selected scenario. **Import JSON...** and
-**Export JSON...** use the standalone scenario object documented in the schema
+Open the **Scenarios** dock to choose the default or another named scenario.
+The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**, and a
+line above them names the selected scenario. Each row of the library on the
+**Scenario** tab shows the name of a scenario, marked "default" for the default
+scenario and "modified" for one with unsaved edits. A second line gives the
+number of incidents and entrance delays when it is not zero, and "has errors"
+when the scenario has validation errors. Advanced mode also shows "has
+warnings". The tooltip shows the ID and the description. When two scenarios
+have the same name, the row and the line above the tabs add the ID.
+**New** and **Duplicate** create isolated scenarios; editing incidents, names, or
+descriptions changes only the selected scenario. **Import...** and
+**Export...** use the standalone scenario object documented in the schema
 reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.
@@ -21,7 +23,7 @@ scenario or incident.
 ## The student loop
 
 The completed student loop is: open a case, optionally review **Loaded Data**
-and **Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
+and **Validation**, choose or edit a scenario, save (or **Save As...**),
 review the run summary, run the selected scenario, then use **Run Results** to
 open the existing timetable, delay, speed, and blocking-time views. Results
 are cleared when the case or scenario changes and are rebuilt only by a new
@@ -66,34 +68,46 @@ view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
-In a live run the view glides after the followed train. It moves at an even speed and
-reaches each new position of the train about one update interval after that position
-arrived, so it is about one update behind the train and stays less than a third of the
-visible area behind it. When the run is paused, the view reaches the last position and
-stops. In the replay of a completed
-run the view moves to the train at once at every seek and every step of the playback,
+In a live run a train glides along its track from one update to the next. At every
+step, about once a frame, it is drawn wagon by wagon where it is at that moment, so it
+stays on its track through bends and switches, with its label and its callouts. A glide
+lasts several times the time between two updates, up to a little over half a second, so
+the train moves at every step at a nearly steady speed, also when the updates come
+unevenly or each brings a different step of simulated time. An update does not move a
+train on its way: the train goes on from where it is drawn, and only its speed changes a
+little. At the highest speeds most steps of the view are within about 30 percent of the
+steps around them. The train is drawn a few updates behind its newest position. At
+Fastest that is about two minutes of simulated time, so its occupied track and its
+signals, which show the newest state, can run ahead of it. When the train stops, or the run is
+paused, the train reaches its last position and stops there.
+The followed train stays in the middle of the view: the view moves with the train at
+every step of its glide. A train that has just appeared, that runs backwards, or that
+has moved further than the visible area since the last update moves to its new position
+at once. In the replay of a completed
+run the trains and the view move at once at every seek and every step of the playback,
 because the replay holds a frame every five seconds and a glide would show motion that
 was not recorded. Switching Follow on and choosing another train also move the view at
-once. Dragging the canvas, zooming with the wheel and resizing the window do not switch
-Follow off: in a live run the view returns to the train with a glide at the next
-update. The zoom buttons of the toolbar centre the view on the train at once, and
-**Fit** shows the whole network. Stop, switching Follow off and switching the Trains
-layer off stop the view where it is. The train item has its own movement of 120 ms
-between two updates.
+once. Dragging the canvas, zooming with the wheel or a pinch and resizing the window do
+not switch Follow off. While you hold the drag, scroll or pinch, the view stays where you
+put it; in a live run it returns to the train after you let go, smoothly over less than
+half a second. The zoom buttons of the toolbar centre the view on the
+train at once, and **Fit** shows the whole network. Stop, switching Follow off and
+switching the Trains layer off stop the view where it is.
 
 ## Selecting items
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens, or for a passenger a box of its details above it, and a light
-blue ring marks the item. Its title reads
-`Preview: <kind> <id> (not running)` in the preview and Node Info, Station Node
-Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. A
+blue ring marks the item. Its title names the item: `Node <id>`, `Station <id>`,
+`Arc <id>`, `Track <id>`, `Connection <id>` or `Signal <label>` in the preview, and
+`Node <id>`, `Station <name>`, `Arc <id>`, `Connection`, `Signal` or `Train <name>`
+during a run. A field that only a run fills reads `After a run` in the preview. A
 signal of the preview is named by the label of its section, as in
-`Preview: Signal B0 0.230 to 0.310 km (not running)` in Paimpol. A signal that
+`Signal B0 0.230 to 0.310 km` in Paimpol. A signal that
 `signalling.json` lists for the section comes first: `sig1 (B0 0.230 to 0.310 km)`.
-During a run the inspector names tracks by their scene ids and sections by their
-labels, and the tooltip of a field gives the runtime track number or the section
+During a run the inspector names tracks by their case ids and sections by their
+labels, and the tooltip of a field gives the track number or the section
 id ([ids and labels](glossary.md#ids-and-labels)). The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
@@ -106,15 +120,15 @@ Dragging the canvas pans the view and keeps the selection.
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
 (green), Unavailable (a gray ring with a short gray bar) or Failed (a red lamp
-with a white cross). A head is unavailable when its section has no signalling area, so a scene
+with a white cross). A head is unavailable when its section has no signalling area, so a case
 without one shows rings for the whole run. A head is failed on every signal of a
 section for as long as a signal failure incident is active. The marks appear when
 a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
-inspector name the state, and the Map key lists all five. The tooltip also names
-the track and the sections ahead of and behind the head, as in
-`Track B0 at 0.23 km; ahead B0 0.230 to 0.310 km; behind B0 0.000 to 0.230 km`.
+inspector name the state, and the Map Key lists all five. The tooltip also names
+the direction and the place of the head, as in `Proceed, facing right` over
+`Track B0 at 0.23 km`.
 
 ## Delay baseline
 
@@ -123,10 +137,11 @@ delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline, discards the results and closes
 the dock **Run Results**. Opened again from the menu **View**, the dock reads
-`No completed run | Scenario: <scenario>` and `Baseline: <case> / <scenario>. Run the selected scenario
-to create completed results for comparison.` A canonical scene edit, **File > New Case Study...**, or
-opening another case clears the baseline and explains that a new run without incidents or
-entrance delays is needed. **Compare delays** requires a run with incidents or
+`No results yet` and `Baseline: <case> / <scenario>`. An edit of the case clears the
+baseline, and the line then reads `Baseline cleared: the case changed`; **File > New Case...**
+gives `Baseline cleared: a new case was created` and opening another case gives
+`Baseline cleared: another case was opened`. A new run without
+incidents or entrance delays can then be set as the baseline. **Compare delays** requires a run with incidents or
 entrance delays that matches the baseline, and opens the delay analysis window
 on its tab Against baseline. The window reports the difference and the recorded
 direct incident evidence, and never states a cause. What it shows, how to read

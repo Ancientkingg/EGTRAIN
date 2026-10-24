@@ -21,8 +21,8 @@ the Simulation characterization tests page of the developer documentation.
 - A section can also have no level. Its value is -99999999
   (`kSignallingLevelUnset`, defined in `scene/SignallingLevel.h`). This page
   calls it "no level".
-- The scene stores no level on a block. It stores signalling areas in
-  `signalling.json`. When the scene is prepared for a run, the builder gives
+- The case stores no level on a block. It stores signalling areas in
+  `signalling.json`. When the case is prepared for a run, the builder gives
   each section the level of the area that covers it; see
   [How an area gives sections their level](#how-an-area-gives-sections-their-level).
 - A route holds copies of its sections. The copies carry the level of the
@@ -41,12 +41,12 @@ section different levels shows them. The editor shows the labels of the levels
 | Value | Label | One line from the program |
 | --- | --- | --- |
 | none | `No signalling` | Trains in this area are not separated. |
-| 0 | `0 ATB fixed block` | Fixed block; the block before an occupied one is limited to 40 km/h. |
-| 1 | `1 ETCS Level 1 fixed block` | Fixed block; moves trains like level 2; no blocking times. |
-| 2 | `2 ETCS Level 2 fixed block` | Fixed block; moves trains like level 1; blocking times computed. |
+| 0 | `0 ATB fixed block` | Fixed block. The block before an occupied one is limited to 40 km/h. |
+| 1 | `1 ETCS Level 1 fixed block` | Fixed block, without blocking times. |
+| 2 | `2 ETCS Level 2 fixed block` | Fixed block, with blocking times. |
 | 3 | `3 ETCS Level 3 moving block` | Movement authority ends 50 m behind the train ahead. |
-| 4 | `4 Virtual coupling` | Moving block; a train can follow the train ahead at its speed. |
-| 5 | `5 BACC track circuits` | Fixed block; one extra empty block (double red) before an occupied one. |
+| 4 | `4 Virtual coupling` | Moving block. A train can follow the train ahead at its speed. |
+| 5 | `5 BACC track circuits` | Fixed block, with one extra empty block (double red) before an occupied one. |
 
 ### What happens in a step
 
@@ -145,6 +145,10 @@ speed against the braking point. A live, force-valid cached successor is the
 default proposal, including gradient recovery. The selector examines all collected
 targets against that actual successor before retaining it; a competing stop or
 speed restriction can interrupt the plan from the previous actual state.
+Without a cached successor, the selector refines the braking point of a target
+only when the bracket of its inverse pass starts before the earliest point found
+so far, because a later point cannot be chosen. A signalled stop within one
+step is always refined.
 A retained stop ends before farther targets, so those cannot invalidate its
 stopping prefix. They are reconsidered when that stop is no longer retained.
 Satisfied positive ceilings do not reclaim an already compliant continuation.
@@ -190,7 +194,7 @@ while the first section is failed, at every level (`checkEntrance`). Cases:
 `sf-first-level-0`, `-1`, `-2` and `-none`.
 
 **Signal failure.** A `signal_failure` incident fails one or more sections from
-its start second to its end second. A scene has to give the end second:
+its start second to its end second. A case has to give the end second:
 validation rejects a signal failure without one (`scene.incident.window`). In
 each step:
 
@@ -462,7 +466,7 @@ that the new target can still be respected.
   next gets 180 and the next 270. A train stops at the end of the block that is
   second behind the occupied one: in `follow-level-5`, `F2` stops at 4000 m,
   one block before the stop of level 0. Only the train order code reads the state
-  red_red, and native scenes do not use it; the hold comes from the limit of 0.
+  red_red, and native cases do not use it; the hold comes from the limit of 0.
 - **Differences from level 0.** One block more is held free; the chain is one
   code longer; and all level 5 sections are set to clear at the start of every
   step, where levels 0, 1 and 2 clear a section when a train leaves it.
@@ -525,7 +529,7 @@ A signalling area is `id`, `start_km`, `end_km`, `level` and an optional `track`
 `analyzeSignallingAreas` (`scene/SectionInventory.cpp`), which the validator
 uses. The builder repeats it in `buildInfrastructureAndSignallingFromScene`
 (`simulation/builders/InfrastructureBuilder.cpp`); unit tests compare the two on
-small scenes.
+small cases.
 
 - **Which sections.** The unit is a runtime section from the section inventory
   (`buildSceneSectionInventory`). The blocks of a track follow each other from the
@@ -547,7 +551,7 @@ small scenes.
   track-scoped area contains the section, its level is used and the network-wide
   level is dropped.
 - **Chainage.** The numbers are not converted between tracks. In the
-  `Assignment_Gvc_Gdg_Ut` scene, track `B0` runs from 0 to 64 km and track `B1`
+  `Assignment_Gvc_Gdg_Ut` case, track `B0` runs from 0 to 64 km and track `B1`
   from 100 to 164 km, so one network-wide area has to span 0 to 164 km or more
   to cover both, and it says nothing about the part from 64 to 100 km.
 - **Conflict.** Two areas of the same kind (both network-wide, or both
@@ -587,7 +591,7 @@ Checks on the areas themselves, in `scene/SceneValidator.cpp`:
 | `scene.signalling_area.conflict` | error | see above |
 | `scene.signalling_area.splits_section` | warning | an edge of the area lies inside a route section |
 | `scene.signalling_area.empty` | warning | the area contains no complete section |
-| `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the scene has areas |
+| `scene.signalling.level.missing` | warning | route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the case has areas |
 | `scene.single_track.no_effect` | warning | a block of a single-track restriction has no level |
 
 Tests: `tests/test_scenebuilder.cpp` (`runAreaMappingChecks`),
@@ -600,15 +604,15 @@ independent. Changing one does not change the others.
 
 | | Signalling area | Physical block section | Scope of a capacity analysis |
 | --- | --- | --- | --- |
-| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and the blocks of it that the trains the user checks all occupy, for one analysis |
-| Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the scene. There is no such object |
-| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, trains and period; the blocks follow from the trains and the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
+| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis |
+| Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the case. There is no such object |
+| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (`diagrams/CapacityScope`, `diagrams/CapacityAnalysis`) |
 | What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 
 Areas are measured against block sections, never the other way round. A
 block section has the level of the area that contains it, or none. The capacity
-analysis uses the blocks that the selected trains share. Its scope does not follow the
+analysis uses a range of blocks of one route. Its scope does not follow the
 signalling areas, and a signalling area does not follow the scope. A section
 without a level or with level 1 or 5 has no blocking times, so the capacity
 analysis has no data for it.
@@ -616,8 +620,8 @@ analysis has no data for it.
 Older versions used one row of `TrackLines/AreasCaseStudy.txt` for both the
 signalling level and the statistics of an area (the removed `NetworkArea`
 class). No simulation code reads that file. The legacy export writes the
-signalling areas of the scene to it, one row per area, and removes stale or
-copied TXT rows when the scene has no areas. Original passthrough files stay
+signalling areas of the case to it, one row per area, and removes stale or
+copied TXT rows when the case has no areas. Original passthrough files stay
 untouched.
 
 Every export also writes `TrackLines/EGTRAINSignallingAreas.json`, including
@@ -652,8 +656,8 @@ import still reports the historical TXT file and converts none of its rows.
 This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.
 
-The Capacity window uses a route and the blocks that the chosen trains share as
-its scope, not signalling areas; [How capacity is analysed](capacity-analysis.md)
+The Capacity window uses a route and a range of its blocks as its scope, not
+signalling areas; [How capacity is analysed](capacity-analysis.md)
 describes the scope and the area calculation that older versions had.
 
 Signals and track detection sections are a fourth thing. `signals[]` bind to a
@@ -661,9 +665,9 @@ section only to resolve signal failures. See the
 [scene schema](scene-schema.md) and the
 [migration matrix](v1-scene-migration-matrix.md).
 
-## The committed scenes
+## The bundled cases
 
-| Scene | Signalling areas | Runs with |
+| Case | Signalling areas | Runs with |
 | --- | --- | --- |
 | `Netherlands` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 | `Assignment_Gvc_Gdg_Ut` | one network-wide area, 0 to 165 km, level 0 | `0 ATB fixed block` |
@@ -672,7 +676,7 @@ section only to resolve signal failures. See the
 | `Paimpol` | one network-wide area, 0 to 38 km, level 0 | `0 ATB fixed block` |
 | `Amsterdam_Hilversum_Student` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 
-The scene descriptions of `Paimpol`, `Milano_Brescia` and
+The case descriptions of `Paimpol`, `Milano_Brescia` and
 `Copenhagen` call their area a placeholder.
 
 `Netherlands` and `Assignment_Gvc_Gdg_Ut` use level 0 (`0 ATB fixed block`) by
@@ -684,7 +688,7 @@ level is a project decision, and so does the description of
 Hoje Taastrup and one at Farum. With the area and without them an arriving and a
 departing train stand head to head at each of these places until the end of the
 run, with the trains behind them queued. The entries are set for the timetable
-of the scene.
+of the case.
 
 ## Known limits and open issues
 
@@ -692,7 +696,7 @@ Decided, not open:
 
 - #439: historical cases without the canonical area sidecar report
   `TrackLines/AreasCaseStudy.txt` in the warning `scene.import.areas.skipped` and
-  convert none of its rows. The scene has no signalling area until the user adds
+  convert none of its rows. The case has no signalling area until the user adds
   one in Infrastructure > Signalling area. Canonical exports keep their
   assignment in the sidecar.
 

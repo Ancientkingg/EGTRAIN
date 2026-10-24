@@ -53,6 +53,7 @@ var _scene_model_8h =
     [ "sceneOutputDirectoryComponent", "_scene_model_8h.html#a70e6d3f731dfc337f8a100a644af72bb", null ],
     [ "sceneParseVisualizationColor", "_scene_model_8h.html#ab10f507639591bed1de9bc0ac881da66", null ],
     [ "scenePlatformCapacity", "_scene_model_8h.html#ae4bfb9afb6e2e3f0a21b349b907bdb1e", null ],
+    [ "sceneScenarioLabel", "_scene_model_8h.html#a653cc0151b923200b58f9ba09faa9861", null ],
     [ "sceneServiceInWindowCount", "_scene_model_8h.html#a1ca8e185808230ddfcb22d3440ee6c40", null ],
     [ "sceneServiceOccurrenceCount", "_scene_model_8h.html#a8c0a79779bc995b9892ec8e44d904d20", null ],
     [ "sceneServiceOccurrenceOperatingCode", "_scene_model_8h.html#aa13611c525609dd4cdde39d34766b51b", null ],

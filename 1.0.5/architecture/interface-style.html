@@ -1,0 +1,692 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Network renderer style map" href="renderer-style-map.html"><link rel="prev" title="Main window" href="main-window-style.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Interface style - EGTRAIN documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">EGTRAIN documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">EGTRAIN documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Run existing cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/install.html">Installing EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/case-studies.html">Bundled cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/how-to.html">How-to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/main-window.html">Main window</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/updates.html">Updating EGTRAIN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/glossary.html">Glossary of application terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/keyboard-shortcuts.html">Keyboard shortcuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/command-line.html">Command-line options and scene_tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/run-output.html">Run output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/amsterdam-hilversum-student-case.html">Amsterdam to Hilversum student case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/delay-analysis.html">How delays are calculated</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/capacity-analysis.html">How capacity is analysed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/diagram-navigation.html">Inspecting diagrams</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guides/editing-a-case.html">Editing and validating a case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scenarios.html">Scenarios and the student loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-schema.html">V1 Scene Schema Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/scene-bundle.html">V2 Transparent Scene Bundle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/v1-scene-migration-matrix.html">V1 active-input migration matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/signalling-levels.html">Signalling levels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guides/assignment-workflow.html">TU Delft assignment workflow in EGTRAIN</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Develop or contribute</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../development/getting-started.html">Getting started as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/build.html">Build from source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/smoke-tests.html">Smoke tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/characterization-tests.html">Simulation characterization tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/ci-and-release.html">CI and release</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source-layout.html">QEGTRAIN source layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-model.html">V1 Scene Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scene-editor-flow.html">Scene Editor Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external-sharing.html">External state sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/live-sharing.html">Sharing a live run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry/README.html">Usage and diagnostics wire contract (version 1)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialog-presentation.html">Custom dialog presentation contract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main-window-style.html">Main window</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Interface style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renderer-style-map.html">Network renderer style map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historical-track-comparison.html">Historical track presentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Release</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-testing-checklist.html">Release Testing Checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/release-rehearsal-template.html">Release rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/code-signing.html">Code signing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/windows-installer.html">Windows installer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Records</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/v1-native-cutover-report.html">V1 native cutover report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/original-case-runtime-parity.html">Original-case native runtime parity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/architecture/interface-style.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="interface-style">
+<h1>Interface style<a class="headerlink" href="#interface-style" title="Link to this heading">¶</a></h1>
+<p>The visual specification of the EGTRAIN windows, docks, dialogs and tables. Most rules live in the style sheet <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/resources/styles/egtrain.qss</span></code>, which <code class="docutils literal notranslate"><span class="pre">main</span></code> applies to the whole application before it shows the first window or message box. The rest are set in code and named below. The network canvas, railway notation, chart text and console follow their own rules (<a class="reference internal" href="#exceptions">exceptions</a>).</p>
+<section id="fonts">
+<h2>Fonts<a class="headerlink" href="#fonts" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Interface:</strong> the platform UI font at its default size. No family is set and no font is bundled, so each system shows its own font.</p></li>
+<li><p><strong>Fixed pitch:</strong> the system fixed-pitch font (<code class="docutils literal notranslate"><span class="pre">QFontDatabase::systemFont(QFontDatabase::FixedFont)</span></code>) for the time in the progress bar (<code class="docutils literal notranslate"><span class="pre">widgets/TimeProgressBar.cpp</span></code>) and for the console (<code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.cpp</span></code>).</p></li>
+</ul>
+</section>
+<section id="type-scale">
+<h2>Type scale<a class="headerlink" href="#type-scale" title="Link to this heading">¶</a></h2>
+<p>Sizes are relative to the font of the widget, so they follow a larger platform font, except the fixed pixel sizes in the sheet (14 px and 11 px).</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Size</p></th>
+<th class="head"><p>Weight</p></th>
+<th class="head"><p>Where</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Heading of an exported chart</p></td>
+<td><p>1.25 times</p></td>
+<td><p>bold</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DiagramWindow::figureImage</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Section heading, table caption</p></td>
+<td><p>1.1 times</p></td>
+<td><p>bold</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EditorLayout::sectionHeading</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Case name</p></td>
+<td><p>14 px</p></td>
+<td><p>600</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">QLabel#caseNameLabel</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dock title, Open Case, run review values, group title in a dialog</p></td>
+<td><p>body</p></td>
+<td><p>600</p></td>
+<td><p>style sheet</p></td>
+</tr>
+<tr class="row-even"><td><p>Table header</p></td>
+<td><p>the platform header font, smaller than the body on macOS</p></td>
+<td><p>600</p></td>
+<td><p>style sheet</p></td>
+</tr>
+<tr class="row-odd"><td><p>Body text, table cells, controls</p></td>
+<td><p>body</p></td>
+<td><p>normal</p></td>
+<td><p>platform</p></td>
+</tr>
+<tr class="row-even"><td><p>Small text: case readiness, panel titles, map key</p></td>
+<td><p>11 px</p></td>
+<td><p>normal, or 600 for the titles and the key toggle</p></td>
+<td><p>style sheet</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There are two weights, normal and 600. Qt 6 keeps <code class="docutils literal notranslate"><span class="pre">font-weight:</span> <span class="pre">600</span></code> as <code class="docutils literal notranslate"><span class="pre">QFont::DemiBold</span></code>, while <code class="docutils literal notranslate"><span class="pre">setBold(true)</span></code> in code sets <code class="docutils literal notranslate"><span class="pre">QFont::Bold</span></code> (700), so where the font has a semibold face the sheet and the code give different faces.</p>
+</section>
+<section id="spacing-and-shape">
+<h2>Spacing and shape<a class="headerlink" href="#spacing-and-shape" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The padding of table headers, tabs, menu items and status labels, and the margins of toolbar separators, are multiples of 4 px.</p></li>
+<li><p>Push buttons, combo boxes, line edits, the spin boxes of a dialog and the train, occurrence and station buttons of the result windows are 28 px tall at a 13 px font: a button has 5 px above and below its text, a field 4 px. A push button in a dialog has 14 px beside its text, one in a dock or in a diagram or timetable window 7 px, so that the editor docks and the button bars of those windows keep their width; a field has 7 px. Outside a dialog a spin box has 2 px above and below its text and 4 px before it, so that it fits in a table row. It is a little larger than a Fusion spin box (6 px wider and 2 px taller at the font of the tests). The arrows of a spin box take 16 px at its right.</p></li>
+<li><p>Push buttons, toolbar buttons, the map key toggle, the train, occurrence and station buttons of the result windows, fields, the lists and tables of a dialog, status labels and the rows of the recovery prompt have a 6 px radius. Other tool buttons, such as the details toggles of a dialog and the scroll buttons of a tab bar, check box indicators, tabs, the progress bar and scroll handles keep 2 px. The slider handle is round.</p></li>
+<li><p>Scroll bars are 10 px wide, without arrow buttons.</p></li>
+</ul>
+</section>
+<section id="colour-tokens">
+<h2>Colour tokens<a class="headerlink" href="#colour-tokens" title="Link to this heading">¶</a></h2>
+<p>Contrast ratios follow the WCAG formula for the pair named in the last column.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Token</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Role</p></th>
+<th class="head"><p>Contrast</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Text</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#24313a</span></code></p></td>
+<td><p>body text, headings, header text</p></td>
+<td><p>11.8:1 on window, 13.3:1 on field, 11.0:1 on band</p></td>
+</tr>
+<tr class="row-odd"><td><p>Secondary text</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#5b6871</span></code></p></td>
+<td><p>help, context lines, small titles, the readout of a result window</p></td>
+<td><p>5.1:1 on window, 4.7:1 on band, 5.5:1 on surface</p></td>
+</tr>
+<tr class="row-even"><td><p>Status text</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#3f4d56</span></code></p></td>
+<td><p>neutral status label</p></td>
+<td><p>7.2:1 on band</p></td>
+</tr>
+<tr class="row-odd"><td><p>Disabled text</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#64717a</span></code></p></td>
+<td><p>disabled controls and menu items</p></td>
+<td><p>4.3:1 on disabled fill, 4.5:1 on window</p></td>
+</tr>
+<tr class="row-even"><td><p>Accent</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#315a70</span></code></p></td>
+<td><p>focus of the Run Results table and of the tool buttons outside the toolbar, checked buttons, selected tab, selected row of a list, table or tree with the focus, progress fill, slider, links of About, section headings of the panel of a result window</p></td>
+<td><p>white on accent 7.4:1, 7.1:1 on surface</p></td>
+</tr>
+<tr class="row-odd"><td><p>Accent dark</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#26495c</span></code></p></td>
+<td><p>hover of the slider handle</p></td>
+<td><p>white on it 9.6:1</p></td>
+</tr>
+<tr class="row-even"><td><p>Action</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#2e7491</span></code></p></td>
+<td><p>default button fill, focus border of push buttons, toolbar buttons, the header buttons of a result window, the Run details toggle, fields, and the lists and tables of a dialog, of the editors and of the docks; face of the selected tab of a tab bar with the focus; the text of Clear in the panel of a result window</p></td>
+<td><p>white on it 5.2:1, 5.2:1 on field, 5.0:1 on surface, 3.4:1 on border</p></td>
+</tr>
+<tr class="row-odd"><td><p>Action hover</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#296882</span></code></p></td>
+<td><p>default button under the pointer</p></td>
+<td><p>white on it 6.2:1</p></td>
+</tr>
+<tr class="row-even"><td><p>Action pressed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#23566c</span></code></p></td>
+<td><p>default button while pressed</p></td>
+<td><p>white on it 8.0:1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Action focus</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#0b2430</span></code></p></td>
+<td><p>focus border of the default button and of the selected tab of a tab bar with the focus</p></td>
+<td><p>3.1:1 on action, 15:1 on surface</p></td>
+</tr>
+<tr class="row-even"><td><p>Window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#eef2f5</span></code></p></td>
+<td><p>main window and panel background</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Surface</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#f8fafb</span></code></p></td>
+<td><p>toolbar, docks, menus, and a dialog with everything in it that is not a field</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Band</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#e3eaee</span></code></p></td>
+<td><p>dock titles, table headers, tabs, status bar, Open Case, hover of the tool buttons outside the toolbar, pressed push and toolbar buttons, scroll track, grid lines, the rule under the header of a result window</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Field</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#ffffff</span></code></p></td>
+<td><p>inputs, buttons, tables, the header of a result window</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Alternate row</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#f4f7f9</span></code></p></td>
+<td><p>every second table row</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Disabled fill</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#eceeec</span></code></p></td>
+<td><p>disabled and read-only fields, progress groove</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Selected</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#d8e1e5</span></code></p></td>
+<td><p>selected menu item, chosen case, selected row of a list, table or tree without the focus</p></td>
+<td><p>text 10.0:1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Border</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#c9d3db</span></code></p></td>
+<td><p>borders and rules of lists and tables outside dialogs, docks, tabs, separators, status labels, disabled fields, the rules of the panel of a result window and its left edge</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Control border</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#7b8b96</span></code></p></td>
+<td><p>border of push buttons, toolbar buttons, the header buttons of a result window and fields, and of the lists and tables of a dialog; slider groove</p></td>
+<td><p>3.5:1 on field, 3.4:1 on surface, 3.1:1 on window</p></td>
+</tr>
+<tr class="row-odd"><td><p>Control hover</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#5b6871</span></code></p></td>
+<td><p>border of a push button, toolbar button or field under the pointer; the secondary text colour</p></td>
+<td><p>5.7:1 on field, 5.5:1 on surface</p></td>
+</tr>
+<tr class="row-even"><td><p>Warning</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#f5eadc</span></code>, border <code class="docutils literal notranslate"><span class="pre">#d8b98e</span></code>, text <code class="docutils literal notranslate"><span class="pre">#74451c</span></code></p></td>
+<td><p>warning status label</p></td>
+<td><p>6.8:1</p></td>
+</tr>
+<tr class="row-odd"><td><p>Error</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#f7e8e6</span></code>, border <code class="docutils literal notranslate"><span class="pre">#c98f88</span></code>, text <code class="docutils literal notranslate"><span class="pre">#81352d</span></code></p></td>
+<td><p>error status label</p></td>
+<td><p>7.1:1</p></td>
+</tr>
+<tr class="row-even"><td><p>Blocking</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#965c22</span></code></p></td>
+<td><p>case readiness when the case cannot run</p></td>
+<td><p>4.8:1 on window</p></td>
+</tr>
+<tr class="row-odd"><td><p>Delay late</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#81352d</span></code> above 60 s, <code class="docutils literal notranslate"><span class="pre">#74451c</span></code> above 0 s</p></td>
+<td><p>timetable results</p></td>
+<td><p>8.0:1 or more on field, 7.5:1 or more on alternate row</p></td>
+</tr>
+<tr class="row-even"><td><p>Delay not late</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#006400</span></code></p></td>
+<td><p>timetable results, 0 s or early</p></td>
+<td><p>7.4:1 on field, 6.9:1 on alternate row</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The other values of the sheet are state shades of these roles: <code class="docutils literal notranslate"><span class="pre">#dce6eb</span></code> for Open Case under the pointer, <code class="docutils literal notranslate"><span class="pre">#dce3e7</span></code> for disabled default buttons, <code class="docutils literal notranslate"><span class="pre">#d8e1e5</span></code> for Open Case while pressed, <code class="docutils literal notranslate"><span class="pre">#d3e3ec</span></code> and <code class="docutils literal notranslate"><span class="pre">#bcd2df</span></code> for the checked Follow button, <code class="docutils literal notranslate"><span class="pre">#9aa5ab</span></code> for scroll handles and disabled check marks.</p>
+</section>
+<section id="states">
+<h2>States<a class="headerlink" href="#states" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Look</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Enabled</p></td>
+<td><p>Field fill with the control border, also for toolbar buttons</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hover</p></td>
+<td><p>Push buttons, toolbar buttons and fields: control hover border. Other tool buttons: accent border and band fill. Default button: action hover fill</p></td>
+</tr>
+<tr class="row-even"><td><p>Pressed</p></td>
+<td><p>Push buttons and toolbar buttons: band fill. Default button: action pressed fill</p></td>
+</tr>
+<tr class="row-odd"><td><p>Focused</p></td>
+<td><p>Push buttons, toolbar buttons, fields, and the lists and tables of a dialog: a 2 px action border, with 1 px less padding so the text stays in place. Lists and tables of the editors and the list, table or tree that fills a dock: a 2 px action border over the 1 px frame, so the rows stay in place. Selected tab of a tab bar with the focus, such as the tabs inside an editor: action face and a 2 px action focus border, with 1 px less padding; the tab bars of tabbed docks take no focus. Default button: a 2 px action focus border. Run details in the run review: band fill and a 2 px action border. Other tool buttons: accent border and band fill. Check box: band fill and an action border</p></td>
+</tr>
+<tr class="row-even"><td><p>Disabled</p></td>
+<td><p>Disabled fill, border colour and disabled text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Selected</p></td>
+<td><p>Lists, tables and trees use the accent with white text while they have the focus and the selected token with the text colour while they do not; a checked box in a selected row with the focus has a white border. Menus and the case chooser use the selected token; tabs and checked tool buttons use the accent with white text</p></td>
+</tr>
+<tr class="row-even"><td><p>Invalid</p></td>
+<td><p>Fields are not recoloured. The message goes in a status label beside them (<code class="docutils literal notranslate"><span class="pre">DialogLayout::setStatus</span></code>, error or warning tokens), and the Case Validation dock lists every issue</p></td>
+</tr>
+<tr class="row-odd"><td><p>Empty</p></td>
+<td><p>A help label in secondary text says what is missing (<code class="docutils literal notranslate"><span class="pre">EditorLayout::emptyStateLabel</span></code>); a table with no rows shows only its header; a value that does not exist shows as “-”</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="tables">
+<h2>Tables<a class="headerlink" href="#tables" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The header is a band: band fill, text colour, weight 600, padding 4 by 8 px, and a border-colour rule to the right of and below each section. The weight is set on <code class="docutils literal notranslate"><span class="pre">QHeaderView</span></code>; the size is the platform header font.</p></li>
+<li><p>Cells are on the field colour with alternate rows and band-coloured grid lines.</p></li>
+<li><p>In a dialog a table has the control border, a 6 px radius and 2 px of padding, so that the header stays inside the rounded corners.</p></li>
+<li><p>Numeric columns are aligned to the right: the times, orders and delays of the timetable results, and the columns that <code class="docutils literal notranslate"><span class="pre">DelayAnalysisWindow</span></code> and <code class="docutils literal notranslate"><span class="pre">AreaCapacityWindow</span></code> name as numeric, and the headways, references, shifts and gaps of the Capacity window. Names, ids, codes and statuses are aligned to the left. The style sheet cannot turn on tabular figures, so digits line up only as far as the platform font has equal digit widths.</p></li>
+<li><p>Delays in the timetable results are signed and coloured with the delay tokens.</p></li>
+<li><p>The stops table of the Services dock shares the width of the dock among its columns and can cut a header when the dock is narrow; each header has its full text as a tooltip.</p></li>
+</ul>
+</section>
+<section id="dialogs">
+<h2>Dialogs<a class="headerlink" href="#dialogs" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>One surface:</strong> every <code class="docutils literal notranslate"><span class="pre">QDialog</span></code>, message boxes included, has the surface colour. The plain widgets, frames, labels, check boxes, radio buttons, scroll areas, tab bars and button boxes inside it take the same colour, so the body and its scroll viewport show no box of their own. The colour is opaque because a widget style such as Fusion draws the outline of a check box or a frame from the background colour of its widget.</p></li>
+<li><p><strong>Title:</strong> the window title names the dialog. <code class="docutils literal notranslate"><span class="pre">DialogLayout::install</span></code> makes its heading the window title, and the body starts with the context line in secondary text.</p></li>
+<li><p><strong>Fields:</strong> push buttons, combo boxes, line edits and spin boxes are white with the control border and a 6 px radius. A spin box draws its arrows from the icons <code class="docutils literal notranslate"><span class="pre">spin-up-arrow.svg</span></code> and <code class="docutils literal notranslate"><span class="pre">drop-down-arrow.svg</span></code>. Lists and tables in a dialog are white with the same border and radius.</p></li>
+<li><p><strong>Groups:</strong> a group box in a dialog is a bold title over its fields, without a frame.</p></li>
+<li><p><strong>Status labels:</strong> neutral, warning and error keep their colours, with a 6 px radius and 8 px padding.</p></li>
+<li><p><strong>Default button:</strong> the default button of a dialog footer or a message box is filled with the action colour and has white text. Run simulation in the run review has the same look.</p></li>
+<li><p><strong>Footer buttons:</strong> the buttons of a dialog footer and of a message box show only their text. The sheet turns off the icons that some desktop themes give OK, Cancel and Close, which would be hard to see on the filled default button.</p></li>
+<li><p><strong>Links:</strong> the links of About EGTRAIN are underlined accent text without a button face or border, lined up with the text above them. Keyboard focus shows a 2 px border that does not move the text.</p></li>
+<li><p><strong>Result windows:</strong> a diagram window is a <code class="docutils literal notranslate"><span class="pre">ResultFrame</span></code>, and so are the table windows Timetable, Delay analysis, Capacity and Capacity by area, whose tables lie on white. A white header with a band rule below it lies over the chart, with the context in secondary text and icon buttons that have the face, border, radius and states of a push button, also while the panel button is checked. The panel at the right has the surface colour, a border rule at its left edge and between its sections, section headings in the accent colour, and the readout in secondary text. A key figure of a table window is a semibold value 1.45 times the size of the text over a caption in secondary text. Clear of the selected train, and All and None of the Trains list, are action-coloured text without a face. The Trains list has no frame or background of its own and no row selection: the selected train has the band of a selected row without the focus, <code class="docutils literal notranslate"><span class="pre">#d8e1e5</span></code>, the row with the keyboard focus a 1 px action-coloured border, and the count on the heading is secondary text. A partly checked group has the accent fill of a checked box with a dash, <code class="docutils literal notranslate"><span class="pre">check-partial.svg</span></code>. The icons <code class="docutils literal notranslate"><span class="pre">zoom-out.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">zoom-in.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">fit.svg</span></code> and <code class="docutils literal notranslate"><span class="pre">panel.svg</span></code> are 16 px; without them, as in the unit tests, a header button shows its name.</p></li>
+</ul>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Network canvas and railway notation:</strong> drawn in code with their own colours and sizes, described in the <a class="reference internal" href="renderer-style-map.html"><span class="std std-doc">network renderer style map</span></a>. Canvas text uses a default <code class="docutils literal notranslate"><span class="pre">QFont</span></code>, not the sheet.</p></li>
+<li><p><strong>Chart text:</strong> Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (<code class="docutils literal notranslate"><span class="pre">DiagramWindow::applyChartStyle</span></code>). A chart has no title, since the window title names it. The Key and the column of an exported figure use the window font.</p></li>
+<li><p><strong>Console:</strong> fixed-pitch text <code class="docutils literal notranslate"><span class="pre">#dde3e5</span></code> on <code class="docutils literal notranslate"><span class="pre">#12191f</span></code>, 13.7:1.</p></li>
+</ul>
+</section>
+<section id="the-409-decision">
+<h2>The #409 decision<a class="headerlink" href="#the-409-decision" title="Link to this heading">¶</a></h2>
+<p>Issue #409 compared the current look with three prototypes in matched captures (macOS 26, 1280 by 800, the Netherlands and Paimpol cases, six states). The chosen direction is the refined system-native look: the platform font, one type scale, one bold weight, merged near-duplicate colours, spacing in 4 px steps, banded table headers and right-aligned numbers.</p>
+<p>Rejected:</p>
+<ul class="simple">
+<li><p><strong>IBM Plex Sans:</strong> it sets wider than the system font, so inspector values were cut, more labels wrapped, and table headers were cut the most.</p></li>
+<li><p><strong>Source Sans 3 with Source Serif 4 headings:</strong> toolbar text became smaller, a second family for headings gained little, and the run review dialog with its details open reached the bottom of an 800 px screen.</p></li>
+</ul>
+<p>Both would also have added font files, an OFL notice in three packages and an untested synthetic bold on Linux.</p>
+<p>Remaining concerns:</p>
+<ul class="simple">
+<li><p>Windows and Linux rendering of this look has not been seen yet.</p></li>
+<li><p>Digits line up only through right alignment (<a class="reference internal" href="#tables">tables</a>).</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="renderer-style-map.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Network renderer style map</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="main-window-style.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Main window</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Interface style</a><ul>
+<li><a class="reference internal" href="#fonts">Fonts</a></li>
+<li><a class="reference internal" href="#type-scale">Type scale</a></li>
+<li><a class="reference internal" href="#spacing-and-shape">Spacing and shape</a></li>
+<li><a class="reference internal" href="#colour-tokens">Colour tokens</a></li>
+<li><a class="reference internal" href="#states">States</a></li>
+<li><a class="reference internal" href="#tables">Tables</a></li>
+<li><a class="reference internal" href="#dialogs">Dialogs</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li><a class="reference internal" href="#the-409-decision">The #409 decision</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

@@ -1,0 +1,27 @@
+<map id="ServicePanel::commitEntryTimeSeconds" name="ServicePanel::commitEntryTimeSeconds">
+<area shape="rect" id="Node000001" title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun..." alt="" coords="5,155,203,195"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="268,133,465,159"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,162,254,156,254,161,203,167"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="251,183,483,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,183,237,187,237,192,203,188"/>
+<area shape="rect" id="Node000004" href="$class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a" title=" " alt="" coords="531,69,757,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="456,181,481,169,496,159,505,148,514,137,529,125,556,112,559,116,532,130,518,140,509,151,499,163,484,174,458,186"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="805,29,1084,55"/>
+<area shape="poly" id="edge12_Node000003_Node000005" title=" " alt="" coords="464,181,481,169,492,156,499,142,503,112,507,82,515,67,529,55,572,31,619,15,667,7,716,4,809,9,886,24,885,29,809,15,716,9,668,12,620,20,574,36,532,59,519,71,512,84,508,112,504,143,497,159,484,173,467,185"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="840,113,1049,139"/>
+<area shape="poly" id="edge13_Node000003_Node000006" title=" " alt="" coords="462,181,530,169,684,148,826,134,827,139,685,154,531,174,463,186"/>
+<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="549,183,739,223"/>
+<area shape="poly" id="edge8_Node000003_Node000007" title=" " alt="" coords="483,201,535,201,535,206,483,206"/>
+<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="552,247,736,287"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="455,221,544,242,543,247,454,226"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="535,336,753,361"/>
+<area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="401,221,532,297,600,328,597,333,529,302,398,226"/>
+<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="559,409,729,435"/>
+<area shape="poly" id="edge14_Node000003_Node000010" title=" " alt="" coords="385,222,445,294,486,335,532,372,561,388,590,402,588,407,558,393,529,376,483,339,441,297,381,225"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="757,68,848,54,849,59,758,74"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="758,100,829,109,828,114,757,105"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="897,31,886,21,892,11,911,5,945,3,989,7,1000,13,1003,19,998,21,996,16,987,12,945,8,912,10,895,15,892,20,900,27"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="897,115,886,105,892,95,911,89,945,87,989,91,1000,97,1003,103,998,105,996,100,987,96,945,92,912,94,895,99,892,104,900,111"/>
+<area shape="poly" id="edge11_Node000009_Node000009" title=" " alt="" coords="599,338,590,328,595,318,613,311,644,309,684,314,695,319,698,325,694,327,691,323,683,319,644,315,614,317,598,322,595,327,603,334"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="599,411,590,401,595,391,613,385,644,383,684,387,695,392,698,398,694,401,691,396,683,392,644,388,614,390,598,395,595,400,603,407"/>
+</map>

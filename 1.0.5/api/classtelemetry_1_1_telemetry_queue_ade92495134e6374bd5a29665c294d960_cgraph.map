@@ -1,0 +1,7 @@
+<map id="telemetry::TelemetryQueue::purgeEndpointData" name="telemetry::TelemetryQueue::purgeEndpointData">
+<area shape="rect" id="Node000001" title="Removes the events of both categories." alt="" coords="5,5,205,45"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="253,5,453,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,240,23,240,28,205,28"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="501,5,701,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="453,23,488,23,488,28,453,28"/>
+</map>

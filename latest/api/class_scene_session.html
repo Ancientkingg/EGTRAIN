@@ -156,11 +156,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a779fdbb73b48ea2878e21932bf326f5a" id="r_a779fdbb73b48ea2878e21932bf326f5a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; *&#160;</td><td class="memItemRight"><a class="el" href="#a779fdbb73b48ea2878e21932bf326f5a">mutableDiagnostics</a> ()</td></tr>
 <tr class="memdesc:a779fdbb73b48ea2878e21932bf326f5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The vector itself, which the validation panel writes to when it validates.  <br /></td></tr>
 <tr class="memitem:a27664be0e1ed7029970bda1dd5572ca6" id="r_a27664be0e1ed7029970bda1dd5572ca6"><td class="memItemLeft">QMenu *&#160;</td><td class="memItemRight"><a class="el" href="#a27664be0e1ed7029970bda1dd5572ca6">recentScenesMenu</a> () const</td></tr>
-<tr class="memdesc:a27664be0e1ed7029970bda1dd5572ca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Recent Scenes menu, which the window puts in its File menu. Its parent is the window.  <br /></td></tr>
+<tr class="memdesc:a27664be0e1ed7029970bda1dd5572ca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Recent Cases menu, which the window puts in its File menu. Its parent is the window.  <br /></td></tr>
 <tr class="memitem:abf37e45a81e8b8f2938a83397cdea400" id="r_abf37e45a81e8b8f2938a83397cdea400"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abf37e45a81e8b8f2938a83397cdea400">addRecentScene</a> (const QString &amp;path)</td></tr>
 <tr class="memdesc:abf37e45a81e8b8f2938a83397cdea400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts the absolute form of <span class="tt">path</span> first in the recent scenes, which keep at most 8. An installed scene is not added.  <br /></td></tr>
 <tr class="memitem:abfac19dbf4a4e635b08c82235d436227" id="r_abfac19dbf4a4e635b08c82235d436227"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abfac19dbf4a4e635b08c82235d436227">rebuildRecentScenesMenu</a> ()</td></tr>
-<tr class="memdesc:abfac19dbf4a4e635b08c82235d436227"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the Recent Scenes menu again from the settings.  <br /></td></tr>
+<tr class="memdesc:abfac19dbf4a4e635b08c82235d436227"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the Recent Cases menu again from the settings.  <br /></td></tr>
 <tr class="memitem:ae84d74862a356ef7781631f6a98c41cb" id="r_ae84d74862a356ef7781631f6a98c41cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae84d74862a356ef7781631f6a98c41cb">refreshRecentSceneAvailability</a> ()</td></tr>
 <tr class="memdesc:ae84d74862a356ef7781631f6a98c41cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks the entries of the menu whose scene is gone as unavailable, and the others as available.  <br /></td></tr>
 <tr class="memitem:a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" id="r_a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f">requestOpenScene</a> (const QString &amp;path)</td></tr>
@@ -261,7 +261,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The session is a child of <span class="tt">window</span> and creates the Recent Scenes menu as a child of it. It does not own <span class="tt">document</span> or <span class="tt">host</span>, which have to outlive it. </p>
+<p>The session is a child of <span class="tt">window</span> and creates the Recent Cases menu as a child of it. It does not own <span class="tt">document</span> or <span class="tt">host</span>, which have to outlive it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -443,11 +443,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The text of the box that reports an import: the counts of the diagnostics by severity, then the first four lines, the most serious first, then the number of lines left out. </p>
+<p>The text of the box that reports an import: the counts of the diagnostics by severity that are not zero, then the first four lines, the most serious first, then the number of lines left out. Empty when there are no diagnostics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a60fb95c2ec11308fef83757ca7fb640c_cgraph.svg" width="458" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a60fb95c2ec11308fef83757ca7fb640c_cgraph.svg" width="458" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -603,7 +603,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ab00e3c9fe6910e461e3c041d5e93aa24_cgraph.svg" width="2406" height="1676"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ab00e3c9fe6910e461e3c041d5e93aa24_cgraph.svg" width="2406" height="1599"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -647,7 +647,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Fills the Recent Scenes menu again from the settings. </p>
+<p>Fills the Recent Cases menu again from the settings. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -703,7 +703,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>The Recent Scenes menu, which the window puts in its File menu. Its parent is the window. </p>
+<p>The Recent Cases menu, which the window puts in its File menu. Its parent is the window. </p>
 
 </div>
 </div>
@@ -822,7 +822,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ad789e2f74a0b509076306e3eede54c80_cgraph.svg" width="2184" height="1838"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_ad789e2f74a0b509076306e3eede54c80_cgraph.svg" width="2184" height="1815"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -887,7 +887,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a205a27ef46c6c6a132d0fd9c790afd14_cgraph.svg" width="1980" height="1838"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_session_a205a27ef46c6c6a132d0fd9c790afd14_cgraph.svg" width="1980" height="1815"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

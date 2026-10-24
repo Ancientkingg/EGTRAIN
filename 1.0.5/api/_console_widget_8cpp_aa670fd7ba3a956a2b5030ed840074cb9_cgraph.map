@@ -1,0 +1,15 @@
+<map id="consoleLogSink" name="consoleLogSink">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,91,128,116"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="33,92,26,82,29,72,43,66,67,64,95,68,107,77,103,81,93,73,67,69,45,71,33,76,31,82,37,89"/>
+<area shape="rect" id="Node000002" href="$_console_widget_8cpp.html#ac98ae5ca7d9cc3c7300f572fa0383950" title=" " alt="" coords="195,65,352,91"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="128,93,181,87,181,92,128,99"/>
+<area shape="rect" id="Node000005" href="$class_console_streambuf.html#ac487dbb4d9f8f856ddee7c5b9dae7921" title=" " alt="" coords="176,115,371,140"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="128,108,163,112,162,117,128,113"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="240,67,232,57,236,47,250,41,273,39,302,42,313,51,310,56,300,47,273,44,251,46,240,51,238,56,244,64"/>
+<area shape="rect" id="Node000003" href="$namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category." alt="" coords="419,29,581,55"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="352,63,406,54,407,60,353,68"/>
+<area shape="rect" id="Node000004" href="$namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level." alt="" coords="431,103,569,128"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="352,88,418,99,417,104,351,93"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="463,31,455,21,459,11,475,5,500,3,532,7,544,16,541,20,530,11,500,8,476,10,463,15,460,20,467,27"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="463,104,455,94,459,84,475,78,500,76,532,80,544,89,541,93,530,85,500,81,476,83,463,88,460,94,467,101"/>
+</map>

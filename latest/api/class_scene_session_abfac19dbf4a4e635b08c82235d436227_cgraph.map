@@ -1,5 +1,5 @@
 <map id="SceneSession::rebuildRecentScenesMenu" name="SceneSession::rebuildRecentScenesMenu">
-<area shape="rect" id="Node000001" title="Fills the Recent Scenes menu again from the settings." alt="" coords="5,130,215,170"/>
+<area shape="rect" id="Node000001" title="Fills the Recent Cases menu again from the settings." alt="" coords="5,130,215,170"/>
 <area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="287,35,445,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,127,262,82,314,62,316,67,264,87,157,132"/>
 <area shape="rect" id="Node000004" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="263,96,469,121"/>

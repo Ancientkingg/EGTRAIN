@@ -260,6 +260,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afd53a492910276319c68e115c587bc54" id="r_afd53a492910276319c68e115c587bc54"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afd53a492910276319c68e115c587bc54">platformCount</a> () const</td></tr>
 <tr class="memdesc:afd53a492910276319c68e115c587bc54"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of platforms of the station.  <br /></td></tr>
 <tr class="memitem:a3b1f250f682ada19ae6e1abfdf36e905" id="r_a3b1f250f682ada19ae6e1abfdf36e905"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3b1f250f682ada19ae6e1abfdf36e905">setNodeCentres</a> (const QList&lt; QPointF &gt; &amp;centres)</td></tr>
+<tr class="memitem:a734ae5c6831616982d03f6a547648b7f" id="r_a734ae5c6831616982d03f6a547648b7f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a734ae5c6831616982d03f6a547648b7f">setPlatformBars</a> (const QList&lt; QPolygonF &gt; &amp;bars)</td></tr>
 <tr class="memitem:ab81a4d7493651a4531ff135dbc18e4fb" id="r_ab81a4d7493651a4531ff135dbc18e4fb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale</a> (qreal viewScale, bool nearLook=false)</td></tr>
 <tr class="memitem:ada7869b6534961f7195078726d2d9e7a" id="r_ada7869b6534961f7195078726d2d9e7a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ada7869b6534961f7195078726d2d9e7a">isNameHiddenByCollision</a> () const</td></tr>
 <tr class="memdesc:ada7869b6534961f7195078726d2d9e7a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ac82f85c0f28205fa1a5765ec8faa6e33">resolveNameCollisions()</a> hid the attached name.  <br /></td></tr>
@@ -437,7 +438,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the bottom centre of its frame on the top edge of the convex hull of its node centres, at the x of the centre of its dots: a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on its own area. It shows as the dots in the near look. Its name sits under the dots in both looks, so that mark and name share their x. In the far look the area of the station is the hull of its node centres widened by AreaMarginPixels on screen; it is shown while the mark is visible and hidden in the near look. A plain picture keeps the far look and, like its name, its artwork point. </p>
+<p>Scales the attached items for the view scale (logical pixels per scene unit). A station mark stands with the bottom centre of its frame on the top edge of the convex hull of its node centres, or on its anchor without them, at the x of the centre of the footprint of its squares (<a class="el" href="_visual_polish_8cpp.html#aa164be426ade64b2fd1bebe183b15674">stationFootprintRect()</a>): a station or major station on the top centre of their box for a single centre, a row or a stack, a halt on its first square, and a diagonal station on its own area. It stands there in both looks and draws nothing in the near look, which a mark without node centres does not take: it keeps its pin as the only thing to see and click, and there the pin and the name keep their smallest size on screen, MinPictogramPixels and MinNamePixels, at every zoom. Its name sits under the footprint in both looks, so that mark and name share their x. The area of the station is shown while the mark is visible: in the far look the hull of its node centres widened by AreaMarginPixels on screen, and in the near look the hull of its node centres and platform bars widened by as much. A plain picture keeps the far look and, like its name, its artwork point. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -496,7 +497,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram, top centre of the name) through their item transform, which stays the identity at their scene size. For a station mark the transform also moves these anchors to the station nodes (<a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a>). Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. For a <a class="el" href="class_station_mark_item.html">StationMarkItem</a> that is in a scene it also adds the area of the station to the scene, a path item at AreaZValue in <a class="el" href="_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8" title="The fill of the area of a station: the blue of the bar of the far mark at an alpha of 56 of 255.">stationAreaColor()</a> that takes no mouse input. </p>
+<p>Links the scene-space pictogram and name of this station. The items stay owned by the scene; both are enlarged about their anchor (bottom centre of the pictogram, top centre of the name) through their item transform, which stays the identity at their scene size. For a station mark the transform also moves these anchors to the station nodes (<a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a>). Attach the items to their parents before the first applyViewScale: the transform moves scenePos() of an enlarged item. More platforms rank a station higher when names collide. For a <a class="el" href="class_station_mark_item.html">StationMarkItem</a> that is in a scene it also adds the area of the station to the scene, a path item at AreaZValue in <a class="el" href="_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8" title="The fill of the area of a station: the blue of the pin of a major station at an alpha of 56 of 255.">stationAreaColor()</a> that takes no mouse input. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1360,7 +1361,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa87b17b4f8f7983bc0686a5582da3bbe_cgraph.svg" width="558" height="199"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_aa87b17b4f8f7983bc0686a5582da3bbe_cgraph.svg" width="558" height="346"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1379,7 +1380,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The area in scene coordinates that a station mark takes in either look at the applied view scale, its halo included; the scene bounds of a plain picture. </p>
+<p>The area in scene coordinates of the pin of a station mark at the applied view scale, its halo included, and of the footprint of its squares, the same in either look; the scene bounds of a plain picture. </p>
 
 </div>
 </div>
@@ -1598,7 +1599,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the visible pictogram of any other station. A name goes under the dots of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the frame of the far look, right of the dots, left of them, and above a frame on the top of the box of the node centres at the x of the dots; without one it stays under the dots. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. The spots do not depend on the look and pictograms are tested by <a class="el" href="#a8fa420b2b38668b98f78e900488c29dc">pictogramSceneRect()</a>, so the same names show in both looks. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
+<p>Places the names of station marks and hides the attached names that overlap, on screen, the name of a higher-priority station or that cover part of the drawn pictogram of any other station: a visible plain picture, the pictogram rect of a visible mark that draws its pin, and the footprint of the squares of a visible mark in the near look. A name goes under the footprint of the squares of its station, or, where its text there crosses a visible track line or the pictogram of another station, shown or hidden, to the first of these spots that crosses neither: above the pin, right of the footprint, left of it, and above a frame on the top of the box of the node centres at the x of the footprint; without one it stays under the footprint. A mark that draws nothing in the near look has no pin and no frame there, so its name goes above the footprint instead of above the pin and has no last spot. A name is placed again only after <a class="el" href="#ab81a4d7493651a4531ff135dbc18e4fb">applyViewScale()</a> moved it. Selected and followed stations keep their name. Pictograms stay visible. sceneToViewport is the viewport transform of the view. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1849,12 +1850,30 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Gives the attached station mark the centres in scene coordinates of the station squares that are at the place of the anchor, those at most 32 mark frames at scene size from it, or the anchor alone without one. A station with platform nodes on another line has its mark, dots, area and name at the place of its anchor only. </p>
+<p>Gives the attached station mark the centres in scene coordinates of the station squares that are at the place of the anchor, those at most 32 mark frames at scene size from it, or none without one. A station with platform nodes on another line has its mark, area and name at the place of its anchor only. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_station_overlay_item_a3b1f250f682ada19ae6e1abfdf36e905_cgraph.svg" width="402" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a734ae5c6831616982d03f6a547648b7f" name="a734ae5c6831616982d03f6a547648b7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a734ae5c6831616982d03f6a547648b7f">&#9670;&#160;</a></span>setPlatformBars()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void StationOverlayItem::setPlatformBars </td>
+          <td>(</td>
+          <td class="paramtype">const QList&lt; QPolygonF &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>bars</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gives the area of the attached station mark the platform bars of the station, each in scene coordinates, of which it keeps those whose centre is at the place of the anchor, as <a class="el" href="#a3b1f250f682ada19ae6e1abfdf36e905">setNodeCentres()</a> does. </p>
 
 </div>
 </div>
@@ -2248,7 +2267,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Width on screen, in logical pixels, by which the area of a station in the far look reaches past its node centres on every side. </p>
+<p>Width on screen, in logical pixels, by which the area of a station reaches past its node centres on every side, and in the near look past its platform bars. </p>
 
 </div>
 </div>
@@ -2343,7 +2362,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which the marks are dots on the station nodes. </p>
+<p>Smallest spacing on screen, in logical pixels, of the tracks at the stations for the near look, in which the marks draw nothing and the platform bars show. </p>
 
 </div>
 </div>

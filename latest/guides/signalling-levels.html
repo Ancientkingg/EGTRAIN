@@ -195,9 +195,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installing EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Case studies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="case-studies.html">Bundled cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to</a></li>
-<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="opening-a-case-study.html">Opening an <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main-window.html">Main window</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updating EGTRAIN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="privacy-and-diagnostics.html">Privacy and diagnostics</a></li>
@@ -212,8 +212,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a supplied case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful scene</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-modify-a-case.html">Tutorial: modify a bundled case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial-minimal-scene.html">Tutorial: the smallest useful case</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Create or edit cases</span></p>
 <ul class="current">
@@ -327,8 +327,8 @@ section that a connection builds from two blocks. See
 <li><p>A section can also have no level. Its value is -99999999
 (<code class="docutils literal notranslate"><span class="pre">kSignallingLevelUnset</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">scene/SignallingLevel.h</span></code>). This page
 calls it “no level”.</p></li>
-<li><p>The scene stores no level on a block. It stores signalling areas in
-<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>. When the scene is prepared for a run, the builder gives
+<li><p>The case stores no level on a block. It stores signalling areas in
+<code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>. When the case is prepared for a run, the builder gives
 each section the level of the area that covers it; see
 <a class="reference internal" href="#how-an-area-gives-sections-their-level">How an area gives sections their level</a>.</p></li>
 <li><p>A route holds copies of its sections. The copies carry the level of the
@@ -358,15 +358,15 @@ section different levels shows them. The editor shows the labels of the levels
 </tr>
 <tr class="row-odd"><td><p>0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
-<td><p>Fixed block; the block before an occupied one is limited to 40 km/h.</p></td>
+<td><p>Fixed block. The block before an occupied one is limited to 40 km/h.</p></td>
 </tr>
 <tr class="row-even"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">1</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
-<td><p>Fixed block; moves trains like level 2; no blocking times.</p></td>
+<td><p>Fixed block, without blocking times.</p></td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">2</span> <span class="pre">fixed</span> <span class="pre">block</span></code></p></td>
-<td><p>Fixed block; moves trains like level 1; blocking times computed.</p></td>
+<td><p>Fixed block, with blocking times.</p></td>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">ETCS</span> <span class="pre">Level</span> <span class="pre">3</span> <span class="pre">moving</span> <span class="pre">block</span></code></p></td>
@@ -374,11 +374,11 @@ section different levels shows them. The editor shows the labels of the levels
 </tr>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">4</span> <span class="pre">Virtual</span> <span class="pre">coupling</span></code></p></td>
-<td><p>Moving block; a train can follow the train ahead at its speed.</p></td>
+<td><p>Moving block. A train can follow the train ahead at its speed.</p></td>
 </tr>
 <tr class="row-even"><td><p>5</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">5</span> <span class="pre">BACC</span> <span class="pre">track</span> <span class="pre">circuits</span></code></p></td>
-<td><p>Fixed block; one extra empty block (double red) before an occupied one.</p></td>
+<td><p>Fixed block, with one extra empty block (double red) before an occupied one.</p></td>
 </tr>
 </tbody>
 </table>
@@ -507,6 +507,10 @@ speed against the braking point. A live, force-valid cached successor is the
 default proposal, including gradient recovery. The selector examines all collected
 targets against that actual successor before retaining it; a competing stop or
 speed restriction can interrupt the plan from the previous actual state.
+Without a cached successor, the selector refines the braking point of a target
+only when the bracket of its inverse pass starts before the earliest point found
+so far, because a later point cannot be chosen. A signalled stop within one
+step is always refined.
 A retained stop ends before farther targets, so those cannot invalidate its
 stopping prefix. They are reconsidered when that stop is no longer retained.
 Satisfied positive ceilings do not reclaim an already compliant continuation.
@@ -549,7 +553,7 @@ while the first section is failed, at every level (<code class="docutils literal
 <code class="docutils literal notranslate"><span class="pre">same-entry-level-*</span></code>, <code class="docutils literal notranslate"><span class="pre">entry-order-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code> and <code class="docutils literal notranslate"><span class="pre">-2</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">sf-first-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>, <code class="docutils literal notranslate"><span class="pre">-2</span></code> and <code class="docutils literal notranslate"><span class="pre">-none</span></code>.</p>
 <p><strong>Signal failure.</strong> A <code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> incident fails one or more sections from
-its start second to its end second. A scene has to give the end second:
+its start second to its end second. A case has to give the end second:
 validation rejects a signal failure without one (<code class="docutils literal notranslate"><span class="pre">scene.incident.window</span></code>). In
 each step:</p>
 <ul class="simple">
@@ -893,7 +897,7 @@ train cannot move inside it. The next gets 75, state red and 11.111 m/s. The
 next gets 180 and the next 270. A train stops at the end of the block that is
 second behind the occupied one: in <code class="docutils literal notranslate"><span class="pre">follow-level-5</span></code>, <code class="docutils literal notranslate"><span class="pre">F2</span></code> stops at 4000 m,
 one block before the stop of level 0. Only the train order code reads the state
-red_red, and native scenes do not use it; the hold comes from the limit of 0.</p></li>
+red_red, and native cases do not use it; the hold comes from the limit of 0.</p></li>
 <li><p><strong>Differences from level 0.</strong> One block more is held free; the chain is one
 code longer; and all level 5 sections are set to clear at the start of every
 step, where levels 0, 1 and 2 clear a section when a train leaves it.</p></li>
@@ -962,7 +966,7 @@ or single-track restriction has made one.</p></li>
 <code class="docutils literal notranslate"><span class="pre">analyzeSignallingAreas</span></code> (<code class="docutils literal notranslate"><span class="pre">scene/SectionInventory.cpp</span></code>), which the validator
 uses. The builder repeats it in <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code>
 (<code class="docutils literal notranslate"><span class="pre">simulation/builders/InfrastructureBuilder.cpp</span></code>); unit tests compare the two on
-small scenes.</p>
+small cases.</p>
 <ul class="simple">
 <li><p><strong>Which sections.</strong> The unit is a runtime section from the section inventory
 (<code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code>). The blocks of a track follow each other from the
@@ -984,7 +988,7 @@ second track. A track-scoped area wins over network-wide areas: if any
 track-scoped area contains the section, its level is used and the network-wide
 level is dropped.</p></li>
 <li><p><strong>Chainage.</strong> The numbers are not converted between tracks. In the
-<code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> scene, track <code class="docutils literal notranslate"><span class="pre">B0</span></code> runs from 0 to 64 km and track <code class="docutils literal notranslate"><span class="pre">B1</span></code>
+<code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> case, track <code class="docutils literal notranslate"><span class="pre">B0</span></code> runs from 0 to 64 km and track <code class="docutils literal notranslate"><span class="pre">B1</span></code>
 from 100 to 164 km, so one network-wide area has to span 0 to 164 km or more
 to cover both, and it says nothing about the part from 64 to 100 km.</p></li>
 <li><p><strong>Conflict.</strong> Two areas of the same kind (both network-wide, or both
@@ -1050,7 +1054,7 @@ missing-level warning does not name them.</p></li>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene.signalling.level.missing</span></code></p></td>
 <td><p>warning</p></td>
-<td><p>route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the scene has areas</p></td>
+<td><p>route sections have no level; the message names up to five sections and the tracks, and the suggested fix lists the stretches without a level when the case has areas</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene.single_track.no_effect</span></code></p></td>
 <td><p>warning</p></td>
@@ -1079,17 +1083,17 @@ independent. Changing one does not change the others.</p>
 <tr class="row-even"><td><p>What it is</p></td>
 <td><p>A range of chainage that gives sections a signalling level</p></td>
 <td><p>A part of one track that a train occupies; the unit of the aspects</p></td>
-<td><p>A route and the blocks of it that the trains the user checks all occupy, for one analysis</p></td>
+<td><p>A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis</p></td>
 </tr>
 <tr class="row-odd"><td><p>Where it is stored</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">infrastructure.json</span></code>, <code class="docutils literal notranslate"><span class="pre">blocks[]</span></code>: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">track</span></code> and <code class="docutils literal notranslate"><span class="pre">length_km</span></code>; blocks follow each other along the track. Connections derive switch sections</p></td>
-<td><p>Not stored in the scene. There is no such object</p></td>
+<td><p>Not stored in the case. There is no such object</p></td>
 </tr>
 <tr class="row-even"><td><p>Where it is computed</p></td>
 <td><p>Builder, <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code>; the runtime sections are <code class="docutils literal notranslate"><span class="pre">infra.sections</span></code> of the run and the route copies</p></td>
-<td><p>The capacity analysis dialog: route, trains and period; the blocks follow from the trains and the blocking times of the run (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityAnalysis</span></code>)</p></td>
+<td><p>The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityAnalysis</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>What it decides</p></td>
 <td><p>The level of every section that it contains</p></td>
@@ -1106,15 +1110,15 @@ independent. Changing one does not change the others.</p>
 </div>
 <p>Areas are measured against block sections, never the other way round. A
 block section has the level of the area that contains it, or none. The capacity
-analysis uses the blocks that the selected trains share. Its scope does not follow the
+analysis uses a range of blocks of one route. Its scope does not follow the
 signalling areas, and a signalling area does not follow the scope. A section
 without a level or with level 1 or 5 has no blocking times, so the capacity
 analysis has no data for it.</p>
 <p>Older versions used one row of <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> for both the
 signalling level and the statistics of an area (the removed <code class="docutils literal notranslate"><span class="pre">NetworkArea</span></code>
 class). No simulation code reads that file. The legacy export writes the
-signalling areas of the scene to it, one row per area, and removes stale or
-copied TXT rows when the scene has no areas. Original passthrough files stay
+signalling areas of the case to it, one row per area, and removes stale or
+copied TXT rows when the case has no areas. Original passthrough files stay
 untouched.</p>
 <p>Every export also writes <code class="docutils literal notranslate"><span class="pre">TrackLines/EGTRAINSignallingAreas.json</span></code>, including
 an empty assignment. This sidecar has integer <code class="docutils literal notranslate"><span class="pre">format_version:</span> <span class="pre">1</span></code> and a
@@ -1145,20 +1149,20 @@ track numbers also fail a sidecar-marked import before publication. Without a si
 import still reports the historical TXT file and converts none of its rows.
 This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.</p>
-<p>The Capacity window uses a route and the blocks that the chosen trains share as
-its scope, not signalling areas; <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a>
+<p>The Capacity window uses a route and a range of its blocks as its scope, not
+signalling areas; <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a>
 describes the scope and the area calculation that older versions had.</p>
 <p>Signals and track detection sections are a fourth thing. <code class="docutils literal notranslate"><span class="pre">signals[]</span></code> bind to a
 section only to resolve signal failures. See the
 <a class="reference internal" href="scene-schema.html"><span class="std std-doc">scene schema</span></a> and the
 <a class="reference internal" href="v1-scene-migration-matrix.html"><span class="std std-doc">migration matrix</span></a>.</p>
 </section>
-<section id="the-committed-scenes">
-<h2>The committed scenes<a class="headerlink" href="#the-committed-scenes" title="Link to this heading">¶</a></h2>
+<section id="the-bundled-cases">
+<h2>The bundled cases<a class="headerlink" href="#the-bundled-cases" title="Link to this heading">¶</a></h2>
 <div class="table-wrapper colwidths-auto docutils container">
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Scene</p></th>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
 <th class="head"><p>Signalling areas</p></th>
 <th class="head"><p>Runs with</p></th>
 </tr>
@@ -1191,7 +1195,7 @@ section only to resolve signal failures. See the
 </tbody>
 </table>
 </div>
-<p>The scene descriptions of <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code>, <code class="docutils literal notranslate"><span class="pre">Milano_Brescia</span></code> and
+<p>The case descriptions of <code class="docutils literal notranslate"><span class="pre">Paimpol</span></code>, <code class="docutils literal notranslate"><span class="pre">Milano_Brescia</span></code> and
 <code class="docutils literal notranslate"><span class="pre">Copenhagen</span></code> call their area a placeholder.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Netherlands</span></code> and <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> use level 0 (<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">ATB</span> <span class="pre">fixed</span> <span class="pre">block</span></code>) by
 project decision, with no line and no year. Their descriptions say that the
@@ -1201,7 +1205,7 @@ level is a project decision, and so does the description of
 Hoje Taastrup and one at Farum. With the area and without them an arriving and a
 departing train stand head to head at each of these places until the end of the
 run, with the trains behind them queued. The entries are set for the timetable
-of the scene.</p>
+of the case.</p>
 </section>
 <section id="known-limits-and-open-issues">
 <h2>Known limits and open issues<a class="headerlink" href="#known-limits-and-open-issues" title="Link to this heading">¶</a></h2>
@@ -1209,7 +1213,7 @@ of the scene.</p>
 <ul class="simple">
 <li><p>#439: historical cases without the canonical area sidecar report
 <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> in the warning <code class="docutils literal notranslate"><span class="pre">scene.import.areas.skipped</span></code> and
-convert none of its rows. The scene has no signalling area until the user adds
+convert none of its rows. The case has no signalling area until the user adds
 one in Infrastructure &gt; Signalling area. Canonical exports keep their
 assignment in the sidecar.</p></li>
 </ul>
@@ -1346,7 +1350,7 @@ blocking times for; the characterization line has none.</p>
 <li><a class="reference internal" href="#sections-of-different-levels-on-one-route">Sections of different levels on one route</a></li>
 <li><a class="reference internal" href="#how-an-area-gives-sections-their-level">How an area gives sections their level</a></li>
 <li><a class="reference internal" href="#signalling-areas-block-sections-and-capacity-areas">Signalling areas, block sections and capacity areas</a></li>
-<li><a class="reference internal" href="#the-committed-scenes">The committed scenes</a></li>
+<li><a class="reference internal" href="#the-bundled-cases">The bundled cases</a></li>
 <li><a class="reference internal" href="#known-limits-and-open-issues">Known limits and open issues</a></li>
 <li><a class="reference internal" href="#what-is-not-established">What is not established</a></li>
 </ul>

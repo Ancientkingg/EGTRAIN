@@ -1,0 +1,26 @@
+<map id="NetworkPresenter::paintStationOverlay" name="NetworkPresenter::paintStationOverlay">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,182,232,222"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a2938530f83ee8d29fe5a90ab2c880fcd" title="The name as it is shown, with spaces between its words." alt="" coords="519,153,668,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,192,505,175,505,181,233,198"/>
+<area shape="rect" id="Node000003" href="$class_station_mark_item.html#a3325809cbc714dab4aa4ae00f098389f" title=" " alt="" coords="283,95,468,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,179,301,137,303,142,180,184"/>
+<area shape="rect" id="Node000006" href="$class_station_name_item.html#a5a1cf69c4d69d3aae76cfd0d65e081d9" title="The name text in font, white, at NameZValue, with its halo." alt="" coords="280,210,471,250"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="232,212,267,216,266,221,232,217"/>
+<area shape="rect" id="Node000007" href="$class_station_overlay_item.html#a3fc77e5aa0720ff49d0ea9cb1928379e" title=" " alt="" coords="297,277,454,317"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="174,220,281,260,307,269,305,274,279,264,172,225"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title=" " alt="" coords="519,103,667,128"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="469,113,506,113,506,118,469,118"/>
+<area shape="rect" id="Node000005" href="$_visual_polish_8cpp.html#a53bf883918011b406bcde8613aa0354d" title="The pin that paintStationMark() paints in frame, its edge included and its halo not." alt="" coords="523,29,663,55"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="433,93,518,63,539,56,541,61,520,69,434,98"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="558,104,550,94,554,84,569,78,593,76,623,80,635,89,632,93,621,85,593,81,570,83,558,88,556,94,562,101"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="558,31,550,21,554,11,569,5,593,3,623,6,635,15,632,20,621,11,593,8,570,10,558,15,556,20,562,28"/>
+<area shape="poly" id="edge10_Node000007_Node000002" title=" " alt="" coords="443,274,469,260,484,246,493,232,502,218,517,203,525,197,528,202,520,207,506,221,497,235,488,249,472,264,446,279"/>
+<area shape="rect" id="Node000008" href="$class_station_overlay_item.html#aff36f243253eb0582da8df9b1d42ebb5" title="The number of connections at the station." alt="" coords="519,409,668,449"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="403,315,456,353,520,394,532,400,529,405,517,399,453,358,400,319"/>
+<area shape="rect" id="Node000009" href="$class_station_overlay_item.html#af08a4a63689f7ba4b61c46f1c5ac886a" title="The position of the station in scene coordinates." alt="" coords="519,217,668,257"/>
+<area shape="poly" id="edge11_Node000007_Node000009" title=" " alt="" coords="448,274,506,258,508,263,450,279"/>
+<area shape="rect" id="Node000010" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title="The name of the station as given." alt="" coords="519,281,668,321"/>
+<area shape="poly" id="edge12_Node000007_Node000010" title=" " alt="" coords="454,295,505,296,505,302,454,301"/>
+<area shape="rect" id="Node000011" href="$class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" title="The colours and the class of the station." alt="" coords="519,345,668,385"/>
+<area shape="poly" id="edge13_Node000007_Node000011" title=" " alt="" coords="441,314,516,338,515,343,439,319"/>
+</map>

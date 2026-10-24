@@ -1,7 +1,7 @@
 <map id="stationMarkFrameIn" name="stationMarkFrameIn">
-<area shape="rect" id="Node000001" title="The largest square frame centred in area in which paintStationMark() paints inside area,..." alt="" coords="5,29,159,55"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,159,55"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="49,31,43,21,46,11,60,5,82,3,109,6,120,15,117,19,107,11,82,8,61,10,50,15,48,20,54,28"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title="The area that paintStationMark() paints, its halo included. The bar reaches past frame." alt="" coords="207,29,355,55"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title=" " alt="" coords="207,29,355,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,39,193,39,193,45,159,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="248,31,241,21,245,11,258,5,281,3,308,6,319,15,316,19,306,11,281,8,260,10,249,15,246,20,252,28"/>
 </map>

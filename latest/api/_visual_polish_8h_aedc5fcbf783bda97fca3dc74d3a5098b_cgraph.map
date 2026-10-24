@@ -1,13 +1,19 @@
 <map id="stationMarkIcon" name="stationMarkIcon">
-<area shape="rect" id="Node000001" title="The mark in its dark variant for light surfaces, at 16 and 32 pixels." alt="" coords="5,67,132,92"/>
-<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="38,68,31,58,35,48,47,42,69,40,94,44,105,52,102,56,92,48,69,45,49,47,39,52,36,58,42,65"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="189,29,324,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,64,178,55,179,60,133,69"/>
-<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" title="The largest square frame centred in area in which paintStationMark() paints inside area,..." alt="" coords="180,103,333,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="133,89,177,97,176,103,132,94"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,140,132,165"/>
+<area shape="poly" id="edge11_Node000001_Node000001" title=" " alt="" coords="38,141,31,132,35,122,47,116,69,113,94,117,105,126,102,130,92,122,69,119,49,121,39,125,36,131,42,138"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#a2e7d09af69daec1cb464c65129b19737" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="205,29,308,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,138,123,101,179,64,193,57,195,62,181,68,126,106,85,142"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc" title=" " alt="" coords="189,103,324,128"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="132,138,178,128,179,133,133,143"/>
+<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#a533b0acec8e0aa932ee206a07c02a1d8" title=" " alt="" coords="197,176,316,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="133,162,184,172,183,177,132,167"/>
+<area shape="rect" id="Node000005" href="$_visual_polish_8cpp.html#a2420ddd0ca6f0c9af6acb01c987d2ed4" title=" " alt="" coords="180,249,333,275"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="93,163,223,240,221,245,90,168"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="226,31,219,21,223,11,235,5,257,3,282,6,293,15,290,19,280,11,257,8,237,10,227,15,224,20,230,28"/>
-<area shape="poly" id="edge6_Node000003_Node000003" title=" " alt="" coords="226,104,219,94,223,84,235,78,257,76,282,80,293,88,290,92,280,84,257,81,237,83,227,88,224,94,230,101"/>
-<area shape="rect" id="Node000004" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title="The area that paintStationMark() paints, its halo included. The bar reaches past frame." alt="" coords="381,103,529,128"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="334,113,367,113,367,118,334,118"/>
-<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="423,104,416,94,419,84,433,78,455,76,482,80,494,88,490,93,480,84,455,81,434,83,423,88,421,94,427,101"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="226,104,219,94,223,84,235,78,257,76,282,80,293,88,290,92,280,84,257,81,237,83,227,88,224,94,230,101"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="226,177,219,168,223,158,235,152,257,149,282,153,293,162,290,166,280,158,257,155,237,157,227,161,224,167,230,174"/>
+<area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="226,251,219,241,223,231,235,225,257,223,282,226,293,235,290,239,280,231,257,228,237,230,227,235,224,240,230,248"/>
+<area shape="rect" id="Node000006" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title=" " alt="" coords="381,249,529,275"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="334,259,367,259,367,265,334,265"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="423,251,416,241,419,231,433,225,455,223,482,226,494,235,490,239,480,231,455,228,434,230,423,235,421,240,427,248"/>
 </map>
