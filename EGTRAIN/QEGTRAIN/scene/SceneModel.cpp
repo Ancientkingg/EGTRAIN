@@ -831,8 +831,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).arraySection(object, key, path, required);
 	};
 	auto stringField = [&](const json& object, const char* key, const std::string& file,
-						   const std::string& path, std::string& output, bool required = true) {
-		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).stringField(object, key, path, output, required);
+						   const std::string& path, std::string& output, bool required = true,
+						   SceneFieldReader::Empty empty = SceneFieldReader::Empty::Invalid) {
+		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).stringField(object, key, path, output, required, empty);
 	};
 	auto numberField = [&](const json& object, const char* key, const std::string& file,
 						   const std::string& path, double& output, bool required = true) {
@@ -879,7 +880,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					+ std::to_string(kCurrentSceneSchemaVersion),
 				"schema_version");
 		}
-		stringField(sceneJson, "name", "scene.json", "", result.scene.name);
+		stringField(sceneJson, "name", "scene.json", "", result.scene.name, true, SceneFieldReader::Empty::Allowed);
 		stringField(sceneJson, "saved_with_app_version", "scene.json", "",
 			result.scene.savedWithAppVersion, false);
 		stringField(sceneJson, "description", "scene.json", "", result.scene.description, false);
@@ -1012,7 +1013,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			const json& value = stationsJson["stations"][index];
 			SceneStation station;
 			stringField(value, "id", "stations.json", stationPath, station.id);
-			stringField(value, "name", "stations.json", stationPath, station.name);
+			stringField(value, "name", "stations.json", stationPath, station.name, true, SceneFieldReader::Empty::Allowed);
 			station.hasPosition = numberField(value, "position_km", "stations.json", stationPath,
 				station.positionKm, false);
 			if (value.contains("platforms")) {
@@ -1489,7 +1490,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					const json& value = scenariosJson["scenarios"][index];
 					SceneScenario scenario;
 					reader.stringField(value, "id", path, scenario.id);
-					reader.stringField(value, "name", path, scenario.name);
+					reader.stringField(value, "name", path, scenario.name, true, SceneFieldReader::Empty::Allowed);
 					reader.stringField(value, "description", path, scenario.description, false);
 					parseIncidentArray(reader, value, path, scenario.incidents);
 					if (reader.arraySection(value, "entrance_delays", path, false)) {

@@ -105,7 +105,7 @@ bool SceneFieldReader::arraySection(const json& object, const char* key, const s
 }
 
 bool SceneFieldReader::stringField(const json& object, const char* key, const std::string& path, std::string& output,
-	bool required) const {
+	bool required, Empty empty) const {
 	if (!objectItem(object, path, codes_.itemMessage))
 		return false;
 	if (!object.contains(key)) {
@@ -113,7 +113,7 @@ bool SceneFieldReader::stringField(const json& object, const char* key, const st
 			report(codes_.fieldMissing, std::string("Missing ") + key, joinPath(path, key));
 		return false;
 	}
-	if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
+	if (!object[key].is_string() || (required && empty == Empty::Invalid && object[key].get<std::string>().empty())) {
 		report(codes_.fieldInvalid, std::string("Invalid ") + key, joinPath(path, key));
 		return false;
 	}
@@ -208,7 +208,7 @@ SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& roo
 			reader.report("scene.scenario.field.unknown", "Scenario JSON does not allow field " + field.key(), field.key());
 	}
 	reader.stringField(root, "id", "scenario", scenario.id);
-	reader.stringField(root, "name", "scenario", scenario.name);
+	reader.stringField(root, "name", "scenario", scenario.name, true, SceneFieldReader::Empty::Allowed);
 	reader.stringField(root, "description", "scenario", scenario.description, false);
 	if (reader.arraySection(root, "incidents", "", true)) {
 		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
