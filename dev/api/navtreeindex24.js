@@ -197,8 +197,9 @@ var NAVTREEINDEX24 =
 "struct_station_overlay_item_1_1_viewport_placement.html#a916752976edbaf2f1b35ab099ff8250e":[2,0,293,0,3],
 "struct_station_overlay_item_1_1_viewport_placement.html#ae4ce167ae3ce466a4ef3bd14c0896252":[2,0,293,0,4],
 "struct_station_tick.html":[2,0,296],
-"struct_station_tick.html#a1391dcb253af36df04ca51338d20fc91":[2,0,296,0],
-"struct_station_tick.html#a68a0e3e8c197b23c32e4d3603ffcd15e":[2,0,296,1],
+"struct_station_tick.html#a1391dcb253af36df04ca51338d20fc91":[2,0,296,1],
+"struct_station_tick.html#a50d6634d233119cb5e084b9ed1c82f90":[2,0,296,0],
+"struct_station_tick.html#a68a0e3e8c197b23c32e4d3603ffcd15e":[2,0,296,2],
 "struct_station_visual.html":[2,0,297],
 "struct_station_visual.html#a11639545485943258853d34f28c4f920":[2,0,297,1],
 "struct_station_visual.html#a2e3e565349d31331589d00f49ec7528b":[2,0,297,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "struct_track_preview_point.html":[2,0,309],
 "struct_track_preview_point.html#a286c5579d26233c2435c3c6bfb603a3f":[2,0,309,3],
 "struct_track_preview_point.html#a478b2200a9011e896c1024ebf1de0994":[2,0,309,1],
-"struct_track_preview_point.html#ab1909304dcb55f1192ab429ba33ad320":[2,0,309,0],
-"struct_track_preview_point.html#ae499c02de775764cdd91fd2db40808f4":[2,0,309,2]
+"struct_track_preview_point.html#ab1909304dcb55f1192ab429ba33ad320":[2,0,309,0]
 };

@@ -92,8 +92,8 @@ var NAVTREEINDEX =
 "struct_recovery_scan.html#a4e2dcdeb71309cb7e66fa8f13efd4f51",
 "struct_scene_incident.html#ad435ea1b65fef9f4c13b03682777d629",
 "struct_scene_station.html#ac11d377e4993a5644ec3ad8920f39ca7",
-"struct_track_preview_result.html",
-"structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d"
+"struct_track_preview_point.html#ae499c02de775764cdd91fd2db40808f4",
+"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

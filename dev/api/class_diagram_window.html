@@ -563,7 +563,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set after setChart. <span class="tt">axis</span> is a category axis of the chart that runs along the distance axis and has its own range. The window gives it the stations that are in its range and whose labels fit above the plot side by side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped. When the distance axis has the dynamic property "readoutStation", the readout names by its shortest spelling the station at the nearest position where a shown series has a sample, as in "2.5 min at Treviglio", and gives only the value of the left axis when no shown series has one. </p>
+<p>Set after setChart. <span class="tt">axis</span> is a category axis of the chart that runs along the distance axis and has its own range. The window gives it the stations that are in its range and whose labels fit above the plot side by side, each with the longest spelling that fits, so the chart never has to shorten a label. When not all of them fit, the stations with the most calls are named first. A resize or a zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped. When the distance axis has the dynamic property "readoutStation", the readout names by its shortest spelling the station at the nearest position where a shown series has a sample, as in "2.5 min at Treviglio", and gives only the value of the left axis when no shown series has one. </p>
 
 </div>
 </div>
