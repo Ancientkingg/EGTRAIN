@@ -4,7 +4,9 @@
 
 #include <QApplication>
 #include <QComboBox>
+#include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMouseEvent>
 #include <QPushButton>
@@ -135,7 +137,7 @@ private:
 	Kind m_kind;
 };
 
-// A facet whose selection is made of two cells, like the one of platforms.
+// A facet whose selection is made of two cells, like the one of platforms. An edited cell changes nothing in the model.
 class PairFacet : public InfrastructureFacet {
 public:
 	QString key() const override { return "platforms"; }
@@ -158,7 +160,7 @@ public:
 	QString selectionId(const QTableWidget& table, int row) const override {
 		return table.item(row, 0)->text() + "+" + table.item(row, 1)->text();
 	}
-	void commitCell(InfrastructurePanel&, int, int) override {}
+	void commitCell(InfrastructurePanel& panel, int, int) override { panel.entityChanged("Edit platform"); }
 	void add(InfrastructurePanel&) override {}
 	void remove(InfrastructurePanel&) override {}
 };
@@ -782,6 +784,48 @@ int main(int argc, char** argv) {
 		table->setCurrentCell(1, 0);
 		QApplication::processEvents();
 		ok &= expect(table->indexWidget(table->currentIndex()) != nullptr, "the current cell has an editor");
+	}
+
+	// Return ends the edit of a cell and Add selects the new row, and neither opens an editor on the first cell
+	{
+		SceneDocument document;
+		InfrastructurePanel panel;
+		panel.setFacet(std::make_unique<ListFacet>(ListFacet::Kind::Tracks));
+		panel.setFacet(std::make_unique<PairFacet>());
+		panel.setDocument(&document);
+		document.replace(infrastructureScene(), false);
+		panel.refresh();
+		panel.show();
+		panel.activateWindow();
+		QApplication::processEvents();
+		QTableWidget* table = panel.table();
+		const auto shownEditors = [table] {
+			int count = 0;
+			for (const QWidget* child : table->viewport()->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+				count += child->isHidden() ? 0 : 1;
+			return count;
+		};
+
+		chooseFacet(panel, "platforms");
+		table->setCurrentCell(1, 1);
+		auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->currentIndex()));
+		ok &= expect(editor != nullptr, "a cell that becomes current opens its editor");
+		if (editor) {
+			editor->setText("P9");
+			QKeyEvent press(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+			QApplication::sendEvent(editor, &press);
+			// The delegate commits the editor in a queued call.
+			QApplication::processEvents();
+		}
+		ok &= expect(document.isDirty() && shownEditors() == 0 && table->currentRow() == 1 && table->currentColumn() == 1
+				&& table->hasFocus(),
+			"Return ends the edit, and the cell stays current in the table without an editor");
+
+		chooseFacet(panel, "tracks");
+		panel.addButton()->click();
+		QApplication::processEvents();
+		ok &= expect(document.model().tracks.size() == 3 && table->currentRow() == 2 && shownEditors() == 0,
+			"Add selects the new row without an editor");
 	}
 
 	return ok ? 0 : 1;
