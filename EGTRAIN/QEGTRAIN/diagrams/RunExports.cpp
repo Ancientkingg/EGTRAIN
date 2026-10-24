@@ -691,6 +691,64 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 	return result;
 }
 
+std::optional<DelayDiagramData> delayDiagramData(const CompletedRunData& data, int referenceIndex) {
+	if (!data.hasRoute(referenceIndex))
+		return std::nullopt;
+	DelayDiagramData result;
+	result.referencePath = data.routes[static_cast<std::size_t>(referenceIndex)].path;
+	if (result.referencePath.nodes.empty())
+		return std::nullopt;
+	// The positions of each station on the route in path order, once each: two sections share the node between them.
+	std::map<std::string, std::vector<double>> stations;
+	for (const RouteDiagramNode& node : result.referencePath.nodes) {
+		if (node.stationName.empty() || !std::isfinite(node.positionKm))
+			continue;
+		std::vector<double>& positions = stations[node.stationName];
+		if (std::find(positions.begin(), positions.end(), node.positionKm) == positions.end())
+			positions.push_back(node.positionKm);
+	}
+	for (const CompletedTrain& train : data.trains) {
+		std::vector<const TimetableResultRow*> calls; // at stations of the route, in journey order
+		for (const TimetableResultRow& row : data.timetable)
+			if (row.trainId == train.trainId && stations.count(row.stationId))
+				calls.push_back(&row);
+		if (calls.empty()) {
+			result.withoutCalls.push_back(train.trainId);
+			continue;
+		}
+		// The train moves up the route (1) or down it (-1) as between its last two calls that lie apart, and before
+		// those as from its first to its last call at a station that the route passes once; 0 when neither says.
+		std::vector<double> once;
+		for (const TimetableResultRow* call : calls)
+			if (const std::vector<double>& positions = stations.at(call->stationId); positions.size() == 1)
+				once.push_back(positions.front());
+		double direction = 0.0;
+		if (once.size() >= 2 && once.front() != once.back())
+			direction = once.back() > once.front() ? 1.0 : -1.0;
+		DelayDiagramSeries series;
+		series.trainId = train.trainId;
+		std::optional<double> previous;
+		for (const TimetableResultRow* call : calls) {
+			const std::vector<double>& positions = stations.at(call->stationId);
+			double x = positions.front();
+			if (previous && direction != 0.0) {
+				std::optional<double> ahead;
+				for (const double position : positions)
+					if ((position - *previous) * direction >= 0.0 && (!ahead || std::abs(position - *previous) < std::abs(*ahead - *previous)))
+						ahead = position;
+				x = ahead.value_or(x);
+			}
+			if (previous && x != *previous)
+				direction = x > *previous ? 1.0 : -1.0;
+			previous = x;
+			if (call->arrivalDelaySeconds.available)
+				series.points.push_back({x, call->arrivalDelaySeconds.value, call->stationId, call->journeyIndex, call->callIndex});
+		}
+		result.series.push_back(std::move(series));
+	}
+	return result;
+}
+
 QImage fullTableImage(const QTableView& table) {
 	// A copy of the view on the same model with the sections of the table at their sizes but no scroll bars, so that
 	// the width of the dock and the scrolling do not matter.

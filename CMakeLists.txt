@@ -1350,11 +1350,11 @@ if(EGTRAIN_BUILD_TESTS)
 	target_compile_definitions(test_operationsbuilder PRIVATE EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests")
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
-	# Runs two committed scenes in this process, like the characterization tests.
+	# Runs two committed scenes in this process, like the characterization tests, and Milano_Brescia for the Delays chart.
 	add_executable(test_completedrun ${SRC_DIR}/tests/test_completedrun.cpp)
 	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts)
 	add_test(NAME test_completedrun
-		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
+		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol --delays ${SRC_DIR}/Scenes/Milano_Brescia)
 	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 
 	# Runs a line fixture and Paimpol in this process, in the order that the test explains.

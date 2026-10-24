@@ -79,8 +79,7 @@ struct FigureColumn {
 /// "inspectionTitle" is the first line of such a box, such as "IC1723-2 on 12-B0".
 /// Inside a box a click selects a line only within 4 px of it, and otherwise the box.
 /// A line hit always reports its nearest actual plotted sample, not an
-/// interpolated value at the cursor. The value along an axis whose "readoutName"
-/// property is set reads as the number it is, such as "Stop number: 5".
+/// interpolated value at the cursor.
 ///
 /// One colour rule paints the trains, by the trains that the Trains list shows (trainColourPlan): a colour of the palette
 /// for each train while six trains or fewer are shown, else one for each service while those trains run in six services
@@ -112,8 +111,8 @@ public:
 	/// given.
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString(), const QString& contextToolTip = QString());
-	/// The line that the plot shows while the chart has no series, such as "No arrival delays in this run"; empty for
-	/// none. Set before or after setChart.
+	/// The line that the plot shows while the chart has no series, such as "No arrival delays at stations of route8";
+	/// empty for none. Set before or after setChart.
 	void setEmptyText(const QString& text);
 	/// The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.
 	void setFigureFileName(const QString& fileName);
@@ -168,7 +167,10 @@ public:
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
 	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
-	/// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped.
+	/// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped. When the
+	/// distance axis has the dynamic property "readoutStation", the readout names by its shortest spelling the station
+	/// at the nearest position where a shown series has a sample, as in "2.5 min at Treviglio", and gives only the value
+	/// of the left axis when no shown series has one.
 	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
 	/// The same provider/filter snapshot that the CSV export writes, without opening a file dialog.
 	std::string csvContent() const;

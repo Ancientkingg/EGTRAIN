@@ -66,6 +66,38 @@ void keepExactRange(QValueAxis* axis) {
 	axis->setProperty("exactRange", true);
 }
 
+// The axes of a chart along a reference route: the distance along the bottom, spanning the route exactly, and the
+// stations above the plot, both attached to every series. Gives the station axis and its ticks for
+// DiagramWindow::setStationAxis, or null when the route has no station.
+QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath, std::vector<StationTick>& stationTicks) {
+	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
+	auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	distanceAxis->setTitleText(QStringLiteral("Distance (km)"));
+	// The range of the route exactly, with round ticks inside it.
+	const double origin = referencePath.nodes.front().positionKm;
+	const double end = referencePath.nodes.back().positionKm;
+	const double low = std::min(origin, end), high = std::max(origin, end);
+	distanceAxis->setRange(low, std::max(low + 0.02, high));
+	keepExactRange(distanceAxis);
+	for (auto* series : chart->series())
+		if (!series->attachedAxes().contains(distanceAxis)) series->attachAxis(distanceAxis);
+	// Station names come from platform-bound canonical IDs, not from map X.
+	const auto stationLabels = routeDiagramStationLabels(referencePath);
+	if (stationLabels.empty()) return nullptr;
+	// The station names say what the axis is, so it has no title.
+	auto* stationAxis = new QCategoryAxis();
+	stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	stationAxis->setStartValue(distanceAxis->min() - 1);
+	stationAxis->setRange(distanceAxis->min(), distanceAxis->max());
+	chart->addAxis(stationAxis, Qt::AlignTop);
+	for (auto* series : chart->series()) series->attachAxis(stationAxis);
+	for (const auto& station : stationLabels) {
+		const QString name = QString::fromStdString(station.second);
+		stationTicks.push_back({station.first, {name + QString(" (%1 km)").arg(station.first, 0, 'f', 2), name}});
+	}
+	return stationAxis;
+}
+
 void appendInspectedPoint(QLineSeries* series, double x, double y, const QString& context) {
 	series->append(x, y);
 	QStringList points = series->property("inspectionPoints").toStringList();
@@ -375,49 +407,50 @@ void ResultViews::showDelayDiagram() {
 	}
 
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
+	const int reference = chooseRouteDiagramReference(*run, "delays");
+	if (reference < 0) return;
+	const std::optional<DelayDiagramData> diagram = delayDiagramData(*run, reference);
+	if (!diagram) return;
+	const RouteDiagramPath& referencePath = diagram->referencePath;
 	QChart* chart = new QChart();
 	const QString heading = ResultViewName::kDelays;
 
-	for (const CompletedTrain& train : run->trains) {
-		QLineSeries* series = new QLineSeries();
-		const QString trainName = QString::fromStdString(train.trainId);
+	for (const DelayDiagramSeries& source : diagram->series) {
+		if (source.points.empty()) continue;
+		auto* series = new QLineSeries();
+		const QString trainName = QString::fromStdString(source.trainId);
 		series->setName(trainName);
 		series->setProperty("trainId", trainName);
-		bool hasData = false;
-		for (const TimetableResultRow& row : run->timetable) {
-			if (row.trainId != train.trainId || !row.arrivalDelaySeconds.available)
-				continue;
-			appendInspectedPoint(series, row.journeyIndex, row.arrivalDelaySeconds.value / 60.0,
-				QString("Station: %1").arg(QString::fromStdString(row.stationId)));
-			hasData = true;
-		}
-		if (hasData) {
-			chart->addSeries(series);
-		} else {
-			delete series;
-		}
+		// A train may call at two or three stations of the route, so each call is a marker on the line.
+		series->setPointsVisible(true);
+		for (const DelayDiagramPoint& point : source.points)
+			appendInspectedPoint(series, point.positionKm, point.delaySeconds / 60.0,
+				QString("%1, stop %2").arg(QString::fromStdString(point.station)).arg(point.journey));
+		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
-	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		chart->axes(Qt::Horizontal).first()->setTitleText("Stop number");
-		// The readout names the stop nearest the pointer.
-		chart->axes(Qt::Horizontal).first()->setProperty("readoutName", QStringLiteral("stop"));
-	}
-	if (!chart->axes(Qt::Vertical).isEmpty()) {
-		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
-	}
+	std::vector<StationTick> stationTicks;
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks);
+	// The readout names the station nearest the pointer.
+	chart->axes(Qt::Horizontal).first()->setProperty("readoutStation", true);
+	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignLeft);
+	chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
-	win->setPresentation(heading, completedRunContext(run->provenance));
+	// The header names the run and then the reference route, which the distance axis follows.
+	const bool leftward = referencePath.nodes.back().positionKm < referencePath.nodes.front().positionKm;
+	win->setPresentation(heading, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + referenceRouteText(referencePath.id, leftward));
 	win->setProperty("manualSection", QStringLiteral("timetable-results"));
 	win->setTelemetryCapture([this] { return m_host.captureTelemetryOperation(); });
 	win->setChart(chart);
+	if (stationAxis) win->setStationAxis(stationAxis, std::move(stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(trainServicesForRun(run->results));
 	win->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv");
 	win->setFigureFileName(QStringLiteral("delays.png"));
-	// A run whose timetable has no planned arrivals, as Netherlands, has no arrival delay to draw.
-	win->setEmptyText(QStringLiteral("No arrival delays in this run"));
+	// A run whose timetable has no planned arrivals, as Netherlands, has no arrival delay to draw, nor has a route whose
+	// stations no train has one at.
+	win->setEmptyText(QStringLiteral("No arrival delays at stations of %1").arg(QString::fromStdString(referencePath.id)));
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisX(false, run->settings.startOffsetSeconds);
@@ -473,43 +506,15 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
-	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
-	if (!chart->axes(Qt::Horizontal).isEmpty()) {
-		auto* axis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-		axis->setTitleText(QStringLiteral("Distance (km)"));
-		// The range of the route exactly, with round ticks inside it.
-		const double low = std::min(origin, end), high = std::max(origin, end);
-		axis->setRange(low, std::max(low + 0.02, high));
-		keepExactRange(axis);
-	}
+	std::vector<StationTick> stationTicks;
+	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks);
 	QValueAxis* axisY = chart->axes(Qt::Vertical).isEmpty() ? new QValueAxis() : qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
 	axisY->setTitleText("Time (s)");
 	axisY->setReverse(true);
 	axisY->setRange(0, std::max(1.0, run->settings.horizonSeconds()));
-	for (auto* series : chart->series()) {
+	for (auto* series : chart->series())
 		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
-		if (!series->attachedAxes().contains(chart->axes(Qt::Horizontal).first()))
-			series->attachAxis(chart->axes(Qt::Horizontal).first());
-	}
-	// Station names come from platform-bound canonical IDs, not from map X.
-	const auto stationLabels = routeDiagramStationLabels(referencePath);
-	QCategoryAxis* stationAxis = nullptr;
-	std::vector<StationTick> stationTicks;
-	if (!stationLabels.empty()) {
-		// The station names say what the axis is, so it has no title.
-		stationAxis = new QCategoryAxis();
-		stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
-		auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-		stationAxis->setStartValue(distanceAxis->min() - 1);
-		stationAxis->setRange(distanceAxis->min(), distanceAxis->max());
-		chart->addAxis(stationAxis, Qt::AlignTop);
-		for (auto* series : chart->series()) series->attachAxis(stationAxis);
-		for (const auto& station : stationLabels) {
-			const QString name = QString::fromStdString(station.second);
-			stationTicks.push_back({station.first, {name + QString(" (%1 km)").arg(station.first, 0, 'f', 2), name}});
-		}
-	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
 	// The header names the run and then the reference route, which the distance axis follows.

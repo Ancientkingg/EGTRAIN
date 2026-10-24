@@ -89,7 +89,7 @@ public slots:
 	void displayTrainPathDiagrams();
 	/// Opens ResultViewName::kTimetable.
 	void showTimetableTable();
-	/// Opens ResultViewName::kDelays.
+	/// Asks for the reference route and opens ResultViewName::kDelays.
 	void showDelayDiagram();
 	/// Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().
 	void showDelayAnalysis();

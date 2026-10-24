@@ -881,12 +881,14 @@ class Rehearsal:
             raise StepFailed("the timetable table lacks " + ", ".join(problems))
         opened.append(name_of(timetable))
         self.screenshot("timetable")
-        views = (("Delays", r"^Delays", "delay"),
-                 ("Speed / time", r"^Speed / time", "speed"))
-        for menu, pattern, label in views:
-            self.choose(menu, modal=True)
-            opened.append(name_of(self.wait_window(pattern=pattern)))
-            self.screenshot(label)
+        # Delays asks for its reference route first; OK takes the route that the dialog selects.
+        self.choose("Delays...", modal=True)
+        self.press(self.button(self.wait_window("Reference route"), "OK"))
+        opened.append(name_of(self.wait_window(pattern=r"^Delays")))
+        self.screenshot("delay")
+        self.choose("Speed / time", modal=True)
+        opened.append(name_of(self.wait_window(pattern=r"^Speed / time")))
+        self.screenshot("speed")
         self.choose("Blocking time...", modal=True)
         # The choice of blocks and the chart are both titled Blocking time; only the choice has an OK button.
         scope = self.wait_window("Blocking time")

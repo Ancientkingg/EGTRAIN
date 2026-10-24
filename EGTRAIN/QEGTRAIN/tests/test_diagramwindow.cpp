@@ -2651,35 +2651,50 @@ static bool exerciseReadout() {
 	ok &= expect(QRegularExpression(QStringLiteral("^\\d+\\.\\d+ km/h at 08:00:0[234]$")).match(speedAtTime).hasMatch(),
 		qPrintable("with the clock along the bottom the readout gives the speed at the clock time: " + speedAtTime));
 
-	// An axis with a readout name gives the nearest value that a shown series has a sample at.
+	// A distance axis with "readoutStation" gives the station at the nearest position that a shown series has a sample at,
+	// as the Delays chart has it: Charlie at 6 km is named at 5.1 km, not Foxtrot at 5 km, where no train has a delay.
 	DiagramWindow delays("Delays");
 	auto* delayChart = new QChart;
 	auto* delay = new QLineSeries;
 	delay->setName("Train A");
-	for (int stop = 1; stop <= 5; ++stop) delay->append(stop, stop * 0.5);
+	delay->setPointsVisible(true);
+	const QStringList names = {"Alpha", "Bravo", "Charlie", "Delta", "Echo"};
+	std::vector<StationTick> stationTicks;
+	for (int stop = 1; stop <= 5; ++stop) {
+		delay->append(stop * 2.0, stop * 0.5);
+		stationTicks.push_back({stop * 2.0, {QString("%1 (%2 km)").arg(names[stop - 1]).arg(stop * 2.0, 0, 'f', 2), names[stop - 1]}});
+	}
+	stationTicks.push_back({5.0, {"Foxtrot (5.00 km)", "Foxtrot"}});
 	delayChart->addSeries(delay);
 	delayChart->createDefaultAxes();
-	delayChart->axes(Qt::Horizontal).first()->setTitleText("Stop number");
-	delayChart->axes(Qt::Horizontal).first()->setProperty("readoutName", "stop");
+	auto* distance = qobject_cast<QValueAxis*>(delayChart->axes(Qt::Horizontal).first());
+	distance->setTitleText("Distance (km)");
+	distance->setProperty("readoutStation", true);
 	delayChart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
+	auto* stationAxis = new QCategoryAxis;
+	stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	stationAxis->setRange(distance->min(), distance->max());
+	delayChart->addAxis(stationAxis, Qt::AlignTop);
+	delay->attachAxis(stationAxis);
 	delays.setChart(delayChart);
+	delays.setStationAxis(stationAxis, stationTicks);
 	delays.setMaximumSize(1200, 750);
 	delays.resize(1200, 750);
 	delays.show();
 	QApplication::processEvents();
 	auto* delayView = delays.findChild<QChartView*>();
 	auto* delayReadout = delays.findChild<QLabel*>("resultReadout");
-	moveTo(delayView, QPointF(2.8, 1.5), delay);
-	const QString atStop = delayReadout->text();
-	ok &= expect(QRegularExpression(QStringLiteral("^1\\.[45]\\d* min at stop 3$")).match(atStop).hasMatch(),
-		qPrintable("the readout of the delays names the stop nearest the pointer: " + atStop));
-	clickChart(delayView, QPointF(3, 1.5), delay);
+	moveTo(delayView, QPointF(5.1, 1.5), delay);
+	const QString atStation = delayReadout->text();
+	ok &= expect(QRegularExpression(QStringLiteral("^1\\.[45]\\d* min at Charlie$")).match(atStation).hasMatch(),
+		qPrintable("the readout of the delays names the station of the sample nearest the pointer: " + atStation));
+	clickChart(delayView, QPointF(6, 1.5), delay);
 	QApplication::processEvents();
-	const QStringList stopLines = delays.findChild<QLabel*>("diagramPinLabel")->text().split('\n');
-	ok &= expect(stopLines.contains("Stop number: 3"), qPrintable("Selected gives the stop as a whole number: " + stopLines.join(" / ")));
+	const QStringList stationLines = delays.findChild<QLabel*>("diagramPinLabel")->text().split('\n');
+	ok &= expect(stationLines.contains("Distance (km): 6.00"), qPrintable("Selected gives the distance of the call: " + stationLines.join(" / ")));
 	trainListOf(delays)->setTrainVisible(delay->name(), false);
-	moveTo(delayView, QPointF(2.8, 1.5), delay);
-	ok &= expect(delayReadout->text().endsWith(" min"), qPrintable("without a shown stop the readout gives the delay alone: " + delayReadout->text()));
+	moveTo(delayView, QPointF(5.1, 1.5), delay);
+	ok &= expect(delayReadout->text().endsWith(" min"), qPrintable("without a shown call the readout gives the delay alone: " + delayReadout->text()));
 	return ok;
 }
 
@@ -3347,11 +3362,11 @@ static bool exerciseEmptyChart() {
 		return texts;
 	};
 	DiagramWindow window("Delays");
-	window.setEmptyText("No arrival delays in this run");
+	window.setEmptyText("No arrival delays at stations of route8");
 	auto* chart = new QChart;
 	auto* x = new QValueAxis;
 	auto* y = new QValueAxis;
-	x->setTitleText("Stop number");
+	x->setTitleText("Distance (km)");
 	y->setTitleText("Arrival delay (min)");
 	chart->addAxis(x, Qt::AlignBottom);
 	chart->addAxis(y, Qt::AlignLeft);
@@ -3362,7 +3377,7 @@ static bool exerciseEmptyChart() {
 	window.show();
 	settle();
 	const auto* note = chart->findChild<QGraphicsObject*>("diagramEmptyNote");
-	bool ok = expect(note && note->isVisible() && note->property("text").toString() == "No arrival delays in this run"
+	bool ok = expect(note && note->isVisible() && note->property("text").toString() == "No arrival delays at stations of route8"
 			&& note->boundingRect() == chart->plotArea(),
 		"a chart without series shows its empty text over the plot");
 	ok &= expect(shownHeadings(window) == QStringList({"Export"}), qPrintable("the panel of an empty chart has only Export: " + shownHeadings(window).join(", ")));

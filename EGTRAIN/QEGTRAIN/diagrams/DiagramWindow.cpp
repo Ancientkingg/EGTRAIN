@@ -1772,17 +1772,13 @@ QStringList DiagramWindow::sampleLines(const QPointF& value, const QString& seri
 		: vertical.isEmpty() || vertical.first()->titleText().isEmpty()	   ? QString("y")
 																		   : vertical.first()->titleText();
 	const bool positionX = m_positionAxis && !horizontal.isEmpty() && horizontal.first() == m_positionAxis.data();
-	// An axis with a readout name counts, such as the stops of the delays, so its values read as the numbers they are.
-	const auto counted = [](const QList<QAbstractAxis*>& axes) { return !axes.isEmpty() && !axes.first()->property("readoutName").toString().isEmpty(); };
 	const QString xText = m_timeAxis && m_timeOrientation == Qt::Horizontal
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.x()), m_startOffset))
-		: positionX			  ? QString::number(m_positionScale.geoAt(value.x()), 'f', 3)
-		: counted(horizontal) ? QString::number(value.x(), 'g', 12)
-							  : QString::number(value.x(), 'f', 2);
+		: positionX ? QString::number(m_positionScale.geoAt(value.x()), 'f', 3)
+					: QString::number(value.x(), 'f', 2);
 	const QString yText = m_timeAxis && m_timeOrientation == Qt::Vertical
 		? QString::fromStdString(formatSimTime(static_cast<long long>(value.y()), m_startOffset))
-		: counted(vertical) ? QString::number(value.y(), 'g', 12)
-							: QString::number(value.y(), 'f', 2);
+		: QString::number(value.y(), 'f', 2);
 	return {seriesName, QString("%1: %2").arg(xLabel, xText), QString("%1: %2").arg(yLabel, yText)};
 }
 
@@ -1810,8 +1806,8 @@ QString axisUnit(const QAbstractAxis& axis) {
 
 // The value under the pointer in the units of the axes, to the precision of one pixel of the plot, as the value of the
 // left axis at the value of the bottom axis: "07:14:32 at 9.860 km", "100.0 km/h at 07:14:32". A position axis gives the
-// geo X. An axis with the dynamic property "readoutName", such as "stop", reads that name and the nearest value along it
-// that a shown series has a sample at, "2.5 min at stop 3", and nothing without one. Empty outside the plot.
+// geo X. An axis with the dynamic property "readoutStation" reads the station of the station axis at the nearest value
+// along it that a shown series has a sample at, "2.5 min at Treviglio", and nothing without one. Empty outside the plot.
 void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 	if (!m_readout) return;
 	const QChart* chart = m_view ? m_view->chart() : nullptr;
@@ -1833,7 +1829,7 @@ void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 			values << QString::fromStdString(formatSimTime(static_cast<long long>(std::floor(value)), m_startOffset));
 			continue;
 		}
-		if (const QString name = axis->property("readoutName").toString(); !name.isEmpty()) {
+		if (axis->property("readoutStation").toBool()) {
 			double nearest = std::numeric_limits<double>::quiet_NaN();
 			for (QAbstractSeries* series : chart->series()) {
 				const auto* xy = qobject_cast<const QXYSeries*>(series);
@@ -1843,7 +1839,9 @@ void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 					if (std::isnan(nearest) || std::abs(along - value) < std::abs(nearest - value)) nearest = along;
 				}
 			}
-			if (!std::isnan(nearest)) values << name + QStringLiteral(" ") + QString::number(nearest, 'g', 12);
+			const auto station = std::find_if(m_stations.begin(), m_stations.end(),
+				[nearest](const StationTick& tick) { return tick.position == nearest && !tick.spellings.isEmpty(); });
+			if (station != m_stations.end()) values << station->spellings.last();
 			continue;
 		}
 		// The position axis reads the geo X at the route distance.
