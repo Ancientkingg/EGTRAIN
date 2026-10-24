@@ -35,11 +35,12 @@ class QPushButton;
 class ResultFrame;
 class TrainKeyList;
 
-/// A station along the distance axis of a route chart: its position on that axis and the plain-text labels it can
-/// have, from the longest to the shortest.
+/// A station along the distance axis of a route chart: its position on that axis, the plain-text labels it can
+/// have, from the longest to the shortest, and the number of calls that the chart shows there.
 struct StationTick {
 	double position = 0.0; ///< On the distance axis, in the unit of that axis
 	QStringList spellings; ///< Plain-text labels, longest first
+	int calls = 0;		   ///< Calls of the trains of the chart at the station
 };
 
 /// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
@@ -169,11 +170,12 @@ public:
 		const SceneSectionLabels* labels = nullptr, std::vector<BlockSectionMarks> marks = {}, int routeSectionCount = 0);
 	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
 	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
-	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
-	/// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped. When the
-	/// distance axis has the dynamic property "readoutStation", the readout names by its shortest spelling the station
-	/// at the nearest position where a shown series has a sample, as in "2.5 min at Treviglio", and gives only the value
-	/// of the left axis when no shown series has one.
+	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. When not all of them
+	/// fit, the stations with the most calls are named first. A resize or a zoom chooses again. The labels are plain
+	/// text; the chart reads them as rich text, so they are escaped. When the distance axis has the dynamic property
+	/// "readoutStation", the readout names by its shortest spelling the station at the nearest position where a shown
+	/// series has a sample, as in "2.5 min at Treviglio", and gives only the value of the left axis when no shown series
+	/// has one.
 	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
 	/// The same provider/filter snapshot that the CSV export writes, without opening a file dialog.
 	std::string csvContent() const;

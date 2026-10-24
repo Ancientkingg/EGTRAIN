@@ -54,6 +54,7 @@
 
 #include <cmath>
 #include <limits>
+#include <optional>
 namespace {
 
 // A colour of something that is not the pinned train: mixed with the background as an alpha of 60 would show it, and
@@ -696,8 +697,9 @@ const QStringList kKeyOrder{QStringLiteral("Blocking time"), QStringLiteral("Cri
 // within the chart and may not touch its neighbour. The chart hides a label whose text starts left of `labelsLeft`, the
 // left edge of its axes. The chart shortens a label that is wider than the share of the plot
 // width that it gives each of the labels, so a label is only used when it is narrower than that share. Of the stations
-// in the range, every first, second, third and so on is tried until the labels fit. A station gets the longest
-// spelling that fits.
+// in the range, every first, second, third and so on is tried until the labels fit. That gives the number of labels.
+// When stations have calls, that many labels go to the stations with the most calls, as long as the labels keep apart;
+// between choices with as many calls the stations of the stride win. A station gets the longest spelling that fits.
 std::vector<std::pair<double, QString>> labelledStations(const std::vector<StationTick>& stations, const QValueAxis& axis,
 	const QRectF& plot, double labelsLeft, double chartWidth, const QFontMetricsF& metrics) {
 	constexpr double edge = 4.0, gap = 8.0, slack = 16.0;
@@ -721,28 +723,66 @@ std::vector<std::pair<double, QString>> labelledStations(const std::vector<Stati
 		double width;
 		std::pair<double, QString> label;
 	};
+	const auto keepApart = [&](const Placed& left, const Placed& right) { return right.x - left.x - (right.width + left.width) / 2.0 >= gap; };
+	const bool anyCalls = std::any_of(inRange.begin(), inRange.end(), [](const Candidate& one) { return one.station->calls > 0; });
 	for (std::size_t stride = 1; stride <= inRange.size(); ++stride) {
 		const std::size_t named = (inRange.size() + stride - 1) / stride;
 		const double share = plot.width() / static_cast<double>(named + 1) - slack;
-		std::vector<Placed> placed;
-		bool fits = true;
-		for (std::size_t i = 0; i < inRange.size() && fits; i += stride) {
+		// The label of each station: its longest spelling that fits its room and its share, if one does.
+		std::vector<std::optional<Placed>> fitting(inRange.size());
+		for (std::size_t i = 0; i < inRange.size(); ++i) {
 			const double x = inRange[i].x;
 			const double room = std::min(share, 2.0 * std::min(x - leftEdge, chartWidth - edge - x));
 			const QStringList& spellings = inRange[i].station->spellings;
 			const auto spelling = std::find_if(spellings.begin(), spellings.end(),
 				[&](const QString& text) { return metrics.horizontalAdvance(text) <= room; });
-			if (spelling != spellings.end()) {
-				placed.push_back({x, metrics.horizontalAdvance(*spelling), {inRange[i].station->position, *spelling}});
+			if (spelling != spellings.end())
+				fitting[i] = Placed{x, metrics.horizontalAdvance(*spelling), {inRange[i].station->position, *spelling}};
+		}
+		std::vector<Placed> placed;
+		bool fits = true;
+		for (std::size_t i = 0; i < inRange.size() && fits; i += stride) {
+			const std::optional<Placed>& label = fitting[i];
+			if (label) {
+				placed.push_back(*label);
 				continue;
 			}
 			// A station near the edge of the chart may stay unlabelled, one that is too wide for its share may not.
-			fits = metrics.horizontalAdvance(spellings.last()) <= share;
+			fits = metrics.horizontalAdvance(inRange[i].station->spellings.last()) <= share;
 		}
 		bool apart = fits && !placed.empty();
-		for (std::size_t i = 1; i < placed.size(); ++i)
-			apart = apart && placed[i].x - placed[i - 1].x - (placed[i].width + placed[i - 1].width) / 2.0 >= gap;
+		for (std::size_t i = 1; i < placed.size(); ++i) apart = apart && keepApart(placed[i - 1], placed[i]);
 		if (!apart) continue;
+		if (anyCalls) {
+			// The stations that can have a label. best[c][a] is the highest score of c + 1 labels that keep apart and end
+			// at option a, from[c][a] the option before a. A call outweighs any number of stations of the stride.
+			std::vector<std::pair<std::size_t, Placed>> options;
+			for (std::size_t i = 0; i < inRange.size(); ++i) {
+				const std::optional<Placed>& label = fitting[i];
+				if (label) options.emplace_back(i, *label);
+			}
+			const auto score = [&](std::size_t a) {
+				const std::size_t i = options[a].first;
+				return static_cast<long long>(inRange[i].station->calls) * static_cast<long long>(inRange.size() + 1) + (i % stride == 0 ? 1 : 0);
+			};
+			const std::size_t count = placed.size();
+			std::vector<std::vector<long long>> best(count, std::vector<long long>(options.size(), -1));
+			std::vector<std::vector<std::size_t>> from(count, std::vector<std::size_t>(options.size(), 0));
+			for (std::size_t a = 0; a < options.size(); ++a) {
+				best[0][a] = score(a);
+				for (std::size_t c = 1; c < count; ++c)
+					for (std::size_t b = 0; b < a; ++b)
+						if (best[c - 1][b] >= 0 && keepApart(options[b].second, options[a].second) && best[c - 1][b] + score(a) > best[c][a]) {
+							best[c][a] = best[c - 1][b] + score(a);
+							from[c][a] = b;
+						}
+			}
+			std::size_t last = static_cast<std::size_t>(std::max_element(best.back().begin(), best.back().end()) - best.back().begin());
+			for (std::size_t c = count; c > 0; --c) {
+				placed[c - 1] = options[last].second;
+				last = from[c - 1][last];
+			}
+		}
 		std::vector<std::pair<double, QString>> labels;
 		for (const Placed& one : placed) labels.push_back(one.label);
 		return labels;
