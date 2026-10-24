@@ -227,30 +227,38 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				newest = window;
 		return newest;
 	};
+	// Accepts the next file dialog with `path`, and accepts that same dialog again while it stays open. A later dialog
+	// belongs to a later call: accepting it with this path could ask whether to replace the file, and nothing would answer.
 	auto acceptFileDialog = [&w, fail](const QString& path, bool directory) {
 		auto poll = std::make_shared<std::function<void()>>();
 		auto attempts = std::make_shared<int>(0);
 		auto seen = std::make_shared<bool>(false);
-		*poll = [&w, path, directory, poll, attempts, seen, fail]() {
+		auto accepted = std::make_shared<QPointer<QFileDialog>>();
+		*poll = [&w, path, directory, poll, attempts, seen, accepted, fail]() {
 			if (++*attempts > 200) {
 				fail(QStringLiteral("file dialog did not appear for ") + path);
 				return;
 			}
 			QFileDialog* fileDialog = nullptr;
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* dialog = qobject_cast<QFileDialog*>(widget);
-				if (!dialog || !dialog->isVisible())
-					continue;
-				fileDialog = dialog;
-				break;
+			if (*seen) {
+				if (!*accepted || !(*accepted)->isVisible())
+					return;
+				fileDialog = *accepted;
+			} else {
+				for (QWidget* widget : QApplication::topLevelWidgets()) {
+					auto* dialog = qobject_cast<QFileDialog*>(widget);
+					if (!dialog || !dialog->isVisible())
+						continue;
+					fileDialog = dialog;
+					break;
+				}
 			}
 			if (!fileDialog) {
-				if (*seen)
-					return;
 				QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
 				return;
 			}
 			*seen = true;
+			*accepted = fileDialog;
 			if (directory) {
 				fileDialog->setDirectory(path);
 				static_cast<QDialog*>(fileDialog)->done(QDialog::Accepted);
