@@ -208,7 +208,7 @@ Blocking time is the time that the program calculates for a train on a block: an
 
 ### Delay
 
-A delay is, in the timetable results, the simulated time minus the planned time, in seconds and signed, so that early is negative. The Delay analysis window (**Diagrams > Delay analysis**) shows the delay of each call, a summary and the comparison against a delay baseline. Delay figures also appear in the timetable results (**Diagrams > Timetable**, **Diagrams > Delays**), in the station statistics files, in the comparison against a delay baseline and in the passenger journey delay, and they are different quantities. An entrance delay is an input, not a delay result. See [what this guide covers](delay-analysis.md#what-this-guide-covers) and [where delays are calculated](delay-analysis.md#where-delays-are-calculated).
+A delay is, in the timetable results, the simulated time minus the planned time, in seconds and signed, so that early is negative. The Delay analysis window (**Diagrams > Delay analysis**) shows the delay of each call, a summary, a histogram of the delays and the comparison against a delay baseline. Delay figures also appear in the timetable results (**Diagrams > Timetable**, **Diagrams > Delays...**), in the station statistics files, in the comparison against a delay baseline and in the passenger journey delay, and they are different quantities. An entrance delay is an input, not a delay result. See [what this guide covers](delay-analysis.md#what-this-guide-covers) and [where delays are calculated](delay-analysis.md#where-delays-are-calculated).
 
 ### Capacity analysis
 

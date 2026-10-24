@@ -655,7 +655,7 @@ private:
 	QPointer<QXYSeries> m_series;
 };
 
-// The line that a chart without series shows in the middle of its plot, such as "No arrival delays in this run". Its text
+// The line that a chart without series shows in the middle of its plot, such as "No arrival delays at stations of route8". Its text
 // is in the dynamic property "text", for the tests.
 class EmptyChartNote : public QGraphicsObject {
 public:

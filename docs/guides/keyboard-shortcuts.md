@@ -81,7 +81,7 @@ Esc closes a dialog as its cancel button does. Return or Enter presses the defau
 
 ## Result windows
 
-The chart windows of **Diagrams**, such as **Speed / distance**, **Delays**, **Timetable graph...** and **Blocking time...**, and the chart of **Plot Traction Curve** take these keys while the chart has the focus. [Diagram navigation](diagram-navigation.md) describes the mouse and the trackpad.
+The chart windows of **Diagrams**, such as **Speed / distance**, **Delays...**, **Timetable graph...** and **Blocking time...**, and the chart of **Plot Traction Curve** take these keys while the chart has the focus. [Diagram navigation](diagram-navigation.md) describes the mouse and the trackpad.
 
 | Key | Effect |
 | --- | --- |
