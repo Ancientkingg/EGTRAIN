@@ -128,6 +128,11 @@ bool exercisePanel() {
 	bool ok = expect(window.windowTitle() == "Capacity" && !window.isModal(), "the window is titled Capacity and is not modal");
 	ok &= expect(figureText(window, "capacityCycle") == "471.5 s | Cycle", qPrintable("the cycle figure: " + figureText(window, "capacityCycle")));
 	ok &= expect(figureText(window, "capacityShare") == "13.1% | of 1 h", qPrintable("the share figure: " + figureText(window, "capacityShare")));
+	// The header of the compressed blocking time carries the same figures in one line.
+	CapacityAnalysisResult result = lineResult(data);
+	ok &= expect(capacityCycleText(result) == "cycle 471.5 s, 13.1% of 1 h", qPrintable("the figures for a header: " + capacityCycleText(result)));
+	result.periodSeconds = 0.0;
+	ok &= expect(capacityCycleText(result) == "cycle 471.5 s", qPrintable("without a period a header gives the cycle: " + capacityCycleText(result)));
 	ok &= expect(figureText(window, "capacityCriticalBlock") == "3-B0 | Critical block",
 		qPrintable("the critical block figure: " + figureText(window, "capacityCriticalBlock")));
 	const ResultFigure* cycle = figure(window, "capacityCycle");
@@ -135,7 +140,19 @@ bool exercisePanel() {
 			&& cycle->toolTip().contains("F2: planned departure at A"),
 		"the tooltip of the cycle names the trains that close it and their reference times");
 	const ResultFigure* critical = figure(window, "capacityCriticalBlock");
-	ok &= expect(critical && critical->toolTip().contains("@3-B0@: B0 0.690 to 0.920 km"), "the tooltip of the critical block gives its label");
+	ok &= expect(critical && critical->toolTip().contains("3-B0: B0 0.690 to 0.920 km") && !critical->toolTip().contains("@"),
+		"the tooltip of the critical block gives its label without an internal id");
+	// The tables name blocks by their short ids, and their tooltips by labels without internal ids.
+	QStringList rawIds;
+	int cells = 0;
+	for (const QTableWidget* table : window.findChildren<QTableWidget*>())
+		for (int row = 0; row < table->rowCount(); ++row)
+			for (int column = 0; column < table->columnCount(); ++column)
+				if (const QTableWidgetItem* item = table->item(row, column)) {
+					++cells;
+					if (item->text().contains('@') || item->toolTip().contains('@')) rawIds << item->text() + " / " + item->toolTip();
+				}
+	ok &= expect(cells > 0 && rawIds.isEmpty(), qPrintable("no cell names an internal id: " + rawIds.join(", ")));
 
 	auto* panel = window.findChild<QWidget*>("resultPanel");
 	auto* open = window.findChild<QPushButton*>("capacityOpenDiagram");

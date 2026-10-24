@@ -83,8 +83,13 @@ std::vector<BlockingTimeDiagramSegment> buildBlockingTimeDiagramSegments(
 /// signs, such as "71-B0" and "0-B1" for "@71-B0@-21.235000/@0-B1@-21.252000", or the id itself without such a field.
 /// Empty for an empty id.
 std::vector<std::string> comparableBlockTokens(const std::string& blockId);
-/// The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1".
+/// The short form of a block id that the section strip shows: its comparable tokens joined with "/", such as "71-B0/0-B1",
+/// or the id itself when it has no short form.
 std::string shortBlockId(const std::string& blockId);
+/// The label of a section for user text, without internal ids: the label that `labels` give `reference`, with an id in
+/// round brackets at its end in its short form (shortBlockId), or the short form of `reference` when the labels name no
+/// section.
+std::string readableSectionLabel(const std::string& reference, const SceneSectionLabels& labels);
 
 // Shared resource matcher used by both diagram conflict classification and
 // capacity analysis. It matches exact plain and decorated/composite components.
@@ -149,11 +154,10 @@ std::vector<BlockSectionExtent> buildBlockSectionExtents(const std::vector<Block
 
 // Exact id/interval matches take precedence over overlapping shared resources. Several candidates
 // are ambiguous, never first-match. Every call clears stale fields, including locations/empty routes.
-// An exact match sets the section and no note. The notes name a section by its label and id when `labels` is given,
-// else by its id.
+// An exact match sets the section and no note. The notes name a section by its short id (shortBlockId), as the section
+// strip does, one section per line.
 void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& segments,
-	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId,
-	const SceneSectionLabels* labels = nullptr);
+	const std::vector<BlockSectionExtent>& extents, const std::string& referenceRouteId);
 
 /// What the section strip of a blocking-time chart marks on a section, besides a switch section (BlockSectionExtent::isSwitch).
 struct BlockSectionMarks {
@@ -202,8 +206,8 @@ inline constexpr char kUnmappedEnvelopeLayer[] = "unmapped blocking envelope";
 std::vector<std::vector<std::string>> blockSectionCsvRows(const std::vector<BlockSectionExtent>& extents);
 
 // The notice of the section strip that lists the sections without a usable extent; empty when every extent is usable.
-// A section is named by its label and id when `labels` is given.
-std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents, const SceneSectionLabels* labels = nullptr);
+// A section is named by its short id (shortBlockId), as the section strip does.
+std::string blockSectionGeometryNote(const std::vector<BlockSectionExtent>& extents);
 
 // The note above a blocking-time chart: what it leaves out, from the parts that apply. `omitted` blocks or stops could
 // not be placed on the route `routeId`; `nothingPlotted` adds that the chart is empty, which `unplaced` blames on blocks

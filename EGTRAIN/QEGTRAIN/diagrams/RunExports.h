@@ -116,9 +116,10 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 
 /// The evidence as the export writes it, "leader/follower (leader=… s; follower=… s; candidate=… s)", joined with "; ".
 /// With `labels` it is the tooltip of the windows instead: one line per item, "leader / follower: leader offset … s,
-/// follower offset … s, headway … s", with the blocks named by their labels.
+/// follower offset … s, headway … s", with the blocks named by their labels without internal ids (readableSectionLabel).
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels = nullptr);
-/// The blocks of the evidence by their ids, "leader/follower", joined with ", ", for the cells of the windows.
+/// The blocks of the evidence by their short ids as the section strip shows them (shortBlockId), "leader / follower",
+/// joined with ", ", for the cells of the windows.
 std::string capacityEvidenceBlocks(const std::vector<CapacityHeadwayEvidence>& evidence);
 /// The capacity CSV of the result, with times in seconds and the cycle share in percent. Empty when the result cannot
 /// be analysed or has no cycle time or no cycle share.

@@ -87,11 +87,17 @@ QString evidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const
 	return QString::fromStdString(capacityEvidenceText(evidence, labels));
 }
 
-// Gives each cell of `column`, which names a resource by its id, the label of the resource as its tooltip.
-void setLabelTips(QTableWidget* table, int column, const SceneSectionLabels& labels) {
-	for (int row = 0; row < table->rowCount(); ++row)
-		if (QTableWidgetItem* item = table->item(row, column))
-			item->setToolTip(QString::fromStdString(labels.label(item->text().toStdString())));
+// A resource by its short id, as the section strip names it; empty for none.
+QString resourceText(const std::string& id) {
+	return QString::fromStdString(shortBlockId(id));
+}
+
+// Gives each cell of `column`, which names the resource `ids` of its row by its short id, the label of the resource as
+// its tooltip.
+void setLabelTips(QTableWidget* table, int column, const std::vector<std::string>& ids, const SceneSectionLabels& labels) {
+	for (int row = 0; row < table->rowCount() && row < static_cast<int>(ids.size()); ++row)
+		if (QTableWidgetItem* item = table->item(row, column); item && !ids[static_cast<std::size_t>(row)].empty())
+			item->setToolTip(QString::fromStdString(readableSectionLabel(ids[static_cast<std::size_t>(row)], labels)));
 }
 
 // "Reference time: planned departure at Guingamp" for the tooltip of a cell that names a train; empty without one.
@@ -136,11 +142,13 @@ QWidget* resourcesTab(const AreaCapacityResult& result, const SceneSectionLabels
 	auto* page = new QWidget(parent);
 	auto* layout = new QVBoxLayout(page);
 	std::vector<QStringList> rows;
+	std::vector<std::string> ids;
 	for (const AreaCapacityResource& resource : result.resources) {
 		const QString status = resource.governing
 			? QStringLiteral("governing resource")
 			: (resource.trainCount == 0 ? QStringLiteral("no traffic") : QString());
-		rows.push_back({QString::fromStdString(resource.resourceId), percentText(resource.occupationPercentage), status,
+		ids.push_back(resource.resourceId);
+		rows.push_back({resourceText(resource.resourceId), percentText(resource.occupationPercentage), status,
 			QString::number(resource.trainCount), QString::number(resource.occupationCount), secondsText(resource.occupationSeconds),
 			secondsText(resource.unionSeconds)});
 	}
@@ -150,7 +158,7 @@ QWidget* resourcesTab(const AreaCapacityResult& result, const SceneSectionLabels
 	table->horizontalHeaderItem(1)->setToolTip("Occupation time of the checked trains on the resource, divided by the period\n"
 											   "The governing resource has the largest rate");
 	table->horizontalHeaderItem(6)->setToolTip("The same occupations, with overlapping time counted once");
-	setLabelTips(table, 0, labels);
+	setLabelTips(table, 0, ids, labels);
 	for (int row = 0; row < table->rowCount(); ++row) {
 		if (!result.resources[static_cast<std::size_t>(row)].governing)
 			continue;
@@ -242,14 +250,18 @@ QWidget* chainTab(const AreaCapacityResult& result, const SceneSectionLabels& la
 	layout->addWidget(compression, 1);
 
 	std::vector<QStringList> criticalRows;
-	for (const CapacityCriticalBlock& critical : chain.criticalBlocks)
+	std::vector<std::string> leaderIds, followerIds;
+	for (const CapacityCriticalBlock& critical : chain.criticalBlocks) {
+		leaderIds.push_back(critical.leaderBlockId);
+		followerIds.push_back(critical.followerBlockId);
 		criticalRows.push_back({QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
-			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId), secondsText(critical.gap)});
+			resourceText(critical.leaderBlockId), resourceText(critical.followerBlockId), secondsText(critical.gap)});
+	}
 	layout->addWidget(EditorLayout::sectionHeading(countedTitle("Critical resources", criticalRows.size()), page));
 	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap (s)"}, criticalRows, {4});
 	critical->setObjectName("areaCapacityCritical");
-	setLabelTips(critical, 2, labels);
-	setLabelTips(critical, 3, labels);
+	setLabelTips(critical, 2, leaderIds, labels);
+	setLabelTips(critical, 3, followerIds, labels);
 	layout->addWidget(critical, 1);
 	return page;
 }
@@ -260,17 +272,29 @@ std::vector<QStringList> noteRows(const AreaCapacityResult& result, bool exclude
 		if (excludedOnly && !excludesTraffic(note.kind))
 			continue;
 		rows.push_back({areaCapacityStatusName(note.kind), QString::fromStdString(note.trainId), QString::fromStdString(note.otherTrainId),
-			QString::fromStdString(note.resourceId), areaCapacityStatusText(note)});
+			resourceText(note.resourceId), areaCapacityStatusText(note, true)});
 	}
 	return rows;
 }
 
-QWidget* notesTab(const std::vector<QStringList>& rows, const QString& tableName, const SceneSectionLabels& labels, QWidget* parent) {
+// The resources of the notes of noteRows, by row.
+std::vector<std::string> noteResources(const AreaCapacityResult& result, bool excludedOnly) {
+	std::vector<std::string> ids;
+	for (const AreaCapacityNote& note : result.notes)
+		if (!excludedOnly || excludesTraffic(note.kind)) ids.push_back(note.resourceId);
+	return ids;
+}
+
+QWidget* notesTab(const std::vector<QStringList>& rows, const std::vector<std::string>& resources, const QString& tableName,
+	const SceneSectionLabels& labels, QWidget* parent) {
 	auto* page = new QWidget(parent);
 	auto* layout = new QVBoxLayout(page);
 	QTableWidget* table = makeTable(page, {"Status", "Train", "Other train", "Resource", "Details"}, rows);
 	table->setObjectName(tableName);
-	setLabelTips(table, 3, labels);
+	setLabelTips(table, 3, resources, labels);
+	// A detail can be longer than its column.
+	for (int row = 0; row < table->rowCount(); ++row)
+		table->item(row, 4)->setToolTip(table->item(row, 4)->text());
 	layout->addWidget(table, 1);
 	return page;
 }
@@ -296,7 +320,7 @@ void fillFigures(const AreaCapacityResult& result, const SceneSectionLabels& lab
 	for (const AreaCapacityResource& resource : result.resources) {
 		if (!resource.governing)
 			continue;
-		names << QString::fromStdString(labels.label(resource.resourceId));
+		names << QString::fromStdString(readableSectionLabel(resource.resourceId, labels));
 		percentage = resource.occupationPercentage;
 	}
 	if (names.isEmpty())
@@ -452,10 +476,10 @@ QString areaCapacityStatusName(AreaCapacityNoteKind kind) {
 	return QString();
 }
 
-QString areaCapacityStatusText(const AreaCapacityNote& note) {
+QString areaCapacityStatusText(const AreaCapacityNote& note, bool shortIds) {
 	const QString train = QString::fromStdString(note.trainId);
 	const QString other = QString::fromStdString(note.otherTrainId);
-	const QString resource = QString::fromStdString(note.resourceId);
+	const QString resource = shortIds ? resourceText(note.resourceId) : QString::fromStdString(note.resourceId);
 	switch (note.kind) {
 		case AreaCapacityNoteKind::EmptyScope:
 			return QStringLiteral("The area has no resource, so nothing is computed.");
@@ -675,10 +699,10 @@ void AreaCapacityScopeDialog::refillBlocks(QComboBox* routes, QComboBox* first, 
 		return;
 	const std::vector<BlockSectionInput>& blocks = m_data.routes[static_cast<std::size_t>(routeIndex)].blocks;
 	for (std::size_t index = 0; index < blocks.size(); ++index) {
-		const QString text = QString("%1: %2").arg(index + 1).arg(QString::fromStdString(m_data.sectionLabels.label(blocks[index].id)));
+		const QString text = QString("%1: %2").arg(index + 1).arg(QString::fromStdString(readableSectionLabel(blocks[index].id, m_data.sectionLabels)));
 		for (QComboBox* combo : {first, last}) {
 			combo->addItem(text);
-			combo->setItemData(combo->count() - 1, QString::fromStdString(blocks[index].id), Qt::ToolTipRole);
+			combo->setItemData(combo->count() - 1, QString::fromStdString(shortBlockId(blocks[index].id)), Qt::ToolTipRole);
 		}
 	}
 	if (last->count() > 0)
@@ -778,8 +802,10 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	tabs->addTab(resourcesTab(m_result, labels, tabs), "Resources");
 	tabs->addTab(chainTab(m_result, labels, tabs), "Chain");
 	const std::vector<QStringList> excluded = noteRows(m_result, true);
-	tabs->addTab(notesTab(excluded, "areaCapacityExcluded", labels, tabs), countedTitle("Excluded traffic", excluded.size()));
-	tabs->addTab(notesTab(noteRows(m_result, false), "areaCapacityNotes", labels, tabs), countedTitle("Notes", m_result.notes.size()));
+	tabs->addTab(notesTab(excluded, noteResources(m_result, true), "areaCapacityExcluded", labels, tabs),
+		countedTitle("Excluded traffic", excluded.size()));
+	tabs->addTab(notesTab(noteRows(m_result, false), noteResources(m_result, false), "areaCapacityNotes", labels, tabs),
+		countedTitle("Notes", m_result.notes.size()));
 
 	// The tabs at the left, with the run, the area and the traffic in the header. The statuses lie above the tabs, with the
 	// look of a warning when there is one. The panel holds the figures and the export.
@@ -829,6 +855,8 @@ bool AreaCapacityWindow::exportCsvTo(const QString& path) const {
 }
 
 void AreaCapacityWindow::exportCsv() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("area_capacity.csv"), "CSV File (*.csv)");
 	if (path.isEmpty())

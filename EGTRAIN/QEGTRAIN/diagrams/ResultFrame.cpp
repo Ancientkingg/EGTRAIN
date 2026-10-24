@@ -191,6 +191,8 @@ ResultFrame::ResultFrame(QWidget* main, const QString& name, QWidget* parent)
 	m_headerLayout->addStretch();
 
 	m_panel = new ResultPanel(this);
+	// A drag of the splitter stops at the narrow width of the panel, so that no heading or button text is cut.
+	m_panel->setMinimumWidth(kNarrowPanelWidth);
 	m_panelButton = addHeaderButton(name + "PanelToggle", "Panel", ":/icons/panel.svg", "Show or hide the panel");
 	m_panelButton->setCheckable(true);
 	m_panelButton->setChecked(true);
@@ -283,6 +285,16 @@ void ResultFrame::fitPanel() {
 	const int panel = window()->width() < kNarrowWindow ? kNarrowPanelWidth : kPanelWidth;
 	const int main = std::max(1, m_splitter->width() - m_splitter->handleWidth() - panel);
 	m_splitter->setSizes({main, panel});
+}
+
+KeepInFront::KeepInFront(QWidget* widget)
+	: m_widget(widget) {}
+
+KeepInFront::~KeepInFront() {
+	if (!m_widget) return;
+	QWidget* window = m_widget->window();
+	window->raise();
+	window->activateWindow();
 }
 
 QWidget* resultTableArea(const QList<QWidget*>& widgets) {

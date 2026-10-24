@@ -258,6 +258,8 @@ void TimetableTableWindow::applyTrainVisibility() {
 }
 
 void TimetableTableWindow::exportCsv() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
@@ -286,6 +288,8 @@ QImage TimetableTableWindow::tableImage() const {
 }
 
 void TimetableTableWindow::exportPng() {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("timetable.png"), "PNG Image (*.png)");
 	if (path.isEmpty())

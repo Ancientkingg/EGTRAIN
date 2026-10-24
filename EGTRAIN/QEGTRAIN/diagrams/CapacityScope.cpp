@@ -259,7 +259,7 @@ QString capacityScopeBlocksText(const CompletedRunData& data, const CapacityAnal
 	if (scope.blockIds.empty())
 		return {};
 	const auto block = [&data, &scope](std::size_t index) {
-		const QString label = QString::fromStdString(data.sectionLabels.label(scope.blockIds[index]));
+		const QString label = QString::fromStdString(readableSectionLabel(scope.blockIds[index], data.sectionLabels));
 		return numbered(scope) ? QString("%1: %2").arg(scope.sectionIndices[index] + 1).arg(label) : label;
 	};
 	if (scope.blockIds.size() == 1)
@@ -396,9 +396,9 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			clearError();
 	};
 	// Lists the sections of the checked occurrences, each as "1: <label of B> through 2: <label of C> (2 blocks)" with
-	// "1:B to 2:C (2 blocks)" as its tooltip, or "none". The section that starts at the block where the selected one
-	// started stays selected, else the longest is. With fewer than two sections there is nothing to choose, so the field
-	// is disabled.
+	// the short ids of the section strip, "1: B to 2: C (2 blocks)", as its tooltip, or "none". The section that starts at
+	// the block where the selected one started stays selected, else the longest is. With fewer than two sections there is
+	// nothing to choose, so the field is disabled.
 	const auto refillSections = [&run, &sections, routeCombo, blocks, checkedIds, showScopeStatus]() {
 		const int previous = blocks->currentIndex();
 		const int start = previous >= 0 && previous < static_cast<int>(sections.size())
@@ -410,10 +410,10 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		for (const CapacityAnalysisScope& section : sections) {
 			const std::size_t count = section.blockIds.size();
 			const auto block = [&section](std::size_t index) {
-				return QString("%1:%2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(section.blockIds[index]));
+				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(shortBlockId(section.blockIds[index])));
 			};
 			const auto label = [&run, &section](std::size_t index) {
-				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(run.sectionLabels.label(section.blockIds[index])));
+				return QString("%1: %2").arg(section.sectionIndices[index] + 1).arg(QString::fromStdString(readableSectionLabel(section.blockIds[index], run.sectionLabels)));
 			};
 			const QString text = count == 1 ? QString("%1 (1 block)").arg(label(0))
 											: QString("%1 through %2 (%3 blocks)").arg(label(0), label(count - 1)).arg(count);

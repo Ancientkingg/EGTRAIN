@@ -48,8 +48,9 @@ QString areaCapacityText(const CompletedRunData& data, const AreaCapacityScope& 
 
 /// The words of the window and of area_capacity.csv for a note: a short name of the kind, such as "Invalid period".
 QString areaCapacityStatusName(AreaCapacityNoteKind kind);
-/// The words of the window and of area_capacity.csv for a note: a sentence that names its trains and resource.
-QString areaCapacityStatusText(const AreaCapacityNote& note);
+/// The words of the window and of area_capacity.csv for a note: a sentence that names its trains and resource. The
+/// export names the resource by its id, the window with `shortIds` by its short id, as the section strip does.
+QString areaCapacityStatusText(const AreaCapacityNote& note, bool shortIds = false);
 
 /// The text of area_capacity.csv. Every record has the area and whether the traffic is complete. The record types are
 /// summary (period, the cycle of the chain, the legacy envelope; the leader and follower columns hold the first and

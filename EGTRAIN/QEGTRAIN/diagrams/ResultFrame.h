@@ -2,6 +2,7 @@
 #define RESULTFRAME_H
 
 #include <QList>
+#include <QPointer>
 #include <QString>
 #include <QVector>
 #include <QWidget>
@@ -85,7 +86,8 @@ private:
 /// The frame of a result window. A splitter holds the main widget, with a header row above it, and the panel beside
 /// both. The header shows the context of the window in one line at the left and tool buttons at the right, the last of
 /// which shows and hides the panel. The panel is 260 px wide, or 200 px while the window is narrower than 1000 px, until
-/// the user drags the splitter; the main widget takes the rest, and the splitter cannot collapse either of them.
+/// the user drags the splitter, which stops at 200 px; the main widget takes the rest, and the splitter cannot collapse
+/// either of them.
 class ResultFrame : public QWidget {
 	Q_OBJECT
 public:
@@ -130,6 +132,24 @@ private:
 	ResultPanel* m_panel = nullptr;
 	QToolButton* m_panelButton = nullptr;
 	bool m_userSized = false; // the user dragged the splitter, so the panel keeps the width the user gave it
+};
+
+/// Raises the window of a widget and makes it active again when the guard ends, so that a result window stays in front
+/// after the save dialog of an export and the messages that follow it, saved or cancelled. On macOS the save dialog runs
+/// application modal, and when it closes AppKit gives the key window to the main window. A result window is a dialog of
+/// the main window, which Qt makes a panel that cannot become the main window of AppKit, so it would drop behind.
+class KeepInFront {
+public:
+	/// Keeps the window of `widget` in front once the guard ends; a widget that is gone by then is left alone.
+	explicit KeepInFront(QWidget* widget);
+	~KeepInFront();
+	KeepInFront(const KeepInFront&) = delete;
+	KeepInFront& operator=(const KeepInFront&) = delete;
+	KeepInFront(KeepInFront&&) = delete;
+	KeepInFront& operator=(KeepInFront&&) = delete;
+
+private:
+	QPointer<QWidget> m_widget;
 };
 
 /// The main widget of a table window, for ResultFrame: `widgets` in a column on white, inside the margins of the main area,

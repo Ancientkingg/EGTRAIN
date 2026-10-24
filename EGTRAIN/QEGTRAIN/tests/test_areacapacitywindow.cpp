@@ -1,8 +1,8 @@
 // Tests of the area capacity window, its options dialog and its export. Every value is synthetic. The
 // numbers of the line F1, F2 were copied once from the made-up line of the committed test fixture, as in
 // test_areacapacity.cpp: eight blocks, F1 then F2, profile references 59 s and 199 s, authored departures
-// 120 s and 180 s. Times are in seconds and percentages in percent. The test shows no message box and
-// opens no file chooser.
+// 120 s and 180 s. Times are in seconds and percentages in percent. The test shows no message box, and
+// opens the file chooser only to check that the window stays in front after it.
 
 #include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/ResultFrame.h"
@@ -12,11 +12,14 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QPointer>
 #include <QPushButton>
 #include <QScrollArea>
@@ -25,10 +28,12 @@
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QThread>
 #include <QTimer>
 #include <QToolButton>
 
 #include <algorithm>
+#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <string>
@@ -231,12 +236,12 @@ bool exerciseResult() {
 	AreaCapacityWindow partial = makeWindow(analyze(data, lineScope({"F1", "F2"})));
 	partial.show();
 	QApplication::processEvents();
-	bool ok = expect(cycleFigures(partial) == "471.5 s | Cycle, 13.1% | of 1 h" && figure(partial, "areaCapacityGoverning") == "28.7% | Governing: @3-B0@",
+	bool ok = expect(cycleFigures(partial) == "471.5 s | Cycle, 13.1% | of 1 h" && figure(partial, "areaCapacityGoverning") == "28.7% | Governing: 3-B0",
 		qPrintable("the panel gives the governing rate, the cycle and its share: " + figure(partial, "areaCapacityGoverning") + ", "
 			+ cycleFigures(partial)));
 	const QTableWidget* resources = table(partial, "areaCapacityResources");
 	ok &= expect(resources && resources->rowCount() == 8, "one row for each resource of the area");
-	const int governing = rowOf(resources, "@3-B0@");
+	const int governing = rowOf(resources, "3-B0");
 	// F1 on @3 is 190.5 to 674 (483.5 s), F2 342.5 to 892 (549.5 s): sum 1033 s, union 190.5 to 892 (701.5 s), 1033 / 3600 = 28.7 percent.
 	ok &= expect(governing >= 0 && cell(resources, governing, 1) == "28.7" && cell(resources, governing, 2) == "governing resource"
 			&& cell(resources, governing, 3) == "2" && cell(resources, governing, 4) == "2" && cell(resources, governing, 5) == "1033"
@@ -274,7 +279,7 @@ bool exerciseResult() {
 	ok &= expect(cycleFigures(complete) == "471.5 s | Cycle, 13.1% | of 1 h" && context(complete) == "Case A / Scenario B \u00b7 R / main / @0-B0@ to @7-B0@",
 		"the header of complete traffic, which says nothing about the traffic");
 	const QTableWidget* completeResources = table(complete, "areaCapacityResources");
-	const int sixth = rowOf(completeResources, "@6-B0@");
+	const int sixth = rowOf(completeResources, "6-B0");
 	ok &= expect(sixth >= 0 && cell(completeResources, sixth, 3) == "3" && cell(completeResources, sixth, 5) == "303",
 		"an opposing train counts in the rows of the resources");
 	const QTableWidget* completeExcluded = table(complete, "areaCapacityExcluded");
@@ -286,7 +291,7 @@ bool exerciseResult() {
 	idle.blockIds.push_back("@8-B0@");
 	AreaCapacityWindow unused = makeWindow(analyze(data, idle));
 	const QTableWidget* unusedResources = table(unused, "areaCapacityResources");
-	const int last = rowOf(unusedResources, "@8-B0@");
+	const int last = rowOf(unusedResources, "8-B0");
 	ok &= expect(last >= 0 && cell(unusedResources, last, 2) == "no traffic" && cell(unusedResources, last, 3) == "0"
 			&& cell(unusedResources, last, 5) == "0",
 		"a resource without traffic is shown as 0 with no traffic");
@@ -608,12 +613,12 @@ bool exerciseEdgeCases() {
 			&& summary->toolTip().startsWith("F1: planned departure at A"),
 		"the chain tab of a period of zero, with the reference times in the tooltip");
 	const QTableWidget* resources = table(window, "areaCapacityResources");
-	const int governing = rowOf(resources, "@3-B0@");
+	const int governing = rowOf(resources, "3-B0");
 	ok &= expect(governing >= 0 && cell(resources, governing, 1) == "-" && cell(resources, governing, 2) == "governing resource",
 		"the rate of a period of zero is not available");
 	const auto* governingFigure = window.findChild<ResultFigure*>("areaCapacityGoverning");
 	const auto* statuses = window.findChild<QLabel*>("areaCapacityStatuses");
-	ok &= expect(figure(window, "areaCapacityGoverning") == "- | Governing: @3-B0@" && governingFigure->toolTip().contains("No valid period") && statuses
+	ok &= expect(figure(window, "areaCapacityGoverning") == "- | Governing: 3-B0" && governingFigure->toolTip().contains("No valid period") && statuses
 			&& statuses->text() == "Statuses: Invalid period (1), Opposing train (1)",
 		"the governing resource and the statuses of a period of zero");
 	const std::string csvText = areaCapacityCsv(noPeriod, "area");
@@ -635,12 +640,66 @@ bool exerciseEdgeCases() {
 	repeated.trains[1].blockTimes.push_back(occupation("@0-B0@", 400.0, 450.0));
 	AreaCapacityWindow twice = makeWindow(analyze(repeated, lineScope({"F1", "F2"})));
 	const QTableWidget* twiceResources = table(twice, "areaCapacityResources");
-	const int first = rowOf(twiceResources, "@0-B0@");
+	const int first = rowOf(twiceResources, "0-B0");
 	const QTableWidget* twiceNotes = table(twice, "areaCapacityNotes");
 	const int note = rowOf(twiceNotes, "Repeated resource");
 	ok &= expect(first >= 0 && cell(twiceResources, first, 3) == "2" && cell(twiceResources, first, 4) == "3" && cell(twiceResources, first, 5) == "224"
-			&& note >= 0 && cell(twiceNotes, note, 1) == "F1" && cell(twiceNotes, note, 3) == "@0-B0@",
+			&& note >= 0 && cell(twiceNotes, note, 1) == "F1" && cell(twiceNotes, note, 3) == "0-B0",
 		"a repeated resource is counted twice and noted");
+	return ok;
+}
+
+// Handles events until `done` holds, for at most about a second.
+bool waitFor(const std::function<bool()>& done) {
+	for (int round = 0; round < 200 && !done(); ++round) {
+		QApplication::processEvents(QEventLoop::AllEvents, 5);
+		QThread::msleep(5);
+	}
+	return done();
+}
+
+// After the save dialog of the export closes, cancelled or saved, the window is raised and active again, also when the
+// main window took the activation while the dialog was open, as AppKit gives it on macOS.
+bool exerciseExportKeepsWindowInFront() {
+	QTemporaryDir directory;
+	QMainWindow mainWindow;
+	mainWindow.resize(500, 400);
+	mainWindow.show();
+	const CompletedRunData data = lineRun();
+	auto* window = new AreaCapacityWindow(analyze(data, lineScope({"F1", "F2"})), "R / main / @0-B0@ to @7-B0@", data.provenance, &mainWindow);
+	window->show();
+	window->activateWindow();
+	auto* exportButton = window->findChild<QPushButton*>("areaCapacityExport");
+	bool ok = expect(directory.isValid() && exportButton && exportButton->isEnabled()
+			&& waitFor([window] { return QApplication::activeWindow() == window; }),
+		"the window is active before the export");
+	if (!ok)
+		return false;
+	const QString saved = QDir(directory.path()).filePath("front.csv");
+	for (const QString& path : {QString(), saved}) {
+		bool mainActive = false;
+		QTimer::singleShot(0, window, [&mainWindow, &mainActive, &path] {
+			for (QWidget* widget : QApplication::topLevelWidgets())
+				if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+					mainWindow.activateWindow();
+					mainActive = waitFor([&mainWindow] { return QApplication::activeWindow() == &mainWindow; });
+					if (path.isEmpty()) {
+						dialog->reject();
+					} else {
+						dialog->setDirectory(QFileInfo(path).absolutePath());
+						dialog->selectFile(QFileInfo(path).fileName());
+						// Through QDialog, as QFileDialog::accept is protected.
+						static_cast<QDialog*>(dialog)->accept();
+					}
+				}
+		});
+		exportButton->click();
+		const bool active = waitFor([window] { return QApplication::activeWindow() == window; });
+		ok &= expect(mainActive && active,
+			path.isEmpty() ? "a cancelled export leaves the window active, though the main window took the activation"
+						   : "a saved export leaves the window active, though the main window took the activation");
+	}
+	ok &= expect(QFile::exists(saved), "the saved export is written");
 	return ok;
 }
 
@@ -693,9 +752,9 @@ bool exerciseLabels() {
 
 	AreaCapacityScopeDialog dialog(data);
 	const QComboBox* first = combo(dialog, "areaCapacityFirstBlock");
-	ok &= expect(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "@0-B0@"
+	ok &= expect(first && first->itemText(0) == "1: B0 0.000 to 0.230 km" && first->itemData(0, Qt::ToolTipRole).toString() == "0-B0"
 			&& combo(dialog, "areaCapacityLastBlock")->currentText() == "8: B0 1.610 to 1.840 km",
-		"the options name the blocks by their labels, with the id as tooltip");
+		"the options name the blocks by their labels, with the short id as tooltip");
 
 	const AreaCapacityScope one = lineScope({"F1", "F2"});
 	AreaCapacityWindow window(analyze(data, one), areaCapacityLabel(data, one), data.provenance, nullptr, areaCapacityText(data, one),
@@ -713,33 +772,34 @@ bool exerciseLabels() {
 	ok &= expect(tiedWindow.findChild<ResultFigure*>("areaCapacityGoverning")->caption() == tiedCaption,
 		qPrintable("two governing resources: " + figure(tiedWindow, "areaCapacityGoverning")));
 	const QTableWidget* resources = table(window, "areaCapacityResources");
-	const int governing = rowOf(resources, "@3-B0@");
+	const int governing = rowOf(resources, "3-B0");
 	ok &= expect(governing >= 0 && resources->item(governing, 0)->toolTip() == "B0 0.690 to 0.920 km",
-		"a resource keeps its id in the table and has its label as tooltip");
+		"a resource has its short id in the table and its label as tooltip");
 	const QTableWidget* pairs = table(window, "areaCapacityPairs");
-	ok &= expect(pairs && pairs->rowCount() == 1 && cell(pairs, 0, 7).contains("@") && !pairs->item(0, 7)->toolTip().isEmpty()
-			&& !pairs->item(0, 7)->toolTip().contains("@") && pairs->item(0, 7)->toolTip().contains("B0 "),
-		"the evidence names the blocks by their ids and its tooltip by their labels");
+	ok &= expect(pairs && pairs->rowCount() == 1 && cell(pairs, 0, 7).contains("-B0 / ") && !cell(pairs, 0, 7).contains("@")
+			&& !pairs->item(0, 7)->toolTip().isEmpty() && !pairs->item(0, 7)->toolTip().contains("@") && pairs->item(0, 7)->toolTip().contains("B0 "),
+		qPrintable("the evidence names the blocks by their short ids and its tooltip by their labels: " + cell(pairs, 0, 7)));
 	const QTableWidget* compression = table(window, "areaCapacityCompression");
 	int predecessorRow = -1;
 	for (int row = 0; compression && row < compression->rowCount(); ++row)
-		if (predecessorRow < 0 && cell(compression, row, 6).contains("@"))
+		if (predecessorRow < 0 && cell(compression, row, 6).contains(" / "))
 			predecessorRow = row;
-	ok &= expect(predecessorRow >= 0 && compression->item(predecessorRow, 6)->toolTip().contains("B0 ")
-			&& !compression->item(predecessorRow, 6)->toolTip().contains("@"),
-		"the governing predecessor names its blocks by their ids and its tooltip by their labels");
+	ok &= expect(predecessorRow >= 0 && !cell(compression, predecessorRow, 6).contains("@")
+			&& compression->item(predecessorRow, 6)->toolTip().contains("B0 ") && !compression->item(predecessorRow, 6)->toolTip().contains("@"),
+		"the governing predecessor names its blocks by their short ids and its tooltip by their labels");
 	const QTableWidget* critical = table(window, "areaCapacityCritical");
-	ok &= expect(critical && critical->rowCount() > 0 && cell(critical, 0, 2).startsWith("@")
-			&& critical->item(0, 2)->toolTip() == QString::fromStdString(data.sectionLabels.label(cell(critical, 0, 2).toStdString()))
-			&& critical->item(0, 3)->toolTip() == QString::fromStdString(data.sectionLabels.label(cell(critical, 0, 3).toStdString()))
+	ok &= expect(critical && critical->rowCount() > 0 && cell(critical, 0, 2).endsWith("-B0") && !cell(critical, 0, 2).contains("@")
+			&& critical->item(0, 2)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 2).toStdString() + "@"))
+			&& critical->item(0, 3)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 3).toStdString() + "@"))
 			&& critical->item(0, 2)->toolTip().startsWith("B0 "),
-		"a critical resource keeps its id and has its label as tooltip");
+		"a critical resource has its short id and its label as tooltip");
 	AreaCapacityResult noted;
 	noted.notes.push_back({AreaCapacityNoteKind::RepeatedResource, "F1", "", "@7-B0@"});
 	AreaCapacityWindow notedWindow(noted, areaCapacityLabel(data, one), data.provenance, nullptr, QString(), data.sectionLabels);
 	const QTableWidget* notes = table(notedWindow, "areaCapacityNotes");
-	ok &= expect(notes && notes->rowCount() == 1 && cell(notes, 0, 3) == "@7-B0@" && notes->item(0, 3)->toolTip() == "B0 1.610 to 1.840 km",
-		"a note keeps the id of its resource and has its label as tooltip");
+	ok &= expect(notes && notes->rowCount() == 1 && cell(notes, 0, 3) == "7-B0" && notes->item(0, 3)->toolTip() == "B0 1.610 to 1.840 km"
+			&& cell(notes, 0, 4).contains("resource 7-B0 ") && !cell(notes, 0, 4).contains("@") && notes->item(0, 4)->toolTip() == cell(notes, 0, 4),
+		qPrintable("a note names its resource by its short id with its label as tooltip, and its details are their own tooltip: " + cell(notes, 0, 4)));
 	ok &= expect(tabTitle(notedWindow, 2) == "Excluded traffic" && tabTitle(notedWindow, 3) == "Notes (1)", "a tab title gives its count only when it is not 0");
 
 	QTemporaryDir directory;
@@ -761,6 +821,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseHeader();
 	ok &= exerciseLargeFont();
 	ok &= exerciseExport();
+	ok &= exerciseExportKeepsWindowInFront();
 	ok &= exerciseDialog();
 	ok &= exerciseEdgeCases();
 	ok &= exerciseOpen();

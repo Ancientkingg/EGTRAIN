@@ -2,7 +2,8 @@
 // The numbers of the line fixture are copied from tests/characterization/expected as in test_delayanalysis.cpp:
 // follow-level-0 and the pairs for no signalling level, levels 0 and 3 and level 5. Every expected figure was
 // worked out by hand from those rows. Times and delays are in seconds, shares in percent. kNone marks a time that
-// does not exist. The test shows no message box and opens no file chooser.
+// does not exist. The test shows no message box, and opens the file chooser only to check that the window stays in
+// front after it.
 
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/ResultFrame.h"
@@ -13,11 +14,14 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QMenu>
 #include <QPushButton>
 #include <QScrollArea>
@@ -27,8 +31,11 @@
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QThread>
+#include <QTimer>
 #include <QToolButton>
 
+#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <optional>
@@ -893,6 +900,58 @@ bool exerciseExport() {
 	return ok;
 }
 
+// Handles events until `done` holds, for at most about a second.
+bool waitFor(const std::function<bool()>& done) {
+	for (int round = 0; round < 200 && !done(); ++round) {
+		QApplication::processEvents(QEventLoop::AllEvents, 5);
+		QThread::msleep(5);
+	}
+	return done();
+}
+
+// After the save dialog of the export closes, cancelled or saved, the window is raised and active again, also when the
+// main window took the activation while the dialog was open, as AppKit gives it on macOS.
+bool exerciseExportKeepsWindowInFront() {
+	QTemporaryDir directory;
+	QMainWindow mainWindow;
+	mainWindow.resize(500, 400);
+	mainWindow.show();
+	auto* window = new DelayAnalysisWindow(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt, &mainWindow);
+	window->show();
+	window->activateWindow();
+	bool ok = expect(directory.isValid() && exportButton(*window) && exportButton(*window)->isEnabled()
+			&& waitFor([window] { return QApplication::activeWindow() == window; }),
+		"the window is active before the export");
+	if (!ok)
+		return false;
+	const QString saved = QDir(directory.path()).filePath("front.csv");
+	for (const QString& path : {QString(), saved}) {
+		bool mainActive = false;
+		QTimer::singleShot(0, window, [&mainWindow, &mainActive, &path] {
+			for (QWidget* widget : QApplication::topLevelWidgets())
+				if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+					mainWindow.activateWindow();
+					mainActive = waitFor([&mainWindow] { return QApplication::activeWindow() == &mainWindow; });
+					if (path.isEmpty()) {
+						dialog->reject();
+					} else {
+						dialog->setDirectory(QFileInfo(path).absolutePath());
+						dialog->selectFile(QFileInfo(path).fileName());
+						// Through QDialog, as QFileDialog::accept is protected.
+						static_cast<QDialog*>(dialog)->accept();
+					}
+				}
+		});
+		exportButton(*window)->click();
+		const bool active = waitFor([window] { return QApplication::activeWindow() == window; });
+		ok &= expect(mainActive && active,
+			path.isEmpty() ? "a cancelled export leaves the window active, though the main window took the activation"
+						   : "a saved export leaves the window active, though the main window took the activation");
+	}
+	ok &= expect(QFile::exists(saved), "the saved export is written");
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -911,6 +970,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseOpeningTab();
 	ok &= exerciseWords();
 	ok &= exerciseExport();
+	ok &= exerciseExportKeepsWindowInFront();
 	if (ok)
 		std::cout << "all DelayAnalysisWindow tests passed\n";
 	return ok ? 0 : 1;
