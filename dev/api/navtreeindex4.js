@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"_scene_importer_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f":[3,0,7,16,11],
+"_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f":[3,0,7,16,17],
 "_scene_importer_8cpp.html#ad9a5e2a40bf0f42228052b18fb45e939":[3,0,7,16,7],
 "_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898":[3,0,7,16,24],
 "_scene_importer_8cpp.html#aeb67ac0899e16f66f4bc593ee7ee86a0":[3,0,7,16,28],
@@ -247,7 +249,5 @@ var NAVTREEINDEX4 =
 "_section_inventory_8h.html#aada86a733299e516b7fc5ad92a65eee4":[3,0,7,30,26],
 "_section_inventory_8h.html#ae4f9207213b44d11e550fd70a54d3fde":[3,0,7,30,21],
 "_section_inventory_8h.html#af454f6ad805e4782da5b9ee9d8a43dbe":[3,0,7,30,19],
-"_section_inventory_8h_source.html":[3,0,7,30],
-"_section_labels_8h.html":[3,0,7,31],
-"_section_labels_8h_source.html":[3,0,7,31]
+"_section_inventory_8h_source.html":[3,0,7,30]
 };

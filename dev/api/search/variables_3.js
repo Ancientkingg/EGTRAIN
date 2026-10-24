@@ -13,7 +13,7 @@ var searchData=
   ['delayclass_10',['delayClass',['../struct_delay_event.html#aa1c418cbc4274904bc297d08a1ac6854',1,'DelayEvent']]],
   ['delayed_11',['delayed',['../class_train.html#af24648dc7cc348b9802e7c3686451708',1,'Train']]],
   ['delayms_12',['delayMs',['../struct_live_command.html#abb387d99f2bd587b9e4040b4354feeaf',1,'LiveCommand::delayMs'],['../struct_run_command.html#a26bf5213ff8e8e08818d9ae54106dbf2',1,'RunCommand::delayMs'],['../struct_playback_profiler_1_1_run_config.html#ae3d07c3d58de3cf5ecb22de5f4aff116',1,'PlaybackProfiler::RunConfig::delayMs']]],
-  ['delayseconds_13',['delaySeconds',['../struct_delay_event.html#a67070b0a5e41f0d1d0921978a3dbe91f',1,'DelayEvent::delaySeconds'],['../struct_scene_entrance_delay.html#ae8d6a7913abf5545309f6c6e1f39b89f',1,'SceneEntranceDelay::delaySeconds']]],
+  ['delayseconds_13',['delaySeconds',['../struct_delay_event.html#a67070b0a5e41f0d1d0921978a3dbe91f',1,'DelayEvent::delaySeconds'],['../struct_delay_diagram_point.html#a6d7947c81f9a3f04d231e80dbf1957c0',1,'DelayDiagramPoint::delaySeconds'],['../struct_scene_entrance_delay.html#ae8d6a7913abf5545309f6c6e1f39b89f',1,'SceneEntranceDelay::delaySeconds']]],
   ['denominator_14',['denominator',['../struct_delay_share.html#a3873d05f6b5f7d363a3fd5b32c18471a',1,'DelayShare']]],
   ['dep_5fstation_5fid_15',['Dep_Station_ID',['../class_trip.html#a76cb8fae50f1dc57bf51121e3cec2f95',1,'Trip::Dep_Station_ID'],['../class_journey.html#add93450e2071bdc47de03baca76de72f',1,'Journey::Dep_Station_ID']]],
   ['dep_5fstation_5fplatform_5fid_16',['Dep_Station_Platform_ID',['../class_trip.html#ac14abad86f3fd9e04e0099d143957817',1,'Trip::Dep_Station_Platform_ID'],['../class_journey.html#a1b62e4c5fc44a1dcc79283b6193aacb1',1,'Journey::Dep_Station_Platform_ID']]],

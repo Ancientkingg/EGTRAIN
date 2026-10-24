@@ -4,7 +4,7 @@ var searchData=
   ['c1_1',['C1',['../class_train.html#a4d2e2c521ae979065a861d9650432f25',1,'Train']]],
   ['c2_2',['C2',['../class_train.html#ae5ac5d71a4fc4245d1eaa66b7aba07ff',1,'Train']]],
   ['cadenceseconds_3',['cadenceSeconds',['../class_gui_replay_history.html#a6496af7c6af4fd206cebc70c5c0a8762',1,'GuiReplayHistory']]],
-  ['call_4',['call',['../struct_route_diagram_point.html#a428f25295ede6f4130b33ac877202ff8',1,'RouteDiagramPoint']]],
+  ['call_4',['call',['../struct_route_diagram_point.html#a428f25295ede6f4130b33ac877202ff8',1,'RouteDiagramPoint::call'],['../struct_delay_diagram_point.html#af52ce415865d1c5bce18eb3d23e63ead',1,'DelayDiagramPoint::call']]],
   ['callindex_5',['callIndex',['../struct_delay_event.html#a4e6cdd1f7afb27433e40122de0eea91b',1,'DelayEvent::callIndex'],['../struct_baseline_call.html#aa0661e810e066e4b7d66595f48a786d5',1,'BaselineCall::callIndex'],['../struct_timetable_result_row.html#ab07b977bd4bcb97df9051fca09e3e6b1',1,'TimetableResultRow::callIndex']]],
   ['calls_6',['calls',['../struct_delay_statistics.html#a3185a329a0c51080f9ffaa327e329be2',1,'DelayStatistics::calls'],['../struct_delay_baseline_comparison.html#a588df2cff6347f48ba1573a228363e2f',1,'DelayBaselineComparison::calls']]],
   ['canact_7',['canAct',['../struct_follow_availability.html#a530c83da5707d667134c8bbabb63eab6',1,'FollowAvailability']]],

@@ -1033,28 +1033,28 @@
 </a>
 </g>
 </g>
-<!-- Node306 -->
-<g id="Node000306" class="node">
-<title>Node306</title>
-<g id="a_Node000306"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
+<!-- Node305 -->
+<g id="Node000305" class="node">
+<title>Node305</title>
+<g id="a_Node000305"><a xlink:href="class_result_views.html#ac39a1014377b4598155110fef99ec515" target="_top" xlink:title="A train was selected in one of the windows.">
 <polygon fill="white" stroke="#666666" points="579.5,-156.5 432.5,-156.5 432.5,-137.5 579.5,-137.5 579.5,-156.5"/>
 <text text-anchor="middle" x="506" y="-144.5" font-family="Helvetica,sans-Serif" font-size="10.00">ResultViews::trainSelected</text>
 </a>
 </g>
 </g>
-<!-- Node151&#45;&gt;Node306 -->
-<g id="edge60_Node000151_Node000306" class="edge">
-<title>Node151&#45;&gt;Node306</title>
-<g id="a_edge60_Node000151_Node000306"><a xlink:title=" ">
+<!-- Node151&#45;&gt;Node305 -->
+<g id="edge60_Node000151_Node000305" class="edge">
+<title>Node151&#45;&gt;Node305</title>
+<g id="a_edge60_Node000151_Node000305"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M336.07,-195.5C350.1,-192.72 365.18,-189.49 379,-186 409.05,-178.41 442.55,-167.95 467.45,-159.77"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="468.82,-163 477.22,-156.53 466.62,-156.35 468.82,-163"/>
 </a>
 </g>
 </g>
-<!-- Node306&#45;&gt;Node306 -->
-<g id="edge61_Node000306_Node000306" class="edge">
-<title>Node306&#45;&gt;Node306</title>
-<g id="a_edge61_Node000306_Node000306"><a xlink:title=" ">
+<!-- Node305&#45;&gt;Node305 -->
+<g id="edge61_Node000305_Node000305" class="edge">
+<title>Node305&#45;&gt;Node305</title>
+<g id="a_edge61_Node000305_Node000305"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M471.48,-156.58C454.68,-165.23 466.19,-174.5 506,-174.5 535.24,-174.5 549.21,-169.5 547.92,-163.42"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="550.24,-160.8 540.52,-156.58 545.49,-165.94 550.24,-160.8"/>
 </a>

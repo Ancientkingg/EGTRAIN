@@ -112,9 +112,9 @@
 <area shape="poly" id="edge58_Node000151_Node000152" title=" " alt="" coords="465,1185,582,1167,582,1173,465,1191"/>
 <area shape="rect" id="Node000153" href="$class_run_results_dock.html#a44cfbb38df803b25ff418cfdf680b09f" title=" " alt="" coords="559,1192,801,1217"/>
 <area shape="poly" id="edge59_Node000151_Node000153" title=" " alt="" coords="508,1200,545,1200,545,1206,508,1205"/>
-<area shape="rect" id="Node000306" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="582,1265,778,1291"/>
-<area shape="poly" id="edge60_Node000151_Node000306" title=" " alt="" coords="454,1211,511,1223,629,1258,628,1264,510,1229,453,1216"/>
-<area shape="poly" id="edge61_Node000306_Node000306" title=" " alt="" coords="632,1267,622,1257,627,1247,647,1241,680,1239,724,1243,735,1249,738,1255,733,1257,731,1252,723,1248,680,1244,648,1246,630,1251,627,1256,636,1263"/>
+<area shape="rect" id="Node000305" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="582,1265,778,1291"/>
+<area shape="poly" id="edge60_Node000151_Node000305" title=" " alt="" coords="454,1211,511,1223,629,1258,628,1264,510,1229,453,1216"/>
+<area shape="poly" id="edge61_Node000305_Node000305" title=" " alt="" coords="632,1267,622,1257,627,1247,647,1241,680,1239,724,1243,735,1249,738,1255,733,1257,731,1252,723,1248,680,1244,648,1246,630,1251,627,1256,636,1263"/>
 <area shape="poly" id="edge63_Node000408_Node000408" title=" " alt="" coords="336,1263,327,1253,332,1243,350,1237,381,1235,420,1239,431,1244,434,1250,430,1252,427,1248,419,1244,381,1240,351,1242,335,1247,332,1252,340,1259"/>
 <area shape="poly" id="edge65_Node000409_Node000409" title=" " alt="" coords="336,1336,327,1326,332,1316,350,1310,381,1308,420,1312,431,1317,434,1323,430,1326,427,1321,419,1317,381,1313,351,1315,335,1320,332,1326,340,1333"/>
 </map>

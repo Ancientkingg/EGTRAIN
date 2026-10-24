@@ -1,5 +1,7 @@
 var NAVTREEINDEX6 =
 {
+"_telemetry_consent_8h_source.html":[3,0,9,1],
+"_telemetry_consent_dialog_8cpp.html":[3,0,9,2],
 "_telemetry_consent_dialog_8h.html":[3,0,9,3],
 "_telemetry_consent_dialog_8h_source.html":[3,0,9,3],
 "_telemetry_event_8cpp.html":[3,0,9,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX6 =
 "_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547":[3,0,4,13,18],
 "_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61":[3,0,4,13,1],
 "_visual_polish_8cpp.html#acd5376d75de6b86816b9fbc03adf30cc":[3,0,4,13,12],
-"_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8":[3,0,4,13,15],
-"_visual_polish_8cpp.html#aedc5fcbf783bda97fca3dc74d3a5098b":[3,0,4,13,21],
-"_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471":[3,0,4,13,11]
+"_visual_polish_8cpp.html#ad15b0a7441e0e9f52022e4a3a89d81d8":[3,0,4,13,15]
 };

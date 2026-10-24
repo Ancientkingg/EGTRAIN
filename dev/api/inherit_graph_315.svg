@@ -11,9 +11,9 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_waiting_at_platform.html" target="_top" xlink:title="The passengers waiting at one platform.">
+<g id="a_Node000000"><a xlink:href="struct_update_record_text.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="106,-19 0,-19 0,0 106,0 106,-19"/>
-<text text-anchor="middle" x="53" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">WaitingAtPlatform</text>
+<text text-anchor="middle" x="53" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateRecordText</text>
 </a>
 </g>
 </g>

@@ -11,9 +11,10 @@ var searchData=
   ['widthm_8',['widthM',['../struct_scene_platform.html#aec2ff76b5264a4a135a37347f00c1732',1,'ScenePlatform']]],
   ['windowbroughttofront_9',['windowBroughtToFront',['../struct_main_window_test_hooks.html#a90f4af5176afe3a977103a031188a862',1,'MainWindowTestHooks']]],
   ['windowdestroyed_10',['windowDestroyed',['../struct_main_window_test_hooks.html#ad967c3a62bb701355d96f41adeb81a11',1,'MainWindowTestHooks']]],
-  ['withswitchdiv_11',['withSwitchDiv',['../class_infra_element.html#aaa369badb0111ac96364b696a0a1bdd5',1,'InfraElement::withSwitchDiv'],['../class_section.html#a37ca1b3b87fd03fea98becdab4c74ace',1,'Section::withSwitchDiv']]],
-  ['writeattempted_12',['writeAttempted',['../struct_scene_save_result.html#add6b405b8e071f2f6778a324ab64cb87',1,'SceneSaveResult']]],
-  ['writtenat_13',['writtenAt',['../struct_recovery_candidate.html#a46e71b98b741f4fa510579cbb8932195',1,'RecoveryCandidate']]],
-  ['wroteall_14',['wroteAll',['../struct_scene_export_result.html#afa11c67d31451ce018967f2fdd5730d1',1,'SceneExportResult::wroteAll'],['../struct_scene_save_result.html#a958e74be4b43572b8534e6b68e58904a',1,'SceneSaveResult::wroteAll']]],
-  ['wrotescene_15',['wroteScene',['../struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165',1,'SceneImportResult']]]
+  ['withoutcalls_11',['withoutCalls',['../struct_delay_diagram_data.html#a5731bf7c6e26fcb0ab5319051bb08b3f',1,'DelayDiagramData']]],
+  ['withswitchdiv_12',['withSwitchDiv',['../class_infra_element.html#aaa369badb0111ac96364b696a0a1bdd5',1,'InfraElement::withSwitchDiv'],['../class_section.html#a37ca1b3b87fd03fea98becdab4c74ace',1,'Section::withSwitchDiv']]],
+  ['writeattempted_13',['writeAttempted',['../struct_scene_save_result.html#add6b405b8e071f2f6778a324ab64cb87',1,'SceneSaveResult']]],
+  ['writtenat_14',['writtenAt',['../struct_recovery_candidate.html#a46e71b98b741f4fa510579cbb8932195',1,'RecoveryCandidate']]],
+  ['wroteall_15',['wroteAll',['../struct_scene_export_result.html#afa11c67d31451ce018967f2fdd5730d1',1,'SceneExportResult::wroteAll'],['../struct_scene_save_result.html#a958e74be4b43572b8534e6b68e58904a',1,'SceneSaveResult::wroteAll']]],
+  ['wrotescene_16',['wroteScene',['../struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165',1,'SceneImportResult']]]
 ];

@@ -169,6 +169,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a23cc6d8743ea6132e2b4601ffaeb5449" id="r_a23cc6d8743ea6132e2b4601ffaeb5449"><td class="memItemLeft">std::vector&lt; std::pair&lt; int, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc6d8743ea6132e2b4601ffaeb5449">usedRouteReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:a23cc6d8743ea6132e2b4601ffaeb5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes that trains run on, as (route index, route id) in order of first use.  <br /></td></tr>
 <tr class="memitem:a9e66592dd211190d72140e97499e0152" id="r_a9e66592dd211190d72140e97499e0152"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9e66592dd211190d72140e97499e0152">routeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
+<tr class="memitem:a468a8ade25b052a551e865a5d5b7fbfb" id="r_a468a8ade25b052a551e865a5d5b7fbfb"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a468a8ade25b052a551e865a5d5b7fbfb">delayDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int referenceIndex)</td></tr>
 <tr class="memitem:af4427af0200906891a03bce3aff863b6" id="r_af4427af0200906891a03bce3aff863b6"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#af4427af0200906891a03bce3aff863b6">fullTableImage</a> (const QTableView &amp;table)</td></tr>
 <tr class="memdesc:af4427af0200906891a03bce3aff863b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole table as an image: every row and column at its natural size, with no scroll bars.  <br /></td></tr>
 </table>
@@ -534,6 +535,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_aaa5c75f0e512880c5089e1f120efeab7_cgraph.svg" width="484" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a468a8ade25b052a551e865a5d5b7fbfb" name="a468a8ade25b052a551e865a5d5b7fbfb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a468a8ade25b052a551e865a5d5b7fbfb">&#9670;&#160;</a></span>delayDiagramData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &gt; delayDiagramData </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>referenceIndex</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The arrival delay of each call of each train at a station of the reference route with the given index, at the position of that station on the route. A call is at the station nodes of the route whose station name is the station of the call (<a class="el" href="struct_timetable_result_row.html#a02e08dea7d4f2f9743f96fc2b1180721" title="Station name used by the arrival statistics.">TimetableResultRow::stationId</a> holds the name). When the route passes the station at more than one position, the call takes the first that the train reaches at or after its previous call at a station of the route, moving as between its last two such calls that lie apart, or before those as from its first to its last call at a station that the route passes once. Otherwise it takes the first of them on the route. Empty when the route does not exist or has no nodes. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8cpp_a468a8ade25b052a551e865a5d5b7fbfb_cgraph.svg" width="423" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -152,6 +152,12 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One line of the route diagram. A line ends where a point is missing or cannot be projected.  <a href="struct_route_diagram_series.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RouteDiagramData" id="r_RouteDiagramData"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the route diagram shows and exports.  <a href="struct_route_diagram_data.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayDiagramPoint" id="r_DelayDiagramPoint"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_diagram_point.html">DelayDiagramPoint</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One arrival delay of the Delays chart, at a station of the reference route.  <a href="struct_delay_diagram_point.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayDiagramSeries" id="r_DelayDiagramSeries"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_diagram_series.html">DelayDiagramSeries</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arrival delays of one train at the stations of the reference route.  <a href="struct_delay_diagram_series.html#details">More...</a><br /></td></tr>
+<tr class="memitem:DelayDiagramData" id="r_DelayDiagramData"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the Delays chart shows.  <a href="struct_delay_diagram_data.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -193,6 +199,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a23cc6d8743ea6132e2b4601ffaeb5449" id="r_a23cc6d8743ea6132e2b4601ffaeb5449"><td class="memItemLeft">std::vector&lt; std::pair&lt; int, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc6d8743ea6132e2b4601ffaeb5449">usedRouteReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:a23cc6d8743ea6132e2b4601ffaeb5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes that trains run on, as (route index, route id) in order of first use.  <br /></td></tr>
 <tr class="memitem:a9e66592dd211190d72140e97499e0152" id="r_a9e66592dd211190d72140e97499e0152"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9e66592dd211190d72140e97499e0152">routeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
+<tr class="memitem:a468a8ade25b052a551e865a5d5b7fbfb" id="r_a468a8ade25b052a551e865a5d5b7fbfb"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a468a8ade25b052a551e865a5d5b7fbfb">delayDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int referenceIndex)</td></tr>
 </table>
 <a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
 <a id="a682c21128ac2148b789ee06a690d2194" name="a682c21128ac2148b789ee06a690d2194"></a>
@@ -572,6 +579,33 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_aaa5c75f0e512880c5089e1f120efeab7_cgraph.svg" width="484" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a468a8ade25b052a551e865a5d5b7fbfb" name="a468a8ade25b052a551e865a5d5b7fbfb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a468a8ade25b052a551e865a5d5b7fbfb">&#9670;&#160;</a></span>delayDiagramData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &gt; delayDiagramData </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>referenceIndex</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The arrival delay of each call of each train at a station of the reference route with the given index, at the position of that station on the route. A call is at the station nodes of the route whose station name is the station of the call (<a class="el" href="struct_timetable_result_row.html#a02e08dea7d4f2f9743f96fc2b1180721" title="Station name used by the arrival statistics.">TimetableResultRow::stationId</a> holds the name). When the route passes the station at more than one position, the call takes the first that the train reaches at or after its previous call at a station of the route, moving as between its last two such calls that lie apart, or before those as from its first to its last call at a station that the route passes once. Otherwise it takes the first of them on the route. Empty when the route does not exist or has no nodes. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a468a8ade25b052a551e865a5d5b7fbfb_cgraph.svg" width="423" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
