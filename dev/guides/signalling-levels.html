@@ -1083,7 +1083,7 @@ independent. Changing one does not change the others.</p>
 <tr class="row-even"><td><p>What it is</p></td>
 <td><p>A range of chainage that gives sections a signalling level</p></td>
 <td><p>A part of one track that a train occupies; the unit of the aspects</p></td>
-<td><p>A route and the blocks of it that the trains the user checks all occupy, for one analysis</p></td>
+<td><p>A route and a range of its blocks, by default all of them, with the trains the user checks, for one analysis</p></td>
 </tr>
 <tr class="row-odd"><td><p>Where it is stored</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">signalling.json</span></code>, <code class="docutils literal notranslate"><span class="pre">signalling_areas[]</span></code></p></td>
@@ -1093,7 +1093,7 @@ independent. Changing one does not change the others.</p>
 <tr class="row-even"><td><p>Where it is computed</p></td>
 <td><p>Builder, <code class="docutils literal notranslate"><span class="pre">buildInfrastructureAndSignallingFromScene</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">buildSceneSectionInventory</span></code>; the runtime sections are <code class="docutils literal notranslate"><span class="pre">infra.sections</span></code> of the run and the route copies</p></td>
-<td><p>The capacity analysis dialog: route, trains and period; the blocks follow from the trains and the blocking times of the run (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityAnalysis</span></code>)</p></td>
+<td><p>The capacity analysis dialog: route, From block and To block, trains and period, with the blocking times of the run (<code class="docutils literal notranslate"><span class="pre">diagrams/CapacityScope</span></code>, <code class="docutils literal notranslate"><span class="pre">diagrams/CapacityAnalysis</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>What it decides</p></td>
 <td><p>The level of every section that it contains</p></td>
@@ -1110,7 +1110,7 @@ independent. Changing one does not change the others.</p>
 </div>
 <p>Areas are measured against block sections, never the other way round. A
 block section has the level of the area that contains it, or none. The capacity
-analysis uses the blocks that the selected trains share. Its scope does not follow the
+analysis uses a range of blocks of one route. Its scope does not follow the
 signalling areas, and a signalling area does not follow the scope. A section
 without a level or with level 1 or 5 has no blocking times, so the capacity
 analysis has no data for it.</p>
@@ -1149,8 +1149,8 @@ track numbers also fail a sidecar-marked import before publication. Without a si
 import still reports the historical TXT file and converts none of its rows.
 This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.</p>
-<p>The Capacity window uses a route and the blocks that the chosen trains share as
-its scope, not signalling areas; <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a>
+<p>The Capacity window uses a route and a range of its blocks as its scope, not
+signalling areas; <a class="reference internal" href="capacity-analysis.html"><span class="std std-doc">How capacity is analysed</span></a>
 describes the scope and the area calculation that older versions had.</p>
 <p>Signals and track detection sections are a fourth thing. <code class="docutils literal notranslate"><span class="pre">signals[]</span></code> bind to a
 section only to resolve signal failures. See the

@@ -72,11 +72,11 @@ with an implicit conventional or ETCS setting.
 | 11 | Inspect actual tractive effort | Open the applied tractive-effort distance result or export its CSV. | Distinguish positive traction, coasting or balance, and braking from the static traction curve. |
 | 12 | Compare an alternative composition | Duplicate or edit a composition assignment and rerun. | Explain the change in performance and feasibility. |
 | 13 | Compare SGM and Plan V | Author or select the sourced alternatives and rerun the same service. | Explain the observed differences. |
-| 14 | Compute minimum headways | Open **Capacity**, choose a route and an ordered pair. The analysed blocks are a section of the blocks both trains run over. | Interpret the minimum headway and governing block. |
+| 14 | Compute minimum headways | Open **Capacity**, choose a route, a From block and a To block, which default to the whole route, and check an ordered pair of trains. | Interpret the minimum headway and governing block. |
 | 15 | Compress the timetable | Use the same ordered occurrence sequence in **Capacity** and open the compressed diagram. | Check that order is preserved and occupations do not conflict. |
 | 16 | Identify critical blocks | Inspect the reported touching constraints in the compressed result. | Explain why a critical touch is not an overlap conflict. |
 | 17 | Obtain buffer times | Read scheduled headway, minimum headway, and their unclamped difference. | Interpret positive or negative buffer. |
-| 18 | Assess capacity consumption | Select the analysis period and explicit cycle-closing occurrence. | Reproduce the displayed numerator, denominator, and percentage, then compare it with the course recommendation. |
+| 18 | Assess capacity consumption | Select the analysis period and the cycle-closing train: the first train one period later, the default, or a checked train after the first. | Reproduce the displayed numerator, denominator, and percentage, then compare it with the course recommendation. |
 | 19 | Generate a multi-hour timetable | Increase repeat count while retaining the interval and code step. | Check occurrence identities and planned offsets. |
 | 20 | Simulate signal failure | Map S451 to the corresponding canonical signal or block, set the 08:30 to 09:00 window, and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. |
 | 21 | Simulate rolling-stock breakdown | Target IC 1727 at 08:25, set the 40 km/h cap, and request destination termination at Utrecht. | Check that sibling repeats are unchanged and the target continues under signalling. |
@@ -93,16 +93,16 @@ occupations, EGTRAIN reports the analysis as unavailable. It does not create
 blocking times from a default signalling system.
 
 Minimum headway, compression, critical blocks, buffer, and capacity consumption
-are results for the analysed blocks: one section of the route, a run of
-consecutive blocks that all checked occurrences occupy. Where the trains use
-different blocks, as on the tracks of an overtaking station such as Gdg, a
-section ends before those blocks and the next one starts after them.
-**Blocks** in the Capacity chooser offers each section, with the longest
-selected first, so the parts of the line before and after Gdg are analysed one at
-a time. The window keeps the checked order on all blocks of a section and does
-not split it where the train order changes. **Capacity by area** takes a block
-range that the student chooses, in the order of its list. Compression is analysis
-output and does not rewrite the authored timetable.
+are results for the analysed blocks: the blocks of the route from the From block
+to the To block in the Capacity chooser, by default the whole route. A train
+that uses only some of them is analysed from where it enters the range. Its
+occupations that share no resource with a block of the range are left out. The
+window keeps the checked order on all analysed blocks and does not split them
+where the train order changes, as at an overtaking station such as Gdg. To
+analyse the parts of the line before and after Gdg one at a time, choose a range
+for each. **Capacity by area** takes a block range that the student chooses, in
+the order of its list. Compression is analysis output and does not rewrite the
+authored timetable.
 
 The capacity consumption of step 18 is the cycle of the selected train chain as a
 percentage of the period that the student enters. EGTRAIN compares it with no
