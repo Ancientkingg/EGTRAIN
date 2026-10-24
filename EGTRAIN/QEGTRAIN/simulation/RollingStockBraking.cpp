@@ -521,11 +521,19 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	}
 	N_BrakP = BS[BlockPos].total_arcs - ArcPos; // Initializing dimensions of Braking points vectors
 
+	// A stop of this train that is not behind it is a target of speed 0. Only the braking point gets the 0, because the
+	// trains of a route share its sections.
+	const auto targetStop = [&](int section, int arc) {
+		if (BrakingPoints.back().X * 1000 >= S && isStopArc(section, arc))
+			BrakingPoints.back().arcSpeedLimit = 0;
+	};
+
 	// Putting in the list of braking points the nodes of the Arc where the train currently is
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
 		// Setting the current Arc speedInBraking to the final Node of Arc
 		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[BlockPos].arcs_in_signalling_block_section[p].speedInBraking;
 		BrakingPoints.push_back(BS[BlockPos].arcs_in_signalling_block_section[p].endNode);
+		targetStop(BlockPos, p);
 	}
 
 	// Calculating the total number of breaking points to find the minimum breaking distance (all the arcs of the block section which follows the occupied one are also considered)
@@ -539,6 +547,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
 			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].speedInBraking;
 			BrakingPoints.push_back(BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode);
+			targetStop(z + BlockPos + 1, p);
 		}
 	}
 

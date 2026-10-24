@@ -390,6 +390,17 @@ public:
 	/// Fills stationBlockSection and stationArc: for each stop, the index of the route section and of the arc whose end node is the
 	/// station, or -1. Called after Stations or the route change, so that a step does not search the route for the stations.
 	void cacheStationPositions();
+	/// True when the end node of arc arc of route section section is a stop of this train (stationBlockSection and stationArc).
+	/// The route is shared by the trains that run on it, so a stop is a property of the train and not of the route. False when
+	/// section or arc is -1, the index of a stop that is not the end of an arc of the route.
+	bool isStopArc(int section, int arc) const {
+		if (section < 0 || arc < 0)
+			return false;
+		for (int s = 0; s < numStations; s++)
+			if (stationBlockSection[s] == section && stationArc[s] == arc)
+				return true;
+		return false;
+	}
 
 
 	/// Tractive effort in N at speed V in m/s, from the band of the traction curve that holds V, scaled by

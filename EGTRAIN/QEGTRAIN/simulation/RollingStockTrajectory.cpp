@@ -353,12 +353,15 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			U = time_seconds;
 			Arc As; // use local variable instead of Train class member (faster simulation)
 			string Occupied_TDS;
+			// Indices of Bs on the route and of As in Bs; -1 when they are not found in this step
+			int BsIndex = -1, AsIndex = -1;
 
 			// Determination of the right Block Section
 			for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
 				if ((instant_spatial_position[time_seconds - 1] < run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000)
 					&& (instant_spatial_position[time_seconds - 1] >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
 					Bs = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h];
+					BsIndex = h;
 					instant_block_section_occupied[time_seconds] = Bs.ID;
 
 					if (h != 0)
@@ -372,9 +375,13 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			// Determination of the right running Arc
 			for (int j = 0; j < Bs.total_arcs; j++) {
 				if ((instant_spatial_position[time_seconds - 1] < Bs.arcs_in_signalling_block_section[j].endNode.X * 1000)
-					&& (instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000))
+					&& (instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000)) {
 					As = Bs.arcs_in_signalling_block_section[j];
+					AsIndex = j;
+				}
 			}
+			// A platform node, or a stop of this train
+			const bool stationAtEndOfAs = As.endNode.station || isStopArc(BsIndex, AsIndex);
 			// Determination of the right speed limit to observe
 			double Speeds[3];
 			Speeds[0] = max_train_speed;
@@ -386,19 +393,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					V_lim = Speeds[k];
 			}
 			V_lim = effectiveIncidentSpeedLimit(V_lim, time_seconds);
-
-			// Imposing Station Nodes via cached indices
-			for (int s = 0; s < numStations; s++) {
-				int h = stationBlockSection[s];
-				int k = stationArc[s];
-				if (h >= 0 && k >= 0) {
-					auto& Arc = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].arcs_in_signalling_block_section[k];
-					if (Arc.endNode.X * 1000 >= instant_spatial_position[time_seconds - 1]) {
-						Arc.endNode.station = 1;
-						Arc.speedInBraking = 0;
-					}
-				}
-			}
 
 			// Determination of the Movement Authority that has been previouly respected by the train (especially if it stopped at a given EoA)
 			// determining Last_MA_StoppedAt for the train
@@ -612,7 +606,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				}
 
 				// The first coupling step keeps the normal result. Later steps are proposals, not overrides.
-				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < 4 && (As.endNode.station || As.endNode.respectOrder || Bs.state == SignalState::Red)));
+				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < 4 && (stationAtEndOfAs || As.endNode.respectOrder || Bs.state == SignalState::Red)));
 				if (CounterFollowingMode > 1 && liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
 					&& !mustBrake && !infeasibleCandidate && !IsTrainStoppedForEoA && !StoppedForServiceStop && !stationaryHold
 					&& std::isfinite(liveLeader->TrainInfo.TrainSpeed) && std::isfinite(liveLeader->TrainInfo.Acceleration)) {
@@ -673,7 +667,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				const bool authorityHold = IsTrainStoppedForEoA || (mustBrake && BrakingForEoA && instant_train_speed[time_seconds] == 0 && instant_spatial_position[time_seconds] == head);
 
 				// Stopping at a station for an estabilished dwell time
-				if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && (As.endNode.station == 1)) {
+				if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && stationAtEndOfAs) {
 					this->StoppedForServiceStop = true; // Stating that the train is stopping at a station to perform a service stop
 					Eq[time_seconds] = 5;
 					double stoptime = 0;
