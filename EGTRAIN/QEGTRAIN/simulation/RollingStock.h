@@ -162,8 +162,8 @@ private:
 // limit, not a storage size: SimulationRun::trains holds exactly the trains of the scene.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
-// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point; the
-// parking assignments below write the same 0.0001 as a literal. The parked position and a
+// A train that has braked into a stop is parked kStopHoldbackM short of the stopping point, as the
+// standing-train steps of RollingStockTrajectory.cpp park it. The parked position and a
 // stopping point that is compared with it are rounded differently on targets that fuse multiply
 // and add, so they can differ by a few units in the last place in either direction. The tolerance
 // is far above that error and far below any real distance. A position within the tolerance of the
@@ -615,6 +615,36 @@ public:
 	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
 	/// signalCode2 and signalCode3 are not read.
 	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
+
+	/// Finds where the head of the train was at the end of step time_seconds - 1: Bs and its index BsIndex on the route, and As and
+	/// its index AsIndex in Bs, which keep their values when nothing is found. Sets instant_block_section_occupied[time_seconds].
+	void locateHead(int time_seconds, Arc& As, int& BsIndex, int& AsIndex);
+
+	/// The speed (m/s) and head (m) after step time_seconds of a train that accelerates on arc As with the surplus of its traction
+	/// over the resistances, its speed capped at V_lim (m/s); candidateSpeed and candidateHead receive them.
+	void accelerationCandidate(int time_seconds, const Arc& As, double V_lim, double& candidateSpeed, double& candidateHead);
+
+	/// Takes the train off its route in step time_seconds, once its head was at the end of the route in the step before: sets
+	/// End_Time and OutOfSimulation, writes -9999 as its position and power, and releases the last section of the route.
+	void leaveRouteAtEnd(int time_seconds);
+
+	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
+	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
+	/// of the leader; a decoupling at diverging routes ends once its authority has come; and in following mode the step is counted,
+	/// and the mode ends when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in
+	/// following mode with no decoupling under way, the case in which the step may follow the leader.
+	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
+
+	/// Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or
+	/// leaves, a stop (serviceStopStep), a node with a train order, a signal or an end of authority, and it stays on an arc whose
+	/// speed limit V_lim is 0. mustBrake is the braking decision of the step, and stationAtEndOfAs is true when As ends at a
+	/// platform or at a stop of this train.
+	void standingTrainStep(int time_seconds, const Arc& As, double head, bool mustBrake, bool stationAtEndOfAs, double V_lim);
+
+	/// Step time_seconds of a train that stands at the stop at the end of arc As with its head at head (m). It records the arrival
+	/// and counts the dwell, and it leaves once the dwell time and the planned departure have passed and no restrictive aspect or
+	/// red signal holds it there. authorityHold, an end of authority that holds the train, keeps it at head.
+	void serviceStopStep(int time_seconds, const Arc& As, double head, bool authorityHold);
 
 	/// Finds the steps in which the head reaches and leaves the route position LocationPosition (m) and writes them to PassingPoint as
 	/// Time and Time2 (s), with Position in the coordinates of the original direction. Nothing is written when the train never gets
