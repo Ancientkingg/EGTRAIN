@@ -537,15 +537,15 @@ void RunController::startSimulation(const telemetry::OperationObservation& opera
 		try {
 			if (observationStep) observationStep(0);
 			auto observation = std::make_shared<telemetry::SimulationObservation>(operation);
-			m_simulationObservations[0] = connect(
+			simulationObservation(ObservationSlot::Rejected) = connect(
 				&simulation, &DispatchController::executionRejected, &simulation,
 				[observation] { observation->reject(telemetry::Error::InvalidInput); }, Qt::DirectConnection);
 			if (observationStep) observationStep(1);
-			m_simulationObservations[1] = connect(
+			simulationObservation(ObservationSlot::Began) = connect(
 				&simulation, &DispatchController::executionBegan, &simulation,
 				[observation] { observation->begin(); }, Qt::DirectConnection);
 			if (observationStep) observationStep(2);
-			m_simulationObservations[2] = connect(
+			simulationObservation(ObservationSlot::Returned) = connect(
 				&simulation, &DispatchController::executionReturned, &simulation,
 				[observation](qint64 elapsedMs, bool cancelled) {
 					observation->finish(
@@ -553,15 +553,15 @@ void RunController::startSimulation(const telemetry::OperationObservation& opera
 						elapsedMs);
 				},
 				Qt::DirectConnection);
-			m_simulationObservations[5] = connect(
+			simulationObservation(ObservationSlot::Failed) = connect(
 				&simulation, &DispatchController::executionFailed, &simulation,
 				[observation](qint64 elapsedMs) {
 					observation->finish(telemetry::SimulationObservation::Outcome::Failed, elapsedMs, telemetry::Error::InternalFailure);
 				},
 				Qt::DirectConnection);
 			if (observationStep) observationStep(3);
-			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2]
-				|| !m_simulationObservations[5])
+			if (!simulationObservation(ObservationSlot::Rejected) || !simulationObservation(ObservationSlot::Began)
+				|| !simulationObservation(ObservationSlot::Returned) || !simulationObservation(ObservationSlot::Failed))
 				rollback();
 		} catch (...) {
 			rollback();

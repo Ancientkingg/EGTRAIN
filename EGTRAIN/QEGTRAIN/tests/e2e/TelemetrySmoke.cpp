@@ -105,13 +105,13 @@ void MainWindowTestAccess::telemetryRunStarting(MainWindow& w) {
 			&SimulationWorker::requestStop, Qt::DirectConnection);
 	if (smoke && smokeMode == "completion_stop") {
 		auto* worker = w.m_runController->m_worker.data();
-		w.m_runController->m_simulationObservations[3] = QObject::connect(
+		w.m_runController->simulationObservation(RunController::ObservationSlot::TestCompletionStop) = QObject::connect(
 			&simulation, &DispatchController::executionReturned, &simulation,
 			[worker](qint64, bool) { worker->requestStop(); }, Qt::DirectConnection);
 	}
 	if (smoke && smokeMode == "stop_postprocessing") {
 		auto* worker = w.m_runController->m_worker.data();
-		w.m_runController->m_simulationObservations[4] = QObject::connect(
+		w.m_runController->simulationObservation(RunController::ObservationSlot::TestPostprocessingStop) = QObject::connect(
 			&simulation, &DispatchController::executionPostprocessing, &simulation,
 			[worker] { worker->requestStop(); }, Qt::DirectConnection);
 	}

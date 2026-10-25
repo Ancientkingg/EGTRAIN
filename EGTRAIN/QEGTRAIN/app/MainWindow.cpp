@@ -379,6 +379,9 @@ bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& rig
 		&& left.collectionSizes == right.collectionSizes;
 }
 
+// The window draws a snapshot of a run at most once in this many milliseconds.
+constexpr int kRenderIntervalMs = 33;
+
 bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
 		if (row[1] < row[0])
@@ -703,7 +706,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout->addWidget(m_replayBar);
 	m_replayBar->hide();
 	m_replayTimer = new QTimer(this);
-	m_replayTimer->setInterval(1000); // One simulated second per wall second.
+	// One simulated second per wall second.
+	constexpr int kReplayStepMs = 1000;
+	m_replayTimer->setInterval(kReplayStepMs);
 	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
 	connect(m_replayStartButton, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
 	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
@@ -3783,7 +3788,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		}
 		m_speedSlider->setValue(kMaxStepDelayMs
 			- qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS"));
-		QTimer::singleShot(1500, m_runController, &RunController::runCurrent);
+		constexpr int kPlaybackProfileStartDelayMs = 1500;
+		QTimer::singleShot(kPlaybackProfileStartDelayMs, m_runController, &RunController::runCurrent);
 	}
 	if (const auto& afterFirstShow = mainWindowTestHooks().afterFirstShow)
 		afterFirstShow(*this);
@@ -4048,7 +4054,7 @@ void MainWindow::waitForUpdates() {
 	updateTimeline(timestep, snapshot->totalTimesteps);
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
-	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
+	if (now - m_lastRenderMs >= kRenderIntervalMs || timestep >= snapshot->totalTimesteps - 1) {
 		PlaybackProfiler::instance().noteRenderedUpdate();
 		renderSnapshot(false);
 		m_lastRenderedSnapshot = snapshot;
@@ -4078,7 +4084,7 @@ void MainWindow::waitForUpdates() {
 		}
 		m_trailingRenderWorker = m_runController->worker();
 		if (!m_trailingRenderTimer->isActive())
-			m_trailingRenderTimer->start(static_cast<int>(33 - (now - m_lastRenderMs)));
+			m_trailingRenderTimer->start(static_cast<int>(kRenderIntervalMs - (now - m_lastRenderMs)));
 	}
 
 	if (PlaybackProfiler::enabled() && !m_playbackProfileViewApplied

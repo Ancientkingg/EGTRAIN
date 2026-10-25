@@ -28,7 +28,20 @@ using namespace std;
 
 namespace {
 // The step loop reports its progress once in this many steps.
-constexpr int ProgressEverySteps = 100;
+constexpr int kProgressEverySteps = 100;
+// A passenger who has left the network stays in the list of the platform of the exit for this many seconds.
+constexpr int kExitedPassengerShownSeconds = 5;
+// A snapshot holds the virtual coupling messages of this many seconds before its step.
+constexpr int kVirtualCouplingMessageSeconds = 40;
+// The blocking times of a run: the setup time, the release time before the buffer time is added, the sight and reaction
+// time and the absolute running time supplement in seconds, and the safety margin in metres.
+constexpr double kBlockingSetupTimeSeconds = 5;
+constexpr double kBlockingReleaseTimeSeconds = 3;
+constexpr double kBlockingSightReactionTimeSeconds = 0.5;
+constexpr double kBlockingRunningTimeSupplementSeconds = 0;
+constexpr double kBlockingSafetyMarginMetres = 50;
+// The margin of the ends of authority that the trains report at levels 3 and 4, in metres.
+constexpr double kEndOfAuthorityMarginMetres = 50;
 
 // Makes the folder and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
@@ -172,7 +185,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 			state.passengerIds.push_back(passenger.first);
 		for (const Passenger& passenger : run.passengers) {
 			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0
-				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + 5
+				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + kExitedPassengerShownSeconds
 				&& platform.StationID == passenger.StationExitedTheNetworkID
 				&& platform.ID == passenger.PlatformExitedTheNetworkID)
 				state.passengerIds.push_back(passenger.ID);
@@ -199,7 +212,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 
 	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {
-		if (timestep >= run.vcMsgTimestep[i] && timestep <= run.vcMsgTimestep[i] + 40)
+		if (timestep >= run.vcMsgTimestep[i] && timestep <= run.vcMsgTimestep[i] + kVirtualCouplingMessageSeconds)
 			snapshot.virtualCouplingMessages.push_back({run.vcMsgTimestep[i], run.vcMsgTrain[i], run.vcMsgText[i]});
 	}
 	return snapshot;
@@ -619,7 +632,9 @@ void DispatchController::runSimulationStages() {
 
 	EG_LOG(AppRun, Info) << "\n\n Computing Train Blocking Times....\n\n";
 
-	ComputeBlockingTimesInMixedSignallingForAllTrains(run, 5, (3 + settings.bufferTime), 0.5, 50, trajectoryFolder, 0, settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
+	ComputeBlockingTimesInMixedSignallingForAllTrains(run, kBlockingSetupTimeSeconds, kBlockingReleaseTimeSeconds + settings.bufferTime,
+		kBlockingSightReactionTimeSeconds, kBlockingSafetyMarginMetres, trajectoryFolder, kBlockingRunningTimeSupplementSeconds,
+		settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
 	// The dense path diagram is part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories)
@@ -678,7 +693,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		{
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 			clock_t startEGTRAIN = clock(); // EGTRAIN start time
-			if (t % ProgressEverySteps == 0) {
+			if (t % kProgressEverySteps == 0) {
 				EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
 			}
 
@@ -747,7 +762,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				Apply_Single_Track_Authorities_Mixed_Signalling(run);
 
 				// Only levels 3 and 4
-				ReportAllTrainPositionsToRBC(run, t, 50);
+				ReportAllTrainPositionsToRBC(run, t, kEndOfAuthorityMarginMetres);
 
 				// function to protect all station areas
 				protectStationAreas(run, t);
