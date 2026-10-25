@@ -4,13 +4,16 @@
 #include "scene/SceneWriter.h"
 #include "scene/Utf8Path.h"
 
+#include <QByteArray>
+#include <QString>
+#include <QTest>
+
 #include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <optional>
 #include <string>
 #include <utility>
@@ -21,12 +24,6 @@
 #endif
 
 namespace fs = std::filesystem;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 struct TempDir {
 	fs::path path;
@@ -200,64 +197,6 @@ private:
 	}
 };
 
-static bool testExtractionCleanup(const SceneModel& source) {
-	bool ok = true;
-	TempDir fixture;
-	const fs::path validBundle = fixture.path / "valid.egscene";
-	if (!expect(saveSceneBundle(source, validBundle.string()).success(),
-			"cleanup success fixture packs"))
-		return false;
-
-	const fs::path canonical = fixture.path / "canonical";
-	if (!expect(saveScene(source, canonical.string()).success(),
-			"cleanup malformed fixture stages canonical files"))
-		return false;
-	std::vector<RawEntry> entries;
-	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			 "rolling_stock.json", "services.json", "scenarios.json"}) {
-		std::string data = readBytes(canonical / name);
-		if (std::string(name) == "scene.json") {
-			const std::size_t openingBrace = data.find('{');
-			if (!expect(openingBrace != std::string::npos, "cleanup manifest fixture is JSON"))
-				return false;
-			data.insert(openingBrace + 1,
-				"\n    \"format\": \"egscene\",\n    \"bundle_version\": 1,");
-		} else if (std::string(name) == "infrastructure.json") {
-			data = "not-json";
-		}
-		entries.push_back({name, std::move(data)});
-	}
-	const fs::path malformedBundle = fixture.path / "malformed-infrastructure.egscene";
-	if (!expect(writeBytes(malformedBundle, rawArchive(entries)),
-			"cleanup malformed archive fixture writes"))
-		return false;
-
-	const fs::path extractionRoot = fixture.path / "private-temp";
-	if (!expect(fs::create_directory(extractionRoot), "private temporary root creates"))
-		return false;
-	ScopedTempEnvironment environment(extractionRoot);
-	std::error_code error;
-	const fs::path routedRoot = fs::temp_directory_path(error);
-	const bool routed = environment.configured && !error
-		&& fs::equivalent(routedRoot, extractionRoot, error) && !error;
-	if (!expect(routed, "bundle extraction uses the private temporary root"))
-		return false;
-
-	const SceneLoadResult successful = loadSceneBundle(validBundle.string());
-	ok &= expect(!hasErrors(successful.diagnostics), "cleanup fixture bundle loads successfully");
-	error.clear();
-	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
-		"successful bundle load removes private extraction state");
-
-	const SceneLoadResult failed = loadSceneBundle(malformedBundle.string());
-	ok &= expect(hasErrors(failed.diagnostics)
-			&& hasDiagnostic(failed.diagnostics, "scene.json.parse", "infrastructure.json"),
-		"malformed canonical entry reaches parser and names infrastructure.json");
-	error.clear();
-	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
-		"failed bundle load removes private extraction state");
-	return ok;
-}
 
 // Japanese and Thai characters, as UTF-8. No Windows code page holds both.
 static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
@@ -266,80 +205,6 @@ static fs::path unicodePath(const fs::path& parent, const std::string& prefix = 
 	return parent / fs::u8path(prefix + kUnicodeName + suffix);
 }
 
-// Every path crosses the scene API as UTF-8 text, in the file name, in the folders above it and in the temporary folder.
-static bool testUnicodePaths(const SceneModel& scene, const fs::path& root) {
-	bool ok = true;
-	ok &= expect(pathFromUtf8(kUnicodeName).u8string() == kUnicodeName, "a UTF-8 name keeps its characters in a path");
-	ok &= expect(!pathFromUtf8("caf\xE9").empty(), "a name that is not UTF-8 still gives a path");
-	const fs::path folder = unicodePath(root);
-	const fs::path bundle = unicodePath(folder, "", ".egscene");
-	const std::string bundleText = bundle.u8string();
-	ok &= expect(saveSceneBundle(scene, bundleText).success() && fs::is_regular_file(bundle),
-		"a bundle saves to a path with Unicode names");
-	ok &= expect(probeSceneBundle(bundleText).structurallyValid, "a bundle at a path with Unicode names is probed");
-	const SceneLoadResult loaded = loadScenePath(bundleText);
-	ok &= expect(!hasErrors(loaded.diagnostics) && loaded.inputSnapshot == readBytes(bundle),
-		"a bundle at a path with Unicode names loads");
-
-	const fs::path missing = unicodePath(folder, "missing-", ".egscene");
-	const SceneLoadResult absent = loadScenePath(missing.u8string());
-	ok &= expect(hasDiagnostic(absent.diagnostics, "scene.bundle.file.missing", missing.u8string().c_str()),
-		"a diagnostic gives a path with Unicode names as UTF-8");
-
-	const fs::path unpacked = unicodePath(folder, "unpacked-");
-	ok &= expect(unpackSceneBundle(bundleText, unpacked.u8string()).success()
-			&& fs::is_regular_file(unpacked / "scene.json"),
-		"a bundle unpacks to a directory with a Unicode name");
-	ok &= expect(!hasErrors(loadScene(unpacked.u8string()).diagnostics)
-			&& readSceneDirectorySnapshot(unpacked.u8string()).reason.empty(),
-		"a scene directory with a Unicode name loads and is read as a snapshot");
-
-	const fs::path directory = unicodePath(folder, "directory-");
-	ok &= expect(saveScene(scene, directory.u8string()).success() && fs::is_regular_file(directory / "scene.json"),
-		"a scene directory saves to a path with Unicode names");
-
-	const fs::path temporaryRoot = unicodePath(root, "temporary-");
-	ok &= expect(fs::create_directories(temporaryRoot), "temporary folder with a Unicode name creates");
-	{
-		ScopedTempEnvironment environment(temporaryRoot);
-		std::error_code error;
-		ok &= expect(environment.configured && fs::equivalent(fs::temp_directory_path(error), temporaryRoot, error) && !error,
-			"the temporary folder has a Unicode name");
-		const fs::path viaTemporary = unicodePath(folder, "via-temporary-", ".egscene");
-		ok &= expect(saveSceneBundle(scene, viaTemporary.u8string()).success()
-				&& !hasErrors(loadScenePath(viaTemporary.u8string()).diagnostics),
-			"a bundle saves and loads while the temporary folder has a Unicode name");
-		error.clear();
-		ok &= expect(fs::is_empty(temporaryRoot, error) && !error,
-			"the work in a temporary folder with a Unicode name leaves nothing behind");
-	}
-	return ok;
-}
-
-// A scene path that the file system refuses gives an error and does not throw.
-static bool testUnreadablePaths(const fs::path& root) {
-	bool ok = true;
-	const SceneLoadResult tooLong = loadScenePath((root / std::string(300, 'x') / "scene").u8string());
-	ok &= expect(hasCode(tooLong.diagnostics, "scene.dir.unreadable") || hasCode(tooLong.diagnostics, "scene.dir.missing"),
-		"a path with a 300-character name gives an error");
-#ifndef _WIN32
-	// A folder without permissions does not stop root, so the case skips itself then.
-	const fs::path closed = root / "closed";
-	fs::create_directories(closed / "scene");
-	fs::permissions(closed, fs::perms::none, fs::perm_options::replace);
-	if (geteuid() != 0)
-		ok &= expect(hasCode(loadScenePath((closed / "scene").u8string()).diagnostics, "scene.dir.unreadable"),
-			"a scene under a folder that cannot be read gives scene.dir.unreadable");
-	fs::permissions(closed, fs::perms::owner_all, fs::perm_options::replace);
-	// A scene folder that cannot be read under a folder that can.
-	fs::permissions(closed / "scene", fs::perms::none, fs::perm_options::replace);
-	if (geteuid() != 0)
-		ok &= expect(hasErrors(loadScenePath((closed / "scene").u8string()).diagnostics),
-			"a scene folder that cannot be read gives an error");
-	fs::permissions(closed / "scene", fs::perms::owner_all, fs::perm_options::replace);
-#endif
-	return ok;
-}
 
 static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second, const fs::path& root) {
 	const fs::path firstDir = root / "first";
@@ -364,7 +229,95 @@ static bool sameCanonicalFiles(const SceneModel& first, const SceneModel& second
 	return true;
 }
 
-static bool testNewSceneRoundTrip(const fs::path& root) {
+
+class TestSceneBundle : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void extractionCleanup();
+	void newSceneRoundTrip();
+	void signallingAreaRoundTrip();
+	void unicodePaths();
+	void unreadablePaths();
+	void serviceCategoryRoundTrip_data();
+	void serviceCategoryRoundTrip();
+	void serviceColourRoundTrip_data();
+	void serviceColourRoundTrip();
+	void rejectsBeforePrivateStaging();
+	void retainsSnapshotsAndReplacesBundle();
+	void keepsProtectedSectionBinding();
+	void loadsBundleLikeDirectory();
+	void unpacksBundle();
+	void rejectsMalformedArchive_data();
+	void rejectsMalformedArchive();
+
+private:
+	TempDir m_temp;
+	SceneLoadResult m_source;
+	// A bundle of the source scene, which the slots only read.
+	fs::path m_bundle;
+};
+
+void TestSceneBundle::initTestCase() {
+	m_source = loadScene(EGTRAIN_TEST_SOURCE_DIR "/fixtures/scenes/minimal");
+	QVERIFY2(!hasErrors(m_source.diagnostics), "canonical directory loads");
+	m_bundle = m_temp.path / "source.egscene";
+	QVERIFY2(saveSceneBundle(m_source.scene, m_bundle.string()).success(), "canonical directory packs");
+}
+
+void TestSceneBundle::extractionCleanup() {
+	const SceneModel& source = m_source.scene;
+	TempDir fixture;
+	const fs::path validBundle = fixture.path / "valid.egscene";
+	QVERIFY2(saveSceneBundle(source, validBundle.string()).success(), "cleanup success fixture packs");
+
+	const fs::path canonical = fixture.path / "canonical";
+	QVERIFY2(saveScene(source, canonical.string()).success(), "cleanup malformed fixture stages canonical files");
+	std::vector<RawEntry> entries;
+	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			 "rolling_stock.json", "services.json", "scenarios.json"}) {
+		std::string data = readBytes(canonical / name);
+		if (std::string(name) == "scene.json") {
+			const std::size_t openingBrace = data.find('{');
+			QVERIFY2(openingBrace != std::string::npos, "cleanup manifest fixture is JSON");
+			data.insert(openingBrace + 1,
+				"\n    \"format\": \"egscene\",\n    \"bundle_version\": 1,");
+		} else if (std::string(name) == "infrastructure.json") {
+			data = "not-json";
+		}
+		entries.push_back({name, std::move(data)});
+	}
+	const fs::path malformedBundle = fixture.path / "malformed-infrastructure.egscene";
+	QVERIFY2(writeBytes(malformedBundle, rawArchive(entries)), "cleanup malformed archive fixture writes");
+
+	const fs::path extractionRoot = fixture.path / "private-temp";
+	QVERIFY2(fs::create_directory(extractionRoot), "private temporary root creates");
+	ScopedTempEnvironment environment(extractionRoot);
+	std::error_code error;
+	const fs::path routedRoot = fs::temp_directory_path(error);
+	const bool routed = environment.configured && !error
+		&& fs::equivalent(routedRoot, extractionRoot, error) && !error;
+	QVERIFY2(routed, "bundle extraction uses the private temporary root");
+
+	const SceneLoadResult successful = loadSceneBundle(validBundle.string());
+	QVERIFY2(!hasErrors(successful.diagnostics), "cleanup fixture bundle loads successfully");
+	error.clear();
+	// Successful bundle load removes private extraction state.
+	QVERIFY(fs::is_empty(extractionRoot, error));
+	QVERIFY(!error);
+
+	const SceneLoadResult failed = loadSceneBundle(malformedBundle.string());
+	// Malformed canonical entry reaches parser and names infrastructure.json.
+	QVERIFY(hasErrors(failed.diagnostics));
+	QVERIFY(hasDiagnostic(failed.diagnostics, "scene.json.parse", "infrastructure.json"));
+	error.clear();
+	// Failed bundle load removes private extraction state.
+	QVERIFY(fs::is_empty(extractionRoot, error));
+	QVERIFY(!error);
+}
+
+void TestSceneBundle::newSceneRoundTrip() {
 	SceneModel expected = makeNewSceneModel();
 	expected.tracks.push_back({"bundle-track"});
 	expected.trackViews.push_back({"bundle-track", 3, 0});
@@ -386,42 +339,43 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	stationView.longitude = 2.5;
 	stationView.regions = {{0, 4.5}};
 	expected.stationViews.push_back(stationView);
+	TempDir temp;
+	const fs::path& root = temp.path;
 	const fs::path folder = root / "new-scene";
 	const fs::path bundle = root / "new-scene.egscene";
-	bool ok = true;
-	ok &= expect(saveScene(expected, folder.string()).success(), "new scene saves as canonical folder");
-	ok &= expect(saveSceneBundle(expected, bundle.string()).success(), "new scene saves as canonical bundle");
+	QVERIFY2(saveScene(expected, folder.string()).success(), "new scene saves as canonical folder");
+	QVERIFY2(saveSceneBundle(expected, bundle.string()).success(), "new scene saves as canonical bundle");
 	const SceneLoadResult folderLoad = loadScene(folder.string());
 	const SceneLoadResult bundleLoad = loadScenePath(bundle.string());
-	ok &= expect(!hasErrors(folderLoad.diagnostics), "new scene folder has no structural diagnostics");
-	ok &= expect(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
-	ok &= expect(bundleLoad.scene.trackViews.size() == 1
-			&& bundleLoad.scene.stationViews.size() == 1,
-		"bundle preserves authored display layout");
-	ok &= expect(folderLoad.scene.stations.size() == 1
-			&& folderLoad.scene.stations[0].platforms[0].hasLength
-			&& folderLoad.scene.stations[0].platforms[0].lengthM == 135.0
-			&& folderLoad.scene.stations[0].platforms[0].hasWidth
-			&& folderLoad.scene.stations[0].platforms[0].widthM == 3.25
-			&& !folderLoad.scene.stations[0].platforms[1].hasLength
-			&& folderLoad.scene.stations[0].platforms[1].lengthM == 100.0
-			&& !folderLoad.scene.stations[0].platforms[1].hasWidth
-			&& folderLoad.scene.stations[0].platforms[1].widthM == 2.5,
-		"bundle preserves explicit platform geometry and absent defaults");
-	ok &= expect(sameCanonicalFiles(expected, folderLoad.scene, root / "folder-semantics"),
+	QVERIFY2(!hasErrors(folderLoad.diagnostics), "new scene folder has no structural diagnostics");
+	QVERIFY2(!hasErrors(bundleLoad.diagnostics), "new scene bundle has no structural diagnostics");
+	// Bundle preserves authored display layout.
+	QCOMPARE(bundleLoad.scene.trackViews.size(), std::size_t(1));
+	QCOMPARE(bundleLoad.scene.stationViews.size(), std::size_t(1));
+	// Bundle preserves explicit platform geometry and absent defaults.
+	QCOMPARE(folderLoad.scene.stations.size(), std::size_t(1));
+	QVERIFY(folderLoad.scene.stations[0].platforms[0].hasLength);
+	QCOMPARE_EQ(folderLoad.scene.stations[0].platforms[0].lengthM, 135.0);
+	QVERIFY(folderLoad.scene.stations[0].platforms[0].hasWidth);
+	QCOMPARE_EQ(folderLoad.scene.stations[0].platforms[0].widthM, 3.25);
+	QVERIFY(!folderLoad.scene.stations[0].platforms[1].hasLength);
+	QCOMPARE_EQ(folderLoad.scene.stations[0].platforms[1].lengthM, 100.0);
+	QVERIFY(!folderLoad.scene.stations[0].platforms[1].hasWidth);
+	QCOMPARE_EQ(folderLoad.scene.stations[0].platforms[1].widthM, 2.5);
+	QVERIFY2(sameCanonicalFiles(expected, folderLoad.scene, root / "folder-semantics"),
 		"new scene folder preserves canonical case data");
-	ok &= expect(sameCanonicalFiles(expected, bundleLoad.scene, root / "bundle-semantics"),
+	QVERIFY2(sameCanonicalFiles(expected, bundleLoad.scene, root / "bundle-semantics"),
 		"new scene bundle preserves canonical case data");
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
 			 "rolling_stock.json", "services.json", "scenarios.json"})
-		ok &= expect(fs::is_regular_file(folder / name), "new scene folder remains canonical");
-	ok &= expect(fs::is_regular_file(bundle) && bundle.extension() == ".egscene",
-		"new scene bundle remains an egscene container");
-	return ok;
+		QVERIFY2(fs::is_regular_file(folder / name), "new scene folder remains canonical");
+	// New scene bundle remains an egscene container.
+	QVERIFY(fs::is_regular_file(bundle));
+	QVERIFY(bundle.extension() == ".egscene");
 }
 
 // Every level from 0 to 5, with and without a track, in file order.
-static bool testSignallingAreaRoundTrip(const fs::path& root) {
+void TestSceneBundle::signallingAreaRoundTrip() {
 	SceneModel expected = makeNewSceneModel();
 	expected.tracks = {{"area-track-a"}, {"area-track-b"}};
 	for (int level = 0; level <= 5; ++level) {
@@ -436,81 +390,173 @@ static bool testSignallingAreaRoundTrip(const fs::path& root) {
 			area.trackId = "area-track-b";
 		expected.signallingAreas.push_back(area);
 	}
-	const fs::path bundle = root / "areas.egscene";
-	bool ok = expect(saveSceneBundle(expected, bundle.string()).success(), "scene with areas saves as bundle");
+	TempDir temp;
+	const fs::path bundle = temp.path / "areas.egscene";
+	QVERIFY2(saveSceneBundle(expected, bundle.string()).success(), "scene with areas saves as bundle");
 	const SceneLoadResult loaded = loadScenePath(bundle.string());
-	ok &= expect(!hasErrors(loaded.diagnostics), "bundle with areas has no structural diagnostics");
-	ok &= expect(loaded.scene.signallingAreas.size() == expected.signallingAreas.size(),
-		"bundle keeps every signalling area");
+	QVERIFY2(!hasErrors(loaded.diagnostics), "bundle with areas has no structural diagnostics");
+	// Bundle keeps every signalling area.
+	QCOMPARE(loaded.scene.signallingAreas.size(), expected.signallingAreas.size());
 	for (std::size_t index = 0; index < std::min(loaded.scene.signallingAreas.size(),
 									expected.signallingAreas.size());
 		++index) {
 		const SceneSignallingArea& want = expected.signallingAreas[index];
 		const SceneSignallingArea& got = loaded.scene.signallingAreas[index];
-		ok &= expect(got.id == want.id && got.startKm == want.startKm && got.endKm == want.endKm
-				&& got.level == want.level && got.trackId == want.trackId,
-			"bundle keeps area id, range, level and track exactly");
+		// Bundle keeps area id, range, level and track exactly.
+		QCOMPARE(got.id, want.id);
+		QCOMPARE_EQ(got.startKm, want.startKm);
+		QCOMPARE_EQ(got.endKm, want.endKm);
+		QCOMPARE(got.level, want.level);
+		QCOMPARE(got.trackId, want.trackId);
 	}
-	return ok;
 }
 
-int main(int argc, char** argv) {
-	if (argc < 2) {
-		std::cerr << "Usage: test_scenebundle <scene-directory>\n";
-		return 1;
-	}
-
-	bool ok = true;
-	const SceneLoadResult source = loadScene(argv[1]);
-	ok &= expect(!hasErrors(source.diagnostics), "canonical directory loads");
-	if (!hasErrors(source.diagnostics))
-		ok &= testExtractionCleanup(source.scene);
+// Every path crosses the scene API as UTF-8 text, in the file name, in the folders above it and in the temporary folder.
+void TestSceneBundle::unicodePaths() {
+	const SceneModel& scene = m_source.scene;
 	TempDir temp;
-	ok &= testNewSceneRoundTrip(temp.path);
-	ok &= testSignallingAreaRoundTrip(temp.path);
-	if (!hasErrors(source.diagnostics))
-		ok &= testUnicodePaths(source.scene, temp.path / "unicode");
-	ok &= testUnreadablePaths(temp.path);
-	SceneModel categoryScene = source.scene;
-	if (!categoryScene.services.empty()) {
-		const fs::path categoryFolder = temp.path / "category";
-		const fs::path categoryBundle = temp.path / "category.egscene";
-		for (const char* category : {"", "Intercity", "Regional", "High speed/international",
-				 "Freight", "Metro/urban", "Suburban", " Regional heritage / custom "}) {
-			categoryScene.services.front().category = category;
-			ok &= expect(saveScene(categoryScene, categoryFolder.string()).success()
-					&& saveSceneBundle(categoryScene, categoryBundle.string()).success(),
-				"category fixtures save as folder and bundle");
-			for (const fs::path& path : {categoryFolder, categoryBundle}) {
-				const SceneLoadResult loaded = loadScenePath(path.string());
-				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
-						&& loaded.scene.services.front().category == category,
-					"missing, preset and unknown category values round-trip exactly");
-			}
-		}
-		categoryScene.services.front().category.clear();
-		const fs::path colorFolder = temp.path / "color";
-		const fs::path colorBundle = temp.path / "color.egscene";
-		for (const char* color : {"", "#3c8dd2", "#3C8DD2", "not-a-colour"}) {
-			categoryScene.services.front().visualizationColor = color;
-			ok &= expect(saveScene(categoryScene, colorFolder.string()).success()
-					&& saveSceneBundle(categoryScene, colorBundle.string()).success(),
-				"colour fixtures save as folder and bundle");
-			for (const fs::path& path : {colorFolder, colorBundle}) {
-				const SceneLoadResult loaded = loadScenePath(path.string());
-				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
-						&& loaded.scene.services.front().visualizationColor == color,
-					"missing, valid and invalid service colours round-trip exactly");
-			}
-		}
+	const fs::path root = temp.path / "unicode";
+	// A UTF-8 name keeps its characters in a path.
+	QCOMPARE(pathFromUtf8(kUnicodeName).u8string(), kUnicodeName);
+	QVERIFY2(!pathFromUtf8("caf\xE9").empty(), "a name that is not UTF-8 still gives a path");
+	const fs::path folder = unicodePath(root);
+	const fs::path bundle = unicodePath(folder, "", ".egscene");
+	const std::string bundleText = bundle.u8string();
+	// A bundle saves to a path with Unicode names.
+	QVERIFY(saveSceneBundle(scene, bundleText).success());
+	QVERIFY(fs::is_regular_file(bundle));
+	QVERIFY2(probeSceneBundle(bundleText).structurallyValid, "a bundle at a path with Unicode names is probed");
+	const SceneLoadResult loaded = loadScenePath(bundleText);
+	// A bundle at a path with Unicode names loads.
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QVERIFY(loaded.inputSnapshot == readBytes(bundle));
+
+	const fs::path missing = unicodePath(folder, "missing-", ".egscene");
+	const SceneLoadResult absent = loadScenePath(missing.u8string());
+	QVERIFY2(hasDiagnostic(absent.diagnostics, "scene.bundle.file.missing", missing.u8string().c_str()),
+		"a diagnostic gives a path with Unicode names as UTF-8");
+
+	const fs::path unpacked = unicodePath(folder, "unpacked-");
+	// A bundle unpacks to a directory with a Unicode name.
+	QVERIFY(unpackSceneBundle(bundleText, unpacked.u8string()).success());
+	QVERIFY(fs::is_regular_file(unpacked / "scene.json"));
+	// A scene directory with a Unicode name loads and is read as a snapshot.
+	QVERIFY(!hasErrors(loadScene(unpacked.u8string()).diagnostics));
+	QVERIFY(readSceneDirectorySnapshot(unpacked.u8string()).reason.empty());
+
+	const fs::path directory = unicodePath(folder, "directory-");
+	// A scene directory saves to a path with Unicode names.
+	QVERIFY(saveScene(scene, directory.u8string()).success());
+	QVERIFY(fs::is_regular_file(directory / "scene.json"));
+
+	const fs::path temporaryRoot = unicodePath(root, "temporary-");
+	QVERIFY2(fs::create_directories(temporaryRoot), "temporary folder with a Unicode name creates");
+	{
+		ScopedTempEnvironment environment(temporaryRoot);
+		std::error_code error;
+		// The temporary folder has a Unicode name.
+		QVERIFY(environment.configured);
+		QVERIFY(fs::equivalent(fs::temp_directory_path(error), temporaryRoot, error));
+		QVERIFY(!error);
+		const fs::path viaTemporary = unicodePath(folder, "via-temporary-", ".egscene");
+		// A bundle saves and loads while the temporary folder has a Unicode name.
+		QVERIFY(saveSceneBundle(scene, viaTemporary.u8string()).success());
+		QVERIFY(!hasErrors(loadScenePath(viaTemporary.u8string()).diagnostics));
+		error.clear();
+		// The work in a temporary folder with a Unicode name leaves nothing behind.
+		QVERIFY(fs::is_empty(temporaryRoot, error));
+		QVERIFY(!error);
 	}
+}
+
+// A scene path that the file system refuses gives an error and does not throw.
+void TestSceneBundle::unreadablePaths() {
+	TempDir temp;
+	const fs::path& root = temp.path;
+	const SceneLoadResult tooLong = loadScenePath((root / std::string(300, 'x') / "scene").u8string());
+	QVERIFY2(hasCode(tooLong.diagnostics, "scene.dir.unreadable") || hasCode(tooLong.diagnostics, "scene.dir.missing"),
+		"a path with a 300-character name gives an error");
+#ifndef _WIN32
+	// A folder without permissions does not stop root, so the case skips itself then. The permissions are given back
+	// before the checks, so that the temporary folder can be removed after a failure.
+	const fs::path closed = root / "closed";
+	fs::create_directories(closed / "scene");
+	fs::permissions(closed, fs::perms::none, fs::perm_options::replace);
+	const bool closedFolderRefused = geteuid() == 0 || hasCode(loadScenePath((closed / "scene").u8string()).diagnostics, "scene.dir.unreadable");
+	fs::permissions(closed, fs::perms::owner_all, fs::perm_options::replace);
+	// A scene folder that cannot be read under a folder that can.
+	fs::permissions(closed / "scene", fs::perms::none, fs::perm_options::replace);
+	const bool closedSceneRefused = geteuid() == 0 || hasErrors(loadScenePath((closed / "scene").u8string()).diagnostics);
+	fs::permissions(closed / "scene", fs::perms::owner_all, fs::perm_options::replace);
+	QVERIFY2(closedFolderRefused, "a scene under a folder that cannot be read gives scene.dir.unreadable");
+	QVERIFY2(closedSceneRefused, "a scene folder that cannot be read gives an error");
+#endif
+}
+
+void TestSceneBundle::serviceCategoryRoundTrip_data() {
+	QTest::addColumn<QString>("category");
+	for (const char* category : {"", "Intercity", "Regional", "High speed/international",
+			 "Freight", "Metro/urban", "Suburban", " Regional heritage / custom "})
+		QTest::newRow(*category ? category : "missing") << QString::fromUtf8(category);
+}
+
+void TestSceneBundle::serviceCategoryRoundTrip() {
+	QFETCH(QString, category);
+	if (m_source.scene.services.empty())
+		QSKIP("the fixture scene has no service");
+	SceneModel categoryScene = m_source.scene;
+	categoryScene.services.front().category = category.toStdString();
+	TempDir temp;
+	const fs::path categoryFolder = temp.path / "category";
+	const fs::path categoryBundle = temp.path / "category.egscene";
+	// Category fixtures save as folder and bundle.
+	QVERIFY(saveScene(categoryScene, categoryFolder.string()).success());
+	QVERIFY(saveSceneBundle(categoryScene, categoryBundle.string()).success());
+	for (const fs::path& path : {categoryFolder, categoryBundle}) {
+		const SceneLoadResult loaded = loadScenePath(path.string());
+		// Missing, preset and unknown category values round-trip exactly.
+		QVERIFY(!hasErrors(loaded.diagnostics));
+		QVERIFY(!loaded.scene.services.empty());
+		QCOMPARE(loaded.scene.services.front().category, category.toStdString());
+	}
+}
+
+void TestSceneBundle::serviceColourRoundTrip_data() {
+	QTest::addColumn<QString>("color");
+	for (const char* color : {"", "#3c8dd2", "#3C8DD2", "not-a-colour"})
+		QTest::newRow(*color ? color : "missing") << QString::fromUtf8(color);
+}
+
+void TestSceneBundle::serviceColourRoundTrip() {
+	QFETCH(QString, color);
+	if (m_source.scene.services.empty())
+		QSKIP("the fixture scene has no service");
+	SceneModel colorScene = m_source.scene;
+	colorScene.services.front().category.clear();
+	colorScene.services.front().visualizationColor = color.toStdString();
+	TempDir temp;
+	const fs::path colorFolder = temp.path / "color";
+	const fs::path colorBundle = temp.path / "color.egscene";
+	// Colour fixtures save as folder and bundle.
+	QVERIFY(saveScene(colorScene, colorFolder.string()).success());
+	QVERIFY(saveSceneBundle(colorScene, colorBundle.string()).success());
+	for (const fs::path& path : {colorFolder, colorBundle}) {
+		const SceneLoadResult loaded = loadScenePath(path.string());
+		// Missing, valid and invalid service colours round-trip exactly.
+		QVERIFY(!hasErrors(loaded.diagnostics));
+		QVERIFY(!loaded.scene.services.empty());
+		QCOMPARE(loaded.scene.services.front().visualizationColor, color.toStdString());
+	}
+}
+
+void TestSceneBundle::rejectsBeforePrivateStaging() {
+	TempDir temp;
 	const fs::path firstBundle = temp.path / "first.egscene";
-	const fs::path secondBundle = temp.path / "second.egscene";
-	SceneModel unsupported = source.scene;
+	SceneModel unsupported = m_source.scene;
 	++unsupported.schemaVersion;
-	ok &= expect(!saveSceneBundle(unsupported, firstBundle.string()).writeAttempted,
+	QVERIFY2(!saveSceneBundle(unsupported, firstBundle.string()).writeAttempted,
 		"unsupported schema rejects before private staging");
-	ok &= expect(!saveSceneBundle(source.scene, "").writeAttempted,
+	QVERIFY2(!saveSceneBundle(m_source.scene, "").writeAttempted,
 		"empty bundle path rejects before private staging");
 #ifndef _WIN32
 	const char* previousTemp = std::getenv("TMPDIR");
@@ -519,117 +565,143 @@ int main(int argc, char** argv) {
 		: std::nullopt;
 	const std::string missingTemp = (temp.path / "missing-temporary-root").string();
 	const bool changedTemp = setenv("TMPDIR", missingTemp.c_str(), 1) == 0;
-	const SceneSaveResult missingTempResult = saveSceneBundle(source.scene, firstBundle.string());
+	const SceneSaveResult missingTempResult = saveSceneBundle(m_source.scene, firstBundle.string());
 	if (savedTemp) setenv("TMPDIR", savedTemp->c_str(), 1);
 	else unsetenv("TMPDIR");
-	ok &= expect(changedTemp && !missingTempResult.success() && !missingTempResult.writeAttempted,
-		"temporary-root lookup failure does not claim a staging write attempt");
+	// Temporary-root lookup failure does not claim a staging write attempt.
+	QVERIFY(changedTemp);
+	QVERIFY(!missingTempResult.success());
+	QVERIFY(!missingTempResult.writeAttempted);
 #endif
-	const SceneSaveResult stagingFailure = saveSceneBundle(source.scene, temp.path.string());
-	ok &= expect(!stagingFailure.success() && stagingFailure.writeAttempted,
-		"directory target failure retains nested private staging attempt");
-	const SceneSaveResult firstSave = saveSceneBundle(source.scene, firstBundle.string());
-	ok &= expect(firstSave.writeAttempted, "bundle success retains private staging attempt");
-	ok &= expect(firstSave.success(), "canonical directory packs");
+	const SceneSaveResult stagingFailure = saveSceneBundle(m_source.scene, temp.path.string());
+	// Directory target failure retains nested private staging attempt.
+	QVERIFY(!stagingFailure.success());
+	QVERIFY(stagingFailure.writeAttempted);
+}
+
+void TestSceneBundle::retainsSnapshotsAndReplacesBundle() {
+	const SceneModel& source = m_source.scene;
+	TempDir temp;
+	const fs::path firstBundle = temp.path / "first.egscene";
+	const fs::path secondBundle = temp.path / "second.egscene";
+	const SceneSaveResult firstSave = saveSceneBundle(source, firstBundle.string());
+	QVERIFY2(firstSave.writeAttempted, "bundle success retains private staging attempt");
+	QVERIFY2(firstSave.success(), "canonical directory packs");
 	const std::string firstBundleBytes = readBytes(firstBundle);
-	ok &= expect(!firstSave.inputSnapshot.empty() && firstSave.inputSnapshot == firstBundleBytes,
-		"successful bundle save retains the exact staged archive bytes");
+	// Successful bundle save retains the exact staged archive bytes.
+	QVERIFY(!firstSave.inputSnapshot.empty());
+	QVERIFY(firstSave.inputSnapshot == firstBundleBytes);
 	const SceneLoadResult firstLoad = loadScenePath(firstBundle.string());
-	ok &= expect(!hasErrors(firstLoad.diagnostics) && firstLoad.inputSnapshot == firstBundleBytes,
-		"bundle load retains the exact archive bytes it parsed");
-	ok &= expect(writeBytes(firstBundle, "external replacement"),
-		"external bundle replacement writes");
-	ok &= expect(firstSave.inputSnapshot == firstBundleBytes
-			&& firstLoad.inputSnapshot == firstBundleBytes
-			&& readBytes(firstBundle) != firstBundleBytes,
-		"external bundle replacement does not mutate retained snapshots");
-	ok &= expect(saveSceneBundle(source.scene, firstBundle.string()).success(),
-		"bundle replacement restores the external test fixture");
-	const SceneSaveResult secondSave = saveSceneBundle(source.scene, secondBundle.string());
-	ok &= expect(secondSave.success(), "canonical directory packs twice");
-	ok &= expect(readBytes(firstBundle) == readBytes(secondBundle), "bundle bytes are deterministic");
-	const SceneSaveResult replacementSave = saveSceneBundle(source.scene, firstBundle.string());
-	ok &= expect(replacementSave.success() && readBytes(firstBundle) == readBytes(secondBundle),
-		"existing bundle is atomically replaced");
+	// Bundle load retains the exact archive bytes it parsed.
+	QVERIFY(!hasErrors(firstLoad.diagnostics));
+	QVERIFY(firstLoad.inputSnapshot == firstBundleBytes);
+	QVERIFY2(writeBytes(firstBundle, "external replacement"), "external bundle replacement writes");
+	// External bundle replacement does not mutate retained snapshots.
+	QVERIFY(firstSave.inputSnapshot == firstBundleBytes);
+	QVERIFY(firstLoad.inputSnapshot == firstBundleBytes);
+	QVERIFY(readBytes(firstBundle) != firstBundleBytes);
+	QVERIFY2(saveSceneBundle(source, firstBundle.string()).success(), "bundle replacement restores the external test fixture");
+	const SceneSaveResult secondSave = saveSceneBundle(source, secondBundle.string());
+	QVERIFY2(secondSave.success(), "canonical directory packs twice");
+	QVERIFY2(readBytes(firstBundle) == readBytes(secondBundle), "bundle bytes are deterministic");
+	const SceneSaveResult replacementSave = saveSceneBundle(source, firstBundle.string());
+	// Existing bundle is atomically replaced.
+	QVERIFY(replacementSave.success());
+	QVERIFY(readBytes(firstBundle) == readBytes(secondBundle));
 	const std::string originalBundleBytes = readBytes(firstBundle);
-	SceneModel editedScene = source.scene;
+	SceneModel editedScene = source;
 	editedScene.description += " (edited)";
 	const fs::path saveAsBundle = temp.path / "save-as.egscene";
 	const SceneSaveResult saveAsResult = saveSceneBundle(editedScene, saveAsBundle.string());
-	ok &= expect(saveAsResult.success()
-			&& readBytes(firstBundle) == originalBundleBytes
-			&& readBytes(saveAsBundle) != originalBundleBytes,
-		"Save As writes a second bundle without changing the original bytes");
-	SceneModel boundScene = source.scene;
-	if (!boundScene.signals.empty())
-		boundScene.signals.front().protectedSection = "@sig.section@";
+	// Save As writes a second bundle without changing the original bytes.
+	QVERIFY(saveAsResult.success());
+	QVERIFY(readBytes(firstBundle) == originalBundleBytes);
+	QVERIFY(readBytes(saveAsBundle) != originalBundleBytes);
+}
+
+void TestSceneBundle::keepsProtectedSectionBinding() {
+	SceneModel boundScene = m_source.scene;
+	if (!sceneSignals(boundScene).empty())
+		sceneSignals(boundScene).front().protectedSection = "@sig.section@";
+	TempDir temp;
 	const fs::path boundBundle = temp.path / "bound.egscene";
-	ok &= expect(saveSceneBundle(boundScene, boundBundle.string()).success(),
+	QVERIFY2(saveSceneBundle(boundScene, boundBundle.string()).success(),
 		"bundle with a protected-section binding saves");
 	const SceneLoadResult boundLoad = loadScenePath(boundBundle.string());
-	ok &= expect(!hasErrors(boundLoad.diagnostics) && !boundLoad.scene.signals.empty()
-			&& boundLoad.scene.signals.front().protectedSection == "@sig.section@",
-		"bundle preserves a present protected-section binding");
+	// Bundle preserves a present protected-section binding.
+	QVERIFY(!hasErrors(boundLoad.diagnostics));
+	QVERIFY(!sceneSignals(boundLoad.scene).empty());
+	QCOMPARE(sceneSignals(boundLoad.scene).front().protectedSection, "@sig.section@");
+}
 
-	const SceneLoadResult bundled = loadScenePath(firstBundle.string());
-	ok &= expect(!hasErrors(bundled.diagnostics), "bundle loads through shared path dispatch");
-	ok &= expect(!bundled.scene.signals.empty() && bundled.scene.signals.front().protectedSection.empty(),
-		"ID-only signals remain unbound after bundle round-trip");
-	ok &= expect(sameCanonicalFiles(source.scene, bundled.scene, temp.path / "model-compare"),
+void TestSceneBundle::loadsBundleLikeDirectory() {
+	const SceneLoadResult bundled = loadScenePath(m_bundle.string());
+	QVERIFY2(!hasErrors(bundled.diagnostics), "bundle loads through shared path dispatch");
+	// ID-only signals remain unbound after bundle round-trip.
+	QVERIFY(!sceneSignals(bundled.scene).empty());
+	QVERIFY(sceneSignals(bundled.scene).front().protectedSection.empty());
+	TempDir temp;
+	QVERIFY2(sameCanonicalFiles(m_source.scene, bundled.scene, temp.path / "model-compare"),
 		"bundle model matches directory model");
+}
 
+void TestSceneBundle::unpacksBundle() {
+	TempDir temp;
 	const fs::path unpacked = temp.path / "unpacked";
-	const SceneSaveResult unpackResult = unpackSceneBundle(firstBundle.string(), unpacked.string());
-	ok &= expect(unpackResult.success(), "bundle unpacks atomically");
+	const SceneSaveResult unpackResult = unpackSceneBundle(m_bundle.string(), unpacked.string());
+	QVERIFY2(unpackResult.success(), "bundle unpacks atomically");
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
 			 "rolling_stock.json", "services.json", "scenarios.json"})
-		ok &= expect(fs::is_regular_file(unpacked / name), "unpacked canonical entry exists");
-	ok &= expect(!fs::exists(unpacked / "views.json") && !fs::exists(unpacked / "legacy"),
-		"bundle omits absent views and legacy outputs");
+		QVERIFY2(fs::is_regular_file(unpacked / name), "unpacked canonical entry exists");
+	// Bundle omits absent views and legacy outputs.
+	QVERIFY(!fs::exists(unpacked / "views.json"));
+	QVERIFY(!fs::exists(unpacked / "legacy"));
 	const SceneLoadResult unpackedLoad = loadScene(unpacked.string());
-	ok &= expect(!hasErrors(unpackedLoad.diagnostics)
-			&& sameCanonicalFiles(source.scene, unpackedLoad.scene, temp.path / "unpacked-compare"),
-		"unpacked scene reloads");
+	// Unpacked scene reloads.
+	QVERIFY(!hasErrors(unpackedLoad.diagnostics));
+	QVERIFY(sameCanonicalFiles(m_source.scene, unpackedLoad.scene, temp.path / "unpacked-compare"));
 	const fs::path existingDestination = temp.path / "existing-destination";
 	fs::create_directory(existingDestination);
-	ok &= expect(writeBytes(existingDestination / "keep.txt", "keep"), "existing destination fixture writes");
-	const SceneSaveResult existingResult = unpackSceneBundle(firstBundle.string(), existingDestination.string());
-	ok &= expect(!existingResult.success() && hasCode(existingResult.diagnostics, "scene.bundle.publish")
-			&& readBytes(existingDestination / "keep.txt") == "keep",
-		"unpack refuses and preserves an existing destination");
-
-	const struct MalformedCase {
-		const char* name;
-		const char* diagnosticCode;
-		std::string bytes;
-	} malformed[] = {
-		{"traversal", "scene.bundle.path", rawArchive({{"../../outside", "x"}})},
-		{"absolute", "scene.bundle.path", rawArchive({{"/outside", "x"}})},
-		{"symlink", "scene.bundle.entry", rawArchive({{"scene.json", "x", 0, 0120000U << 16, 0x0314}})},
-		{"macOS symlink", "scene.bundle.entry", rawArchive({{"scene.json", "x", 0, 0120000U << 16, 0x1314}})},
-		{"case-insensitive duplicate", "scene.bundle.duplicate", rawArchive({{"scene.json", "x"}, {"SCENE.JSON", "x"}})},
-		{"entry limit", "scene.bundle.entries", rawArchive(std::vector<RawEntry>(17, {"x", "x", 0, 0, 20}))},
-		{"entry size limit", "scene.bundle.entry.size", rawArchive({{"scene.json", "x", 16U * 1024U * 1024U + 1U, 0, 20, 8}})},
-		{"ratio limit", "scene.bundle.ratio", rawArchive({{"scene.json", "x", 1001U, 0, 20, 8}})},
-		{"unknown entry", "scene.bundle.entry", rawArchive({{"assets.json", "x"}})},
-		{"missing required entry", "scene.bundle.required", rawArchive({{"scene.json", "x"}})},
-	};
-	for (const auto& test : malformed) {
-		const fs::path malformedPath = temp.path / (std::string(test.name) + ".egscene");
-		ok &= expect(writeBytes(malformedPath, test.bytes), "malformed archive fixture writes");
-		const SceneLoadResult rejected = loadSceneBundle(malformedPath.string());
-		ok &= expect(hasErrors(rejected.diagnostics) && hasCode(rejected.diagnostics, test.diagnosticCode), test.name);
-	}
-	std::string truncated = readBytes(firstBundle);
-	truncated.resize(truncated.size() - 4);
-	const fs::path truncatedPath = temp.path / "truncated.egscene";
-	ok &= expect(writeBytes(truncatedPath, truncated), "truncated archive fixture writes");
-	const SceneLoadResult truncatedResult = loadSceneBundle(truncatedPath.string());
-	ok &= expect(hasErrors(truncatedResult.diagnostics) && hasCode(truncatedResult.diagnostics, "scene.bundle.archive"),
-		"truncated archive");
-
-	if (!ok)
-		return 1;
-	std::cout << "all SceneBundle tests passed\n";
-	return 0;
+	QVERIFY2(writeBytes(existingDestination / "keep.txt", "keep"), "existing destination fixture writes");
+	const SceneSaveResult existingResult = unpackSceneBundle(m_bundle.string(), existingDestination.string());
+	// Unpack refuses and preserves an existing destination.
+	QVERIFY(!existingResult.success());
+	QVERIFY(hasCode(existingResult.diagnostics, "scene.bundle.publish"));
+	QCOMPARE(readBytes(existingDestination / "keep.txt"), "keep");
 }
+
+void TestSceneBundle::rejectsMalformedArchive_data() {
+	QTest::addColumn<QString>("diagnosticCode");
+	QTest::addColumn<QByteArray>("bytes");
+	const auto row = [](const char* name, const char* diagnosticCode, const std::string& bytes) {
+		QTest::newRow(name) << QString(diagnosticCode) << QByteArray::fromStdString(bytes);
+	};
+	row("traversal", "scene.bundle.path", rawArchive({{"../../outside", "x"}}));
+	row("absolute", "scene.bundle.path", rawArchive({{"/outside", "x"}}));
+	row("symlink", "scene.bundle.entry", rawArchive({{"scene.json", "x", 0, 0120000U << 16, 0x0314}}));
+	row("macOS symlink", "scene.bundle.entry", rawArchive({{"scene.json", "x", 0, 0120000U << 16, 0x1314}}));
+	row("case-insensitive duplicate", "scene.bundle.duplicate", rawArchive({{"scene.json", "x"}, {"SCENE.JSON", "x"}}));
+	row("entry limit", "scene.bundle.entries", rawArchive(std::vector<RawEntry>(17, {"x", "x", 0, 0, 20})));
+	row("entry size limit", "scene.bundle.entry.size", rawArchive({{"scene.json", "x", 16U * 1024U * 1024U + 1U, 0, 20, 8}}));
+	row("ratio limit", "scene.bundle.ratio", rawArchive({{"scene.json", "x", 1001U, 0, 20, 8}}));
+	row("unknown entry", "scene.bundle.entry", rawArchive({{"assets.json", "x"}}));
+	row("missing required entry", "scene.bundle.required", rawArchive({{"scene.json", "x"}}));
+	std::string truncated = readBytes(m_bundle);
+	truncated.resize(truncated.size() - 4);
+	row("truncated archive", "scene.bundle.archive", truncated);
+}
+
+void TestSceneBundle::rejectsMalformedArchive() {
+	QFETCH(QString, diagnosticCode);
+	QFETCH(QByteArray, bytes);
+	TempDir temp;
+	const fs::path malformedPath = temp.path / (std::string(QTest::currentDataTag()) + ".egscene");
+	QVERIFY2(writeBytes(malformedPath, bytes.toStdString()), "malformed archive fixture writes");
+	const SceneLoadResult rejected = loadSceneBundle(malformedPath.string());
+	// The archive is rejected with the diagnostic code of the row.
+	QVERIFY(hasErrors(rejected.diagnostics));
+	QVERIFY(hasCode(rejected.diagnostics, diagnosticCode.toStdString().c_str()));
+}
+
+QTEST_APPLESS_MAIN(TestSceneBundle)
+#include "test_scenebundle.moc"

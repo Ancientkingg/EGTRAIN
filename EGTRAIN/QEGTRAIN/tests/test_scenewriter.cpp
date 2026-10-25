@@ -4,6 +4,9 @@
 #include "scene/StagedDirectory.h"
 #include "scene/StopInsertion.h"
 
+#include <QString>
+#include <QTest>
+
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
@@ -23,12 +26,6 @@
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static std::string readBytes(const fs::path& path) {
 	std::ifstream input(path, std::ios::binary);
@@ -152,7 +149,7 @@ static SceneModel completeScene() {
 	stationView.corridors = {"main", "branch"};
 	scene.stationViews.push_back(stationView);
 
-	scene.signals.push_back({"signal-1", "@block-1@"});
+	sceneSignals(scene).push_back({"signal-1", "@block-1@"});
 	scene.signallingAreas.push_back({"area-1", 0.25, 0.75, 4, "track-1"});
 	SceneRoute route;
 	route.id = "route-1";
@@ -309,6 +306,26 @@ static SceneModel populatedScene() {
 	return scene;
 }
 
+// completeScene() with the optional platform geometry and service properties set, as saved by an older version.
+static SceneModel authoredScene() {
+	SceneModel source = completeScene();
+	source.savedWithAppVersion = "0.9.0";
+	source.stations[0].platforms[0].hasLength = true;
+	source.stations[0].platforms[0].lengthM = 125.0;
+	source.stations[0].platforms[0].hasWidth = true;
+	source.stations[0].platforms[0].widthM = 3.75;
+	source.services[0].performancePercent = 87.5;
+	source.services[0].hasMaximumSpeed = true;
+	source.services[0].maximumSpeedKmh = 120.0;
+	source.services[0].hasRepeat = true;
+	source.services[0].headwaySeconds = 900.0;
+	source.services[0].hasRepeatCount = true;
+	source.services[0].repeatCount = 3;
+	source.services[0].hasOperatingCodeStep = true;
+	source.services[0].operatingCodeStep = 2;
+	return source;
+}
+
 static bool loadHasNoErrors(const fs::path& scenePath, SceneModel& scene) {
 	SceneLoadResult loaded = loadScene(scenePath.string());
 	printErrors(loaded.diagnostics, "load");
@@ -398,121 +415,15 @@ struct EntryCount {
 	std::vector<const char*> keys;
 };
 
-// Loads the source, saves it, loads the save and saves again. The second save must equal the first one, and the first
-// save must keep every entry of the source.
-static bool checkSceneCodec(const fs::path& source, const std::string& label, const TempDir& temp) {
-	const auto check = [&label](bool condition, const std::string& what) {
-		return expect(condition, ("scene codec " + label + ": " + what).c_str());
-	};
-	SceneModel model;
-	if (!check(loadHasNoErrors(source, model), "the source loads without errors"))
-		return false;
-	const fs::path first = temp.path / "first";
-	const SceneSaveResult firstSave = saveScene(model, first.string());
-	printErrors(firstSave.diagnostics, "first save");
-	if (!check(firstSave.success(), "the first save succeeds"))
-		return false;
-	SceneModel reloaded;
-	if (!check(loadHasNoErrors(first, reloaded) && reloaded.savedWithAppVersion == EGTRAIN_APP_VERSION,
-			"the first save loads without errors and records the current app version"))
-		return false;
-	const fs::path second = temp.path / "second";
-	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
-	printErrors(secondSave.diagnostics, "second save");
-	if (!check(secondSave.success(), "the second save succeeds"))
-		return false;
-	if (!check(sameDirectoryBytes(first, second, label), "the second save equals the first save byte for byte"))
-		return false;
-	if (!check(hasCanonicalFileNames(first, label), "the first save holds the canonical files and nothing else"))
-		return false;
-
-	std::map<std::string, json> sourceFiles;
-	std::map<std::string, json> savedFiles;
-	for (const char* name : kCanonicalSceneFiles) {
-		sourceFiles[name] = readJsonFile(source / name);
-		savedFiles[name] = readJsonFile(first / name);
-	}
-	// Without scenarios.json the loader creates one baseline scenario and takes its incidents from the flat incidents.json.
-	if (!fs::exists(source / "scenarios.json")) {
-		json baseline = {{"incidents", json::array()}, {"entrance_delays", json::array()}};
-		const json flatIncidents = readJsonFile(source / "incidents.json");
-		if (flatIncidents.contains("incidents"))
-			baseline["incidents"] = flatIncidents["incidents"];
-		sourceFiles["scenarios.json"] = {{"scenarios", json::array({baseline})}};
-	}
-	const std::vector<EntryCount> counts = {
-		{"scene.json", {"import_report"}},
-		{"infrastructure.json", {"tracks"}},
-		{"infrastructure.json", {"nodes"}},
-		{"infrastructure.json", {"arcs"}},
-		{"infrastructure.json", {"blocks"}},
-		{"infrastructure.json", {"connections"}},
-		{"stations.json", {"stations"}},
-		{"stations.json", {"stations", "platforms"}},
-		{"signalling.json", {"signals"}},
-		{"signalling.json", {"routes"}},
-		{"signalling.json", {"block_dependencies"}},
-		{"signalling.json", {"single_track_restrictions"}},
-		{"signalling.json", {"station_boundaries"}},
-		{"signalling.json", {"signalling_areas"}},
-		{"rolling_stock.json", {"train_units"}},
-		{"rolling_stock.json", {"compositions"}},
-		{"services.json", {"services"}},
-		{"services.json", {"services", "stops"}},
-		{"scenarios.json", {"scenarios"}},
-		{"scenarios.json", {"scenarios", "incidents"}},
-		{"scenarios.json", {"scenarios", "entrance_delays"}},
-		{"passengers.json", {"passengers"}},
-		{"passengers.json", {"passengers", "journeys"}},
-		{"passengers.json", {"passengers", "journeys", "legs"}},
-		{"views.json", {"tracks"}},
-		{"views.json", {"stations"}},
-	};
-	bool ok = true;
-	for (const EntryCount& count : counts) {
-		const std::size_t expected = countEntries(sourceFiles[count.file], count.keys);
-		const std::size_t actual = countEntries(savedFiles[count.file], count.keys);
-		std::string name = count.file;
-		for (const char* key : count.keys)
-			name += std::string(" ") + key;
-		ok &= check(expected == actual,
-			name + ": the source has " + std::to_string(expected) + " entries and the first save has " + std::to_string(actual));
-	}
-	const json& sourceScene = sourceFiles["scene.json"];
-	const json& savedScene = savedFiles["scene.json"];
-	for (const char* key : {"name", "description", "base_time", "schema_version", "simulation_settings"}) {
-		if (sourceScene.contains(key))
-			ok &= check(savedScene.contains(key) && savedScene[key] == sourceScene[key],
-				std::string("scene.json ") + key + " has the value of the source");
-	}
-	return ok;
-}
-
-// Checks every scene directory under the Scenes directory and the line and minimal fixtures that sit in
-// tests/fixtures/scenes next to it.
-static bool checkCommittedSceneCodecs(fs::path scenes) {
-	if (!scenes.has_filename())
-		scenes = scenes.parent_path();
-	const fs::path fixtures = scenes.parent_path() / "tests" / "fixtures" / "scenes";
+// The scene directories under the Scenes directory, without hidden ones. Sets error when the directory cannot be read.
+static std::set<fs::path> committedSceneDirectories(std::error_code& error) {
 	std::set<fs::path> directories;
-	std::error_code error;
-	for (fs::directory_iterator entry(scenes, error), end; !error && entry != end; entry.increment(error)) {
+	for (fs::directory_iterator entry(fs::path(EGTRAIN_SCENES_DIR), error), end; !error && entry != end;
+		entry.increment(error)) {
 		if (entry->is_directory(error) && entry->path().filename().string().front() != '.')
 			directories.insert(entry->path());
 	}
-	bool ok = expect(!error, "scene codec: the Scenes directory can be read");
-	ok &= expect(!directories.empty(), "scene codec: the Scenes directory holds scene directories");
-	std::vector<std::pair<std::string, fs::path>> sources;
-	for (const fs::path& directory : directories)
-		sources.emplace_back(directory.filename().string(), directory);
-	sources.emplace_back("fixture line", fixtures / "line");
-	sources.emplace_back("fixture minimal", fixtures / "minimal");
-	for (const auto& source : sources) {
-		TempDir temp;
-		ok &= checkSceneCodec(source.second, source.first, temp);
-	}
-	std::cout << "scene codec: " << sources.size() << " scenes saved and loaded again\n";
-	return ok;
+	return directories;
 }
 
 // The pointer with every array index replaced by "#", so that all entries of an array share one table row.
@@ -542,24 +453,15 @@ static void collectLeaves(const json& value, const std::string& pointer, std::se
 	}
 }
 
-// Saves the populated model, checks every key of the written files against a table of values, then loads the save and
-// saves again.
-static bool checkPopulatedScene(const TempDir& temp) {
-	const std::string label = "populated scene";
-	const SceneModel model = populatedScene();
-	const fs::path first = temp.path / "first";
-	const SceneSaveResult firstSave = saveScene(model, first.string());
-	printErrors(firstSave.diagnostics, "populated save");
-	if (!expect(firstSave.success(), "scene codec populated scene: the model saves"))
-		return false;
+struct WrittenValue {
+	const char* file;
+	const char* pointer;
+	json expected;
+};
 
-	struct WrittenValue {
-		const char* file;
-		const char* pointer;
-		json expected;
-	};
-	// One row per key the writer can emit. The populated model sets every flag that makes the writer emit an optional key.
-	const std::vector<WrittenValue> table = {
+// One row per key the writer can emit. The populated model sets every flag that makes the writer emit an optional key.
+static const std::vector<WrittenValue>& populatedSceneTable() {
+	static const std::vector<WrittenValue> table = {
 		{"scene.json", "/schema_version", 1},
 		{"scene.json", "/name", "Canonical complete scene"},
 		{"scene.json", "/description", "Writer round-trip"},
@@ -739,48 +641,7 @@ static bool checkPopulatedScene(const TempDir& temp) {
 		{"views.json", "/stations/0/regions/1/position_km", 0.75},
 		{"views.json", "/stations/0/corridors", json::array({"main", "branch"})},
 	};
-	bool ok = true;
-	std::map<std::string, json> written;
-	std::set<std::string> leaves;
-	for (const char* name : kCanonicalSceneFiles) {
-		written[name] = readJsonFile(first / name);
-		collectLeaves(written[name], "/" + std::string(name), leaves);
-	}
-	std::size_t wrong = 0;
-	for (const WrittenValue& row : table) {
-		const json::json_pointer pointer(row.pointer);
-		const json& document = written[row.file];
-		if (!document.contains(pointer) || document.at(pointer) != row.expected) {
-			std::cerr << "scene codec " << label << ": " << row.file << " " << row.pointer << " should be "
-					  << row.expected.dump() << " but is "
-					  << (document.contains(pointer) ? document.at(pointer).dump() : std::string("missing")) << "\n";
-			++wrong;
-		}
-		leaves.erase(withoutIndexes("/" + std::string(row.file) + row.pointer));
-	}
-	for (const std::string& leaf : leaves)
-		std::cerr << "scene codec " << label << ": the written key " << leaf << " has no row in the table\n";
-	ok &= expect(wrong == 0, "scene codec populated scene: every key of the written files has the value of the model");
-	ok &= expect(leaves.empty(), "scene codec populated scene: the table has a row for every key of the written files");
-	ok &= expect(!written["views.json"].contains(json::json_pointer("/tracks/0/double_switch")),
-		"scene codec populated scene: a track view that is not a double switch is written without double_switch");
-
-	SceneModel reloaded;
-	if (!expect(loadHasNoErrors(first, reloaded), "scene codec populated scene: the save loads without errors"))
-		return false;
-	ok &= expect(reloaded.trackViews.size() == model.trackViews.size()
-			&& reloaded.stationViews.size() == model.stationViews.size(),
-		"scene codec populated scene: the load keeps every track view and station view");
-	ok &= expect(reloaded.trackViews.size() == 2 && !reloaded.trackViews[0].doubleSwitch && reloaded.trackViews[1].doubleSwitch,
-		"scene codec populated scene: the load keeps the double switch of a track view");
-	const fs::path second = temp.path / "second";
-	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
-	printErrors(secondSave.diagnostics, "populated second save");
-	if (!expect(secondSave.success(), "scene codec populated scene: the second save succeeds"))
-		return false;
-	ok &= expect(sameDirectoryBytes(first, second, label),
-		"scene codec populated scene: the second save equals the first save byte for byte");
-	return ok;
+	return table;
 }
 
 static std::set<std::string> entryNames(const fs::path& directory) {
@@ -790,211 +651,14 @@ static std::set<std::string> entryNames(const fs::path& directory) {
 	return names;
 }
 
-// A save publishes its staging directory as the scene directory. The entries of a private root show every staging or
-// backup sibling that a save leaves.
-static bool checkSavePublication() {
-	bool ok = true;
-	TempDir temp;
-	const fs::path root = temp.path;
-	const fs::path destination = root / "scene";
-	const SceneModel scene = completeScene();
-
-	const SceneSaveResult first = saveScene(scene, destination.string());
-	printErrors(first.diagnostics, "publication first save");
-	ok &= expect(first.success(), "save into an absent destination succeeds");
-	{
-		std::ofstream marker(destination / "marker.txt", std::ios::binary);
-		marker << "marker\n";
-	}
-	const SceneSaveResult second = saveScene(scene, destination.string());
-	printErrors(second.diagnostics, "publication second save");
-	ok &= expect(second.success() && fs::exists(destination / "marker.txt"), "save over an existing destination succeeds");
-	ok &= expect(entryNames(root) == std::set<std::string>{"scene"}, "saves leave no staging or backup sibling");
-
-#ifndef _WIN32
-	// The published directory is the staging directory, so it keeps its owner-only mode.
-	const fs::perms groupAndOther = fs::status(destination).permissions() & (fs::perms::group_all | fs::perms::others_all);
-	ok &= expect(groupAndOther == fs::perms::none, "saved scene directory has no group and no other permission bits");
-
-	// A read-only parent refuses the staging directory. This does not apply to root.
-	fs::permissions(root, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
-	if (access(root.c_str(), W_OK) != 0) {
-		const fs::path other = root / "other";
-		const SceneSaveResult refused = saveScene(scene, other.string());
-		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
-			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
-				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
-		});
-		ok &= expect(!refused.success() && reported, "save into a read-only parent reports the staging directory");
-		ok &= expect(!fs::exists(other), "failed save creates no destination");
-		ok &= expect(entryNames(root) == std::set<std::string>{"scene"}, "failed save leaves no staging sibling");
-	}
-	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
-#endif
-	return ok;
-}
-
 // Japanese and Thai characters, as UTF-8. No Windows code page holds both.
 static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
 
-// A scene directory and a scenario file with a Unicode name are written and read under that name, and the staging,
-// backup and temporary siblings made from the name are removed again.
-static bool checkUnicodePaths() {
-	bool ok = true;
-	TempDir temp;
-	const fs::path root = temp.path / fs::u8path(kUnicodeName);
-	const fs::path destination = root / fs::u8path(kUnicodeName);
-	const SceneModel scene = completeScene();
+using Files = std::map<std::string, std::string>;
 
-	for (int pass = 0; pass < 2; ++pass) {
-		const SceneSaveResult saved = saveScene(scene, destination.u8string());
-		printErrors(saved.diagnostics, "Unicode save");
-		ok &= expect(saved.success() && fs::is_regular_file(destination / "scene.json"),
-			"a scene saves to a directory with a Unicode name, also over an existing one");
-	}
-	const SceneLoadResult loaded = loadScene(destination.u8string());
-	printErrors(loaded.diagnostics, "Unicode load");
-	ok &= expect(!hasErrors(loaded.diagnostics) && loaded.inputSnapshot == readSceneDirectorySnapshot(destination.u8string()).bytes,
-		"a scene directory with a Unicode name loads");
-
-	const fs::path scenarioFile = root / fs::u8path(kUnicodeName + ".json");
-	for (int pass = 0; pass < 2; ++pass)
-		ok &= expect(saveScenarioJson(scene.scenarios[0], scenarioFile.u8string()).success(),
-			"a scenario saves to a file with a Unicode name, also over an existing one");
-	ok &= expect(loadScenarioJson(scenarioFile.u8string()).scenario.id == scene.scenarios[0].id,
-		"a scenario file with a Unicode name loads");
-	ok &= expect(fs::is_directory(root)
-			&& entryNames(root) == std::set<std::string>{destination.filename().u8string(), scenarioFile.filename().u8string()},
-		"saves under Unicode names leave no staging, backup or temporary sibling");
-
-	const std::string prefix = kUnicodeName + ".staging-";
-	StagedDirectory staged;
-	fs::path sibling;
-	ok &= expect(!createStagedDirectory(root, prefix, false, staged)
-			&& staged.path.filename().u8string().rfind(prefix, 0) == 0 && fs::is_directory(staged.path),
-		"a staged directory is named after a Unicode prefix");
-	ok &= expect(!uniqueSiblingPath(root, prefix, sibling) && sibling.filename().u8string().rfind(prefix, 0) == 0,
-		"a sibling path is named after a Unicode prefix");
-	return ok;
-}
-
-// The staged directory helper: creation, removal when the object goes out of scope, and publication in each outcome.
-static bool checkStagedDirectory() {
-	bool ok = true;
-	using Files = std::map<std::string, std::string>;
-	const auto put = [](const fs::path& path, const std::string& bytes) {
-		std::ofstream output(path, std::ios::binary);
-		output << bytes;
-	};
-
-	{
-		TempDir temp;
-		StagedDirectory staged;
-		const std::error_code created = createStagedDirectory(temp.path, "scene.staging-", true, staged);
-		ok &= expect(!created && fs::is_directory(staged.path) && fs::is_empty(staged.path) && staged.path.parent_path() == temp.path
-				&& staged.path.filename().string().rfind("scene.staging-", 0) == 0,
-			"staged directory is created empty in the parent with the prefix");
-#ifndef _WIN32
-		const fs::perms groupAndOther = fs::status(staged.path).permissions() & (fs::perms::group_all | fs::perms::others_all);
-		ok &= expect(groupAndOther == fs::perms::none, "owner-only staged directory has no group and no other permission bits");
-#endif
-		StagedDirectory plain;
-		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", false, plain) && fs::is_directory(plain.path),
-			"staged directory without the owner-only mode is created");
-	}
-
-	{
-		TempDir temp;
-		fs::path discardedPath, releasedPath;
-		{
-			StagedDirectory discarded, released;
-			ok &= expect(!createStagedDirectory(temp.path, "discarded-", false, discarded)
-					&& !createStagedDirectory(temp.path, "released-", false, released),
-				"staged directories are created");
-			discardedPath = discarded.path;
-			releasedPath = released.path;
-			released.release();
-			ok &= expect(released.path.empty(), "release clears the path");
-		}
-		ok &= expect(!discardedPath.empty() && !fs::exists(discardedPath), "staged directory is removed when it goes out of scope");
-		ok &= expect(!releasedPath.empty() && fs::is_directory(releasedPath), "released directory stays on disk");
-	}
-
-	{
-		TempDir temp;
-		const fs::path destination = temp.path / "scene";
-		StagedDirectory staged;
-		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged), "staged directory is created for the first publication");
-		put(staged.path / "new.txt", "new\n");
-		const StagedPublishResult published = publishStagedDirectory(staged, destination, fs::path());
-		ok &= expect(published.step == StagedPublishStep::Published && !published.error && !published.restoreError
-				&& !published.removeBackupError,
-			"publication into an absent destination succeeds");
-		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}
-				&& staged.path.empty() && entryNames(temp.path) == std::set<std::string>{"scene"},
-			"published destination holds the staged files and nothing else is left");
-	}
-
-	{
-		TempDir temp;
-		const fs::path destination = temp.path / "scene";
-		fs::create_directory(destination);
-		put(destination / "old.txt", "old\n");
-		StagedDirectory staged;
-		fs::path backup;
-		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
-				&& !uniqueSiblingPath(temp.path, "scene.backup-", backup) && !fs::exists(backup)
-				&& backup.filename().string().rfind("scene.backup-", 0) == 0,
-			"staged directory and backup name are reserved");
-		put(staged.path / "new.txt", "new\n");
-		const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
-		ok &= expect(published.step == StagedPublishStep::Published && !published.error && !published.restoreError
-				&& !published.removeBackupError,
-			"publication over an existing destination succeeds");
-		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}
-				&& entryNames(temp.path) == std::set<std::string>{"scene"},
-			"replaced destination holds only the new files and no backup is left");
-	}
-
-	{
-		// The staging directory is gone, so the rename into place fails and the old destination is moved back.
-		TempDir temp;
-		const fs::path destination = temp.path / "scene";
-		fs::create_directory(destination);
-		put(destination / "old.txt", "old\n");
-		StagedDirectory staged;
-		fs::path backup;
-		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
-				&& !uniqueSiblingPath(temp.path, "scene.backup-", backup),
-			"staged directory and backup name are reserved for the failing rename");
-		fs::remove_all(staged.path);
-		const StagedPublishResult failed = publishStagedDirectory(staged, destination, backup);
-		ok &= expect(failed.step == StagedPublishStep::Rename && failed.error && !failed.restoreError && !failed.removeBackupError,
-			"failed rename into place is reported as the Rename step");
-		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"old.txt", "old\n"}}
-				&& entryNames(temp.path) == std::set<std::string>{"scene"},
-			"failed rename into place restores the old destination and leaves no backup");
-	}
-
-	{
-		TempDir temp;
-		const fs::path destination = temp.path / "scene";
-		fs::path stagingPath;
-		{
-			StagedDirectory staged;
-			fs::path backup;
-			ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
-					&& !uniqueSiblingPath(temp.path, "scene.backup-", backup),
-				"staged directory and backup name are reserved for the missing destination");
-			stagingPath = staged.path;
-			const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
-			ok &= expect(published.step == StagedPublishStep::MoveToBackup && published.error && !fs::exists(destination),
-				"missing destination is reported as the MoveToBackup step");
-			ok &= expect(fs::is_directory(stagingPath), "staging directory is still owned after a failed move to the backup");
-		}
-		ok &= expect(entryNames(temp.path).empty(), "staging directory is removed after a failed move to the backup");
-	}
-	return ok;
+static void put(const fs::path& path, const std::string& bytes) {
+	std::ofstream output(path, std::ios::binary);
+	output << bytes;
 }
 
 // The errors of a scenario file as "code path: message", in the order in which the loader reported them.
@@ -1020,9 +684,1336 @@ static void append(std::vector<std::string>& lines, const std::vector<std::strin
 	lines.insert(lines.end(), more.begin(), more.end());
 }
 
+class TestSceneWriter : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void savesCompleteScene();
+	void failedSaveKeepsGeneration();
+	void writesPlatformGeometry();
+	void writesSignallingAreas();
+	void omitsAbsentSignallingAreas();
+	void keepsUnchosenSignallingLevel();
+	void writesServiceFields();
+	void writesScenarios();
+	void savesStandaloneScenario();
+	void savesDuplicatedScenario();
+	void diagnosesInvalidScenario();
+	void rejectsNonIntOccurrence_data();
+	void rejectsNonIntOccurrence();
+	void readsOccurrenceAtIntLimit();
+	void writesMinimalScenarioBytes();
+	void reportsBlockedScenarioDestination();
+	void keepsScenarioOnFailedWrite();
+	void writesPassengers();
+	void encodesEmptyPassengerParts();
+	void reloadsCompleteScene();
+	void omitsLegacyDefaults();
+	void roundTripsServiceColour_data();
+	void roundTripsServiceColour();
+	void missingAppVersionIsValid();
+	void summarisesLoadedData();
+	void savesBaselineScenarioWithoutScenarios();
+	void readsHistoricalAliases();
+	void insertsStopIntoCommittedService();
+	void scenesFolderHoldsScenes();
+	void sceneCodec_data();
+	void sceneCodec();
+	void populatedSceneKeys_data();
+	void populatedSceneKeys();
+	void populatedSceneTableIsComplete();
+	void populatedSceneRoundTrips();
+	void publishesSave();
+	void savesUnderUnicodeNames();
+	void createsStagedDirectory();
+	void removesStagedDirectoryOutOfScope();
+	void publishesIntoAbsentDestination();
+	void publishesOverExistingDestination();
+	void restoresDestinationAfterFailedRename();
+	void reportsMissingDestination();
+	void reportsScenarioFileDiagnostics();
+	void savesEmptyNames();
+
+private:
+	TempDir m_temp;
+	// The save of populatedScene() in m_temp, made once.
+	fs::path m_populated;
+	// The parsed files of that save, by file name.
+	std::map<std::string, json> m_written;
+};
+
+void TestSceneWriter::initTestCase() {
+	m_populated = m_temp.path / "populated";
+	const SceneSaveResult saved = saveScene(populatedScene(), m_populated.string());
+	printErrors(saved.diagnostics, "populated save");
+	QVERIFY2(saved.success(), "scene codec populated scene: the model saves");
+	for (const char* name : kCanonicalSceneFiles)
+		m_written[name] = readJsonFile(m_populated / name);
+}
+
+// A save writes every canonical file and keeps the bytes it wrote as its snapshot.
+void TestSceneWriter::savesCompleteScene() {
+	TempDir temp;
+	const SceneModel source = authoredScene();
+	const SceneSaveResult saved = saveScene(source, temp.path.string());
+	printErrors(saved.diagnostics, "save");
+	// Complete canonical scene saves after a write attempt.
+	QVERIFY(saved.success());
+	QVERIFY(saved.writeAttempted);
+	QVERIFY2(!saveScene(source, "").writeAttempted, "empty destination rejects before filesystem mutation");
+	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
+			 "rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"})
+		QVERIFY2(fs::exists(temp.path / file), (std::string("all canonical files are written (") + file + ")").c_str());
+	const std::string savedSnapshot = saved.inputSnapshot;
+	const SceneInputSnapshot onDiskSnapshot = readSceneDirectorySnapshot(temp.path.string());
+	// Successful save retains the exact framed canonical input snapshot.
+	QVERIFY(!savedSnapshot.empty());
+	QVERIFY(onDiskSnapshot.reason.empty());
+	QVERIFY(savedSnapshot == onDiskSnapshot.bytes);
+	QVERIFY2(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
+	json savedScene;
+	{
+		std::ifstream input(temp.path / "scene.json");
+		input >> savedScene;
+	}
+	QVERIFY2(savedScene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
+		"writer records the authoritative current app version");
+}
+
+// A save that fails leaves the previous save as it was, and the next save keeps the files that are not scene files.
+void TestSceneWriter::failedSaveKeepsGeneration() {
+	TempDir temp;
+	const SceneModel source = authoredScene();
+	const SceneSaveResult firstSave = saveScene(source, temp.path.string());
+	QVERIFY2(firstSave.success(), "complete canonical scene saves");
+	{
+		std::ofstream marker(temp.path / "generation-marker.txt", std::ios::binary);
+		marker << "original generation marker\n";
+	}
+	fs::create_directory(temp.path / "notes");
+	{
+		std::ofstream note(temp.path / "notes" / "operator.txt", std::ios::binary);
+		note << "keep with scene\n";
+	}
+	const auto originalGeneration = readDirectoryBytes(temp.path);
+	SceneModel malformed = source;
+	malformed.passengers[0].journeys[0].activity = std::string("\xC3\x28", 2);
+	const SceneSaveResult failedSave = saveScene(malformed, temp.path.string());
+	// Malformed UTF-8 fails without publishing a partial generation.
+	QVERIFY(!failedSave.success());
+	QVERIFY(failedSave.writeAttempted);
+	QVERIFY(hasErrors(failedSave.diagnostics));
+	QVERIFY2(readDirectoryBytes(temp.path) == originalGeneration,
+		"failed save preserves every byte of the previous generation");
+	// Failed save removes sibling staging and backup artifacts.
+	QVERIFY(!hasSiblingArtifact(temp.path, "staging"));
+	QVERIFY(!hasSiblingArtifact(temp.path, "backup"));
+	const SceneSaveResult replacementSave = saveScene(source, temp.path.string());
+	// Successful generation replacement preserves unmanaged scene contents.
+	QVERIFY(replacementSave.success());
+	QVERIFY(fs::exists(temp.path / "generation-marker.txt"));
+	QVERIFY(fs::exists(temp.path / "notes" / "operator.txt"));
+	// Load retains the exact framed snapshot emitted by save, without the files that are not scene files.
+	QVERIFY(loadScene(temp.path.string()).inputSnapshot == firstSave.inputSnapshot);
+}
+
+// The platform length and width are written only when they were set.
+void TestSceneWriter::writesPlatformGeometry() {
+	TempDir temp;
+	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
+	json stations;
+	{
+		std::ifstream input(temp.path / "stations.json");
+		input >> stations;
+	}
+	// Writer emits explicitly authored platform geometry.
+	QVERIFY(stations["stations"][0]["platforms"][0]["length_m"] == 125.0);
+	QVERIFY(stations["stations"][0]["platforms"][0]["width_m"] == 3.75);
+	// Writer omits absent platform geometry.
+	QVERIFY(!stations["stations"][1]["platforms"][0].contains("length_m"));
+	QVERIFY(!stations["stations"][1]["platforms"][0].contains("width_m"));
+}
+
+// The signalling areas and the section a signal protects are written with all their fields.
+void TestSceneWriter::writesSignallingAreas() {
+	TempDir temp;
+	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
+	json signalling;
+	{
+		std::ifstream input(temp.path / "signalling.json");
+		input >> signalling;
+	}
+	// Writer emits signalling area fields.
+	QCOMPARE(signalling["signalling_areas"].size(), std::size_t(1));
+	QVERIFY(signalling["signalling_areas"][0]["id"] == "area-1");
+	QVERIFY(signalling["signalling_areas"][0]["start_km"] == 0.25);
+	QVERIFY(signalling["signalling_areas"][0]["end_km"] == 0.75);
+	QVERIFY(signalling["signalling_areas"][0]["level"] == 4);
+	QVERIFY(signalling["signalling_areas"][0]["track"] == "track-1");
+	// Writer emits an explicitly bound signal section.
+	QCOMPARE(signalling["signals"].size(), std::size_t(1));
+	QVERIFY(signalling["signals"][0]["id"] == "signal-1");
+	QVERIFY(signalling["signals"][0]["protected_section"] == "@block-1@");
+}
+
+// A scene without signalling areas and a signal without a section are written and read without either.
+void TestSceneWriter::omitsAbsentSignallingAreas() {
+	TempDir temp;
+	SceneModel absentAreas = completeScene();
+	absentAreas.signallingAreas.clear();
+	sceneSignals(absentAreas)[0].protectedSection.clear();
+	const fs::path absentAreasPath = temp.path / "absent-signalling-areas";
+	QVERIFY2(saveScene(absentAreas, absentAreasPath.string()).success(), "scene without signalling areas saves");
+	json absentSignalling;
+	{
+		std::ifstream input(absentAreasPath / "signalling.json");
+		input >> absentSignalling;
+	}
+	QVERIFY2(!absentSignalling.contains("signalling_areas"), "writer preserves an absent signalling area array");
+	QVERIFY2(!absentSignalling["signals"][0].contains("protected_section"),
+		"writer omits an empty protected-section binding");
+	SceneModel absentAreasReloaded;
+	// Scene without signalling areas reloads with no inferred defaults.
+	QVERIFY(loadHasNoErrors(absentAreasPath, absentAreasReloaded));
+	QVERIFY(absentAreasReloaded.signallingAreas.empty());
+	// ID-only signal input round-trips without inventing a binding.
+	QCOMPARE(sceneSignals(absentAreasReloaded).size(), std::size_t(1));
+	QVERIFY(sceneSignals(absentAreasReloaded)[0].protectedSection.empty());
+}
+
+// An area whose signalling system is not chosen keeps that level through save and load.
+void TestSceneWriter::keepsUnchosenSignallingLevel() {
+	TempDir temp;
+	SceneModel unchosenSystem = completeScene();
+	unchosenSystem.signallingAreas[0].level = kSignallingLevelUnset;
+	const fs::path unchosenSystemPath = temp.path / "unchosen-signalling-system";
+	QVERIFY2(saveScene(unchosenSystem, unchosenSystemPath.string()).success(),
+		"scene with an area whose signalling system is not chosen saves");
+	json unchosenSignalling;
+	{
+		std::ifstream input(unchosenSystemPath / "signalling.json");
+		input >> unchosenSignalling;
+	}
+	// Writer emits the level of an area whose signalling system is not chosen.
+	QCOMPARE(unchosenSignalling["signalling_areas"].size(), std::size_t(1));
+	QVERIFY(unchosenSignalling["signalling_areas"][0]["level"] == kSignallingLevelUnset);
+	SceneModel unchosenReloaded;
+	// An area whose signalling system is not chosen keeps its level through save and load.
+	QVERIFY(loadHasNoErrors(unchosenSystemPath, unchosenReloaded));
+	QCOMPARE(unchosenReloaded.signallingAreas.size(), std::size_t(1));
+	QCOMPARE(unchosenReloaded.signallingAreas[0].level, kSignallingLevelUnset);
+}
+
+// The optional service properties are written, and the stops use the planned times without the old aliases.
+void TestSceneWriter::writesServiceFields() {
+	TempDir temp;
+	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
+	json services;
+	{
+		std::ifstream input(temp.path / "services.json");
+		input >> services;
+	}
+	const json& firstStop = services["services"][0]["stops"][0];
+	QVERIFY2(services["services"][0]["operating_code"] == "R100", "writer emits the service operating code");
+	// Writer emits optional performance and maximum speed.
+	QVERIFY(services["services"][0]["performance_percent"] == 87.5);
+	QVERIFY(services["services"][0]["maximum_speed_kmh"] == 120.0);
+	// Writer emits explicit repeat count and operating-code step.
+	QVERIFY(services["services"][0]["repeat"]["count"] == 3);
+	QVERIFY(services["services"][0]["repeat"]["operating_code_step"] == 2);
+	QVERIFY2(firstStop.contains("planned_departure_seconds"), "writer emits planned departure");
+	QVERIFY2(!firstStop.contains("departure_seconds"), "writer omits legacy departure alias");
+	const json& lastStop = services["services"][0]["stops"][1];
+	QVERIFY2(lastStop.contains("planned_arrival_seconds"), "writer emits planned arrival");
+	QVERIFY2(!lastStop.contains("arrival_seconds"), "writer omits legacy arrival alias");
+}
+
+// The scenarios are written with the default scenario and the fields of an enhanced breakdown.
+void TestSceneWriter::writesScenarios() {
+	TempDir temp;
+	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
+	json scenarios;
+	{
+		std::ifstream input(temp.path / "scenarios.json");
+		input >> scenarios;
+	}
+	QVERIFY2(scenarios["default_scenario_id"] == "baseline", "writer emits default_scenario_id");
+	// Writer emits named scenarios.
+	QCOMPARE(scenarios["scenarios"].size(), std::size_t(2));
+	const json& enhancedJson = scenarios["scenarios"][1]["incidents"][0];
+	// Writer preserves occurrence-specific reduced breakdown without recovery end.
+	QVERIFY(enhancedJson["occurrence"] == 2);
+	QVERIFY(enhancedJson["reduced_speed_kmh"] == 40.0);
+	QVERIFY(enhancedJson["terminate_at_destination"] == true);
+	QVERIFY(!enhancedJson.contains("end_seconds"));
+}
+
+// A scenario saved on its own holds only scenario data, reads back, and is replaced by the next save.
+void TestSceneWriter::savesStandaloneScenario() {
+	TempDir temp;
+	const SceneModel source = authoredScene();
+	const fs::path standaloneScenarioPath = temp.path / "baseline-scenario.json";
+	const SceneSaveResult standaloneSave = saveScenarioJson(source.scenarios[0], standaloneScenarioPath.string());
+	// Standalone scenario JSON saves after a write attempt.
+	QVERIFY(standaloneSave.success());
+	QVERIFY(standaloneSave.writeAttempted);
+	json standaloneScenario;
+	{
+		std::ifstream input(standaloneScenarioPath);
+		input >> standaloneScenario;
+	}
+	// Standalone scenario JSON contains only scenario data.
+	QVERIFY(standaloneScenario.is_object());
+	QVERIFY(standaloneScenario["id"] == "baseline");
+	QCOMPARE(standaloneScenario["entrance_delays"].size(), std::size_t(1));
+	QVERIFY(!standaloneScenario.contains("scenarios"));
+	QVERIFY(!standaloneScenario.contains("infrastructure"));
+	const ScenarioLoadResult standaloneLoad = loadScenarioJson(standaloneScenarioPath.string());
+	// Standalone scenario JSON round-trips incidents and entrance delays.
+	QVERIFY(standaloneLoad.success());
+	QCOMPARE(standaloneLoad.scenario.id, source.scenarios[0].id);
+	QCOMPARE(standaloneLoad.scenario.description, source.scenarios[0].description);
+	QCOMPARE(standaloneLoad.scenario.incidents.size(), source.scenarios[0].incidents.size());
+	QCOMPARE(standaloneLoad.scenario.entranceDelays.size(), std::size_t(1));
+	QCOMPARE(standaloneLoad.scenario.entranceDelays[0].serviceId, "service-1");
+	QCOMPARE(standaloneLoad.scenario.entranceDelays[0].occurrence, 1);
+	QCOMPARE(standaloneLoad.scenario.entranceDelays[0].stationId, "station-1");
+	QCOMPARE_EQ(standaloneLoad.scenario.entranceDelays[0].delaySeconds, 30.0);
+
+	const std::string standaloneBytes = readBytes(standaloneScenarioPath);
+	// Standalone scenario JSON keeps four-space indentation and a final newline.
+	QCOMPARE(standaloneBytes, json::parse(standaloneBytes).dump(4) + "\n");
+	SceneScenario replacement;
+	replacement.id = "replacement";
+	replacement.name = "Minimal";
+	QVERIFY2(saveScenarioJson(replacement, standaloneScenarioPath.string()).success(),
+		"standalone scenario replaces an existing file");
+	// Replaced standalone scenario holds the new content.
+	QCOMPARE(loadScenarioJson(standaloneScenarioPath.string()).scenario.id, "replacement");
+	QVERIFY(readBytes(standaloneScenarioPath) != standaloneBytes);
+	QVERIFY2(!hasSiblingArtifact(standaloneScenarioPath, "tmp"),
+		"standalone scenario save leaves no temporary file after success");
+}
+
+// A copy of a scenario with new IDs saves and reads back with those IDs.
+void TestSceneWriter::savesDuplicatedScenario() {
+	TempDir temp;
+	SceneScenario duplicateScenario = authoredScene().scenarios[0];
+	duplicateScenario.id = "baseline-copy";
+	duplicateScenario.incidents[0].id = "incident-copy";
+	const fs::path duplicateScenarioPath = temp.path / "baseline-copy.json";
+	QVERIFY2(saveScenarioJson(duplicateScenario, duplicateScenarioPath.string()).success(),
+		"duplicated scenario saves through the standalone boundary");
+	const ScenarioLoadResult duplicateLoad = loadScenarioJson(duplicateScenarioPath.string());
+	// Duplicated scenario round-trips with independent IDs.
+	QVERIFY(duplicateLoad.success());
+	QCOMPARE(duplicateLoad.scenario.id, "baseline-copy");
+	QCOMPARE(duplicateLoad.scenario.incidents[0].id, "incident-copy");
+}
+
+// A scenario file with a name of the wrong type and an incomplete incident is rejected.
+void TestSceneWriter::diagnosesInvalidScenario() {
+	TempDir temp;
+	const fs::path invalidScenarioPath = temp.path / "invalid-scenario.json";
+	{
+		std::ofstream output(invalidScenarioPath);
+		output << R"({"id":"broken","name":5,"incidents":[{"id":"only-id"}]})";
+	}
+	const ScenarioLoadResult invalidScenario = loadScenarioJson(invalidScenarioPath.string());
+	// Standalone scenario parser diagnoses structural and type errors.
+	QVERIFY(!invalidScenario.success());
+	QVERIFY(hasErrors(invalidScenario.diagnostics));
+	QVERIFY(!invalidScenario.diagnostics.empty());
+}
+
+void TestSceneWriter::rejectsNonIntOccurrence_data() {
+	// The occurrence as JSON text.
+	QTest::addColumn<QString>("occurrence");
+	QTest::newRow("wraps to 2") << QString("4294967298");
+	QTest::newRow("one above the int range") << QString("2147483648");
+	QTest::newRow("one below the int range") << QString("-2147483649");
+	QTest::newRow("fraction") << QString("1.5");
+}
+
+// An entrance delay occurrence that is not an int is rejected at its key.
+void TestSceneWriter::rejectsNonIntOccurrence() {
+	QFETCH(QString, occurrence);
+	TempDir temp;
+	const fs::path invalidScenarioPath = temp.path / "invalid-scenario.json";
+	{
+		std::ofstream output(invalidScenarioPath, std::ios::trunc);
+		output << R"({"id":"wide","name":"wide","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":)"
+			   << occurrence.toStdString() << "}]}";
+	}
+	const ScenarioLoadResult wideScenario = loadScenarioJson(invalidScenarioPath.string());
+	// Standalone scenario rejects an occurrence that is not an int.
+	QVERIFY(!wideScenario.success());
+	QVERIFY(!wideScenario.diagnostics.empty());
+	QCOMPARE(wideScenario.diagnostics.front().path, "entrance_delays[0].occurrence");
+}
+
+// An entrance delay occurrence at the int limit is read.
+void TestSceneWriter::readsOccurrenceAtIntLimit() {
+	TempDir temp;
+	const fs::path invalidScenarioPath = temp.path / "invalid-scenario.json";
+	{
+		std::ofstream output(invalidScenarioPath, std::ios::trunc);
+		output << R"({"id":"edge","name":"edge","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":2147483647}]})";
+	}
+	const ScenarioLoadResult edgeScenario = loadScenarioJson(invalidScenarioPath.string());
+	// Standalone scenario reads an occurrence at the int limit.
+	QVERIFY(edgeScenario.success());
+	QCOMPARE(edgeScenario.scenario.entranceDelays.size(), std::size_t(1));
+	QCOMPARE(edgeScenario.scenario.entranceDelays[0].occurrence, 2147483647);
+}
+
+// A scenario with only an ID and a name is written as these exact bytes.
+void TestSceneWriter::writesMinimalScenarioBytes() {
+	TempDir temp;
+	SceneScenario minimal;
+	minimal.id = "min";
+	minimal.name = "Minimal";
+	const fs::path minimalPath = temp.path / "minimal-scenario.json";
+	QVERIFY2(saveScenarioJson(minimal, minimalPath.string()).success(), "minimal standalone scenario saves");
+	// Standalone scenario bytes match the expected file.
+	QCOMPARE(readBytes(minimalPath), "{\n"
+									 "    \"entrance_delays\": [],\n"
+									 "    \"id\": \"min\",\n"
+									 "    \"incidents\": [],\n"
+									 "    \"name\": \"Minimal\"\n"
+									 "}\n");
+}
+
+// A scenario save into a folder or into a missing folder fails and changes nothing.
+void TestSceneWriter::reportsBlockedScenarioDestination() {
+	TempDir failing;
+	const fs::path blockedPath = failing.path / "blocked.json";
+	fs::create_directory(blockedPath);
+	{
+		std::ofstream output(blockedPath / "keep.txt");
+		output << "keep";
+	}
+	SceneScenario scenario;
+	scenario.id = "blocked";
+	scenario.name = "Blocked";
+	const SceneSaveResult blocked = saveScenarioJson(scenario, blockedPath.string());
+	// Standalone scenario save reports a destination that cannot be replaced.
+	QVERIFY(!blocked.success());
+	QVERIFY(!blocked.wroteAll);
+	QVERIFY(hasErrors(blocked.diagnostics));
+	// Failed replace leaves the destination and no temporary file.
+	QVERIFY(fs::is_directory(blockedPath));
+	QCOMPARE(readBytes(blockedPath / "keep.txt"), "keep");
+	QVERIFY(!hasSiblingArtifact(blockedPath, "tmp"));
+
+	const SceneSaveResult missing = saveScenarioJson(scenario, (failing.path / "missing" / "scenario.json").string());
+	// Standalone scenario save reports a missing directory.
+	QVERIFY(!missing.success());
+	QVERIFY(hasErrors(missing.diagnostics));
+	QVERIFY(!fs::exists(failing.path / "missing"));
+}
+
+// A scenario save that cannot write its file keeps the old file and leaves no temporary file. The permissions are
+// restored before the checks, so that a failing check leaves a folder that can be removed.
+void TestSceneWriter::keepsScenarioOnFailedWrite() {
+#ifdef _WIN32
+	QSKIP("file size limits and permission bits are POSIX");
+#else
+	TempDir failing;
+	const fs::path scenarioPath = failing.path / "scenario.json";
+	const std::string original = "original scenario\n";
+	{
+		std::ofstream output(scenarioPath, std::ios::binary);
+		output << original;
+	}
+	SceneScenario scenario = authoredScene().scenarios[0];
+	bool limited = false;
+	SceneSaveResult truncated;
+	{
+		// The write exceeds the limit part way and fails.
+		const FileSizeLimit limit(16);
+		limited = limit.active;
+		truncated = saveScenarioJson(scenario, scenarioPath.string());
+	}
+	QVERIFY2(limited, "file size limit can be applied");
+	// Standalone scenario save reports a write that cannot complete.
+	QVERIFY(!truncated.success());
+	QVERIFY(hasErrors(truncated.diagnostics));
+	// Failed write leaves the original scenario and no temporary file.
+	QCOMPARE(readBytes(scenarioPath), original);
+	QVERIFY(hasOnlyFile(failing.path, "scenario.json"));
+
+	// A read-only directory refuses the temporary file. This does not apply to root.
+	fs::permissions(failing.path, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
+	const bool readOnlyDirectory = access(failing.path.c_str(), W_OK) != 0;
+	SceneSaveResult readOnly;
+	if (readOnlyDirectory)
+		readOnly = saveScenarioJson(scenario, scenarioPath.string());
+	fs::permissions(failing.path, fs::perms::owner_all, fs::perm_options::replace);
+	if (readOnlyDirectory) {
+		// Standalone scenario save reports a read-only directory.
+		QVERIFY(!readOnly.success());
+		QVERIFY(hasErrors(readOnly.diagnostics));
+		// Read-only directory leaves the original scenario.
+		QCOMPARE(readBytes(scenarioPath), original);
+	}
+	QVERIFY2(hasOnlyFile(failing.path, "scenario.json"), "read-only directory leaves no temporary file");
+
+	// A read-only file is not replaced. This does not apply to root.
+	fs::permissions(scenarioPath, fs::perms::owner_read, fs::perm_options::replace);
+	const bool readOnlyFile = access(scenarioPath.c_str(), W_OK) != 0;
+	SceneSaveResult readOnlyFileSave;
+	if (readOnlyFile)
+		readOnlyFileSave = saveScenarioJson(scenario, scenarioPath.string());
+	fs::permissions(scenarioPath, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace);
+	if (readOnlyFile) {
+		// Standalone scenario save reports a read-only file.
+		QVERIFY(!readOnlyFileSave.success());
+		QVERIFY(hasErrors(readOnlyFileSave.diagnostics));
+		// Read-only file keeps its content and no temporary file remains.
+		QCOMPARE(readBytes(scenarioPath), original);
+		QVERIFY(hasOnlyFile(failing.path, "scenario.json"));
+	}
+#endif
+}
+
+// The passengers are written as the passenger encoder writes them.
+void TestSceneWriter::writesPassengers() {
+	TempDir temp;
+	const SceneModel source = authoredScene();
+	QVERIFY2(saveScene(source, temp.path.string()).success(), "complete canonical scene saves");
+	json passengers;
+	{
+		std::ifstream input(temp.path / "passengers.json");
+		input >> passengers;
+	}
+	QVERIFY2(passengers["passengers"][0]["journeys"][0].contains("planned_departure"),
+		"writer emits passenger departure window");
+	// Writer emits ordered passenger legs.
+	QCOMPARE(passengers["passengers"][0]["journeys"][0]["legs"].size(), std::size_t(1));
+	QVERIFY2(passengers == encodePassengers(source.passengers), "saved passengers.json is the encoded passengers");
+}
+
+// The passenger encoder leaves out what is empty, except the windows and the leg list.
+void TestSceneWriter::encodesEmptyPassengerParts() {
+	ScenePassenger passenger;
+	passenger.id = "p";
+	passenger.journeys.resize(1);
+	const json encoded = encodePassengers({passenger});
+	const json& journey = encoded["passengers"][0]["journeys"][0];
+	// Encoder leaves out an empty activity and keeps the windows and an empty leg list.
+	QVERIFY(!journey.contains("activity"));
+	QVERIFY(journey["legs"].empty());
+	QCOMPARE(journey["planned_arrival"].size(), std::size_t(2));
+	QVERIFY2(encodePassengers({}) == json({{"passengers", json::array()}}),
+		"encoder writes an empty passenger list as an empty array");
+}
+
+// A saved scene loads with every field it was saved with, and its snapshot is the bytes of the save.
+void TestSceneWriter::reloadsCompleteScene() {
+	TempDir temp;
+	const SceneSaveResult saved = saveScene(authoredScene(), temp.path.string());
+	QVERIFY2(saved.success(), "complete canonical scene saves");
+	const std::string savedSnapshot = saved.inputSnapshot;
+	SceneModel reloaded;
+	QVERIFY2(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");
+	const SceneLoadResult loadedSnapshot = loadScene(temp.path.string());
+	// Load retains the exact framed snapshot emitted by save.
+	QVERIFY(!loadedSnapshot.inputSnapshot.empty());
+	QVERIFY(loadedSnapshot.inputSnapshot == savedSnapshot);
+	{
+		std::ofstream output(temp.path / "services.json", std::ios::binary | std::ios::app);
+		output << ' ';
+	}
+	const SceneInputSnapshot changedOnDisk = readSceneDirectorySnapshot(temp.path.string());
+	// External canonical-file changes do not mutate retained snapshots.
+	QVERIFY(changedOnDisk.reason.empty());
+	QVERIFY(changedOnDisk.bytes != savedSnapshot);
+	QVERIFY(saved.inputSnapshot == savedSnapshot);
+	QVERIFY(loadedSnapshot.inputSnapshot == savedSnapshot);
+	// Topology round-trips.
+	QCOMPARE(reloaded.tracks.size(), std::size_t(1));
+	QCOMPARE(reloaded.nodes.size(), std::size_t(2));
+	QCOMPARE(reloaded.blocks.size(), std::size_t(2));
+	// Authored display layout round-trips.
+	QCOMPARE(reloaded.trackViews.size(), std::size_t(1));
+	QCOMPARE(reloaded.trackViews[0].trackId, "track-1");
+	QCOMPARE(reloaded.trackViews[0].level, -2);
+	QCOMPARE(reloaded.trackViews[0].region, 1);
+	QVERIFY(!reloaded.trackViews[0].visible);
+	QCOMPARE(reloaded.stationViews.size(), std::size_t(1));
+	QCOMPARE(reloaded.stationViews[0].stationId, "station-1");
+	QVERIFY((reloaded.stationViews[0].regions == std::vector<std::pair<int, double>>({{1, 0.25}, {2, 0.75}})));
+	QVERIFY((reloaded.stationViews[0].corridors == std::vector<std::string>({"main", "branch"})));
+	// Route corridor and direction round-trip.
+	QCOMPARE(reloaded.routes[0].corridor, "corridor-1");
+	QVERIFY(reloaded.routes[0].reversed);
+	// Signalling area fields round-trip.
+	QCOMPARE(reloaded.signallingAreas.size(), std::size_t(1));
+	QCOMPARE(reloaded.signallingAreas[0].id, "area-1");
+	QCOMPARE_EQ(reloaded.signallingAreas[0].startKm, 0.25);
+	QCOMPARE_EQ(reloaded.signallingAreas[0].endKm, 0.75);
+	QCOMPARE(reloaded.signallingAreas[0].level, 4);
+	QCOMPARE(reloaded.signallingAreas[0].trackId, "track-1");
+	// Protected-section binding round-trips through folder JSON.
+	QCOMPARE(sceneSignals(reloaded).size(), std::size_t(1));
+	QCOMPARE(sceneSignals(reloaded)[0].protectedSection, "@block-1@");
+	// Planned departure round-trips.
+	QVERIFY(reloaded.services[0].stops[0].hasPlannedDeparture);
+	QCOMPARE_EQ(reloaded.services[0].stops[0].plannedDepartureSeconds, 100.0);
+	// Service operating code round-trips.
+	QCOMPARE(reloaded.services[0].operatingCode, "R100");
+	// Platform geometry presence and effective defaults round-trip.
+	QVERIFY(reloaded.stations[0].platforms[0].hasLength);
+	QCOMPARE_EQ(reloaded.stations[0].platforms[0].lengthM, 125.0);
+	QVERIFY(reloaded.stations[0].platforms[0].hasWidth);
+	QCOMPARE_EQ(reloaded.stations[0].platforms[0].widthM, 3.75);
+	QVERIFY(!reloaded.stations[1].platforms[0].hasLength);
+	QCOMPARE_EQ(reloaded.stations[1].platforms[0].lengthM, 100.0);
+	QVERIFY(!reloaded.stations[1].platforms[0].hasWidth);
+	QCOMPARE_EQ(reloaded.stations[1].platforms[0].widthM, 2.5);
+	// Optional service runtime properties round-trip.
+	QCOMPARE_EQ(reloaded.services[0].performancePercent, 87.5);
+	QVERIFY(reloaded.services[0].hasMaximumSpeed);
+	QCOMPARE_EQ(reloaded.services[0].maximumSpeedKmh, 120.0);
+	QVERIFY(reloaded.services[0].hasRepeatCount);
+	QCOMPARE(reloaded.services[0].repeatCount, 3);
+	QVERIFY(reloaded.services[0].hasOperatingCodeStep);
+	QCOMPARE(reloaded.services[0].operatingCodeStep, 2);
+	// Enhanced breakdown fields round-trip through canonical scene files.
+	QCOMPARE(reloaded.scenarios[1].incidents.size(), std::size_t(1));
+	QVERIFY(reloaded.scenarios[1].incidents[0].hasOccurrence);
+	QCOMPARE(reloaded.scenarios[1].incidents[0].occurrence, 2);
+	QVERIFY(reloaded.scenarios[1].incidents[0].hasReducedSpeed);
+	QCOMPARE_EQ(reloaded.scenarios[1].incidents[0].reducedSpeedKmh, 40.0);
+	QVERIFY(!reloaded.scenarios[1].incidents[0].hasEndSeconds);
+	QVERIFY(reloaded.scenarios[1].incidents[0].terminateAtDestination);
+	// Planned arrival round-trips.
+	QVERIFY(reloaded.services[0].stops[1].hasPlannedArrival);
+	QCOMPARE_EQ(reloaded.services[0].stops[1].plannedArrivalSeconds, 200.0);
+	// Scenario selection round-trips.
+	QCOMPARE(reloaded.defaultScenarioId, "baseline");
+	QCOMPARE(reloaded.scenarios.size(), std::size_t(2));
+	// Passenger journey round-trips.
+	QCOMPARE(reloaded.passengers.size(), std::size_t(1));
+	QCOMPARE(reloaded.passengers[0].journeys.size(), std::size_t(1));
+	// Rolling provenance fields are independently optional.
+	QCOMPARE(reloaded.trainUnits[0].sourceDataFile, "/TrainData/unit-1.txt");
+	QVERIFY(reloaded.trainUnits[0].sourceTractionFile.empty());
+	// Saved app version round-trips.
+	QCOMPARE(reloaded.savedWithAppVersion, EGTRAIN_APP_VERSION);
+}
+
+// A service with default properties is written without them, and the loader takes a missing category or colour and
+// rejects one of the wrong type.
+void TestSceneWriter::omitsLegacyDefaults() {
+	TempDir temp;
+	SceneModel legacyDefaults = completeScene();
+	legacyDefaults.scenarios[1].incidents[0].hasReducedSpeed = false;
+	legacyDefaults.scenarios[1].incidents[0].reducedSpeedKmh = 40.125;
+	const fs::path legacyDefaultsPath = temp.path / "legacy-defaults";
+	QVERIFY2(saveScene(legacyDefaults, legacyDefaultsPath.string()).success(), "legacy-default service still saves");
+	json legacyServices;
+	{
+		std::ifstream input(legacyDefaultsPath / "services.json");
+		input >> legacyServices;
+	}
+	json normalizedScenarios;
+	{
+		std::ifstream input(legacyDefaultsPath / "scenarios.json");
+		input >> normalizedScenarios;
+	}
+	// Writer preserves a nonzero reduced speed when its presence flag is stale.
+	QVERIFY(normalizedScenarios["scenarios"][1]["incidents"][0]["reduced_speed_kmh"] == 40.125);
+	QVERIFY(!normalizedScenarios["scenarios"][1]["incidents"][0].contains("end_seconds"));
+	// Default service properties remain omitted for legacy scenes.
+	QVERIFY(!legacyServices["services"][0].contains("performance_percent"));
+	QVERIFY(!legacyServices["services"][0].contains("category"));
+	QVERIFY(!legacyServices["services"][0].contains("visualization_color"));
+	QVERIFY(!legacyServices["services"][0].contains("maximum_speed_kmh"));
+	QVERIFY(!legacyServices["services"][0].contains("repeat"));
+	SceneModel missingCategory;
+	// Missing category defaults to empty.
+	QVERIFY(loadHasNoErrors(legacyDefaultsPath, missingCategory));
+	QVERIFY(missingCategory.services[0].category.empty());
+	legacyServices["services"][0]["category"] = 42;
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	QVERIFY2(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics), "non-string category is rejected");
+	SceneModel missingColor;
+	legacyServices["services"][0].erase("category");
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	// Missing colour defaults to empty.
+	QVERIFY(loadHasNoErrors(legacyDefaultsPath, missingColor));
+	QVERIFY(missingColor.services[0].visualizationColor.empty());
+	legacyServices["services"][0]["visualization_color"] = 42;
+	{
+		std::ofstream output(legacyDefaultsPath / "services.json");
+		output << legacyServices.dump(2) << "\n";
+	}
+	QVERIFY2(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
+		"non-string visualization colour is rejected");
+}
+
+void TestSceneWriter::roundTripsServiceColour_data() {
+	QTest::addColumn<QString>("color");
+	QTest::newRow("lower case") << QString("#3c8dd2");
+	QTest::newRow("upper case") << QString("#3C8DD2");
+	QTest::newRow("mixed case") << QString("#3c8DD2");
+	QTest::newRow("not a colour") << QString("not-a-colour");
+}
+
+// A service colour is written and read back as given, without a check of its form.
+void TestSceneWriter::roundTripsServiceColour() {
+	QFETCH(QString, color);
+	const std::string given = color.toStdString();
+	TempDir temp;
+	SceneModel colored = completeScene();
+	colored.services[0].visualizationColor = given;
+	const fs::path coloredPath = temp.path / "colored-service";
+	QVERIFY2(saveScene(colored, coloredPath.string()).success(), "service with colour saves");
+	json coloredServices;
+	{
+		std::ifstream input(coloredPath / "services.json");
+		input >> coloredServices;
+	}
+	SceneModel coloredReloaded;
+	// Service colour is written and read back exactly as given.
+	QCOMPARE(coloredServices["services"][0].value("visualization_color", ""), given);
+	QVERIFY(loadHasNoErrors(coloredPath, coloredReloaded));
+	QCOMPARE(coloredReloaded.services[0].visualizationColor, given);
+}
+
+// A scene.json without the saved app version loads.
+void TestSceneWriter::missingAppVersionIsValid() {
+	TempDir temp;
+	const fs::path missingVersionPath = temp.path / "missing-version";
+	QVERIFY2(saveScene(authoredScene(), missingVersionPath.string()).success(),
+		"scene with saved app version saves before optional-field check");
+	json missingVersionScene;
+	{
+		std::ifstream input(missingVersionPath / "scene.json");
+		input >> missingVersionScene;
+	}
+	missingVersionScene.erase("saved_with_app_version");
+	{
+		std::ofstream output(missingVersionPath / "scene.json");
+		output << missingVersionScene.dump(2) << "\n";
+	}
+	SceneModel missingVersion;
+	// Missing saved app version remains valid and empty.
+	QVERIFY(loadHasNoErrors(missingVersionPath, missingVersion));
+	QVERIFY(missingVersion.savedWithAppVersion.empty());
+}
+
+// The student-facing loaded-data summary distinguishes source, parsed, optional, and validation states and carries
+// only concrete editor targets.
+void TestSceneWriter::summarisesLoadedData() {
+	TempDir temp;
+	QVERIFY2(saveScene(authoredScene(), temp.path.string()).success(), "complete canonical scene saves");
+	SceneModel reloaded;
+	QVERIFY2(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");
+	refreshLoadedDataSummary(reloaded);
+	const auto findCategory = [](const std::vector<SceneLoadedData>& rows,
+								  const std::string& category) -> const SceneLoadedData* {
+		for (const auto& row : rows) {
+			if (row.category == category)
+				return &row;
+		}
+		return nullptr;
+	};
+	const SceneLoadedData* rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	const SceneLoadedData* units = rolling ? findCategory(rolling->children, "train_units") : nullptr;
+	// Loaded category reports parsed canonical data.
+	if (rolling == nullptr)
+		QFAIL("there is no rolling_stock row");
+	QCOMPARE(rolling->status, "Parsed");
+	// Loaded train-unit row owns its editor target, data, curve, and provenance.
+	if (units == nullptr)
+		QFAIL("there is no train_units row");
+	QVERIFY(!units->children.empty());
+	QCOMPARE(units->children.front().targetType, "train_unit");
+	QCOMPARE(units->children.front().category, "unit-1");
+	QVERIFY(findCategory(units->children.front().children, "train_unit_parameters"));
+	QVERIFY(findCategory(units->children.front().children, "tractive_effort_curve"));
+	QVERIFY(findCategory(units->children.front().children, "import_provenance"));
+	const SceneLoadedData* infrastructure = findCategory(reloaded.loadedData, "infrastructure");
+	// Infrastructure summary resolves to the existing network view.
+	if (infrastructure == nullptr)
+		QFAIL("there is no infrastructure row");
+	QCOMPARE(infrastructure->targetType, "network");
+	{
+		SceneModel twins = reloaded;
+		SceneScenario first;
+		first.id = "twin_a";
+		first.name = "Twin";
+		SceneScenario second = first;
+		second.id = "twin_b";
+		SceneScenario other;
+		other.id = "solo";
+		other.name = "Solo";
+		twins.scenarios = {first, second, other};
+		twins.defaultScenarioId = "twin_a";
+		refreshLoadedDataSummary(twins);
+		const SceneLoadedData* scenarioRows = findCategory(twins.loadedData, "scenarios");
+		const SceneLoadedData* available = scenarioRows ? findCategory(scenarioRows->children, "available_scenarios") : nullptr;
+		std::vector<std::string> labels;
+		if (available)
+			for (const auto& row : available->children)
+				labels.push_back(row.category);
+		QVERIFY2((labels == std::vector<std::string>({"Twin (twin_a, default)", "Twin (twin_b)", "Solo"})),
+			"two scenarios with one name are told apart by their IDs in the loaded data");
+	}
+
+	SceneModel withoutOptional = reloaded;
+	withoutOptional.sourceFiles.erase("scenarios.json");
+	withoutOptional.sourceFiles.erase("passengers.json");
+	withoutOptional.scenarios.clear();
+	withoutOptional.passengers.clear();
+	refreshLoadedDataSummary(withoutOptional);
+	const SceneLoadedData* scenariosRow = findCategory(withoutOptional.loadedData, "scenarios");
+	const SceneLoadedData* passengersRow = findCategory(withoutOptional.loadedData, "passengers");
+	// Absent optional scene inputs are labelled explicitly.
+	if (scenariosRow == nullptr)
+		QFAIL("there is no scenarios row");
+	QCOMPARE(scenariosRow->status, "Missing optional");
+	if (passengersRow == nullptr)
+		QFAIL("there is no passengers row");
+	QCOMPARE(passengersRow->status, "Missing optional");
+	QVERIFY2(withoutOptional.scenarios.empty(), "loaded-data refresh does not create canonical input");
+
+	SceneDiagnostic rollingWarning;
+	rollingWarning.severity = SceneSeverity::Warning;
+	rollingWarning.file = "rolling_stock.json";
+	refreshLoadedDataDiagnostics(reloaded, {rollingWarning});
+	rolling = findCategory(reloaded.loadedData, "rolling_stock");
+	// Validation warning is visible on its loaded-data category.
+	if (rolling == nullptr)
+		QFAIL("there is no rolling_stock row");
+	QCOMPARE(rolling->status, "Warning");
+	QVERIFY(!rolling->children.empty());
+	QCOMPARE(rolling->children.back().status, "Warning");
+}
+
+// A scene without scenarios is written with the baseline scenario.
+void TestSceneWriter::savesBaselineScenarioWithoutScenarios() {
+	const SceneScenario baseline = makeBaselineScenario();
+	// The baseline scenario has no incidents or entrance delays.
+	QCOMPARE(baseline.id, "baseline");
+	QCOMPARE(baseline.name, "Baseline");
+	QVERIFY(baseline.incidents.empty());
+	QVERIFY(baseline.entranceDelays.empty());
+	TempDir noScenarioDir;
+	SceneModel noScenarios = authoredScene();
+	noScenarios.scenarios.clear();
+	noScenarios.defaultScenarioId.clear();
+	const SceneSaveResult noScenarioSave = saveScene(noScenarios, noScenarioDir.path.string());
+	const json noScenarioFile = readJsonFile(noScenarioDir.path / "scenarios.json");
+	// A scene without scenarios is saved with the baseline scenario.
+	QVERIFY(noScenarioSave.success());
+	QVERIFY(noScenarioFile["default_scenario_id"] == "baseline");
+	QCOMPARE(noScenarioFile["scenarios"].size(), std::size_t(1));
+	QVERIFY(noScenarioFile["scenarios"][0]["id"] == "baseline");
+	QVERIFY(noScenarioFile["scenarios"][0]["name"] == "Baseline");
+	// A new scene and an editor request default to the baseline scenario.
+	QCOMPARE(makeNewSceneModel().defaultScenarioId, baseline.id);
+	QCOMPARE(defaultScenario(noScenarios)->id, baseline.id);
+}
+
+// Historical aliases and flat incidents remain readable during migration, and the next save removes the flat file.
+void TestSceneWriter::readsHistoricalAliases() {
+	TempDir temp;
+	const SceneModel source = authoredScene();
+	QVERIFY2(saveScene(source, temp.path.string()).success(), "complete canonical scene saves");
+	json services;
+	{
+		std::ifstream input(temp.path / "services.json");
+		input >> services;
+	}
+	fs::remove(temp.path / "scenarios.json");
+	{
+		std::ofstream output(temp.path / "incidents.json");
+		output << R"({"incidents":[{"id":"legacy-incident","type":"signal_failure","target":"signal-1","start_seconds":10,"end_seconds":20}]})";
+	}
+	services["services"][0]["stops"][0]["departure_seconds"] = services["services"][0]["stops"][0]["planned_departure_seconds"];
+	services["services"][0]["stops"][0].erase("planned_departure_seconds");
+	services["services"][0]["stops"][1]["arrival_seconds"] = services["services"][0]["stops"][1]["planned_arrival_seconds"];
+	services["services"][0]["stops"][1].erase("planned_arrival_seconds");
+	{
+		std::ofstream output(temp.path / "services.json");
+		output << services.dump(2) << "\n";
+	}
+	SceneModel historical;
+	QVERIFY2(loadHasNoErrors(temp.path, historical), "historical aliases and flat incidents load");
+	// Flat incidents become the implicit baseline.
+	QCOMPARE(historical.defaultScenarioId, "baseline");
+	QCOMPARE(historical.scenarios.size(), std::size_t(1));
+	// Flat incident and timetable aliases migrate into canonical fields.
+	QCOMPARE(historical.scenarios[0].incidents.size(), std::size_t(1));
+	QVERIFY(historical.services[0].stops[0].hasPlannedDeparture);
+
+	// A later successful save removes the stale compatibility file.
+	SceneSaveResult resaved = saveScene(source, temp.path.string());
+	// Successful canonical save removes stale incidents after scenarios write.
+	QVERIFY(resaved.success());
+	QVERIFY(!fs::exists(temp.path / "incidents.json"));
+}
+
+// A stop inserted into a committed service keeps its place and every planned time through save and reload.
+void TestSceneWriter::insertsStopIntoCommittedService() {
+	TempDir temp;
+	SceneModel committed;
+	QVERIFY2(loadHasNoErrors(fs::path(EGTRAIN_SCENES_DIR) / "Paimpol", committed), "committed Paimpol scene loads");
+	SceneService* service = nullptr;
+	for (SceneService& candidate : committed.services)
+		if (candidate.id == "Guin-Paim-EXPRESS-1")
+			service = &candidate;
+	// Committed service has three stops.
+	if (service == nullptr)
+		QFAIL("there is no service Guin-Paim-EXPRESS-1");
+	QCOMPARE(service->stops.size(), std::size_t(3));
+	const SceneStopInsertionWindow window = sceneStopInsertionWindow(committed, *service, 1);
+	// A route visit is free between the first two stops.
+	QVERIFY(window.ok);
+	QVERIFY(!window.visits.visits.empty());
+	SceneStop inserted;
+	inserted.stationId = window.visits.visits.front().stationId;
+	inserted.platformId = window.visits.visits.front().platformId;
+	inserted.hasPlannedArrival = true;
+	inserted.plannedArrivalSeconds = 800.0;
+	inserted.hasPlannedDeparture = true;
+	inserted.plannedDepartureSeconds = 830.0;
+	inserted.dwellSeconds = 30.0;
+	const std::vector<SceneStop> original = service->stops;
+	const SceneStopInsertionResult insertion = insertSceneStop(committed, *service, 1, inserted);
+	QVERIFY2(insertion.inserted, "a stop is inserted between the first two stops");
+	const fs::path insertDir = temp.path / "inserted-stop";
+	const SceneSaveResult insertSave = saveScene(committed, insertDir.string());
+	printErrors(insertSave.diagnostics, "insert save");
+	QVERIFY2(insertSave.success(), "a scene with an inserted stop saves");
+	SceneModel reloadedInsert;
+	QVERIFY2(loadHasNoErrors(insertDir, reloadedInsert), "a scene with an inserted stop reloads");
+	const SceneService* reloadedService = nullptr;
+	for (const SceneService& candidate : reloadedInsert.services)
+		if (candidate.id == "Guin-Paim-EXPRESS-1")
+			reloadedService = &candidate;
+	const std::vector<SceneStop> expected = {original[0], inserted, original[1], original[2]};
+	bool sameStops = reloadedService != nullptr && reloadedService->stops.size() == expected.size();
+	for (std::size_t index = 0; sameStops && index < expected.size(); ++index) {
+		const SceneStop& left = reloadedService->stops[index];
+		const SceneStop& right = expected[index];
+		sameStops = left.stationId == right.stationId && left.platformId == right.platformId
+			&& left.hasPlannedArrival == right.hasPlannedArrival
+			&& left.hasPlannedDeparture == right.hasPlannedDeparture
+			&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
+			&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
+			&& left.dwellSeconds == right.dwellSeconds;
+	}
+	QVERIFY2(sameStops, "reload keeps the stop order and every planned time");
+}
+
+void TestSceneWriter::scenesFolderHoldsScenes() {
+	std::error_code error;
+	const std::set<fs::path> directories = committedSceneDirectories(error);
+	QVERIFY2(!error, "scene codec: the Scenes directory can be read");
+	QVERIFY2(!directories.empty(), "scene codec: the Scenes directory holds scene directories");
+}
+
+// Every scene directory under the Scenes directory, and the line and minimal fixtures.
+void TestSceneWriter::sceneCodec_data() {
+	QTest::addColumn<QString>("directory");
+	std::error_code error;
+	for (const fs::path& directory : committedSceneDirectories(error))
+		QTest::newRow(directory.filename().string().c_str()) << QString::fromStdString(directory.u8string());
+	const fs::path fixtures = fs::path(EGTRAIN_TEST_SOURCE_DIR) / "fixtures" / "scenes";
+	QTest::newRow("fixture line") << QString::fromStdString((fixtures / "line").u8string());
+	QTest::newRow("fixture minimal") << QString::fromStdString((fixtures / "minimal").u8string());
+}
+
+// Loads the source, saves it, loads the save and saves again. The second save must equal the first one, and the first
+// save must keep every entry of the source. A save is compared with a save, because the committed files are not always
+// in the writer's form (indent, key order) and the writer always writes scenarios.json. The entry counts and the
+// identity keys of scene.json are compared with the source, so that a loader and a writer that both drop a field
+// cannot pass.
+void TestSceneWriter::sceneCodec() {
+	QFETCH(QString, directory);
+	const fs::path source = fs::u8path(directory.toStdString());
+	const std::string label = QTest::currentDataTag();
+	TempDir temp;
+	SceneModel model;
+	QVERIFY2(loadHasNoErrors(source, model), "the source loads without errors");
+	const fs::path first = temp.path / "first";
+	const SceneSaveResult firstSave = saveScene(model, first.string());
+	printErrors(firstSave.diagnostics, "first save");
+	QVERIFY2(firstSave.success(), "the first save succeeds");
+	SceneModel reloaded;
+	// The first save loads without errors and records the current app version.
+	QVERIFY(loadHasNoErrors(first, reloaded));
+	QCOMPARE(reloaded.savedWithAppVersion, EGTRAIN_APP_VERSION);
+	const fs::path second = temp.path / "second";
+	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
+	printErrors(secondSave.diagnostics, "second save");
+	QVERIFY2(secondSave.success(), "the second save succeeds");
+	QVERIFY2(sameDirectoryBytes(first, second, label), "the second save equals the first save byte for byte");
+	QVERIFY2(hasCanonicalFileNames(first, label), "the first save holds the canonical files and nothing else");
+
+	std::map<std::string, json> sourceFiles;
+	std::map<std::string, json> savedFiles;
+	for (const char* name : kCanonicalSceneFiles) {
+		sourceFiles[name] = readJsonFile(source / name);
+		savedFiles[name] = readJsonFile(first / name);
+	}
+	// Without scenarios.json the loader creates one baseline scenario and takes its incidents from the flat incidents.json.
+	if (!fs::exists(source / "scenarios.json")) {
+		json baseline = {{"incidents", json::array()}, {"entrance_delays", json::array()}};
+		const json flatIncidents = readJsonFile(source / "incidents.json");
+		if (flatIncidents.contains("incidents"))
+			baseline["incidents"] = flatIncidents["incidents"];
+		sourceFiles["scenarios.json"] = {{"scenarios", json::array({baseline})}};
+	}
+	const std::vector<EntryCount> counts = {
+		{"scene.json", {"import_report"}},
+		{"infrastructure.json", {"tracks"}},
+		{"infrastructure.json", {"nodes"}},
+		{"infrastructure.json", {"arcs"}},
+		{"infrastructure.json", {"blocks"}},
+		{"infrastructure.json", {"connections"}},
+		{"stations.json", {"stations"}},
+		{"stations.json", {"stations", "platforms"}},
+		{"signalling.json", {"signals"}},
+		{"signalling.json", {"routes"}},
+		{"signalling.json", {"block_dependencies"}},
+		{"signalling.json", {"single_track_restrictions"}},
+		{"signalling.json", {"station_boundaries"}},
+		{"signalling.json", {"signalling_areas"}},
+		{"rolling_stock.json", {"train_units"}},
+		{"rolling_stock.json", {"compositions"}},
+		{"services.json", {"services"}},
+		{"services.json", {"services", "stops"}},
+		{"scenarios.json", {"scenarios"}},
+		{"scenarios.json", {"scenarios", "incidents"}},
+		{"scenarios.json", {"scenarios", "entrance_delays"}},
+		{"passengers.json", {"passengers"}},
+		{"passengers.json", {"passengers", "journeys"}},
+		{"passengers.json", {"passengers", "journeys", "legs"}},
+		{"views.json", {"tracks"}},
+		{"views.json", {"stations"}},
+	};
+	for (const EntryCount& count : counts) {
+		const std::size_t expected = countEntries(sourceFiles[count.file], count.keys);
+		const std::size_t actual = countEntries(savedFiles[count.file], count.keys);
+		std::string name = count.file;
+		for (const char* key : count.keys)
+			name += std::string(" ") + key;
+		QVERIFY2(expected == actual, (name + ": the source has " + std::to_string(expected) + " entries and the first save has " + std::to_string(actual)).c_str());
+	}
+	const json& sourceScene = sourceFiles["scene.json"];
+	const json& savedScene = savedFiles["scene.json"];
+	for (const char* key : {"name", "description", "base_time", "schema_version", "simulation_settings"}) {
+		if (sourceScene.contains(key)) {
+			const std::string message = std::string("scene.json ") + key + " has the value of the source";
+			QVERIFY2(savedScene.contains(key), message.c_str());
+			QVERIFY2(savedScene[key] == sourceScene[key], message.c_str());
+		}
+	}
+}
+
+void TestSceneWriter::populatedSceneKeys_data() {
+	// The index of the row in populatedSceneTable().
+	QTest::addColumn<int>("row");
+	const std::vector<WrittenValue>& table = populatedSceneTable();
+	for (std::size_t index = 0; index < table.size(); ++index)
+		QTest::newRow((std::string(table[index].file) + " " + table[index].pointer).c_str()) << static_cast<int>(index);
+}
+
+// Every key of the files written for the populated model has the value of the model.
+void TestSceneWriter::populatedSceneKeys() {
+	QFETCH(int, row);
+	const WrittenValue& value = populatedSceneTable()[static_cast<std::size_t>(row)];
+	const json::json_pointer pointer(value.pointer);
+	const json& document = m_written.at(value.file);
+	// Scene codec populated scene: every key of the written files has the value of the model.
+	QVERIFY2(document.contains(pointer), ("should be " + value.expected.dump() + " but is missing").c_str());
+	QVERIFY2(document.at(pointer) == value.expected,
+		("should be " + value.expected.dump() + " but is " + document.at(pointer).dump()).c_str());
+}
+
+// The table of populatedSceneKeys has a row for every key the writer wrote.
+void TestSceneWriter::populatedSceneTableIsComplete() {
+	std::set<std::string> leaves;
+	for (const auto& file : m_written)
+		collectLeaves(file.second, "/" + file.first, leaves);
+	for (const WrittenValue& value : populatedSceneTable())
+		leaves.erase(withoutIndexes("/" + std::string(value.file) + value.pointer));
+	std::string missing;
+	for (const std::string& leaf : leaves)
+		missing += " " + leaf;
+	QVERIFY2(leaves.empty(),
+		("scene codec populated scene: the table has a row for every key of the written files; no row for" + missing)
+			.c_str());
+}
+
+// The save of the populated model loads with its views and saves again to the same bytes.
+void TestSceneWriter::populatedSceneRoundTrips() {
+	QVERIFY2(!m_written.at("views.json").contains(json::json_pointer("/tracks/0/double_switch")),
+		"scene codec populated scene: a track view that is not a double switch is written without double_switch");
+	const SceneModel model = populatedScene();
+	SceneModel reloaded;
+	QVERIFY2(loadHasNoErrors(m_populated, reloaded), "scene codec populated scene: the save loads without errors");
+	// Scene codec populated scene: the load keeps every track view and station view.
+	QCOMPARE(reloaded.trackViews.size(), model.trackViews.size());
+	QCOMPARE(reloaded.stationViews.size(), model.stationViews.size());
+	// Scene codec populated scene: the load keeps the double switch of a track view.
+	QCOMPARE(reloaded.trackViews.size(), std::size_t(2));
+	QVERIFY(!reloaded.trackViews[0].doubleSwitch);
+	QVERIFY(reloaded.trackViews[1].doubleSwitch);
+	TempDir temp;
+	const fs::path second = temp.path / "second";
+	const SceneSaveResult secondSave = saveScene(reloaded, second.string());
+	printErrors(secondSave.diagnostics, "populated second save");
+	QVERIFY2(secondSave.success(), "scene codec populated scene: the second save succeeds");
+	QVERIFY2(sameDirectoryBytes(m_populated, second, "populated scene"),
+		"scene codec populated scene: the second save equals the first save byte for byte");
+}
+
+// A save publishes its staging directory as the scene directory. The entries of a private root show every staging or
+// backup sibling that a save leaves.
+void TestSceneWriter::publishesSave() {
+	TempDir temp;
+	const fs::path root = temp.path;
+	const fs::path destination = root / "scene";
+	const SceneModel scene = completeScene();
+
+	const SceneSaveResult first = saveScene(scene, destination.string());
+	printErrors(first.diagnostics, "publication first save");
+	QVERIFY2(first.success(), "save into an absent destination succeeds");
+	{
+		std::ofstream marker(destination / "marker.txt", std::ios::binary);
+		marker << "marker\n";
+	}
+	const SceneSaveResult second = saveScene(scene, destination.string());
+	printErrors(second.diagnostics, "publication second save");
+	// Save over an existing destination succeeds.
+	QVERIFY(second.success());
+	QVERIFY(fs::exists(destination / "marker.txt"));
+	QVERIFY2((entryNames(root) == std::set<std::string>{"scene"}), "saves leave no staging or backup sibling");
+
+#ifndef _WIN32
+	// The published directory is the staging directory, so it keeps its owner-only mode.
+	const fs::perms groupAndOther = fs::status(destination).permissions() & (fs::perms::group_all | fs::perms::others_all);
+	QVERIFY2(groupAndOther == fs::perms::none, "saved scene directory has no group and no other permission bits");
+
+	// A read-only parent refuses the staging directory. This does not apply to root. The permissions are restored
+	// before the checks.
+	const fs::path other = root / "other";
+	fs::permissions(root, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
+	const bool readOnly = access(root.c_str(), W_OK) != 0;
+	SceneSaveResult refused;
+	if (readOnly)
+		refused = saveScene(scene, other.string());
+	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
+	if (readOnly) {
+		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
+				&& diagnostic.message.rfind("Cannot create a private case staging directory", 0) == 0;
+		});
+		// Save into a read-only parent reports the staging directory.
+		QVERIFY(!refused.success());
+		QVERIFY(reported);
+		QVERIFY2(!fs::exists(other), "failed save creates no destination");
+		QVERIFY2((entryNames(root) == std::set<std::string>{"scene"}), "failed save leaves no staging sibling");
+	}
+#endif
+}
+
+// A scene directory and a scenario file with a Unicode name are written and read under that name, and the staging,
+// backup and temporary siblings made from the name are removed again.
+void TestSceneWriter::savesUnderUnicodeNames() {
+	TempDir temp;
+	const fs::path root = temp.path / fs::u8path(kUnicodeName);
+	const fs::path destination = root / fs::u8path(kUnicodeName);
+	const SceneModel scene = completeScene();
+
+	for (int pass = 0; pass < 2; ++pass) {
+		const SceneSaveResult saved = saveScene(scene, destination.u8string());
+		printErrors(saved.diagnostics, "Unicode save");
+		// A scene saves to a directory with a Unicode name, also over an existing one.
+		QVERIFY(saved.success());
+		QVERIFY(fs::is_regular_file(destination / "scene.json"));
+	}
+	const SceneLoadResult loaded = loadScene(destination.u8string());
+	printErrors(loaded.diagnostics, "Unicode load");
+	// A scene directory with a Unicode name loads.
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QVERIFY(loaded.inputSnapshot == readSceneDirectorySnapshot(destination.u8string()).bytes);
+
+	const fs::path scenarioFile = root / fs::u8path(kUnicodeName + ".json");
+	for (int pass = 0; pass < 2; ++pass)
+		QVERIFY2(saveScenarioJson(scene.scenarios[0], scenarioFile.u8string()).success(),
+			"a scenario saves to a file with a Unicode name, also over an existing one");
+	// A scenario file with a Unicode name loads.
+	QCOMPARE(loadScenarioJson(scenarioFile.u8string()).scenario.id, scene.scenarios[0].id);
+	// Saves under Unicode names leave no staging, backup or temporary sibling.
+	QVERIFY(fs::is_directory(root));
+	QVERIFY((entryNames(root) == std::set<std::string>{destination.filename().u8string(), scenarioFile.filename().u8string()}));
+
+	const std::string prefix = kUnicodeName + ".staging-";
+	StagedDirectory staged;
+	fs::path sibling;
+	// A staged directory is named after a Unicode prefix.
+	QVERIFY(!createStagedDirectory(root, prefix, false, staged));
+	QVERIFY(staged.path.filename().u8string().rfind(prefix, 0) == 0);
+	QVERIFY(fs::is_directory(staged.path));
+	// A sibling path is named after a Unicode prefix.
+	QVERIFY(!uniqueSiblingPath(root, prefix, sibling));
+	QVERIFY(sibling.filename().u8string().rfind(prefix, 0) == 0);
+}
+
+// A staged directory is created empty and private in its parent, or without the owner-only mode.
+void TestSceneWriter::createsStagedDirectory() {
+	TempDir temp;
+	StagedDirectory staged;
+	const std::error_code created = createStagedDirectory(temp.path, "scene.staging-", true, staged);
+	// Staged directory is created empty in the parent with the prefix.
+	QVERIFY(!created);
+	QVERIFY(fs::is_directory(staged.path));
+	QVERIFY(fs::is_empty(staged.path));
+	QVERIFY(staged.path.parent_path() == temp.path);
+	QVERIFY(staged.path.filename().string().rfind("scene.staging-", 0) == 0);
+#ifndef _WIN32
+	const fs::perms groupAndOther = fs::status(staged.path).permissions() & (fs::perms::group_all | fs::perms::others_all);
+	QVERIFY2(groupAndOther == fs::perms::none, "owner-only staged directory has no group and no other permission bits");
+#endif
+	StagedDirectory plain;
+	// Staged directory without the owner-only mode is created.
+	QVERIFY(!createStagedDirectory(temp.path, "scene.staging-", false, plain));
+	QVERIFY(fs::is_directory(plain.path));
+}
+
+// A staged directory is removed when it goes out of scope, unless it was released.
+void TestSceneWriter::removesStagedDirectoryOutOfScope() {
+	TempDir temp;
+	fs::path discardedPath, releasedPath;
+	{
+		StagedDirectory discarded, released;
+		// Staged directories are created.
+		QVERIFY(!createStagedDirectory(temp.path, "discarded-", false, discarded));
+		QVERIFY(!createStagedDirectory(temp.path, "released-", false, released));
+		discardedPath = discarded.path;
+		releasedPath = released.path;
+		released.release();
+		QVERIFY2(released.path.empty(), "release clears the path");
+	}
+	// Staged directory is removed when it goes out of scope.
+	QVERIFY(!discardedPath.empty());
+	QVERIFY(!fs::exists(discardedPath));
+	// Released directory stays on disk.
+	QVERIFY(!releasedPath.empty());
+	QVERIFY(fs::is_directory(releasedPath));
+}
+
+// Publication into an absent destination moves the staged directory into place.
+void TestSceneWriter::publishesIntoAbsentDestination() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	StagedDirectory staged;
+	QVERIFY2(!createStagedDirectory(temp.path, "scene.staging-", true, staged),
+		"staged directory is created for the first publication");
+	put(staged.path / "new.txt", "new\n");
+	const StagedPublishResult published = publishStagedDirectory(staged, destination, fs::path());
+	// Publication into an absent destination succeeds.
+	QVERIFY(published.step == StagedPublishStep::Published);
+	QVERIFY(!published.error);
+	QVERIFY(!published.restoreError);
+	QVERIFY(!published.removeBackupError);
+	// Published destination holds the staged files and nothing else is left.
+	QVERIFY(fs::is_directory(destination));
+	QVERIFY((readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}));
+	QVERIFY(staged.path.empty());
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scene"}));
+}
+
+// Publication over an existing destination replaces it and removes the backup.
+void TestSceneWriter::publishesOverExistingDestination() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	fs::create_directory(destination);
+	put(destination / "old.txt", "old\n");
+	StagedDirectory staged;
+	fs::path backup;
+	// Staged directory and backup name are reserved.
+	QVERIFY(!createStagedDirectory(temp.path, "scene.staging-", true, staged));
+	QVERIFY(!uniqueSiblingPath(temp.path, "scene.backup-", backup));
+	QVERIFY(!fs::exists(backup));
+	QVERIFY(backup.filename().string().rfind("scene.backup-", 0) == 0);
+	put(staged.path / "new.txt", "new\n");
+	const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
+	// Publication over an existing destination succeeds.
+	QVERIFY(published.step == StagedPublishStep::Published);
+	QVERIFY(!published.error);
+	QVERIFY(!published.restoreError);
+	QVERIFY(!published.removeBackupError);
+	// Replaced destination holds only the new files and no backup is left.
+	QVERIFY(fs::is_directory(destination));
+	QVERIFY((readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}));
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scene"}));
+}
+
+// The staging directory is gone, so the rename into place fails and the old destination is moved back.
+void TestSceneWriter::restoresDestinationAfterFailedRename() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	fs::create_directory(destination);
+	put(destination / "old.txt", "old\n");
+	StagedDirectory staged;
+	fs::path backup;
+	// Staged directory and backup name are reserved for the failing rename.
+	QVERIFY(!createStagedDirectory(temp.path, "scene.staging-", true, staged));
+	QVERIFY(!uniqueSiblingPath(temp.path, "scene.backup-", backup));
+	fs::remove_all(staged.path);
+	const StagedPublishResult failed = publishStagedDirectory(staged, destination, backup);
+	// Failed rename into place is reported as the Rename step.
+	QVERIFY(failed.step == StagedPublishStep::Rename);
+	QVERIFY(failed.error);
+	QVERIFY(!failed.restoreError);
+	QVERIFY(!failed.removeBackupError);
+	// Failed rename into place restores the old destination and leaves no backup.
+	QVERIFY(fs::is_directory(destination));
+	QVERIFY((readDirectoryBytes(destination) == Files{{"old.txt", "old\n"}}));
+	QVERIFY((entryNames(temp.path) == std::set<std::string>{"scene"}));
+}
+
+// A destination that is missing fails the move to the backup, and the staging directory is removed afterwards.
+void TestSceneWriter::reportsMissingDestination() {
+	TempDir temp;
+	const fs::path destination = temp.path / "scene";
+	fs::path stagingPath;
+	{
+		StagedDirectory staged;
+		fs::path backup;
+		// Staged directory and backup name are reserved for the missing destination.
+		QVERIFY(!createStagedDirectory(temp.path, "scene.staging-", true, staged));
+		QVERIFY(!uniqueSiblingPath(temp.path, "scene.backup-", backup));
+		stagingPath = staged.path;
+		const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
+		// Missing destination is reported as the MoveToBackup step.
+		QVERIFY(published.step == StagedPublishStep::MoveToBackup);
+		QVERIFY(published.error);
+		QVERIFY(!fs::exists(destination));
+		QVERIFY2(fs::is_directory(stagingPath), "staging directory is still owned after a failed move to the backup");
+	}
+	QVERIFY2(entryNames(temp.path).empty(), "staging directory is removed after a failed move to the backup");
+}
+
 // Malformed incidents and entrance delays of a standalone scenario file.
-static bool checkScenarioFileDiagnostics(const TempDir& temp) {
-	bool ok = true;
+void TestSceneWriter::reportsScenarioFileDiagnostics() {
+	TempDir temp;
 	const fs::path file = temp.path / "malformed-scenario.json";
 	const auto load = [&](const json& incidents, const json& entranceDelays) {
 		json scenario = {{"id", "s"}, {"name", "n"}};
@@ -1051,37 +2042,42 @@ static bool checkScenarioFileDiagnostics(const TempDir& temp) {
 	expected.push_back(type + " entrance_delays[0].delay_seconds: Invalid delay_seconds");
 	append(expected, fieldErrors(missing, "entrance_delays[1]", "Missing", {"service", "station", "delay_seconds"}));
 	ScenarioLoadResult loaded = load(json::array({wrongTypes, json::object()}), json::array({wrongDelay, json::object()}));
-	ok &= expect(scenarioErrors(loaded) == expected, "scenario file reports malformed incident and entrance delay fields in schema order");
-	ok &= expect(loaded.scenario.incidents.size() == 2 && loaded.scenario.incidents[0].id == "i"
-			&& !loaded.scenario.incidents[0].hasEndSeconds && !loaded.scenario.incidents[0].hasOccurrence
-			&& loaded.scenario.incidents[0].occurrence == 1 && !loaded.scenario.incidents[0].hasReducedSpeed
-			&& !loaded.scenario.incidents[0].terminateAtDestination && loaded.scenario.entranceDelays.size() == 2,
-		"scenario file keeps the defaults of malformed fields and still reads the items");
+	QVERIFY2(scenarioErrors(loaded) == expected,
+		"scenario file reports malformed incident and entrance delay fields in schema order");
+	// Scenario file keeps the defaults of malformed fields and still reads the items.
+	QCOMPARE(loaded.scenario.incidents.size(), std::size_t(2));
+	QCOMPARE(loaded.scenario.incidents[0].id, "i");
+	QVERIFY(!loaded.scenario.incidents[0].hasEndSeconds);
+	QVERIFY(!loaded.scenario.incidents[0].hasOccurrence);
+	QCOMPARE(loaded.scenario.incidents[0].occurrence, 1);
+	QVERIFY(!loaded.scenario.incidents[0].hasReducedSpeed);
+	QVERIFY(!loaded.scenario.incidents[0].terminateAtDestination);
+	QCOMPARE(loaded.scenario.entranceDelays.size(), std::size_t(2));
 
 	// An item that is not an object is reported once and is not read.
 	loaded = load(json::array({7}), json::array({7}));
-	ok &= expect(scenarioErrors(loaded)
-				== std::vector<std::string>{"scene.scenario.item.invalid incidents[0]: Incident must be an object",
-					"scene.scenario.item.invalid entrance_delays[0]: Entrance delay must be an object"}
-			&& loaded.scenario.incidents.empty() && loaded.scenario.entranceDelays.empty(),
-		"scenario file reports an incident and an entrance delay that are not objects once each");
+	// Scenario file reports an incident and an entrance delay that are not objects once each.
+	QVERIFY((scenarioErrors(loaded)
+		== std::vector<std::string>{"scene.scenario.item.invalid incidents[0]: Incident must be an object",
+			"scene.scenario.item.invalid entrance_delays[0]: Entrance delay must be an object"}));
+	QVERIFY(loaded.scenario.incidents.empty());
+	QVERIFY(loaded.scenario.entranceDelays.empty());
 
 	loaded = load("x", "x");
-	ok &= expect(scenarioErrors(loaded)
-			== std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array",
-				"scene.scenario.section.type entrance_delays: entrance_delays must be an array"},
+	QVERIFY2((scenarioErrors(loaded)
+				 == std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array",
+					 "scene.scenario.section.type entrance_delays: entrance_delays must be an array"}),
 		"scenario file reports sections that are not arrays");
 	loaded = load(nullptr, nullptr);
-	ok &= expect(scenarioErrors(loaded)
-			== std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array"},
+	QVERIFY2((scenarioErrors(loaded)
+				 == std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array"}),
 		"scenario file requires the incidents section and not the entrance delay section");
-	return ok;
 }
 
 // A case, a station and a scenario may have an empty name. A save loads what it wrote, so the loader takes an empty
 // name, and a missing one is still an error.
-static bool checkEmptyNames(const TempDir& temp) {
-	bool ok = true;
+void TestSceneWriter::savesEmptyNames() {
+	TempDir temp;
 	SceneModel scene = completeScene();
 	scene.name.clear();
 	scene.stations[0].name.clear();
@@ -1089,20 +2085,24 @@ static bool checkEmptyNames(const TempDir& temp) {
 	const fs::path scenePath = temp.path / "empty-names";
 	const SceneSaveResult saved = saveScene(scene, scenePath.string());
 	printErrors(saved.diagnostics, "empty names save");
-	ok &= expect(saved.success(), "a scene with an empty case, station and scenario name saves");
+	QVERIFY2(saved.success(), "a scene with an empty case, station and scenario name saves");
 	SceneModel reloaded;
-	ok &= expect(loadHasNoErrors(scenePath, reloaded) && reloaded.name.empty() && reloaded.stations.size() == 2
-			&& reloaded.stations[0].name.empty() && reloaded.stations[1].name == scene.stations[1].name
-			&& reloaded.scenarios.size() == 2 && reloaded.scenarios[0].name.empty(),
-		"the empty names load as empty");
+	// The empty names load as empty.
+	QVERIFY(loadHasNoErrors(scenePath, reloaded));
+	QVERIFY(reloaded.name.empty());
+	QCOMPARE(reloaded.stations.size(), std::size_t(2));
+	QVERIFY(reloaded.stations[0].name.empty());
+	QCOMPARE(reloaded.stations[1].name, scene.stations[1].name);
+	QCOMPARE(reloaded.scenarios.size(), std::size_t(2));
+	QVERIFY(reloaded.scenarios[0].name.empty());
 
 	const fs::path scenarioFile = temp.path / "empty-name-scenario.json";
-	ok &= expect(saveScenarioJson(scene.scenarios[0], scenarioFile.string()).success(), "a scenario with an empty name is exported");
+	QVERIFY2(saveScenarioJson(scene.scenarios[0], scenarioFile.string()).success(), "a scenario with an empty name is exported");
 	const ScenarioLoadResult imported = loadScenarioJson(scenarioFile.string());
-	ok &= expect(!hasErrors(imported.diagnostics) && imported.scenario.name.empty() && imported.scenario.id == scene.scenarios[0].id,
-		"a scenario file with an empty name is imported");
-	if (!saved.success())
-		return false;
+	// A scenario file with an empty name is imported.
+	QVERIFY(!hasErrors(imported.diagnostics));
+	QVERIFY(imported.scenario.name.empty());
+	QCOMPARE(imported.scenario.id, scene.scenarios[0].id);
 
 	json stations = readJsonFile(scenePath / "stations.json");
 	stations["stations"][0].erase("name");
@@ -1113,724 +2113,8 @@ static bool checkEmptyNames(const TempDir& temp) {
 		missingName = missingName
 			|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.field.missing"
 				&& diagnostic.file == "stations.json" && diagnostic.path == "stations[0].name");
-	ok &= expect(missingName, "a station without a name key is still an error");
-	return ok;
+	QVERIFY2(missingName, "a station without a name key is still an error");
 }
 
-int main(int argc, char** argv) {
-	bool ok = true;
-	TempDir temp;
-	SceneModel source = completeScene();
-	source.savedWithAppVersion = "0.9.0";
-	source.stations[0].platforms[0].hasLength = true;
-	source.stations[0].platforms[0].lengthM = 125.0;
-	source.stations[0].platforms[0].hasWidth = true;
-	source.stations[0].platforms[0].widthM = 3.75;
-	source.services[0].performancePercent = 87.5;
-	source.services[0].hasMaximumSpeed = true;
-	source.services[0].maximumSpeedKmh = 120.0;
-	source.services[0].hasRepeat = true;
-	source.services[0].headwaySeconds = 900.0;
-	source.services[0].hasRepeatCount = true;
-	source.services[0].repeatCount = 3;
-	source.services[0].hasOperatingCodeStep = true;
-	source.services[0].operatingCodeStep = 2;
-	SceneSaveResult saved = saveScene(source, temp.path.string());
-	printErrors(saved.diagnostics, "save");
-	ok &= expect(saved.success() && saved.writeAttempted, "complete canonical scene saves after a write attempt");
-	ok &= expect(!saveScene(source, "").writeAttempted, "empty destination rejects before filesystem mutation");
-	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			 "rolling_stock.json", "services.json", "scenarios.json", "passengers.json", "views.json"})
-		ok &= expect(fs::exists(temp.path / file), "all canonical files are written");
-	const std::string savedSnapshot = saved.inputSnapshot;
-	const SceneInputSnapshot onDiskSnapshot = readSceneDirectorySnapshot(temp.path.string());
-	ok &= expect(!savedSnapshot.empty() && onDiskSnapshot.reason.empty()
-			&& savedSnapshot == onDiskSnapshot.bytes,
-		"successful save retains the exact framed canonical input snapshot");
-	ok &= expect(!fs::exists(temp.path / "incidents.json"), "writer does not emit flat incidents.json");
-	json savedScene;
-	{
-		std::ifstream input(temp.path / "scene.json");
-		input >> savedScene;
-	}
-	ok &= expect(savedScene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
-		"writer records the authoritative current app version");
-	{
-		std::ofstream marker(temp.path / "generation-marker.txt", std::ios::binary);
-		marker << "original generation marker\n";
-	}
-	fs::create_directory(temp.path / "notes");
-	{
-		std::ofstream note(temp.path / "notes" / "operator.txt", std::ios::binary);
-		note << "keep with scene\n";
-	}
-	const auto originalGeneration = readDirectoryBytes(temp.path);
-	SceneModel malformed = source;
-	malformed.passengers[0].journeys[0].activity = std::string("\xC3\x28", 2);
-	const SceneSaveResult failedSave = saveScene(malformed, temp.path.string());
-	ok &= expect(!failedSave.success() && failedSave.writeAttempted && hasErrors(failedSave.diagnostics),
-		"malformed UTF-8 fails without publishing a partial generation");
-	ok &= expect(readDirectoryBytes(temp.path) == originalGeneration,
-		"failed save preserves every byte of the previous generation");
-	ok &= expect(!hasSiblingArtifact(temp.path, "staging")
-			&& !hasSiblingArtifact(temp.path, "backup"),
-		"failed save removes sibling staging and backup artifacts");
-	const SceneSaveResult replacementSave = saveScene(source, temp.path.string());
-	ok &= expect(replacementSave.success()
-			&& fs::exists(temp.path / "generation-marker.txt")
-			&& fs::exists(temp.path / "notes" / "operator.txt"),
-		"successful generation replacement preserves unmanaged scene contents");
-	json stations;
-	{
-		std::ifstream input(temp.path / "stations.json");
-		input >> stations;
-	}
-	ok &= expect(stations["stations"][0]["platforms"][0]["length_m"] == 125.0
-			&& stations["stations"][0]["platforms"][0]["width_m"] == 3.75,
-		"writer emits explicitly authored platform geometry");
-	ok &= expect(!stations["stations"][1]["platforms"][0].contains("length_m")
-			&& !stations["stations"][1]["platforms"][0].contains("width_m"),
-		"writer omits absent platform geometry");
-	json signalling;
-	{
-		std::ifstream input(temp.path / "signalling.json");
-		input >> signalling;
-	}
-	ok &= expect(signalling["signalling_areas"].size() == 1
-			&& signalling["signalling_areas"][0]["id"] == "area-1"
-			&& signalling["signalling_areas"][0]["start_km"] == 0.25
-			&& signalling["signalling_areas"][0]["end_km"] == 0.75
-			&& signalling["signalling_areas"][0]["level"] == 4
-			&& signalling["signalling_areas"][0]["track"] == "track-1",
-		"writer emits signalling area fields");
-	ok &= expect(signalling["signals"].size() == 1
-			&& signalling["signals"][0]["id"] == "signal-1"
-			&& signalling["signals"][0]["protected_section"] == "@block-1@",
-		"writer emits an explicitly bound signal section");
-	SceneModel absentAreas = completeScene();
-	absentAreas.signallingAreas.clear();
-	absentAreas.signals[0].protectedSection.clear();
-	const fs::path absentAreasPath = temp.path / "absent-signalling-areas";
-	ok &= expect(saveScene(absentAreas, absentAreasPath.string()).success(),
-		"scene without signalling areas saves");
-	json absentSignalling;
-	{
-		std::ifstream input(absentAreasPath / "signalling.json");
-		input >> absentSignalling;
-	}
-	ok &= expect(!absentSignalling.contains("signalling_areas"),
-		"writer preserves an absent signalling area array");
-	ok &= expect(!absentSignalling["signals"][0].contains("protected_section"),
-		"writer omits an empty protected-section binding");
-	SceneModel absentAreasReloaded;
-	ok &= expect(loadHasNoErrors(absentAreasPath, absentAreasReloaded)
-			&& absentAreasReloaded.signallingAreas.empty(),
-		"scene without signalling areas reloads with no inferred defaults");
-	ok &= expect(absentAreasReloaded.signals.size() == 1
-			&& absentAreasReloaded.signals[0].protectedSection.empty(),
-		"ID-only signal input round-trips without inventing a binding");
-	SceneModel unchosenSystem = completeScene();
-	unchosenSystem.signallingAreas[0].level = kSignallingLevelUnset;
-	const fs::path unchosenSystemPath = temp.path / "unchosen-signalling-system";
-	ok &= expect(saveScene(unchosenSystem, unchosenSystemPath.string()).success(),
-		"scene with an area whose signalling system is not chosen saves");
-	json unchosenSignalling;
-	{
-		std::ifstream input(unchosenSystemPath / "signalling.json");
-		input >> unchosenSignalling;
-	}
-	ok &= expect(unchosenSignalling["signalling_areas"].size() == 1
-			&& unchosenSignalling["signalling_areas"][0]["level"] == kSignallingLevelUnset,
-		"writer emits the level of an area whose signalling system is not chosen");
-	SceneModel unchosenReloaded;
-	ok &= expect(loadHasNoErrors(unchosenSystemPath, unchosenReloaded) && unchosenReloaded.signallingAreas.size() == 1
-			&& unchosenReloaded.signallingAreas[0].level == kSignallingLevelUnset,
-		"an area whose signalling system is not chosen keeps its level through save and load");
-
-	json services;
-	{
-		std::ifstream input(temp.path / "services.json");
-		input >> services;
-	}
-	const json& firstStop = services["services"][0]["stops"][0];
-	ok &= expect(services["services"][0]["operating_code"] == "R100",
-		"writer emits the service operating code");
-	ok &= expect(services["services"][0]["performance_percent"] == 87.5
-			&& services["services"][0]["maximum_speed_kmh"] == 120.0,
-		"writer emits optional performance and maximum speed");
-	ok &= expect(services["services"][0]["repeat"]["count"] == 3
-			&& services["services"][0]["repeat"]["operating_code_step"] == 2,
-		"writer emits explicit repeat count and operating-code step");
-	ok &= expect(firstStop.contains("planned_departure_seconds"), "writer emits planned departure");
-	ok &= expect(!firstStop.contains("departure_seconds"), "writer omits legacy departure alias");
-	const json& lastStop = services["services"][0]["stops"][1];
-	ok &= expect(lastStop.contains("planned_arrival_seconds"), "writer emits planned arrival");
-	ok &= expect(!lastStop.contains("arrival_seconds"), "writer omits legacy arrival alias");
-
-	json scenarios;
-	{
-		std::ifstream input(temp.path / "scenarios.json");
-		input >> scenarios;
-	}
-	ok &= expect(scenarios["default_scenario_id"] == "baseline", "writer emits default_scenario_id");
-	ok &= expect(scenarios["scenarios"].size() == 2, "writer emits named scenarios");
-	const json& enhancedJson = scenarios["scenarios"][1]["incidents"][0];
-	ok &= expect(enhancedJson["occurrence"] == 2
-			&& enhancedJson["reduced_speed_kmh"] == 40.0
-			&& enhancedJson["terminate_at_destination"] == true
-			&& !enhancedJson.contains("end_seconds"),
-		"writer preserves occurrence-specific reduced breakdown without recovery end");
-
-	const fs::path standaloneScenarioPath = temp.path / "baseline-scenario.json";
-	const SceneSaveResult standaloneSave = saveScenarioJson(source.scenarios[0], standaloneScenarioPath.string());
-	ok &= expect(standaloneSave.success() && standaloneSave.writeAttempted, "standalone scenario JSON saves after a write attempt");
-	json standaloneScenario;
-	{
-		std::ifstream input(standaloneScenarioPath);
-		input >> standaloneScenario;
-	}
-	ok &= expect(standaloneScenario.is_object()
-			&& standaloneScenario["id"] == "baseline"
-			&& standaloneScenario["entrance_delays"].size() == 1
-			&& !standaloneScenario.contains("scenarios")
-			&& !standaloneScenario.contains("infrastructure"),
-		"standalone scenario JSON contains only scenario data");
-	const ScenarioLoadResult standaloneLoad = loadScenarioJson(standaloneScenarioPath.string());
-	ok &= expect(standaloneLoad.success()
-			&& standaloneLoad.scenario.id == source.scenarios[0].id
-			&& standaloneLoad.scenario.description == source.scenarios[0].description
-			&& standaloneLoad.scenario.incidents.size() == source.scenarios[0].incidents.size()
-			&& standaloneLoad.scenario.entranceDelays.size() == 1
-			&& standaloneLoad.scenario.entranceDelays[0].serviceId == "service-1"
-			&& standaloneLoad.scenario.entranceDelays[0].occurrence == 1
-			&& standaloneLoad.scenario.entranceDelays[0].stationId == "station-1"
-			&& standaloneLoad.scenario.entranceDelays[0].delaySeconds == 30.0,
-		"standalone scenario JSON round-trips incidents and entrance delays");
-	SceneScenario duplicateScenario = source.scenarios[0];
-	duplicateScenario.id = "baseline-copy";
-	duplicateScenario.incidents[0].id = "incident-copy";
-	const fs::path duplicateScenarioPath = temp.path / "baseline-copy.json";
-	ok &= expect(saveScenarioJson(duplicateScenario, duplicateScenarioPath.string()).success(),
-		"duplicated scenario saves through the standalone boundary");
-	const ScenarioLoadResult duplicateLoad = loadScenarioJson(duplicateScenarioPath.string());
-	ok &= expect(duplicateLoad.success() && duplicateLoad.scenario.id == "baseline-copy"
-			&& duplicateLoad.scenario.incidents[0].id == "incident-copy",
-		"duplicated scenario round-trips with independent IDs");
-	const fs::path invalidScenarioPath = temp.path / "invalid-scenario.json";
-	{
-		std::ofstream output(invalidScenarioPath);
-		output << R"({"id":"broken","name":5,"incidents":[{"id":"only-id"}]})";
-	}
-	const ScenarioLoadResult invalidScenario = loadScenarioJson(invalidScenarioPath.string());
-	ok &= expect(!invalidScenario.success() && hasErrors(invalidScenario.diagnostics)
-			&& !invalidScenario.diagnostics.empty(),
-		"standalone scenario parser diagnoses structural and type errors");
-	for (const char* occurrence : {"4294967298", "2147483648", "-2147483649", "1.5"}) {
-		{
-			std::ofstream output(invalidScenarioPath, std::ios::trunc);
-			output << R"({"id":"wide","name":"wide","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":)"
-				   << occurrence << "}]}";
-		}
-		const ScenarioLoadResult wideScenario = loadScenarioJson(invalidScenarioPath.string());
-		ok &= expect(!wideScenario.success() && !wideScenario.diagnostics.empty()
-				&& wideScenario.diagnostics.front().path == "entrance_delays[0].occurrence",
-			"standalone scenario rejects an occurrence that is not an int");
-	}
-	{
-		std::ofstream output(invalidScenarioPath, std::ios::trunc);
-		output << R"({"id":"edge","name":"edge","incidents":[],"entrance_delays":[{"service":"s","station":"t","delay_seconds":1,"occurrence":2147483647}]})";
-	}
-	const ScenarioLoadResult edgeScenario = loadScenarioJson(invalidScenarioPath.string());
-	ok &= expect(edgeScenario.success() && edgeScenario.scenario.entranceDelays.size() == 1
-			&& edgeScenario.scenario.entranceDelays[0].occurrence == 2147483647,
-		"standalone scenario reads an occurrence at the int limit");
-
-	{
-		const std::string standaloneBytes = readBytes(standaloneScenarioPath);
-		ok &= expect(standaloneBytes == json::parse(standaloneBytes).dump(4) + "\n",
-			"standalone scenario JSON keeps four-space indentation and a final newline");
-		SceneScenario minimal;
-		minimal.id = "min";
-		minimal.name = "Minimal";
-		const fs::path minimalPath = temp.path / "minimal-scenario.json";
-		ok &= expect(saveScenarioJson(minimal, minimalPath.string()).success(),
-			"minimal standalone scenario saves");
-		ok &= expect(readBytes(minimalPath) == "{\n"
-											   "    \"entrance_delays\": [],\n"
-											   "    \"id\": \"min\",\n"
-											   "    \"incidents\": [],\n"
-											   "    \"name\": \"Minimal\"\n"
-											   "}\n",
-			"standalone scenario bytes match the expected file");
-
-		const std::string previousBytes = readBytes(standaloneScenarioPath);
-		SceneScenario replacement = minimal;
-		replacement.id = "replacement";
-		ok &= expect(saveScenarioJson(replacement, standaloneScenarioPath.string()).success(),
-			"standalone scenario replaces an existing file");
-		ok &= expect(loadScenarioJson(standaloneScenarioPath.string()).scenario.id == "replacement"
-				&& readBytes(standaloneScenarioPath) != previousBytes,
-			"replaced standalone scenario holds the new content");
-		ok &= expect(!hasSiblingArtifact(standaloneScenarioPath, "tmp"),
-			"standalone scenario save leaves no temporary file after success");
-	}
-	{
-		TempDir failing;
-		const fs::path blockedPath = failing.path / "blocked.json";
-		fs::create_directory(blockedPath);
-		{
-			std::ofstream output(blockedPath / "keep.txt");
-			output << "keep";
-		}
-		SceneScenario scenario;
-		scenario.id = "blocked";
-		scenario.name = "Blocked";
-		const SceneSaveResult blocked = saveScenarioJson(scenario, blockedPath.string());
-		ok &= expect(!blocked.success() && !blocked.wroteAll && hasErrors(blocked.diagnostics),
-			"standalone scenario save reports a destination that cannot be replaced");
-		ok &= expect(fs::is_directory(blockedPath) && readBytes(blockedPath / "keep.txt") == "keep"
-				&& !hasSiblingArtifact(blockedPath, "tmp"),
-			"failed replace leaves the destination and no temporary file");
-
-		const SceneSaveResult missing = saveScenarioJson(scenario,
-			(failing.path / "missing" / "scenario.json").string());
-		ok &= expect(!missing.success() && hasErrors(missing.diagnostics)
-				&& !fs::exists(failing.path / "missing"),
-			"standalone scenario save reports a missing directory");
-	}
-#ifndef _WIN32
-	{
-		TempDir failing;
-		const fs::path scenarioPath = failing.path / "scenario.json";
-		const std::string original = "original scenario\n";
-		{
-			std::ofstream output(scenarioPath, std::ios::binary);
-			output << original;
-		}
-		SceneScenario scenario = source.scenarios[0];
-		{
-			// The write exceeds the limit part way and fails.
-			const FileSizeLimit limit(16);
-			ok &= expect(limit.active, "file size limit can be applied");
-			const SceneSaveResult truncated = saveScenarioJson(scenario, scenarioPath.string());
-			ok &= expect(!truncated.success() && hasErrors(truncated.diagnostics),
-				"standalone scenario save reports a write that cannot complete");
-		}
-		ok &= expect(readBytes(scenarioPath) == original && hasOnlyFile(failing.path, "scenario.json"),
-			"failed write leaves the original scenario and no temporary file");
-
-		// A read-only directory refuses the temporary file. This does not apply to root.
-		fs::permissions(failing.path, fs::perms::owner_read | fs::perms::owner_exec,
-			fs::perm_options::replace);
-		if (access(failing.path.c_str(), W_OK) != 0) {
-			const SceneSaveResult readOnly = saveScenarioJson(scenario, scenarioPath.string());
-			ok &= expect(!readOnly.success() && hasErrors(readOnly.diagnostics),
-				"standalone scenario save reports a read-only directory");
-			ok &= expect(readBytes(scenarioPath) == original,
-				"read-only directory leaves the original scenario");
-		}
-		fs::permissions(failing.path, fs::perms::owner_all, fs::perm_options::replace);
-		ok &= expect(hasOnlyFile(failing.path, "scenario.json"),
-			"read-only directory leaves no temporary file");
-
-		// A read-only file is not replaced. This does not apply to root.
-		fs::permissions(scenarioPath, fs::perms::owner_read, fs::perm_options::replace);
-		if (access(scenarioPath.c_str(), W_OK) != 0) {
-			const SceneSaveResult readOnlyFile = saveScenarioJson(scenario, scenarioPath.string());
-			ok &= expect(!readOnlyFile.success() && hasErrors(readOnlyFile.diagnostics),
-				"standalone scenario save reports a read-only file");
-			ok &= expect(readBytes(scenarioPath) == original && hasOnlyFile(failing.path, "scenario.json"),
-				"read-only file keeps its content and no temporary file remains");
-		}
-		fs::permissions(scenarioPath, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace);
-	}
-#endif
-	json passengers;
-	{
-		std::ifstream input(temp.path / "passengers.json");
-		input >> passengers;
-	}
-	ok &= expect(passengers["passengers"][0]["journeys"][0].contains("planned_departure"),
-		"writer emits passenger departure window");
-	ok &= expect(passengers["passengers"][0]["journeys"][0]["legs"].size() == 1,
-		"writer emits ordered passenger legs");
-	ok &= expect(passengers == encodePassengers(source.passengers), "saved passengers.json is the encoded passengers");
-	{
-		ScenePassenger passenger;
-		passenger.id = "p";
-		passenger.journeys.resize(1);
-		const json encoded = encodePassengers({passenger});
-		const json& journey = encoded["passengers"][0]["journeys"][0];
-		ok &= expect(!journey.contains("activity") && journey["legs"].empty() && journey["planned_arrival"].size() == 2,
-			"encoder leaves out an empty activity and keeps the windows and an empty leg list");
-		ok &= expect(encodePassengers({}) == json({{"passengers", json::array()}}),
-			"encoder writes an empty passenger list as an empty array");
-	}
-
-	SceneModel reloaded;
-	ok &= expect(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");
-	const SceneLoadResult loadedSnapshot = loadScene(temp.path.string());
-	ok &= expect(!loadedSnapshot.inputSnapshot.empty()
-			&& loadedSnapshot.inputSnapshot == savedSnapshot,
-		"load retains the exact framed snapshot emitted by save");
-	{
-		std::ofstream output(temp.path / "services.json", std::ios::binary | std::ios::app);
-		output << ' ';
-	}
-	const SceneInputSnapshot changedOnDisk = readSceneDirectorySnapshot(temp.path.string());
-	ok &= expect(changedOnDisk.reason.empty() && changedOnDisk.bytes != savedSnapshot
-			&& saved.inputSnapshot == savedSnapshot
-			&& loadedSnapshot.inputSnapshot == savedSnapshot,
-		"external canonical-file changes do not mutate retained snapshots");
-	ok &= expect(reloaded.tracks.size() == 1 && reloaded.nodes.size() == 2 && reloaded.blocks.size() == 2,
-		"topology round-trips");
-	ok &= expect(reloaded.trackViews.size() == 1
-			&& reloaded.trackViews[0].trackId == "track-1"
-			&& reloaded.trackViews[0].level == -2
-			&& reloaded.trackViews[0].region == 1
-			&& !reloaded.trackViews[0].visible
-			&& reloaded.stationViews.size() == 1
-			&& reloaded.stationViews[0].stationId == "station-1"
-			&& reloaded.stationViews[0].regions == std::vector<std::pair<int, double>>({{1, 0.25}, {2, 0.75}})
-			&& reloaded.stationViews[0].corridors == std::vector<std::string>({"main", "branch"}),
-		"authored display layout round-trips");
-	ok &= expect(reloaded.routes[0].corridor == "corridor-1" && reloaded.routes[0].reversed,
-		"route corridor and direction round-trip");
-	ok &= expect(reloaded.signallingAreas.size() == 1
-			&& reloaded.signallingAreas[0].id == "area-1"
-			&& reloaded.signallingAreas[0].startKm == 0.25
-			&& reloaded.signallingAreas[0].endKm == 0.75
-			&& reloaded.signallingAreas[0].level == 4
-			&& reloaded.signallingAreas[0].trackId == "track-1",
-		"signalling area fields round-trip");
-	ok &= expect(reloaded.signals.size() == 1
-			&& reloaded.signals[0].protectedSection == "@block-1@",
-		"protected-section binding round-trips through folder JSON");
-	ok &= expect(reloaded.services[0].stops[0].hasPlannedDeparture
-			&& reloaded.services[0].stops[0].plannedDepartureSeconds == 100.0,
-		"planned departure round-trips");
-	ok &= expect(reloaded.services[0].operatingCode == "R100", "service operating code round-trips");
-	ok &= expect(reloaded.stations[0].platforms[0].hasLength
-			&& reloaded.stations[0].platforms[0].lengthM == 125.0
-			&& reloaded.stations[0].platforms[0].hasWidth
-			&& reloaded.stations[0].platforms[0].widthM == 3.75
-			&& !reloaded.stations[1].platforms[0].hasLength
-			&& reloaded.stations[1].platforms[0].lengthM == 100.0
-			&& !reloaded.stations[1].platforms[0].hasWidth
-			&& reloaded.stations[1].platforms[0].widthM == 2.5,
-		"platform geometry presence and effective defaults round-trip");
-	ok &= expect(reloaded.services[0].performancePercent == 87.5
-			&& reloaded.services[0].hasMaximumSpeed
-			&& reloaded.services[0].maximumSpeedKmh == 120.0
-			&& reloaded.services[0].hasRepeatCount && reloaded.services[0].repeatCount == 3
-			&& reloaded.services[0].hasOperatingCodeStep
-			&& reloaded.services[0].operatingCodeStep == 2,
-		"optional service runtime properties round-trip");
-	ok &= expect(reloaded.scenarios[1].incidents.size() == 1
-			&& reloaded.scenarios[1].incidents[0].hasOccurrence
-			&& reloaded.scenarios[1].incidents[0].occurrence == 2
-			&& reloaded.scenarios[1].incidents[0].hasReducedSpeed
-			&& reloaded.scenarios[1].incidents[0].reducedSpeedKmh == 40.0
-			&& !reloaded.scenarios[1].incidents[0].hasEndSeconds
-			&& reloaded.scenarios[1].incidents[0].terminateAtDestination,
-		"enhanced breakdown fields round-trip through canonical scene files");
-
-	SceneModel legacyDefaults = completeScene();
-	legacyDefaults.scenarios[1].incidents[0].hasReducedSpeed = false;
-	legacyDefaults.scenarios[1].incidents[0].reducedSpeedKmh = 40.125;
-	const fs::path legacyDefaultsPath = temp.path / "legacy-defaults";
-	ok &= expect(saveScene(legacyDefaults, legacyDefaultsPath.string()).success(),
-		"legacy-default service still saves");
-	json legacyServices;
-	{
-		std::ifstream input(legacyDefaultsPath / "services.json");
-		input >> legacyServices;
-	}
-	json normalizedScenarios;
-	{
-		std::ifstream input(legacyDefaultsPath / "scenarios.json");
-		input >> normalizedScenarios;
-	}
-	ok &= expect(normalizedScenarios["scenarios"][1]["incidents"][0]["reduced_speed_kmh"] == 40.125
-			&& !normalizedScenarios["scenarios"][1]["incidents"][0].contains("end_seconds"),
-		"writer preserves a nonzero reduced speed when its presence flag is stale");
-	ok &= expect(!legacyServices["services"][0].contains("performance_percent")
-			&& !legacyServices["services"][0].contains("category")
-			&& !legacyServices["services"][0].contains("visualization_color")
-			&& !legacyServices["services"][0].contains("maximum_speed_kmh")
-			&& !legacyServices["services"][0].contains("repeat"),
-		"default service properties remain omitted for legacy scenes");
-	SceneModel missingCategory;
-	ok &= expect(loadHasNoErrors(legacyDefaultsPath, missingCategory)
-			&& missingCategory.services[0].category.empty(),
-		"missing category defaults to empty");
-	legacyServices["services"][0]["category"] = 42;
-	{
-		std::ofstream output(legacyDefaultsPath / "services.json");
-		output << legacyServices.dump(2) << "\n";
-	}
-	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
-		"non-string category is rejected");
-	SceneModel missingColor;
-	legacyServices["services"][0].erase("category");
-	{
-		std::ofstream output(legacyDefaultsPath / "services.json");
-		output << legacyServices.dump(2) << "\n";
-	}
-	ok &= expect(loadHasNoErrors(legacyDefaultsPath, missingColor)
-			&& missingColor.services[0].visualizationColor.empty(),
-		"missing colour defaults to empty");
-	legacyServices["services"][0]["visualization_color"] = 42;
-	{
-		std::ofstream output(legacyDefaultsPath / "services.json");
-		output << legacyServices.dump(2) << "\n";
-	}
-	ok &= expect(hasErrors(loadScene(legacyDefaultsPath.string()).diagnostics),
-		"non-string visualization colour is rejected");
-	for (const char* color : {"#3c8dd2", "#3C8DD2", "#3c8DD2", "not-a-colour"}) {
-		SceneModel colored = completeScene();
-		colored.services[0].visualizationColor = color;
-		const fs::path coloredPath = temp.path / "colored-service";
-		ok &= expect(saveScene(colored, coloredPath.string()).success(), "service with colour saves");
-		json coloredServices;
-		{
-			std::ifstream input(coloredPath / "services.json");
-			input >> coloredServices;
-		}
-		SceneModel coloredReloaded;
-		ok &= expect(coloredServices["services"][0].value("visualization_color", "") == color
-				&& loadHasNoErrors(coloredPath, coloredReloaded)
-				&& coloredReloaded.services[0].visualizationColor == color,
-			"service colour is written and read back exactly as given");
-	}
-	ok &= expect(reloaded.services[0].stops[1].hasPlannedArrival
-			&& reloaded.services[0].stops[1].plannedArrivalSeconds == 200.0,
-		"planned arrival round-trips");
-	ok &= expect(reloaded.defaultScenarioId == "baseline" && reloaded.scenarios.size() == 2,
-		"scenario selection round-trips");
-	ok &= expect(reloaded.passengers.size() == 1 && reloaded.passengers[0].journeys.size() == 1,
-		"passenger journey round-trips");
-	ok &= expect(reloaded.trainUnits[0].sourceDataFile == "/TrainData/unit-1.txt"
-			&& reloaded.trainUnits[0].sourceTractionFile.empty(),
-		"rolling provenance fields are independently optional");
-	ok &= expect(reloaded.savedWithAppVersion == EGTRAIN_APP_VERSION,
-		"saved app version round-trips");
-
-	const fs::path missingVersionPath = temp.path / "missing-version";
-	ok &= expect(saveScene(source, missingVersionPath.string()).success(),
-		"scene with saved app version saves before optional-field check");
-	json missingVersionScene;
-	{
-		std::ifstream input(missingVersionPath / "scene.json");
-		input >> missingVersionScene;
-	}
-	missingVersionScene.erase("saved_with_app_version");
-	{
-		std::ofstream output(missingVersionPath / "scene.json");
-		output << missingVersionScene.dump(2) << "\n";
-	}
-	SceneModel missingVersion;
-	ok &= expect(loadHasNoErrors(missingVersionPath, missingVersion)
-			&& missingVersion.savedWithAppVersion.empty(),
-		"missing saved app version remains valid and empty");
-
-	// The student-facing loaded-data summary distinguishes source, parsed,
-	// optional, and validation states and carries only concrete editor targets.
-	refreshLoadedDataSummary(reloaded);
-	const auto findCategory = [](const std::vector<SceneLoadedData>& rows,
-								  const std::string& category) -> const SceneLoadedData* {
-		for (const auto& row : rows) {
-			if (row.category == category)
-				return &row;
-		}
-		return nullptr;
-	};
-	const SceneLoadedData* rolling = findCategory(reloaded.loadedData, "rolling_stock");
-	const SceneLoadedData* units = rolling ? findCategory(rolling->children, "train_units") : nullptr;
-	ok &= expect(rolling && rolling->status == "Parsed", "loaded category reports parsed canonical data");
-	ok &= expect(units && !units->children.empty()
-			&& units->children.front().targetType == "train_unit"
-			&& units->children.front().category == "unit-1"
-			&& findCategory(units->children.front().children, "train_unit_parameters")
-			&& findCategory(units->children.front().children, "tractive_effort_curve")
-			&& findCategory(units->children.front().children, "import_provenance"),
-		"loaded train-unit row owns its editor target, data, curve, and provenance");
-	const SceneLoadedData* infrastructure = findCategory(reloaded.loadedData, "infrastructure");
-	ok &= expect(infrastructure && infrastructure->targetType == "network",
-		"infrastructure summary resolves to the existing network view");
-	{
-		SceneModel twins = reloaded;
-		SceneScenario first;
-		first.id = "twin_a";
-		first.name = "Twin";
-		SceneScenario second = first;
-		second.id = "twin_b";
-		SceneScenario other;
-		other.id = "solo";
-		other.name = "Solo";
-		twins.scenarios = {first, second, other};
-		twins.defaultScenarioId = "twin_a";
-		refreshLoadedDataSummary(twins);
-		const SceneLoadedData* scenarioRows = findCategory(twins.loadedData, "scenarios");
-		const SceneLoadedData* available = scenarioRows ? findCategory(scenarioRows->children, "available_scenarios") : nullptr;
-		std::vector<std::string> labels;
-		if (available)
-			for (const auto& row : available->children)
-				labels.push_back(row.category);
-		ok &= expect(labels == std::vector<std::string>({"Twin (twin_a, default)", "Twin (twin_b)", "Solo"}),
-			"two scenarios with one name are told apart by their IDs in the loaded data");
-	}
-
-	SceneModel withoutOptional = reloaded;
-	withoutOptional.sourceFiles.erase("scenarios.json");
-	withoutOptional.sourceFiles.erase("passengers.json");
-	withoutOptional.scenarios.clear();
-	withoutOptional.passengers.clear();
-	refreshLoadedDataSummary(withoutOptional);
-	const SceneLoadedData* scenariosRow = findCategory(withoutOptional.loadedData, "scenarios");
-	const SceneLoadedData* passengersRow = findCategory(withoutOptional.loadedData, "passengers");
-	ok &= expect(scenariosRow && scenariosRow->status == "Missing optional"
-			&& passengersRow && passengersRow->status == "Missing optional",
-		"absent optional scene inputs are labelled explicitly");
-	ok &= expect(withoutOptional.scenarios.empty(), "loaded-data refresh does not create canonical input");
-
-	// A scene without scenarios is written with the baseline scenario.
-	{
-		const SceneScenario baseline = makeBaselineScenario();
-		ok &= expect(baseline.id == "baseline" && baseline.name == "Baseline"
-				&& baseline.incidents.empty() && baseline.entranceDelays.empty(),
-			"the baseline scenario has no incidents or entrance delays");
-		TempDir noScenarioDir;
-		SceneModel noScenarios = source;
-		noScenarios.scenarios.clear();
-		noScenarios.defaultScenarioId.clear();
-		const SceneSaveResult noScenarioSave = saveScene(noScenarios, noScenarioDir.path.string());
-		const json noScenarioFile = readJsonFile(noScenarioDir.path / "scenarios.json");
-		ok &= expect(noScenarioSave.success() && noScenarioFile["default_scenario_id"] == "baseline"
-				&& noScenarioFile["scenarios"].size() == 1
-				&& noScenarioFile["scenarios"][0]["id"] == "baseline"
-				&& noScenarioFile["scenarios"][0]["name"] == "Baseline",
-			"a scene without scenarios is saved with the baseline scenario");
-		ok &= expect(makeNewSceneModel().defaultScenarioId == baseline.id
-				&& defaultScenario(noScenarios)->id == baseline.id,
-			"a new scene and an editor request default to the baseline scenario");
-	}
-
-	SceneDiagnostic rollingWarning;
-	rollingWarning.severity = SceneSeverity::Warning;
-	rollingWarning.file = "rolling_stock.json";
-	refreshLoadedDataDiagnostics(reloaded, {rollingWarning});
-	rolling = findCategory(reloaded.loadedData, "rolling_stock");
-	ok &= expect(rolling && rolling->status == "Warning"
-			&& !rolling->children.empty() && rolling->children.back().status == "Warning",
-		"validation warning is visible on its loaded-data category");
-
-	// Historical aliases and flat incidents remain readable during migration.
-	fs::remove(temp.path / "scenarios.json");
-	{
-		std::ofstream output(temp.path / "incidents.json");
-		output << R"({"incidents":[{"id":"legacy-incident","type":"signal_failure","target":"signal-1","start_seconds":10,"end_seconds":20}]})";
-	}
-	services["services"][0]["stops"][0]["departure_seconds"] = services["services"][0]["stops"][0]["planned_departure_seconds"];
-	services["services"][0]["stops"][0].erase("planned_departure_seconds");
-	services["services"][0]["stops"][1]["arrival_seconds"] = services["services"][0]["stops"][1]["planned_arrival_seconds"];
-	services["services"][0]["stops"][1].erase("planned_arrival_seconds");
-	{
-		std::ofstream output(temp.path / "services.json");
-		output << services.dump(2) << "\n";
-	}
-	SceneModel historical;
-	ok &= expect(loadHasNoErrors(temp.path, historical), "historical aliases and flat incidents load");
-	ok &= expect(historical.defaultScenarioId == "baseline" && historical.scenarios.size() == 1,
-		"flat incidents become the implicit baseline");
-	ok &= expect(historical.scenarios[0].incidents.size() == 1
-			&& historical.services[0].stops[0].hasPlannedDeparture,
-		"flat incident and timetable aliases migrate into canonical fields");
-
-	// A later successful save removes the stale compatibility file.
-	SceneSaveResult resaved = saveScene(source, temp.path.string());
-	ok &= expect(resaved.success() && !fs::exists(temp.path / "incidents.json"),
-		"successful canonical save removes stale incidents after scenarios write");
-
-	// A stop inserted into a committed service keeps its place and every planned time through save and reload.
-	if (argc > 1) {
-		SceneModel committed;
-		ok &= expect(loadHasNoErrors(fs::path(argv[1]) / "Paimpol", committed),
-			"committed Paimpol scene loads");
-		SceneService* service = nullptr;
-		for (SceneService& candidate : committed.services)
-			if (candidate.id == "Guin-Paim-EXPRESS-1")
-				service = &candidate;
-		ok &= expect(service != nullptr && service->stops.size() == 3, "committed service has three stops");
-		if (service != nullptr && service->stops.size() == 3) {
-			const SceneStopInsertionWindow window = sceneStopInsertionWindow(committed, *service, 1);
-			ok &= expect(window.ok && !window.visits.visits.empty(),
-				"a route visit is free between the first two stops");
-			SceneStop inserted;
-			inserted.stationId = window.visits.visits.front().stationId;
-			inserted.platformId = window.visits.visits.front().platformId;
-			inserted.hasPlannedArrival = true;
-			inserted.plannedArrivalSeconds = 800.0;
-			inserted.hasPlannedDeparture = true;
-			inserted.plannedDepartureSeconds = 830.0;
-			inserted.dwellSeconds = 30.0;
-			const std::vector<SceneStop> original = service->stops;
-			const SceneStopInsertionResult insertion = insertSceneStop(committed, *service, 1, inserted);
-			ok &= expect(insertion.inserted, "a stop is inserted between the first two stops");
-			const fs::path insertDir = temp.path / "inserted-stop";
-			const SceneSaveResult insertSave = saveScene(committed, insertDir.string());
-			printErrors(insertSave.diagnostics, "insert save");
-			ok &= expect(insertSave.success(), "a scene with an inserted stop saves");
-			SceneModel reloadedInsert;
-			ok &= expect(loadHasNoErrors(insertDir, reloadedInsert), "a scene with an inserted stop reloads");
-			const SceneService* reloadedService = nullptr;
-			for (const SceneService& candidate : reloadedInsert.services)
-				if (candidate.id == "Guin-Paim-EXPRESS-1")
-					reloadedService = &candidate;
-			const std::vector<SceneStop> expected = {original[0], inserted, original[1], original[2]};
-			bool sameStops = reloadedService != nullptr && reloadedService->stops.size() == expected.size();
-			for (std::size_t index = 0; sameStops && index < expected.size(); ++index) {
-				const SceneStop& left = reloadedService->stops[index];
-				const SceneStop& right = expected[index];
-				sameStops = left.stationId == right.stationId && left.platformId == right.platformId
-					&& left.hasPlannedArrival == right.hasPlannedArrival
-					&& left.hasPlannedDeparture == right.hasPlannedDeparture
-					&& left.plannedArrivalSeconds == right.plannedArrivalSeconds
-					&& left.plannedDepartureSeconds == right.plannedDepartureSeconds
-					&& left.dwellSeconds == right.dwellSeconds;
-			}
-			ok &= expect(sameStops, "reload keeps the stop order and every planned time");
-		}
-	} else {
-		std::cerr << "skipped: the committed-scene insertion check needs the Scenes directory argument\n";
-	}
-
-	// A save is compared with a save, because the committed files are not always in the writer's form (indent, key
-	// order) and the writer always writes scenarios.json. The entry counts and the identity keys of scene.json are
-	// compared with the source, so that a loader and a writer that both drop a field cannot pass.
-	if (argc > 1) {
-		ok &= checkCommittedSceneCodecs(fs::path(argv[1]));
-	} else {
-		std::cerr << "skipped: the scene codec checks of the committed scenes need the Scenes directory argument\n";
-	}
-	{
-		TempDir populatedTemp;
-		ok &= checkPopulatedScene(populatedTemp);
-	}
-	ok &= checkSavePublication();
-	ok &= checkUnicodePaths();
-	ok &= checkStagedDirectory();
-	{
-		TempDir scenarioTemp;
-		ok &= checkScenarioFileDiagnostics(scenarioTemp);
-	}
-	{
-		TempDir emptyNamesTemp;
-		ok &= checkEmptyNames(emptyNamesTemp);
-	}
-
-	if (!ok)
-		return 1;
-	std::cout << "all SceneWriter tests passed\n";
-	return 0;
-}
+QTEST_APPLESS_MAIN(TestSceneWriter)
+#include "test_scenewriter.moc"

@@ -2,9 +2,11 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 
+#include <QString>
+#include <QTest>
+
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
 #include <set>
 #include <string>
 #include <utility>
@@ -13,12 +15,6 @@
 namespace fs = std::filesystem;
 
 static const std::size_t kDefaultBytes = 128u * 1024u * 1024u;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static std::string nameOf(const SceneHistoryEntry* entry) {
 	return entry && entry->scene ? entry->scene->name : "(none)";
@@ -115,7 +111,7 @@ static SceneModel richScene() {
 	scene.stationViews.push_back(stationView);
 	SceneSignal signal;
 	signal.id = longText("signal");
-	scene.signals.push_back(signal);
+	sceneSignals(scene).push_back(signal);
 	SceneSignallingArea area;
 	area.id = longText("area");
 	scene.signallingAreas.push_back(area);
@@ -175,10 +171,46 @@ struct Release {
 	void (*apply)(SceneModel&);
 };
 
-static bool testEstimate() {
-	bool ok = true;
+// The label of the edit from `before` to `after`, read back through the history.
+static std::string labelOf(const SceneModel& before, const SceneModel& after) {
+	SceneHistory history;
+	history.reset(before);
+	history.record(after);
+	return history.undoLabel();
+}
+
+// The scene directories of the Scenes directory, in name order.
+static std::vector<fs::path> committedSceneDirectories() {
+	std::vector<fs::path> directories;
+	for (const auto& entry : fs::directory_iterator(fs::path(EGTRAIN_SCENES_DIR))) {
+		if (entry.is_directory())
+			directories.push_back(entry.path());
+	}
+	std::sort(directories.begin(), directories.end());
+	return directories;
+}
+
+class TestSceneHistory : public QObject {
+	Q_OBJECT
+
+private slots:
+	void estimate();
+	void recordUndoRedo();
+	void redoBranch();
+	void savedPoint();
+	void stepLimit();
+	void byteLimit();
+	void reset();
+	void labels();
+	void scenesFolderHoldsScenes();
+	void committedScenes_data();
+	void committedScenes();
+};
+
+void TestSceneHistory::estimate() {
 	const SceneModel empty{};
-	ok &= expect(estimateSceneModelBytes(empty) >= sizeof(SceneModel), "an empty scene costs at least its own size");
+	// An empty scene costs at least its own size.
+	QCOMPARE_GE(estimateSceneModelBytes(empty), sizeof(SceneModel));
 
 	// A copy holds no spare capacity, so dropping any one part of it must lower the estimate. A part
 	// that the estimate leaves out does not.
@@ -207,7 +239,7 @@ static bool testEstimate() {
 		{"stationViews", [](SceneModel& m) { release(m.stationViews); }},
 		{"station view regions", [](SceneModel& m) { release(m.stationViews[0].regions); }},
 		{"station view corridors", [](SceneModel& m) { release(m.stationViews[0].corridors); }},
-		{"signals", [](SceneModel& m) { release(m.signals); }},
+		{"signals", [](SceneModel& m) { release(sceneSignals(m)); }},
 		{"signallingAreas", [](SceneModel& m) { release(m.signallingAreas); }},
 		{"routes", [](SceneModel& m) { release(m.routes); }},
 		{"route blocks", [](SceneModel& m) { release(m.routes[0].blocks); }},
@@ -230,116 +262,143 @@ static bool testEstimate() {
 	for (const Release& entry : releases) {
 		SceneModel smaller = copy;
 		entry.apply(smaller);
-		if (estimateSceneModelBytes(smaller) >= full) {
-			std::cerr << "failed: the estimate counts " << entry.part << "\n";
-			ok = false;
-		}
+		QVERIFY2(estimateSceneModelBytes(smaller) < full, (std::string("the estimate counts ") + entry.part).c_str());
 	}
-	ok &= expect(full > estimateSceneModelBytes(empty), "a populated scene costs more than an empty one");
+	// A populated scene costs more than an empty one.
+	QCOMPARE_GT(full, estimateSceneModelBytes(empty));
 
 	const SceneModel few = bigScene(10);
 	const SceneModel many = bigScene(11);
-	ok &= expect(estimateSceneModelBytes(many) > estimateSceneModelBytes(few), "the estimate grows with every element");
-	ok &= expect(estimateSceneModelBytes(bigScene(100)) >= estimateSceneModelBytes(empty) + 100 * sizeof(SceneArc),
-		"the estimate covers at least the elements");
+	// The estimate grows with every element.
+	QCOMPARE_GT(estimateSceneModelBytes(many), estimateSceneModelBytes(few));
+	// The estimate covers at least the elements.
+	QCOMPARE_GE(estimateSceneModelBytes(bigScene(100)), estimateSceneModelBytes(empty) + 100 * sizeof(SceneArc));
 
-	ok &= expect(estimateSceneModelBytes(bigScene(50)) >= estimateSceneModelBytes(bigScene(50, false)) + 50 * 2 * 60,
-		"the estimate counts the text of long strings");
-	return ok;
+	// The estimate counts the text of long strings.
+	QCOMPARE_GE(estimateSceneModelBytes(bigScene(50)), estimateSceneModelBytes(bigScene(50, false)) + 50 * 2 * 60);
 }
 
-static bool testRecordUndoRedo() {
-	bool ok = true;
+void TestSceneHistory::recordUndoRedo() {
 	SceneHistory history;
-	ok &= expect(history.head() != nullptr, "a new history has a root");
-	ok &= expect(!history.canUndo() && !history.canRedo(), "a new history has nothing to undo or redo");
+	QVERIFY2(history.head() != nullptr, "a new history has a root");
+	// A new history has nothing to undo or redo.
+	QVERIFY(!history.canUndo());
+	QVERIFY(!history.canRedo());
 
 	history.reset(named("root"));
-	ok &= expect(!history.canUndo() && !history.canRedo(), "a reset history has nothing to undo or redo");
-	ok &= expect(history.undo() == nullptr && history.redo() == nullptr, "undo and redo of nothing give no entry");
-	ok &= expect(headName(history) == "root", "the root is the live scene");
-	ok &= expect(history.bytes() == estimateSceneModelBytes(*history.head()), "the root counts its own estimate");
+	// A reset history has nothing to undo or redo.
+	QVERIFY(!history.canUndo());
+	QVERIFY(!history.canRedo());
+	// Undo and redo of nothing give no entry.
+	QVERIFY(history.undo() == nullptr);
+	QVERIFY(history.redo() == nullptr);
+	// The root is the live scene.
+	QCOMPARE(headName(history), "root");
+	// The root counts its own estimate.
+	QCOMPARE(history.bytes(), estimateSceneModelBytes(*history.head()));
 
 	for (const char* name : {"one", "two", "three"})
 		history.record(named(name));
-	ok &= expect(headName(history) == "three", "a recorded scene is the live scene");
-	ok &= expect(history.undoCount() == 3 && history.redoCount() == 0, "three edits give three undo steps");
+	// A recorded scene is the live scene.
+	QCOMPARE(headName(history), "three");
+	// Three edits give three undo steps.
+	QCOMPARE(history.undoCount(), std::size_t(3));
+	QCOMPARE(history.redoCount(), std::size_t(0));
 
-	ok &= expect(nameOf(history.undo()) == "two", "undo returns the previous scene");
-	ok &= expect(headName(history) == "two", "undo moves the live scene");
-	ok &= expect(nameOf(history.undo()) == "one", "undo again");
-	ok &= expect(nameOf(history.undo()) == "root", "undo to the root");
-	ok &= expect(!history.canUndo() && history.undo() == nullptr, "the root cannot be undone");
-	ok &= expect(history.undoCount() == 0 && history.redoCount() == 3, "three undone edits give three redo steps");
+	// Undo returns the previous scene.
+	QCOMPARE(nameOf(history.undo()), "two");
+	// Undo moves the live scene.
+	QCOMPARE(headName(history), "two");
+	// Undo again.
+	QCOMPARE(nameOf(history.undo()), "one");
+	// Undo to the root.
+	QCOMPARE(nameOf(history.undo()), "root");
+	// The root cannot be undone.
+	QVERIFY(!history.canUndo());
+	QVERIFY(history.undo() == nullptr);
+	// Three undone edits give three redo steps.
+	QCOMPARE(history.undoCount(), std::size_t(0));
+	QCOMPARE(history.redoCount(), std::size_t(3));
 
-	ok &= expect(nameOf(history.redo()) == "one", "redo returns the next scene");
-	ok &= expect(nameOf(history.redo()) == "two", "redo again");
-	ok &= expect(nameOf(history.redo()) == "three", "redo to the last edit");
-	ok &= expect(!history.canRedo() && history.redo() == nullptr, "the last edit cannot be redone");
+	// Redo returns the next scene.
+	QCOMPARE(nameOf(history.redo()), "one");
+	// Redo again.
+	QCOMPARE(nameOf(history.redo()), "two");
+	// Redo to the last edit.
+	QCOMPARE(nameOf(history.redo()), "three");
+	// The last edit cannot be redone.
+	QVERIFY(!history.canRedo());
+	QVERIFY(history.redo() == nullptr);
 
 	// A snapshot is a copy: later changes to the scene that was recorded do not reach it.
 	SceneModel live = named("live");
 	history.record(live);
 	live.name = "changed after the record";
-	ok &= expect(headName(history) == "live", "the history holds a copy of the recorded scene");
-	return ok;
+	// The history holds a copy of the recorded scene.
+	QCOMPARE(headName(history), "live");
 }
 
-static bool testRedoBranch() {
-	bool ok = true;
+void TestSceneHistory::redoBranch() {
 	SceneHistory history;
 	history.reset(named("root"));
 	for (const char* name : {"a", "b", "c"})
 		history.record(named(name));
 	history.undo();
 	history.undo();
-	ok &= expect(headName(history) == "a" && history.redoCount() == 2, "two undone edits can be redone");
+	// Two undone edits can be redone.
+	QCOMPARE(headName(history), "a");
+	QCOMPARE(history.redoCount(), std::size_t(2));
 
 	history.record(named("d"));
-	ok &= expect(!history.canRedo() && history.redoCount() == 0, "an edit after undo drops the redo branch");
-	ok &= expect(history.undoCount() == 2, "the undo steps are the kept ones and the new edit");
-	ok &= expect(nameOf(history.undo()) == "a", "undo of the new edit returns to the branch point");
-	ok &= expect(nameOf(history.redo()) == "d", "redo repeats the new edit, not the abandoned one");
-	return ok;
+	// An edit after undo drops the redo branch.
+	QVERIFY(!history.canRedo());
+	QCOMPARE(history.redoCount(), std::size_t(0));
+	// The undo steps are the kept ones and the new edit.
+	QCOMPARE(history.undoCount(), std::size_t(2));
+	// Undo of the new edit returns to the branch point.
+	QCOMPARE(nameOf(history.undo()), "a");
+	// Redo repeats the new edit, not the abandoned one.
+	QCOMPARE(nameOf(history.redo()), "d");
 }
 
-static bool testSavedPoint() {
-	bool ok = true;
+void TestSceneHistory::savedPoint() {
 	SceneHistory history;
 	history.reset(named("root"));
-	ok &= expect(!history.isAtSavedPoint(), "a new scene is not saved");
+	QVERIFY2(!history.isAtSavedPoint(), "a new scene is not saved");
 
 	history.reset(named("root"), true);
-	ok &= expect(history.isAtSavedPoint(), "an opened scene is saved");
+	QVERIFY2(history.isAtSavedPoint(), "an opened scene is saved");
 	history.record(named("one"));
-	ok &= expect(!history.isAtSavedPoint(), "an edit makes the scene dirty");
+	QVERIFY2(!history.isAtSavedPoint(), "an edit makes the scene dirty");
 	history.undo();
-	ok &= expect(history.isAtSavedPoint(), "undo to the saved scene makes it clean");
+	QVERIFY2(history.isAtSavedPoint(), "undo to the saved scene makes it clean");
 	history.redo();
-	ok &= expect(!history.isAtSavedPoint(), "redo away from the saved scene makes it dirty");
+	QVERIFY2(!history.isAtSavedPoint(), "redo away from the saved scene makes it dirty");
 
 	history.markSaved();
-	ok &= expect(history.isAtSavedPoint(), "saving makes the scene clean");
-	ok &= expect(history.canUndo() && history.undoCount() == 1, "saving keeps the history");
+	QVERIFY2(history.isAtSavedPoint(), "saving makes the scene clean");
+	// Saving keeps the history.
+	QVERIFY(history.canUndo());
+	QCOMPARE(history.undoCount(), std::size_t(1));
 	history.record(named("two"));
-	ok &= expect(!history.isAtSavedPoint(), "an edit after saving makes the scene dirty");
+	QVERIFY2(!history.isAtSavedPoint(), "an edit after saving makes the scene dirty");
 	history.undo();
-	ok &= expect(history.isAtSavedPoint(), "undo to the new saved scene makes it clean");
+	QVERIFY2(history.isAtSavedPoint(), "undo to the new saved scene makes it clean");
 	history.undo();
-	ok &= expect(!history.isAtSavedPoint(), "undo past the saved scene makes it dirty");
+	QVERIFY2(!history.isAtSavedPoint(), "undo past the saved scene makes it dirty");
 	history.redo();
-	ok &= expect(history.isAtSavedPoint(), "redo back to the saved scene makes it clean");
+	QVERIFY2(history.isAtSavedPoint(), "redo back to the saved scene makes it clean");
 
 	// An edit after undoing past the saved scene drops it with the redo branch.
 	history.undo();
 	history.record(named("branch"));
-	ok &= expect(!history.isAtSavedPoint(), "the branch is dirty");
+	QVERIFY2(!history.isAtSavedPoint(), "the branch is dirty");
 	history.undo();
-	ok &= expect(!history.isAtSavedPoint(), "the saved scene is gone after the branch point");
+	QVERIFY2(!history.isAtSavedPoint(), "the saved scene is gone after the branch point");
 	history.redo();
-	ok &= expect(!history.isAtSavedPoint(), "the branch stays dirty until the next save");
+	QVERIFY2(!history.isAtSavedPoint(), "the branch stays dirty until the next save");
 	history.markSaved();
-	ok &= expect(history.isAtSavedPoint(), "saving the branch makes it clean");
+	QVERIFY2(history.isAtSavedPoint(), "saving the branch makes it clean");
 
 	// An edit after undoing to the saved scene keeps it.
 	history.reset(named("root"), true);
@@ -347,7 +406,7 @@ static bool testSavedPoint() {
 	history.undo();
 	history.record(named("other"));
 	history.undo();
-	ok &= expect(history.isAtSavedPoint(), "the saved root stays saved after a new branch");
+	QVERIFY2(history.isAtSavedPoint(), "the saved root stays saved after a new branch");
 
 	// The modified scenarios belong to the entry and a save clears those of the live one.
 	history.reset(named("root"), true);
@@ -355,33 +414,43 @@ static bool testSavedPoint() {
 	history.record(named("two"), {"s1", "s2"});
 	history.markSaved();
 	const SceneHistoryEntry* entry = history.undo();
-	ok &= expect(entry && entry->modifiedScenarioIds == std::set<std::string>{"s1"}, "an entry keeps its modified scenarios");
+	// An entry keeps its modified scenarios.
+	QVERIFY(entry);
+	QVERIFY(entry->modifiedScenarioIds == std::set<std::string>{"s1"});
 	entry = history.redo();
-	ok &= expect(entry && entry->modifiedScenarioIds.empty(), "saving clears the modified scenarios of the live entry");
-	return ok;
+	// Saving clears the modified scenarios of the live entry.
+	QVERIFY(entry);
+	QVERIFY(entry->modifiedScenarioIds.empty());
 }
 
-static bool testStepLimit() {
-	bool ok = true;
+void TestSceneHistory::stepLimit() {
 	const SceneHistoryLimits defaults{};
-	ok &= expect(defaults.maxSteps == 100 && defaults.maxBytes == kDefaultBytes, "the default limits are 100 steps and 128 MiB");
-	ok &= expect(SceneHistory().limits().maxSteps == 100, "a history uses the default limits");
+	// The default limits are 100 steps and 128 MiB.
+	QCOMPARE(defaults.maxSteps, std::size_t(100));
+	QCOMPARE(defaults.maxBytes, kDefaultBytes);
+	// A history uses the default limits.
+	QCOMPARE(SceneHistory().limits().maxSteps, std::size_t(100));
 	const SceneHistory injected({7, 4096});
-	ok &= expect(injected.limits().maxSteps == 7 && injected.limits().maxBytes == 4096, "the limits can be injected");
+	// The limits can be injected.
+	QCOMPARE(injected.limits().maxSteps, std::size_t(7));
+	QCOMPARE(injected.limits().maxBytes, std::size_t(4096));
 
 	SceneHistory history;
 	history.reset(named("0"), true);
 	for (int step = 1; step <= 150; ++step)
 		history.record(named(std::to_string(step)));
-	ok &= expect(history.undoCount() == 100, "the history keeps 100 undo steps");
-	ok &= expect(headName(history) == "150", "the newest edit is kept");
+	// The history keeps 100 undo steps.
+	QCOMPARE(history.undoCount(), std::size_t(100));
+	// The newest edit is kept.
+	QCOMPARE(headName(history), "150");
 	std::string oldest;
 	while (const SceneHistoryEntry* entry = history.undo())
 		oldest = nameOf(entry);
-	ok &= expect(oldest == "50", "the oldest edits are dropped first");
-	ok &= expect(!history.isAtSavedPoint(), "dropping the saved scene leaves the scene dirty");
+	// The oldest edits are dropped first.
+	QCOMPARE(oldest, "50");
+	QVERIFY2(!history.isAtSavedPoint(), "dropping the saved scene leaves the scene dirty");
 	history.markSaved();
-	ok &= expect(history.isAtSavedPoint(), "the next save is clean again");
+	QVERIFY2(history.isAtSavedPoint(), "the next save is clean again");
 
 	// The saved scene "4" stays saved while older entries are dropped before it.
 	SceneHistory small({3, kDefaultBytes});
@@ -391,55 +460,76 @@ static bool testStepLimit() {
 	small.markSaved();
 	small.record(named("5"));
 	small.record(named("6"));
-	ok &= expect(small.undoCount() == 3, "a history of 3 steps keeps 3 steps");
+	// A history of 3 steps keeps 3 steps.
+	QCOMPARE(small.undoCount(), std::size_t(3));
 	small.undo();
-	ok &= expect(headName(small) == "5" && !small.isAtSavedPoint(), "an entry after the saved scene is dirty");
+	// An entry after the saved scene is dirty.
+	QCOMPARE(headName(small), "5");
+	QVERIFY(!small.isAtSavedPoint());
 	small.undo();
-	ok &= expect(headName(small) == "4" && small.isAtSavedPoint(), "the saved position follows the entries that are dropped before it");
+	// The saved position follows the entries that are dropped before it.
+	QCOMPARE(headName(small), "4");
+	QVERIFY(small.isAtSavedPoint());
 	small.undo();
-	ok &= expect(headName(small) == "3" && !small.canUndo(), "the oldest retained step follows the limit");
+	// The oldest retained step follows the limit.
+	QCOMPARE(headName(small), "3");
+	QVERIFY(!small.canUndo());
 
 	SceneHistory none({0, kDefaultBytes});
 	none.reset(named("0"));
 	none.record(named("1"));
-	ok &= expect(!none.canUndo() && headName(none) == "1", "no steps keeps only the live scene");
-	return ok;
+	// No steps keeps only the live scene.
+	QVERIFY(!none.canUndo());
+	QCOMPARE(headName(none), "1");
 }
 
-static bool testByteLimit() {
-	bool ok = true;
+void TestSceneHistory::byteLimit() {
 	const SceneModel scene = bigScene(500);
 	SceneHistory probe;
 	probe.reset(scene);
 	const std::size_t one = probe.bytes();
-	ok &= expect(one > 500 * sizeof(SceneArc), "the test scene is large enough");
+	// The test scene is large enough.
+	QCOMPARE_GT(one, 500 * sizeof(SceneArc));
 
 	SceneHistory history({100, 3 * one + one / 2});
 	history.reset(scene, true);
 	for (int step = 1; step <= 10; ++step)
 		history.record(withDuration(scene, step));
-	ok &= expect(history.undoCount() == 2, "the memory limit keeps three snapshots");
-	ok &= expect(history.bytes() == 3 * one && history.bytes() <= history.limits().maxBytes, "the retained estimate stays within the limit");
-	ok &= expect(history.head()->settings.durationSeconds == 10, "the newest edit is kept");
-	ok &= expect(!history.isAtSavedPoint(), "dropping the saved scene leaves the scene dirty");
+	// The memory limit keeps three snapshots.
+	QCOMPARE(history.undoCount(), std::size_t(2));
+	// The retained estimate stays within the limit.
+	QCOMPARE(history.bytes(), 3 * one);
+	QCOMPARE_LE(history.bytes(), history.limits().maxBytes);
+	// The newest edit is kept.
+	QCOMPARE_EQ(history.head()->settings.durationSeconds, 10.0);
+	QVERIFY2(!history.isAtSavedPoint(), "dropping the saved scene leaves the scene dirty");
 
 	const std::shared_ptr<const SceneModel> kept = history.head();
 	for (int step = 11; step <= 13; ++step)
 		history.record(withDuration(scene, step));
-	ok &= expect(history.undoCount() == 2, "the memory limit still holds");
+	// The memory limit still holds.
+	QCOMPARE(history.undoCount(), std::size_t(2));
 	history.undo();
 	history.undo();
-	ok &= expect(!history.canUndo() && history.head()->settings.durationSeconds == 11, "the retained entries are the newest ones");
-	ok &= expect(kept && kept->settings.durationSeconds == 10, "a scene that was handed out stays valid after it is dropped");
+	// The retained entries are the newest ones.
+	QVERIFY(!history.canUndo());
+	QCOMPARE_EQ(history.head()->settings.durationSeconds, 11.0);
+	// A scene that was handed out stays valid after it is dropped.
+	QVERIFY(kept);
+	QCOMPARE_EQ(kept->settings.durationSeconds, 10.0);
 
 	// One snapshot larger than the limit is kept, because it is the live scene.
 	SceneHistory tight({100, one / 2});
 	tight.reset(scene);
 	tight.record(withDuration(scene, 1));
-	ok &= expect(!tight.canUndo() && tight.head()->settings.durationSeconds == 1, "the live scene is never dropped");
+	// The live scene is never dropped.
+	QVERIFY(!tight.canUndo());
+	QCOMPARE_EQ(tight.head()->settings.durationSeconds, 1.0);
 	tight.record(withDuration(scene, 2));
-	ok &= expect(tight.undoCount() == 0 && tight.bytes() == one && tight.head()->settings.durationSeconds == 2,
-		"an oversized history keeps only the newest scene");
+	// An oversized history keeps only the newest scene.
+	QCOMPARE(tight.undoCount(), std::size_t(0));
+	QCOMPARE(tight.bytes(), one);
+	QCOMPARE_EQ(tight.head()->settings.durationSeconds, 2.0);
 
 	// The redo branch counts toward the memory only until the next edit.
 	SceneHistory branch({100, 3 * one + one / 2});
@@ -448,14 +538,16 @@ static bool testByteLimit() {
 	branch.record(withDuration(scene, 2));
 	branch.undo();
 	branch.undo();
-	ok &= expect(branch.bytes() == 3 * one && branch.redoCount() == 2, "undo does not drop entries");
+	// Undo does not drop entries.
+	QCOMPARE(branch.bytes(), 3 * one);
+	QCOMPARE(branch.redoCount(), std::size_t(2));
 	branch.record(withDuration(scene, 3));
-	ok &= expect(branch.bytes() == 2 * one && branch.redoCount() == 0, "an edit frees the redo branch");
-	return ok;
+	// An edit frees the redo branch.
+	QCOMPARE(branch.bytes(), 2 * one);
+	QCOMPARE(branch.redoCount(), std::size_t(0));
 }
 
-static bool testReset() {
-	bool ok = true;
+void TestSceneHistory::reset() {
 	SceneHistory history;
 	history.reset(named("first"), true);
 	history.record(named("edit"));
@@ -463,28 +555,27 @@ static bool testReset() {
 	history.undo();
 
 	history.reset(named("second"));
-	ok &= expect(headName(history) == "second", "reset replaces the scene");
-	ok &= expect(!history.canUndo() && !history.canRedo(), "reset drops the undo and redo steps");
-	ok &= expect(!history.isAtSavedPoint(), "reset to an unsaved scene is dirty");
-	ok &= expect(history.undoLabel().empty() && history.redoLabel().empty(), "reset leaves no labels");
-	ok &= expect(before && before->name == "edit", "a scene from before the reset stays valid");
+	// Reset replaces the scene.
+	QCOMPARE(headName(history), "second");
+	// Reset drops the undo and redo steps.
+	QVERIFY(!history.canUndo());
+	QVERIFY(!history.canRedo());
+	QVERIFY2(!history.isAtSavedPoint(), "reset to an unsaved scene is dirty");
+	// Reset leaves no labels.
+	QVERIFY(history.undoLabel().empty());
+	QVERIFY(history.redoLabel().empty());
+	// A scene from before the reset stays valid.
+	QVERIFY(before);
+	QCOMPARE(before->name, "edit");
 
 	history.record(named("edit"));
 	history.reset(named("third"), true);
-	ok &= expect(history.isAtSavedPoint() && history.bytes() == estimateSceneModelBytes(*history.head()), "reset to a saved scene is clean");
-	return ok;
+	// Reset to a saved scene is clean.
+	QVERIFY(history.isAtSavedPoint());
+	QCOMPARE(history.bytes(), estimateSceneModelBytes(*history.head()));
 }
 
-// The label of the edit from `before` to `after`, read back through the history.
-static std::string labelOf(const SceneModel& before, const SceneModel& after) {
-	SceneHistory history;
-	history.reset(before);
-	history.record(after);
-	return history.undoLabel();
-}
-
-static bool testLabels() {
-	bool ok = true;
+void TestSceneHistory::labels() {
 	SceneModel base = named("labels");
 	SceneStation station;
 	station.id = "station";
@@ -503,140 +594,147 @@ static bool testLabels() {
 	added.stops.push_back(SceneStop());
 	added.stops.push_back(SceneStop());
 	more.services.push_back(added);
-	ok &= expect(labelOf(base, more) == "Add service", "a service added with its stops is one added service");
-	ok &= expect(labelOf(more, base) == "Delete service", "a service removed with its stops is one deleted service");
+	// A service added with its stops is one added service.
+	QCOMPARE(labelOf(base, more), "Add service");
+	// A service removed with its stops is one deleted service.
+	QCOMPARE(labelOf(more, base), "Delete service");
 
 	more = base;
 	more.services[0].stops.push_back(SceneStop());
-	ok &= expect(labelOf(base, more) == "Add stop", "a stop added to a service");
-	ok &= expect(labelOf(more, base) == "Delete stop", "a stop removed from a service");
+	// A stop added to a service.
+	QCOMPARE(labelOf(base, more), "Add stop");
+	// A stop removed from a service.
+	QCOMPARE(labelOf(more, base), "Delete stop");
 
 	more = base;
 	more.stations[0].platforms.push_back(platform);
-	ok &= expect(labelOf(base, more) == "Add platform", "a platform added to a station");
+	// A platform added to a station.
+	QCOMPARE(labelOf(base, more), "Add platform");
 
 	more = base;
 	more.stations.clear();
-	ok &= expect(labelOf(base, more) == "Delete station", "a station removed with its platforms");
+	// A station removed with its platforms.
+	QCOMPARE(labelOf(base, more), "Delete station");
 
 	more = base;
 	more.trainUnits.push_back(SceneTrainUnit());
-	ok &= expect(labelOf(base, more) == "Add rolling stock unit", "a unit added");
+	// A unit added.
+	QCOMPARE(labelOf(base, more), "Add rolling stock unit");
 	more = base;
 	more.compositions.push_back(SceneComposition());
-	ok &= expect(labelOf(base, more) == "Add composition", "a composition added");
+	// A composition added.
+	QCOMPARE(labelOf(base, more), "Add composition");
 	more = base;
 	more.passengers.push_back(ScenePassenger());
-	ok &= expect(labelOf(base, more) == "Add passenger", "a passenger added");
+	// A passenger added.
+	QCOMPARE(labelOf(base, more), "Add passenger");
 
 	SceneModel withPassenger = base;
 	ScenePassenger passenger;
 	passenger.journeys.push_back(ScenePassengerJourney());
 	passenger.journeys[0].legs.push_back(ScenePassengerLeg());
 	withPassenger.passengers.push_back(passenger);
-	ok &= expect(labelOf(base, withPassenger) == "Add passenger", "a passenger with its journeys and legs is one passenger");
+	// A passenger with its journeys and legs is one passenger.
+	QCOMPARE(labelOf(base, withPassenger), "Add passenger");
 	more = withPassenger;
 	more.passengers[0].journeys[0].legs.push_back(ScenePassengerLeg());
-	ok &= expect(labelOf(withPassenger, more) == "Add passenger leg", "a leg added to a journey");
+	// A leg added to a journey.
+	QCOMPARE(labelOf(withPassenger, more), "Add passenger leg");
 
 	SceneModel withScenario = base;
 	SceneScenario scenario;
 	scenario.id = "scenario";
 	scenario.incidents.push_back(SceneIncident());
 	withScenario.scenarios.push_back(scenario);
-	ok &= expect(labelOf(base, withScenario) == "Add scenario", "a scenario with its incidents is one scenario");
+	// A scenario with its incidents is one scenario.
+	QCOMPARE(labelOf(base, withScenario), "Add scenario");
 	more = withScenario;
 	more.scenarios[0].incidents.push_back(SceneIncident());
-	ok &= expect(labelOf(withScenario, more) == "Add incident", "an incident added to a scenario");
+	// An incident added to a scenario.
+	QCOMPARE(labelOf(withScenario, more), "Add incident");
 	more = withScenario;
 	more.scenarios[0].entranceDelays.push_back(SceneEntranceDelay());
-	ok &= expect(labelOf(withScenario, more) == "Add entrance delay", "an entrance delay added to a scenario");
+	// An entrance delay added to a scenario.
+	QCOMPARE(labelOf(withScenario, more), "Add entrance delay");
 
 	more = base;
 	more.name = "renamed";
-	ok &= expect(labelOf(base, more) == "Edit", "a changed value is an edit");
+	// A changed value is an edit.
+	QCOMPARE(labelOf(base, more), "Edit");
 	more = base;
 	std::swap(more.services[0].id, more.stations[0].id);
-	ok &= expect(labelOf(base, more) == "Edit", "a moved value is an edit");
+	// A moved value is an edit.
+	QCOMPARE(labelOf(base, more), "Edit");
 
 	more = base;
 	more.services.push_back(added);
 	more.services.push_back(added);
-	ok &= expect(labelOf(base, more) == "Edit", "two services added at once are an edit");
+	// Two services added at once are an edit.
+	QCOMPARE(labelOf(base, more), "Edit");
 	more = base;
 	more.services.push_back(added);
 	more.tracks.push_back(SceneTrack());
-	ok &= expect(labelOf(base, more) == "Edit", "changes to two kinds of part are an edit");
+	// Changes to two kinds of part are an edit.
+	QCOMPARE(labelOf(base, more), "Edit");
 
 	// The label belongs to the edit and moves with the position.
 	SceneHistory history;
 	history.reset(base);
 	history.record(withScenario);
 	history.record(base);
-	ok &= expect(history.undoLabel() == "Delete scenario" && history.redoLabel().empty(), "the undo label names the last edit");
+	// The undo label names the last edit.
+	QCOMPARE(history.undoLabel(), "Delete scenario");
+	QVERIFY(history.redoLabel().empty());
 	history.undo();
-	ok &= expect(history.undoLabel() == "Add scenario" && history.redoLabel() == "Delete scenario", "the labels follow the position");
+	// The labels follow the position.
+	QCOMPARE(history.undoLabel(), "Add scenario");
+	QCOMPARE(history.redoLabel(), "Delete scenario");
 	history.undo();
-	ok &= expect(history.undoLabel().empty() && history.redoLabel() == "Add scenario", "the root has no label to undo");
-	return ok;
+	// The root has no label to undo.
+	QVERIFY(history.undoLabel().empty());
+	QCOMPARE(history.redoLabel(), "Add scenario");
 }
 
-static bool testCommittedScenes(const fs::path& scenes) {
-	bool ok = true;
-	std::vector<fs::path> directories;
-	for (const auto& entry : fs::directory_iterator(scenes)) {
-		if (entry.is_directory())
-			directories.push_back(entry.path());
-	}
-	std::sort(directories.begin(), directories.end());
-	ok &= expect(!directories.empty(), "the scenes folder holds scenes");
-
-	for (const fs::path& directory : directories) {
-		const std::string name = directory.filename().string();
-		const SceneLoadResult loaded = loadScene(directory.string());
-		if (!expect(!hasErrors(loaded.diagnostics) && !loaded.scene.arcs.empty(), name.c_str())) {
-			ok = false;
-			continue;
-		}
-
-		SceneHistory history;
-		history.reset(loaded.scene, true);
-		const std::size_t snapshot = history.bytes();
-		ok &= expect(snapshot >= loaded.scene.arcs.size() * sizeof(SceneArc), (name + ": the estimate covers the arcs").c_str());
-
-		SceneModel live = loaded.scene;
-		for (int step = 1; step <= 101; ++step) {
-			live.settings.hasDuration = true;
-			live.settings.durationSeconds = step;
-			history.record(live);
-		}
-		const SceneHistoryLimits& limits = history.limits();
-		ok &= expect(history.undoCount() <= limits.maxSteps, (name + ": at most 100 undo steps").c_str());
-		ok &= expect(history.bytes() <= limits.maxBytes, (name + ": at most 128 MiB").c_str());
-		// Only a limit drops steps: either the count is full or one more snapshot would not fit.
-		ok &= expect(history.undoCount() == limits.maxSteps || history.bytes() + snapshot > limits.maxBytes,
-			(name + ": entries are dropped only by a limit").c_str());
-		ok &= expect(history.head()->settings.durationSeconds == 101, (name + ": the newest edit is the live scene").c_str());
-	}
-	return ok;
+void TestSceneHistory::scenesFolderHoldsScenes() {
+	QVERIFY2(!committedSceneDirectories().empty(), "the scenes folder holds scenes");
 }
 
-int main(int argc, char** argv) {
-	if (argc != 2) {
-		std::cerr << "usage: test_scenehistory <scenes directory>\n";
-		return 2;
-	}
-	bool ok = true;
-	ok &= testEstimate();
-	ok &= testRecordUndoRedo();
-	ok &= testRedoBranch();
-	ok &= testSavedPoint();
-	ok &= testStepLimit();
-	ok &= testByteLimit();
-	ok &= testReset();
-	ok &= testLabels();
-	ok &= testCommittedScenes(argv[1]);
-	if (ok)
-		std::cout << "test_scenehistory passed\n";
-	return ok ? 0 : 1;
+void TestSceneHistory::committedScenes_data() {
+	QTest::addColumn<QString>("directory");
+	for (const fs::path& directory : committedSceneDirectories())
+		QTest::newRow(directory.filename().string().c_str()) << QString::fromStdString(directory.u8string());
 }
+
+void TestSceneHistory::committedScenes() {
+	QFETCH(QString, directory);
+	const SceneLoadResult loaded = loadScene(directory.toStdString());
+	// The scene loads and has arcs.
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QVERIFY(!loaded.scene.arcs.empty());
+
+	SceneHistory history;
+	history.reset(loaded.scene, true);
+	const std::size_t snapshot = history.bytes();
+	// The estimate covers the arcs.
+	QCOMPARE_GE(snapshot, loaded.scene.arcs.size() * sizeof(SceneArc));
+
+	SceneModel live = loaded.scene;
+	for (int step = 1; step <= 101; ++step) {
+		live.settings.hasDuration = true;
+		live.settings.durationSeconds = step;
+		history.record(live);
+	}
+	const SceneHistoryLimits& limits = history.limits();
+	// At most 100 undo steps.
+	QCOMPARE_LE(history.undoCount(), limits.maxSteps);
+	// At most 128 MiB.
+	QCOMPARE_LE(history.bytes(), limits.maxBytes);
+	// Only a limit drops steps: either the count is full or one more snapshot would not fit.
+	QVERIFY2(history.undoCount() == limits.maxSteps || history.bytes() + snapshot > limits.maxBytes,
+		"entries are dropped only by a limit");
+	// The newest edit is the live scene.
+	QCOMPARE_EQ(history.head()->settings.durationSeconds, 101.0);
+}
+
+QTEST_APPLESS_MAIN(TestSceneHistory)
+#include "test_scenehistory.moc"

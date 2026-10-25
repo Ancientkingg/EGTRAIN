@@ -789,7 +789,7 @@ egtrain_add_test(test_releasenotes
 egtrain_add_test(test_scenewriter
 	SOURCES ${SRC_DIR}/tests/test_scenewriter.cpp
 	LIBS egtrain_scene
-	COMMAND test_scenewriter ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS scene-v1 unit)
 
 egtrain_add_test(test_sceneexporter
@@ -801,13 +801,13 @@ egtrain_add_test(test_sceneexporter
 egtrain_add_test(test_scenebundle
 	SOURCES ${SRC_DIR}/tests/test_scenebundle.cpp
 	LIBS egtrain_scene
-	COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v2 unit)
 
 egtrain_add_test(test_scenehistory
 	SOURCES ${SRC_DIR}/tests/test_scenehistory.cpp
 	LIBS egtrain_scene
-	COMMAND test_scenehistory ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit)
 
 egtrain_add_test(test_sceneopenrequest
@@ -825,13 +825,13 @@ egtrain_add_test(test_openrequestrelay
 egtrain_add_test(test_scenecompatibility
 	SOURCES ${SRC_DIR}/tests/test_scenecompatibility.cpp
 	LIBS egtrain_scene
-	COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v2 unit)
 
 egtrain_add_test(test_sceneversions
 	SOURCES ${SRC_DIR}/tests/test_sceneversions.cpp
 	LIBS egtrain_scene
-	COMMAND test_sceneversions ${SRC_DIR}/tests/fixtures/scene-versions
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v2 unit)
 
 egtrain_add_test(test_scenebuilder SIMULATION_HEADERS
