@@ -170,6 +170,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0a1a09d502810a0902eeb4d48205af14" id="r_a0a1a09d502810a0902eeb4d48205af14"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0a1a09d502810a0902eeb4d48205af14">buildRouteDiagram</a> (const std::shared_ptr&lt; const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &gt; &amp;run, bool timetable, int referenceIndex)</td></tr>
 <tr class="memitem:a000180b9df0075eb8c07dcf8e5bb5a50" id="r_a000180b9df0075eb8c07dcf8e5bb5a50"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a000180b9df0075eb8c07dcf8e5bb5a50">buildPerTrainDiagram</a> (int mode)</td></tr>
 <tr class="memdesc:a000180b9df0075eb8c07dcf8e5bb5a50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance.  <br /></td></tr>
+<tr class="memitem:aa0dcf889dde8371b8c7004df2904b4c0" id="r_aa0dcf889dde8371b8c7004df2904b4c0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa0dcf889dde8371b8c7004df2904b4c0">addCaseWindow</a> (QWidget *window)</td></tr>
+<tr class="memitem:a2142298549b7e6b8aabe1e43ef39912f" id="r_a2142298549b7e6b8aabe1e43ef39912f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2142298549b7e6b8aabe1e43ef39912f">closeAll</a> ()</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The windows that show the completed run: the per-train charts, the route and timetable diagrams, the delay charts, the blocking-time diagram, and the capacity analyses. Each slot opens one window over the main window and reads the run of the <a class="el" href="class_run_controller.html">RunController</a>. Without results a slot opens nothing; all but the train paths and the timetable graph say so in the status bar. </p>
@@ -203,6 +205,24 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="aa0dcf889dde8371b8c7004df2904b4c0" name="aa0dcf889dde8371b8c7004df2904b4c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0dcf889dde8371b8c7004df2904b4c0">&#9670;&#160;</a></span>addCaseWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::addCaseWindow </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>window</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that <a class="el" href="#a2142298549b7e6b8aabe1e43ef39912f">closeAll()</a> closes. The window keeps its own place on the screen. </p>
+
+</div>
+</div>
 <a id="a000180b9df0075eb8c07dcf8e5bb5a50" name="a000180b9df0075eb8c07dcf8e5bb5a50"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a000180b9df0075eb8c07dcf8e5bb5a50">&#9670;&#160;</a></span>buildPerTrainDiagram()</h2>
 
@@ -256,6 +276,24 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a0a1a09d502810a0902eeb4d48205af14_cgraph.svg" width="1572" height="1332"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a2142298549b7e6b8aabe1e43ef39912f" name="a2142298549b7e6b8aabe1e43ef39912f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2142298549b7e6b8aabe1e43ef39912f">&#9670;&#160;</a></span>closeAll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ResultViews::closeAll </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Closes every result window and every window of <a class="el" href="#aa0dcf889dde8371b8c7004df2904b4c0">addCaseWindow()</a> that is still open, because they show another case than the one that replaces it. The windows stay open from one run of a case to the next. </p>
 
 </div>
 </div>
@@ -381,7 +419,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a9f539b64e7342aee59d626baebfd8617_cgraph.svg" width="1699" height="1764"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_result_views_a9f539b64e7342aee59d626baebfd8617_cgraph.svg" width="1699" height="1844"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

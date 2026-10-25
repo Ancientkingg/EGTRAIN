@@ -2,8 +2,10 @@ var class_result_views =
 [
     [ "Host", "class_result_views_1_1_host.html", "class_result_views_1_1_host" ],
     [ "ResultViews", "class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b", null ],
+    [ "addCaseWindow", "class_result_views.html#aa0dcf889dde8371b8c7004df2904b4c0", null ],
     [ "buildPerTrainDiagram", "class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50", null ],
     [ "buildRouteDiagram", "class_result_views.html#a0a1a09d502810a0902eeb4d48205af14", null ],
+    [ "closeAll", "class_result_views.html#a2142298549b7e6b8aabe1e43ef39912f", null ],
     [ "displayTrainPathDiagrams", "class_result_views.html#a6654ed2f9732984a4810179a9275addf", null ],
     [ "showAreaCapacity", "class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78", null ],
     [ "showBlockingTimeDiagram", "class_result_views.html#aa9e252a043e4690bee758082e1f58722", null ],

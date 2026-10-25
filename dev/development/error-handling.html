@@ -548,62 +548,66 @@
 <td><p>Standard error</p></td>
 </tr>
 <tr class="row-odd"><td><p>Default scene cannot be read at start</p></td>
-<td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
+<td><p>“Cannot Start EGTRAIN” box, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A launch whose environment suppresses dialogs shows no box.</p></td>
 <td><p>Standard error</p></td>
 </tr>
-<tr class="row-even"><td><p>Save fails</p></td>
-<td><p>“Cannot Save Case” box with the first diagnostic. Three Save As errors call <code class="docutils literal notranslate"><span class="pre">QMessageBox::critical</span></code> directly (<code class="docutils literal notranslate"><span class="pre">SceneSession.cpp</span></code>), which bypasses dialog suppression and the log.</p></td>
-<td><p>Yes, except those three</p></td>
+<tr class="row-even"><td><p>Option on the command line has a value that is not a number</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">-h</span> <span class="pre">requires</span> <span class="pre">a</span> <span class="pre">whole</span> <span class="pre">number</span> <span class="pre">of</span> <span class="pre">seconds.</span></code> and the like on standard error, exit 1 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>). A value of <code class="docutils literal notranslate"><span class="pre">-n</span></code> that is not a whole number counts as an unknown case id.</p></td>
+<td><p>Standard error</p></td>
 </tr>
-<tr class="row-odd"><td><p>Legacy import fails</p></td>
+<tr class="row-odd"><td><p>Save fails</p></td>
+<td><p>“Cannot Save Case” box with the first diagnostic (<code class="docutils literal notranslate"><span class="pre">SceneSession::showError</span></code>)</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Legacy import fails</p></td>
 <td><p>Status bar “Legacy import failed” and a box with the summary</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
+<tr class="row-odd"><td><p>Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws</p></td>
 <td><p>“Cannot Run Case” box with the first diagnostic; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p>Run stopped by an exception</p></td>
+<tr class="row-even"><td><p>Run stopped by an exception</p></td>
 <td><p>“Simulation Failed” box; status bar “Simulation failed”; Run Results status “Failed”</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p>Run with zero trains</p></td>
+<tr class="row-odd"><td><p>Run with zero trains</p></td>
 <td><p>Nothing visible: one error line in the Log dock (<code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>)</p></td>
 <td><p>Dock</p></td>
 </tr>
-<tr class="row-odd"><td><p>Run ends without results and was not stopped</p></td>
+<tr class="row-even"><td><p>Run ends without results and was not stopped</p></td>
 <td><p>Run Results says “Failed” and the status bar says “Simulation ended without results”</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Run output files cannot be written</p></td>
+<tr class="row-odd"><td><p>Run output files cannot be written</p></td>
 <td><p>Nothing: <code class="docutils literal notranslate"><span class="pre">ofstream::open</span></code> is not checked (for example <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>), and the run reports success</p></td>
 <td><p>One line for one file (<code class="docutils literal notranslate"><span class="pre">RollingStock.cpp</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Result export fails</p></td>
+<tr class="row-even"><td><p>Result export fails</p></td>
 <td><p>“Export failed” warning with the path, without the reason from the OS</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Live stream cannot start</p></td>
+<tr class="row-odd"><td><p>Live stream cannot start</p></td>
 <td><p>“Cannot Start EGTRAIN” box, exit 2 (<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code>)</p></td>
 <td><p>Standard error</p></td>
 </tr>
-<tr class="row-odd"><td><p>Manual update check fails</p></td>
+<tr class="row-even"><td><p>Manual update check fails</p></td>
 <td><p>Warning box with the network error</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Automatic update check fails</p></td>
+<tr class="row-odd"><td><p>Automatic update check fails</p></td>
 <td><p>Nothing visible (<code class="docutils literal notranslate"><span class="pre">qWarning</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code>)</p></td>
 <td><p>Dock, category <code class="docutils literal notranslate"><span class="pre">app.ui</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Telemetry send or consent fails</p></td>
+<tr class="row-even"><td><p>Telemetry send or consent fails</p></td>
 <td><p>Nothing, by design; a consent save error shows in the dialog</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p>Autosave fails</p></td>
+<tr class="row-odd"><td><p>Autosave fails</p></td>
 <td><p>Status bar “Autosave unavailable: …” once per scene, overwritten by the next status message; during a pick of an incident target it waits until the pick ends (<code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>)</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p>A recovery copy cannot be removed</p></td>
+<tr class="row-even"><td><p>A recovery copy cannot be removed</p></td>
 <td><p>Status bar for 8 s (<code class="docutils literal notranslate"><span class="pre">MainWindow.cpp</span></code>)</p></td>
 <td><p>No</p></td>
 </tr>

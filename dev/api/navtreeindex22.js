@@ -1,5 +1,9 @@
 var NAVTREEINDEX22 =
 {
+"struct_recovery_candidate.html#a27cb262341c99306959a40dc5c8f23d7":[2,0,154,4],
+"struct_recovery_candidate.html#a46e71b98b741f4fa510579cbb8932195":[2,0,154,5],
+"struct_recovery_candidate.html#a8e4b9c61f690a55926ae0a7980112c91":[2,0,154,3],
+"struct_recovery_candidate.html#aa712bb5af433296b765c8af6b583c2ec":[2,0,154,0],
 "struct_recovery_candidate.html#ae5313ac778efad53b62e57fc5bdab8ab":[2,0,154,2],
 "struct_recovery_result.html":[2,0,157],
 "struct_recovery_result.html#a6dc586d2c9b2e490dacc6b97f027ae78":[2,0,157,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX22 =
 "struct_scene_import_report_row.html#afcca67479761060b43d19b4559312883":[2,0,214,2],
 "struct_scene_import_result.html":[2,0,215],
 "struct_scene_import_result.html#a4947c736320616660fca55b85d8e5534":[2,0,215,1],
-"struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165":[2,0,215,2],
-"struct_scene_import_result.html#a9848e0b36b8807c64adb0cf0031b629f":[2,0,215,0],
-"struct_scene_incident.html":[2,0,216],
-"struct_scene_incident.html#a41ea8d740189ca4edc10d24e8065bf6c":[2,0,216,6],
-"struct_scene_incident.html#a4b7d501118595f68adf150f386d14581":[2,0,216,4]
+"struct_scene_import_result.html#a7a8281e3422ca72c6de3eaf4c4089165":[2,0,215,2]
 };

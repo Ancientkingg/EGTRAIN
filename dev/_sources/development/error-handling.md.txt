@@ -88,8 +88,9 @@ The visual polish smoke also had a use after free: it added a temporary `SignalI
 | Scene cannot be read, in the window | "Cannot Open Case" box (`app/SceneSession.cpp`) with the first diagnostic, then the status bar "Could not open <file name>". The text says that the file is damaged or not a case, or, for a path that does not exist or cannot be read, that EGTRAIN could not read it (`app/CannotOpenMessage.h`). An exception while the scene is read gives the same box. | Yes |
 | Scene of another version | Question box with Check for Updates or the upgrade offer | No |
 | Scene named on the command line cannot be read | Box, then the default case opens (`main.cpp`) | Standard error |
-| Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`) | Standard error |
-| Save fails | "Cannot Save Case" box with the first diagnostic. Three Save As errors call `QMessageBox::critical` directly (`SceneSession.cpp`), which bypasses dialog suppression and the log. | Yes, except those three |
+| Default scene cannot be read at start | "Cannot Start EGTRAIN" box, exit 1 (`main.cpp`). A launch whose environment suppresses dialogs shows no box. | Standard error |
+| Option on the command line has a value that is not a number | `ERROR: -h requires a whole number of seconds.` and the like on standard error, exit 1 (`main.cpp`). A value of `-n` that is not a whole number counts as an unknown case id. | Standard error |
+| Save fails | "Cannot Save Case" box with the first diagnostic (`SceneSession::showError`) | Yes |
 | Legacy import fails | Status bar "Legacy import failed" and a box with the summary | Yes |
 | Run refused by validation or preparation, also when the output folder cannot be created or the preparation throws | "Cannot Run Case" box with the first diagnostic; Run Results status "Failed" | Yes |
 | Run stopped by an exception | "Simulation Failed" box; status bar "Simulation failed"; Run Results status "Failed" | Yes |
