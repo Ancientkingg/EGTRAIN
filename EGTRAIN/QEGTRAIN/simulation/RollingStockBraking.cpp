@@ -12,6 +12,13 @@
 
 using namespace std;
 
+namespace {
+
+// A braking curve ends this far (m) before its target, so that a train that brakes along it stays short of the target.
+constexpr double kBrakingCurveEndMarginM = 0.002;
+
+} // namespace
+
 double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
 	double AverageGradient = 0;
 	double AverageCurvature = 0;
@@ -291,7 +298,7 @@ bool Train::constructBrakingTerminal(double head, double speed, double anchor, d
 bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Section* sections, int count, int suggested) {
 	const double firstMinimum = brakingCurveSpeed(speed, arc);
 	const double firstMaximum = std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, arc.gradient, arc.curvature)) / (total_train_mass * massFactor) * timestep);
-	const double anchor = Xobmin - 0.002;
+	const double anchor = Xobmin - kBrakingCurveEndMarginM;
 	const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 	double minimumNative = Vobmin;
 	for (int k = 0; k <= BrakStep; ++k)
@@ -352,7 +359,7 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
 	if (V1 <= V2)
 		return X0;
-	double nextHead = X0 - 0.002, nextSpeed = V2;
+	double nextHead = X0 - kBrakingCurveEndMarginM, nextSpeed = V2;
 	for (int step = 1; step < 2000; ++step) {
 		double head, speed;
 		if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed)) {
@@ -364,7 +371,7 @@ double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int B
 			if (head >= cutoff)
 				return head; // The refined point is -1 or lies in [head, nextHead].
 			if (V2 > 0) {
-				const double anchor = X0 - 0.002;
+				const double anchor = X0 - kBrakingCurveEndMarginM;
 				double low = head, high = nextHead, end, endSpeed, upper;
 				if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed) || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper) || upper > anchor) return -1;
 				const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed);
@@ -390,19 +397,19 @@ double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int B
 				return high;
 			}
 			double low = head, high = nextHead, end;
-			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - 0.002));
-			if (!predictBraking(low, V1, V2, BS, Blocks, end) || end > X0 - 0.002 + roundoff)
+			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - kBrakingCurveEndMarginM));
+			if (!predictBraking(low, V1, V2, BS, Blocks, end) || end > X0 - kBrakingCurveEndMarginM + roundoff)
 				return -1;
 			const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end);
-			if ((!completeUpper && !(end > X0 - 0.002)) || end < X0 - 0.002 - roundoff)
+			if ((!completeUpper && !(end > X0 - kBrakingCurveEndMarginM)) || end < X0 - kBrakingCurveEndMarginM - roundoff)
 				return -1;
 			for (int iteration = 0; iteration < 64; ++iteration) {
 				const double middle = low + (high - low) / 2;
 				if (middle == low || middle == high)
 					break;
-				if (!predictBraking(middle, V1, V2, BS, Blocks, end) && !(end > X0 - 0.002))
+				if (!predictBraking(middle, V1, V2, BS, Blocks, end) && !(end > X0 - kBrakingCurveEndMarginM))
 					return -1;
-				if (end <= X0 - 0.002)
+				if (end <= X0 - kBrakingCurveEndMarginM)
 					low = middle;
 				else
 					high = middle;
@@ -532,10 +539,10 @@ Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority
 						// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
 						// authority stays where the leader reported it.
 						const double LeaderBrakingStart = BrakDist_Block(authority.TrainInfo.TrainSpeed, 0, target.position, BS, Blocks);
-						// The inverse ends at X - 0.002; its holdback is not forward travel.
+						// The inverse ends at X - kBrakingCurveEndMarginM; its holdback is not forward travel.
 						const double LeaderStandstill = LeaderBrakingStart < 0 || authority.TrainInfo.TrainSpeed == 0
 							? target.position
-							: std::min(target.position + ((target.position - 0.002) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
+							: std::min(target.position + ((target.position - kBrakingCurveEndMarginM) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
 						target.distance = LeaderStandstill - target.position;
 						target.position = LeaderStandstill;
 						target.moved = true;
@@ -732,7 +739,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		if (successor >= 0) {
 			if (target.speed == 0) {
 				double end;
-				const double anchor = target.position - 0.002;
+				const double anchor = target.position - kBrakingCurveEndMarginM;
 				const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 				if (predictBraking(proposedHead, proposedSpeed, 0, BS, Blocks, end) && end <= anchor + roundoff)
 					continue;
@@ -771,7 +778,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 }
 
 bool Train::DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
-	std::vector<double> positions{X0 - 0.002}, speeds{V2};
+	std::vector<double> positions{X0 - kBrakingCurveEndMarginM}, speeds{V2};
 	BrakStep = -1;
 	if (V1 <= V2)
 		return false;
@@ -796,7 +803,7 @@ bool Train::planBraking(double head, double speed, const Arc& arc, Section* sect
 	const double resistance = total_train_resistances(speed, arc.gradient, arc.curvature);
 	double low = brakingCurveSpeed(speed, arc);
 	double high = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
-	const double anchor = Xobmin - 0.002;
+	const double anchor = Xobmin - kBrakingCurveEndMarginM;
 	const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
 	double end;
 	if (!std::isfinite(low) || !std::isfinite(high) || high < low
