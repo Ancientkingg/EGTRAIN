@@ -287,6 +287,7 @@ void NetworkPresenter::clear() {
 	allPlatforms.clear();
 	m_tracksBySectionId.clear();
 	m_sectionIndexById.clear();
+	m_switchEnds.clear();
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
 	m_regionStations.clear();
@@ -369,11 +370,8 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 }
 
 const TrackPreviewLine* NetworkPresenter::trackLine(const std::string& sceneTrackId) const {
-	const auto line = std::find_if(m_cachedTrackPreview.lines.begin(),
-		m_cachedTrackPreview.lines.end(), [&sceneTrackId](const TrackPreviewLine& candidate) {
-			return candidate.id == sceneTrackId;
-		});
-	return line == m_cachedTrackPreview.lines.end() ? nullptr : &*line;
+	const auto line = m_previewLinesById.find(sceneTrackId);
+	return line == m_previewLinesById.end() ? nullptr : line->second;
 }
 
 const TrackPreviewSignal* NetworkPresenter::previewSignal(const std::string& trackId, const std::string& sectionId) const {
@@ -475,6 +473,9 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	}
 	m_previewHasSelectedTrack = !selectedTrackIds.empty();
 	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
+	m_previewLinesById.clear();
+	for (const TrackPreviewLine& line : m_cachedTrackPreview.lines)
+		m_previewLinesById.emplace(line.id, &line);
 	const TrackPreviewResult& preview = m_cachedTrackPreview;
 	if (preview.lines.empty()) {
 		if (scene)
@@ -1932,7 +1933,7 @@ void NetworkPresenter::neighbourStations(double X, int tracklineID, int* station
 	if (!hasTrackGeometry(tracklineID))
 		return;
 	const int region = m_source->track(tracklineID).region;
-	std::vector<int> trackStIdx = m_regionStations[region];
+	const std::vector<int>& trackStIdx = m_regionStations[region];
 	const auto regionX = [this, region](int index) { return m_source->station(index).regionX[region]; };
 
 	// find neighbour stations
@@ -2052,22 +2053,35 @@ void NetworkPresenter::egtrainPoint2Screen(Connections* connection, int track1, 
 
 // The ends of the connection of a section derived at a switch, whose id is "<first id>@-<x1>/@<second id>@-<x2>": the
 // sections of the two tracks that it joins and the X in kilometres of the connection on each. Returns false for another
-// section and when the source lacks one of the two sections.
+// section and when the source lacks one of the two sections. The id is read once and its ends kept in m_switchEnds.
 bool NetworkPresenter::switchSectionEnds(const Section& section, const Section*& first, const Section*& second,
 	double& firstX, double& secondX) const {
-	const std::size_t index1 = section.ID.find("@-");
-	const std::size_t index2 = section.ID.find("/@", index1 + 1);
-	const std::size_t index3 = section.ID.find("@-", index2 + 1);
-	if (index1 == std::string::npos || index2 == std::string::npos || index3 == std::string::npos)
+	auto ends = m_switchEnds.find(section.ID);
+	if (ends == m_switchEnds.end()) {
+		SwitchEnds fresh;
+		const std::size_t index1 = section.ID.find("@-");
+		const std::size_t index2 = section.ID.find("/@", index1 + 1);
+		const std::size_t index3 = section.ID.find("@-", index2 + 1);
+		fresh.parsed = index1 != std::string::npos && index2 != std::string::npos && index3 != std::string::npos;
+		if (fresh.parsed) {
+			fresh.firstX = atof(section.ID.substr(index1 + 2, index2 - index1 - 2).c_str());
+			fresh.secondX = atof(section.ID.substr(index3 + 2, std::string::npos).c_str());
+			const auto indexOf = [this](const std::string& id) {
+				const auto found = m_sectionIndexById.find(id);
+				return found == m_sectionIndexById.end() ? -1 : found->second;
+			};
+			fresh.first = indexOf(section.ID.substr(0, index1 + 1));
+			fresh.second = indexOf(section.ID.substr(index2 + 1, index3 - index2));
+		}
+		ends = m_switchEnds.emplace(section.ID, fresh).first;
+	}
+	const SwitchEnds& read = ends->second;
+	if (!read.parsed)
 		return false;
-	firstX = atof(section.ID.substr(index1 + 2, index2 - index1 - 2).c_str());
-	secondX = atof(section.ID.substr(index3 + 2, std::string::npos).c_str());
-	const auto sectionWith = [this](const std::string& id) -> const Section* {
-		const auto found = m_sectionIndexById.find(id);
-		return found == m_sectionIndexById.end() ? nullptr : &m_source->section(found->second);
-	};
-	first = sectionWith(section.ID.substr(0, index1 + 1));
-	second = sectionWith(section.ID.substr(index2 + 1, index3 - index2));
+	firstX = read.firstX;
+	secondX = read.secondX;
+	first = read.first < 0 ? nullptr : &m_source->section(read.first);
+	second = read.second < 0 ? nullptr : &m_source->section(read.second);
 	return first && second && first != second;
 }
 
@@ -2399,11 +2413,13 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 		return false;
 	// get the polygon of each wagon
 	const int wagons = std::min(train.wagonCount + 1, static_cast<int>(trainPolygonItemList->size()));
-	std::vector<QPolygonF> polygons(static_cast<std::size_t>(std::max(wagons, 0)));
+	std::vector<QPolygonF>& polygons = m_wagonPolygons;
+	polygons.resize(static_cast<std::size_t>(std::max(wagons, 0)));
 	bool changed = false;
 	bool hasVisibleGeometry = false;
 	for (int wagon = 0; wagon < wagons; wagon++) {
 		QPolygonF& trainPolygon = polygons[static_cast<std::size_t>(wagon)];
+		trainPolygon.clear();
 		getTrainPolygon(&trainPolygon, wagon, train);
 		changed = changed || trainPolygon != trainPolygonItemList->at(wagon)->polygon();
 		hasVisibleGeometry = hasVisibleGeometry || !trainPolygon.isEmpty();
@@ -2431,13 +2447,24 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 		return;
 	double headX, tailX, connectionX1, connectionX2, x0, x1, x2, x3, y0, y1, y2, y3;
 	double dot, det, beta, alpha, gamma;
-	std::vector<double> posX, routeX;
+	std::vector<double>& posX = m_wagonScratch.posX;
+	std::vector<double>& routeX = m_wagonScratch.routeX;
 	QPointF ptTrainEdge, ptConnection1, ptConnection2, ptBegin1, ptEnd2;
 	const Section* currBS = nullptr;
 	const Section* BS1 = nullptr;
 	const Section* BS2 = nullptr;
-	QVector<QPointF> trainPointsUp, trainPointsDown, trainPointsComplete;
-	QVector<int> trainPointsStIndex, trainPointsStRegion, trainPointsGraphID;
+	QVector<QPointF>& trainPointsUp = m_wagonScratch.up;
+	QVector<QPointF>& trainPointsDown = m_wagonScratch.down;
+	QVector<int>& trainPointsStIndex = m_wagonScratch.stationIndex;
+	QVector<int>& trainPointsStRegion = m_wagonScratch.stationRegion;
+	QVector<int>& trainPointsGraphID = m_wagonScratch.graphId;
+	posX.clear();
+	routeX.clear();
+	trainPointsUp.clear();
+	trainPointsDown.clear();
+	trainPointsStIndex.clear();
+	trainPointsStRegion.clear();
+	trainPointsGraphID.clear();
 	int revStIndex = 0; // used to add station points to the polygon (needed for reversed routes)
 	double total_nW = train.wagonCount + 1;
 	const auto addPreviewPoint = [&](const TrackPreviewLine* line, double rawX,
@@ -2485,7 +2512,8 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 	const double routePosition = train.routeAxisPosition;
 
 	// get occupied block sections (list of index on SeqBS)
-	std::vector<int> occupiedBS; // we already know head block sections but not the index on SeqBS
+	std::vector<int>& occupiedBS = m_wagonScratch.occupiedSections; // we already know head block sections but not the index on SeqBS
+	occupiedBS.clear();
 
 	// find block sections where the train is (full length)
 	int headIndex = -1, tailIndex = -1;
@@ -2739,11 +2767,10 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 	}
 
 	// join Up and Down vectors to build the polygon
-	trainPointsComplete.append(trainPointsUp);
-	trainPointsComplete.append(trainPointsDown);
-
-	QPolygonF UpdatedTrainPolygon(trainPointsComplete);
-	trainPolygon->swap(UpdatedTrainPolygon);
+	trainPolygon->clear();
+	trainPolygon->reserve(trainPointsUp.size() + trainPointsDown.size());
+	trainPolygon->append(trainPointsUp);
+	trainPolygon->append(trainPointsDown);
 }
 
 // paint VCoupling notification
@@ -3291,6 +3318,7 @@ void NetworkPresenter::buildSignalIndex() {
 void NetworkPresenter::buildTrackIndexes() {
 	m_tracksBySectionId.clear();
 	m_sectionIndexById.clear();
+	m_switchEnds.clear();
 	m_tracksByOccupiedArc.clear();
 
 	for (auto* item : allArcs) {

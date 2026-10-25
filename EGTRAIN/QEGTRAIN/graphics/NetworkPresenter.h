@@ -476,6 +476,33 @@ private:
 	QElapsedTimer m_elapsed;
 	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.
 	std::unordered_map<std::string, int> m_sectionIndexById;
+	// The ends that switchSectionEnds() read from the id of a section derived at a switch, by that id: the indexes in
+	// m_sectionIndexById of the sections of the two tracks, -1 for one that the source lacks, and the X in kilometres of
+	// the connection on each. parsed is false for an id of another form. Emptied with m_sectionIndexById.
+	struct SwitchEnds {
+		bool parsed = false;
+		int first = -1;
+		int second = -1;
+		double firstX = 0.0;
+		double secondX = 0.0;
+	};
+	mutable std::unordered_map<std::string, SwitchEnds> m_switchEnds;
+	// The lines of m_cachedTrackPreview by their track id, the first line of each id. showPreview() fills both.
+	std::unordered_map<std::string, const TrackPreviewLine*> m_previewLinesById;
+	// The points and the sections that getTrainPolygon() works with for one wagon, and the shapes of the wagons of one
+	// train in getTrainPolygonItemList(), kept from wagon to wagon and from frame to frame so that their memory is reused.
+	struct WagonScratch {
+		QVector<QPointF> up;
+		QVector<QPointF> down;
+		QVector<int> stationIndex;
+		QVector<int> stationRegion;
+		QVector<int> graphId;
+		std::vector<int> occupiedSections;
+		std::vector<double> posX;
+		std::vector<double> routeX;
+	};
+	WagonScratch m_wagonScratch;
+	std::vector<QPolygonF> m_wagonPolygons;
 
 	qint64 nowMs() const;
 	void noteLiveUpdate();
