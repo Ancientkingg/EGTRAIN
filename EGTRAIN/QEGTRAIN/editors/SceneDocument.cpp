@@ -4,7 +4,6 @@
 
 void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot) {
 	SceneModel next = snapshot;
-	next.loadedData = std::move(live.loadedData);
 	next.sourceFiles = std::move(live.sourceFiles);
 	next.savedWithAppVersion = std::move(live.savedWithAppVersion);
 	live = std::move(next);

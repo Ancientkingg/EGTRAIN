@@ -69,12 +69,6 @@ static SceneModel richScene() {
 	scene.baseTime = longText("time");
 	scene.defaultScenarioId = longText("default");
 
-	SceneLoadedData loaded;
-	loaded.category = longText("loaded");
-	SceneLoadedData child;
-	child.category = longText("child");
-	loaded.children.push_back(child);
-	scene.loadedData.push_back(loaded);
 	scene.sourceFiles.insert(longText("file"));
 	SceneImportReportRow report;
 	report.category = longText("report");
@@ -223,8 +217,6 @@ void TestSceneHistory::estimate() {
 		{"savedWithAppVersion", [](SceneModel& m) { release(m.savedWithAppVersion); }},
 		{"baseTime", [](SceneModel& m) { release(m.baseTime); }},
 		{"defaultScenarioId", [](SceneModel& m) { release(m.defaultScenarioId); }},
-		{"loadedData", [](SceneModel& m) { release(m.loadedData); }},
-		{"loadedData children", [](SceneModel& m) { release(m.loadedData[0].children); }},
 		{"sourceFiles", [](SceneModel& m) { release(m.sourceFiles); }},
 		{"importReport", [](SceneModel& m) { release(m.importReport); }},
 		{"tracks", [](SceneModel& m) { release(m.tracks); }},

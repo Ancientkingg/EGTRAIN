@@ -42,9 +42,6 @@ struct SceneBytes {
 	static std::size_t heap(const std::string& text) { return textBytes(text); }
 	static std::size_t heap(const std::array<double, 5>&) { return 0; }
 	static std::size_t heap(const std::pair<int, double>&) { return 0; }
-	static std::size_t heap(const SceneLoadedData& value) {
-		return texts(value.category, value.sourceFile, value.status, value.targetType) + block(value.children);
-	}
 	static std::size_t heap(const SceneImportReportRow& value) { return texts(value.category, value.sourceFile); }
 	static std::size_t heap(const SceneTrack& value) { return texts(value.id); }
 	static std::size_t heap(const SceneTrackView& value) { return texts(value.trackId); }
@@ -87,7 +84,7 @@ struct SceneBytes {
 	static std::size_t of(const SceneModel& model) {
 		return sizeof(SceneModel)
 			+ texts(model.savedWithAppVersion, model.name, model.description, model.baseTime, model.defaultScenarioId)
-			+ block(model.loadedData) + block(model.sourceFiles) + block(model.importReport) + block(model.tracks)
+			+ block(model.sourceFiles) + block(model.importReport) + block(model.tracks)
 			+ block(model.trackViews) + block(model.nodes) + block(model.arcs) + block(model.blocks)
 			+ block(model.connections) + block(model.stations) + block(model.stationViews) + block(model.signals)
 			+ block(model.signallingAreas) + block(model.routes) + block(model.blockDependencies)

@@ -343,20 +343,6 @@ struct SceneServiceStopPair {
 	std::size_t destinationIndex = 0; ///< Index into SceneService::stops of the alighting stop.
 };
 
-/// A row of the Loaded Data summary. It is derived from the model and never saved.
-struct SceneLoadedData {
-	std::string category; ///< What the row counts, such as "infrastructure", "nodes" or "validation".
-	/// The file the row counts: a scene file, or the legacy source for import and provenance rows;
-	/// empty when none.
-	std::string sourceFile;
-	int parsedCount = 0; ///< Number of objects counted.
-	/// "Parsed", "Loaded", "Ready", "Warning", "Invalid" or "Missing optional".
-	std::string status;
-	/// What activating the row opens, such as "network", "service" or "validation"; empty for nothing.
-	std::string targetType;
-	std::vector<SceneLoadedData> children; ///< The rows below this one.
-};
-
 /// A row of import_report in scene.json. The counts describe the conversion source, not a run.
 struct SceneImportReportRow {
 	std::string category;		  ///< The kind of record converted.
@@ -377,7 +363,6 @@ struct SceneModel {
 	std::string baseTime;
 	SceneSimulationSettings settings; ///< The simulation settings.
 
-	std::vector<SceneLoadedData> loadedData;		///< Loaded Data summary; derived, not saved.
 	std::set<std::string> sourceFiles;				///< Names of the scene files present at load or save; derived.
 	std::vector<SceneImportReportRow> importReport; ///< Rows of import_report.
 	std::vector<SceneTrack> tracks;					///< infrastructure.json tracks.
@@ -536,12 +521,7 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir);
 /// Reads a scene directory. The diagnostics cover files, JSON shape and field types; validateScene checks
 /// the rest.
 SceneLoadResult loadScene(const std::string& sceneDir);
-/// Rebuilds loadedData from the model and sourceFiles.
-void refreshLoadedDataSummary(SceneModel& scene);
-/// Adds a validation row with the diagnostic counts below each top row of loadedData and marks the rows
-/// with errors or warnings.
-void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiagnostic>& diagnostics);
-/// Sets sourceFiles to the files that a save writes and rebuilds loadedData.
+/// Sets sourceFiles to the files that a save writes.
 void refreshSavedSceneMetadata(SceneModel& scene);
 
 #endif // SCENEMODEL_H

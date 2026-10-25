@@ -84,8 +84,13 @@ and the builders check against, are in `scene/RuntimeLimits.h`.
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a [`SceneScenario`]; the selected scenario is
-identified by `default_scenario_id`. Runtime `loadedData` and `sourceFiles` are
-derived, non-serialized summaries. Loaded-data navigation targets point only to
+identified by `default_scenario_id`. `sourceFiles`, the scene files present at
+load or save, is derived and not saved. The Loaded Data tree is not part of the
+model: `buildLoadedDataSummary` in `scene/LoadedDataSummary.h` derives its rows
+from the model, its source files and the diagnostics of validation, and
+`ValidationPanel` builds them again each time it writes the tree. Each row has a
+`SceneLoadedStatus`, which the tree shows as `OK`, `Not present`, `Warning` or
+`Invalid`. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. `import_report` is
 the persisted conversion summary, with
 one row containing `category`, optional `source_file`, `source_count`,

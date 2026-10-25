@@ -2,6 +2,7 @@
 #define VALIDATIONPANEL_H
 
 #include "editors/SceneDocument.h"
+#include "scene/LoadedDataSummary.h"
 #include "scene/SceneDiagnostic.h"
 
 #include <QObject>
@@ -76,7 +77,7 @@ public:
 	/// Validates the scene of the document, shows the diagnostics and the loaded data, and says so with refreshed(). With no
 	/// scene it clears them.
 	void refresh();
-	/// Writes the tree again.
+	/// Builds the loaded data summary of the scene with the diagnostics again and writes the tree.
 	void refreshLoadedData();
 	/// Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.
 	void updateStatus();
@@ -107,6 +108,8 @@ private:
 	std::function<bool()> m_advancedDetails;
 	std::function<std::optional<double>()> m_durationOverride;
 	std::function<LoadedDataContext()> m_loadedDataContext;
+	// The loaded data summary that the tree shows; empty while it shows no scene.
+	std::vector<SceneLoadedData> m_loadedData;
 	// Whether the tree was written with advanced details; empty while it shows no scene.
 	std::optional<bool> m_treeAdvanced;
 

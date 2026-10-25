@@ -17,9 +17,8 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-/// Copies `snapshot` over `live`, except for the parts of the scene that the application derives from the files on disk and
-/// from checking the scene, which an edit does not author: the loaded data, the source files and the version that saved the
-/// scene. Those keep their values in `live`.
+/// Copies `snapshot` over `live`, except for the parts of the scene that the application derives from the files on disk,
+/// which an edit does not author: the source files and the version that saved the scene. Those keep their values in `live`.
 void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot);
 
 /// The scene that the editors work on: the model, whether it is loaded, edited since it was saved and open for edits, and

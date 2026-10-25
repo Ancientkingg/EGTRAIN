@@ -160,6 +160,7 @@ target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
 
 # No Qt: scene_tool links this library.
 add_library(egtrain_scene STATIC
+    ${SRC_DIR}/scene/LoadedDataSummary.cpp
     ${SRC_DIR}/scene/SceneBundle.cpp
     ${SRC_DIR}/scene/SceneCompatibility.cpp
     ${SRC_DIR}/scene/SceneDiagnostic.cpp
