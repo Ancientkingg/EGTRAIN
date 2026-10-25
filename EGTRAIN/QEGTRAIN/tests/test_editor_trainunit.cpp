@@ -95,7 +95,7 @@ struct Events {
 
 using Log = std::vector<std::string>;
 
-static const Log edit({"documentChanged", "panelChanged"});
+static const Log editLog({"documentChanged", "panelChanged"});
 
 static QStringList items(const QListWidget* list) {
 	QStringList result;
@@ -414,7 +414,7 @@ void TestTrainUnitPanel::editsTractionRows() {
 	QVERIFY((document.model().trainUnits[0].tractionCurve[2] == std::array<double, 5>{{20.0, 21.0, 0.0, 0.0, 0.0}}));
 	QCOMPARE(panel.tractionTable()->rowCount(), 3);
 	QCOMPARE(panel.tractionTable()->currentRow(), 2);
-	QCOMPARE(events.log, edit);
+	QCOMPARE(events.log, editLog);
 	panel.tractionTable()->item(2, 2)->setData(Qt::EditRole, 500.0);
 	// A number in the table is written to the curve.
 	QCOMPARE_EQ(document.model().trainUnits[0].tractionCurve[2][2], 500.0);
@@ -435,7 +435,7 @@ void TestTrainUnitPanel::editsTractionRows() {
 	QCOMPARE(document.model().trainUnits[0].tractionCurve.size(), std::size_t(2));
 	QCOMPARE_EQ(document.model().trainUnits[0].tractionCurve[1][2], 500.0);
 	QCOMPARE(panel.tractionTable()->rowCount(), 2);
-	QCOMPARE(events.log, edit);
+	QCOMPARE(events.log, editLog);
 	events.log.clear();
 	panel.tractionTable()->setCurrentCell(-1, -1);
 	panel.removeTractionRow();
@@ -461,7 +461,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(document.revision(), quint64(2));
 	QCOMPARE(document.lastChangeLabel(), "Edit rolling stock unit");
 	// A number edit is one document change.
-	QCOMPARE(events.log, edit);
+	QCOMPARE(events.log, editLog);
 	QCOMPARE(events.kinds, SceneDocument::ChangeKinds(SceneDocument::TrainUnits));
 	events.log.clear();
 	typeNumber(panel.physicalEdits()[8], "abc");
@@ -477,7 +477,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	typeNumber(panel.physicalEdits()[8], "106");
 	// A number that follows text that was not a number is taken.
 	QCOMPARE_EQ(document.model().trainUnits[0].physical.length_m, 106.0);
-	QCOMPARE(events.log, edit);
+	QCOMPARE(events.log, editLog);
 	events.log.clear();
 	panel.commitPhysical(8);
 	panel.commitPhysical(-1);
