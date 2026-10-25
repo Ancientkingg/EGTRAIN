@@ -22,6 +22,7 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QRect>
+#include <QScopeGuard>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -385,6 +386,8 @@ void TestTimetableStopsPanel::columnsFillTable() {
 	panel.setMinimumWidth(wide);
 	panel.resize(wide, 500);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	const QString label = QString(" at %1 times the font").arg(scale);
 	bool wholeHeaders = true;
@@ -435,6 +438,8 @@ void TestTimetableStopsPanel::stationHeaderStaysWholeInWindowsStyle() {
 	panel.setServiceId("service-1");
 	table->setFixedWidth(2000);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	int others = 0;
 	for (int index = 1; index < table->columnCount(); ++index)
@@ -476,6 +481,8 @@ void TestTimetableStopsPanel::clockTimesStayWhole() {
 	panel.timeModeCombo()->setCurrentIndex(1);
 	panel.table()->setFixedWidth(static_cast<int>(400 * scale));
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	const QTableWidget* table = panel.table();
 	const QFontMetrics body(table->font());

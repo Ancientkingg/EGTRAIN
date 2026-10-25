@@ -16,6 +16,7 @@
 #include <QLoggingCategory>
 #include <QProxyStyle>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QString>
 #include <QStringList>
 #include <QTest>
@@ -959,6 +960,8 @@ void TestIncidentPanel::checkBoxStandsBeforeItsField() {
 	QVERIFY(qobject_cast<QLabel*>(labelOf(panel.idEdit())));
 	panel.resize(420, 700);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	const auto topLeft = [&panel](const QWidget* widget) { return widget->mapTo(&panel, QPoint(0, 0)); };
 	const auto precedes = [&topLeft](const QWidget* check, const QWidget* field) {

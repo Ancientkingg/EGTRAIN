@@ -13,6 +13,7 @@
 #include <QPoint>
 #include <QPushButton>
 #include <QRect>
+#include <QScopeGuard>
 #include <QString>
 #include <QStringList>
 #include <QTest>
@@ -588,6 +589,8 @@ void TestCompositionPanel::unitButtonsFitNarrowPanel() {
 	document.replace(compositionScene(), false);
 	panel.resize(panel.minimumSizeHint());
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	const QList<QPushButton*> buttons = {panel.addUnitButton(), panel.removeUnitButton(), panel.moveUnitUpButton(), panel.moveUnitDownButton()};
 	bool inside = true;

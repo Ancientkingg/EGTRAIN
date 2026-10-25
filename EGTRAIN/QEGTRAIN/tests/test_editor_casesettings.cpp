@@ -380,6 +380,7 @@ void TestCaseSettingsPanel::longDescriptionShowsStartAfterFocus() {
 		CaseSettingsPanel panel;
 		panel.setDocument(&document);
 		FocusWheel::watch(&panel);
+		// The panel is destroyed while shown, without a hide first: the checks after this block are about that.
 		panel.show();
 		panel.activateWindow();
 		QApplication::processEvents();

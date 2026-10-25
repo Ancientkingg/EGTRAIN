@@ -23,6 +23,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -894,6 +895,8 @@ void TestServicePanel::colourFieldStaysWhole() {
 	panel.setDocument(&document);
 	document.replace(serviceScene(), false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	const auto* choose = panel.colorButton()->findChild<QPushButton*>("serviceColorChooseButton");
 	const auto* reset = panel.colorButton()->findChild<QPushButton*>("serviceColorDefaultButton");
 	const auto* colorValue = panel.colorButton()->findChild<QLabel*>("serviceColorValue");
@@ -930,6 +933,8 @@ void TestServicePanel::routeTipNamesStations() {
 	panel.setDocument(&document);
 	document.replace(serviceScene(), false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QComboBox* route = panel.routeCombo();
 	const QString stations = route->currentData(Qt::ToolTipRole).toString();
 	// The tip of the route field gives its text and the stations of the route.

@@ -10,6 +10,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QString>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -693,6 +694,8 @@ void TestScenarioPanel::rowsFitCounts() {
 	document.replace(scenarioScene(), false);
 	panel.resize(panel.sizeHint());
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	const QListWidget* list = panel.listWidget();
 	const QFontMetrics metrics = list->fontMetrics();
 	// Each row shows its counts on a second line that the list has room for.

@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSpinBox>
 #include <QStringList>
 #include <QTabWidget>
@@ -793,6 +794,8 @@ void TestPassengerPanel::importsPassengers() {
 	QVERIFY2(cellsExplained, "every cell of the result table has its text as tooltip, and the source its path");
 	panel.resize(1000, 1800);
 	panel.show();
+	// The panel is hidden before the fixture destroys it, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QApplication::processEvents();
 	QTableWidget* resultTable = panel.importResultTable();
 	QVERIFY2(resultTable->viewport()->height() >= 8 * resultTable->verticalHeader()->defaultSectionSize(),

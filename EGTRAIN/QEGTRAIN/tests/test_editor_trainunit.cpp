@@ -14,6 +14,7 @@
 #include <QListWidget>
 #include <QLocale>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QScrollArea>
 #include <QString>
 #include <QStringList>
@@ -270,6 +271,8 @@ void TestTrainUnitPanel::tractionTableKeys() {
 	panel.setDocument(&document);
 	document.replace(unitScene(), false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	panel.activateWindow();
 	QApplication::processEvents();
 	QTableWidget* table = panel.tractionTable();
@@ -717,6 +720,8 @@ void TestTrainUnitPanel::buttonsFitNarrowPanel() {
 	panel.setDocument(&document);
 	document.replace(unitScene(), false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	panel.resize(panel.minimumSizeHint());
 	QApplication::processEvents();
 	QVERIFY2(panel.minimumSizeHint().width() <= 480 * scale, "the panel is not wider than a dock of 480 pixels needs");
@@ -762,6 +767,8 @@ void TestTrainUnitPanel::focusDecidesPendingEdits() {
 	panel.setDocument(&document);
 	document.replace(unitScene(), false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	panel.activateWindow();
 	QApplication::processEvents();
 	QDoubleSpinBox* length = panel.physicalEdits()[8];
@@ -811,6 +818,8 @@ void TestTrainUnitPanel::numberFieldsStopAtRanges() {
 	panel.setDocument(&document);
 	document.replace(scene, false);
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	panel.activateWindow();
 	QApplication::processEvents();
 	QDoubleSpinBox* length = panel.physicalEdits()[8];
