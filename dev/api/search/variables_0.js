@@ -50,11 +50,12 @@ var searchData=
   ['arrivalstatus_47',['arrivalStatus',['../struct_timetable_result_row.html#a96b3a2ecc4671ae57ad588a4a0f9f340',1,'TimetableResultRow']]],
   ['askcapacityscope_48',['askCapacityScope',['../struct_main_window_test_hooks.html#acc65fb0d3ac9e0488099a7d9712a0a65',1,'MainWindowTestHooks']]],
   ['askrunreview_49',['askRunReview',['../struct_main_window_test_hooks.html#a4566b7e5a66d0a3ebd208e9363d97184',1,'MainWindowTestHooks']]],
-  ['assetname_50',['assetName',['../struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864',1,'UpdateManifest']]],
-  ['assets_51',['assets',['../struct_stable_release.html#aaf4edba9dc20babeb7c337dc595723fa',1,'StableRelease']]],
-  ['assetsize_52',['assetSize',['../struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb',1,'UpdateManifest']]],
-  ['authoredstationprojection_53',['authoredStationProjection',['../struct_track_preview_line.html#abf9d965ab7c2744a82e976a310eb5478',1,'TrackPreviewLine']]],
-  ['av_5farrival_5fdelay_54',['Av_Arrival_Delay',['../class_stations.html#af8ece16482a6e3ff222e68ce36fd09f6',1,'Stations']]],
-  ['available_55',['available',['../struct_delay_statistics.html#a5db86bb809677830bf07bf8fcd3d1274',1,'DelayStatistics::available'],['../struct_delay_histogram.html#aa917c93d5865b448efa9eb0d845731a3',1,'DelayHistogram::available'],['../struct_run_result_value.html#aeb064508c6ffa1194da336157de4b286',1,'RunResultValue::available'],['../struct_network_presenter_1_1_preview_outcome.html#a49ac49ce5f1bd2dc31a4bf05c563d026',1,'NetworkPresenter::PreviewOutcome::available']]],
-  ['availablegeometry_56',['availableGeometry',['../struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7',1,'CaseChooserDialog::Options']]]
+  ['asksforinput_50',['asksForInput',['../struct_result_view_entry.html#a4797584bbfd735d1220517ab30e15039',1,'ResultViewEntry']]],
+  ['assetname_51',['assetName',['../struct_update_manifest.html#a0e433830a64656e52f29f61f0f7b5864',1,'UpdateManifest']]],
+  ['assets_52',['assets',['../struct_stable_release.html#aaf4edba9dc20babeb7c337dc595723fa',1,'StableRelease']]],
+  ['assetsize_53',['assetSize',['../struct_update_manifest.html#aa5e78a03f7a59ef68c9fcef236458abb',1,'UpdateManifest']]],
+  ['authoredstationprojection_54',['authoredStationProjection',['../struct_track_preview_line.html#abf9d965ab7c2744a82e976a310eb5478',1,'TrackPreviewLine']]],
+  ['av_5farrival_5fdelay_55',['Av_Arrival_Delay',['../class_stations.html#af8ece16482a6e3ff222e68ce36fd09f6',1,'Stations']]],
+  ['available_56',['available',['../struct_delay_statistics.html#a5db86bb809677830bf07bf8fcd3d1274',1,'DelayStatistics::available'],['../struct_delay_histogram.html#aa917c93d5865b448efa9eb0d845731a3',1,'DelayHistogram::available'],['../struct_run_result_value.html#aeb064508c6ffa1194da336157de4b286',1,'RunResultValue::available'],['../struct_network_presenter_1_1_preview_outcome.html#a49ac49ce5f1bd2dc31a4bf05c563d026',1,'NetworkPresenter::PreviewOutcome::available']]],
+  ['availablegeometry_57',['availableGeometry',['../struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7',1,'CaseChooserDialog::Options']]]
 ];

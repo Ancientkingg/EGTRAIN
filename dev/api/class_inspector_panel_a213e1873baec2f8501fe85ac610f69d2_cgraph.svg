@@ -352,10 +352,10 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" target="_top" xlink:title="The value in fixed notation with precision digits after the decimal point.">
-<polygon fill="white" stroke="#666666" points="946,-178.5 842,-178.5 842,-148.5 946,-148.5 946,-178.5"/>
-<text text-anchor="start" x="850" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::to</text>
-<text text-anchor="middle" x="894" y="-155.5" font-family="Helvetica,sans-Serif" font-size="10.00">_string_precision</text>
+<g id="a_Node000009"><a xlink:href="class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" target="_top" xlink:title="The value in fixed notation with precision digits after the decimal point.">
+<polygon fill="white" stroke="#666666" points="960,-178.5 828,-178.5 828,-148.5 960,-148.5 960,-178.5"/>
+<text text-anchor="start" x="836" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::toString</text>
+<text text-anchor="middle" x="894" y="-155.5" font-family="Helvetica,sans-Serif" font-size="10.00">Precision</text>
 </a>
 </g>
 </g>
@@ -390,8 +390,8 @@
 <g id="edge13_Node000010_Node000009" class="edge">
 <title>Node10&#45;&gt;Node9</title>
 <g id="a_edge13_Node000010_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M781.15,-171.92C798.4,-170.62 815.84,-169.31 831.66,-168.12"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="832.09,-171.6 841.8,-167.35 831.57,-164.62 832.09,-171.6"/>
+<path fill="none" stroke="#63b8ff" d="M781.15,-171.92C793.43,-171 805.81,-170.07 817.63,-169.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="818.15,-172.65 827.86,-168.4 817.62,-165.67 818.15,-172.65"/>
 </a>
 </g>
 </g>
@@ -417,8 +417,8 @@
 <g id="edge17_Node000011_Node000009" class="edge">
 <title>Node11&#45;&gt;Node9</title>
 <g id="a_edge17_Node000011_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M766.01,-150.95C788.01,-153.12 811.25,-155.42 831.75,-157.45"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="831.58,-160.95 841.88,-158.45 832.27,-153.98 831.58,-160.95"/>
+<path fill="none" stroke="#63b8ff" d="M766.01,-150.95C783.11,-152.64 800.95,-154.4 817.67,-156.06"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="817.63,-159.57 827.92,-157.07 818.31,-152.6 817.63,-159.57"/>
 </a>
 </g>
 </g>
@@ -716,8 +716,8 @@
 <g id="edge49_Node000024_Node000009" class="edge">
 <title>Node24&#45;&gt;Node9</title>
 <g id="a_edge49_Node000024_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M755.59,-299.25C764.85,-295.71 773.64,-290.93 781,-284.5 814.38,-255.34 785.4,-222.58 817,-191.5 821.54,-187.03 826.85,-183.27 832.52,-180.11"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="834.24,-183.16 841.66,-175.6 831.14,-176.88 834.24,-183.16"/>
+<path fill="none" stroke="#63b8ff" d="M755.59,-299.25C764.85,-295.71 773.64,-290.93 781,-284.5 814.38,-255.34 785.4,-222.58 817,-191.5 819.91,-188.64 823.13,-186.07 826.56,-183.76"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="828.6,-186.62 835.45,-178.54 825.05,-180.59 828.6,-186.62"/>
 </a>
 </g>
 </g>

@@ -127,12 +127,8 @@ Collaboration diagram for DispatchController:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
-<tr class="memitem:ab998809e17e483b75df62cdaf6386e8b" id="r_ab998809e17e483b75df62cdaf6386e8b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab998809e17e483b75df62cdaf6386e8b">iterationFinished</a> (int timestep)</td></tr>
-<tr class="memdesc:ab998809e17e483b75df62cdaf6386e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal.  <br /></td></tr>
 <tr class="memitem:aebe79f141b28e94e15e1d5ce7aa1617a" id="r_aebe79f141b28e94e15e1d5ce7aa1617a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aebe79f141b28e94e15e1d5ce7aa1617a">snapshotAvailable</a> ()</td></tr>
 <tr class="memdesc:aebe79f141b28e94e15e1d5ce7aa1617a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot.  <br /></td></tr>
-<tr class="memitem:ac1303c26373b05425e1a19988da7913c" id="r_ac1303c26373b05425e1a19988da7913c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac1303c26373b05425e1a19988da7913c">simulationFinished</a> ()</td></tr>
-<tr class="memdesc:ac1303c26373b05425e1a19988da7913c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window.  <br /></td></tr>
 <tr class="memitem:a39cb8a5f1b9faddf6fe72fdda874b921" id="r_a39cb8a5f1b9faddf6fe72fdda874b921"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39cb8a5f1b9faddf6fe72fdda874b921">executionRejected</a> ()</td></tr>
 <tr class="memdesc:a39cb8a5f1b9faddf6fe72fdda874b921"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains.  <br /></td></tr>
 <tr class="memitem:ada5a8643ab4c07569d742a43f4f3200f" id="r_ada5a8643ab4c07569d742a43f4f3200f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada5a8643ab4c07569d742a43f4f3200f">executionBegan</a> ()</td></tr>
@@ -155,7 +151,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adfb494be209a1122219b5d24128a4ec2" id="r_adfb494be209a1122219b5d24128a4ec2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adfb494be209a1122219b5d24128a4ec2">runSimulation</a> ()</td></tr>
 <tr class="memitem:abaea92389147b6df5588c56ecda23491" id="r_abaea92389147b6df5588c56ecda23491"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abaea92389147b6df5588c56ecda23491">Train_Simulation_Mixed_Signalling_With_Passengers</a> (double v1, double v2, double v3)</td></tr>
 <tr class="memitem:a36418dfc2831a157cf9fe1158307ecdc" id="r_a36418dfc2831a157cf9fe1158307ecdc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a36418dfc2831a157cf9fe1158307ecdc">printLastTrainServicePathDiagram</a> ()</td></tr>
-<tr class="memitem:acef50692bea1bf76d3e9988afa413a71" id="r_acef50692bea1bf76d3e9988afa413a71"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acef50692bea1bf76d3e9988afa413a71">setVectorSizesFromInput</a> (int vec_size)</td></tr>
 <tr class="memitem:a17f1138c6661bae0d67ecd96e4858054" id="r_a17f1138c6661bae0d67ecd96e4858054"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a17f1138c6661bae0d67ecd96e4858054">takeSimulationSnapshot</a> ()</td></tr>
 <tr class="memitem:acfe9014d13612fcccc58c5b6bd79dacb" id="r_acfe9014d13612fcccc58c5b6bd79dacb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acfe9014d13612fcccc58c5b6bd79dacb">setSnapshotsEnabled</a> (bool enabled)</td></tr>
 <tr class="memitem:a4e932a087dd00e4d2c817e42c77aceb2" id="r_a4e932a087dd00e4d2c817e42c77aceb2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4e932a087dd00e4d2c817e42c77aceb2">resetReplayCandidate</a> ()</td></tr>
@@ -373,33 +368,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>Execution-thread observation, emitted once for each run that began: elapsedMs is the time since executionBegan in milliseconds, and cancelled is true for a run that a stop ended. </p>
-
-</div>
-</div>
-<a id="ab998809e17e483b75df62cdaf6386e8b" name="ab998809e17e483b75df62cdaf6386e8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab998809e17e483b75df62cdaf6386e8b">&#9670;&#160;</a></span>iterationFinished</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::iterationFinished </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timestep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Nothing emits this signal. </p>
 
 </div>
 </div>
@@ -753,56 +721,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>A run that nothing draws needs no snapshots and no replay history. Off, the run builds neither. Call this before the run starts. </p>
-
-</div>
-</div>
-<a id="acef50692bea1bf76d3e9988afa413a71" name="acef50692bea1bf76d3e9988afa413a71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acef50692bea1bf76d3e9988afa413a71">&#9670;&#160;</a></span>setVectorSizesFromInput()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::setVectorSizesFromInput </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>vec_size</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Gives the per-step vectors of every train vec_size entries of 0 and sets their End_Time to vec_size - 1. Nothing in the program calls it; the operations builder sizes the vectors. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_dispatch_controller_acef50692bea1bf76d3e9988afa413a71_cgraph.svg" width="563" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac1303c26373b05425e1a19988da7913c" name="ac1303c26373b05425e1a19988da7913c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1303c26373b05425e1a19988da7913c">&#9670;&#160;</a></span>simulationFinished</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DispatchController::simulationFinished </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window. </p>
 
 </div>
 </div>

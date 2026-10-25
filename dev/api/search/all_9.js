@@ -215,6 +215,5 @@ var searchData=
   ['itemid_212',['itemId',['../struct_scene_diagnostic.html#a64c53ec3aa3d61dd220239c8080d7066',1,'SceneDiagnostic']]],
   ['iteminvalid_213',['itemInvalid',['../struct_scene_field_codes.html#a89aac9c9d07e8718450236da52e5faac',1,'SceneFieldCodes']]],
   ['itemmessage_214',['itemMessage',['../struct_scene_field_codes.html#a1e6cf1ed1f7f5f703dadb916d73ecab5',1,'SceneFieldCodes']]],
-  ['itemtype_215',['itemType',['../struct_scene_diagnostic.html#a348e9a26f09de9a1085ab7ae475197ee',1,'SceneDiagnostic']]],
-  ['iterationfinished_216',['iterationFinished',['../class_dispatch_controller.html#ab998809e17e483b75df62cdaf6386e8b',1,'DispatchController']]]
+  ['itemtype_215',['itemType',['../struct_scene_diagnostic.html#a348e9a26f09de9a1085ab7ae475197ee',1,'SceneDiagnostic']]]
 ];

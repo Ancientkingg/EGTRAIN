@@ -1,28 +1,28 @@
 <map id="RunController::Host::delayBaselineChanged" name="RunController::Host::delayBaselineChanged">
-<area shape="rect" id="Node000001" title="The delay baseline changed, so the Run Results dock and the diagram actions follow." alt="" coords="5,187,184,227"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="47,187,44,177,52,168,69,162,95,160,125,163,141,170,139,175,123,168,95,165,70,167,54,172,49,178,52,185"/>
+<area shape="rect" id="Node000001" title="The delay baseline changed, so the Run Results dock and the diagram actions follow." alt="" coords="5,199,184,239"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="47,199,44,189,52,180,69,174,95,172,125,175,141,182,139,187,123,180,95,177,70,179,54,184,49,190,52,197"/>
 <area shape="rect" id="Node000002" href="$class_run_controller.html#a422f80f30d7d9367b06ee480568b3550" title="A case was named when the program started or was opened by the system, so no case chooser opens." alt="" coords="255,5,451,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,185,156,121,191,85,231,55,242,49,245,53,233,60,194,89,160,124,111,188"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,197,153,127,189,88,231,55,242,49,244,53,233,60,193,92,158,130,110,200"/>
 <area shape="rect" id="Node000003" href="$class_run_controller.html#ad1af2bba150179f84d4ff04f369bba25" title="The duration that the command line gave, in seconds, which replaces the duration of the scene...." alt="" coords="239,70,468,95"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="116,184,166,143,197,122,231,104,251,97,253,102,233,109,200,127,169,148,119,188"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="112,197,162,150,195,125,231,104,249,97,251,102,233,109,198,129,166,154,116,201"/>
 <area shape="rect" id="Node000004" href="$class_run_controller.html#acebfbcf6eb2f5a76b501454948e826d2" title="Records that a case has been named, so that no case chooser opens." alt="" coords="237,119,469,145"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="144,184,231,153,265,145,266,150,233,159,145,189"/>
-<area shape="rect" id="Node000005" href="$class_run_controller.html#a75af0cce69697a4809854057a2420515" title="The next run shows the passengers at the platforms and in the trains." alt="" coords="249,169,457,194"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="184,195,235,190,236,196,184,201"/>
-<area shape="rect" id="Node000006" href="$class_run_controller.html#aeb1c9c7857d327a1b749a60cb9e37291" title=" " alt="" coords="249,218,457,243"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="184,212,236,217,235,222,184,218"/>
-<area shape="rect" id="Node000007" href="$class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" title="The next run writes to the folder of the scene sceneName, unless the user chose a folder." alt="" coords="255,268,452,308"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="149,224,233,253,261,262,259,267,231,259,147,229"/>
-<area shape="rect" id="Node000011" href="$class_run_controller.html#a2a96a681e6d790e2ffa4d2885d0133e8" title="The next run starts with the passenger display on or off." alt="" coords="240,333,467,358"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="116,225,166,272,198,297,233,318,254,326,252,331,231,322,195,301,162,276,112,229"/>
-<area shape="rect" id="Node000012" href="$class_run_controller.html#a7067864027cd0bacf4dd54dccee5d36d" title="The name of the case that the settings describe." alt="" coords="232,382,475,407"/>
-<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="109,226,128,258,156,297,192,336,233,368,245,375,243,379,231,373,188,340,152,300,124,261,104,229"/>
-<area shape="rect" id="Node000008" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="523,228,691,268"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="452,270,509,261,510,266,453,275"/>
-<area shape="rect" id="Node000009" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="525,317,689,342"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="453,301,515,312,515,317,452,307"/>
-<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="566,318,557,308,562,298,579,292,607,290,642,294,652,299,656,304,651,307,649,303,641,299,607,295,580,297,565,302,563,308,570,315"/>
-<area shape="rect" id="Node000010" href="$_scene_model_8cpp.html#a70e6d3f731dfc337f8a100a644af72bb" title=" " alt="" coords="739,317,977,342"/>
-<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="689,327,725,327,725,332,689,332"/>
-<area shape="poly" id="edge12_Node000010_Node000010" title=" " alt="" coords="817,318,809,308,813,298,830,292,858,290,893,294,903,299,907,304,903,307,900,303,892,299,858,295,831,297,817,302,814,308,821,315"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="133,196,179,175,231,155,265,145,266,150,233,160,182,180,136,201"/>
+<area shape="rect" id="Node000005" href="$class_run_controller.html#ad89e9ea0080085224d6d0d51b8309f08" title="The next run shows the passengers at the platforms and in the trains." alt="" coords="246,169,461,209"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="184,206,232,200,232,206,184,211"/>
+<area shape="rect" id="Node000006" href="$class_run_controller.html#aeb1c9c7857d327a1b749a60cb9e37291" title=" " alt="" coords="249,234,457,259"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="184,226,236,231,235,237,184,231"/>
+<area shape="rect" id="Node000007" href="$class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" title="The next run writes to the folder of the scene sceneName, unless the user chose a folder." alt="" coords="255,284,452,324"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="144,236,233,269,259,278,258,283,231,275,142,241"/>
+<area shape="rect" id="Node000011" href="$class_run_controller.html#ac39c8061cec53deeb8f09b1d7f37a596" title="The next run starts with the passenger display on or off." alt="" coords="256,348,451,388"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="116,237,166,286,198,312,233,334,248,340,245,345,231,338,195,316,162,290,112,241"/>
+<area shape="rect" id="Node000012" href="$class_run_controller.html#a7067864027cd0bacf4dd54dccee5d36d" title="The name of the case that the settings describe." alt="" coords="232,413,475,438"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="107,238,126,273,153,317,190,361,234,398,247,405,244,410,230,402,186,365,149,320,121,276,103,240"/>
+<area shape="rect" id="Node000008" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="523,244,691,284"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="452,286,509,277,510,282,453,291"/>
+<area shape="rect" id="Node000009" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="525,333,689,358"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="453,317,515,328,515,333,452,323"/>
+<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="566,334,557,324,562,314,579,308,607,306,642,310,652,315,656,320,651,323,649,319,641,315,607,311,580,313,565,318,563,324,570,331"/>
+<area shape="rect" id="Node000010" href="$_scene_model_8cpp.html#a70e6d3f731dfc337f8a100a644af72bb" title=" " alt="" coords="739,333,977,358"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="689,343,725,343,725,348,689,348"/>
+<area shape="poly" id="edge12_Node000010_Node000010" title=" " alt="" coords="817,334,809,324,813,314,830,308,858,306,893,310,903,315,907,320,903,323,900,319,892,315,858,311,831,313,817,318,814,324,821,331"/>
 </map>

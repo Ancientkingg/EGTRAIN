@@ -299,6 +299,7 @@ var hierarchy =
     [ "ReplayBarText", "struct_replay_bar_text.html", null ],
     [ "ReplayCoverage", "struct_replay_coverage.html", null ],
     [ "ReportBuilder", "struct_report_builder.html", null ],
+    [ "ResultViewEntry", "struct_result_view_entry.html", null ],
     [ "telemetry::RetryState", "structtelemetry_1_1_retry_state.html", null ],
     [ "BlockingTimeScopeChoices::Route", "struct_blocking_time_scope_choices_1_1_route.html", null ],
     [ "Route", "class_route.html", null ],

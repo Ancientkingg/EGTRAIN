@@ -1,11 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a4d98250a14f0cda0742971d6a4c8e3b7":[1,0,13,19,2],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a7482cd4ebe2505e5275de25d89abae23":[1,0,13,19,4],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a823bc4d728e12359abc63b7004103dc1":[1,0,13,19,5],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a8a81a64e1e3728409b8c377eef362796":[1,0,13,19,7],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2":[1,0,13,19,8],
-"namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aba9952319eb8b6de5151ef934f8e13b8":[1,0,13,19,6],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657abf6f622872734159c1ad15920e24b5ab":[1,0,13,19,3],
 "namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead":[1,0,13,19,0],
 "namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb":[1,0,13,17],
@@ -249,5 +243,11 @@ var NAVTREEINDEX19 =
 "struct_capacity_analysis_result.html#ad28b9d1f48c61b5487a333a8c6807801":[2,0,31,3],
 "struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a":[2,0,31,8],
 "struct_capacity_analysis_scope.html":[2,0,32],
-"struct_capacity_analysis_scope.html#a2714699baf4443ce76cf1e2c92728389":[2,0,32,3]
+"struct_capacity_analysis_scope.html#a2714699baf4443ce76cf1e2c92728389":[2,0,32,3],
+"struct_capacity_analysis_scope.html#a33f5ce427ec5c7dc846156d034415a73":[2,0,32,4],
+"struct_capacity_analysis_scope.html#a7cd4bcf09530fe99be2902a7f14a6b96":[2,0,32,0],
+"struct_capacity_analysis_scope.html#a8b08aeffde34d6972e3ab6ce4a9cf0d9":[2,0,32,6],
+"struct_capacity_analysis_scope.html#a9f4b77a20d02a7fcdbb6985f9e5e3793":[2,0,32,2],
+"struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e":[2,0,32,1],
+"struct_capacity_analysis_scope.html#af48c07ffcfcfddd1faf073a7c2747531":[2,0,32,5]
 };

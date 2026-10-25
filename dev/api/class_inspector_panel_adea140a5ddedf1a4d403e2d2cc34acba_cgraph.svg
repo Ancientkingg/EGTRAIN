@@ -58,10 +58,10 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b" target="_top" xlink:title="The value in fixed notation with precision digits after the decimal point.">
-<polygon fill="white" stroke="#666666" points="338,-30 234,-30 234,0 338,0 338,-30"/>
-<text text-anchor="start" x="242" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::to</text>
-<text text-anchor="middle" x="286" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">_string_precision</text>
+<g id="a_Node000004"><a xlink:href="class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" target="_top" xlink:title="The value in fixed notation with precision digits after the decimal point.">
+<polygon fill="white" stroke="#666666" points="352,-30 220,-30 220,0 352,0 352,-30"/>
+<text text-anchor="start" x="228" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::toString</text>
+<text text-anchor="middle" x="286" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Precision</text>
 </a>
 </g>
 </g>
@@ -69,8 +69,8 @@
 <g id="edge3_Node000001_Node000004" class="edge">
 <title>Node1&#45;&gt;Node4</title>
 <g id="a_edge3_Node000001_Node000004"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M126.99,-53.4C154.72,-46.66 192.35,-37.52 223.92,-29.84"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="225.05,-33.17 233.94,-27.41 223.4,-26.37 225.05,-33.17"/>
+<path fill="none" stroke="#63b8ff" d="M126.99,-53.4C151.67,-47.4 184.18,-39.5 213.3,-32.43"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="214.13,-35.83 223.02,-30.06 212.48,-29.02 214.13,-35.83"/>
 </a>
 </g>
 </g>

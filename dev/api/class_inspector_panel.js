@@ -25,6 +25,6 @@ var class_inspector_panel =
     [ "selectedTrainIndex", "class_inspector_panel.html#a02bd5bbe9b096cf801424032ea1219fc", null ],
     [ "selectsStationOverlay", "class_inspector_panel.html#aa7ee083994ac6f6cd244f6cfd9789bd4", null ],
     [ "showIncidentAction", "class_inspector_panel.html#a415535aadc494175b5e7d5d35f660e04", null ],
-    [ "to_string_precision", "class_inspector_panel.html#a5b3cbd709880d53a9b457477fa96212b", null ],
+    [ "toStringPrecision", "class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc", null ],
     [ "MainWindowTestAccess", "class_inspector_panel.html#a07d58747d59f49d1ff6b222687ecbf39", null ]
 ];

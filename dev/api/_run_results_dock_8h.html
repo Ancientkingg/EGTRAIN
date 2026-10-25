@@ -112,11 +112,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_run_results_d
   <div class="headertitle"><div class="title">RunResultsDock.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;QString&gt;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_result_views_8h_source.html">app/ResultViews.h</a>&quot;</code><br />
+<code>#include &lt;QString&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RunResultsDock.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_dock_8h__incl.svg" width="179" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_results_dock_8h__incl.svg" width="746" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -128,6 +130,8 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:ResultViewEntry" id="r_ResultViewEntry"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_result_view_entry.html">ResultViewEntry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A result view as the Diagrams menu and the result view menu of the Run Results dock list it.  <a href="struct_result_view_entry.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RunResultsDock" id="r_RunResultsDock"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_run_results_dock.html">RunResultsDock</a></td></tr>
 <tr class="memitem:RunResultsDock_3A_3AHost" id="r_RunResultsDock_3A_3AHost"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_run_results_dock_1_1_host.html">RunResultsDock::Host</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the dock asks of the window.  <a href="class_run_results_dock_1_1_host.html#details">More...</a><br /></td></tr>
@@ -135,7 +139,73 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:telemetry" id="r_telemetry"><td class="memItemLeft">namespace &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html">telemetry</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a69016fcaf3fda53e8e8d742b12749134" id="r_a69016fcaf3fda53e8e8d742b12749134"><td class="memItemLeft">constexpr std::array&lt; <a class="el" href="struct_result_view_entry.html">ResultViewEntry</a>, 12 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a69016fcaf3fda53e8e8d742b12749134">kResultViewEntries</a></td></tr>
 </table>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="a69016fcaf3fda53e8e8d742b12749134" name="a69016fcaf3fda53e8e8d742b12749134"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69016fcaf3fda53e8e8d742b12749134">&#9670;&#160;</a></span>kResultViewEntries</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::array&lt;<a class="el" href="struct_result_view_entry.html">ResultViewEntry</a>, 12&gt; kResultViewEntries</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{{</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#a117d1472a9d8094a2272784acb0c8286">ResultViewName::kTimetable</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a4fa7fe533fd5fd1ac1773d910b0c4c9e">ResultViews::showTimetableTable</a>, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#afb55a3c84b1af2f717e76edb76a14cc9">ResultViewName::kTimetableGraph</a>, &amp;<a class="code hl_slot" href="class_result_views.html#abbd242b2f22778b903475a53c4dc8447">ResultViews::showTimetableGraph</a>, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#a3ed75783c9c06b825776d557869ecdf5">ResultViewName::kDelays</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071">ResultViews::showDelayDiagram</a>, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#a0b1524f63d27556c1cfcdd4f63e64922">ResultViewName::kDelayAnalysis</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0">ResultViews::showDelayAnalysis</a>, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#ae20b16041b289623c5974fb8815c839b">ResultViewName::kSpeedDistance</a>, &amp;<a class="code hl_slot" href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a">ResultViews::showSpeedDistanceDiagram</a>, <span class="keyword">false</span>, <span class="keyword">true</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#ad40378c8eaeb3c12dbfcaf54a77fa14c">ResultViewName::kSpeedTime</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a0f3f690fe5e7f9f99d753b5afaff1f1c">ResultViews::showSpeedTimeDiagram</a>, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#ab9f9857c7531fc4896a58a9d73c9a1f7">ResultViewName::kTimeDistance</a>, &amp;<a class="code hl_slot" href="class_result_views.html#ad1c48db154efc6c4894aa92e13d4662f">ResultViews::showTimeDistanceDiagram</a>, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#ae1e574443b86d5f7e10d9043ecac853c">ResultViewName::kTractiveEffortDistance</a>, &amp;<a class="code hl_slot" href="class_result_views.html#ad604d7cb46e009e65178785bcd6f6191">ResultViews::showTractiveEffortDistanceDiagram</a>, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#afc9985a5f77e9d94d65d2e2b08f6d3c6">ResultViewName::kTrainPaths</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a6654ed2f9732984a4810179a9275addf">ResultViews::displayTrainPathDiagrams</a>, <span class="keyword">true</span>, <span class="keyword">true</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#aabef75f04faf6e3b66077dfdc3efff38">ResultViewName::kBlockingTime</a>, &amp;<a class="code hl_slot" href="class_result_views.html#aa9e252a043e4690bee758082e1f58722">ResultViews::showBlockingTimeDiagram</a>, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#a6369148b78f50008b3e04c6344cbb58e">ResultViewName::kCapacity</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a9f539b64e7342aee59d626baebfd8617">ResultViews::showCapacityAnalysis</a>, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">    {<a class="code hl_variable" href="namespace_result_view_name.html#a73ed701e7d67826aec0c832183928083">ResultViewName::kCapacityByArea</a>, &amp;<a class="code hl_slot" href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78">ResultViews::showAreaCapacity</a>, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">}}</div>
+<div class="ttc" id="aclass_result_views_html_a0f3f690fe5e7f9f99d753b5afaff1f1c"><div class="ttname"><a href="class_result_views.html#a0f3f690fe5e7f9f99d753b5afaff1f1c">ResultViews::showSpeedTimeDiagram</a></div><div class="ttdeci">void showSpeedTimeDiagram()</div><div class="ttdoc">Opens ResultViewName::kSpeedTime.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:328</div></div>
+<div class="ttc" id="aclass_result_views_html_a1d245242d54fb3f1ab9e30fc19faa071"><div class="ttname"><a href="class_result_views.html#a1d245242d54fb3f1ab9e30fc19faa071">ResultViews::showDelayDiagram</a></div><div class="ttdeci">void showDelayDiagram()</div><div class="ttdoc">Asks for the reference route and opens ResultViewName::kDelays.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:429</div></div>
+<div class="ttc" id="aclass_result_views_html_a20f7ff79c0cb9d0406816991116e27c0"><div class="ttname"><a href="class_result_views.html#a20f7ff79c0cb9d0406816991116e27c0">ResultViews::showDelayAnalysis</a></div><div class="ttdeci">void showDelayAnalysis()</div><div class="ttdoc">Opens ResultViewName::kDelayAnalysis through RunController::openDelayAnalysis().</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:401</div></div>
+<div class="ttc" id="aclass_result_views_html_a4fa7fe533fd5fd1ac1773d910b0c4c9e"><div class="ttname"><a href="class_result_views.html#a4fa7fe533fd5fd1ac1773d910b0c4c9e">ResultViews::showTimetableTable</a></div><div class="ttdeci">void showTimetableTable()</div><div class="ttdoc">Opens ResultViewName::kTimetable.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:413</div></div>
+<div class="ttc" id="aclass_result_views_html_a6654ed2f9732984a4810179a9275addf"><div class="ttname"><a href="class_result_views.html#a6654ed2f9732984a4810179a9275addf">ResultViews::displayTrainPathDiagrams</a></div><div class="ttdeci">void displayTrainPathDiagrams()</div><div class="ttdoc">Asks for the reference route and opens ResultViewName::kTrainPaths.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:317</div></div>
+<div class="ttc" id="aclass_result_views_html_a8e32ba30e8190ebc639b33719a73ea78"><div class="ttname"><a href="class_result_views.html#a8e32ba30e8190ebc639b33719a73ea78">ResultViews::showAreaCapacity</a></div><div class="ttdeci">void showAreaCapacity()</div><div class="ttdoc">Opens ResultViewName::kCapacityByArea.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:798</div></div>
+<div class="ttc" id="aclass_result_views_html_a9f539b64e7342aee59d626baebfd8617"><div class="ttname"><a href="class_result_views.html#a9f539b64e7342aee59d626baebfd8617">ResultViews::showCapacityAnalysis</a></div><div class="ttdeci">void showCapacityAnalysis()</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:717</div></div>
+<div class="ttc" id="aclass_result_views_html_aa9e252a043e4690bee758082e1f58722"><div class="ttname"><a href="class_result_views.html#aa9e252a043e4690bee758082e1f58722">ResultViews::showBlockingTimeDiagram</a></div><div class="ttdeci">void showBlockingTimeDiagram()</div><div class="ttdoc">Asks for the scope and opens ResultViewName::kBlockingTime.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:579</div></div>
+<div class="ttc" id="aclass_result_views_html_aac25495cbc2eeebd47d6343d7494868a"><div class="ttname"><a href="class_result_views.html#aac25495cbc2eeebd47d6343d7494868a">ResultViews::showSpeedDistanceDiagram</a></div><div class="ttdeci">void showSpeedDistanceDiagram()</div><div class="ttdoc">Opens ResultViewName::kSpeedDistance.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:325</div></div>
+<div class="ttc" id="aclass_result_views_html_abbd242b2f22778b903475a53c4dc8447"><div class="ttname"><a href="class_result_views.html#abbd242b2f22778b903475a53c4dc8447">ResultViews::showTimetableGraph</a></div><div class="ttdeci">void showTimetableGraph()</div><div class="ttdoc">Asks for the reference route and opens ResultViewName::kTimetableGraph.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:489</div></div>
+<div class="ttc" id="aclass_result_views_html_ad1c48db154efc6c4894aa92e13d4662f"><div class="ttname"><a href="class_result_views.html#ad1c48db154efc6c4894aa92e13d4662f">ResultViews::showTimeDistanceDiagram</a></div><div class="ttdeci">void showTimeDistanceDiagram()</div><div class="ttdoc">Opens ResultViewName::kTimeDistance.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:331</div></div>
+<div class="ttc" id="aclass_result_views_html_ad604d7cb46e009e65178785bcd6f6191"><div class="ttname"><a href="class_result_views.html#ad604d7cb46e009e65178785bcd6f6191">ResultViews::showTractiveEffortDistanceDiagram</a></div><div class="ttdeci">void showTractiveEffortDistanceDiagram()</div><div class="ttdoc">Opens ResultViewName::kTractiveEffortDistance.</div><div class="ttdef"><b>Definition</b> ResultViews.cpp:335</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_a0b1524f63d27556c1cfcdd4f63e64922"><div class="ttname"><a href="namespace_result_view_name.html#a0b1524f63d27556c1cfcdd4f63e64922">ResultViewName::kDelayAnalysis</a></div><div class="ttdeci">constexpr const char * kDelayAnalysis</div><div class="ttdoc">The delay analysis window.</div><div class="ttdef"><b>Definition</b> ResultViews.h:34</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_a117d1472a9d8094a2272784acb0c8286"><div class="ttname"><a href="namespace_result_view_name.html#a117d1472a9d8094a2272784acb0c8286">ResultViewName::kTimetable</a></div><div class="ttdeci">constexpr const char * kTimetable</div><div class="ttdoc">The table of planned and simulated stops.</div><div class="ttdef"><b>Definition</b> ResultViews.h:31</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_a3ed75783c9c06b825776d557869ecdf5"><div class="ttname"><a href="namespace_result_view_name.html#a3ed75783c9c06b825776d557869ecdf5">ResultViewName::kDelays</a></div><div class="ttdeci">constexpr const char * kDelays</div><div class="ttdoc">The delay chart.</div><div class="ttdef"><b>Definition</b> ResultViews.h:33</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_a6369148b78f50008b3e04c6344cbb58e"><div class="ttname"><a href="namespace_result_view_name.html#a6369148b78f50008b3e04c6344cbb58e">ResultViewName::kCapacity</a></div><div class="ttdeci">constexpr const char * kCapacity</div><div class="ttdoc">The capacity analysis of a section.</div><div class="ttdef"><b>Definition</b> ResultViews.h:41</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_a73ed701e7d67826aec0c832183928083"><div class="ttname"><a href="namespace_result_view_name.html#a73ed701e7d67826aec0c832183928083">ResultViewName::kCapacityByArea</a></div><div class="ttdeci">constexpr const char * kCapacityByArea</div><div class="ttdoc">The capacity analysis by area.</div><div class="ttdef"><b>Definition</b> ResultViews.h:42</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_aabef75f04faf6e3b66077dfdc3efff38"><div class="ttname"><a href="namespace_result_view_name.html#aabef75f04faf6e3b66077dfdc3efff38">ResultViewName::kBlockingTime</a></div><div class="ttdeci">constexpr const char * kBlockingTime</div><div class="ttdoc">The blocking-time diagram.</div><div class="ttdef"><b>Definition</b> ResultViews.h:40</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_ab9f9857c7531fc4896a58a9d73c9a1f7"><div class="ttname"><a href="namespace_result_view_name.html#ab9f9857c7531fc4896a58a9d73c9a1f7">ResultViewName::kTimeDistance</a></div><div class="ttdeci">constexpr const char * kTimeDistance</div><div class="ttdoc">Time against distance per train.</div><div class="ttdef"><b>Definition</b> ResultViews.h:37</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_ad40378c8eaeb3c12dbfcaf54a77fa14c"><div class="ttname"><a href="namespace_result_view_name.html#ad40378c8eaeb3c12dbfcaf54a77fa14c">ResultViewName::kSpeedTime</a></div><div class="ttdeci">constexpr const char * kSpeedTime</div><div class="ttdoc">Speed against time per train.</div><div class="ttdef"><b>Definition</b> ResultViews.h:36</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_ae1e574443b86d5f7e10d9043ecac853c"><div class="ttname"><a href="namespace_result_view_name.html#ae1e574443b86d5f7e10d9043ecac853c">ResultViewName::kTractiveEffortDistance</a></div><div class="ttdeci">constexpr const char * kTractiveEffortDistance</div><div class="ttdoc">Simulated effort against distance.</div><div class="ttdef"><b>Definition</b> ResultViews.h:38</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_ae20b16041b289623c5974fb8815c839b"><div class="ttname"><a href="namespace_result_view_name.html#ae20b16041b289623c5974fb8815c839b">ResultViewName::kSpeedDistance</a></div><div class="ttdeci">constexpr const char * kSpeedDistance</div><div class="ttdoc">Speed against distance per train.</div><div class="ttdef"><b>Definition</b> ResultViews.h:35</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_afb55a3c84b1af2f717e76edb76a14cc9"><div class="ttname"><a href="namespace_result_view_name.html#afb55a3c84b1af2f717e76edb76a14cc9">ResultViewName::kTimetableGraph</a></div><div class="ttdeci">constexpr const char * kTimetableGraph</div><div class="ttdoc">The route diagram of planned and simulated stops.</div><div class="ttdef"><b>Definition</b> ResultViews.h:32</div></div>
+<div class="ttc" id="anamespace_result_view_name_html_afc9985a5f77e9d94d65d2e2b08f6d3c6"><div class="ttname"><a href="namespace_result_view_name.html#afc9985a5f77e9d94d65d2e2b08f6d3c6">ResultViewName::kTrainPaths</a></div><div class="ttdeci">constexpr const char * kTrainPaths</div><div class="ttdoc">The route diagram of the train paths.</div><div class="ttdef"><b>Definition</b> ResultViews.h:39</div></div>
+</div><!-- fragment --><p>The result views in the order of both menus, in three groups: the timetable and the delays, the charts of each train, and the train paths, the blocking times and the capacity. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">

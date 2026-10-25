@@ -66,7 +66,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;.">
 <polygon fill="white" stroke="#666666" points="439.7,-2175 315.7,-2175 315.7,-2156 439.7,-2156 439.7,-2175"/>
 <text text-anchor="middle" x="377.7" y="-2163" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingEnabled</text>
 </a>

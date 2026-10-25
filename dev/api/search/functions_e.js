@@ -47,10 +47,9 @@ var searchData=
   ['optionvalue_44',['optionValue',['../_scene_open_request_8cpp.html#a36631720a74dad0f3f0f3efe5ceec6a5',1,'optionValue(const QStringList &amp;arguments, const QString &amp;option):&#160;SceneOpenRequest.cpp'],['../_scene_open_request_8h.html#a36631720a74dad0f3f0f3efe5ceec6a5',1,'optionValue(const QStringList &amp;arguments, const QString &amp;option):&#160;SceneOpenRequest.cpp']]],
   ['orderlistoftrainevents_45',['orderListOfTrainEvents',['../_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b',1,'orderListOfTrainEvents(list&lt; TrainEvent &gt; &amp;OutputList):&#160;Signalling.cpp'],['../_signalling_8h.html#a9b6ca6d943e41ea30a95d9a41f43fee3',1,'orderListOfTrainEvents(std::list&lt; TrainEvent &gt; &amp;OutputList):&#160;Signalling.h']]],
   ['orderpassengerlistonplatform_46',['orderPassengerListOnPlatform',['../_infrastructure_8cpp.html#a27a9014643a094735169e467c3ccd9fc',1,'orderPassengerListOnPlatform(pair&lt; string, double &gt; &amp;A, pair&lt; string, double &gt; &amp;blockSets):&#160;Infrastructure.cpp'],['../_infrastructure_8h.html#ad132837730a71e818c60f574c8b7c44f',1,'orderPassengerListOnPlatform(std::pair&lt; std::string, double &gt; &amp;A, std::pair&lt; std::string, double &gt; &amp;blockSets):&#160;Infrastructure.h']]],
-  ['ordertracks_47',['orderTracks',['../class_main_window.html#a484385c1fa96668e00b2b2583b1267b7',1,'MainWindow']]],
-  ['othermenu_48',['otherMenu',['../class_case_chooser_dialog.html#a74240772156ae63ff6ac404869bb5f15',1,'CaseChooserDialog']]],
-  ['outcome_49',['outcome',['../class_case_chooser_dialog.html#a3a60f4c8b321754e51e9dca706a41d3e',1,'CaseChooserDialog']]],
-  ['outputfolder_50',['outputFolder',['../namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982',1,'path_message']]],
-  ['overflow_51',['overflow',['../class_console_streambuf.html#af64781d1cfc34e4ad90b2f48973ced13',1,'ConsoleStreambuf']]],
-  ['oversize_52',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]]
+  ['othermenu_47',['otherMenu',['../class_case_chooser_dialog.html#a74240772156ae63ff6ac404869bb5f15',1,'CaseChooserDialog']]],
+  ['outcome_48',['outcome',['../class_case_chooser_dialog.html#a3a60f4c8b321754e51e9dca706a41d3e',1,'CaseChooserDialog']]],
+  ['outputfolder_49',['outputFolder',['../namespacepath__message.html#afd0ba51aeeb526bac062f1700965f982',1,'path_message']]],
+  ['overflow_50',['overflow',['../class_console_streambuf.html#af64781d1cfc34e4ad90b2f48973ced13',1,'ConsoleStreambuf']]],
+  ['oversize_51',['oversize',['../class_gui_replay_history.html#a379de4c1249cdf2d57a800dc9680c196',1,'GuiReplayHistory']]]
 ];

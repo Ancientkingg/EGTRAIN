@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"_update_settings_8h_source.html":[3,0,10,18],
 "_update_telemetry_controller_8cpp.html":[3,0,0,41],
 "_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631":[3,0,0,41,0],
 "_update_telemetry_controller_8h.html":[3,0,0,42],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "class_color_choice_button.html#af24633bee1c796d8f71dc82d804b1661":[2,0,44,1],
 "class_compact_double_spin_box.html":[2,0,46],
 "class_compact_double_spin_box.html#a094db923e96cbb9b8b9d2baacca0cf26":[2,0,46,4],
-"class_compact_double_spin_box.html#a1c8813bf88e11a6be72528529cb3d672":[2,0,46,5],
-"class_compact_double_spin_box.html#a28aae7116f7888c2c385fde2443e0cca":[2,0,46,3]
+"class_compact_double_spin_box.html#a1c8813bf88e11a6be72528529cb3d672":[2,0,46,5]
 };

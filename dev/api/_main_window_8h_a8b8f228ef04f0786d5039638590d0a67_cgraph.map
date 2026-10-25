@@ -1,7 +1,7 @@
 <map id="setStartupTimingPreloadIdentity" name="setStartupTimingPreloadIdentity">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,239,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="82,31,74,21,78,11,95,5,122,3,157,7,167,11,170,17,166,20,163,15,155,12,122,8,96,10,82,15,79,20,86,27"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title=" " alt="" coords="287,29,452,55"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;." alt="" coords="287,29,452,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="239,39,273,39,273,45,239,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="330,31,321,21,325,11,342,5,369,3,404,7,414,11,418,17,413,20,410,15,403,12,369,8,343,10,329,15,326,20,333,27"/>
 </map>

@@ -194,6 +194,7 @@ var annotated_dup =
     [ "ResultFigure", "class_result_figure.html", "class_result_figure" ],
     [ "ResultFrame", "class_result_frame.html", "class_result_frame" ],
     [ "ResultPanel", "class_result_panel.html", "class_result_panel" ],
+    [ "ResultViewEntry", "struct_result_view_entry.html", "struct_result_view_entry" ],
     [ "ResultViews", "class_result_views.html", "class_result_views" ],
     [ "Route", "class_route.html", "class_route" ],
     [ "RouteDiagramData", "struct_route_diagram_data.html", "struct_route_diagram_data" ],
