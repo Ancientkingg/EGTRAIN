@@ -3127,21 +3127,9 @@ static bool runRollingStockMessageChecks() {
 				+ "; dropping the last 5 stops\n"}},
 		"a station count over the limit");
 
-	// The arrival message goes to a folder. A folder that does not exist is an error and no file appears.
-	QTemporaryDir folder;
-	ok &= expect(folder.isValid(), "temporary folder for the arrival message");
 	Train train;
 	train.run_ = &defaultRun();
 	train.trainDescription = "T1";
-	train.printTrainArrDepMsg("A", "arr", 0, 1, folder.filePath("missing").toStdString());
-	shows(capture.take(),
-		{{Category::SimEvents, Level::Error, "Error2 opening file to write arr/dep message\n"}},
-		"an arrival message to a folder that does not exist");
-	ok &= expect(QDir(folder.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty(),
-		"no file appears for an arrival message to a folder that does not exist");
-	train.printTrainArrDepMsg("A", "arr", 0, 1, folder.path().toStdString());
-	shows(capture.take(), {}, "an arrival message to a folder that exists");
-	ok &= expect(QDir(folder.path()).exists("EGTRAINOutput.txt"), "the arrival message is written to the folder that exists");
 
 	// A blocking time with no name and no recorded events writes both errors; with a name only the second.
 	BlockingTimes blocking;
@@ -3262,7 +3250,7 @@ static bool runRollingStockMessageChecks() {
 
 	// Arrival at the last station and departure from the first: the position of the train is read from the route.
 	QTemporaryDir output;
-	ok &= expect(output.isValid() && QDir(output.path()).mkdir("Rescheduling"), "temporary output folder");
+	ok &= expect(output.isValid(), "temporary output folder");
 	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
 	defaultRun().settings.OutputMainFolder = output.path().toStdString();
 	train.Stations.resize(2);
@@ -3274,7 +3262,7 @@ static bool runRollingStockMessageChecks() {
 	train.instant_spatial_position = {500.0, 1000.0, 1500.0, 1750.0, 2000.0};
 	train.instant_train_speed = {0.0, 5.0, 5.0, 0.0, 0.0};
 	const auto checkAt = [&](int second) {
-		train.checkTrainArrDep(0, second);
+		train.checkTrainArrDep(second);
 		return capture.take();
 	};
 	shows(checkAt(0), {}, "a train at the start of the route");
@@ -3285,6 +3273,7 @@ static bool runRollingStockMessageChecks() {
 	shows(checkAt(4),
 		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, defaultRun().settings.startingSimulationTime) + "\n"}},
 		"a train that arrives at its last station");
+	ok &= expect(QDir(output.path()).isEmpty(), "an arrival at the last station writes no file");
 	defaultRun().settings.OutputMainFolder = savedOutputFolder;
 	defaultRun().infra.routes.swap(savedRoutes);
 	return ok;
@@ -4013,7 +4002,7 @@ int main() {
 	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && defaultRun().numTrains == 1) {
 		Train& through = defaultRun().trains[0];
 		through.departure_time = 0.0;
-		through.checkTrainArrDep(0, 0);
+		through.checkTrainArrDep(0);
 		Stations finalProbe;
 		finalProbe.stationName = "Final_Station";
 		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;
@@ -4072,6 +4061,36 @@ int main() {
 			defaultRun().infra.stationBoundaries.clear();
 		}
 		route.sequence_of_block_sections.pop_back();
+
+		// The train ends at Asd and so does a train that has left. Nothing ahead is occupied, so the entrance stays free.
+		Regional terminating;
+		terminating.ID = through.ID + 1;
+		terminating.type = through.type;
+		terminating.OutOfSimulation = true;
+		terminating.Stations.resize(1);
+		terminating.Stations[0].stationName = "Asd";
+		terminating.numStations = 1;
+		const std::vector<Node> savedStations = through.Stations;
+		through.Stations = terminating.Stations;
+		through.numStations = 1;
+		const Section& beforeEntrance = route.sequence_of_block_sections[nextHead];
+		through.instant_spatial_position[1] = (beforeEntrance.start_node.X + beforeEntrance.end_node.X) * 500.0;
+		defaultRun().trains.push_back(terminating);
+		defaultRun().numTrains = 2;
+		defaultRun().infra.stationBoundaries.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
+			route.reversed_direction, nullptr);
+		defaultRun().blocksOccupied.clear();
+		defaultRun().blocksConnected.clear();
+		protectStationAreas(defaultRun(), 1);
+		ok &= expect(std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(),
+						 route.sequence_of_block_sections[nextHead + 1].ID)
+				== defaultRun().blocksOccupied.end(),
+			"a train that ends at Asd where a train that has left also ended does not occupy a free station entrance");
+		defaultRun().infra.stationBoundaries.clear();
+		defaultRun().trains.pop_back();
+		defaultRun().numTrains = 1;
+		defaultRun().trains[0].Stations = savedStations;
+		defaultRun().trains[0].numStations = 0;
 	}
 
 	SceneModel statisticsScene = completeScene();

@@ -3204,10 +3204,10 @@ StationBoundarySection::StationBoundarySection(Section* entrance, bool direction
 	: entrance(entrance), direction(direction), exit(exit) {}
 
 // function to protect station interlocking area
-void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex, bool platformBooked) {
+void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex) {
 	bool needToBlock = false;
 
-	if (platformBooked == false && run.infra.routes[routeIndex].sequence_of_block_sections[sectionIndex].ID == entrance->ID && direction == run.infra.routes[routeIndex].reversed_direction) {
+	if (run.infra.routes[routeIndex].sequence_of_block_sections[sectionIndex].ID == entrance->ID && direction == run.infra.routes[routeIndex].reversed_direction) {
 		std::vector<std::string> sectionsAhead;
 
 		// collect sections ahead
@@ -3234,7 +3234,7 @@ void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionInde
 		}
 	}
 
-	if (platformBooked == true || needToBlock == true) {
+	if (needToBlock == true) {
 		// block section ahead in route of train
 		int h = sectionIndex, Prev_Block = h - 1;
 		if (h == 0)

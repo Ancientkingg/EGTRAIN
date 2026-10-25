@@ -540,8 +540,8 @@ int main(int argc, char** argv) {
 		QTemporaryDir output;
 		// Allow a few hundred seconds after the first terminal arrival at 1659 s.
 		constexpr int kArrivalHorizonSeconds = 2000;
-		const char* const files[] = {"TrainTrajectories/TrainServicePathDiagram.txt", "Rescheduling/EGTRAINOutput.txt"};
-		QByteArray firstContents[2];
+		const char* const files[] = {"TrainTrajectories/TrainServicePathDiagram.txt"};
+		QByteArray firstContents[std::size(files)];
 		const auto readOutput = [&](const char* name) {
 			QFile file(output.filePath(QString::fromUtf8(name)));
 			ok &= expect(file.open(QIODevice::ReadOnly | QIODevice::Text), std::string(name) + ": opens for reading");
@@ -553,7 +553,7 @@ int main(int argc, char** argv) {
 			runScene(loaded.scene, output.path(), StopAt::Never, observed, QString(), kArrivalHorizonSeconds);
 			ok &= expect(observed.prepared && observed.completed, "reused output folder: run prepared and completed");
 			simulation.printLastTrainServicePathDiagram();
-			for (int i = 0; i < 2; ++i) {
+			for (std::size_t i = 0; i < std::size(files); ++i) {
 				const QByteArray content = readOutput(files[i]);
 				ok &= expect(content.count('\n') > 0, std::string(files[i]) + ": contains at least one line");
 				if (run == 0)
@@ -562,12 +562,13 @@ int main(int argc, char** argv) {
 					ok &= expect(content == firstContents[i], std::string(files[i]) + ": second run equals first (lines " + std::to_string(firstContents[i].count('\n')) + ", " + std::to_string(content.count('\n')) + ")");
 			}
 		}
+		ok &= expect(!QFileInfo::exists(output.filePath("Rescheduling")), "reused output folder: a run creates no Rescheduling folder");
 		simulation.setSnapshotsEnabled(true);
 		SceneModel invalid = loaded.scene;
 		invalid.services.clear();
 		const auto diagnostics = simulation.prepareScene(invalid);
 		ok &= expect(hasErrors(diagnostics), "reused output folder: scene without services fails preparation");
-		for (int i = 0; i < 2; ++i)
+		for (std::size_t i = 0; i < std::size(files); ++i)
 			ok &= expect(readOutput(files[i]) == firstContents[i], std::string(files[i]) + ": failed preparation keeps earlier output");
 	}
 

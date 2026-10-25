@@ -18,6 +18,8 @@ The stub cases add the routes `routeStubIn` and `routeStubOut` and the services
 `U1` and `D1` to the scene in the test, because a route with `4-B0` or `5-B0` in
 the fixture would add a movement authority to the cases with a signal failure on
 those sections.
+The case `skip-stop-level-0` adds the service `E1`, a copy of `F1` without its
+stop at B, in the test.
 
 The passenger cases add station `P`, services `Q1` to `Q3` and passengers in the
 test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
@@ -55,6 +57,7 @@ A case is a scenario, a set of services and a level. The case table is in
 | `sf-late-level-none`, `-0`, `-3` | train `F1` alone with a failure on `2-B0` from 188 s to 600 s; at 188 s `F1` is 316 m before the failed section at top speed, closer than its braking distance of 767 m, so it brakes with full force and its position never goes back; it passes the authority and runs through the failed section |
 | `sf-retarget-level-0` | train `F1` alone with a failure on `6-B0` from 600 s and one on `5-B0` from 752 s to 1200 s; `F1` brakes to 11.1 m/s at the end of `4-B0` for the first failure, and 23 m before that point the second failure makes the end of `4-B0` a stop target, which `F1` cannot reach; it brakes with full force, its position never goes back, it passes the authority and stops at the end of `5-B0` for the failure on `6-B0` |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
+| `skip-stop-level-0` | trains `F2` and `E1`; `E1` enters first and runs through B at line speed while `F2`, which moves before it in every step, stops there |
 | `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; with a signalling level `R1` waits in front of the section while `S1` is in it |
 | `single-track-follow-level-3`, `-4` | trains `F1` and `F2` in the same direction through the restricted section; the output equals `follow-level-3` and `-4`, because the restriction does not delay a train that follows the holder |
 | `stub-departure-first-level-0` | trains `D1` (due at 60 s) and `U1` (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over `5-B0` to `7-B0`, protected by `4-B0` and `7-B0`; `D1` runs out of the stub and `U1` into it, and `U1` waits at the entry of its route until `D1` has left the stub |

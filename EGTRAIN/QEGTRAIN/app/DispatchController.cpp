@@ -308,7 +308,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		initial_variables.OutputMainFolder = nextRunOutputFolder_;
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
-	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/Rescheduling", "/TrainTrajectories/RoutesGenerated"}) {
+	for (const char* subfolder : {"", "/TrainTrajectories", "/PassengerStatus", "/TrainTrajectories/RoutesGenerated"}) {
 		const std::string folder = initial_variables.OutputMainFolder + subfolder;
 		if (const std::error_code error = ensureDirectory(folder)) {
 			SceneDiagnostic diagnostic;
@@ -320,9 +320,8 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 			return diagnostics;
 		}
 	}
-	// Train::printTrainServicePathDiagram and Train::printTrainArrDepMsg append, so each run starts without their files.
+	// Train::printTrainServicePathDiagram appends, so each run starts without its file.
 	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
-	removeRunOutput(initial_variables.OutputMainFolder + "/Rescheduling/EGTRAINOutput.txt");
 	// The run reads its settings from this copy.
 	staged->settings = initial_variables;
 	mutableRun().adopt(std::move(*staged));
@@ -740,7 +739,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 					run.trains[j].recordStationPassagesAtTime(t);
 
 					// check if train arrived at destination or departed from origin
-					run.trains[j].checkTrainArrDep(j, t);
+					run.trains[j].checkTrainArrDep(t);
 				}
 			}
 

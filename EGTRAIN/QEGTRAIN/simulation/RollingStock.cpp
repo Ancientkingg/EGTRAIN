@@ -5,8 +5,6 @@
 #include "util/Log.h"
 #include "util/timeutil.hpp"
 
-#include <thread>
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -90,7 +88,6 @@ Train::Train() {
 	}
 
 	prevIntendedDepTime = 0; // initialized as 0 to print from t=0 in the 1st service
-	reservedPlatform = -1;
 
 	for (int p = 0; p < 8; p++) {
 		this->GibsonDwellTimeParameters[p] = -1;
@@ -511,7 +508,7 @@ void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyM
 }
 
 // check train arrival/departure at/from destination/origin
-void Train::checkTrainArrDep(int trainIdx, int t) {
+void Train::checkTrainArrDep(int t) {
 	if (numStations <= 0 || Stations.empty())
 		return;
 
@@ -543,7 +540,6 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	// check arrivals and departures
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
 		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
@@ -592,26 +588,6 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	FileOutput << std::endl;
 
 	FileOutput.close();
-}
-
-// print train arrival at terminal station (append to file)
-void Train::printTrainArrDepMsg(std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName) {
-	std::string FileName = FolderName + "/EGTRAINOutput.txt";
-	std::ofstream FileOutput;
-
-	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
-
-	if (FileOutput.is_open()) {
-		FileOutput << "egtrain," << stationName << "," << msgType << "," << dispLineID << "," << trainIdx << "," << t << "\n";
-
-		FileOutput.close();
-
-		// temporary solution to avoid file conflicts
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	} else // error opening file
-	{
-		EG_LOG(SimEvents, Error) << "Error2 opening file to write arr/dep message\n";
-	}
 }
 
 // computes train X position (works with routes crossing different regions)
@@ -674,43 +650,6 @@ void protectStationAreas(SimulationRun& run, int i) {
 				if (hHead < 0)
 					continue;
 
-				const std::string stationName = run.trains[k].numStations > 0 && !run.trains[k].Stations.empty()
-					? run.trains[k].Stations[run.trains[k].numStations - 1].stationName
-					: std::string();
-				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
-					// Legacy Netherlands dispatcher terminals with integer arrival-platform assignments.
-					if (stationName != "Alm" && stationName != "Asd" && stationName != "Asdz")
-						return false;
-					if (boundary.exit)
-						return false;
-					for (int tr = 0; tr < run.numTrains; tr++) {
-						if (run.trains[tr].ID == run.trains[k].ID && run.trains[tr].type == run.trains[k].type)
-							continue;
-						if (run.trains[tr].numStations <= 0 || run.trains[tr].Stations.empty())
-							continue;
-						if (run.trains[tr].Stations[run.trains[tr].numStations - 1].stationName == stationName
-							&& run.trains[tr].reservedPlatform == run.trains[k].arrivalPlatform)
-							return true;
-
-						// wait for trains leaving the station to prevent deadlocks
-						if (run.trains[tr].Stations[0].stationName != stationName
-							|| run.trains[tr].indexOfRoute < 0
-							|| run.trains[tr].indexOfRoute >= static_cast<int>(run.infra.routes.size())
-							|| i >= static_cast<int>(run.trains[tr].instant_spatial_position.size()))
-							continue;
-						if (run.infra.routes[run.trains[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
-							// if the other train is not booking a platform, it is not at the platform - enough to check position
-							if (!route.reversed_direction && run.trains[tr].numStations > 1
-								&& run.trains[tr].trainXPosition(i) > run.trains[k].trainXPosition(i))
-								return true;
-							if (route.reversed_direction && run.trains[tr].numStations > 1
-								&& run.trains[tr].trainXPosition(i) < run.trains[k].trainXPosition(i))
-								return true;
-						}
-					}
-					return false;
-				};
-
 				// occupy station interlocking area
 				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
 					if (!run.infra.stationBoundaries[s].entrance)
@@ -731,8 +670,7 @@ void protectStationAreas(SimulationRun& run, int i) {
 							}
 						}
 
-						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute,
-							platformBookedFor(run.infra.stationBoundaries[s]));
+						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute);
 						stationAreaHandled = true;
 						break;
 					}
@@ -745,8 +683,6 @@ void protectStationAreas(SimulationRun& run, int i) {
 						if (run.infra.stationBoundaries[s].exit) {
 							continue;
 						}
-
-						run.trains[k].reservedPlatform = run.trains[k].arrivalPlatform;
 						break;
 					}
 				}

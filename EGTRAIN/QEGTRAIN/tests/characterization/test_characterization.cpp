@@ -229,6 +229,8 @@ struct CaseSpec {
 	// routeStubIn and routeStubOut and the services U1 (runs into the stub) and D1 (runs out of it) to the scene, due
 	// at these times in seconds. Each route lies inside the stub.
 	bool stub = false;
+	// Adds the service E1 to the scene: F1 without its stop at B.
+	bool skipStop = false;
 	bool runningConflict = false;
 	bool runningThrough = false;
 	double arrivalEntry = 0.0;
@@ -302,6 +304,10 @@ std::vector<CaseSpec> buildCaseTable() {
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
+	// E1 does not stop at B. F2 stops there and moves first in every step, while E1 runs ahead of it towards B.
+	CaseSpec skipStop{"skip-stop-level-0", "baseline", {"F2", "E1"}, 0, ""};
+	skipStop.skipStop = true;
+	cases.push_back(skipStop);
 	// S1 runs from A to B and R1 from C to A over the restricted section: R1 has to wait in front of it.
 	const std::string singleTrackNone = "single-track-level-none";
 	cases.push_back({singleTrackNone, "baseline", {"S1", "R1"}, kNoSignallingArea, knownWrongMarker(singleTrackNone), true});
@@ -1388,6 +1394,20 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.routes.push_back(out);
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
+	}
+	if (spec.skipStop) {
+		const auto f1 = std::find_if(loaded.scene.services.begin(), loaded.scene.services.end(), [](const SceneService& service) {
+			return service.id == "F1";
+		});
+		if (f1 != loaded.scene.services.end()) {
+			SceneService express = *f1;
+			express.id = express.operatingCode = "E1";
+			express.stops.erase(std::remove_if(express.stops.begin(), express.stops.end(), [](const SceneStop& stop) {
+				return stop.stationId == "B";
+			}),
+				express.stops.end());
+			loaded.scene.services.push_back(express);
+		}
 	}
 	if (spec.runningConflict && !spec.runningThrough) {
 		SceneRoute reverse;
