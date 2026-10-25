@@ -2231,6 +2231,82 @@ static bool runSwitchBlockingTimeChecks() {
 	return ok;
 }
 
+// At levels 3 and 4 the last location of the last block section has no clearing time, because the train leaves the network
+// when its head reaches it. A 100 m train runs at 20 m/s over two sections of 1 km, with one location on the first and two
+// on the second. Its tail passes the location at 1200 m at 65 s and never passes the last one at 1950 m.
+static bool runLastSectionBlockingTimeChecks() {
+	struct Location {
+		const char* id;
+		const char* sectionId;
+		double position;
+	};
+	const Location locations[] = {{"E1", "B1", 500.0}, {"E2", "B2", 1200.0}, {"E3", "B2", 1950.0}};
+	SimulationRun& run = defaultRun();
+	std::vector<Route> savedRoutes;
+	savedRoutes.swap(run.infra.routes);
+	std::list<InfraEvent> savedEvents;
+	savedEvents.swap(run.infra.infraEvents);
+	run.infra.routes.resize(1);
+	Route& route = run.infra.routes[0];
+	route.N_Block_Sections = 2;
+	route.sequence_of_block_sections.resize(2);
+	for (int s = 0; s < 2; ++s) {
+		Section& section = route.sequence_of_block_sections[s];
+		section.ID = "B" + std::to_string(s + 1);
+		section.start_node.X = s;
+		section.end_node.X = s + 1;
+		section.total_arcs = 1;
+		section.arcs_in_signalling_block_section[0].endNode.X = s + 1;
+		section.arcs_in_signalling_block_section[0].gradient = 0.0;
+		section.arcs_in_signalling_block_section[0].curvature = 0.0;
+	}
+	for (const Location& location : locations) {
+		InfraElement element;
+		element.ID = location.id;
+		element.SectionID = location.sectionId;
+		element.XCoordinate = element.GeoXCoord = location.position;
+		route.InfrastructureElements.push_back(element);
+		InfraEvent event;
+		event.ElementInfo = element;
+		event.RecordedEvent.emplace_back();
+		event.RecordedEvent.back().trainDescription = "T1";
+		run.infra.infraEvents.push_back(event);
+	}
+	const auto blockingTimesAt = [&](SignallingLevel level) {
+		for (Section& section : route.sequence_of_block_sections)
+			section.SignallingLevel = levelValue(level);
+		Train train;
+		train.run_ = &run;
+		train.indexOfRoute = 0;
+		train.trainDescription = "T1";
+		train.train_length = 100.0;
+		train.max_train_decelaration = 0.5;
+		train.total_train_mass = train.massFactor = 1.0;
+		train.End_Time = 100;
+		for (int t = 0; t <= train.End_Time; ++t) {
+			train.instant_spatial_position.push_back(20.0 * t);
+			train.instant_train_speed.push_back(t == 0 ? 0.0 : 20.0);
+		}
+		train.ComputeBlockingTimesInMixedSignallingAreas(0, 0, 0, 0, 0, 5);
+		return train;
+	};
+	bool ok = true;
+	for (const SignallingLevel level : {SignallingLevel::EtcsLevel3, SignallingLevel::VirtualCoupling}) {
+		const std::string name = "level " + std::to_string(levelValue(level)) + ": ";
+		const Train train = blockingTimesAt(level);
+		ok &= expect(train.N_BlockSections == 3, name + "one blocking time per location");
+		if (train.N_BlockSections != 3)
+			continue;
+		ok &= expect(train.BlockTime[2].EndClearTime == train.BlockTime[2].EndRunTime && train.BlockTime[2].clearingTime == 0,
+			name + "the last location of the last section has no clearing time (" + std::to_string(train.BlockTime[2].clearingTime) + ")");
+		ok &= expect(train.BlockTime[1].EndClearTime == 65 && train.BlockTime[1].clearingTime > 0,
+			name + "the location before it on the last section is cleared when the tail passes");
+	}
+	run.infra.routes.swap(savedRoutes);
+	run.infra.infraEvents.swap(savedEvents);
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runSectionLabelChecks();
@@ -2246,6 +2322,7 @@ int main() {
 	ok &= runOccupancyListChecks();
 	ok &= runNodeListChecks();
 	ok &= runSwitchBlockingTimeChecks();
+	ok &= runLastSectionBlockingTimeChecks();
 	ok &= runFailedBuildChecks();
 	return ok ? 0 : 1;
 }

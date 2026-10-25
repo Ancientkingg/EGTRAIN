@@ -4,6 +4,7 @@
 #include "util/Log.h"
 
 #include <cmath>
+#include <iterator>
 #include <list>
 #include <string>
 
@@ -428,7 +429,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((std::next(it) == FinalLocationList.end()) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections - 1)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
@@ -748,7 +749,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((std::next(it) == FinalLocationList.end()) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections - 1)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
