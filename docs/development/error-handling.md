@@ -33,6 +33,7 @@ How EGTRAIN handles failure: which exceptions are caught and which escape, the f
 | `<output>/TEMP` of a run with `--detailed-trajectories` | none; the run throws "Cannot create the folder <path>: <reason>", which `runSimulation` catches | The run fails as below. |
 | The scene folder in `loadScene` (`scene/SceneModel.cpp`) | `scene.dir.unreadable`: "Cannot read the case folder: <reason>"; a path that does not exist or is not a folder keeps `scene.dir.missing` | Window: **Cannot Open Case**. At the start, headless and in `scene_tool validate`, `pack` and `export`: the diagnostic and exit code 1. |
 | The legacy folder of an import and its passenger files (`scene/SceneImporter.cpp`) | `scene.import.missing` with the reason; passenger files that cannot be checked count as absent | **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. |
+| A legacy file that the import reads (`readLegacyFile` in `scene/SceneImporter.cpp`) | `scene.import.read`: "Cannot read <file>: it cannot be opened or is not valid UTF-16" | For `Stations.txt` an error: **Cannot Import Legacy Case**, or `scene_tool import` exits with 1. For any other file a warning, and the import goes on without it. |
 
 ### Where they still escape
 
