@@ -372,6 +372,22 @@ int main(int argc, char** argv) {
 	const SceneLoadResult reopened = loadScenePath(destination.string());
 	ok &= expect(!hasErrors(reopened.diagnostics) && !hasErrors(validateScene(reopened.scene)),
 		"upgraded directory copy reopens without errors");
+	SceneModel withoutServices = validLoaded.scene;
+	withoutServices.services.clear();
+	for (SceneScenario& scenario : withoutServices.scenarios) {
+		scenario.entranceDelays.clear();
+		scenario.incidents.clear();
+	}
+	withoutServices.passengers.clear();
+	const fs::path withoutServicesSource = temp.path / "without-services-source";
+	ok &= expect(saveScene(withoutServices, withoutServicesSource.string()).success()
+			&& writeManifest(withoutServicesSource, 0),
+		"older scene without services writes");
+	const fs::path withoutServicesDestination = temp.path / "without-services-upgraded";
+	const SceneMigrationResult withoutServicesUpgrade = migrateSceneCopy(withoutServicesSource.string(),
+		withoutServicesDestination.string(), registry);
+	ok &= expect(withoutServicesUpgrade.success() && fs::is_directory(withoutServicesDestination),
+		"an older scene without services upgrades");
 	const fs::path failedDestination = temp.path / "failed-upgrade";
 	SceneMigrationRegistry failingRegistry;
 	failingRegistry.addSchemaStep(SceneMigrationStep(0, kCurrentSceneSchemaVersion,
@@ -588,11 +604,13 @@ int main(int argc, char** argv) {
 	const fs::path brokenFolder = temp.path / "broken-input";
 	fs::create_directories(brokenFolder);
 	const fs::path brokenSource = temp.path / "broken-source";
-	ok &= expect(saveScene(validLoaded.scene, brokenSource.string()).success(), "broken input source saves");
+	ok &= expect(saveScene(loaded.scene, brokenSource.string()).success(), "broken input source saves");
 	{
 		std::ofstream brokenServices(brokenSource / "services.json", std::ios::binary | std::ios::trunc);
 		brokenServices << "not json\n";
 	}
+	// The source is the invalid minimal model, so validation of what the loader returns reports an error.
+	const std::string unloadedValidationCode = firstErrorCode(validateScene(loadScene(brokenSource.string()).scene));
 	ok &= expect(writeManifest(brokenSource, 0), "broken input fixture writes");
 	const std::string originalBrokenBytes = readSceneDirectorySnapshot(brokenSource.string()).bytes;
 	ok &= expect(!originalBrokenBytes.empty(), "broken input snapshot is read");
@@ -600,7 +618,8 @@ int main(int argc, char** argv) {
 	const SceneMigrationResult brokenUpgrade = migrateSceneCopy(brokenSource.string(), brokenDestination.string(), registry);
 	ok &= expect(!brokenUpgrade.success() && hasDiagnostic(brokenUpgrade.diagnostics, "scene.json.parse", SceneSeverity::Error),
 		"upgrade of an unloadable source reports the loader error");
-	ok &= expect(!hasDiagnostic(brokenUpgrade.diagnostics, "scene.services.none", SceneSeverity::Error),
+	ok &= expect(!unloadedValidationCode.empty()
+			&& !hasDiagnostic(brokenUpgrade.diagnostics, unloadedValidationCode, SceneSeverity::Error),
 		"a model whose load failed is not validated");
 	ok &= expect(leavesNoCopy(brokenDestination), "upgrade of an unloadable source leaves no copy");
 	ok &= expect(readSceneDirectorySnapshot(brokenSource.string()).bytes == originalBrokenBytes,
