@@ -1218,7 +1218,7 @@ static bool brakingPhaseTests() {
 		cached.Xobmin = 2000;
 		cached.Vobmin = 0;
 		std::vector<double> positions, speeds;
-		double end;
+		double end = 0;
 		const bool drawn = cached.DrawBrakingCurve(10, 0, 2000, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
 		const bool predicted = drawn && cached.predictBraking(cached.Sbrak[0], cached.Vbrak[0], 0, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, end, &positions, &speeds);
 		ok &= expect(predicted && near(end, 1999.998) && positions.size() > 3, "boundary fixture has a complete actual-start cached stop");
