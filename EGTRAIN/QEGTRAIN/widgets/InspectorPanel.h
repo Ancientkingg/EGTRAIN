@@ -74,10 +74,10 @@ public:
 	InspectorPanel(QMainWindow* window, QGraphicsScene* scene, NetworkPresenter& presenter, Host& host);
 
 	/// The dock that holds the forms; owned by the window.
-	InfoDockWidget* dock() const { return infoDockWidget; }
+	InfoDockWidget* dock() const { return m_infoDockWidget; }
 
 	/// The value in fixed notation with precision digits after the decimal point.
-	static std::string to_string_precision(double value, int precision);
+	static std::string toStringPrecision(double value, int precision);
 
 	/// The index of the train whose details are shown, or -1.
 	int selectedTrainIndex() const { return m_selectedTrainIndex; }
@@ -151,48 +151,48 @@ private:
 	NetworkPresenter* m_presenter;
 	Host& m_host;
 
-	InfoDockWidget* infoDockWidget = nullptr;
-	QWidget* arcInfoWidget = nullptr;
-	QLineEdit* arcIDText = nullptr;
-	QLineEdit* arcFirstNodeIDText = nullptr;
-	QLineEdit* arcSecondNodeIDText = nullptr;
-	QLineEdit* arcTrackIDText = nullptr;
-	QLineEdit* arcLengthText = nullptr;
-	QLineEdit* arcCurvatureText = nullptr;
-	QLineEdit* arcGradientText = nullptr;
-	QLineEdit* arcSpeedLimitText = nullptr;
-	QLineEdit* arcOperationalStateText = nullptr;
-	QLineEdit* arcConnectedSignalsText = nullptr;
-	QWidget* nodeInfoWidget = nullptr;
-	QLineEdit* nodeIDText = nullptr;
-	QLineEdit* nodeTrackIDText = nullptr;
-	QLineEdit* nodeXText = nullptr;
-	QLineEdit* nodeYText = nullptr;
-	QLineEdit* nodeStationNameText = nullptr;
-	QLineEdit* nodeRegionText = nullptr;
-	QLineEdit* nodeConnectedTracksText = nullptr;
-	QLineEdit* nodeSignalledText = nullptr;
-	QWidget* connectionInfoWidget = nullptr;
-	QLineEdit* connectionFirstTrackIDText = nullptr;
-	QLineEdit* connectionSecondTrackIDText = nullptr;
-	QLineEdit* connectionXFirstNodeText = nullptr;
-	QLineEdit* connectionXSecondNodeText = nullptr;
-	QWidget* signallingInfoWidget = nullptr;
-	QLineEdit* signallingTrackIDText = nullptr;
-	QLineEdit* signallingXText = nullptr;
-	QLineEdit* signallingIDSectionAheadText = nullptr;
-	QLineEdit* signallingLengthSectionAheadText = nullptr;
-	QLineEdit* signallingAspectText = nullptr;
-	QLineEdit* signallingProtectedSectionText = nullptr;
-	QLineEdit* signallingNextTrackText = nullptr;
-	QPlainTextEdit* signallingGroupDetails = nullptr;
-	QWidget* trainInfoWidget = nullptr;
-	QLineEdit* trainNameText = nullptr;
-	QLineEdit* trainIDText = nullptr;
-	QLineEdit* trainTypeText = nullptr;
-	QLineEdit* trainLengthText = nullptr;
-	QLineEdit* trainWagonsText = nullptr;
-	QPushButton* incidentButton = nullptr;
+	InfoDockWidget* m_infoDockWidget = nullptr;
+	QWidget* m_arcInfoWidget = nullptr;
+	QLineEdit* m_arcIDText = nullptr;
+	QLineEdit* m_arcFirstNodeIDText = nullptr;
+	QLineEdit* m_arcSecondNodeIDText = nullptr;
+	QLineEdit* m_arcTrackIDText = nullptr;
+	QLineEdit* m_arcLengthText = nullptr;
+	QLineEdit* m_arcCurvatureText = nullptr;
+	QLineEdit* m_arcGradientText = nullptr;
+	QLineEdit* m_arcSpeedLimitText = nullptr;
+	QLineEdit* m_arcOperationalStateText = nullptr;
+	QLineEdit* m_arcConnectedSignalsText = nullptr;
+	QWidget* m_nodeInfoWidget = nullptr;
+	QLineEdit* m_nodeIDText = nullptr;
+	QLineEdit* m_nodeTrackIDText = nullptr;
+	QLineEdit* m_nodeXText = nullptr;
+	QLineEdit* m_nodeYText = nullptr;
+	QLineEdit* m_nodeStationNameText = nullptr;
+	QLineEdit* m_nodeRegionText = nullptr;
+	QLineEdit* m_nodeConnectedTracksText = nullptr;
+	QLineEdit* m_nodeSignalledText = nullptr;
+	QWidget* m_connectionInfoWidget = nullptr;
+	QLineEdit* m_connectionFirstTrackIDText = nullptr;
+	QLineEdit* m_connectionSecondTrackIDText = nullptr;
+	QLineEdit* m_connectionXFirstNodeText = nullptr;
+	QLineEdit* m_connectionXSecondNodeText = nullptr;
+	QWidget* m_signallingInfoWidget = nullptr;
+	QLineEdit* m_signallingTrackIDText = nullptr;
+	QLineEdit* m_signallingXText = nullptr;
+	QLineEdit* m_signallingIDSectionAheadText = nullptr;
+	QLineEdit* m_signallingLengthSectionAheadText = nullptr;
+	QLineEdit* m_signallingAspectText = nullptr;
+	QLineEdit* m_signallingProtectedSectionText = nullptr;
+	QLineEdit* m_signallingNextTrackText = nullptr;
+	QPlainTextEdit* m_signallingGroupDetails = nullptr;
+	QWidget* m_trainInfoWidget = nullptr;
+	QLineEdit* m_trainNameText = nullptr;
+	QLineEdit* m_trainIDText = nullptr;
+	QLineEdit* m_trainTypeText = nullptr;
+	QLineEdit* m_trainLengthText = nullptr;
+	QLineEdit* m_trainWagonsText = nullptr;
+	QPushButton* m_incidentButton = nullptr;
 
 	// What is selected. A station of a run is known by its node and track, or by its name when the overlay has no node. A
 	// station of the preview is known by its id.

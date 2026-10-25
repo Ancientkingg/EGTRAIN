@@ -158,9 +158,9 @@ public:
 	RunController(QMainWindow* window, SceneDocument* document, SceneSession* session, RunSelection& selection, Host& host);
 
 	/// The next run shows the passengers at the platforms and in the trains.
-	bool passengerGui() const;
+	bool nextRunShowsPassengers() const;
 	/// The next run starts with the passenger display on or off.
-	void setPassengerGui(bool on);
+	void setNextRunShowsPassengers(bool on);
 	/// The duration that the command line gave, in seconds, which replaces the duration of the scene. Empty without one.
 	std::optional<double> durationOverride() const;
 	/// A case was named when the program started or was opened by the system, so no case chooser opens.
@@ -266,6 +266,21 @@ private:
 	void showError(const QString& title, const QString& message);
 	static bool hasRawRunResults();
 
+	// The slots of m_simulationObservations: the observations of a run that telemetry records, and two probes that the
+	// telemetry smoke in tests/e2e installs to stop a run at a point of its own.
+	enum class ObservationSlot : std::size_t {
+		Rejected,
+		Began,
+		Returned,
+		Failed,
+		TestCompletionStop,
+		TestPostprocessingStop,
+		Count
+	};
+	QMetaObject::Connection& simulationObservation(ObservationSlot slot) {
+		return m_simulationObservations[static_cast<std::size_t>(slot)];
+	}
+
 	QMainWindow* m_window;
 	SceneDocument* m_document;
 	SceneSession* m_session;
@@ -278,8 +293,8 @@ private:
 	QPointer<QThread> m_workerThread;
 	// What Close, New or Open asked for while a run was active. It runs when the worker has finished.
 	std::function<void()> m_afterRunAction;
-	// The product observations in 0 to 2 and 5, and two isolated cancellation probes in 3 and 4.
-	std::array<QMetaObject::Connection, 6> m_simulationObservations{};
+	// Each connection is in the slot that ObservationSlot names.
+	std::array<QMetaObject::Connection, static_cast<std::size_t>(ObservationSlot::Count)> m_simulationObservations{};
 
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;

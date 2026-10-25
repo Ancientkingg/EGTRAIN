@@ -48,7 +48,6 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
-#include <QMovie>
 #include <QPainter>
 #include <QPen>
 #include <QPixmap>
@@ -380,7 +379,8 @@ bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& rig
 		&& left.collectionSizes == right.collectionSizes;
 }
 
-constexpr int kOverlayMargin = 12;
+// The window draws a snapshot of a run at most once in this many milliseconds.
+constexpr int kRenderIntervalMs = 33;
 
 bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
@@ -486,14 +486,6 @@ double computeHorizon(const SceneModel& scene) {
 // The text of a tooltip followed by the shortcut of the action as the platform writes it, with the Command key on macOS.
 QString withShortcut(const QString& text, const QAction* action) {
 	return QStringLiteral("%1 (%2)").arg(text, action->shortcut().toString(QKeySequence::NativeText));
-}
-
-int countTrackLineDirs(const QString& inputDir) {
-	QDir trackLinesDir(inputDir + "/TrackLines");
-	if (!trackLinesDir.exists())
-		return 0;
-	QFileInfoList entries = trackLinesDir.entryInfoList(QStringList("B*"), QDir::Dirs | QDir::NoDotAndDotDot | QDir::CaseSensitive);
-	return entries.size();
 }
 
 // A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where
@@ -714,7 +706,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout->addWidget(m_replayBar);
 	m_replayBar->hide();
 	m_replayTimer = new QTimer(this);
-	m_replayTimer->setInterval(1000); // One simulated second per wall second.
+	// One simulated second per wall second.
+	constexpr int kReplayStepMs = 1000;
+	m_replayTimer->setInterval(kReplayStepMs);
 	connect(m_replaySlider, &QSlider::valueChanged, this, &MainWindow::seekReplay);
 	connect(m_replayStartButton, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.firstTime()); });
 	connect(replayEnd, &QPushButton::clicked, this, [this]() { seekReplay(m_completedReplay.lastTime()); });
@@ -797,8 +791,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_followCamera->stop();
 		}
 	});
-
-	connect(ui->displayTrainPathDiagrams, &QAction::triggered, m_resultViews, &ResultViews::displayTrainPathDiagrams);
 
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
@@ -951,7 +943,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_showPassengersAction = new QAction("Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
-	m_passengerChoice = m_runController->passengerGui();
+	m_passengerChoice = m_runController->nextRunShowsPassengers();
 	m_passengerLayerCheck->setChecked(m_passengerChoice);
 	m_showPassengersAction->setChecked(m_passengerChoice);
 	m_presenter->m_passengerLayerVisible = m_passengerChoice;
@@ -1789,24 +1781,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Diagrams menu
 	m_diagramsMenu = menuBar()->addMenu("&Diagrams");
 	// An entry that asks for more input in a dialog ends in an ellipsis.
-	m_diagramsMenu->addAction(ResultViewName::kSpeedDistance, m_resultViews, &ResultViews::showSpeedDistanceDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kSpeedTime, m_resultViews, &ResultViews::showSpeedTimeDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kTimeDistance, m_resultViews, &ResultViews::showTimeDistanceDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kTractiveEffortDistance, m_resultViews, &ResultViews::showTractiveEffortDistanceDiagram);
-	m_diagramsMenu->addSeparator();
-	m_diagramsMenu->addAction(QString(ResultViewName::kTimetableGraph) + "...", m_resultViews, &ResultViews::showTimetableGraph);
-	m_diagramsMenu->addAction(QString(ResultViewName::kBlockingTime) + "...", m_resultViews, &ResultViews::showBlockingTimeDiagram);
-	m_diagramsMenu->addAction(QString(ResultViewName::kCapacity) + "...", m_resultViews, &ResultViews::showCapacityAnalysis);
-	m_diagramsMenu->addAction(QString(ResultViewName::kCapacityByArea) + "...", m_resultViews, &ResultViews::showAreaCapacity);
-	m_diagramsMenu->addAction(ResultViewName::kTimetable, m_resultViews, &ResultViews::showTimetableTable);
-	m_diagramsMenu->addAction(QString(ResultViewName::kDelays) + "...", m_resultViews, &ResultViews::showDelayDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kDelayAnalysis, m_resultViews, &ResultViews::showDelayAnalysis);
-	// Train paths belongs with the other charts; retire the one-entry Tools menu.
-	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText(QString(ResultViewName::kTrainPaths) + "...");
-	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
-	if (ui->menuTools)
-		menuBar()->removeAction(ui->menuTools->menuAction());
+	for (const ResultViewEntry& view : kResultViewEntries) {
+		if (view.startsGroup)
+			m_diagramsMenu->addSeparator();
+		QAction* action = m_diagramsMenu->addAction(view.asksForInput ? QString(view.name) + "..." : QString(view.name));
+		connect(action, &QAction::triggered, m_resultViews, view.open);
+	}
 	updateDiagramActions();
 
 	// --- Status bar ---
@@ -3064,7 +3044,7 @@ void MainWindow::updatePassengerSwitch() {
 }
 
 void MainWindow::applyPassengerLayer(bool shown) {
-	m_runController->setPassengerGui(shown);
+	m_runController->setNextRunShowsPassengers(shown);
 	m_presenter->m_passengerLayerVisible = shown;
 	m_presenter->applyPlatformVisibility();
 	if (m_presenter->trainPaxInfoItem)
@@ -3794,7 +3774,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		}
 		m_speedSlider->setValue(kMaxStepDelayMs
 			- qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS"));
-		QTimer::singleShot(1500, m_runController, &RunController::runCurrent);
+		constexpr int kPlaybackProfileStartDelayMs = 1500;
+		QTimer::singleShot(kPlaybackProfileStartDelayMs, m_runController, &RunController::runCurrent);
 	}
 	if (const auto& afterFirstShow = mainWindowTestHooks().afterFirstShow)
 		afterFirstShow(*this);
@@ -3817,10 +3798,6 @@ void MainWindow::updateDiagramActions() {
 			action->setStatusTip(hint);
 			action->setToolTip(hint);
 		}
-	}
-	if (ui->displayTrainPathDiagrams) {
-		ui->displayTrainPathDiagrams->setEnabled(available);
-		ui->displayTrainPathDiagrams->setStatusTip(hint);
 	}
 	if (m_runResultsPanel)
 		m_runResultsPanel->updateAvailability(available);
@@ -4059,7 +4036,7 @@ void MainWindow::waitForUpdates() {
 	updateTimeline(timestep, snapshot->totalTimesteps);
 
 	qint64 now = QDateTime::currentMSecsSinceEpoch();
-	if (now - m_lastRenderMs >= 33 || timestep >= snapshot->totalTimesteps - 1) {
+	if (now - m_lastRenderMs >= kRenderIntervalMs || timestep >= snapshot->totalTimesteps - 1) {
 		PlaybackProfiler::instance().noteRenderedUpdate();
 		renderSnapshot(false);
 		m_lastRenderedSnapshot = snapshot;
@@ -4089,7 +4066,7 @@ void MainWindow::waitForUpdates() {
 		}
 		m_trailingRenderWorker = m_runController->worker();
 		if (!m_trailingRenderTimer->isActive())
-			m_trailingRenderTimer->start(static_cast<int>(33 - (now - m_lastRenderMs)));
+			m_trailingRenderTimer->start(static_cast<int>(kRenderIntervalMs - (now - m_lastRenderMs)));
 	}
 
 	if (PlaybackProfiler::enabled() && !m_playbackProfileViewApplied

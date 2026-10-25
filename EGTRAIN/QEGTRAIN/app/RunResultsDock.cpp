@@ -81,25 +81,13 @@ RunResultsDock::RunResultsDock(QMainWindow* window, RunController* runController
 	diagramsButton->setFont(QApplication::font());
 	QMenu* resultMenu = new QMenu(diagramsButton);
 	diagramsButton->setMenu(resultMenu);
-	const auto addResultViewAction = [views, resultMenu](const QString& text, auto slot) {
-		QAction* action = resultMenu->addAction(text);
-		action->setObjectName(QString("resultView_%1").arg(text).remove(' '));
-		QObject::connect(action, &QAction::triggered, views, slot);
-	};
-	addResultViewAction(ResultViewName::kTimetable, &ResultViews::showTimetableTable);
-	addResultViewAction(ResultViewName::kTimetableGraph, &ResultViews::showTimetableGraph);
-	addResultViewAction(ResultViewName::kDelays, &ResultViews::showDelayDiagram);
-	addResultViewAction(ResultViewName::kDelayAnalysis, &ResultViews::showDelayAnalysis);
-	resultMenu->addSeparator();
-	addResultViewAction(ResultViewName::kSpeedDistance, &ResultViews::showSpeedDistanceDiagram);
-	addResultViewAction(ResultViewName::kSpeedTime, &ResultViews::showSpeedTimeDiagram);
-	addResultViewAction(ResultViewName::kTimeDistance, &ResultViews::showTimeDistanceDiagram);
-	addResultViewAction(ResultViewName::kTractiveEffortDistance, &ResultViews::showTractiveEffortDistanceDiagram);
-	resultMenu->addSeparator();
-	addResultViewAction(ResultViewName::kTrainPaths, &ResultViews::displayTrainPathDiagrams);
-	addResultViewAction(ResultViewName::kBlockingTime, &ResultViews::showBlockingTimeDiagram);
-	addResultViewAction(ResultViewName::kCapacity, &ResultViews::showCapacityAnalysis);
-	addResultViewAction(ResultViewName::kCapacityByArea, &ResultViews::showAreaCapacity);
+	for (const ResultViewEntry& view : kResultViewEntries) {
+		if (view.startsGroup)
+			resultMenu->addSeparator();
+		QAction* action = resultMenu->addAction(view.name);
+		action->setObjectName(QString("resultView_%1").arg(view.name).remove(' '));
+		QObject::connect(action, &QAction::triggered, views, view.open);
+	}
 	resultViews->addWidget(diagramsButton);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
 	exportCsvBtn->setObjectName("resultView_ExportCSV");

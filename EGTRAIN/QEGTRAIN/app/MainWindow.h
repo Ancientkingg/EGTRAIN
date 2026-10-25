@@ -67,7 +67,6 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QMenu;
-class QMovie;
 class QPoint;
 class QPointF;
 class QProgressDialog;
@@ -120,13 +119,11 @@ struct SceneHistoryEntry;
 struct StableRelease;
 struct UpdateCheckResult;
 
-using namespace std;
-
-/// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
 /// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
 /// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
 /// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
 QString crashNoteFolder();
+/// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
 bool startupTimingEnabled();
 /// Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.
 void beginStartupTiming();
@@ -170,17 +167,6 @@ public:
 
 	/// Shows the window maximized, at most eight ninths of the screen when restored, and fits the view.
 	void openGUI();
-
-	/// Declared but not defined; nothing calls it.
-	void orderTracks();
-
-	/// Declared but not defined; nothing calls it.
-	void setLoadingGIF();
-	/// Declared but not defined; nothing calls it.
-	void showLoadingGIF();
-	/// Declared but not defined; nothing calls it.
-	void stopLoadingGIF();
-
 
 	/// Fits the canvas to the network, or to the preview bounds while a preview shows.
 	void fitView();
@@ -252,10 +238,6 @@ private:
 
 	// progess bar
 	TimeProgressBar* progressBar;
-
-	// loading
-	QLabel* loadingLabel;
-	QMovie* loadingMovie;
 
 	// The inspector dock: the form of the selected item
 	InspectorPanel* m_inspector = nullptr;
@@ -711,7 +693,8 @@ private:
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
 
-	// InspectorPanel::Host: what the inspector dock asks of the window.
+	// InspectorPanel::Host: what the inspector dock asks of the window. passengerGui is the passenger display of the
+	// prepared run; RunController::nextRunShowsPassengers is that of the next run.
 	bool showingTrackPreview() const override;
 	const SceneModel* loadedScene() const override;
 	quint64 loadedSceneRevision() const override;
