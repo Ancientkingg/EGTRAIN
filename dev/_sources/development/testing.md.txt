@@ -195,6 +195,8 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
   `QCOMPARE_EQ` compares exactly. Keep it to numbers: with a string literal, Qt 6.8.3 crashes when the comparison fails.
 - A check over a table becomes a `_data()` slot with `QTest::addColumn` and `QTest::newRow`; each row reports on its
   own (`tests/test_timeformat.cpp`).
+- clang-tidy does not know that a failed `QVERIFY` ends the slot. Before a pointer that may be null is used, check it
+  with `if (p == nullptr) QFAIL("...");` (`tests/test_scenevalidator.cpp`).
 - `QTRY_VERIFY_WITH_TIMEOUT(condition, milliseconds)` waits for a condition instead of a sleep. An exception that leaves
   a slot fails it and ends the program.
 - `build/test_timeformat formatsSimTime` runs one slot, `formatsSimTime:offset` one row of it, and `-functions` lists
