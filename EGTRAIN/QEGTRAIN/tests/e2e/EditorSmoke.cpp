@@ -4416,18 +4416,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			&& w.m_runResultsDock->findChildren<QPushButton*>(QRegularExpression("^resultView_")).size() == 2;
 		if (!serviceStructure || !signalDetails || !resultsStructure)
 			facetFailure(ok, "presentation", "editor tabs, wrapped signal details or result controls unavailable");
-		// The Diagrams menu and the Run Results menu name each result view the same, apart from a trailing ellipsis.
+		// The Diagrams menu and the Run Results menu list the result views in the same order and groups, and name each the
+		// same, apart from a trailing ellipsis. A separator counts as "|".
 		const auto viewNames = [](const QList<QAction*>& actions) {
 			QStringList names;
 			for (const QAction* action : actions)
-				if (!action->isSeparator())
-					names << QString(action->text()).remove(QRegularExpression("\\.\\.\\.$"));
-			names.sort();
+				names << (action->isSeparator() ? QStringLiteral("|") : QString(action->text()).remove(QRegularExpression("\\.\\.\\.$")));
 			return names;
 		};
 		const QToolButton* viewsButton = w.m_runResultsDock ? w.m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton") : nullptr;
 		if (!viewsButton || viewNames(viewsButton->menu()->actions()) != viewNames(w.m_diagramsMenu->actions()))
-			facetFailure(ok, "presentation", "the Diagrams menu and the Run Results menu name the result views differently");
+			facetFailure(ok, "presentation", "the Diagrams menu and the Run Results menu list the result views differently");
 		for (QDockWidget* dock : w.findChildren<QDockWidget*>()) dock->hide();
 		w.showNormal();
 		w.resize(1280, 800);
