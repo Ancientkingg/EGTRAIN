@@ -48,6 +48,17 @@ static std::string readText(const fs::path& path) {
 	return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 }
 
+// The regular files below root and their bytes, by relative path.
+static std::map<std::string, std::string> snapshot(const fs::path& root) {
+	std::map<std::string, std::string> files;
+	for (const auto& entry : fs::recursive_directory_iterator(root)) {
+		if (!entry.is_regular_file()) continue;
+		std::ifstream input(entry.path(), std::ios::binary);
+		files.emplace(entry.path().lexically_relative(root).string(), std::string(std::istreambuf_iterator<char>(input), {}));
+	}
+	return files;
+}
+
 // A scene with the tracks "main", which becomes legacy track B0, and "B7", and two nodes on "main". The argument is appended to signalling.json.
 static void writeAreaScene(const fs::path& scene, const std::string& signallingAreas) {
 	std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Area Export"})" << "\n";
@@ -658,29 +669,31 @@ int main() {
 		res = exportLegacyScene(sceneDir.dir, freshOut.dir);
 		ok &= expect(res.success() && !fs::exists(fs::path(freshOut.dir) / "TrackLines/AreasCaseStudy.txt") && !fs::exists(fs::path(freshOut.dir) / "TrackLines/areascasestudy.txt"), "Empty export removes copied legacy TXT");
 
+		// A failed export publishes nothing: the destination keeps the files and the sidecar of the last export.
+		const auto published = snapshot(out);
 		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"],"corridor":"bad\tcorridor"}]})";
 		res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		ok &= expect(!res.success() && !fs::exists(sidecar), "Late compatibility failure cannot copy authoritative passthrough metadata");
+		ok &= expect(!res.success() && snapshot(out) == published, "Late compatibility failure leaves the destination as it was");
 
-		// A compatibility error must leave no sidecar that a subsequent importer could recognise.
 		std::ofstream(sidecar) << "stale destination\n";
+		const auto stale = snapshot(out);
 		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":[]},{"id":"other","blocks":[]}]})";
 		res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		ok &= expect(!res.success() && !fs::exists(sidecar), "Failed compatibility export removes stale sidecar and publishes none");
+		ok &= expect(!res.success() && snapshot(out) == stale, "Failed compatibility export publishes no sidecar");
 
 		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"ghost","start_km":0,"end_km":1,"level":1,"track":"missing"}])");
 		res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.ref.unresolved") && !fs::exists(sidecar), "Unmappable canonical area fails export");
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.ref.unresolved") && snapshot(out) == stale, "Unmappable canonical area fails export");
 		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"bad","start_km":1,"end_km":0,"level":2}])");
 		res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.signalling_area.range") && !fs::exists(sidecar), "Export reuses native area validation");
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.signalling_area.range") && snapshot(out) == stale, "Export reuses native area validation");
 
 		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"large-track","start_km":0,"end_km":1,"level":1,"track":"B999999999999999999999"}])");
 		std::string infrastructure = readText(scene / "infrastructure.json");
 		infrastructure.replace(infrastructure.find("B7"), 2, "B999999999999999999999");
 		std::ofstream(scene / "infrastructure.json") << infrastructure;
 		res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.export.ref") && !fs::exists(sidecar), "Unreconstructible exported track scope fails export");
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.export.ref") && snapshot(out) == stale, "Unreconstructible exported track scope fails export");
 
 		writeAreaScene(scene, "");
 		fs::remove(sidecar);
@@ -722,22 +735,13 @@ int main() {
 		}
 		fs::create_directories(out / "TrackLines");
 		std::ofstream(out / "TrackLines/EGTRAINSignallingAreas.json") << "stale\n";
+		const auto before = snapshot(out);
 		const auto exported = exportLegacyScene(sourceDir.dir, outDir.dir);
-		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.ref")
-				&& !fs::exists(out / "TrackLines/EGTRAINSignallingAreas.json"),
+		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.ref") && snapshot(out) == before,
 			"Noncanonical track mapping, unscoped alias, reused output and passthrough alias refuse authoritative export");
 	}
 
 	// Reject overlap before cleanup, including resolved source and passthrough aliases.
-	const auto snapshot = [](const fs::path& root) {
-		std::map<std::string, std::string> files;
-		for (const auto& entry : fs::recursive_directory_iterator(root)) {
-			if (!entry.is_regular_file()) continue;
-			std::ifstream input(entry.path(), std::ios::binary);
-			files.emplace(entry.path().lexically_relative(root).string(), std::string(std::istreambuf_iterator<char>(input), {}));
-		}
-		return files;
-	};
 	for (int variant : {0, 1, 2, 3, 4, 5, 6}) {
 		TempDir rootDir;
 		const fs::path root(rootDir.dir), source = root / "source", outside = root / "passthrough";
@@ -789,6 +793,39 @@ int main() {
 		const auto before = snapshot(source);
 		ok &= expect(exportLegacyScene(source.string(), out.string()).success() && snapshot(source) == before,
 			"Non-overlapping sibling export supports missing destination leaves and preserves source bytes");
+	}
+
+	// A re-export into a used folder replaces the route files, which the importer reads all of, and keeps the files that
+	// the export does not write. A failed export changes nothing.
+	{
+		TempDir sceneDir, outDir, emptyDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		writeAreaScene(scene, "");
+		std::ofstream(scene / "signalling.json")
+			<< R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]},{"id":"route1","blocks":["block.a"]},{"id":"route2","blocks":["block.b"]}]})"
+			<< "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && fs::is_regular_file(out / "Routes/Route2.txt"),
+			"A scene with three routes exports");
+		std::ofstream(out / "notes.txt") << "mine\n";
+		std::ofstream(out / "Routes/notes.txt") << "mine\n";
+		writeAreaScene(scene, "");
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success(), "A scene with one route exports into the same folder");
+		std::vector<std::string> routeFiles;
+		for (const auto& entry : fs::directory_iterator(out / "Routes"))
+			routeFiles.push_back(entry.path().filename().string());
+		std::sort(routeFiles.begin(), routeFiles.end());
+		ok &= expect(routeFiles == std::vector<std::string>{"Route0.txt", "notes.txt"} && readText(out / "notes.txt") == "mine\n",
+			"A re-export removes the old route files and keeps the files it does not write");
+
+		const auto published = snapshot(out);
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"],"corridor":"bad\tcorridor"}]})";
+		ok &= expect(!exportLegacyScene(sceneDir.dir, outDir.dir).success() && snapshot(out) == published,
+			"A failed re-export leaves the folder as it was");
+		ok &= expect(!exportLegacyScene(sceneDir.dir, emptyDir.dir).success() && fs::is_empty(emptyDir.dir),
+			"A failed export into an empty folder writes nothing");
+		const fs::path missing = fs::path(emptyDir.dir) / "missing";
+		ok &= expect(!exportLegacyScene(sceneDir.dir, missing.string()).success() && fs::is_empty(emptyDir.dir),
+			"A failed export into a new folder creates nothing");
 	}
 
 	// A scene directory, an export destination, the legacy data below the scene and the source files of a train unit,

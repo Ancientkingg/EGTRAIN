@@ -209,6 +209,17 @@ int main(int argc, char** argv) {
 		"semantic validation does not reject complete topology");
 	ok &= expect(validateScene(clean).empty(), "complete scene passes semantic validation");
 	ok &= expect(validateRunnableScene(clean).empty(), "complete scene passes runnable validation");
+	SceneModel withoutTrains = clean;
+	withoutTrains.services.clear();
+	withoutTrains.compositions.clear();
+	withoutTrains.trainUnits.clear();
+	withoutTrains.scenarios[0].entranceDelays.clear();
+	withoutTrains.passengers.clear();
+	ok &= expect(!hasErrors(validateScene(withoutTrains)), "a scene without trains or services passes semantic validation");
+	const auto withoutTrainsRunnable = validateRunnableScene(withoutTrains);
+	ok &= expect(hasCodeAndSeverity(withoutTrainsRunnable, "scene.trains.none", SceneSeverity::Error)
+			&& hasCodeAndSeverity(withoutTrainsRunnable, "scene.services.none", SceneSeverity::Error),
+		"runnable validation needs trains and services");
 	const std::string colorCode = "scene.service.color.invalid";
 	for (const char* value : {"", "#112233", "#abcdef", "#ABCDEF", "#aBc012"}) {
 		SceneModel colored = clean;

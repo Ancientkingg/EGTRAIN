@@ -651,12 +651,6 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 			"scene", "", "simulation_settings.recovery_time_percent", "",
 			"Use a recovery value of 0 or more");
 	}
-	if (scene.trainUnits.empty() || scene.compositions.empty())
-		diagnostics.error("scene.trains.none", "No trains defined", "rolling_stock.json", "", "", "", "",
-			"Add a rolling stock unit and a composition");
-	if (scene.services.empty())
-		diagnostics.error("scene.services.none", "No services defined", "services.json", "", "", "", "",
-			"Add a service");
 
 	const auto errorCount = [&result]() {
 		return std::count_if(result.begin(), result.end(), [](const SceneDiagnostic& diagnostic) {
@@ -1777,6 +1771,12 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 		if (scene.routes.empty())
 			diagnostics.error("scene.routes.none", "Add a route to run this case", "signalling.json", "route",
 				"", "routes");
+		if (scene.trainUnits.empty() || scene.compositions.empty())
+			diagnostics.error("scene.trains.none", "No trains defined", "rolling_stock.json", "", "", "", "",
+				"Add a rolling stock unit and a composition");
+		if (scene.services.empty())
+			diagnostics.error("scene.services.none", "No services defined", "services.json", "", "", "", "",
+				"Add a service");
 		if (scene.scenarios.empty())
 			diagnostics.error("scene.scenarios.none", "Add a scenario to run this case", "scenarios.json",
 				"scenario", "", "scenarios");
