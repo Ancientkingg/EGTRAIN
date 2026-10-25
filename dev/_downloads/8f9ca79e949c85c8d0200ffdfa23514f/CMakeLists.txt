@@ -722,7 +722,7 @@ egtrain_add_test(test_qt_resource_images
 egtrain_add_test(test_routestations
 	SOURCES ${SRC_DIR}/tests/test_routestations.cpp
 	LIBS egtrain_scene
-	COMMAND test_routestations ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS scene-v1 unit)
 
 egtrain_add_test(test_routereferencechoice
