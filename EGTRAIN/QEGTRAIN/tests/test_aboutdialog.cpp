@@ -166,8 +166,10 @@ void TestAboutDialog::closeIsDefaultAndFocused() {
 
 // With the footer of macOS Close is the default when About opens. A link takes the default while it has the focus, and
 // once the focus leaves it for a widget that is not a button Close is the default again, so Return closes About. The
-// application style stays changed for the checks after this one.
+// application style is put back at the end.
 void TestAboutDialog::macFooterKeepsCloseDefault() {
+	const QString styleName = QApplication::style()->name();
+	const auto restoreStyle = qScopeGuard([&styleName]() { QApplication::setStyle(styleName); });
 	QApplication::setStyle(new MacFooterStyle);
 	AboutDialog dialog;
 	dialog.show();

@@ -109,6 +109,9 @@ void TestTimeProgressBar::shownTooltipFollowsRun() {
 	bar.setProgress(3999, 8000, kStartOffset);
 	QVERIFY(QToolTip::isVisible());
 	QCOMPARE(QToolTip::text(), QStringLiteral("Step 4,000 of 8,000"));
+	// A later step updates the value and the text of the same bar.
+	QCOMPARE(bar.value(), 3999);
+	QCOMPARE(bar.format(), QStringLiteral("07:34:59 of 08:41:40"));
 }
 
 void TestTimeProgressBar::inputDoesNotScrub() {
