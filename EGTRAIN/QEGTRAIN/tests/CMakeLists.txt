@@ -440,7 +440,7 @@ egtrain_add_test(test_traincolours
 egtrain_add_test(test_routegeo SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_routegeo.cpp
 	LIBS egtrain_diagrams egtrain_sim
-	COMMAND test_routegeo ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit)
 
 egtrain_add_test(test_diagramwindow
