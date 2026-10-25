@@ -314,10 +314,12 @@ Secure Transport, the TLS backend of Qt on macOS, does not trust that root certi
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `visual_polish_smoke.sh` passes it on to
-the two scripts that its `scripts` phase runs. `test_creator_acceptance_smoke`
-and `test_dialog_presentation_contract` also read the `scene_tool` path from
-`QEGTRAIN_SCENE_TOOL`. CTest sets these variables from the build targets. Run by
-hand without them, the scripts use the macOS paths under `build/`.
+the two scripts that its `scripts` phase runs. `test_package_contents_smoke`
+reads the app bundle from `QEGTRAIN_APP_BUNDLE` instead. It,
+`test_creator_acceptance_smoke` and `test_dialog_presentation_contract` also read
+the `scene_tool` path from `QEGTRAIN_SCENE_TOOL`. CTest sets these variables from
+the build targets. Run by hand without them, the scripts use the macOS paths under
+`build/`.
 `test_route_diagram_smoke` reads no variable: CTest passes the application and
 the directory of the test executables as the two arguments of
 `route_diagram_smoke.py`, which uses the paths under `build/` when it gets none.

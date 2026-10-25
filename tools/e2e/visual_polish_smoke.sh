@@ -12,33 +12,14 @@
 #   discard            the preview legend after a discarded run
 #   stations           the station overlays
 #   scripts            scene_render_smoke.sh and legacy_import_smoke.sh, which CTest also runs as tests of their own
-# The phases share no file below TMPDIR, so CTest runs them side by side.
+# A run writes its logs and screenshots into a folder of its own below TMPDIR, so runs side by side share no file and CTest
+# runs the phases as separate tests. The folder is removed when every phase passed, and named when one failed.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE_ROOT="$ROOT/EGTRAIN/QEGTRAIN/Scenes"
 SCENE="$SCENE_ROOT/Copenhagen"
-OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.log"
-SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.png"
-DENSE_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dense-e2e.png"
-MEDIUM_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-medium-e2e.png"
-SELECTED_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-selected-e2e.png"
-FOLLOW_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-follow-e2e.png"
-CONTEXT_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-context-e2e.png"
-COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1024-e2e.png"
-COMMAND_BAR_1200_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1200-e2e.png"
-COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-1440-e2e.png"
-DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dpr2-e2e.log"
-DPR2_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-dpr2-e2e.png"
-DPR2_COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1024-e2e.png"
-DPR2_COMMAND_BAR_1200_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1200-e2e.png"
-DPR2_COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1440-e2e.png"
-STATION_OUT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e"
-STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay"
-STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
-COLOR_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.log"
-COLOR_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.png"
 
 ALL_PHASES=(dpr1 color dpr2 completion replay replay-copenhagen signals discard stations scripts)
 if [[ $# -eq 0 ]]; then
@@ -51,6 +32,7 @@ for phase in "$@"; do
 	fi
 done
 
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.XXXXXX")"
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
 COLOR_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-color-scene.XXXXXX")"
 SIGNAL_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-signal-scene.XXXXXX")"
@@ -58,9 +40,35 @@ cleanup() {
 	local exit_code=$?
 	trap - EXIT
 	rm -rf "$SETTINGS_DIR" "$COLOR_SCENE_DIR" "$SIGNAL_SCENE_DIR"
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$WORK_DIR"
+	else
+		echo "the logs and screenshots of this run are in $WORK_DIR" >&2
+	fi
 	exit "$exit_code"
 }
 trap cleanup EXIT
+
+OUT="$WORK_DIR/qegtrain-visual-polish-e2e.log"
+SHOT="$WORK_DIR/qegtrain-visual-polish-e2e.png"
+DENSE_SHOT="$WORK_DIR/qegtrain-visual-polish-dense-e2e.png"
+MEDIUM_SHOT="$WORK_DIR/qegtrain-visual-polish-medium-e2e.png"
+SELECTED_SHOT="$WORK_DIR/qegtrain-visual-polish-selected-e2e.png"
+FOLLOW_SHOT="$WORK_DIR/qegtrain-visual-polish-follow-e2e.png"
+CONTEXT_SHOT="$WORK_DIR/qegtrain-visual-polish-context-e2e.png"
+COMMAND_BAR_1024_SHOT="$WORK_DIR/qegtrain-command-bar-1024-e2e.png"
+COMMAND_BAR_1200_SHOT="$WORK_DIR/qegtrain-command-bar-1200-e2e.png"
+COMMAND_BAR_1440_SHOT="$WORK_DIR/qegtrain-command-bar-1440-e2e.png"
+DPR2_OUT="$WORK_DIR/qegtrain-visual-polish-dpr2-e2e.log"
+DPR2_SHOT="$WORK_DIR/qegtrain-visual-polish-dpr2-e2e.png"
+DPR2_COMMAND_BAR_1024_SHOT="$WORK_DIR/qegtrain-command-bar-dpr2-1024-e2e.png"
+DPR2_COMMAND_BAR_1200_SHOT="$WORK_DIR/qegtrain-command-bar-dpr2-1200-e2e.png"
+DPR2_COMMAND_BAR_1440_SHOT="$WORK_DIR/qegtrain-command-bar-dpr2-1440-e2e.png"
+STATION_OUT_BASE="$WORK_DIR/qegtrain-station-overlay-e2e"
+STATION_SHOT_BASE="$WORK_DIR/qegtrain-station-overlay"
+STATION_DPR2_OUT="$WORK_DIR/qegtrain-station-overlay-e2e-dpr2.log"
+COLOR_OUT="$WORK_DIR/qegtrain-visual-polish-color-e2e.log"
+COLOR_SHOT="$WORK_DIR/qegtrain-visual-polish-color-e2e.png"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
@@ -143,7 +151,7 @@ phase_dpr1() {
 		echo "dead Show Graph action still present in MainWindow.ui" >&2
 		exit 1
 	fi
-	echo "visual polish e2e passed: $SHOT $MEDIUM_SHOT $DENSE_SHOT $SELECTED_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
+	echo "visual polish e2e passed"
 }
 
 phase_color() {
@@ -169,7 +177,7 @@ PY
 	grep -q "E2E_VISUAL_POLISH_OK" "$COLOR_OUT"
 	grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$COLOR_OUT"
 	test -s "$COLOR_SHOT"
-	echo "service colour e2e passed: $COLOR_SHOT"
+	echo "service colour e2e passed"
 }
 
 phase_dpr2() {
@@ -209,11 +217,11 @@ phase_dpr2() {
 	test -s "$DPR2_COMMAND_BAR_1024_SHOT"
 	test -s "$DPR2_COMMAND_BAR_1200_SHOT"
 	test -s "$DPR2_COMMAND_BAR_1440_SHOT"
-	echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
+	echo "visual polish 2x dpr e2e passed"
 }
 
 phase_completion() {
-	local completion_out="${TMPDIR:-/tmp}/qegtrain-operational-completion-e2e.log"
+	local completion_out="$WORK_DIR/qegtrain-operational-completion-e2e.log"
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
@@ -228,7 +236,7 @@ phase_completion() {
 replay_whole_run() {
 	local scene whole_out
 	for scene in "$@"; do
-		whole_out="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
+		whole_out="$WORK_DIR/qegtrain-replay-whole-run-$scene-e2e.log"
 		QT_QPA_PLATFORM=offscreen \
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
@@ -271,7 +279,7 @@ for name, scenario, level in (("levels", "baseline", 0), ("failure", "signal-fai
     if level is not None:
         edit("signalling.json", lambda data: data.update(signalling_areas=[{"id": "area.all", "level": level, "start_km": 0.0, "end_km": 16.0}]))
 PY
-	local signal_heads_out="${TMPDIR:-/tmp}/qegtrain-signal-heads-e2e.log" signal_mode signal_case
+	local signal_heads_out="$WORK_DIR/qegtrain-signal-heads-e2e.log" signal_mode signal_case
 	for signal_mode in levels failure none; do
 		QT_QPA_PLATFORM=offscreen \
 		QEGTRAIN_AUTOSTART=1 \
@@ -300,7 +308,7 @@ PY
 }
 
 phase_discard() {
-	local discard_out="${TMPDIR:-/tmp}/qegtrain-operational-discard-e2e.log"
+	local discard_out="$WORK_DIR/qegtrain-operational-discard-e2e.log"
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_OPERATIONAL_DISCARD=1 \
@@ -350,7 +358,7 @@ phase_stations() {
 			grep -q "E2E_STATION_SELECTED_NAME_OK was_hidden=1" "$station_out"
 		fi
 	done
-	echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4,5,6}.log"
+	echo "station overlay e2e passed"
 
 	rm -f "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
 	QT_QPA_PLATFORM=offscreen \
@@ -374,7 +382,7 @@ phase_stations() {
 	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png"
 	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png"
 	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
-	echo "station overlay Copenhagen DPR2 passed: ${STATION_DPR2_OUT}"
+	echo "station overlay Copenhagen DPR2 passed"
 }
 
 phase_scripts() {

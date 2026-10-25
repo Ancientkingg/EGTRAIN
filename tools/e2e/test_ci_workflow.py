@@ -495,9 +495,25 @@ def main() -> None:
         missing.append("failure artifact steps")
     if not uploads or any(
         path not in uploads[0]
-        for path in ("/ctest.log", "qegtrain-gui-autostart-smoke.log")
+        for path in (
+            "/ctest.log",
+            "qegtrain-gui-autostart-smoke.log",
+            "${{ runner.temp }}/qegtrain-*-e2e.*/\n",
+            "build/smoke-logs/headless_case_*.log",
+        )
     ):
         missing.append("build job failure logs")
+    # A shell smoke writes below TMPDIR only into folders that mktemp makes, so two build trees that run it at the same
+    # time write different files. The smokes with a log keep their folder when they fail, and the upload above finds it
+    # by the name qegtrain-<smoke>-e2e.<random>.
+    for script in sorted((ROOT / "tools/e2e").glob("*.sh")):
+        paths = re.findall(r'(mktemp -d )?"\$\{TMPDIR:-/tmp\}/([^"]*)"', script.read_text(encoding="utf-8"))
+        if any(not made or not name.endswith(".XXXXXX") for made, name in paths):
+            missing.append(f"{script.name} writing below TMPDIR only into mktemp folders")
+    for smoke in ("csv_export", "editor", "legacy_import", "scene_render", "track_preview", "visual_polish"):
+        text = (ROOT / f"tools/e2e/{smoke}_smoke.sh").read_text(encoding="utf-8")
+        if not re.search(r'mktemp -d "\$\{TMPDIR:-/tmp\}/qegtrain-[a-z-]+-e2e\.XXXXXX"', text):
+            missing.append(f"{smoke}_smoke.sh keeping its logs in a qegtrain-*-e2e folder")
     validation_trigger = workflow.split("\njobs:", 1)[0]
     if re.search(r"^  push:", validation_trigger, re.MULTILINE):
         missing.append("no run for a push to main")

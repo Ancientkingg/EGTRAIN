@@ -270,7 +270,9 @@ form that a build without tests compiles holds `QEGTRAIN_E2E_`, `E2E_` or `failu
 `tests/e2e` and the telemetry smoke support are not scanned. Four files are exempt for the text that
 they hold on purpose: `update/UpdateSettings.cpp` and `telemetry/TelemetryConsent.cpp` test the prefix
 `QEGTRAIN_E2E_`, and `app/OpenRequestRelay.cpp` and `app/OpenRequestRelay.h` test it and name
-`QEGTRAIN_E2E_OPEN_RELAY`.
+`QEGTRAIN_E2E_OPEN_RELAY`. The test also fails when a script under `tools/` waits for an `E2E_` marker that
+no C++ file in `tests/e2e` or `app` prints, such as a misspelt name. That check skips the `test_*.py` files, whose
+markers are fixtures.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
 set, the runner starts the run of the case 1.5 s after the first show. The hooks

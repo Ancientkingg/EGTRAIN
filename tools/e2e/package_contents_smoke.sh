@@ -3,11 +3,13 @@
 # rehearse the Assignment path: the app holds scene_tool and the complete canonical
 # Assignment scene; scene_tool validates and exports the packaged scene; and the app
 # opens and renders it under a clean HOME with exports written outside the bundle.
+# QEGTRAIN_APP_BUNDLE and QEGTRAIN_SCENE_TOOL name the app bundle and scene_tool, which CTest sets from its build
+# folder; without them the script takes those in build/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP_BUNDLE="$ROOT/build/QEGTRAIN.app"
-SCENE_TOOL="$ROOT/build/scene_tool"
+APP_BUNDLE="${QEGTRAIN_APP_BUNDLE:-$ROOT/build/QEGTRAIN.app}"
+SCENE_TOOL="${QEGTRAIN_SCENE_TOOL:-$ROOT/build/scene_tool}"
 
 if [[ ! -d "$APP_BUNDLE" ]]; then
 	echo "app bundle not found: $APP_BUNDLE (build QEGTRAIN first)" >&2
@@ -103,7 +105,7 @@ env -i HOME="$HOME_DIR" PATH="/usr/bin:/bin:/usr/sbin:/sbin" \
 	"$APP/Contents/MacOS/QEGTRAIN" --scene "$SCENE" -h 100 -g 1 -pax 0 >"$LOG" 2>&1
 set -e
 for marker in E2E_TRACK_PREVIEW_OPEN_OK E2E_TRACK_PREVIEW_RUN_GATED_OK E2E_TRACK_PREVIEW_SAVE_RELOAD_OK; do
-	grep -q "$marker" "$LOG" || { echo "packaged app missing marker $marker; see $LOG" >&2; exit 1; }
+	grep -q "$marker" "$LOG" || { echo "packaged app missing marker $marker" >&2; tail -20 "$LOG" >&2; exit 1; }
 done
 
 # The supplied Assignment scene in the app must stay unchanged; the user edits the

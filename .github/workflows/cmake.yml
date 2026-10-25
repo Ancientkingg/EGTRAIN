@@ -270,6 +270,8 @@ jobs:
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           python tools/release/package_start_smoke.py $dist --exports
 
+      # A shell smoke that fails keeps the folder of its run, qegtrain-<smoke>-e2e.<random> below TMPDIR. The headless
+      # smoke writes the log of each case into build/smoke-logs.
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -279,7 +281,8 @@ jobs:
             ${{ runner.temp }}/ctest.log
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
             ${{ runner.temp }}/qegtrain-incident-*.log
-            tools/e2e/headless_case_*.log
+            ${{ runner.temp }}/qegtrain-*-e2e.*/
+            build/smoke-logs/headless_case_*.log
           if-no-files-found: ignore
 
   # LeakSanitizer finds the leaks and double frees that a normal run does not show. It does not run on

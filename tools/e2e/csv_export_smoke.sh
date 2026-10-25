@@ -6,27 +6,39 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
-OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e"
-RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-run"
-LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.log"
 # Known block endpoints: every block of this scene has a length in infrastructure.json.
 ASSIGNMENT_SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-ASSIGNMENT_OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment"
-ASSIGNMENT_RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment-run"
-ASSIGNMENT_LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-assignment.log"
-UNRELATED_OUTDIR="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated"
-UNRELATED_RUN_OUTPUT="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated-run"
-UNRELATED_LOG="${TMPDIR:-/tmp}/qegtrain-csv-export-e2e-unrelated.log"
 
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
 	exit 1
 fi
 
-rm -rf "$OUTDIR" "$RUN_OUTPUT" "$ASSIGNMENT_OUTDIR" "$ASSIGNMENT_RUN_OUTPUT" "$UNRELATED_OUTDIR" "$UNRELATED_RUN_OUTPUT"
-mkdir -p "$OUTDIR" "$ASSIGNMENT_OUTDIR" "$UNRELATED_OUTDIR"
+# The logs, the exports and the run output go into a folder of the run's own, which is kept when the check fails.
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-csv-export-e2e.XXXXXX")"
 UNRELATED_SCENE="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-csv-unrelated-scene.XXXXXX")"
-trap 'rm -rf "$UNRELATED_SCENE"' EXIT
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$UNRELATED_SCENE"
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$WORK_DIR"
+	else
+		echo "the logs and the exports of this run are in $WORK_DIR" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
+OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e"
+RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-run"
+LOG="$WORK_DIR/qegtrain-csv-export-e2e.log"
+ASSIGNMENT_OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e-assignment"
+ASSIGNMENT_RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-assignment-run"
+ASSIGNMENT_LOG="$WORK_DIR/qegtrain-csv-export-e2e-assignment.log"
+UNRELATED_OUTDIR="$WORK_DIR/qegtrain-csv-export-e2e-unrelated"
+UNRELATED_RUN_OUTPUT="$WORK_DIR/qegtrain-csv-export-e2e-unrelated-run"
+UNRELATED_LOG="$WORK_DIR/qegtrain-csv-export-e2e-unrelated.log"
+mkdir -p "$OUTDIR" "$ASSIGNMENT_OUTDIR" "$UNRELATED_OUTDIR"
 # Temporary regression fixture only: the second service has no shared node/station anchors
 # and no planned stops. Its calculated envelopes cannot form any chart series on route0.
 python3 - "$ASSIGNMENT_SCENE" "$UNRELATED_SCENE" <<'PY_FIXTURE'
@@ -449,4 +461,4 @@ END {
 grep -q "^Network total," "$OUTDIR/run_summary.csv" \
 	|| { echo "run_summary.csv missing network totals row" >&2; exit 1; }
 
-echo "csv export e2e passed: $traj_rows trajectory rows, $tt_rows timetable rows in $OUTDIR"
+echo "csv export e2e passed: $traj_rows trajectory rows, $tt_rows timetable rows"
