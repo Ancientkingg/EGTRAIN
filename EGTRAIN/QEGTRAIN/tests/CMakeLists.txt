@@ -862,7 +862,7 @@ egtrain_add_test(test_operationsbuilder SIMULATION_HEADERS
 egtrain_add_test(test_completedrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_completedrun.cpp
 	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
-	COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol ${SRC_DIR}/Scenes/Milano_Brescia
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit gui
 	TIMEOUT 300)
 

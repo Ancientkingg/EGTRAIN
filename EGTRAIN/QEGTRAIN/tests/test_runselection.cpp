@@ -2,15 +2,10 @@
 
 #include "scene/RuntimeLimits.h"
 
-#include <iostream>
+#include <QTest>
+
 #include <string>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneServiceOccurrence occurrence(const char* serviceId, int number) {
 	SceneServiceOccurrence value;
@@ -42,153 +37,192 @@ static SceneModel runScene() {
 
 constexpr double kPeriod = 1000.0;
 
-int main() {
-	bool ok = true;
+class TestRunSelection : public QObject {
+	Q_OBJECT
 
-	{
-		RunSelection selection;
-		ok &= expect(selection.scenarioId().empty() && selection.appliedScenarioId().empty() && !selection.hasExclusions()
-				&& !selection.isScenarioModified("a"),
-			"a new selection has no scenario, no applied scenario, no exclusion and no edited scenario");
-	}
+private slots:
+	void startsEmpty();
+	void followsScenarioEdits();
+	void findsSelectedScenario();
+	void countsOccurrences();
+	void excludesOccurrences();
+	void prunesExclusions();
+	void followsServiceRenames();
+	void keepsExclusionsOutOfOversizedScene();
+};
 
-	{
-		RunSelection selection;
-		selection.selectScenario("a");
-		selection.applySelectedScenario();
-		selection.selectScenario("b");
-		ok &= expect(selection.scenarioId() == "b" && selection.appliedScenarioId() == "a",
-			"selecting another scenario leaves the scenario of the latest run as it was");
-		selection.clearAppliedScenario();
-		ok &= expect(selection.appliedScenarioId().empty() && selection.scenarioId() == "b",
-			"clearing the applied scenario keeps the selected one");
-
-		selection.markScenarioModified("a");
-		selection.markScenarioModified("b");
-		selection.scenarioRenamed("a", "c");
-		ok &= expect(selection.scenarioId() == "c" && !selection.isScenarioModified("a") && selection.isScenarioModified("b"),
-			"renaming selects the new id and forgets that the old id was edited");
-		selection.markScenarioModified("c");
-		selection.scenarioDeleted("c", "b");
-		ok &= expect(selection.scenarioId() == "b" && !selection.isScenarioModified("c") && selection.isScenarioModified("b"),
-			"deleting a scenario selects the next one and forgets that the deleted one was edited");
-		selection.clearModifiedScenarios();
-		ok &= expect(!selection.isScenarioModified("b"), "the edited scenarios can be cleared");
-	}
-
-	{
-		SceneModel scene;
-		const SceneModel& readOnly = scene;
-		RunSelection selection;
-		ok &= expect(selection.selectedScenario(readOnly) == nullptr && scene.scenarios.empty(),
-			"a scene without scenarios has no selected scenario, and looking for it adds none");
-		SceneScenario first;
-		first.id = "a";
-		SceneScenario second;
-		second.id = "b";
-		scene.scenarios = {first, second};
-		scene.defaultScenarioId = "b";
-		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[1] && selection.selectedScenario(scene) == &scene.scenarios[1],
-			"a selection that names no scenario gives the default scenario");
-		selection.selectScenario("a");
-		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[0] && selection.selectedScenario(scene) == &scene.scenarios[0],
-			"the selected scenario is the one with the selected id");
-		selection.selectScenario("gone");
-		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[1], "a selected id that is not in the scene gives the default scenario");
-
-		SceneModel empty;
-		ok &= expect(selection.selectedScenario(empty) != nullptr && empty.scenarios.size() == 1 && empty.scenarios[0].id == "baseline",
-			"asking for the scenario for an edit adds the baseline scenario to a scene without scenarios");
-	}
-
-	{
-		const SceneModel scene = runScene();
-		ok &= expect(sceneTotalOccurrences(scene, kPeriod) == 5 && sceneInPeriodOccurrences(scene, kPeriod) == 4,
-			"the scene has 5 occurrences over the period and 4 of them enter inside it");
-		ok &= expect(sceneTotalOccurrences(scene, 3600.0) == 6 && sceneInPeriodOccurrences(scene, 3600.0) == 6,
-			"a longer period adds the second run of S3");
-		ok &= expect(sceneTotalOccurrences(SceneModel(), kPeriod) == 0 && sceneInPeriodOccurrences(SceneModel(), kPeriod) == 0,
-			"an empty scene has no occurrence");
-	}
-
-	{
-		const SceneModel scene = runScene();
-		RunSelection selection;
-		ok &= expect(selection.selectedOccurrences(scene, kPeriod).empty() && selection.selectedCount(scene, kPeriod) == 5
-				&& selection.selectedInPeriodCount(scene, kPeriod) == 4,
-			"with nothing left out the selection is empty, as the builder reads it, and every occurrence counts");
-
-		selection.setExcluded(occurrence("S2", 2), true);
-		ok &= expect(selection.hasExclusions() && selection.isExcluded(occurrence("S2", 2)) && !selection.isExcluded(occurrence("S2", 1)),
-			"an occurrence can be left out");
-		const SceneRunSelection selected = selection.selectedOccurrences(scene, kPeriod);
-		ok &= expect(selected.size() == 4 && selected.count(occurrence("S2", 2)) == 0 && selected.count(occurrence("S2", 3)) == 1
-				&& selected.count(occurrence("S1", 1)) == 1 && selected.count(occurrence("S3", 1)) == 1,
-			"the selection holds every occurrence except the ones that are left out");
-		ok &= expect(selection.selectedCount(scene, kPeriod) == 4 && selection.selectedInPeriodCount(scene, kPeriod) == 3,
-			"the counts leave out the excluded occurrence");
-		selection.setExcluded(occurrence("S2", 3), true);
-		ok &= expect(selection.selectedCount(scene, kPeriod) == 3 && selection.selectedInPeriodCount(scene, kPeriod) == 3,
-			"an excluded occurrence that enters after the period does not lower the count in the period");
-
-		selection.setExcluded(occurrence("S2", 2), false);
-		selection.setExcluded(occurrence("S2", 3), false);
-		ok &= expect(!selection.hasExclusions() && selection.selectedOccurrences(scene, kPeriod).empty(),
-			"including the occurrences again leaves nothing excluded");
-
-		selection.setExcluded(occurrence("gone", 1), true);
-		ok &= expect(selection.selectedCount(scene, kPeriod) == 5, "an exclusion of a service that does not exist is not counted");
-
-		selection.excludeAll(scene, kPeriod);
-		ok &= expect(selection.excluded().size() == 5 && selection.selectedCount(scene, kPeriod) == 0
-				&& selection.selectedInPeriodCount(scene, kPeriod) == 0 && selection.selectedOccurrences(scene, kPeriod).empty(),
-			"excluding all leaves 5 occurrences out and none selected");
-		selection.includeAll();
-		ok &= expect(!selection.hasExclusions() && selection.selectedCount(scene, kPeriod) == 5, "including all clears the exclusions");
-	}
-
-	{
-		const SceneModel scene = runScene();
-		RunSelection selection;
-		for (const SceneServiceOccurrence& value : {occurrence("S1", 1), occurrence("S2", 4), occurrence("S2", 0),
-				 occurrence("gone", 1), occurrence("S3", 2)})
-			selection.setExcluded(value, true);
-		selection.pruneExcluded(scene, kPeriod);
-		ok &= expect(selection.excluded() == SceneRunSelection({occurrence("S1", 1)}),
-			"pruning forgets services that are gone and occurrences beyond the count of their service");
-		selection.setExcluded(occurrence("S3", 2), true);
-		selection.pruneExcluded(scene, 3600.0);
-		ok &= expect(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S3", 2)}),
-			"an occurrence stays when the period is long enough for it");
-	}
-
-	{
-		RunSelection selection;
-		selection.setExcluded(occurrence("S2", 1), true);
-		selection.setExcluded(occurrence("S2", 3), true);
-		selection.setExcluded(occurrence("S1", 1), true);
-		selection.serviceRenamed("S2", "S2b");
-		ok &= expect(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S2b", 1), occurrence("S2b", 3)}),
-			"renaming a service moves its exclusions to the new id and keeps the occurrence numbers");
-		selection.serviceRenamed("S1", "S1");
-		selection.serviceRenamed("other", "S9");
-		ok &= expect(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S2b", 1), occurrence("S2b", 3)}),
-			"renaming to the same id, or a service without exclusions, changes nothing");
-	}
-
-	{
-		SceneModel scene = runScene();
-		scene.services[1].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
-		RunSelection selection;
-		selection.setExcluded(occurrence("S1", 1), true);
-		ok &= expect(sceneTotalOccurrences(scene, kPeriod) > RuntimeLimits::kMaxExpandedTrains
-				&& selection.selectedOccurrences(scene, kPeriod).empty()
-				&& selection.selectedInPeriodCount(scene, kPeriod) == sceneInPeriodOccurrences(scene, kPeriod),
-			"a scene with more occurrences than a run can expand keeps the exclusions out of the selection");
-	}
-
-	if (!ok)
-		return 1;
-	std::cout << "all run selection tests passed\n";
-	return 0;
+void TestRunSelection::startsEmpty() {
+	RunSelection selection;
+	// a new selection has no scenario, no applied scenario, no exclusion and no edited scenario
+	QVERIFY(selection.scenarioId().empty());
+	QVERIFY(selection.appliedScenarioId().empty());
+	QVERIFY(!selection.hasExclusions());
+	QVERIFY(!selection.isScenarioModified("a"));
 }
+
+void TestRunSelection::followsScenarioEdits() {
+	RunSelection selection;
+	selection.selectScenario("a");
+	selection.applySelectedScenario();
+	selection.selectScenario("b");
+	// selecting another scenario leaves the scenario of the latest run as it was
+	QCOMPARE(selection.scenarioId(), "b");
+	QCOMPARE(selection.appliedScenarioId(), "a");
+	selection.clearAppliedScenario();
+	// clearing the applied scenario keeps the selected one
+	QVERIFY(selection.appliedScenarioId().empty());
+	QCOMPARE(selection.scenarioId(), "b");
+
+	selection.markScenarioModified("a");
+	selection.markScenarioModified("b");
+	selection.scenarioRenamed("a", "c");
+	// renaming selects the new id and forgets that the old id was edited
+	QCOMPARE(selection.scenarioId(), "c");
+	QVERIFY(!selection.isScenarioModified("a"));
+	QVERIFY(selection.isScenarioModified("b"));
+	selection.markScenarioModified("c");
+	selection.scenarioDeleted("c", "b");
+	// deleting a scenario selects the next one and forgets that the deleted one was edited
+	QCOMPARE(selection.scenarioId(), "b");
+	QVERIFY(!selection.isScenarioModified("c"));
+	QVERIFY(selection.isScenarioModified("b"));
+	selection.clearModifiedScenarios();
+	QVERIFY2(!selection.isScenarioModified("b"), "the edited scenarios can be cleared");
+}
+
+void TestRunSelection::findsSelectedScenario() {
+	SceneModel scene;
+	const SceneModel& readOnly = scene;
+	RunSelection selection;
+	// a scene without scenarios has no selected scenario, and looking for it adds none
+	QVERIFY(selection.selectedScenario(readOnly) == nullptr);
+	QVERIFY(scene.scenarios.empty());
+	SceneScenario first;
+	first.id = "a";
+	SceneScenario second;
+	second.id = "b";
+	scene.scenarios = {first, second};
+	scene.defaultScenarioId = "b";
+	// a selection that names no scenario gives the default scenario
+	QCOMPARE(selection.selectedScenario(readOnly), &scene.scenarios[1]);
+	QCOMPARE(selection.selectedScenario(scene), &scene.scenarios[1]);
+	selection.selectScenario("a");
+	// the selected scenario is the one with the selected id
+	QCOMPARE(selection.selectedScenario(readOnly), &scene.scenarios[0]);
+	QCOMPARE(selection.selectedScenario(scene), &scene.scenarios[0]);
+	selection.selectScenario("gone");
+	// a selected id that is not in the scene gives the default scenario
+	QCOMPARE(selection.selectedScenario(readOnly), &scene.scenarios[1]);
+
+	SceneModel empty;
+	// asking for the scenario for an edit adds the baseline scenario to a scene without scenarios
+	QVERIFY(selection.selectedScenario(empty) != nullptr);
+	QCOMPARE(empty.scenarios.size(), std::size_t(1));
+	QCOMPARE(empty.scenarios[0].id, "baseline");
+}
+
+void TestRunSelection::countsOccurrences() {
+	const SceneModel scene = runScene();
+	// the scene has 5 occurrences over the period and 4 of them enter inside it
+	QCOMPARE(sceneTotalOccurrences(scene, kPeriod), 5);
+	QCOMPARE(sceneInPeriodOccurrences(scene, kPeriod), 4);
+	// a longer period adds the second run of S3
+	QCOMPARE(sceneTotalOccurrences(scene, 3600.0), 6);
+	QCOMPARE(sceneInPeriodOccurrences(scene, 3600.0), 6);
+	// an empty scene has no occurrence
+	QCOMPARE(sceneTotalOccurrences(SceneModel(), kPeriod), 0);
+	QCOMPARE(sceneInPeriodOccurrences(SceneModel(), kPeriod), 0);
+}
+
+void TestRunSelection::excludesOccurrences() {
+	const SceneModel scene = runScene();
+	RunSelection selection;
+	// with nothing left out the selection is empty, as the builder reads it, and every occurrence counts
+	QVERIFY(selection.selectedOccurrences(scene, kPeriod).empty());
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 5);
+	QCOMPARE(selection.selectedInPeriodCount(scene, kPeriod), 4);
+
+	selection.setExcluded(occurrence("S2", 2), true);
+	// an occurrence can be left out
+	QVERIFY(selection.hasExclusions());
+	QVERIFY(selection.isExcluded(occurrence("S2", 2)));
+	QVERIFY(!selection.isExcluded(occurrence("S2", 1)));
+	const SceneRunSelection selected = selection.selectedOccurrences(scene, kPeriod);
+	// the selection holds every occurrence except the ones that are left out
+	QCOMPARE(selected.size(), std::size_t(4));
+	QCOMPARE(selected.count(occurrence("S2", 2)), std::size_t(0));
+	QCOMPARE(selected.count(occurrence("S2", 3)), std::size_t(1));
+	QCOMPARE(selected.count(occurrence("S1", 1)), std::size_t(1));
+	QCOMPARE(selected.count(occurrence("S3", 1)), std::size_t(1));
+	// the counts leave out the excluded occurrence
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 4);
+	QCOMPARE(selection.selectedInPeriodCount(scene, kPeriod), 3);
+	selection.setExcluded(occurrence("S2", 3), true);
+	// an excluded occurrence that enters after the period does not lower the count in the period
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 3);
+	QCOMPARE(selection.selectedInPeriodCount(scene, kPeriod), 3);
+
+	selection.setExcluded(occurrence("S2", 2), false);
+	selection.setExcluded(occurrence("S2", 3), false);
+	// including the occurrences again leaves nothing excluded
+	QVERIFY(!selection.hasExclusions());
+	QVERIFY(selection.selectedOccurrences(scene, kPeriod).empty());
+
+	selection.setExcluded(occurrence("gone", 1), true);
+	// an exclusion of a service that does not exist is not counted
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 5);
+
+	selection.excludeAll(scene, kPeriod);
+	// excluding all leaves 5 occurrences out and none selected
+	QCOMPARE(selection.excluded().size(), std::size_t(5));
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 0);
+	QCOMPARE(selection.selectedInPeriodCount(scene, kPeriod), 0);
+	QVERIFY(selection.selectedOccurrences(scene, kPeriod).empty());
+	selection.includeAll();
+	// including all clears the exclusions
+	QVERIFY(!selection.hasExclusions());
+	QCOMPARE(selection.selectedCount(scene, kPeriod), 5);
+}
+
+void TestRunSelection::prunesExclusions() {
+	const SceneModel scene = runScene();
+	RunSelection selection;
+	for (const SceneServiceOccurrence& value : {occurrence("S1", 1), occurrence("S2", 4), occurrence("S2", 0),
+			 occurrence("gone", 1), occurrence("S3", 2)})
+		selection.setExcluded(value, true);
+	selection.pruneExcluded(scene, kPeriod);
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S1", 1)}),
+		"pruning forgets services that are gone and occurrences beyond the count of their service");
+	selection.setExcluded(occurrence("S3", 2), true);
+	selection.pruneExcluded(scene, 3600.0);
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S3", 2)}),
+		"an occurrence stays when the period is long enough for it");
+}
+
+void TestRunSelection::followsServiceRenames() {
+	RunSelection selection;
+	selection.setExcluded(occurrence("S2", 1), true);
+	selection.setExcluded(occurrence("S2", 3), true);
+	selection.setExcluded(occurrence("S1", 1), true);
+	selection.serviceRenamed("S2", "S2b");
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S2b", 1), occurrence("S2b", 3)}),
+		"renaming a service moves its exclusions to the new id and keeps the occurrence numbers");
+	selection.serviceRenamed("S1", "S1");
+	selection.serviceRenamed("other", "S9");
+	QVERIFY2(selection.excluded() == SceneRunSelection({occurrence("S1", 1), occurrence("S2b", 1), occurrence("S2b", 3)}),
+		"renaming to the same id, or a service without exclusions, changes nothing");
+}
+
+void TestRunSelection::keepsExclusionsOutOfOversizedScene() {
+	SceneModel scene = runScene();
+	scene.services[1].repeatCount = RuntimeLimits::kMaxExpandedTrains + 1;
+	RunSelection selection;
+	selection.setExcluded(occurrence("S1", 1), true);
+	// a scene with more occurrences than a run can expand keeps the exclusions out of the selection
+	QCOMPARE_GT(sceneTotalOccurrences(scene, kPeriod), RuntimeLimits::kMaxExpandedTrains);
+	QVERIFY(selection.selectedOccurrences(scene, kPeriod).empty());
+	QCOMPARE(selection.selectedInPeriodCount(scene, kPeriod), sceneInPeriodOccurrences(scene, kPeriod));
+}
+
+QTEST_APPLESS_MAIN(TestRunSelection)
+#include "test_runselection.moc"
