@@ -11,18 +11,12 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QScopeGuard>
 #include <QScrollArea>
 #include <QScrollBar>
-
-#include <iostream>
+#include <QTest>
 
 namespace {
-
-bool check(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << '\n';
-	return condition;
-}
 
 QDateTime writtenTime() {
 	return QDateTime(QDate(2026, 10, 14), QTime(9, 5)).toUTC();
@@ -60,6 +54,16 @@ RecoveryScan makeScan() {
 	add("Future copy", Kind::Bundle, "Future.egscene", Status::Unchanged, State::NewerRecordVersion);
 	add("Old format", Kind::Bundle, "Format.egscene", Status::Unchanged, State::OtherSceneVersion);
 	return scan;
+}
+
+// A case without a name and with an unknown time after a case whose name holds an ampersand.
+RecoveryScan makeTextScan() {
+	RecoveryScan single;
+	single.candidates.append(makeCandidate(QStringLiteral("A & B"), RecoverySourceKind::Untitled, QString(), RecoverySourceStatus::NotApplicable));
+	single.candidates.append(makeCandidate(QString(), RecoverySourceKind::Bundle, QString(), RecoverySourceStatus::NotApplicable));
+	single.candidates[1].writtenAt = QDateTime();
+	single.removedOverCap = 3;
+	return single;
 }
 
 struct Parts {
@@ -100,295 +104,6 @@ void pressKey(QWidget& target, int key) {
 	QApplication::processEvents();
 }
 
-bool exerciseRows() {
-	const RecoveryScan scan = makeScan();
-	RecoveryPrompt dialog(scan);
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	bool ok = check(parts.rows.size() == 8 && parts.selectors.size() == 8, "one row for each candidate");
-	if (!ok)
-		return false;
-	ok &= check(parts.recover && parts.discard && parts.later && parts.confirmation, "buttons and confirmation are found by object name");
-	ok &= check(parts.recover->text() == QStringLiteral("Recover") && parts.discard->text() == QStringLiteral("Discard")
-			&& parts.later->text() == QStringLiteral("Decide Later"),
-		"button labels");
-
-	const QString when = QLocale().toString(writtenTime().toLocalTime(), QLocale::ShortFormat);
-	ok &= check(when.contains(QStringLiteral("2026")) && when.contains(QStringLiteral("09:05")), "the time shows the date and the local time");
-	const char* const names[] = {"New case study", "Line 7", "Old depot", "Newer file", "Same file", "Unknown file", "Future copy", "Old format"};
-	const char* const sources[] = {"Not saved yet", "/home/test/cases/Line 7.egscene", "/home/test/cases/old_depot",
-		"/home/test/cases/Newer.egscene", "/home/test/cases/Same.egscene", "/home/test/cases/Unknown.egscene",
-		"/home/test/cases/Future.egscene", "/home/test/cases/Format.egscene"};
-	const char* const notes[] = {"", "The original changed after this copy was made.", "The original is missing.",
-		"The original is newer than this copy, so the copy is probably obsolete.", "",
-		"The original could not be compared with this copy.",
-		"This copy was made by a newer version of EGTRAIN and cannot be opened by this version.",
-		"This version of EGTRAIN cannot open this copy."};
-	for (int row = 0; row < 8; ++row) {
-		const QFrame* frame = parts.rows.at(row);
-		ok &= check(parts.selectors.at(row)->text() == QString::fromLatin1(names[row]), "display name");
-		ok &= check(textOf(frame, "recoveryTime") == QStringLiteral("Autosaved ") + when, "autosaved time");
-		ok &= check(textOf(frame, "recoverySource") == QDir::toNativeSeparators(QString::fromLatin1(sources[row])), "source");
-		const QString note = QString::fromLatin1(notes[row]);
-		ok &= check(textOf(frame, "recoveryNote") == note, "source status note");
-		ok &= check(shownText(frame, "recoveryNote") == !note.isEmpty(), "a note shows only when there is one");
-	}
-
-	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(context && context->text() == QStringLiteral("EGTRAIN closed before these cases were saved. Recovering opens an unsaved copy. The originals stay unchanged until you save."),
-		"context names several cases");
-	ok &= check(!dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved")), "no line about removed copies when none were removed");
-	ok &= check(dialog.windowTitle() == QStringLiteral("Recover Unsaved Work"), "window title");
-	return ok;
-}
-
-bool exerciseSelectionAndDefault() {
-	// Recover is the default unless the original may hold newer work or the copy cannot be opened.
-	const bool recoverDefault[] = {true, false, true, false, true, false, false, false};
-	const bool recoverEnabled[] = {true, true, true, true, true, true, false, false};
-	const RecoveryScan scan = makeScan();
-	RecoveryPrompt dialog(scan);
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	bool ok = check(dialog.selectedIndex() == 0 && parts.selectors.at(0)->isChecked(), "the first row is selected");
-	for (int row = 0; row < 8; ++row) {
-		parts.selectors.at(row)->setChecked(true);
-		ok &= check(dialog.selectedIndex() == row, "selecting a row selects it");
-		int checked = 0;
-		for (const QRadioButton* selector : parts.selectors)
-			checked += selector->isChecked() ? 1 : 0;
-		ok &= check(checked == 1, "one row is selected at a time");
-		ok &= check(parts.recover->isDefault() == recoverDefault[row] && parts.later->isDefault() == !recoverDefault[row] && !parts.discard->isDefault(),
-			"default button of the row");
-		ok &= check(parts.recover->isEnabled() == recoverEnabled[row], "Recover is enabled only for a copy that can be opened");
-		ok &= check(parts.discard->isEnabled() && parts.later->isEnabled(), "Discard and Decide Later stay enabled");
-	}
-
-	// A copy that cannot be opened is skipped when the first row is chosen.
-	RecoveryScan unusableFirst;
-	unusableFirst.candidates.append(makeCandidate(QStringLiteral("Future copy"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/a.egscene"),
-		RecoverySourceStatus::Unchanged, RecoveryCandidateState::NewerRecordVersion));
-	unusableFirst.candidates.append(
-		makeCandidate(QStringLiteral("Line 7"), RecoverySourceKind::Untitled, QString(), RecoverySourceStatus::NotApplicable));
-	RecoveryPrompt skipping(unusableFirst);
-	ok &= check(skipping.selectedIndex() == 1, "the first copy that can be opened is selected");
-	RecoveryScan onlyUnusable;
-	onlyUnusable.candidates.append(unusableFirst.candidates.first());
-	RecoveryPrompt unusable(onlyUnusable);
-	const Parts unusableParts = partsOf(unusable);
-	ok &= check(unusable.selectedIndex() == 0 && !unusableParts.recover->isEnabled() && unusableParts.later->isDefault()
-			&& unusableParts.discard->isEnabled(),
-		"a copy that cannot be opened can only be discarded or left");
-	return ok;
-}
-
-bool exerciseOutcomes() {
-	const RecoveryScan scan = makeScan();
-	bool ok = true;
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		parts.selectors.at(4)->setChecked(true);
-		parts.recover->click();
-		ok &= check(dialog.result() == RecoveryPrompt::Recover && dialog.selectedIndex() == 4 && !dialog.isVisible(),
-			"Recover finishes with the selected row");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		parts.selectors.at(2)->setChecked(true);
-		parts.later->click();
-		ok &= check(dialog.result() == RecoveryPrompt::Later && !dialog.isVisible(), "Decide Later finishes");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		pressKey(dialog, Qt::Key_Escape);
-		ok &= check(dialog.result() == RecoveryPrompt::Later && !dialog.isVisible(), "Escape decides later");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		dialog.close();
-		ok &= check(dialog.result() == RecoveryPrompt::Later && !dialog.isVisible(), "closing the window decides later");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		parts.selectors.at(4)->setChecked(true);
-		pressKey(dialog, Qt::Key_Return);
-		ok &= check(dialog.result() == RecoveryPrompt::Recover && dialog.selectedIndex() == 4, "Enter recovers an unchanged copy");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		parts.selectors.at(1)->setChecked(true);
-		pressKey(dialog, Qt::Key_Return);
-		ok &= check(dialog.result() == RecoveryPrompt::Later && !dialog.isVisible(), "Enter does not recover a copy whose original changed");
-	}
-	{
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		parts.selectors.at(6)->setChecked(true);
-		parts.recover->click();
-		ok &= check(dialog.isVisible() && dialog.result() != RecoveryPrompt::Recover, "a copy that cannot be opened is not recovered");
-	}
-	return ok;
-}
-
-bool exerciseDiscard() {
-	const RecoveryScan scan = makeScan();
-	RecoveryPrompt dialog(scan);
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	bool ok = check(parts.confirmation && !parts.confirmation->isVisible(), "no confirmation before Discard is clicked");
-
-	parts.selectors.at(2)->setChecked(true);
-	parts.discard->click();
-	ok &= check(dialog.isVisible() && dialog.result() != RecoveryPrompt::Discard, "the first click on Discard does not finish");
-	ok &= check(parts.confirmation->isVisible()
-			&& parts.confirmation->text() == QStringLiteral("Delete the recovery copy of \"Old depot\"? It cannot be brought back."),
-		"the confirmation names the case");
-	ok &= check(parts.discard->text() == QStringLiteral("Confirm Discard"), "the button asks to confirm");
-
-	parts.selectors.at(3)->setChecked(true);
-	ok &= check(!parts.confirmation->isVisible() && parts.discard->text() == QStringLiteral("Discard"), "choosing another row cancels the confirmation");
-	parts.discard->click();
-	ok &= check(dialog.isVisible() && parts.confirmation->text().contains(QStringLiteral("\"Newer file\"")), "the confirmation names the new case");
-	parts.discard->click();
-	ok &= check(dialog.result() == RecoveryPrompt::Discard && dialog.selectedIndex() == 3 && !dialog.isVisible(),
-		"the second click discards the selected row");
-
-	RecoveryPrompt later(scan);
-	later.show();
-	QApplication::processEvents();
-	const Parts laterParts = partsOf(later);
-	laterParts.discard->click();
-	ok &= check(later.isVisible(), "the dialog stays open after the first click");
-	pressKey(later, Qt::Key_Escape);
-	ok &= check(later.result() == RecoveryPrompt::Later, "leaving after the first click discards nothing");
-	return ok;
-}
-
-bool exerciseText() {
-	bool ok = true;
-	RecoveryScan single;
-	single.candidates.append(makeCandidate(QStringLiteral("A & B"), RecoverySourceKind::Untitled, QString(), RecoverySourceStatus::NotApplicable));
-	single.candidates.append(makeCandidate(QString(), RecoverySourceKind::Bundle, QString(), RecoverySourceStatus::NotApplicable));
-	single.candidates[1].writtenAt = QDateTime();
-	single.removedOverCap = 3;
-	RecoveryPrompt dialog(single);
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	ok &= check(parts.selectors.at(0)->text() == QStringLiteral("A && B") && parts.selectors.at(0)->accessibleName() == QStringLiteral("A & B"),
-		"an ampersand in a name is not a shortcut");
-	ok &= check(parts.selectors.at(1)->text() == QStringLiteral("Untitled case"), "a case without a name is called untitled");
-	ok &= check(textOf(parts.rows.at(1), "recoveryTime") == QStringLiteral("Autosave time unknown"), "an unknown time is said so");
-	ok &= check(textOf(parts.rows.at(1), "recoverySource") == QStringLiteral("Not saved yet"), "a source without a path is a new case");
-	auto* removed = dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
-	ok &= check(removed && removed->isVisible()
-			&& removed->text() == QStringLiteral("Removed 3 older copies. EGTRAIN keeps the newest 20."),
-		"the dialog says that older copies were removed");
-
-	RecoveryScan oneRemoved;
-	oneRemoved.candidates.append(single.candidates.first());
-	oneRemoved.removedOverCap = 1;
-	RecoveryPrompt singleDialog(oneRemoved);
-	auto* oneLine = singleDialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
-	ok &= check(oneLine && oneLine->text() == QStringLiteral("Removed 1 older copy. EGTRAIN keeps the newest 20."),
-		"one removed copy");
-	auto* context = singleDialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-	ok &= check(context && context->text() == QStringLiteral("EGTRAIN closed before this case was saved. The original stays unchanged until you save."),
-		"context names one case");
-
-	RecoveryPrompt empty{RecoveryScan()};
-	const Parts none = partsOf(empty);
-	empty.show();
-	QApplication::processEvents();
-	none.discard->click();
-	ok &= check(empty.selectedIndex() == -1 && none.rows.isEmpty() && !none.recover->isEnabled() && !none.discard->isEnabled() && none.later->isDefault()
-			&& empty.isVisible(),
-		"without rows only Decide Later is available");
-	return ok;
-}
-
-bool exerciseGeometry(const QRect& screen, qreal scale) {
-	const QString longName(2500, QLatin1Char('X'));
-	const QString longPath = QStringLiteral("/home/test/") + QString(2500, QLatin1Char('d')) + QStringLiteral("/Line.egscene");
-	RecoveryScan scan;
-	for (int i = 0; i < 12; ++i) {
-		RecoveryCandidate candidate = makeCandidate(longName, RecoverySourceKind::Bundle, longPath, RecoverySourceStatus::NewerThanCopy);
-		candidate.instanceId = QString::number(i);
-		scan.candidates.append(candidate);
-	}
-	scan.removedOverCap = 2;
-	const QFont applicationFont = QApplication::font();
-	QFont font = applicationFont;
-	font.setPointSizeF(12 * scale);
-	QApplication::setFont(font);
-	RecoveryPrompt dialog(scan, nullptr, screen);
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
-	auto* footer = dialog.findChild<QDialogButtonBox*>();
-	bool ok = check(dialog.width() <= screen.width() * 9 / 10 && dialog.height() <= screen.height() * 4 / 5, "the dialog stays inside the available area");
-	ok &= check(scroll && footer && scroll->verticalScrollBar()->maximum() > 0, "many rows scroll");
-	ok &= check(scroll && scroll->horizontalScrollBar()->maximum() == 0, "a long name or path never scrolls sideways");
-	ok &= check(footer && footer->isVisible() && footer->geometry().bottom() <= dialog.height()
-			&& scroll->geometry().bottom() <= footer->geometry().top(),
-		"the buttons stay reachable below the list");
-	const QString shown = parts.selectors.at(0)->text();
-	ok &= check(shown.size() < longName.size() && shown.contains(QChar(0x2026)) && parts.selectors.at(0)->accessibleName() == longName,
-		"a long name is cut and kept whole for the accessible name");
-	ok &= check(parts.selectors.at(0)->width() <= scroll->viewport()->width(), "the name fits the list");
-
-	parts.discard->click();
-	QApplication::processEvents();
-	ok &= check(parts.confirmation->isVisible() && dialog.rect().contains(parts.confirmation->geometry())
-			&& parts.confirmation->geometry().bottom() <= footer->geometry().top(),
-		"the confirmation stays inside the dialog above the buttons");
-	QApplication::setFont(applicationFont);
-	return ok;
-}
-
-// The dialog opens at the height its content needs, so the confirmation that Discard shows has to make the dialog taller
-// instead of taking height from the list.
-bool exerciseConfirmationHeight() {
-	RecoveryScan scan;
-	scan.candidates.append(makeCandidate(QStringLiteral("Line 7"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Line 7.egscene"),
-		RecoverySourceStatus::Changed));
-	RecoveryPrompt dialog(scan, nullptr, QRect(0, 0, 1920, 1080));
-	dialog.show();
-	QApplication::processEvents();
-	const Parts parts = partsOf(dialog);
-	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
-	const int before = dialog.height();
-	bool ok = check(scroll && scroll->verticalScrollBar()->maximum() == 0, "one recovery copy opens without a scroll bar");
-	parts.discard->click();
-	QApplication::processEvents();
-	QApplication::processEvents();
-	ok &= check(parts.confirmation->isVisible() && dialog.height() > before, "the confirmation makes the dialog taller");
-	ok &= check(scroll && scroll->verticalScrollBar()->maximum() == 0, "the confirmation does not make the list scroll");
-	return ok;
-}
-
 // The order of the footer and the focus policy of its buttons on macOS, where Discard comes first.
 class MacFooterStyle : public QProxyStyle {
 public:
@@ -402,50 +117,486 @@ public:
 	}
 };
 
+} // namespace
+
+class TestRecoveryPrompt : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void showsOneRowPerCandidate();
+	void showsRow_data();
+	void showsRow();
+	void selectsOneRowAndItsDefault();
+	void selectsFirstOpenableCopy();
+	void recoverFinishesWithSelectedRow();
+	void decideLaterFinishes();
+	void escapeDecidesLater();
+	void closingDecidesLater();
+	void enterRecoversUnchangedCopy();
+	void enterKeepsCopyOfChangedOriginal();
+	void unusableCopyIsNotRecovered();
+	void discardAsksForConfirmation();
+	void leavingAfterFirstDiscardKeepsCopy();
+	void namesRowsPlainly();
+	void saysOneCopyWasRemoved();
+	void offersOnlyLaterWithoutRows();
+	void staysInsideScreen_data();
+	void staysInsideScreen();
+	void confirmationMakesDialogTaller();
+	void macFooterKeepsRowDefault_data();
+	void macFooterKeepsRowDefault();
+};
+
+void TestRecoveryPrompt::initTestCase() {
+	QLocale::setDefault(QLocale::c());
+}
+
+void TestRecoveryPrompt::showsOneRowPerCandidate() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	// One row for each candidate.
+	QCOMPARE(parts.rows.size(), 8);
+	QCOMPARE(parts.selectors.size(), 8);
+	if (parts.recover == nullptr || parts.discard == nullptr || parts.later == nullptr || parts.confirmation == nullptr)
+		QFAIL("buttons and confirmation are found by object name");
+	// Button labels.
+	QCOMPARE(parts.recover->text(), QStringLiteral("Recover"));
+	QCOMPARE(parts.discard->text(), QStringLiteral("Discard"));
+	QCOMPARE(parts.later->text(), QStringLiteral("Decide Later"));
+
+	const QString when = QLocale().toString(writtenTime().toLocalTime(), QLocale::ShortFormat);
+	// The time shows the date and the local time.
+	QVERIFY(when.contains(QStringLiteral("2026")));
+	QVERIFY(when.contains(QStringLiteral("09:05")));
+
+	auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
+	// Context names several cases.
+	if (context == nullptr)
+		QFAIL("the dialog has no context line");
+	QCOMPARE(context->text(),
+		QStringLiteral("EGTRAIN closed before these cases were saved. Recovering opens an unsaved copy. The originals stay unchanged until you save."));
+	QVERIFY2(!dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved")), "no line about removed copies when none were removed");
+	// Window title.
+	QCOMPARE(dialog.windowTitle(), QStringLiteral("Recover Unsaved Work"));
+}
+
+void TestRecoveryPrompt::showsRow_data() {
+	QTest::addColumn<int>("row");
+	QTest::addColumn<QString>("source");
+	QTest::addColumn<QString>("note");
+	QTest::newRow("New case study") << 0 << "Not saved yet" << "";
+	QTest::newRow("Line 7") << 1 << "/home/test/cases/Line 7.egscene" << "The original changed after this copy was made.";
+	QTest::newRow("Old depot") << 2 << "/home/test/cases/old_depot" << "The original is missing.";
+	QTest::newRow("Newer file") << 3 << "/home/test/cases/Newer.egscene"
+								<< "The original is newer than this copy, so the copy is probably obsolete.";
+	QTest::newRow("Same file") << 4 << "/home/test/cases/Same.egscene" << "";
+	QTest::newRow("Unknown file") << 5 << "/home/test/cases/Unknown.egscene" << "The original could not be compared with this copy.";
+	QTest::newRow("Future copy") << 6 << "/home/test/cases/Future.egscene"
+								 << "This copy was made by a newer version of EGTRAIN and cannot be opened by this version.";
+	QTest::newRow("Old format") << 7 << "/home/test/cases/Format.egscene" << "This version of EGTRAIN cannot open this copy.";
+}
+
+// The row name is the display name of the case.
+void TestRecoveryPrompt::showsRow() {
+	QFETCH(int, row);
+	QFETCH(QString, source);
+	QFETCH(QString, note);
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	if (parts.rows.size() != 8 || parts.selectors.size() != 8)
+		QFAIL("one row for each candidate");
+	const QString when = QLocale().toString(writtenTime().toLocalTime(), QLocale::ShortFormat);
+	const QFrame* frame = parts.rows.at(row);
+	// Display name.
+	QCOMPARE(parts.selectors.at(row)->text(), QString::fromLatin1(QTest::currentDataTag()));
+	// Autosaved time.
+	QCOMPARE(textOf(frame, "recoveryTime"), QStringLiteral("Autosaved ") + when);
+	// Source.
+	QCOMPARE(textOf(frame, "recoverySource"), QDir::toNativeSeparators(source));
+	// Source status note.
+	QCOMPARE(textOf(frame, "recoveryNote"), note);
+	// A note shows only when there is one.
+	QCOMPARE(shownText(frame, "recoveryNote"), !note.isEmpty());
+}
+
+// Recover is the default unless the original may hold newer work or the copy cannot be opened. Each row is selected
+// after the one before it.
+void TestRecoveryPrompt::selectsOneRowAndItsDefault() {
+	const bool recoverDefault[] = {true, false, true, false, true, false, false, false};
+	const bool recoverEnabled[] = {true, true, true, true, true, true, false, false};
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	// The first row is selected.
+	QCOMPARE(dialog.selectedIndex(), 0);
+	QVERIFY(parts.selectors.at(0)->isChecked());
+	for (int row = 0; row < 8; ++row) {
+		parts.selectors.at(row)->setChecked(true);
+		// Selecting a row selects it.
+		QCOMPARE(dialog.selectedIndex(), row);
+		int checked = 0;
+		for (const QRadioButton* selector : parts.selectors)
+			checked += selector->isChecked() ? 1 : 0;
+		// One row is selected at a time.
+		QCOMPARE(checked, 1);
+		// Default button of the row.
+		QCOMPARE(parts.recover->isDefault(), recoverDefault[row]);
+		QCOMPARE(parts.later->isDefault(), !recoverDefault[row]);
+		QVERIFY(!parts.discard->isDefault());
+		// Recover is enabled only for a copy that can be opened.
+		QCOMPARE(parts.recover->isEnabled(), recoverEnabled[row]);
+		// Discard and Decide Later stay enabled.
+		QVERIFY(parts.discard->isEnabled());
+		QVERIFY(parts.later->isEnabled());
+	}
+}
+
+// A copy that cannot be opened is skipped when the first row is chosen.
+void TestRecoveryPrompt::selectsFirstOpenableCopy() {
+	RecoveryScan unusableFirst;
+	unusableFirst.candidates.append(makeCandidate(QStringLiteral("Future copy"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/a.egscene"),
+		RecoverySourceStatus::Unchanged, RecoveryCandidateState::NewerRecordVersion));
+	unusableFirst.candidates.append(
+		makeCandidate(QStringLiteral("Line 7"), RecoverySourceKind::Untitled, QString(), RecoverySourceStatus::NotApplicable));
+	RecoveryPrompt skipping(unusableFirst);
+	// The first copy that can be opened is selected.
+	QCOMPARE(skipping.selectedIndex(), 1);
+	RecoveryScan onlyUnusable;
+	onlyUnusable.candidates.append(unusableFirst.candidates.first());
+	RecoveryPrompt unusable(onlyUnusable);
+	const Parts unusableParts = partsOf(unusable);
+	// A copy that cannot be opened can only be discarded or left.
+	QCOMPARE(unusable.selectedIndex(), 0);
+	QVERIFY(!unusableParts.recover->isEnabled());
+	QVERIFY(unusableParts.later->isDefault());
+	QVERIFY(unusableParts.discard->isEnabled());
+}
+
+void TestRecoveryPrompt::recoverFinishesWithSelectedRow() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	parts.selectors.at(4)->setChecked(true);
+	parts.recover->click();
+	// Recover finishes with the selected row.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Recover));
+	QCOMPARE(dialog.selectedIndex(), 4);
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::decideLaterFinishes() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	parts.selectors.at(2)->setChecked(true);
+	parts.later->click();
+	// Decide Later finishes.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Later));
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::escapeDecidesLater() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	pressKey(dialog, Qt::Key_Escape);
+	// Escape decides later.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Later));
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::closingDecidesLater() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	dialog.close();
+	// Closing the window decides later.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Later));
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::enterRecoversUnchangedCopy() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	parts.selectors.at(4)->setChecked(true);
+	pressKey(dialog, Qt::Key_Return);
+	// Enter recovers an unchanged copy.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Recover));
+	QCOMPARE(dialog.selectedIndex(), 4);
+}
+
+void TestRecoveryPrompt::enterKeepsCopyOfChangedOriginal() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	parts.selectors.at(1)->setChecked(true);
+	pressKey(dialog, Qt::Key_Return);
+	// Enter does not recover a copy whose original changed.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Later));
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::unusableCopyIsNotRecovered() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	parts.selectors.at(6)->setChecked(true);
+	parts.recover->click();
+	// A copy that cannot be opened is not recovered.
+	QVERIFY(dialog.isVisible());
+	QVERIFY(dialog.result() != RecoveryPrompt::Recover);
+}
+
+void TestRecoveryPrompt::discardAsksForConfirmation() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	// No confirmation before Discard is clicked.
+	if (parts.confirmation == nullptr)
+		QFAIL("the dialog has no confirmation");
+	QVERIFY(!parts.confirmation->isVisible());
+
+	parts.selectors.at(2)->setChecked(true);
+	parts.discard->click();
+	// The first click on Discard does not finish.
+	QVERIFY(dialog.isVisible());
+	QVERIFY(dialog.result() != RecoveryPrompt::Discard);
+	// The confirmation names the case.
+	QVERIFY(parts.confirmation->isVisible());
+	QCOMPARE(parts.confirmation->text(), QStringLiteral("Delete the recovery copy of \"Old depot\"? It cannot be brought back."));
+	// The button asks to confirm.
+	QCOMPARE(parts.discard->text(), QStringLiteral("Confirm Discard"));
+
+	parts.selectors.at(3)->setChecked(true);
+	// Choosing another row cancels the confirmation.
+	QVERIFY(!parts.confirmation->isVisible());
+	QCOMPARE(parts.discard->text(), QStringLiteral("Discard"));
+	parts.discard->click();
+	// The confirmation names the new case.
+	QVERIFY(dialog.isVisible());
+	QVERIFY(parts.confirmation->text().contains(QStringLiteral("\"Newer file\"")));
+	parts.discard->click();
+	// The second click discards the selected row.
+	QCOMPARE(dialog.result(), int(RecoveryPrompt::Discard));
+	QCOMPARE(dialog.selectedIndex(), 3);
+	QVERIFY(!dialog.isVisible());
+}
+
+void TestRecoveryPrompt::leavingAfterFirstDiscardKeepsCopy() {
+	const RecoveryScan scan = makeScan();
+	RecoveryPrompt later(scan);
+	later.show();
+	QApplication::processEvents();
+	const Parts laterParts = partsOf(later);
+	laterParts.discard->click();
+	QVERIFY2(later.isVisible(), "the dialog stays open after the first click");
+	pressKey(later, Qt::Key_Escape);
+	// Leaving after the first click discards nothing.
+	QCOMPARE(later.result(), int(RecoveryPrompt::Later));
+}
+
+void TestRecoveryPrompt::namesRowsPlainly() {
+	const RecoveryScan single = makeTextScan();
+	RecoveryPrompt dialog(single);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	// An ampersand in a name is not a shortcut.
+	QCOMPARE(parts.selectors.at(0)->text(), QStringLiteral("A && B"));
+	QCOMPARE(parts.selectors.at(0)->accessibleName(), QStringLiteral("A & B"));
+	// A case without a name is called untitled.
+	QCOMPARE(parts.selectors.at(1)->text(), QStringLiteral("Untitled case"));
+	// An unknown time is said so.
+	QCOMPARE(textOf(parts.rows.at(1), "recoveryTime"), QStringLiteral("Autosave time unknown"));
+	// A source without a path is a new case.
+	QCOMPARE(textOf(parts.rows.at(1), "recoverySource"), QStringLiteral("Not saved yet"));
+	auto* removed = dialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
+	// The dialog says that older copies were removed.
+	if (removed == nullptr)
+		QFAIL("the dialog has no line about removed copies");
+	QVERIFY(removed->isVisible());
+	QCOMPARE(removed->text(), QStringLiteral("Removed 3 older copies. EGTRAIN keeps the newest 20."));
+}
+
+void TestRecoveryPrompt::saysOneCopyWasRemoved() {
+	RecoveryScan oneRemoved;
+	oneRemoved.candidates.append(makeTextScan().candidates.first());
+	oneRemoved.removedOverCap = 1;
+	RecoveryPrompt singleDialog(oneRemoved);
+	auto* oneLine = singleDialog.findChild<QLabel*>(QStringLiteral("recoveryRemoved"));
+	// One removed copy.
+	if (oneLine == nullptr)
+		QFAIL("the dialog has no line about removed copies");
+	QCOMPARE(oneLine->text(), QStringLiteral("Removed 1 older copy. EGTRAIN keeps the newest 20."));
+	auto* context = singleDialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
+	// Context names one case.
+	if (context == nullptr)
+		QFAIL("the dialog has no context line");
+	QCOMPARE(context->text(), QStringLiteral("EGTRAIN closed before this case was saved. The original stays unchanged until you save."));
+}
+
+void TestRecoveryPrompt::offersOnlyLaterWithoutRows() {
+	RecoveryPrompt empty{RecoveryScan()};
+	const Parts none = partsOf(empty);
+	empty.show();
+	QApplication::processEvents();
+	none.discard->click();
+	// Without rows only Decide Later is available.
+	QCOMPARE(empty.selectedIndex(), -1);
+	QVERIFY(none.rows.isEmpty());
+	QVERIFY(!none.recover->isEnabled());
+	QVERIFY(!none.discard->isEnabled());
+	QVERIFY(none.later->isDefault());
+	QVERIFY(empty.isVisible());
+}
+
+void TestRecoveryPrompt::staysInsideScreen_data() {
+	QTest::addColumn<QRect>("screen");
+	QTest::addColumn<qreal>("scale");
+	QTest::newRow("1280x800") << QRect(0, 0, 1280, 800) << qreal(1.0);
+	QTest::newRow("800x600 at 1.5") << QRect(0, 0, 800, 600) << qreal(1.5);
+}
+
+void TestRecoveryPrompt::staysInsideScreen() {
+	QFETCH(QRect, screen);
+	QFETCH(qreal, scale);
+	const QString longName(2500, QLatin1Char('X'));
+	const QString longPath = QStringLiteral("/home/test/") + QString(2500, QLatin1Char('d')) + QStringLiteral("/Line.egscene");
+	RecoveryScan scan;
+	for (int i = 0; i < 12; ++i) {
+		RecoveryCandidate candidate = makeCandidate(longName, RecoverySourceKind::Bundle, longPath, RecoverySourceStatus::NewerThanCopy);
+		candidate.instanceId = QString::number(i);
+		scan.candidates.append(candidate);
+	}
+	scan.removedOverCap = 2;
+	const QFont applicationFont = QApplication::font();
+	const auto restoreFont = qScopeGuard([&applicationFont] { QApplication::setFont(applicationFont); });
+	QFont font = applicationFont;
+	font.setPointSizeF(12 * scale);
+	QApplication::setFont(font);
+	RecoveryPrompt dialog(scan, nullptr, screen);
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	auto* footer = dialog.findChild<QDialogButtonBox*>();
+	// The dialog stays inside the available area.
+	QCOMPARE_LE(dialog.width(), screen.width() * 9 / 10);
+	QCOMPARE_LE(dialog.height(), screen.height() * 4 / 5);
+	// Many rows scroll.
+	if (scroll == nullptr || footer == nullptr)
+		QFAIL("the dialog has no scroll area or no footer");
+	QCOMPARE_GT(scroll->verticalScrollBar()->maximum(), 0);
+	// A long name or path never scrolls sideways.
+	QCOMPARE(scroll->horizontalScrollBar()->maximum(), 0);
+	// The buttons stay reachable below the list.
+	QVERIFY(footer->isVisible());
+	QCOMPARE_LE(footer->geometry().bottom(), dialog.height());
+	QCOMPARE_LE(scroll->geometry().bottom(), footer->geometry().top());
+	const QString shown = parts.selectors.at(0)->text();
+	// A long name is cut and kept whole for the accessible name.
+	QCOMPARE_LT(shown.size(), longName.size());
+	QVERIFY(shown.contains(QChar(0x2026)));
+	QCOMPARE(parts.selectors.at(0)->accessibleName(), longName);
+	// The name fits the list.
+	QCOMPARE_LE(parts.selectors.at(0)->width(), scroll->viewport()->width());
+
+	parts.discard->click();
+	QApplication::processEvents();
+	// The confirmation stays inside the dialog above the buttons.
+	QVERIFY(parts.confirmation->isVisible());
+	QVERIFY(dialog.rect().contains(parts.confirmation->geometry()));
+	QCOMPARE_LE(parts.confirmation->geometry().bottom(), footer->geometry().top());
+}
+
+// The dialog opens at the height its content needs, so the confirmation that Discard shows has to make the dialog taller
+// instead of taking height from the list.
+void TestRecoveryPrompt::confirmationMakesDialogTaller() {
+	RecoveryScan scan;
+	scan.candidates.append(makeCandidate(QStringLiteral("Line 7"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Line 7.egscene"),
+		RecoverySourceStatus::Changed));
+	RecoveryPrompt dialog(scan, nullptr, QRect(0, 0, 1920, 1080));
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	const int before = dialog.height();
+	// One recovery copy opens without a scroll bar.
+	if (scroll == nullptr)
+		QFAIL("the dialog has no scroll area");
+	QCOMPARE(scroll->verticalScrollBar()->maximum(), 0);
+	parts.discard->click();
+	QApplication::processEvents();
+	QApplication::processEvents();
+	// The confirmation makes the dialog taller.
+	QVERIFY(parts.confirmation->isVisible());
+	QCOMPARE_GT(dialog.height(), before);
+	// The confirmation does not make the list scroll.
+	QCOMPARE(scroll->verticalScrollBar()->maximum(), 0);
+}
+
+void TestRecoveryPrompt::macFooterKeepsRowDefault_data() {
+	QTest::addColumn<bool>("unchanged");
+	QTest::newRow("unchanged") << true;
+	QTest::newRow("newer than copy") << false;
+}
+
 // With the footer of macOS the prompt opens with the default of the selected row and the focus on that row. A footer
 // button that gets the focus leaves the default where it is, so Return presses it. Runs last: it changes the
 // application style.
-bool exerciseMacFooter() {
+void TestRecoveryPrompt::macFooterKeepsRowDefault() {
+	QFETCH(bool, unchanged);
 	QApplication::setStyle(new MacFooterStyle);
-	bool ok = true;
-	for (const RecoverySourceStatus status : {RecoverySourceStatus::Unchanged, RecoverySourceStatus::NewerThanCopy}) {
-		RecoveryScan scan;
-		scan.candidates.append(makeCandidate(QStringLiteral("Same file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Same.egscene"), status));
-		scan.candidates.append(makeCandidate(QStringLiteral("Newer file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Newer.egscene"),
-			RecoverySourceStatus::NewerThanCopy));
-		RecoveryPrompt dialog(scan);
-		dialog.show();
-		dialog.activateWindow();
-		QApplication::processEvents();
-		const Parts parts = partsOf(dialog);
-		QPushButton* expected = status == RecoverySourceStatus::Unchanged ? parts.recover : parts.later;
-		ok &= check(dialog.isActiveWindow(), "the prompt is active, so that the focus is real");
-		ok &= check(dialog.focusWidget() == parts.selectors.at(0), "the selected row has the focus when the prompt opens");
-		for (const QPushButton* button : {parts.recover, parts.discard, parts.later})
-			ok &= check(button->isDefault() == (button == expected), "only the default of the row is the default button");
-		parts.discard->setFocus(Qt::TabFocusReason);
-		QApplication::processEvents();
-		ok &= check(parts.discard->hasFocus() && expected->isDefault() && !parts.discard->isDefault(), "Discard gets the focus and leaves the default");
-		pressKey(*parts.discard, Qt::Key_Return);
-		ok &= check(dialog.result() == (expected == parts.recover ? RecoveryPrompt::Recover : RecoveryPrompt::Later),
-			"Return presses the default button while Discard has the focus");
-	}
-	return ok;
+	const RecoverySourceStatus status = unchanged ? RecoverySourceStatus::Unchanged : RecoverySourceStatus::NewerThanCopy;
+	RecoveryScan scan;
+	scan.candidates.append(makeCandidate(QStringLiteral("Same file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Same.egscene"), status));
+	scan.candidates.append(makeCandidate(QStringLiteral("Newer file"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Newer.egscene"),
+		RecoverySourceStatus::NewerThanCopy));
+	RecoveryPrompt dialog(scan);
+	dialog.show();
+	dialog.activateWindow();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	QPushButton* expected = unchanged ? parts.recover : parts.later;
+	QVERIFY2(dialog.isActiveWindow(), "the prompt is active, so that the focus is real");
+	QVERIFY2(dialog.focusWidget() == parts.selectors.at(0), "the selected row has the focus when the prompt opens");
+	// Only the default of the row is the default button.
+	for (const QPushButton* button : {parts.recover, parts.discard, parts.later})
+		QCOMPARE(button->isDefault(), button == expected);
+	parts.discard->setFocus(Qt::TabFocusReason);
+	QApplication::processEvents();
+	// Discard gets the focus and leaves the default.
+	QVERIFY(parts.discard->hasFocus());
+	QVERIFY(expected->isDefault());
+	QVERIFY(!parts.discard->isDefault());
+	pressKey(*parts.discard, Qt::Key_Return);
+	// Return presses the default button while Discard has the focus.
+	QCOMPARE(dialog.result(), int(expected == parts.recover ? RecoveryPrompt::Recover : RecoveryPrompt::Later));
 }
 
-} // namespace
-
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	QLocale::setDefault(QLocale::c());
-	bool ok = exerciseRows();
-	ok &= exerciseSelectionAndDefault();
-	ok &= exerciseOutcomes();
-	ok &= exerciseDiscard();
-	ok &= exerciseText();
-	ok &= exerciseGeometry(QRect(0, 0, 1280, 800), 1.0);
-	ok &= exerciseGeometry(QRect(0, 0, 800, 600), 1.5);
-	ok &= exerciseConfirmationHeight();
-	ok &= exerciseMacFooter();
-	return ok ? 0 : 1;
-}
+QTEST_MAIN(TestRecoveryPrompt)
+#include "test_recoveryprompt.moc"
