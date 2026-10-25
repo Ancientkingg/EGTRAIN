@@ -615,6 +615,13 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		includePreviewPoint(end);
 	}
 
+	// The first arc of a track between two nodes, in either direction.
+	std::map<std::tuple<std::string_view, std::string_view, std::string_view>, const SceneArc*> arcsByNodes;
+	for (const SceneArc& arc : sceneModel.arcs) {
+		const std::string_view from = arc.fromNodeId;
+		const std::string_view to = arc.toNodeId;
+		arcsByNodes.emplace(std::make_tuple(std::string_view(arc.trackId), std::min(from, to), std::max(from, to)), &arc);
+	}
 	// A run adds the connections first and the track lines after them, so a track is drawn over a connection.
 	for (const TrackPreviewLine* drawn : drawnLines) {
 		const auto& line = *drawn;
@@ -623,22 +630,18 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		for (std::size_t point = 1; point < line.points.size(); ++point) {
 			if (doubleSwitch && (point == 1 || point + 1 == line.points.size()))
 				continue;
-			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
-				return candidate.trackId == line.id
-					&& ((candidate.fromNodeId == line.points[point - 1].nodeId
-							&& candidate.toNodeId == line.points[point].nodeId)
-						|| (candidate.toNodeId == line.points[point - 1].nodeId
-							&& candidate.fromNodeId == line.points[point].nodeId));
-			});
-			const TrackVisual visual = classifyTrackSpeed(arc == sceneModel.arcs.end() ? 0.0 : arc->speedLimitMs);
+			const std::string_view from = line.points[point - 1].nodeId;
+			const std::string_view to = line.points[point].nodeId;
+			const auto found = arcsByNodes.find(std::make_tuple(std::string_view(line.id), std::min(from, to), std::max(from, to)));
+			const SceneArc* const arc = found == arcsByNodes.end() ? nullptr : found->second;
+			const TrackVisual visual = classifyTrackSpeed(arc ? arc->speedLimitMs : 0.0);
 			QPen pen(selectedTrackIds.count(line.id) > 0 ? kSelectionCueColor : visual.color);
 			pen.setWidth(selectedTrackIds.count(line.id) > 0 ? 4 : visual.width);
 			pen.setCosmetic(true);
 			auto* item = new TrackLineItem(QLineF(line.points[point - 1].x, line.points[point - 1].y + offset,
 				line.points[point].x, line.points[point].y + offset));
 			item->setPen(pen);
-			tagPreviewItem(item, arc == sceneModel.arcs.end() ? "track" : "arc",
-				arc == sceneModel.arcs.end() ? line.id : arc->id);
+			tagPreviewItem(item, arc ? "arc" : "track", arc ? arc->id : line.id);
 			scene->addItem(item);
 		}
 	}
@@ -834,6 +837,9 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 
 	// Preview signals are derived from canonical block boundaries.  They stay
 	// in the existing decoration list so the layer toggle and teardown own them.
+	std::map<std::string, QStringList> signalIdsBySection;
+	for (const SceneSignal& source : sceneSignals(sceneModel))
+		signalIdsBySection[source.protectedSection].append(QString::fromStdString(source.id));
 	for (const auto& signal : preview.previewSignals) {
 		const auto track = tracks.find(signal.trackId);
 		if (track == tracks.end())
@@ -850,10 +856,8 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		if (!previewSignalNormal(*track->second.first, signal.rawX, normal))
 			continue;
 
-		QStringList canonicalIds;
-		for (const SceneSignal& source : sceneSignals(sceneModel))
-			if (source.protectedSection == signal.sectionId)
-				canonicalIds.append(QString::fromStdString(source.id));
+		const auto signalIds = signalIdsBySection.find(signal.sectionId);
+		const QStringList canonicalIds = signalIds == signalIdsBySection.end() ? QStringList() : signalIds->second;
 		QPointF before, after;
 		if (!previewPointAtX(*track->second.first, signal.rawX - 0.008,
 				track->second.second, before)
@@ -1797,12 +1801,8 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 	}
 
 	// create X-ordered array of stations per region
-	for (int i = 0; i < static_cast<int>(m_regionStations.size()); i++) {
-		for (int j = 0; j < static_cast<int>(m_regionStations[i].size()); j++) {
-			std::sort(m_regionStations[i].begin(), m_regionStations[i].end(),
-				[&stationAt](const int& a, const int& b) -> bool { return stationAt(a).X < stationAt(b).X; });
-		}
-	}
+	for (auto& region : m_regionStations)
+		std::sort(region.begin(), region.end(), [&stationAt](int a, int b) { return stationAt(a).X < stationAt(b).X; });
 
 	// calculate shifts and signal deltas per region
 	for (int r = 0; r < static_cast<int>(m_regionStations.size()); r++) {
@@ -3242,6 +3242,13 @@ void NetworkPresenter::buildTrackIndexes() {
 			|| (left.startNode.X == right.startNode.X && left.endNode.X == right.endNode.X
 				&& left.length == right.length);
 	};
+	// The same arcs have the same X at both ends, so a section arc is compared only with the arcs with its ends, in the
+	// order of allArcs. An end at NaN is equal to none.
+	const auto hasEnds = [](const Arc& arc) { return !std::isnan(arc.startNode.X) && !std::isnan(arc.endNode.X); };
+	std::map<std::pair<double, double>, std::vector<TrackLineItem*>> arcsByEnds;
+	for (auto* item : allArcs)
+		if (item && item->arc && hasEnds(*item->arc))
+			arcsByEnds[{item->arc->startNode.X, item->arc->endNode.X}].push_back(item);
 	for (int sectionIndex = 0; sectionIndex < m_source->sectionCount(); ++sectionIndex) {
 		const Section& section = m_source->section(sectionIndex);
 		if (section.ID.empty())
@@ -3254,8 +3261,12 @@ void NetworkPresenter::buildTrackIndexes() {
 		auto& tracks = m_tracksBySectionId[section.ID];
 		for (int arcIndex = 0; arcIndex < arcCount; ++arcIndex) {
 			const Arc& sectionArc = section.arcs_in_signalling_block_section[arcIndex];
-			for (auto* item : allArcs) {
-				if (!item || !item->arc || !sameArc(*item->arc, sectionArc))
+			const auto candidates = hasEnds(sectionArc) ? arcsByEnds.find({sectionArc.startNode.X, sectionArc.endNode.X})
+														: arcsByEnds.end();
+			if (candidates == arcsByEnds.end())
+				continue;
+			for (auto* item : candidates->second) {
+				if (!sameArc(*item->arc, sectionArc))
 					continue;
 				const bool trackMatches = section.trackLineId < 0
 					|| item->track == section.trackLineId
