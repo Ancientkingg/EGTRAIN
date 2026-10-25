@@ -120,7 +120,7 @@ public:
 
 	/// Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets
 	/// InfraElementInPositionForTrain and the data of the previous train.
-	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(std::string TrainName, std::list<InfraEvent> ListAllInfraEvents);
+	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const std::string& TrainName, const std::list<InfraEvent>& ListAllInfraEvents);
 };
 
 /// Blocking times of one train, indexed like an array. Indexing a non-const list

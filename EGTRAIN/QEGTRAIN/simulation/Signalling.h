@@ -250,7 +250,7 @@ public:
 	void CutBlockSection(std::string CutPart, double CuttingAbscissa);
 
 	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
-	void reverseBlockSection(Section blockSets, double RouteLength);
+	void reverseBlockSection(const Section& blockSets, double RouteLength);
 
 
 	/// Names a function that does not exist.
@@ -259,12 +259,12 @@ public:
 
 /// When N1 lies before N2, makes BS3 the section over a switch: BS1 up to node N1, a switch arc from N1 to N2 with the speed limit of
 /// the matching connection, and BS2 after N2. Its ID is "<BS1>-<N1>/<BS2>-<N2>" with the node coordinates in km.
-void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
+void generateConnectBlock(SimulationRun& run, const Section& BS1, const Section& BS2, const Node& N1, Node N2, Section& BS3);
 
 /// Appends to run.infra.sections the section over connection n_conn of node Nb of BS1 (generateConnectBlock), when the connection
 /// leads to a higher coordinate and none of the first Temp_Blocks sections has that ID in either direction. When the planned array is
 /// full it sets run.infra.derivedSectionsExceedPlan instead.
-void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn);
+void createBlockConn(SimulationRun& run, const Node& Nb, const Section& BS1, int Temp_Blocks, int n_conn);
 
 /// Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn).
 void setAllConnections(SimulationRun& run);
@@ -277,7 +277,7 @@ void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnec
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
 /// True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.
-bool areBlocksConnected(Section A, Section blockSets);
+bool areBlocksConnected(const Section& A, const Section& blockSets);
 
 /// Gives the switch and station nodes of the N_BlockSections sections of BS a track detection border ID (tdsbId) and geographic
 /// coordinates in metres (tdsbGeoCoordX and tdsbGeoCoordY, the node X and Y times 1000).
@@ -318,7 +318,7 @@ public:
 	/// Appends the infrastructure elements of section BS to InfrastructureElements: its TDS borders, stations and switches, with their
 	/// route position in metres and the ID of BS. An element with the ID or position of one already listed is left out; a
 	/// diverging switch edge only when its ID, switch name and connected point all match.
-	void setListInfrastructureElementsForRoute(Section BS);
+	void setListInfrastructureElementsForRoute(const Section& BS);
 
 	/// Marks with isEndOfDivSwitchStartOfADivSwitch each diverging switch edge of the list that has the position and switch name of
 	/// another edge with a different connected point: the end of one diverging switch that is the start of the next.

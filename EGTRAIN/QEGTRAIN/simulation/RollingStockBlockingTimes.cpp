@@ -10,7 +10,7 @@
 
 using namespace std;
 
-void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string TrainName, list<InfraEvent> ListAllInfraEvents) {
+void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const string& TrainName, const list<InfraEvent>& ListAllInfraEvents) {
 	bool IsStatusInfraElementFound = false; // this variable becomes true only when we have found the status of the infrastructure element we are computing the blocking times for, given a train
 	string NameOfInfraElement;
 	string NeededInfraElementPosition;
@@ -53,14 +53,14 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 
 	// Now Determining the last status of the infrastructure element as resulting from the simulation
 	if (ListAllInfraEvents.size() > 0) {
-		for (list<InfraEvent>::iterator i = ListAllInfraEvents.begin(); i != ListAllInfraEvents.end(); i++) {
+		for (list<InfraEvent>::const_iterator i = ListAllInfraEvents.begin(); i != ListAllInfraEvents.end(); i++) {
 			if (i->ElementInfo.ID == NameOfInfraElement) {
 
 				ElementFound = true;
 
 				if (i->RecordedEvent.size() > 0) {
 
-					for (list<TrainEvent>::iterator t = i->RecordedEvent.begin(); t != i->RecordedEvent.end(); t++) {
+					for (list<TrainEvent>::const_iterator t = i->RecordedEvent.begin(); t != i->RecordedEvent.end(); t++) {
 
 						if (t->trainDescription == TrainName) {
 							if (t == i->RecordedEvent.begin()) { // In case TrainName is the first train of the recorded list
@@ -76,7 +76,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 									LastInfraElementPosition = "None";
 								}
 							} else { // if TrainName is not the first train to cross the infrastructure element
-								list<TrainEvent>::iterator u = t;
+								list<TrainEvent>::const_iterator u = t;
 								u--;											 // iterator u points at the element before t in the list of recorded event of the infrastructure element
 								this->SpeedPreviousTrain = u->TrainSpeed;		 // taking the speed of the previous train crossing the infrastructure element i
 								this->NamePreviousTrain = u->trainDescription;	 // taking the trainDescription of the previous train crossing i

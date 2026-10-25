@@ -505,7 +505,14 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 	Node ETCSBrakingPoint; // Node to collect all the information of the ETCS BrakingPoints
 
-	list<Node> BrakingPoints; // This is the list of the nodes constituting braking points
+	// The braking points: end nodes of the arcs of the route, decoupling points and the closest end of authority. The list
+	// points to them instead of copying them; stop marks a stop of this train.
+	struct BrakingPoint {
+		const Node* node;
+		bool stop;
+	};
+	std::vector<BrakingPoint> BrakingPoints;
+	std::list<Node> DecouplingBrakingPoints; // The decoupling points of BrakingPoints; a list keeps their addresses
 
 	for (int h = 0; h < Blocks; h++) {
 		if ((S < BS[h].end_node.X * 1000) && (S >= BS[h].start_node.X * 1000)) {
@@ -524,15 +531,15 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	// A stop of this train that is not behind it is a target of speed 0. Only the braking point gets the 0, because the
 	// trains of a route share its sections.
 	const auto targetStop = [&](int section, int arc) {
-		if (BrakingPoints.back().X * 1000 >= S && isStopArc(section, arc))
-			BrakingPoints.back().arcSpeedLimit = 0;
+		if (BrakingPoints.back().node->X * 1000 >= S && isStopArc(section, arc))
+			BrakingPoints.back().stop = true;
 	};
 
 	// Putting in the list of braking points the nodes of the Arc where the train currently is
 	for (int p = ArcPos; p < BS[BlockPos].total_arcs; p++) {
 		// Setting the current Arc speedInBraking to the final Node of Arc
 		BS[BlockPos].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[BlockPos].arcs_in_signalling_block_section[p].speedInBraking;
-		BrakingPoints.push_back(BS[BlockPos].arcs_in_signalling_block_section[p].endNode);
+		BrakingPoints.push_back({&BS[BlockPos].arcs_in_signalling_block_section[p].endNode, false});
 		targetStop(BlockPos, p);
 	}
 
@@ -546,7 +553,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	for (int z = 0; z < Cons_Block; z++) {
 		for (int p = 0; p < BS[z + BlockPos + 1].total_arcs; p++) {
 			BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode.arcSpeedLimit = BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].speedInBraking;
-			BrakingPoints.push_back(BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode);
+			BrakingPoints.push_back({&BS[z + BlockPos + 1].arcs_in_signalling_block_section[p].endNode, false});
 			targetStop(z + BlockPos + 1, p);
 		}
 	}
@@ -570,7 +577,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 						DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
 						DecouplingBrakingPoint.isSignalled = true;
 						DecouplingBrakingPoint.stationName = "DecoupleTrain"; // For a Decoupling Point as a convention we say that it has a station name DecoupleTrain. We did so not to increase the number of variables of the class Node
-						BrakingPoints.push_back(DecouplingBrakingPoint);
+						DecouplingBrakingPoints.push_back(DecouplingBrakingPoint);
+						BrakingPoints.push_back({&DecouplingBrakingPoints.back(), false});
 					}
 				}
 			}
@@ -685,22 +693,24 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	}
 	// if there is a Closest ETCS Braking point that has been assigned, then add it to the list of braking points
 	if (ClosestETCSBrakingPoint.X != 9999999999) {
-		BrakingPoints.push_back(ClosestETCSBrakingPoint);
+		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false});
 	}
 
 	// Resolve each collected target once, before deciding whether the incumbent is still live.
 	struct Target {
-		Node node;
+		const Node* node;
 		double position, speed;
 	};
 	std::vector<Target> targets;
 	int incumbent = -1;
-	for (const Node& node : BrakingPoints) {
+	for (const BrakingPoint& point : BrakingPoints) {
+		const Node& node = *point.node;
 		const double position = node.isSignalled ? node.X : node.X * 1000;
 		const double speed = node.isSignalled && node.stationName == "DecoupleTrain" ? 0
 			: node.isSignalled														 ? TargetSpeedForMA
+			: point.stop															 ? 0
 																					 : node.arcSpeedLimit;
-		targets.push_back({node, position, speed});
+		targets.push_back({&node, position, speed});
 		if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
 			incumbent = static_cast<int>(targets.size()) - 1;
 	}
@@ -719,7 +729,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 			continue;
 		if (successor >= 0 && index == incumbent)
 			continue;
-		const bool stopWithinStep = target.node.isSignalled && target.speed == 0 && S + V * timestep >= target.position;
+		const bool stopWithinStep = target.node->isSignalled && target.speed == 0 && S + V * timestep >= target.position;
 		// Without a cached plan only a point below MinBX is used, so the search stops at MinBX.
 		double point = BrakDist_Block(proposedSpeed, target.speed, target.position, BS, Blocks,
 			successor < 0 && !stopWithinStep ? MinBX : std::numeric_limits<double>::infinity());
@@ -756,10 +766,10 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 		const Target& target = targets[selected];
 		Xobmin = target.position;
 		Vobmin = target.speed;
-		BrakingForEoA = target.node.isSignalled;
-		IsTrainCoupling = target.node.virtualCouplingNode;
+		BrakingForEoA = target.node->isSignalled;
+		IsTrainCoupling = target.node->virtualCouplingNode;
 		if (IsTrainInFollowingMode == 1)
-			IsTrainDecoupling = target.node.stationName == "DecoupleTrain";
+			IsTrainDecoupling = target.node->stationName == "DecoupleTrain";
 	}
 	return MinBX;
 }

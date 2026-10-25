@@ -442,7 +442,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 }
 
 // Function to reverse the block section
-void Section::reverseBlockSection(Section blockSets, double RouteLength) {
+void Section::reverseBlockSection(const Section& blockSets, double RouteLength) {
 
 	code = blockSets.code;
 	exit_speed = blockSets.exit_speed;
@@ -502,7 +502,7 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 	// reversing the order of the TDS in the block section
 	int N_TDS = blockSets.TDS_in_block.size();
 	if (N_TDS > 0) {
-		list<TDS*>::iterator td = blockSets.TDS_in_block.end();
+		list<TDS*>::const_iterator td = blockSets.TDS_in_block.end();
 		td--; // pointer to the last element of the list of TDS in the block section
 		for (int p = N_TDS - 1; p >= 0; p--) {
 			this->TDS_in_block.push_back(*td);
@@ -515,7 +515,7 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 
 
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
-void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
+void generateConnectBlock(SimulationRun& run, const Section& BS1, const Section& BS2, const Node& N1, Node N2, Section& BS3) {
 	if (N1.X < N2.X) {
 		list<Node> listnode;
 		list<Arc> listarc;
@@ -695,7 +695,7 @@ void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1,
 }
 
 // Function to Create connected block sections each time that a connection Node comes out (it must be used in setAllConnections)
-void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
+void createBlockConn(SimulationRun& run, const Node& Nb, const Section& BS1, int Temp_Blocks, int n_conn) {
 	int CheckBlockPresence = 0;
 
 	if (Nb.X < Nb.connectXNode[n_conn]) {		// if the connection Node has a X higher than its X
@@ -803,7 +803,7 @@ void setDependenciesBetweenBlocksInternal(SimulationRun& run, bool includeCopenh
 }
 
 // Function to recognize if two block sections are overlapping
-bool areBlocksConnected(Section A, Section blockSets) {
+bool areBlocksConnected(const Section& A, const Section& blockSets) {
 	return sceneSectionsOverlap(A.ID, A.start_node.X, A.end_node.X,
 		blockSets.ID, blockSets.start_node.X, blockSets.end_node.X);
 }
@@ -1319,7 +1319,7 @@ Route::Route() {
 
 //  Here I need to define the function to initialise the list of InfraElements the function will be called Set_ListOFInfrastructureElements(Section signalling_block_sections)
 // It is important that in such a function any infrastructure element has also the name of the block section ID the element belongs to, this is useful then when computing train blocking times block by block
-void Route::setListInfrastructureElementsForRoute(Section BS) {
+void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 	list<InfraElement> TEMP_ElementList; // TEMP_ElementList is a temporary List where we collect all the infrastructure elements within a given block section
 	int N_TEMP_ElementList = 0;
 
