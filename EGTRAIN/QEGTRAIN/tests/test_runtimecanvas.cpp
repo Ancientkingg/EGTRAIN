@@ -613,10 +613,14 @@ int main(int argc, char* argv[]) {
 		PassengerItem* const selected = platform->passengerIcons[0];
 		presenter.paintPassengerInfoIcon(selected, passengerStateIn(&snapshot, selected->passengerId), false);
 		ok &= expect(presenter.paxIconInfoItem && presenter.paxIconInfoItem->isVisible(), "the details of a selected passenger show");
+		if (presenter.paxIconInfoItem)
+			presenter.paxIconInfoItem->setData(0, QStringLiteral("kept"));
 		presenter.setStationNearLook(false);
 		presenter.updatePaxIconInfo(&snapshot, NetworkPresenter::Playback::Live);
 		ok &= expect(presenter.paxIconInfoItem && !presenter.paxIconInfoItem->isVisible(),
 			"they hide with the icon in the far look");
+		ok &= expect(presenter.paxIconInfoItem && presenter.paxIconInfoItem->data(0) == QStringLiteral("kept"),
+			"painting the details again keeps their group");
 		presenter.setStationNearLook(true);
 		ok &= expect(presenter.paxIconInfoItem->isVisible(), "they show again with the icon");
 		presenter.removePaxInfoIcon();
@@ -730,6 +734,38 @@ int main(int argc, char* argv[]) {
 			presenter.paintTrainPassengerInfo(train);
 		ok &= expect(presenter.trainPaxItem == train && !presenter.trainPaxInfoItem,
 			"a train on a track that is not drawn shows no passengers on board when it is selected");
+		presenter.clear();
+	}
+
+	// The passengers on board of a selected train stay in one group from step to step, whose text follows them.
+	{
+		source->passengers = true;
+		presenter.showRuntime(model);
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.trains = {trainAt(7.5)};
+		snapshot.trains[0].currentOnboardPassengers = 3;
+		snapshot.trains[0].maxOnboardPassengers = 40;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		TrainItemGroup* const train = presenter.allTrains.value(0);
+		if (train)
+			presenter.paintTrainPassengerInfo(train);
+		const auto calloutText = [&presenter]() {
+			if (presenter.trainPaxInfoItem)
+				for (QGraphicsItem* child : presenter.trainPaxInfoItem->childItems())
+					if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+						return text->toPlainText();
+			return QString();
+		};
+		ok &= expect(calloutText() == QStringLiteral("3 of 40 on board"), "a selected train shows its passengers on board");
+		if (presenter.trainPaxInfoItem)
+			presenter.trainPaxInfoItem->setData(0, QStringLiteral("kept"));
+		snapshot.timestep = 11;
+		snapshot.trains[0].currentOnboardPassengers = 5;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(presenter.trainPaxInfoItem && presenter.trainPaxInfoItem->data(0) == QStringLiteral("kept")
+				&& presenter.trainPaxInfoItem->isVisible() && calloutText() == QStringLiteral("5 of 40 on board"),
+			"the next step keeps the group and gives it the new number of passengers");
 		presenter.clear();
 	}
 

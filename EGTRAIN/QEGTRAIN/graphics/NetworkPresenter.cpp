@@ -100,6 +100,83 @@ constexpr int kHiddenNodeSize = 0;
 // The number of seconds after its step for which a message of virtual coupling shows at its train.
 constexpr int kVirtualCouplingMessageSeconds = 40;
 
+// The look of a callout: a line up from the origin of its group to the bottom centre of a box with a text in it.
+struct CalloutLook {
+	qreal rise;		  // The length of the line, in track separations.
+	int fontDivisor;  // The pixel size of the font is station_size divided by this.
+	qreal boxFactor;  // The box is this much wider and taller than the text.
+	QColor textColor; // The colour of the text.
+	qreal z;		  // The stacking of the callout.
+};
+
+// The passengers on board of the selected train.
+const CalloutLook kTrainPassengersCallout{1.0, 15, 1.15, Qt::black, 5.0};
+// The details of the selected passenger.
+const CalloutLook kPassengerCallout{0.75, 15, 1.15, Qt::black, 5.0};
+// The message of a virtual coupling, over the trains (z 4) and their speed (z 4.2 and 4.3), and under the station
+// names (z 4.5): it shows by itself, and only what a click opens may cover a name.
+const CalloutLook kVirtualCouplingCallout{2.0, 6, 1.25, Qt::white, 4.4};
+
+// The orange of the line and the box of a callout.
+const QColor kCalloutColor(242, 161, 106);
+
+// Shows text in the callout group, which is made and added to scene when it is null, and returns the group. The
+// items of the group are laid out again only when the text or the scale changes.
+QGraphicsItemGroup* drawCallout(QGraphicsScene* scene, QGraphicsItemGroup* group, const CalloutLook& look,
+	const QString& text, qreal scale) {
+	const bool fresh = !group;
+	QGraphicsLineItem* line = nullptr;
+	QGraphicsRectItem* box = nullptr;
+	QGraphicsTextItem* label = nullptr;
+	if (fresh) {
+		group = new QGraphicsItemGroup;
+		line = new QGraphicsLineItem;
+		box = new QGraphicsRectItem;
+		label = new QGraphicsTextItem;
+		QPen pen(kCalloutColor);
+		pen.setWidth(NetworkPresenter::line_width);
+		pen.setCosmetic(true);
+		line->setPen(pen);
+		box->setBrush(kCalloutColor);
+		QFont font;
+		font.setPixelSize(NetworkPresenter::station_size / look.fontDivisor);
+		label->setFont(font);
+		label->setDefaultTextColor(look.textColor);
+		group->addToGroup(line);
+		group->addToGroup(box);
+		group->addToGroup(label);
+		group->setZValue(look.z);
+		scene->addItem(group);
+	} else {
+		for (QGraphicsItem* child : group->childItems()) {
+			if (auto* lineChild = qgraphicsitem_cast<QGraphicsLineItem*>(child))
+				line = lineChild;
+			else if (auto* boxChild = qgraphicsitem_cast<QGraphicsRectItem*>(child))
+				box = boxChild;
+			else if (auto* textChild = qgraphicsitem_cast<QGraphicsTextItem*>(child))
+				label = textChild;
+		}
+	}
+	if (!line || !box || !label || (!fresh && label->toPlainText() == text && label->scale() == scale))
+		return group;
+
+	const QPointF end(0.0, -look.rise * NetworkPresenter::track_separation * scale);
+	line->setLine(QLineF(QPointF(), end));
+	label->setPlainText(text);
+	label->setScale(scale);
+	const QRectF textRect = label->boundingRect();
+	box->setRect(QRectF(0, 0, look.boxFactor * (textRect.width() * scale), look.boxFactor * (textRect.height() * scale)));
+	QPen boxPen = box->pen();
+	boxPen.setWidthF(scale);
+	box->setPen(boxPen);
+	// the box stands on the end of the line, and the text is in its centre
+	const QRectF boxRect = box->boundingRect();
+	box->setPos(end.x() - boxRect.width() / 2, end.y() - boxRect.height());
+	label->setPos(box->pos()
+		+ QPointF(0.5 * (boxRect.width() - textRect.width() * scale), 0.5 * (boxRect.height() - textRect.height() * scale)));
+	return group;
+}
+
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && platformId != "None";
@@ -1335,146 +1412,31 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	// The train is selected also while it has no shape, and then shows no passengers.
 	trainPaxItem = trainItem;
 	QPointF front;
-	if (!trainItem || !trainFront(*trainItem, front))
+	if (!trainItem || !trainFront(*trainItem, front)) {
+		removeTrainPaxInfoIcon();
 		return;
-
-	// create line from train to message, drawn from the front of the train, where the group is
-	const QPointF start;
-	qreal dx = 0;
-	qreal dy = -1 * track_separation * presentationScale();
-	QPointF end = start + QPointF(dx, dy);
-
-	// paint line
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	// text box position
-	QPointF coord = end; // coord is the center of box and text in x-axis and bottom of box in y-axis
-
-	// set text size
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 15);
-
-	// string to display
-	std::stringstream ss;
-	ss << trainItem->currentOnboardPassengers << " of " << trainItem->maxOnboardPassengers << " on board";
-
-	// paint text
-	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(QString::fromStdString(ss.str())); // text without background
-	text->setDefaultTextColor(Qt::black);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	// draw box around text
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	// box 15% bigger than text rect on both directions
-	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()),
-		1.15 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
-
-	// set text position (center of text box)
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
-
-	// create group
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-	msgGroup->setPos(front);
-
-	// add group to scene
-	m_scene->addItem(msgGroup);
-
-	// set current item
-	trainPaxInfoItem = msgGroup;
+	}
+	// drawn from the front of the train, where the group is
+	trainPaxInfoItem = drawCallout(m_scene, trainPaxInfoItem, kTrainPassengersCallout,
+		QStringLiteral("%1 of %2 on board").arg(trainItem->currentOnboardPassengers).arg(trainItem->maxOnboardPassengers),
+		presentationScale());
+	trainPaxInfoItem->setPos(front);
+	trainPaxInfoItem->setVisible(true);
 }
 
 // paint passenger info on top of passenger icon
 void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive) {
-	// create line from icon to message
-	QPointF start = QPointF(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
-	qreal dx = 0;
-	qreal dy = -0.75 * track_separation * presentationScale();
-	QPointF end = start + QPointF(dx, dy);
-
-	// paint line
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-
-	// draws a line from start to end with a given line width
-	QGraphicsLineItem* line = new QGraphicsLineItem(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	// text box position
-	QPointF coord = end; // coord is the center of box and text in x-axis and bottom of box in y-axis
-
-	// set text size
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 15);
-
-	// string to display
-	std::stringstream ss;
-	ss << "Passenger " << passenger.id << "\nStatus: " << passenger.status
-	   << " (" << passenger.waitingPlatform << ")"
-	   << "\nNext train: " << passenger.nextTrain;
-
-	if (!passenger.nextDestination.empty()) {
-		ss << "\nNext destination: " << passenger.nextDestination;
-	}
+	std::string text = "Passenger " + passenger.id + "\nStatus: " + passenger.status + " (" + passenger.waitingPlatform
+		+ ")\nNext train: " + passenger.nextTrain;
+	if (!passenger.nextDestination.empty())
+		text += "\nNext destination: " + passenger.nextDestination;
 	if (replayActive)
-		ss << "\nJourney not shown in the replay";
+		text += "\nJourney not shown in the replay";
 
-	// paint text
-	QGraphicsTextItem* text = new QGraphicsTextItem;
-	text->setPlainText(QString::fromStdString(ss.str())); // text without background
-	text->setDefaultTextColor(Qt::black);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	// draw box around text
-	QGraphicsRectItem* textBox = new QGraphicsRectItem;
-	// box 15% bigger than text rect on both directions
-	textBox->setRect(QRectF(0, 0, 1.15 * (text->boundingRect().width() * presentationScale()),
-		1.15 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(coord.x() - (textBox->boundingRect().width() / 2), coord.y() - (textBox->boundingRect().height()));
-
-	// set text position (center of text box)
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
-
-	// create group
-	QGraphicsItemGroup* msgGroup = new QGraphicsItemGroup;
-	msgGroup->addToGroup(line);
-	msgGroup->addToGroup(textBox);
-	msgGroup->addToGroup(text);
-	msgGroup->setZValue(5);
-
-	// add group to scene
-	m_scene->addItem(msgGroup);
-
-	// set current items
-	paxIconInfoItem = msgGroup;
+	// drawn from the top centre of the icon
+	paxIconInfoItem = drawCallout(m_scene, paxIconInfoItem, kPassengerCallout, QString::fromStdString(text), presentationScale());
+	paxIconInfoItem->setPos(paxItem->sceneBoundingRect().center().x(), paxItem->sceneBoundingRect().top());
+	paxIconInfoItem->setVisible(true);
 	paxIconItem = paxItem;
 }
 
@@ -2792,63 +2754,8 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 
 	// The message is drawn from the front of the train, where the group is.
 	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
-	const QPointF start;
-	QPointF end = start + QPointF(0, -2 * track_separation * presentationScale());
-
-	QPen pen = QPen(QColor(242, 161, 106));
-	pen.setWidth(line_width);
-	pen.setCosmetic(true);
-	QGraphicsItemGroup* msgGroup = m_vcMessageItems.value(trainItem->index, nullptr);
-	QGraphicsLineItem* line = nullptr;
-	QGraphicsTextItem* text = nullptr;
-	QGraphicsRectItem* textBox = nullptr;
-	if (!msgGroup) {
-		msgGroup = new QGraphicsItemGroup;
-		line = new QGraphicsLineItem;
-		textBox = new QGraphicsRectItem;
-		text = new QGraphicsTextItem;
-		msgGroup->addToGroup(line);
-		msgGroup->addToGroup(textBox);
-		msgGroup->addToGroup(text);
-		// Over the trains (z 4) and their speed (z 4.2 and 4.3), and under the station names (z 4.5): the notice shows
-		// by itself, and only what a click opens may cover a name.
-		msgGroup->setZValue(4.4);
-		m_scene->addItem(msgGroup);
-		m_vcMessageItems.insert(trainItem->index, msgGroup);
-	} else {
-		for (QGraphicsItem* child : msgGroup->childItems()) {
-			if (auto* lineChild = qgraphicsitem_cast<QGraphicsLineItem*>(child))
-				line = lineChild;
-			else if (auto* boxChild = qgraphicsitem_cast<QGraphicsRectItem*>(child))
-				textBox = boxChild;
-			else if (auto* textChild = qgraphicsitem_cast<QGraphicsTextItem*>(child))
-				text = textChild;
-		}
-	}
-	if (!line || !text || !textBox)
-		return;
-
-	line->setLine(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
-
-	QFont font = QFont();
-	font.setPixelSize((int)station_size / 6);
-	text->setPlainText(QString::fromStdString(message));
-	text->setDefaultTextColor(Qt::white);
-	text->setFont(font);
-	text->setScale(presentationScale());
-
-	textBox->setRect(QRectF(0, 0, 1.25 * (text->boundingRect().width() * presentationScale()), 1.25 * (text->boundingRect().height() * presentationScale())));
-	textBox->setBrush(QColor(242, 161, 106));
-	QPen boxPen = textBox->pen();
-	boxPen.setWidthF(presentationScale());
-	textBox->setPen(boxPen);
-	textBox->setPos(end.x() - (textBox->boundingRect().width() / 2), end.y() - textBox->boundingRect().height());
-
-	QPointF textPos = textBox->pos();
-	textPos.rx() += 0.5 * (textBox->boundingRect().width() - (text->boundingRect().width() * presentationScale()));
-	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
-	text->setPos(textPos);
+	QGraphicsItemGroup*& msgGroup = m_vcMessageItems[trainItem->index];
+	msgGroup = drawCallout(m_scene, msgGroup, kVirtualCouplingCallout, QString::fromStdString(message), presentationScale());
 	msgGroup->setPos(front);
 	msgGroup->setVisible(true);
 }
@@ -3075,12 +2982,8 @@ void NetworkPresenter::updateTrainPaxInfo() {
 			trainPaxInfoItem->setVisible(false);
 		return;
 	}
-	if (trainPaxInfoItem) {
-		// remove existing item
-		removeTrainPaxInfoIcon();
-		if (trainPaxItem)
-			paintTrainPassengerInfo(trainPaxItem);
-	}
+	if (trainPaxInfoItem)
+		paintTrainPassengerInfo(trainPaxItem);
 }
 
 // update the passenger info of the selected passenger icon
@@ -3092,15 +2995,15 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 	}
 	if (m_platformsStale && snapshot)
 		updatePlatforms(*snapshot);
-	if (paxIconInfoItem) {
-		// remove existing item
+	if (!paxIconInfoItem)
+		return;
+	// the details go with the icon of the passenger, and with the passenger when it left
+	if (!paxIconItem) {
 		removePaxInfoIcon();
-		if (paxIconItem)
-			paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId),
-				playback == Playback::Replay);
-		if (paxIconInfoItem)
-			paxIconInfoItem->setVisible(platformPassengersVisible());
+		return;
 	}
+	paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId), playback == Playback::Replay);
+	paxIconInfoItem->setVisible(platformPassengersVisible());
 }
 
 void NetworkPresenter::removeTrainPaxInfoIcon() {

@@ -193,11 +193,13 @@ public:
 	/// place of its last update at the next step.
 	void setClock(Clock clock);
 
-	/// Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden.
+	/// Brings the passenger information of the selected train up to date, or hides it while the passenger layer is
+	/// hidden.
 	void updateTrainPaxInfo();
-	/// Draws the passenger information of the selected passenger icon again, or hides it while the passenger layer is
-	/// hidden. The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after
-	/// steps were applied while it was hidden, the snapshot also brings the platforms up to date.
+	/// Brings the passenger information of the selected passenger icon up to date, or hides it while the passenger layer
+	/// is hidden; it goes when the icon has gone. The snapshot gives the details of the passenger and can be null. When
+	/// the passenger layer is shown after steps were applied while it was hidden, the snapshot also brings the platforms
+	/// up to date.
 	void updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback);
 	/// Deletes the passenger information of the selected train. The train stays selected.
 	void removeTrainPaxInfoIcon();
@@ -247,11 +249,13 @@ public:
 	/// is known.
 	void paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd);
 
-	/// Shows the passengers on board above a train.
+	/// Shows the passengers on board above a train and selects it. A train without a shape shows none, and the
+	/// passenger information is deleted. The group of the information is made once and then reused.
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	/// Shows the details of a passenger above its icon; a replay adds that the journey details are unavailable.
+	/// Shows the details of a passenger above its icon and selects the icon; a replay adds that the journey details are
+	/// unavailable. The group of the details is made once and then reused.
 	void paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive);
-	/// Shows the message of a virtual coupling above a train.
+	/// Shows the message of a virtual coupling above a train, in a group that is made once for the train.
 	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 	/// Draws the track lines, the connections, the nodes, the station overlays and the signals of the
