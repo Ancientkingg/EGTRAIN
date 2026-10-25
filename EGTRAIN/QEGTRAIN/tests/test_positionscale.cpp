@@ -6,22 +6,16 @@
 #include "diagrams/RunExports.h"
 
 #include <QStringList>
+#include <QTest>
 
 #include <array>
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace {
-
-bool expect(bool condition, const std::string& message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 bool near(double actual, double expected) {
 	return std::abs(actual - expected) < 1e-9;
@@ -59,111 +53,6 @@ bool spaced(const std::vector<PositionScale::Label>& labels, double lowKm, doubl
 	return true;
 }
 
-bool forwardRoute() {
-	bool ok = true;
-	// In a second display region: the geo X runs 100 km ahead of the route distance.
-	const PositionScale scale(sections({{0.0, 2.0, 100.0, 102.0}, {2.0, 4.0, 102.0, 104.0}}));
-	ok &= expect(!scale.empty() && scale.jumps().empty() && scale.stretches().size() == 1, "a forward route is one stretch");
-	if (scale.stretches().size() == 1) {
-		const PositionScale::Stretch& stretch = scale.stretches().front();
-		ok &= expect(stretch.startKm == 0.0 && stretch.endKm == 4.0 && stretch.geoStartKm == 100.0 && stretch.geoEndKm == 104.0,
-			"the stretch spans the route from the first to the last section");
-	}
-	ok &= expect(near(scale.geoAt(0.0), 100.0) && near(scale.geoAt(1.25), 101.25) && near(scale.geoAt(3.0), 103.0)
-			&& near(scale.geoAt(4.0), 104.0),
-		"a forward route maps the route distance linearly within each section");
-	return ok;
-}
-
-bool againstTheCoordinate() {
-	bool ok = true;
-	// Like Paimpol route1, which runs from 36.5 km to 34.5 km in geo X.
-	const PositionScale scale(sections({{0.0, 1.2, 36.5, 35.3}, {1.2, 2.0, 35.3, 34.5}}));
-	ok &= expect(scale.jumps().empty() && scale.stretches().size() == 1 && scale.stretches().front().geoStartKm == 36.5
-			&& scale.stretches().front().geoEndKm == 34.5,
-		"a route against the coordinate is one stretch that counts down");
-	ok &= expect(near(scale.geoAt(0.5), 36.0) && near(scale.geoAt(1.6), 34.9), "the geo X counts down along the route");
-	// 300 px for 2 km: labels 0.4 km apart at least, so every 0.5 km.
-	const auto labels = scale.roundLabels(0.0, 2.0, 300.0);
-	ok &= expect(nearAll(geoOf(labels), {36.5, 36.0, 35.5, 35.0, 34.5}) && spaced(labels, 0.0, 2.0, 300.0),
-		"the labels count down at increasing route distance");
-	return ok;
-}
-
-bool jump() {
-	bool ok = true;
-	// Netherlands route0: 18.298 km continues at 30.569 km. The next section starts half a metre on, which is no jump.
-	const PositionScale scale(sections({{17.0, 18.298, 17.0, 18.298}, {18.298, 19.0, 30.569, 31.271}, {19.0, 20.0, 31.2715, 32.2715}}));
-	ok &= expect(scale.jumps().size() == 1, "one jump");
-	if (scale.jumps().size() == 1) {
-		const PositionScale::Jump& jump = scale.jumps().front();
-		ok &= expect(jump.routeKm == 18.298 && jump.geoBeforeKm == 18.298 && jump.geoAfterKm == 30.569,
-			"the jump gives its route distance and the geo X on both sides");
-	}
-	ok &= expect(scale.stretches().size() == 2 && scale.stretches()[0].endKm == 18.298 && scale.stretches()[1].startKm == 18.298
-			&& scale.stretches()[1].endKm == 20.0 && scale.stretches()[1].geoEndKm == 32.2715,
-		"the jump splits the route into two stretches");
-	ok &= expect(near(scale.geoAt(18.298), 18.298) && near(scale.geoAt(18.5), 30.771), "the geo X on both sides of the jump");
-	ok &= expect(near(scale.geoAt(18.298, 17.5), 18.298) && near(scale.geoAt(18.298, 19.0), 30.569)
-			&& near(scale.geoAt(18.298 + 1e-9, 17.5), 18.298 + 1e-9),
-		"an end of an interval at the jump takes the geo X of its own section");
-	// 600 px for 2 km: labels every 0.2 km. 30.6 km lies 0.031 km after the jump, too close to 18.2 km before it.
-	const auto labels = scale.roundLabels(17.0, 19.0, 600.0);
-	ok &= expect(scale.labelStepKm(17.0, 19.0, 600.0) == 0.2
-			&& nearAll(geoOf(labels), {17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 30.8, 31.0, 31.2})
-			&& spaced(labels, 17.0, 19.0, 600.0),
-		"no label on each side of the jump closer than the spacing");
-	return ok;
-}
-
-bool zigZag() {
-	bool ok = true;
-	// The route turns back twice, so geo X values repeat.
-	const PositionScale scale(sections({{0.0, 1.0, 0.0, 1.0}, {1.0, 2.0, 1.0, 0.0}, {2.0, 3.0, 0.0, 1.0}}));
-	ok &= expect(scale.jumps().empty() && scale.stretches().size() == 1, "a route that turns back is one stretch");
-	ok &= expect(near(scale.geoAt(0.5), 0.5) && near(scale.geoAt(1.5), 0.5) && near(scale.geoAt(2.5), 0.5),
-		"the same geo X lies at several route distances");
-	const auto labels = scale.roundLabels(0.0, 3.0, 360.0);
-	ok &= expect(nearAll(geoOf(labels), {0.0, 0.5, 1.0, 0.5, 0.0, 0.5, 1.0}) && spaced(labels, 0.0, 3.0, 360.0),
-		"labels repeat geo X values at increasing route distance");
-	return ok;
-}
-
-bool outsideTheScope() {
-	bool ok = true;
-	// Paimpol: route2's switch section starts at 10.135 km against route0's first section at 10.21 km.
-	const PositionScale scale(sections({{10.21, 10.51, 47.79, 47.49}, {10.51, 11.0, 47.49, 47.0}}));
-	ok &= expect(near(scale.geoAt(10.135), 47.865) && near(scale.geoAt(11.5), 46.5),
-		"a route distance outside the sections extends the first or the last section");
-	ok &= expect(near(scale.geoAt(10.135, 10.51), 47.865) && near(scale.geoAt(10.51, 10.135), 47.49),
-		"an interval that sticks out maps both ends");
-	ok &= expect(PositionScale().empty() && std::isnan(PositionScale().geoAt(1.0)) && PositionScale().roundLabels(0.0, 1.0, 100.0).empty(),
-		"an empty scale has no geo X and no labels");
-	const double nan = std::numeric_limits<double>::quiet_NaN();
-	ok &= expect(PositionScale(buildBlockSectionExtents({{"@z@", 1.0, 1.0}, {"@n@", 1.0, nan}})).empty(),
-		"sections without geometry are left out");
-	return ok;
-}
-
-bool labelSpacing() {
-	bool ok = true;
-	const PositionScale scale(sections({{0.0, 4.0, 0.0, 4.0}, {4.0, 8.0, 4.0, 8.0}, {8.0, 12.0, 8.0, 12.0}}));
-	ok &= expect(scale.labelStepKm(0.0, 12.0, 900.0) == 1.0 && scale.labelStepKm(0.0, 12.0, 300.0) == 5.0
-			&& scale.labelStepKm(0.0, 12.0, 1800.0) == 0.5 && scale.labelStepKm(3.0, 3.5, 900.0) == 0.05
-			&& scale.labelStepKm(0.0, 12.0, 2.0) == 500.0,
-		"the step is 1, 2 or 5 times a power of ten for labels at least 60 px apart");
-	const auto wide = scale.roundLabels(0.0, 12.0, 900.0);
-	ok &= expect(nearAll(geoOf(wide), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}) && spaced(wide, 0.0, 12.0, 900.0),
-		"a label on every kilometre at 75 px per km");
-	ok &= expect(nearAll(geoOf(scale.roundLabels(0.0, 12.0, 300.0)), {0, 5, 10}), "every 5 km at 25 px per km");
-	const auto zoomed = scale.roundLabels(3.0, 3.5, 900.0);
-	ok &= expect(zoomed.size() == 11 && zoomed[1].geoKm == 3.05 && zoomed[10].geoKm == 3.5 && spaced(zoomed, 3.0, 3.5, 900.0),
-		"zoomed in, the labels are the nearest doubles of their round values");
-	ok &= expect(scale.roundLabels(0.0, 12.0, 0.0).empty() && scale.roundLabels(5.0, 5.0, 900.0).empty(),
-		"no width or no range gives no labels");
-	return ok;
-}
-
 std::vector<std::vector<std::string>> csvRows(const std::string& text) {
 	std::vector<std::vector<std::string>> rows;
 	std::istringstream lines(text);
@@ -187,8 +76,149 @@ bool nearField(const std::string& field, double expected) {
 	return !field.empty() && near(std::stod(field), expected);
 }
 
-bool exportColumns() {
-	bool ok = true;
+} // namespace
+
+class TestPositionScale : public QObject {
+	Q_OBJECT
+
+private slots:
+	void mapsForwardRoute();
+	void countsDownAgainstTheCoordinate();
+	void splitsRouteAtJump();
+	void repeatsGeoXWhereRouteTurnsBack();
+	void extendsSectionsOutsideTheScope();
+	void spacesLabels();
+	void fillsExportColumns();
+};
+
+void TestPositionScale::mapsForwardRoute() {
+	// In a second display region: the geo X runs 100 km ahead of the route distance.
+	const PositionScale scale(sections({{0.0, 2.0, 100.0, 102.0}, {2.0, 4.0, 102.0, 104.0}}));
+	// A forward route is one stretch.
+	QVERIFY(!scale.empty());
+	QVERIFY(scale.jumps().empty());
+	QCOMPARE(scale.stretches().size(), std::size_t(1));
+	const PositionScale::Stretch& stretch = scale.stretches().front();
+	// The stretch spans the route from the first to the last section.
+	QCOMPARE_EQ(stretch.startKm, 0.0);
+	QCOMPARE_EQ(stretch.endKm, 4.0);
+	QCOMPARE_EQ(stretch.geoStartKm, 100.0);
+	QCOMPARE_EQ(stretch.geoEndKm, 104.0);
+	// A forward route maps the route distance linearly within each section.
+	QVERIFY(near(scale.geoAt(0.0), 100.0));
+	QVERIFY(near(scale.geoAt(1.25), 101.25));
+	QVERIFY(near(scale.geoAt(3.0), 103.0));
+	QVERIFY(near(scale.geoAt(4.0), 104.0));
+}
+
+void TestPositionScale::countsDownAgainstTheCoordinate() {
+	// Like Paimpol route1, which runs from 36.5 km to 34.5 km in geo X.
+	const PositionScale scale(sections({{0.0, 1.2, 36.5, 35.3}, {1.2, 2.0, 35.3, 34.5}}));
+	// A route against the coordinate is one stretch that counts down.
+	QVERIFY(scale.jumps().empty());
+	QCOMPARE(scale.stretches().size(), std::size_t(1));
+	QCOMPARE_EQ(scale.stretches().front().geoStartKm, 36.5);
+	QCOMPARE_EQ(scale.stretches().front().geoEndKm, 34.5);
+	// The geo X counts down along the route.
+	QVERIFY(near(scale.geoAt(0.5), 36.0));
+	QVERIFY(near(scale.geoAt(1.6), 34.9));
+	// 300 px for 2 km: labels 0.4 km apart at least, so every 0.5 km.
+	const auto labels = scale.roundLabels(0.0, 2.0, 300.0);
+	// The labels count down at increasing route distance.
+	QVERIFY(nearAll(geoOf(labels), {36.5, 36.0, 35.5, 35.0, 34.5}));
+	QVERIFY(spaced(labels, 0.0, 2.0, 300.0));
+}
+
+void TestPositionScale::splitsRouteAtJump() {
+	// Netherlands route0: 18.298 km continues at 30.569 km. The next section starts half a metre on, which is no jump.
+	const PositionScale scale(sections({{17.0, 18.298, 17.0, 18.298}, {18.298, 19.0, 30.569, 31.271}, {19.0, 20.0, 31.2715, 32.2715}}));
+	// One jump.
+	QCOMPARE(scale.jumps().size(), std::size_t(1));
+	const PositionScale::Jump& jump = scale.jumps().front();
+	// The jump gives its route distance and the geo X on both sides.
+	QCOMPARE_EQ(jump.routeKm, 18.298);
+	QCOMPARE_EQ(jump.geoBeforeKm, 18.298);
+	QCOMPARE_EQ(jump.geoAfterKm, 30.569);
+	// The jump splits the route into two stretches.
+	QCOMPARE(scale.stretches().size(), std::size_t(2));
+	QCOMPARE_EQ(scale.stretches()[0].endKm, 18.298);
+	QCOMPARE_EQ(scale.stretches()[1].startKm, 18.298);
+	QCOMPARE_EQ(scale.stretches()[1].endKm, 20.0);
+	QCOMPARE_EQ(scale.stretches()[1].geoEndKm, 32.2715);
+	// The geo X on both sides of the jump.
+	QVERIFY(near(scale.geoAt(18.298), 18.298));
+	QVERIFY(near(scale.geoAt(18.5), 30.771));
+	// An end of an interval at the jump takes the geo X of its own section.
+	QVERIFY(near(scale.geoAt(18.298, 17.5), 18.298));
+	QVERIFY(near(scale.geoAt(18.298, 19.0), 30.569));
+	QVERIFY(near(scale.geoAt(18.298 + 1e-9, 17.5), 18.298 + 1e-9));
+	// 600 px for 2 km: labels every 0.2 km. 30.6 km lies 0.031 km after the jump, too close to 18.2 km before it.
+	const auto labels = scale.roundLabels(17.0, 19.0, 600.0);
+	// No label on each side of the jump closer than the spacing.
+	QCOMPARE_EQ(scale.labelStepKm(17.0, 19.0, 600.0), 0.2);
+	QVERIFY(nearAll(geoOf(labels), {17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 30.8, 31.0, 31.2}));
+	QVERIFY(spaced(labels, 17.0, 19.0, 600.0));
+}
+
+void TestPositionScale::repeatsGeoXWhereRouteTurnsBack() {
+	// The route turns back twice, so geo X values repeat.
+	const PositionScale scale(sections({{0.0, 1.0, 0.0, 1.0}, {1.0, 2.0, 1.0, 0.0}, {2.0, 3.0, 0.0, 1.0}}));
+	// A route that turns back is one stretch.
+	QVERIFY(scale.jumps().empty());
+	QCOMPARE(scale.stretches().size(), std::size_t(1));
+	// The same geo X lies at several route distances.
+	QVERIFY(near(scale.geoAt(0.5), 0.5));
+	QVERIFY(near(scale.geoAt(1.5), 0.5));
+	QVERIFY(near(scale.geoAt(2.5), 0.5));
+	const auto labels = scale.roundLabels(0.0, 3.0, 360.0);
+	// Labels repeat geo X values at increasing route distance.
+	QVERIFY(nearAll(geoOf(labels), {0.0, 0.5, 1.0, 0.5, 0.0, 0.5, 1.0}));
+	QVERIFY(spaced(labels, 0.0, 3.0, 360.0));
+}
+
+void TestPositionScale::extendsSectionsOutsideTheScope() {
+	// Paimpol: route2's switch section starts at 10.135 km against route0's first section at 10.21 km.
+	const PositionScale scale(sections({{10.21, 10.51, 47.79, 47.49}, {10.51, 11.0, 47.49, 47.0}}));
+	// A route distance outside the sections extends the first or the last section.
+	QVERIFY(near(scale.geoAt(10.135), 47.865));
+	QVERIFY(near(scale.geoAt(11.5), 46.5));
+	// An interval that sticks out maps both ends.
+	QVERIFY(near(scale.geoAt(10.135, 10.51), 47.865));
+	QVERIFY(near(scale.geoAt(10.51, 10.135), 47.49));
+	// An empty scale has no geo X and no labels.
+	QVERIFY(PositionScale().empty());
+	QVERIFY(std::isnan(PositionScale().geoAt(1.0)));
+	QVERIFY(PositionScale().roundLabels(0.0, 1.0, 100.0).empty());
+	const double nan = std::numeric_limits<double>::quiet_NaN();
+	QVERIFY2(PositionScale(buildBlockSectionExtents({{"@z@", 1.0, 1.0}, {"@n@", 1.0, nan}})).empty(),
+		"sections without geometry are left out");
+}
+
+void TestPositionScale::spacesLabels() {
+	const PositionScale scale(sections({{0.0, 4.0, 0.0, 4.0}, {4.0, 8.0, 4.0, 8.0}, {8.0, 12.0, 8.0, 12.0}}));
+	// The step is 1, 2 or 5 times a power of ten for labels at least 60 px apart.
+	QCOMPARE_EQ(scale.labelStepKm(0.0, 12.0, 900.0), 1.0);
+	QCOMPARE_EQ(scale.labelStepKm(0.0, 12.0, 300.0), 5.0);
+	QCOMPARE_EQ(scale.labelStepKm(0.0, 12.0, 1800.0), 0.5);
+	QCOMPARE_EQ(scale.labelStepKm(3.0, 3.5, 900.0), 0.05);
+	QCOMPARE_EQ(scale.labelStepKm(0.0, 12.0, 2.0), 500.0);
+	const auto wide = scale.roundLabels(0.0, 12.0, 900.0);
+	// A label on every kilometre at 75 px per km.
+	QVERIFY(nearAll(geoOf(wide), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}));
+	QVERIFY(spaced(wide, 0.0, 12.0, 900.0));
+	QVERIFY2(nearAll(geoOf(scale.roundLabels(0.0, 12.0, 300.0)), {0, 5, 10}), "every 5 km at 25 px per km");
+	const auto zoomed = scale.roundLabels(3.0, 3.5, 900.0);
+	// Zoomed in, the labels are the nearest doubles of their round values.
+	QCOMPARE(zoomed.size(), std::size_t(11));
+	QCOMPARE_EQ(zoomed[1].geoKm, 3.05);
+	QCOMPARE_EQ(zoomed[10].geoKm, 3.5);
+	QVERIFY(spaced(zoomed, 3.0, 3.5, 900.0));
+	// No width or no range gives no labels.
+	QVERIFY(scale.roundLabels(0.0, 12.0, 0.0).empty());
+	QVERIFY(scale.roundLabels(5.0, 5.0, 900.0).empty());
+}
+
+void TestPositionScale::fillsExportColumns() {
 	const auto extents = sections({{17.0, 18.298, 17.0, 18.298}, {18.298, 19.0, 30.569, 31.271}});
 	const auto envelope = [](const char* train, const char* block, double startKm, double endKm) {
 		BlockingTimeDiagramSegment segment;
@@ -209,41 +239,39 @@ bool exportColumns() {
 	const std::string text = buildBlockingTimeCsv({"T"}, {envelope("T", "@s0@", 17.0, 18.298), envelope("T", "@s1@", 18.298, 19.0)},
 		{planned}, {}, extents, {envelope("T", "@other@", 3.0, 4.0)});
 	const auto rows = csvRows(text);
-	ok &= expect(rows.size() == 7 && rows[0].size() == 26 && rows[0][23] == "Geo position[km]" && rows[0][24] == "Start geo X[km]"
-			&& rows[0][25] == "End geo X[km]",
-		"the export ends with the three geo X columns");
-	if (rows.size() != 7)
-		return false;
+	// The export ends with the three geo X columns.
+	QCOMPARE(rows.size(), std::size_t(7));
+	QCOMPARE(rows[0].size(), std::size_t(26));
+	QCOMPARE(rows[0][23], "Geo position[km]");
+	QCOMPARE(rows[0][24], "Start geo X[km]");
+	QCOMPARE(rows[0][25], "End geo X[km]");
+	// Every row is as wide as the header.
 	for (const auto& row : rows)
-		ok &= expect(row.size() == 26, "every row is as wide as the header");
-	if (!ok)
-		return false;
-	ok &= expect(nearField(rows[1][23], 17.649) && nearField(rows[1][24], 17.0) && nearField(rows[1][25], 18.298)
-			&& nearField(rows[2][23], 30.92) && nearField(rows[2][24], 30.569) && nearField(rows[2][25], 31.271),
-		"an envelope gives the geo X of its middle and of its ends, each end in its own section");
-	ok &= expect(rows[3][5] == "planned reference" && nearField(rows[3][23], 30.771) && rows[3][24].empty() && rows[3][25].empty(),
-		"a planned reference gives the geo X of its position");
-	ok &= expect(rows[4][21] == "unmapped blocking envelope" && rows[4][23].empty() && rows[4][24].empty() && rows[4][25].empty(),
-		"an envelope that is not on the reference route has no geo X");
-	ok &= expect(rows[5][21] == "block section extent" && nearField(rows[5][24], 17.0) && nearField(rows[5][25], 18.298)
-			&& nearField(rows[6][24], 30.569) && nearField(rows[6][25], 31.271),
-		"the sections give their own geo X");
-	return ok;
+		QCOMPARE(row.size(), std::size_t(26));
+	// An envelope gives the geo X of its middle and of its ends, each end in its own section.
+	QVERIFY(nearField(rows[1][23], 17.649));
+	QVERIFY(nearField(rows[1][24], 17.0));
+	QVERIFY(nearField(rows[1][25], 18.298));
+	QVERIFY(nearField(rows[2][23], 30.92));
+	QVERIFY(nearField(rows[2][24], 30.569));
+	QVERIFY(nearField(rows[2][25], 31.271));
+	// A planned reference gives the geo X of its position.
+	QCOMPARE(rows[3][5], "planned reference");
+	QVERIFY(nearField(rows[3][23], 30.771));
+	QVERIFY(rows[3][24].empty());
+	QVERIFY(rows[3][25].empty());
+	// An envelope that is not on the reference route has no geo X.
+	QCOMPARE(rows[4][21], "unmapped blocking envelope");
+	QVERIFY(rows[4][23].empty());
+	QVERIFY(rows[4][24].empty());
+	QVERIFY(rows[4][25].empty());
+	// The sections give their own geo X.
+	QCOMPARE(rows[5][21], "block section extent");
+	QVERIFY(nearField(rows[5][24], 17.0));
+	QVERIFY(nearField(rows[5][25], 18.298));
+	QVERIFY(nearField(rows[6][24], 30.569));
+	QVERIFY(nearField(rows[6][25], 31.271));
 }
 
-} // namespace
-
-int main() {
-	bool ok = true;
-	ok &= forwardRoute();
-	ok &= againstTheCoordinate();
-	ok &= jump();
-	ok &= zigZag();
-	ok &= outsideTheScope();
-	ok &= labelSpacing();
-	ok &= exportColumns();
-	if (!ok)
-		return 1;
-	std::cout << "position scale tests passed\n";
-	return 0;
-}
+QTEST_APPLESS_MAIN(TestPositionScale)
+#include "test_positionscale.moc"
