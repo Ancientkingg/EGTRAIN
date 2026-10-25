@@ -122,9 +122,10 @@ struct ExportFolders {
 
 // Lists the inputs of the importer that destination holds and that staging does not: the files in stale and the track
 // folders in staleFolders. A folder in the place of an input file counts as not written, because a staged file cannot be
-// moved over it, and the area sidecar always counts as not written. The publish removes them before it moves the staged files in, so the published folder holds no input of
-// an earlier export that this export does not write. Everything else in destination stays, also the files in a track
-// folder that the export writes again. Returns false with ec set when destination cannot be read.
+// moved over it, and the area sidecar always counts as not written. The publish removes them before it moves the staged
+// files in, so the published folder holds no input of an earlier export that this export does not write. Everything
+// else in destination stays, also the files in a track folder that the export writes again. Returns false with ec set
+// when destination cannot be read.
 static bool collectOldInputs(ExportFolders& folders, std::error_code& ec) {
 	const auto inLowerCase = [](const fs::directory_entry& entry) { return lowerCopy(entry.path().filename().u8string()); };
 	for (const LegacyInput& input : kLegacyInputs) {
