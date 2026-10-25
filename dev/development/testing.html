@@ -710,7 +710,8 @@ build with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_
 for an uninstrumented build.</p>
 <p>A build with sanitizers runs several times slower than the time limits in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/CMakeLists.txt</span></code> allow.
 <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_TEST_TIMEOUT_SCALE=N</span></code> multiplies the limit of every test that <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>
-registers by N; the default 1 leaves the limits as they are. The characterization
+registers by N; the default 1 leaves the limits as they are. It also multiplies the 300 seconds after which
+Qt Test stops a slot (<code class="docutils literal notranslate"><span class="pre">QTEST_FUNCTION_TIMEOUT</span></code>). The characterization
 tests that run committed scenes have a limit of their own, <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS</span></code>
 (default 300), which the scale does not change. Waits inside the tests follow the same settings:
 <code class="docutils literal notranslate"><span class="pre">startup_launch_contract.py</span></code> multiplies its 60 second launch wait by the scale, and the fresh process

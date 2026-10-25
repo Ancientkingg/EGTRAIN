@@ -331,7 +331,8 @@ for an uninstrumented build.
 
 A build with sanitizers runs several times slower than the time limits in `EGTRAIN/QEGTRAIN/tests/CMakeLists.txt` allow.
 `-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies the limit of every test that `egtrain_add_test`
-registers by N; the default 1 leaves the limits as they are. The characterization
+registers by N; the default 1 leaves the limits as they are. It also multiplies the 300 seconds after which
+Qt Test stops a slot (`QTEST_FUNCTION_TIMEOUT`). The characterization
 tests that run committed scenes have a limit of their own, `-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS`
 (default 300), which the scale does not change. Waits inside the tests follow the same settings:
 `startup_launch_contract.py` multiplies its 60 second launch wait by the scale, and the fresh process
