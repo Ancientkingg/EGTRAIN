@@ -34,6 +34,7 @@
 #include <QPushButton>
 #include <QTextDocument>
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -261,7 +262,10 @@ int main(int argc, char* argv[]) {
 
 	panel.displayPreviewInfo(nodePreview);
 	panel.clearPreviewInspection();
-	ok &= expect(!panel.dock()->isVisible() && text(panel, "Node").isEmpty(), "clearing the preview empties the fields");
+	const QList<QLineEdit*> fields = panel.dock()->findChildren<QLineEdit*>();
+	ok &= expect(!panel.dock()->isVisible() && text(panel, "Node").isEmpty()
+			&& std::all_of(fields.begin(), fields.end(), [](const QLineEdit* field) { return field->text().isEmpty(); }),
+		"clearing the preview empties the fields of every form");
 
 	host.previewing = false;
 	presenter.setGeometrySource(std::make_unique<SixTracks>());
