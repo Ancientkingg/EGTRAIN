@@ -363,6 +363,9 @@ void TestInspectorPanel::clearsPreviewInspection() {
 
 void TestInspectorPanel::showsRunNode() {
 	PanelFixture f;
+	// A node of the preview was shown before, so its placeholders were set.
+	f.panel.displayPreviewInfo(previewItem(f.scene, "node", "n1"));
+	f.panel.clearPreviewInspection();
 	f.showRun();
 	NodeItem runNode(QRectF(0.0, 0.0, 4.0, 4.0));
 	Node runData;
