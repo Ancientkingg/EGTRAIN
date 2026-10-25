@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" target="_top" xlink:title="The label is drawn.">
+<g id="a_Node000003"><a xlink:href="class_station_overlay_item.html#a68d5d0899e5551d3adf68241a3bd819b" target="_top" xlink:title="The label is drawn: the name may show (setNameVisible()).">
 <polygon fill="white" stroke="#666666" points="261.5,-195.5 149.5,-195.5 149.5,-165.5 261.5,-165.5 261.5,-195.5"/>
 <text text-anchor="start" x="157.5" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">StationOverlayItem</text>
 <text text-anchor="middle" x="205.5" y="-172.5" font-family="Helvetica,sans-Serif" font-size="10.00">::isLabelVisible</text>

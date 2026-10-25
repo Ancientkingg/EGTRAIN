@@ -1,0 +1,17 @@
+<map id="SignalItem::setInspectionIdentity" name="SignalItem::setInspectionIdentity">
+<area shape="rect" id="Node000001" title="Sets the text that names the head in its tooltip, the inspector and Find." alt="" coords="5,35,192,75"/>
+<area shape="rect" id="Node000002" href="$class_signal_item.html#a79bea8af53d006c06ff90dbad18ed95c" title=" " alt="" coords="240,43,431,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,53,226,53,226,58,192,58"/>
+<area shape="rect" id="Node000003" href="$class_signal_item.html#a350a640edbd76e6d682205a87c8ddc2e" title=" " alt="" coords="479,5,696,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,40,487,30,488,35,422,45"/>
+<area shape="rect" id="Node000004" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="517,79,657,104"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="425,65,504,77,503,82,424,71"/>
+<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="548,80,539,70,544,60,560,54,587,52,622,56,631,61,635,66,631,69,628,65,620,61,587,57,561,59,547,64,545,70,552,77"/>
+<area shape="rect" id="Node000005" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="744,5,920,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="627,76,743,39,770,32,771,37,745,45,628,81"/>
+<area shape="rect" id="Node000006" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="764,79,900,104"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="657,89,750,89,750,94,657,94"/>
+<area shape="rect" id="Node000007" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="763,128,901,153"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="652,101,755,123,754,128,650,107"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="793,80,784,70,789,60,805,54,832,52,866,56,876,61,880,66,875,69,872,65,865,61,832,57,806,59,792,64,789,70,797,77"/>
+</map>

@@ -1,5 +1,7 @@
 <map id="NetworkPresenter::paintTrainPassengerInfo" name="NetworkPresenter::paintTrainPassengerInfo">
-<area shape="rect" id="Node000001" title="Shows the passengers on board above a train." alt="" coords="5,5,216,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,216,77"/>
 <area shape="rect" id="Node000002" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="264,5,493,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,23,250,23,250,28,216,28"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,42,250,38,251,43,216,47"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#abea8a1cdd4332b161fa39b5a0d4b8f86" title="Deletes the passenger information of the selected train. The train stays selected." alt="" coords="280,69,477,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,67,266,73,266,79,216,73"/>
 </map>

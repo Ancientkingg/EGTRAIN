@@ -26,7 +26,7 @@ var searchData=
   ['lengthm_23',['lengthM',['../struct_scene_platform.html#a41f7162103acc669fd2f5234e0082714',1,'ScenePlatform']]],
   ['level_24',['level',['../struct_scene_track_view.html#a4c260d0acc43d11faf4fb126b887b52f',1,'SceneTrackView::level'],['../struct_scene_signalling_area.html#ab70a763f02f27f65152576f70adce10b',1,'SceneSignallingArea::level'],['../struct_scene_section_signalling.html#ae362a18748784196a3a9ff8b5c000e3c',1,'SceneSectionSignalling::level'],['../struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed',1,'GuiSignalState::level']]],
   ['levelspacing_25',['levelSpacing',['../struct_track_preview_line.html#a28d2331737ae7f8d6f4e5181d2aa4b8f',1,'TrackPreviewLine']]],
-  ['line_5fwidth_26',['line_width',['../class_network_presenter.html#a44e0e898ec940e3fc2da8aed24507ca3',1,'NetworkPresenter']]],
+  ['line_5fwidth_26',['line_width',['../class_network_presenter.html#ae9ad44c3f7b5c6e8aa424bb1f2174fdf',1,'NetworkPresenter']]],
   ['lines_27',['lines',['../struct_track_preview_result.html#a59e7876cb379102399bbb8497897ebae',1,'TrackPreviewResult']]],
   ['linewidth_28',['lineWidth',['../struct_network_legend_entry.html#aade2872f9dcf07fd1d2e8506035f096c',1,'NetworkLegendEntry']]],
   ['list_5ftrains_5fstopping_5fat_5fplatform_29',['List_Trains_Stopping_At_Platform',['../class_station_platform.html#ad1c7fc7dfe81f05fe05b3d7109f9b78b',1,'StationPlatform']]],

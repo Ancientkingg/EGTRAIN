@@ -1,6 +1,6 @@
 <map id="NetworkPresenter::updatePaxIconInfo" name="NetworkPresenter::updatePaxIconInfo">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,116,197,156"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#aa360cc99d5a45dcfab687ea8408a9825" title="Shows the details of a passenger above its icon; a replay adds that the journey details are unavailab..." alt="" coords="245,5,492,45"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#aa360cc99d5a45dcfab687ea8408a9825" title=" " alt="" coords="245,5,492,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,114,184,84,244,55,266,47,268,52,246,60,186,88,135,118"/>
 <area shape="rect" id="Node000004" href="$_network_presenter_8cpp.html#a1b57662dc5e3aac38290b652a37de442" title="The details of a passenger in the snapshot; only the id is known when the snapshot is null or does no..." alt="" coords="301,94,436,119"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,123,287,113,288,118,198,128"/>

@@ -157,7 +157,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a783fae0edfc2b9840b0f2487e6bbc939"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a train moves.  <br /></td></tr>
 <tr class="memitem:a35ddc7ecaec547371835d2c09882826f" id="r_a35ddc7ecaec547371835d2c09882826f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a35ddc7ecaec547371835d2c09882826f">setClock</a> (<a class="el" href="#a0e2ecaea83c2239c22b746d7914ef826">Clock</a> clock)</td></tr>
 <tr class="memitem:afc3ec32093d05f7b1fa0d7ee1b426d76" id="r_afc3ec32093d05f7b1fa0d7ee1b426d76"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afc3ec32093d05f7b1fa0d7ee1b426d76">updateTrainPaxInfo</a> ()</td></tr>
-<tr class="memdesc:afc3ec32093d05f7b1fa0d7ee1b426d76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden.  <br /></td></tr>
 <tr class="memitem:a360e2decba3ef60e343d3a95b2c3d1c5" id="r_a360e2decba3ef60e343d3a95b2c3d1c5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a360e2decba3ef60e343d3a95b2c3d1c5">updatePaxIconInfo</a> (const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> *snapshot, <a class="el" href="#a825c599a3402605dfa219e6657c05355">Playback</a> playback)</td></tr>
 <tr class="memitem:abea8a1cdd4332b161fa39b5a0d4b8f86" id="r_abea8a1cdd4332b161fa39b5a0d4b8f86"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abea8a1cdd4332b161fa39b5a0d4b8f86">removeTrainPaxInfoIcon</a> ()</td></tr>
 <tr class="memdesc:abea8a1cdd4332b161fa39b5a0d4b8f86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes the passenger information of the selected train. The train stays selected.  <br /></td></tr>
@@ -182,11 +181,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a78a21f60ad47ed52be80d6f91c2558d3" id="r_a78a21f60ad47ed52be80d6f91c2558d3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a78a21f60ad47ed52be80d6f91c2558d3">getTrainPolygon</a> (QPolygonF *trainPolygon, int wagon, const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train)</td></tr>
 <tr class="memitem:a152f22b7b0623fcce6acc1b01bf0452b" id="r_a152f22b7b0623fcce6acc1b01bf0452b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a152f22b7b0623fcce6acc1b01bf0452b">paintStationNode</a> (QPointF coord, int size, int track, <a class="el" href="class_node.html">Node</a> *node, bool lineEnd)</td></tr>
 <tr class="memitem:ae2cdcf7d81884df2a6fdb675a43d8805" id="r_ae2cdcf7d81884df2a6fdb675a43d8805"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae2cdcf7d81884df2a6fdb675a43d8805">paintTrainPassengerInfo</a> (<a class="el" href="class_train_item_group.html">TrainItemGroup</a> *trainItem)</td></tr>
-<tr class="memdesc:ae2cdcf7d81884df2a6fdb675a43d8805"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the passengers on board above a train.  <br /></td></tr>
 <tr class="memitem:aa360cc99d5a45dcfab687ea8408a9825" id="r_aa360cc99d5a45dcfab687ea8408a9825"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa360cc99d5a45dcfab687ea8408a9825">paintPassengerInfoIcon</a> (<a class="el" href="class_passenger_item.html">PassengerItem</a> *paxItem, const <a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a> &amp;passenger, bool replayActive)</td></tr>
-<tr class="memdesc:aa360cc99d5a45dcfab687ea8408a9825"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the details of a passenger above its icon; a replay adds that the journey details are unavailable.  <br /></td></tr>
 <tr class="memitem:a7b6aab59fe03b18a17758a3e54e94045" id="r_a7b6aab59fe03b18a17758a3e54e94045"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7b6aab59fe03b18a17758a3e54e94045">paintVCouplingMsg</a> (<a class="el" href="class_train_item_group.html">TrainItemGroup</a> *trainItem, const std::string &amp;message)</td></tr>
-<tr class="memdesc:a7b6aab59fe03b18a17758a3e54e94045"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the message of a virtual coupling above a train.  <br /></td></tr>
+<tr class="memdesc:a7b6aab59fe03b18a17758a3e54e94045"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the message of a virtual coupling above a train, in a group that is made once for the train.  <br /></td></tr>
 <tr class="memitem:a583bd2b439a923f2d17f3e3e16040cc3" id="r_a583bd2b439a923f2d17f3e3e16040cc3"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">PreviewOutcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;sceneModel)</td></tr>
 <tr class="memitem:a5f67f677150140ed39c81306cc727372" id="r_a5f67f677150140ed39c81306cc727372"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">PreviewOutcome</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5f67f677150140ed39c81306cc727372">showPreview</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;sceneModel, const <a class="el" href="struct_network_presenter_1_1_preview_options.html">PreviewOptions</a> &amp;options)</td></tr>
 <tr class="memdesc:a5f67f677150140ed39c81306cc727372"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, with the selection of the infrastructure panel of options.  <br /></td></tr>
@@ -265,17 +262,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ad23a85fe0dc56e2046ede144bd0c64e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview marks a selected track.  <br /></td></tr>
 <tr class="memitem:ad4882a82f1d98cec690b89d8f2541c1a" id="r_ad4882a82f1d98cec690b89d8f2541c1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad4882a82f1d98cec690b89d8f2541c1a">m_previewHasSignals</a> = false</td></tr>
 <tr class="memdesc:ad4882a82f1d98cec690b89d8f2541c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview has signals.  <br /></td></tr>
-<tr class="memitem:a584976ded2c796cb1661acb94fbaa8e3" id="r_a584976ded2c796cb1661acb94fbaa8e3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a> = 10</td></tr>
-<tr class="memdesc:a584976ded2c796cb1661acb94fbaa8e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factor of the sizes below.  <br /></td></tr>
-<tr class="memitem:a0ce7e00f9357954b1db661a5fb98c6da" id="r_a0ce7e00f9357954b1db661a5fb98c6da"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0ce7e00f9357954b1db661a5fb98c6da">node_size</a> = (int)2.8 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td></tr>
-<tr class="memdesc:a0ce7e00f9357954b1db661a5fb98c6da"><td class="mdescLeft">&#160;</td><td class="mdescRight">The diameter of a node and of a signal head in scene units. The cast truncates 2.8 to 2, so it is 20.  <br /></td></tr>
-<tr class="memitem:a89c63f7209818e4dae8ede63337d036f" id="r_a89c63f7209818e4dae8ede63337d036f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a89c63f7209818e4dae8ede63337d036f">station_node_size</a> = (int)2.5 * <a class="el" href="#a0ce7e00f9357954b1db661a5fb98c6da">node_size</a></td></tr>
-<tr class="memdesc:a89c63f7209818e4dae8ede63337d036f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The side of the square of a station node in scene units. The cast truncates 2.5 to 2, so it is 40.  <br /></td></tr>
-<tr class="memitem:a42d385852e5606365bf751264f65b87f" id="r_a42d385852e5606365bf751264f65b87f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a42d385852e5606365bf751264f65b87f">station_name_graphID</a> = -8</td></tr>
-<tr class="memitem:a44e0e898ec940e3fc2da8aed24507ca3" id="r_a44e0e898ec940e3fc2da8aed24507ca3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a44e0e898ec940e3fc2da8aed24507ca3">line_width</a> = 2</td></tr>
-<tr class="memitem:a13486b4b5b3c516d6bc5d0d4d6fb245a" id="r_a13486b4b5b3c516d6bc5d0d4d6fb245a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a13486b4b5b3c516d6bc5d0d4d6fb245a">track_separation</a> = 15 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td></tr>
-<tr class="memitem:a6df71315556f8c402ba84d4eafbf365a" id="r_a6df71315556f8c402ba84d4eafbf365a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6df71315556f8c402ba84d4eafbf365a">station_size</a> = 30 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td></tr>
-<tr class="memitem:a70ccc792637c95346feb24d1f2575611" id="r_a70ccc792637c95346feb24d1f2575611"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a70ccc792637c95346feb24d1f2575611">geo_scale</a> = 80000 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td></tr>
 <tr class="memitem:af1d6d3fafd89f5b8be65f6defde7eb85" id="r_af1d6d3fafd89f5b8be65f6defde7eb85"><td class="memItemLeft">QPixmap&#160;</td><td class="memItemRight"><a class="el" href="#af1d6d3fafd89f5b8be65f6defde7eb85">pax_pixmap_scaled</a></td></tr>
 <tr class="memitem:acd515b287adef79ce8cf96122a61cf7e" id="r_acd515b287adef79ce8cf96122a61cf7e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acd515b287adef79ce8cf96122a61cf7e">m_stationLayerVisible</a> = true</td></tr>
 <tr class="memdesc:acd515b287adef79ce8cf96122a61cf7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station layer is shown.  <br /></td></tr>
@@ -289,6 +275,18 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a3a1498eafa4b80d529d2a99656040116"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal layer is shown.  <br /></td></tr>
 <tr class="memitem:a1d28fa09539f979f5dddbe6126c65573" id="r_a1d28fa09539f979f5dddbe6126c65573"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1d28fa09539f979f5dddbe6126c65573">m_passengerLayerVisible</a> = true</td></tr>
 <tr class="memdesc:a1d28fa09539f979f5dddbe6126c65573"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger layer is shown.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a4956f49a40df96a62d03da526aeab06e" id="r_a4956f49a40df96a62d03da526aeab06e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a> = 10</td></tr>
+<tr class="memdesc:a4956f49a40df96a62d03da526aeab06e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factor of the sizes below.  <br /></td></tr>
+<tr class="memitem:a4ce791465fd432994d28b3f3961d273c" id="r_a4ce791465fd432994d28b3f3961d273c"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a> = 2 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
+<tr class="memitem:afa2d4bb1c8acb0bc0f5690f8be8b00c8" id="r_afa2d4bb1c8acb0bc0f5690f8be8b00c8"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#afa2d4bb1c8acb0bc0f5690f8be8b00c8">station_node_size</a> = 2 * <a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a></td></tr>
+<tr class="memitem:ac3afe6e8a6fe090dacdaab1258a35263" id="r_ac3afe6e8a6fe090dacdaab1258a35263"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ac3afe6e8a6fe090dacdaab1258a35263">station_name_graphID</a> = -8</td></tr>
+<tr class="memitem:ae9ad44c3f7b5c6e8aa424bb1f2174fdf" id="r_ae9ad44c3f7b5c6e8aa424bb1f2174fdf"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ae9ad44c3f7b5c6e8aa424bb1f2174fdf">line_width</a> = 2</td></tr>
+<tr class="memitem:af9bd2317024cacd35f2df4191ee224f0" id="r_af9bd2317024cacd35f2df4191ee224f0"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af9bd2317024cacd35f2df4191ee224f0">track_separation</a> = 15 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
+<tr class="memitem:a96a96fe243fec584886c6fb0a59e8983" id="r_a96a96fe243fec584886c6fb0a59e8983"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a96a96fe243fec584886c6fb0a59e8983">station_size</a> = 30 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
+<tr class="memitem:a69175b0701d927540dfa19f59d1402ff" id="r_a69175b0701d927540dfa19f59d1402ff"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a69175b0701d927540dfa19f59d1402ff">geo_scale</a> = 80000 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Draws the track preview and the items of a run on the network canvas and keeps track of the items on it. The scene owns every item; the lists, maps and pointers below only observe them and are never used to delete one. They are public until all the code that fills them is in this class.</p>
@@ -417,7 +415,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a2f2dbeb4415ab81874fff34a4f97b078_cgraph.svg" width="1822" height="1591"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a2f2dbeb4415ab81874fff34a4f97b078_cgraph.svg" width="1822" height="1530"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -644,8 +642,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Shows the details of a passenger above its icon; a replay adds that the journey details are unavailable. </p>
+<p>Shows the details of a passenger above its icon and selects the icon; a replay adds that the journey details are unavailable. The group of the details is made once and then reused. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -789,12 +786,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Shows the passengers on board above a train. </p>
+<p>Shows the passengers on board above a train and selects it. A train without a shape shows none, and the passenger information is deleted. The group of the information is made once and then reused. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ae2cdcf7d81884df2a6fdb675a43d8805_cgraph.svg" width="499" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ae2cdcf7d81884df2a6fdb675a43d8805_cgraph.svg" width="499" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -818,7 +814,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Shows the message of a virtual coupling above a train. </p>
+<p>Shows the message of a virtual coupling above a train, in a group that is made once for the train. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1406,7 +1402,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Draws the passenger information of the selected passenger icon again, or hides it while the passenger layer is hidden. The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after steps were applied while it was hidden, the snapshot also brings the platforms up to date. </p>
+<p>Brings the passenger information of the selected passenger icon up to date, or hides it while the passenger layer is hidden; it goes when the icon has gone. The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after steps were applied while it was hidden, the snapshot also brings the platforms up to date. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1429,8 +1425,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden. </p>
+<p>Brings the passenger information of the selected train up to date, or hides it while the passenger layer is hidden. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1553,47 +1548,71 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a70ccc792637c95346feb24d1f2575611" name="a70ccc792637c95346feb24d1f2575611"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a70ccc792637c95346feb24d1f2575611">&#9670;&#160;</a></span>geo_scale</h2>
+<a id="a69175b0701d927540dfa19f59d1402ff" name="a69175b0701d927540dfa19f59d1402ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69175b0701d927540dfa19f59d1402ff">&#9670;&#160;</a></span>geo_scale</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::geo_scale = 80000 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::geo_scale = 80000 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>The factor of the Mercator projection that places a station with a latitude and longitude in a run without the preview. The projection also uses the width and height of the view in pixels. </p>
 
 </div>
 </div>
-<a id="a584976ded2c796cb1661acb94fbaa8e3" name="a584976ded2c796cb1661acb94fbaa8e3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a584976ded2c796cb1661acb94fbaa8e3">&#9670;&#160;</a></span>global_scale</h2>
+<a id="a4956f49a40df96a62d03da526aeab06e" name="a4956f49a40df96a62d03da526aeab06e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4956f49a40df96a62d03da526aeab06e">&#9670;&#160;</a></span>global_scale</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">int NetworkPresenter::global_scale = 10</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>The factor of the sizes below. </p>
 
 </div>
 </div>
-<a id="a44e0e898ec940e3fc2da8aed24507ca3" name="a44e0e898ec940e3fc2da8aed24507ca3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44e0e898ec940e3fc2da8aed24507ca3">&#9670;&#160;</a></span>line_width</h2>
+<a id="ae9ad44c3f7b5c6e8aa424bb1f2174fdf" name="ae9ad44c3f7b5c6e8aa424bb1f2174fdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9ad44c3f7b5c6e8aa424bb1f2174fdf">&#9670;&#160;</a></span>line_width</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">int NetworkPresenter::line_width = 2</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>The width in pixels of the cosmetic pens of connections, signal posts and callout lines, and the smallest width of a track line. </p>
 
@@ -1997,19 +2016,26 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a0ce7e00f9357954b1db661a5fb98c6da" name="a0ce7e00f9357954b1db661a5fb98c6da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ce7e00f9357954b1db661a5fb98c6da">&#9670;&#160;</a></span>node_size</h2>
+<a id="a4ce791465fd432994d28b3f3961d273c" name="a4ce791465fd432994d28b3f3961d273c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ce791465fd432994d28b3f3961d273c">&#9670;&#160;</a></span>node_size</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::node_size = (int)2.8 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::node_size = 2 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-
-<p>The diameter of a node and of a signal head in scene units. The cast truncates 2.8 to 2, so it is 20. </p>
+<p>The diameter of a node and of a signal head in scene units: 20. It was once written as 2.8 times global_scale with a cast that truncated 2.8 to 2. </p>
 
 </div>
 </div>
@@ -2060,62 +2086,93 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a42d385852e5606365bf751264f65b87f" name="a42d385852e5606365bf751264f65b87f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42d385852e5606365bf751264f65b87f">&#9670;&#160;</a></span>station_name_graphID</h2>
+<a id="ac3afe6e8a6fe090dacdaab1258a35263" name="ac3afe6e8a6fe090dacdaab1258a35263"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3afe6e8a6fe090dacdaab1258a35263">&#9670;&#160;</a></span>station_name_graphID</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">int NetworkPresenter::station_name_graphID = -8</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>The multiple of track_separation by which a run without the preview moves the picture and the name of a station along the shift of its region; negative puts them on the side opposite the shifted track lines. </p>
 
 </div>
 </div>
-<a id="a89c63f7209818e4dae8ede63337d036f" name="a89c63f7209818e4dae8ede63337d036f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89c63f7209818e4dae8ede63337d036f">&#9670;&#160;</a></span>station_node_size</h2>
+<a id="afa2d4bb1c8acb0bc0f5690f8be8b00c8" name="afa2d4bb1c8acb0bc0f5690f8be8b00c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa2d4bb1c8acb0bc0f5690f8be8b00c8">&#9670;&#160;</a></span>station_node_size</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::station_node_size = (int)2.5 * <a class="el" href="#a0ce7e00f9357954b1db661a5fb98c6da">node_size</a></td>
+          <td class="memname">int NetworkPresenter::station_node_size = 2 * <a class="el" href="#a4ce791465fd432994d28b3f3961d273c">node_size</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
-
-<p>The side of the square of a station node in scene units. The cast truncates 2.5 to 2, so it is 40. </p>
+<p>The side of the square of a station node in scene units: 40. It was once written as 2.5 times node_size with a cast that truncated 2.5 to 2. </p>
 
 </div>
 </div>
-<a id="a6df71315556f8c402ba84d4eafbf365a" name="a6df71315556f8c402ba84d4eafbf365a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6df71315556f8c402ba84d4eafbf365a">&#9670;&#160;</a></span>station_size</h2>
+<a id="a96a96fe243fec584886c6fb0a59e8983" name="a96a96fe243fec584886c6fb0a59e8983"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96a96fe243fec584886c6fb0a59e8983">&#9670;&#160;</a></span>station_size</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::station_size = 30 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::station_size = 30 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>The height of a station picture in scene units. A station name uses a font of a fifth of it in pixels, the labels of platforms and the passenger information a fifteenth. </p>
 
 </div>
 </div>
-<a id="a13486b4b5b3c516d6bc5d0d4d6fb245a" name="a13486b4b5b3c516d6bc5d0d4d6fb245a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13486b4b5b3c516d6bc5d0d4d6fb245a">&#9670;&#160;</a></span>track_separation</h2>
+<a id="af9bd2317024cacd35f2df4191ee224f0" name="af9bd2317024cacd35f2df4191ee224f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9bd2317024cacd35f2df4191ee224f0">&#9670;&#160;</a></span>track_separation</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int NetworkPresenter::track_separation = 15 * <a class="el" href="#a584976ded2c796cb1661acb94fbaa8e3">global_scale</a></td>
+          <td class="memname">int NetworkPresenter::track_separation = 15 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <p>The distance in scene units between two display levels of track lines. Signal posts, train bodies and callout lines are sized from it. </p>
 

@@ -136,7 +136,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:acdbab8d0ec1cdecec72538d925a399c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A head in rect with aspect code 180, on no track line and at no position.  <br /></td></tr>
 <tr class="memitem:a5b660c88be34fa6c5ad3d89beacde131" id="r_a5b660c88be34fa6c5ad3d89beacde131"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5b660c88be34fa6c5ad3d89beacde131">~SignalItem</a> () override</td></tr>
 <tr class="memitem:af7f57fe8d66c5ada8f59a96694a38b21" id="r_af7f57fe8d66c5ada8f59a96694a38b21"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af7f57fe8d66c5ada8f59a96694a38b21">setAspectCode</a> (int code)</td></tr>
-<tr class="memdesc:af7f57fe8d66c5ada8f59a96694a38b21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the aspect code of the head, which gives the colour of its lamp through <a class="el" href="_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect()</a>.  <br /></td></tr>
 <tr class="memitem:acce94295f480f3ab855b01fc5e662bf3" id="r_acce94295f480f3ab855b01fc5e662bf3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#acce94295f480f3ab855b01fc5e662bf3">aspectCode</a> () const</td></tr>
 <tr class="memdesc:acce94295f480f3ab855b01fc5e662bf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The aspect code of the head.  <br /></td></tr>
 <tr class="memitem:ac256dc99b317575fac2036df2251c99b" id="r_ac256dc99b317575fac2036df2251c99b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac256dc99b317575fac2036df2251c99b">setFailed</a> (bool failed)</td></tr>
@@ -151,6 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aeb900cc6eb8a30de9f488edb7813033b" id="r_aeb900cc6eb8a30de9f488edb7813033b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aeb900cc6eb8a30de9f488edb7813033b">setInspectionIdentity</a> (const QString &amp;identity)</td></tr>
 <tr class="memdesc:aeb900cc6eb8a30de9f488edb7813033b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the text that names the head in its tooltip, the inspector and Find.  <br /></td></tr>
 <tr class="memitem:a350a640edbd76e6d682205a87c8ddc2e" id="r_a350a640edbd76e6d682205a87c8ddc2e"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a350a640edbd76e6d682205a87c8ddc2e">inspectionIdentity</a> () const</td></tr>
+<tr class="memitem:a79bea8af53d006c06ff90dbad18ed95c" id="r_a79bea8af53d006c06ff90dbad18ed95c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a79bea8af53d006c06ff90dbad18ed95c">updateToolTip</a> ()</td></tr>
 <tr class="memitem:ade6af967c200f9c65471c79ba621807f" id="r_ade6af967c200f9c65471c79ba621807f"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#ade6af967c200f9c65471c79ba621807f">boundingRect</a> () const override</td></tr>
 <tr class="memdesc:ade6af967c200f9c65471c79ba621807f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The head with a margin of 2 scene units.  <br /></td></tr>
 <tr class="memitem:a47969b04bc38f77f797863adc47d59a9" id="r_a47969b04bc38f77f797863adc47d59a9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a47969b04bc38f77f797863adc47d59a9">paint</a> (QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override</td></tr>
@@ -234,7 +234,7 @@ Static Public Attributes</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_acdbab8d0ec1cdecec72538d925a399c5_cgraph.svg" width="814" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_acdbab8d0ec1cdecec72538d925a399c5_cgraph.svg" width="1155" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -437,12 +437,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Sets the aspect code of the head, which gives the colour of its lamp through <a class="el" href="_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect()</a>. </p>
+<p>Sets the aspect code of the head, which gives the colour of its lamp through <a class="el" href="_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61">classifySignalAspect()</a> and the state in its tooltip. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_af7f57fe8d66c5ada8f59a96694a38b21_cgraph.svg" width="595" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_af7f57fe8d66c5ada8f59a96694a38b21_cgraph.svg" width="936" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -466,7 +465,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_ac256dc99b317575fac2036df2251c99b_cgraph.svg" width="355" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_ac256dc99b317575fac2036df2251c99b_cgraph.svg" width="898" height="178"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -513,6 +512,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Sets the text that names the head in its tooltip, the inspector and Find. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_aeb900cc6eb8a30de9f488edb7813033b_cgraph.svg" width="926" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -532,6 +536,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Sets the direction that the head is for. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_a52235a7322281fe115db5923312e1bee_cgraph.svg" width="979" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -559,6 +568,29 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Returns Type. </p>
+
+</div>
+</div>
+<a id="a79bea8af53d006c06ff90dbad18ed95c" name="a79bea8af53d006c06ff90dbad18ed95c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79bea8af53d006c06ff90dbad18ed95c">&#9670;&#160;</a></span>updateToolTip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SignalItem::updateToolTip </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets the tooltip, such as "Proceed, facing right\nTrack B0 at 0.23 km": the state that <a class="el" href="_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47">signalAspectLabel()</a> gives, the direction and <a class="el" href="#a350a640edbd76e6d682205a87c8ddc2e">inspectionIdentity()</a>. The setters of the head call it; whoever sets trackID, sceneTrackId or X calls it after. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_signal_item_a79bea8af53d006c06ff90dbad18ed95c_cgraph.svg" width="691" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

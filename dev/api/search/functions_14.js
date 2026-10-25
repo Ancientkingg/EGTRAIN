@@ -36,13 +36,14 @@ var searchData=
   ['updatessuppressedbyenvironment_33',['updatesSuppressedByEnvironment',['../_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809',1,'updatesSuppressedByEnvironment():&#160;UpdateSettings.cpp'],['../_update_settings_8h.html#a841edd1014624f82e68d783dce07a809',1,'updatesSuppressedByEnvironment():&#160;UpdateSettings.cpp']]],
   ['updatestatus_34',['updateStatus',['../class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e',1,'ValidationPanel']]],
   ['updatetelemetrycontroller_35',['UpdateTelemetryController',['../class_update_telemetry_controller.html#a7c10857b9e719084afa89294a9c6fdd2',1,'UpdateTelemetryController']]],
-  ['updatetrainpaxinfo_36',['updateTrainPaxInfo',['../class_network_presenter.html#afc3ec32093d05f7b1fa0d7ee1b426d76',1,'NetworkPresenter']]],
-  ['updatetrainposition_37',['updateTrainPosition',['../class_network_presenter.html#a1a55d590ed4796dc9923e7ba01455d5a',1,'NetworkPresenter']]],
-  ['upperkm_38',['upperKm',['../struct_block_section_extent.html#aab3817d0c41b8d86c28ec8c8f37cf8e9',1,'BlockSectionExtent']]],
-  ['usagecheckbox_39',['usageCheckBox',['../class_telemetry_consent_dialog.html#a4e141756bb87fc5e5521fff69efe86f2',1,'TelemetryConsentDialog']]],
-  ['usageenabled_40',['usageEnabled',['../class_telemetry_consent.html#a2f45cd3533669ee127bddc15b9bfd85b',1,'TelemetryConsent']]],
-  ['usageinstallationid_41',['usageInstallationId',['../class_telemetry_consent.html#a6d148ada94a92e3d3aa358b5ee7bff06',1,'TelemetryConsent']]],
-  ['usedroutereferencesfrom_42',['usedRouteReferencesFrom',['../_run_exports_8cpp.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RunExports.cpp'],['../_run_exports_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RunExports.cpp']]],
-  ['userprompts_43',['UserPrompts',['../class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888',1,'UserPrompts']]],
-  ['utf16toutf8_44',['utf16ToUtf8',['../_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b',1,'SceneImporter.cpp']]]
+  ['updatetooltip_36',['updateToolTip',['../class_signal_item.html#a79bea8af53d006c06ff90dbad18ed95c',1,'SignalItem']]],
+  ['updatetrainpaxinfo_37',['updateTrainPaxInfo',['../class_network_presenter.html#afc3ec32093d05f7b1fa0d7ee1b426d76',1,'NetworkPresenter']]],
+  ['updatetrainposition_38',['updateTrainPosition',['../class_network_presenter.html#a1a55d590ed4796dc9923e7ba01455d5a',1,'NetworkPresenter']]],
+  ['upperkm_39',['upperKm',['../struct_block_section_extent.html#aab3817d0c41b8d86c28ec8c8f37cf8e9',1,'BlockSectionExtent']]],
+  ['usagecheckbox_40',['usageCheckBox',['../class_telemetry_consent_dialog.html#a4e141756bb87fc5e5521fff69efe86f2',1,'TelemetryConsentDialog']]],
+  ['usageenabled_41',['usageEnabled',['../class_telemetry_consent.html#a2f45cd3533669ee127bddc15b9bfd85b',1,'TelemetryConsent']]],
+  ['usageinstallationid_42',['usageInstallationId',['../class_telemetry_consent.html#a6d148ada94a92e3d3aa358b5ee7bff06',1,'TelemetryConsent']]],
+  ['usedroutereferencesfrom_43',['usedRouteReferencesFrom',['../_run_exports_8cpp.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RunExports.cpp'],['../_run_exports_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449',1,'usedRouteReferencesFrom(const CompletedRunData &amp;data):&#160;RunExports.cpp']]],
+  ['userprompts_44',['UserPrompts',['../class_user_prompts.html#a845441069b8fabe4f8d8dfff13c90888',1,'UserPrompts']]],
+  ['utf16toutf8_45',['utf16ToUtf8',['../_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b',1,'SceneImporter.cpp']]]
 ];
