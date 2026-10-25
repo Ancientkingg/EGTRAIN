@@ -247,6 +247,49 @@ bool exerciseCriticalBlocks() {
 	return ok;
 }
 
+QStringList headerTexts(const QTableWidget* table) {
+	QStringList headers;
+	for (int column = 0; table && column < table->columnCount(); ++column)
+		headers << table->horizontalHeaderItem(column)->text();
+	return headers;
+}
+
+// The tabs of the chain with their counts, the columns of their tables and the names of the tables. Times lie at the right.
+bool exerciseChainTables() {
+	const CompletedRunData data = lineRun();
+	CapacityWindow window(lineResult(data), kContext, QString(), data.sectionLabels);
+	const QTabWidget* tabs = window.findChild<QTabWidget*>();
+	QStringList titles;
+	for (int index = 0; tabs && index < tabs->count(); ++index)
+		titles << tabs->tabText(index);
+	bool ok = expect(titles == QStringList({"Pairs (1)", "Compression (2)", "Critical blocks (1)"}), qPrintable("the tabs: " + titles.join(", ")));
+	const auto* pairs = qobject_cast<QTableWidget*>(tabs ? tabs->widget(0) : nullptr);
+	const auto* compression = qobject_cast<QTableWidget*>(tabs ? tabs->widget(1) : nullptr);
+	const auto* critical = qobject_cast<QTableWidget*>(tabs ? tabs->widget(2) : nullptr);
+	if (!expect(pairs && compression && critical, "the tabs hold the tables of the pairs, the compression and the critical blocks"))
+		return false;
+	ok &= expect(pairs->objectName() == "capacityPairs" && compression->objectName() == "capacityCompression"
+			&& critical->objectName() == "capacityCritical",
+		qPrintable("the tables are named: " + pairs->objectName() + ", " + compression->objectName() + ", " + critical->objectName()));
+	ok &= expect(headerTexts(pairs)
+			== QStringList({"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway (s)", "Minimum headway (s)", "Buffer (s)",
+				"Governing block"}),
+		qPrintable("the columns of the pairs: " + headerTexts(pairs).join(", ")));
+	ok &= expect(headerTexts(compression)
+			== QStringList({"Train", "Operating code", "Original reference (s)", "Scheduled reference (s)", "Compressed reference (s)", "Shift (s)",
+				"Governing predecessor"}),
+		qPrintable("the columns of the compression: " + headerTexts(compression).join(", ")));
+	ok &= expect(headerTexts(critical) == QStringList({"Leader", "Follower", "Leader block", "Follower block", "Gap (s)"}),
+		qPrintable("the columns of the critical blocks: " + headerTexts(critical).join(", ")));
+	ok &= expect((pairs->item(0, 6)->textAlignment() & Qt::AlignRight) && !(pairs->item(0, 7)->textAlignment() & Qt::AlignRight)
+			&& (compression->item(0, 5)->textAlignment() & Qt::AlignRight) && !(compression->item(0, 6)->textAlignment() & Qt::AlignRight)
+			&& (critical->item(0, 4)->textAlignment() & Qt::AlignRight) && !(critical->item(0, 3)->textAlignment() & Qt::AlignRight),
+		"the times lie at the right and the blocks at the left");
+	ok &= expect(pairs->item(0, 0)->toolTip() == "Reference time: planned departure at A" && pairs->item(0, 2)->toolTip().isEmpty(),
+		qPrintable("a train has its reference time as tooltip: " + pairs->item(0, 0)->toolTip()));
+	return ok;
+}
+
 // The window opens with a panel of 200 px, and a table whose columns do not fit scrolls sideways.
 bool exerciseOpeningSize() {
 	const CompletedRunData data = lineRun();
@@ -311,6 +354,7 @@ int main(int argc, char** argv) {
 	app.setStyleSheet(QString::fromUtf8(stylesheet.readAll()));
 	bool ok = exercisePanel();
 	ok &= exerciseCriticalBlocks();
+	ok &= exerciseChainTables();
 	ok &= exerciseOpeningSize();
 	ok &= exerciseLargeFont();
 	return ok ? 0 : 1;

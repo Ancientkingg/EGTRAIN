@@ -812,6 +812,23 @@ bool exerciseLabels() {
 			&& compression->item(predecessorRow, 6)->toolTip().contains("B0 ") && !compression->item(predecessorRow, 6)->toolTip().contains("@"),
 		"the governing predecessor names its blocks by their short ids and its tooltip by their labels");
 	const QTableWidget* critical = table(window, "areaCapacityCritical");
+	// The tables of the chain have the columns of the Capacity window, in the words of an area.
+	QStringList pairHeaders;
+	QStringList criticalHeaders;
+	for (int column = 0; pairs && column < pairs->columnCount(); ++column)
+		pairHeaders << pairs->horizontalHeaderItem(column)->text();
+	for (int column = 0; critical && column < critical->columnCount(); ++column)
+		criticalHeaders << critical->horizontalHeaderItem(column)->text();
+	ok &= expect(pairHeaders.value(7) == "Governing resource"
+			&& criticalHeaders == QStringList({"Leader", "Follower", "Leader resource", "Follower resource", "Gap (s)"}),
+		qPrintable("the columns name resources: " + pairHeaders.value(7) + ", " + criticalHeaders.join(", ")));
+	QStringList headings;
+	for (const QLabel* label : window.findChildren<QLabel*>())
+		if (label->text().startsWith("Pairs") || label->text().startsWith("Compression") || label->text().startsWith("Critical"))
+			headings << label->text();
+	ok &= expect(headings
+			== QStringList({"Pairs (1)", "Compression (2)", QString("Critical resources (%1)").arg(critical ? critical->rowCount() : -1)}),
+		qPrintable("the headings of the chain: " + headings.join(", ")));
 	ok &= expect(critical && critical->rowCount() > 0 && cell(critical, 0, 2).endsWith("-B0") && !cell(critical, 0, 2).contains("@")
 			&& critical->item(0, 2)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 2).toStdString() + "@"))
 			&& critical->item(0, 3)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 3).toStdString() + "@"))
