@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
 	bool ok = true;
 
-	ok &= expect(InspectorPanel::to_string_precision(1234.5678, 2) == "1234.57" && InspectorPanel::to_string_precision(7.0, 0) == "7",
+	ok &= expect(InspectorPanel::toStringPrecision(1234.5678, 2) == "1234.57" && InspectorPanel::toStringPrecision(7.0, 0) == "7",
 		"numbers are written with a fixed number of decimals");
 
 	QMainWindow window;

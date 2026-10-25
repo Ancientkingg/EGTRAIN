@@ -3808,7 +3808,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				// The inspector of the signal head has the same action as a button under its form, and an arc has none. Undo drew
 				// the preview again, so the head is another item now.
 				head = w.m_inspector->resolvePreviewItem("signal", headId, headTrack, headReversed, w.m_document->revision());
-				QPushButton* button = w.m_inspector->incidentButton;
+				QPushButton* button = w.m_inspector->m_incidentButton;
 				QGraphicsItem* arc = nullptr;
 				for (QGraphicsItem* item : w.scene->items())
 					if (item->isVisible() && item->data(PreviewGraphics::Kind).toString() == "arc")
@@ -4408,8 +4408,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			return failure;
 		};
-		const bool signalDetails = w.m_inspector->signallingGroupDetails && w.m_inspector->signallingGroupDetails->isReadOnly()
-			&& w.m_inspector->signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
+		const bool signalDetails = w.m_inspector->m_signallingGroupDetails && w.m_inspector->m_signallingGroupDetails->isReadOnly()
+			&& w.m_inspector->m_signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
 		const bool resultsStructure = w.m_runResultsDock
 			&& w.m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton")
 			&& w.m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 12
@@ -5750,7 +5750,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				"the menu of a signal did not say that it adds no incident while a run uses the scene");
 			w.closeSceneContextMenu();
 			w.m_inspector->displaySignallingInfo(runSignal);
-			QPushButton* button = w.m_inspector->incidentButton;
+			QPushButton* button = w.m_inspector->m_incidentButton;
 			expect(button->isVisible() && button->text() == "Add signal failure" && !button->isEnabled()
 					&& button->toolTip() == "Not available while the case runs",
 				"the inspector of a signal did not say that it adds no incident while a run uses the scene");
@@ -5761,8 +5761,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		if (!expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable, "the run did not complete"))
 			return finish();
-		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
-				&& w.m_inspector->incidentButton->toolTip().isEmpty(),
+		expect(w.m_inspector->m_incidentButton->isVisible() && w.m_inspector->m_incidentButton->isEnabled()
+				&& w.m_inspector->m_incidentButton->toolTip().isEmpty(),
 			"the inspector of a signal did not offer an incident after the run");
 		w.m_inspector->handleDisableHighlight();
 		expect(w.m_undoAction->isEnabled() && w.m_history->undoCount() == position
@@ -5839,8 +5839,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		}
 		if (trainBody)
 			w.m_inspector->displayTrainDetails(trainBody, false);
-		expect(w.m_inspector->incidentButton->isVisible() && w.m_inspector->incidentButton->isEnabled()
-				&& w.m_inspector->incidentButton->text() == "Add train breakdown",
+		expect(w.m_inspector->m_incidentButton->isVisible() && w.m_inspector->m_incidentButton->isEnabled()
+				&& w.m_inspector->m_incidentButton->text() == "Add train breakdown",
 			"the inspector of a train in a replay offered no breakdown");
 		// The menu acts on the train under the cursor, not on the selection.
 		w.m_inspector->handleDisableHighlight();
