@@ -25,8 +25,8 @@ public:
 	/// For tests: uses a transport that the caller owns and a timeout of timeoutMs milliseconds.
 	UpdateChecker(HttpTransport* transport, int timeoutMs, QObject* parent = nullptr);
 
-	/// Fetches releasesUrl() and emits finished() once, also when the request fails or times out. A check
-	/// that is still running is cancelled without a result.
+	/// Fetches releasesUrl() and emits finished() once, also when the request fails or times out or the release
+	/// list is larger than 8 MiB. A check that is still running is cancelled without a result.
 	void check();
 	/// True from check() until finished() is emitted.
 	bool isChecking() const { return !m_reply.isNull(); }
@@ -43,6 +43,7 @@ private:
 	HttpTransport* m_transport;
 	int m_timeoutMs;
 	QPointer<HttpReply> m_reply;
+	QByteArray m_body;
 	QTimer m_timeout;
 };
 

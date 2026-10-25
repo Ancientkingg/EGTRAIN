@@ -487,7 +487,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (content.empty())
 				return true;
 			const QString path = dir + "/" + file;
-			if (writeCsvFileWithProvenance(path, content, w.m_runController->m_completedRun->provenance))
+			if (writeRunArtifactWithProvenance(path.toStdString(), "csv", content, w.m_runController->m_completedRun->provenance))
 				return true;
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;
@@ -498,15 +498,17 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_runController->m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_runController->m_completedRun, ids));
-			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_runController->m_completedRun, ids);
-			ok &= dump("blocking_time.csv", blockingCsv);
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			auto* blocking = windows.isEmpty() ? nullptr : windows.last();
 			auto* list = blocking ? blocking->findChild<TrainKeyList*>() : nullptr;
-			// A scene with no routed train has no blocking-time window and nothing to export.
-			if (!blockingCsv.empty())
+			// A scene with no routed train has no blocking-time window and nothing to export. blocking_time.csv is what
+			// the CSV... button of the window writes while it shows every train.
+			const auto diagram = blockingTimeDiagramData(*w.m_runController->m_completedRun,
+				defaultBlockingTimeScopeFrom(*w.m_runController->m_completedRun));
+			if (diagram)
 				ok &= blocking && list && !blocking->csvContent().empty();
+			ok &= dump("blocking_time.csv", blocking && list ? blocking->csvContent() : std::string());
 			if (blocking && list) {
 				ok &= trainServicesShown(blocking, services);
 				ok &= exportChart(blocking, dir, "blocking_time");
@@ -523,8 +525,6 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				const QObject* strip = view ? view->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
 				ok &= strip != nullptr;
 				// The position axis spans the sections of the scope exactly and reads round positions.
-				const auto diagram = blockingTimeDiagramData(*w.m_runController->m_completedRun,
-					defaultBlockingTimeScopeFrom(*w.m_runController->m_completedRun));
 				const auto range = diagram ? blockSectionAxisRange(diagram->extents, diagram->referencePath) : std::make_pair(0.0, 0.0);
 				const auto horizontal = view ? view->chart()->axes(Qt::Horizontal) : QList<QAbstractAxis*>();
 				const auto* position = horizontal.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(horizontal.first());

@@ -341,8 +341,9 @@ assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"]
            and not row["End X[km]"] and not row["Reference section"] and not row["Geo position[km]"]
            and not row["Start geo X[km]"] and not row["End geo X[km]"] for row in unmapped), \
     "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
-# The projection does not extrapolate: these express blocks lie before the first or after the last node both routes share.
-assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@1-B0@", "@122-B0@", "@123-B0@", "@124-B0@"], \
+# The projection uses the nodes and the stations that both routes share and does not extrapolate: these express blocks
+# lie before the first or after the last of them.
+assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@123-B0@", "@124-B0@"], \
     "unexpected unmapped Paimpol envelopes"
 shown = [row["Block"] for row in rows if row["Train"].startswith(express_id + "-") and row["Layer"] in (ENVELOPE, UNMAPPED)]
 assert sorted(shown) == sorted(f"@{block}@" for block in express), "an express envelope is neither shown nor unmapped"
@@ -378,15 +379,13 @@ for output in sys.argv[1:]:
     recorded = [row for row in documents["all"] if row["Layer"] == "recorded trajectory"]
     assert recorded and all(row["Position[km]"] and row["Geo position[km]"] and not row["Start geo X[km]"] for row in recorded), \
         f"{output}: a recorded sample lacks the geo X of its position"
-# With no chart series or planned events for the unrelated train, its id must still
-# reach the actual provider from the train filter. Compare with the retained raw rows.
-output = sys.argv[3]
-with open(os.path.join(output, "blocking_time.csv"), newline="", encoding="utf-8") as stream:
-    retained = list(csv.DictReader(stream))
-unmapped = [row for row in retained if row["Layer"] == "unmapped blocking envelope"]
-assert unmapped and all(row["Train"].startswith("S19825-") for row in unmapped), "fixture lacks wholly unmapped train"
-assert unmapped == [row for row in documents["all"] if row["Train"].startswith("S19825-")], \
-    "actual window silently dropped the wholly unmapped train"
+# With no chart series or planned events for the unrelated train, its id must still reach the actual provider from
+# the train filter, and its envelopes stay in the export as unmapped rows. After the loop, documents holds the exports
+# of the unrelated scene, the last output.
+unrelated = [row for row in documents["all"] if row["Train"].startswith("S19825-")]
+assert {row["Train"] for row in unrelated} == {"S19825-1"}, "actual window silently dropped the wholly unmapped train"
+assert all(row["Layer"] == "unmapped blocking envelope" for row in unrelated), \
+    "a row of the wholly unmapped train is not an unmapped envelope"
 assert not any(row["Train"].startswith("S19825-") for row in documents["one"] + documents["none"]), \
     "hidden unmapped train was exported"
 print("actual blocking-time window provider passed: all/one/no visible trains, sections once, wholly unrelated route retained")

@@ -42,10 +42,6 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockSectionExtent>& extents = {},
 	const std::vector<BlockingTimeDiagramSegment>& unmapped = {});
 
-/// Writes a CSV export and its provenance sidecar. False when a write fails.
-bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
-	const RunProvenance& provenance);
-
 /// The ids of the trains of the run, in run order.
 QStringList trainIdsFrom(const CompletedRunData& data);
 /// The recorded samples: time in s, position in m, speed in m/s, power in kW, tractive effort in kN, energy in kWh and
@@ -60,9 +56,6 @@ using CompletedRunCsv = std::string (*)(const CompletedRunData& data, const QStr
 /// A provider that calls `csv` on the shared run with the visible train ids.
 std::function<std::string(const QStringList&)> csvProviderFrom(std::shared_ptr<const CompletedRunData> run,
 	CompletedRunCsv csv);
-
-/// The whole run, the first route that a train runs on as reference, no recorded trajectories.
-std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds);
 
 /// Every train's blocking-time segments, classified against the other trains.
 std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& data);

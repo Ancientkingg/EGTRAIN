@@ -91,6 +91,9 @@ public:
 
 		m_route.N_Block_Sections = 2;
 		m_route.sequence_of_block_sections = m_sections;
+		m_undrawnRoute = m_route;
+		for (Section& section : m_undrawnRoute.sequence_of_block_sections)
+			section.trackLineId = 2;
 
 		m_platform.ID = "P1";
 		m_platform.StationID = "B";
@@ -143,8 +146,13 @@ public:
 	Connections& connection(int) const override { return m_noConnection; }
 	int sectionCount() const override { return static_cast<int>(m_sections.size()); }
 	const Section& section(int index) const override { return m_sections[static_cast<std::size_t>(index)]; }
-	// Route 1 runs over the same sections as route 0, so that a train can change its route where it is.
-	const Route* route(int index) const override { return index == 0 || index == 1 ? &m_route : nullptr; }
+	// Route 1 runs over the same sections as route 0, so that a train can change its route where it is. Route 2 runs over
+	// the same places on a track that the source does not have, so a train on it is not drawn.
+	const Route* route(int index) const override {
+		if (index == 2)
+			return &m_undrawnRoute;
+		return index == 0 || index == 1 ? &m_route : nullptr;
+	}
 	const StationPlatform* platform(const std::string& stationId, const std::string& platformId) const override {
 		for (const StationPlatform* candidate : {&m_platform, &m_platformTwo})
 			if (stationId == candidate->StationID && platformId == candidate->ID)
@@ -169,6 +177,7 @@ private:
 	mutable Connections m_noConnection;
 	std::vector<Section> m_sections;
 	Route m_route;
+	Route m_undrawnRoute;
 	StationPlatform m_platform;
 	StationPlatform m_platformTwo;
 };
@@ -697,6 +706,31 @@ int main(int argc, char* argv[]) {
 		presenter.clear();
 		ok &= expect(!presenter.trainsMoving() && scene.items().isEmpty(), "clear stops the motion of the trains");
 		presenter.setClock({});
+	}
+
+	// A selected train on a track that is not drawn shows no passengers on board, and stays selected.
+	{
+		source->passengers = true;
+		presenter.showRuntime(model);
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.trains = {trainAt(7.5)};
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		TrainItemGroup* const train = presenter.allTrains.value(0);
+		if (train)
+			presenter.paintTrainPassengerInfo(train);
+		ok &= expect(train && presenter.trainPaxItem == train && presenter.trainPaxInfoItem,
+			"a selected train shows its passengers on board");
+		snapshot.timestep = 11;
+		snapshot.trains[0].routeIndex = 2;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(train && !train->isVisible() && presenter.trainPaxItem == train && !presenter.trainPaxInfoItem,
+			"a selected train on a track that is not drawn shows no passengers on board");
+		if (train)
+			presenter.paintTrainPassengerInfo(train);
+		ok &= expect(presenter.trainPaxItem == train && !presenter.trainPaxInfoItem,
+			"a train on a track that is not drawn shows no passengers on board when it is selected");
+		presenter.clear();
 	}
 
 	// A step that changes nothing leaves the canvas as it is, and a step that changes a little touches only what it changes.

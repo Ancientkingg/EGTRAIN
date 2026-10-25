@@ -131,11 +131,6 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	return rows.empty() ? std::string() : csv::makeDocument(blockingTimeCsvHeader(), rows);
 }
 
-bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
-	const RunProvenance& provenance) {
-	return writeRunArtifactWithProvenance(path.toStdString(), "csv", content, provenance);
-}
-
 namespace {
 
 // The route of the first train in the list, or of the first train when the list is empty, that runs on a known route.
@@ -147,14 +142,6 @@ int firstRouteOfTrains(const CompletedRunData& data, const std::vector<std::stri
 	return -1;
 }
 
-RouteDiagramPath withoutStations(RouteDiagramPath path) {
-	for (RouteDiagramNode& node : path.nodes) {
-		node.stationId.clear();
-		node.stationName.clear();
-	}
-	return path;
-}
-
 // The paths of the routes that trains run on and their projections onto a reference route.
 struct RouteProjections {
 	std::map<int, RouteDiagramPath> paths;
@@ -162,16 +149,15 @@ struct RouteProjections {
 	std::map<std::string, RouteDiagramProjection> byTrain;
 };
 
-// Without stations the nodes are matched by node id alone.
-RouteProjections projectRoutes(const CompletedRunData& data, const RouteDiagramPath& reference, bool withStations) {
+// Projects the route of every train onto the reference route.
+RouteProjections projectRoutes(const CompletedRunData& data, const RouteDiagramPath& reference) {
 	RouteProjections maps;
 	for (const CompletedTrain& train : data.trains) {
 		const int index = train.routeIndex;
 		if (!data.hasRoute(index))
 			continue;
 		if (!maps.paths.count(index)) {
-			const RouteDiagramPath& path = data.routes[static_cast<std::size_t>(index)].path;
-			maps.paths.emplace(index, withStations ? path : withoutStations(path));
+			maps.paths.emplace(index, data.routes[static_cast<std::size_t>(index)].path);
 			maps.projections.emplace(index, buildRouteDiagramProjection(maps.paths.at(index), reference));
 		}
 		maps.byTrain.emplace(train.trainId, maps.projections.at(index));
@@ -385,26 +371,6 @@ std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedR
 	return references;
 }
 
-std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds) {
-	const BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
-	const int referenceIndex = firstRouteOfTrains(data, {});
-	if (referenceIndex < 0)
-		return {};
-	int omitted = 0;
-	const RouteDiagramPath reference = withoutStations(data.routes[static_cast<std::size_t>(referenceIndex)].path);
-	const RouteProjections maps = projectRoutes(data, reference, false);
-	std::vector<BlockingTimeDiagramSegment> unmapped;
-	auto segments = projectBlockingSegments(filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds,
-												scope.blockIds, scope.startTime, scope.endTime),
-		maps.byTrain, omitted, &unmapped);
-	const auto extents = buildBlockSectionExtents(data.routes[static_cast<std::size_t>(referenceIndex)].blocks);
-	matchBlockingSegmentsToSections(segments, extents, reference.id);
-	return buildBlockingTimeCsv(visibleTrainIds, segments,
-		filterBlockingTimePlannedReferences(plannedReferencesFrom(data, scope, maps.paths, maps.projections, omitted),
-			scope.startTime, scope.endTime),
-		{}, extents, unmapped);
-}
-
 std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRunData& data,
 	const BlockingTimeScope& scope) {
 	// Empty filters keep every envelope, so a route without blocks and no train list keeps none itself.
@@ -420,7 +386,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	BlockingTimeDiagramData result;
 	result.referencePath = referenceRoute.path;
 	result.timeRange = {scope.startTime, std::max(scope.endTime, scope.startTime + 1.0)};
-	const RouteProjections maps = projectRoutes(data, result.referencePath, true);
+	const RouteProjections maps = projectRoutes(data, result.referencePath);
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
 	result.extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
@@ -445,7 +411,7 @@ std::optional<BlockingTimeDiagramData> compressedBlockingTimeDiagramData(const C
 	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
 	BlockingTimeDiagramData diagram;
 	diagram.referencePath = route.path;
-	RouteProjections maps = projectRoutes(data, diagram.referencePath, true);
+	RouteProjections maps = projectRoutes(data, diagram.referencePath);
 	// The first train one period later lies on the route of the first train.
 	const std::string nextPeriod = capacityNextPeriodIdentity(result.firstIdentity);
 	if (scope.repeatFirstTrain
@@ -669,7 +635,7 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 	result.referencePath = data.routes[static_cast<std::size_t>(referenceIndex)].path;
 	if (result.referencePath.nodes.empty())
 		return std::nullopt;
-	const RouteProjections maps = projectRoutes(data, result.referencePath, true);
+	const RouteProjections maps = projectRoutes(data, result.referencePath);
 	const auto record = [&](const CompletedTrain& train, const char* kind, const std::string& station,
 							int journey, int call, const RunResultValue& time, std::optional<double> x) {
 		result.csvRows.push_back({train.trainId, result.referencePath.id, data.routes[static_cast<std::size_t>(train.routeIndex)].id,
