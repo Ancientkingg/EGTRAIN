@@ -64,6 +64,42 @@ public:
 	static void telemetryWindowDestroyed();
 #endif
 
+	// The editor panels and their docks, which the scenarios reach through these.
+	/// The Case Settings panel.
+	static CaseSettingsPanel* caseSettingsPanel(MainWindow& w) { return w.m_caseSettingsPanel; }
+	/// The Case Settings dock.
+	static QDockWidget* caseSettingsDock(MainWindow& w) { return w.m_caseSettingsDock; }
+	/// The Infrastructure panel.
+	static InfrastructurePanel* infrastructurePanel(MainWindow& w) { return w.m_infrastructurePanel; }
+	/// The Infrastructure dock.
+	static QDockWidget* infrastructureDock(MainWindow& w) { return w.m_infrastructureDock; }
+	/// The Rolling Stock Units panel.
+	static TrainUnitPanel* trainUnitPanel(MainWindow& w) { return w.m_trainUnitPanel; }
+	/// The Rolling Stock Units dock.
+	static QDockWidget* trainUnitDock(MainWindow& w) { return w.m_trainUnitDock; }
+	/// The Compositions panel.
+	static CompositionPanel* compositionPanel(MainWindow& w) { return w.m_compositionPanel; }
+	/// The Compositions dock.
+	static QDockWidget* compositionDock(MainWindow& w) { return w.m_compositionDock; }
+	/// The Services panel.
+	static ServicePanel* servicePanel(MainWindow& w) { return w.m_servicePanel; }
+	/// The stops of the selected service, inside the Services panel.
+	static TimetableStopsPanel* timetableStopsPanel(MainWindow& w) { return w.m_timetableStopsPanel; }
+	/// The Services dock.
+	static QDockWidget* serviceDock(MainWindow& w) { return w.m_serviceDock; }
+	/// The Scenario tab of the Scenarios dock.
+	static ScenarioPanel* scenarioPanel(MainWindow& w) { return w.m_scenarioPanel; }
+	/// The Incidents tab of the Scenarios dock.
+	static IncidentPanel* incidentPanel(MainWindow& w) { return w.m_incidentPanel; }
+	/// The Entrance delays tab of the Scenarios dock.
+	static EntranceDelayPanel* entranceDelayPanel(MainWindow& w) { return w.m_entranceDelayPanel; }
+	/// The Scenarios dock.
+	static QDockWidget* incidentDock(MainWindow& w) { return w.m_incidentDock; }
+	/// The Passengers panel.
+	static PassengerPanel* passengerPanel(MainWindow& w) { return w.m_passengerPanel; }
+	/// The Passengers dock.
+	static QDockWidget* passengerDock(MainWindow& w) { return w.m_passengerDock; }
+
 	// Whether a scenario has begun its checks, which it does once, and how often it has waited for the first train to be
 	// drawn. A run starts one scenario.
 	static inline bool scenarioStarted = false;

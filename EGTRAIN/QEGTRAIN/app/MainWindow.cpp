@@ -991,8 +991,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		});
 		// Without a menu entry a closed Run Results dock stayed unreachable
 		// until the next run finished.
-		if (m_runResultsDock)
-			ui->menuView->addAction(m_runResultsDock->toggleViewAction());
+		if (m_runResultsPanel)
+			ui->menuView->addAction(m_runResultsPanel->dock()->toggleViewAction());
 	}
 	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_presenter->m_stationLayerVisible = checked;
@@ -1276,7 +1276,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
 	m_loadedDataDock->hide();
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
-	tabifyDockWidget(m_loadedDataDock, m_runResultsDock);
+	tabifyDockWidget(m_loadedDataDock, m_runResultsPanel->dock());
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
 
@@ -1314,12 +1314,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_caseSettingsDock->setObjectName("caseSettingsDock");
 	m_caseSettingsDock->setProperty("manualSection", QStringLiteral("case-settings"));
 	m_caseSettingsPanel = new CaseSettingsPanel(m_caseSettingsDock);
-	m_caseNameEdit = m_caseSettingsPanel->nameEdit();
-	m_caseDescriptionEdit = m_caseSettingsPanel->descriptionEdit();
-	m_caseBaseTimeEdit = m_caseSettingsPanel->baseTimeEdit();
-	m_caseDurationSecondsEdit = m_caseSettingsPanel->durationSecondsEdit();
-	m_caseBufferSecondsEdit = m_caseSettingsPanel->bufferSecondsEdit();
-	m_caseRecoveryPercentEdit = m_caseSettingsPanel->recoveryPercentEdit();
 	m_caseSettingsDock->setWidget(m_caseSettingsPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_caseSettingsDock);
 	m_caseSettingsDock->hide();
@@ -1340,20 +1334,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock = new QDockWidget("Infrastructure", this);
 	m_infrastructureDock->setObjectName("infrastructureDock");
 	m_infrastructurePanel = new InfrastructurePanel(m_infrastructureDock);
-	m_infrastructureFacetCombo = m_infrastructurePanel->facetCombo();
-	m_infrastructureTable = m_infrastructurePanel->table();
-	m_addInfrastructureButton = m_infrastructurePanel->addButton();
-	m_deleteInfrastructureButton = m_infrastructurePanel->deleteButton();
-	m_blockTrackFilterCombo = m_infrastructurePanel->blockTrackFilterCombo();
-	m_insertBlockButton = m_infrastructurePanel->insertBlockButton();
-	m_moveBlockUpButton = m_infrastructurePanel->moveBlockUpButton();
-	m_moveBlockDownButton = m_infrastructurePanel->moveBlockDownButton();
-	m_routeSectionCatalogCombo = m_infrastructurePanel->routeSectionCatalogCombo();
-	m_routeSectionListWidget = m_infrastructurePanel->routeSectionListWidget();
-	m_addRouteSectionButton = m_infrastructurePanel->addRouteSectionButton();
-	m_removeRouteSectionButton = m_infrastructurePanel->removeRouteSectionButton();
-	m_moveRouteSectionUpButton = m_infrastructurePanel->moveRouteSectionUpButton();
-	m_moveRouteSectionDownButton = m_infrastructurePanel->moveRouteSectionDownButton();
 	m_infrastructureDock->setWidget(m_infrastructurePanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
 	m_infrastructureDock->hide();
@@ -1393,15 +1373,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_trainUnitDock = new QDockWidget("Rolling Stock Units", this);
 	m_trainUnitDock->setObjectName("trainUnitDock");
 	m_trainUnitPanel = new TrainUnitPanel(m_trainUnitDock);
-	m_trainUnitListWidget = m_trainUnitPanel->listWidget();
-	m_trainUnitIdEdit = m_trainUnitPanel->idEdit();
-	m_trainUnitPhysicalEdits = m_trainUnitPanel->physicalEdits();
-	m_trainUnitSourceDataEdit = m_trainUnitPanel->sourceDataEdit();
-	m_trainUnitSourceTractionEdit = m_trainUnitPanel->sourceTractionEdit();
-	m_trainUnitTractionTable = m_trainUnitPanel->tractionTable();
-	m_addTrainUnitButton = m_trainUnitPanel->addButton();
-	m_addTrainUnitTractionButton = m_trainUnitPanel->addTractionRowButton();
-	m_plotTrainUnitTractionButton = m_trainUnitPanel->plotButton();
 	m_trainUnitDock->setWidget(m_trainUnitPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
 	tabifyDockWidget(m_infrastructureDock, m_trainUnitDock);
@@ -1466,13 +1437,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_compositionDock = new QDockWidget("Compositions", this);
 	m_compositionDock->setObjectName("compositionDock");
 	m_compositionPanel = new CompositionPanel(m_compositionDock);
-	m_compositionListWidget = m_compositionPanel->listWidget();
-	m_compositionIdEdit = m_compositionPanel->idEdit();
-	m_compositionUnitsListWidget = m_compositionPanel->unitsListWidget();
-	m_addCompositionButton = m_compositionPanel->addButton();
-	m_addUnitButton = m_compositionPanel->addUnitButton();
-	m_compositionUnitSourceDataLabel = m_compositionPanel->unitSourceDataLabel();
-	m_plotTractionButton = m_compositionPanel->plotTractionButton();
 	m_compositionDock->setWidget(m_compositionPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
 	m_compositionDock->hide();
@@ -1491,37 +1455,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_serviceDock = new QDockWidget("Services", this);
 	m_serviceDock->setObjectName("serviceDock");
 	m_servicePanel = new ServicePanel(m_serviceDock);
-	m_serviceListWidget = m_servicePanel->listWidget();
-	m_serviceIdEdit = m_servicePanel->idEdit();
-	m_serviceOperatingCodeEdit = m_servicePanel->operatingCodeEdit();
-	m_serviceCategoryCombo = m_servicePanel->categoryCombo();
-	m_serviceColorButton = m_servicePanel->colorButton();
-	m_serviceCompositionCombo = m_servicePanel->compositionCombo();
-	m_serviceRouteCombo = m_servicePanel->routeCombo();
-	m_serviceHasEntryTimeCheck = m_servicePanel->hasEntryTimeCheck();
-	m_serviceEntryTimeSecondsEdit = m_servicePanel->entryTimeSecondsEdit();
-	m_serviceHasRepeatCheck = m_servicePanel->hasRepeatCheck();
-	m_serviceHeadwaySecondsEdit = m_servicePanel->headwaySecondsEdit();
-	m_serviceHasRepeatCountCheck = m_servicePanel->hasRepeatCountCheck();
-	m_serviceRepeatCountEdit = m_servicePanel->repeatCountEdit();
-	m_servicePerformancePercentEdit = m_servicePanel->performancePercentEdit();
-	m_serviceHasMaximumSpeedCheck = m_servicePanel->hasMaximumSpeedCheck();
-	m_serviceMaximumSpeedKmhEdit = m_servicePanel->maximumSpeedKmhEdit();
-	m_serviceHasOperatingCodeStepCheck = m_servicePanel->hasOperatingCodeStepCheck();
-	m_serviceOperatingCodeStepEdit = m_servicePanel->operatingCodeStepEdit();
-	m_addServiceButton = m_servicePanel->addButton();
-	m_serviceOccurrenceTable = m_servicePanel->occurrenceTable();
-	m_selectNoneOccurrencesButton = m_servicePanel->selectNoneButton();
 
 	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
 	m_timetableStopsPanel->setProperty("manualSection", QStringLiteral("timetable-editor"));
-	m_stopTableWidget = m_timetableStopsPanel->table();
-	m_addStopButton = m_timetableStopsPanel->addButton();
-	m_insertStopAfterButton = m_timetableStopsPanel->insertAfterButton();
-	m_moveStopUpButton = m_timetableStopsPanel->moveUpButton();
-	m_moveStopDownButton = m_timetableStopsPanel->moveDownButton();
-	m_stopTimeModeCombo = m_timetableStopsPanel->timeModeCombo();
-	m_stopTimeBaseLabel = m_timetableStopsPanel->timeBaseLabel();
 	m_servicePanel->setTimetableWidget(m_timetableStopsPanel);
 
 	m_serviceDock->setWidget(m_servicePanel);
@@ -1540,13 +1476,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
 
 	m_scenarioPanel = new ScenarioPanel(incidentWidget);
-	m_scenarioListWidget = m_scenarioPanel->listWidget();
-	m_scenarioIdEdit = m_scenarioPanel->idEdit();
-	m_scenarioNameEdit = m_scenarioPanel->nameEdit();
-	m_scenarioDescriptionEdit = m_scenarioPanel->descriptionEdit();
-	m_blankScenarioButton = m_scenarioPanel->blankButton();
-	m_duplicateScenarioButton = m_scenarioPanel->duplicateButton();
-	m_deleteScenarioButton = m_scenarioPanel->deleteButton();
 
 	// The header names the scenario whose entries the tabs show, also while the scenario list is on another tab. It stays on
 	// one line, and a name wider than the dock is cut at the edge; the tooltip has all of it.
@@ -1564,29 +1493,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	scenarioEditorTabs->addTab(m_scenarioPanel, "Scenario");
 
 	m_incidentPanel = new IncidentPanel(scenarioEditorTabs);
-	m_incidentListWidget = m_incidentPanel->listWidget();
-	m_incidentIdEdit = m_incidentPanel->idEdit();
-	m_incidentTypeCombo = m_incidentPanel->typeCombo();
-	m_incidentTargetCombo = m_incidentPanel->targetCombo();
-	m_incidentStartSecondsEdit = m_incidentPanel->startSecondsEdit();
-	m_incidentEndSecondsEdit = m_incidentPanel->endSecondsEdit();
-	m_incidentHasReducedSpeedCheck = m_incidentPanel->hasReducedSpeedCheck();
-	m_incidentReducedSpeedKmhEdit = m_incidentPanel->reducedSpeedKmhEdit();
-	m_incidentHasEndSecondsCheck = m_incidentPanel->hasEndSecondsCheck();
-	m_incidentTerminateAtDestinationCheck = m_incidentPanel->terminateAtDestinationCheck();
-	m_addIncidentButton = m_incidentPanel->addButton();
 	scenarioEditorTabs->addTab(m_incidentPanel, "Incidents");
 
 	m_entranceDelayPanel = new EntranceDelayPanel(scenarioEditorTabs);
-	m_entranceDelayListWidget = m_entranceDelayPanel->listWidget();
-	m_entranceDelayServiceCombo = m_entranceDelayPanel->serviceCombo();
-	m_entranceDelayOccurrenceEdit = m_entranceDelayPanel->occurrenceEdit();
-	m_entranceDelayOccurrenceContextLabel = m_entranceDelayPanel->occurrenceContextLabel();
-	m_entranceDelayStationCombo = m_entranceDelayPanel->stationCombo();
-	m_entranceDelaySecondsEdit = m_entranceDelayPanel->secondsEdit();
-	m_addEntranceDelayButton = m_entranceDelayPanel->addButton();
-	m_duplicateEntranceDelayButton = m_entranceDelayPanel->duplicateButton();
-	m_deleteEntranceDelayButton = m_entranceDelayPanel->deleteButton();
 	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance delays");
 	scenarioEditorTabs->setMinimumSize(0, 0);
 	incidentLayout->addWidget(scenarioEditorTabs, 1);
@@ -1683,24 +1592,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_passengerDock = new QDockWidget("Passengers", this);
 	m_passengerDock->setObjectName("passengerDock");
 	m_passengerPanel = new PassengerPanel(m_passengerDock);
-	m_passengerListWidget = m_passengerPanel->passengerList();
-	m_passengerIdEdit = m_passengerPanel->passengerIdEdit();
-	m_addPassengerButton = m_passengerPanel->addPassengerButton();
-	m_passengerTabs = m_passengerPanel->tabs();
-	m_passengerJourneyListWidget = m_passengerPanel->journeyList();
-	m_addPassengerJourneyButton = m_passengerPanel->addJourneyButton();
-	m_passengerJourneyIdEdit = m_passengerPanel->journeyIdEdit();
-	m_passengerJourneyActivityEdit = m_passengerPanel->journeyActivityEdit();
-	m_passengerJourneyOriginCombo = m_passengerPanel->journeyOriginCombo();
-	m_passengerJourneyDestinationCombo = m_passengerPanel->journeyDestinationCombo();
-	m_passengerJourneyWindowEdits = m_passengerPanel->journeyWindowEdits();
-	m_passengerLegListWidget = m_passengerPanel->legList();
-	m_addPassengerLegButton = m_passengerPanel->addLegButton();
-	m_passengerLegIdEdit = m_passengerPanel->legIdEdit();
-	m_passengerLegOriginCombo = m_passengerPanel->legOriginCombo();
-	m_passengerLegDestinationCombo = m_passengerPanel->legDestinationCombo();
-	m_passengerLegServiceCombo = m_passengerPanel->legServiceCombo();
-	m_passengerLegOccurrenceEdit = m_passengerPanel->legOccurrenceEdit();
 	m_passengerDock->setWidget(m_passengerPanel);
 	// A dock's viewport, rather than its form, limits the main window size.
 	// Keep wide tables and enlarged-font controls reachable when space is tight.
@@ -2472,10 +2363,10 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 	QListWidget* targetList = nullptr;
 	QDockWidget* targetDock = nullptr;
 	if (targetType == "composition") {
-		targetList = m_compositionListWidget;
+		targetList = m_compositionPanel->listWidget();
 		targetDock = m_compositionDock;
 	} else if (targetType == "service") {
-		targetList = m_serviceListWidget;
+		targetList = m_servicePanel->listWidget();
 		targetDock = m_serviceDock;
 	}
 	if (targetList) {
@@ -2484,11 +2375,11 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 			targetList->setCurrentItem(matches.front());
 			raiseDock(targetDock);
 		}
-	} else if (targetType == "incident" && m_incidentListWidget) {
+	} else if (targetType == "incident" && m_incidentPanel->listWidget()) {
 		const auto& incidents = selectedScenarioIncidents();
 		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
 			if (QString::fromStdString(incidents[static_cast<std::size_t>(row)].id) == targetId) {
-				m_incidentListWidget->setCurrentRow(row);
+				m_incidentPanel->listWidget()->setCurrentRow(row);
 				if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
 					tabs->setCurrentWidget(m_incidentPanel);
 				raiseDock(m_incidentDock);
@@ -2687,7 +2578,7 @@ void MainWindow::invalidateRunResults() {
 	// The replay row and the Run Results dock hide, and Qt would hand their focus to the next widget of the tab chain, such
 	// as a layer check box. The network view, which showed the results, takes it.
 	if (QWidget* focus = QApplication::focusWidget();
-		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsDock && m_runResultsDock->isAncestorOf(focus))))
+		focus && ((m_replayBar && m_replayBar->isAncestorOf(focus)) || (m_runResultsPanel && m_runResultsPanel->dock()->isAncestorOf(focus))))
 		networkView->setFocus(Qt::OtherFocusReason);
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
@@ -2946,8 +2837,8 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
 			tabs->setCurrentWidget(m_incidentPanel);
 		revealEditorDock(m_incidentDock);
-		m_incidentStartSecondsEdit->setFocus(Qt::OtherFocusReason);
-		m_incidentStartSecondsEdit->selectAll();
+		m_incidentPanel->startSecondsEdit()->setFocus(Qt::OtherFocusReason);
+		m_incidentPanel->startSecondsEdit()->selectAll();
 		// As short as the hint of a pick.
 		const QString added = target.type == "train_breakdown"
 			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
@@ -2986,7 +2877,7 @@ void MainWindow::pickIncidentTarget() {
 		}
 		// The end of the pick shows a held autosave failure over this message.
 		statusBar()->showMessage(
-			QString("The target of incident %1 is now %2.").arg(m_incidentIdEdit->text(), m_incidentTargetCombo->currentText()), 8000);
+			QString("The target of incident %1 is now %2.").arg(m_incidentPanel->idEdit()->text(), m_incidentPanel->targetCombo()->currentText()), 8000);
 		m_incidentPanel->endTargetPick();
 	});
 }
@@ -3884,19 +3775,12 @@ void MainWindow::teardownGUI() {
 		networkView->fitToTopology();
 }
 
-// Creates the result views and the Run Results dock. The window keeps pointers to the parts of the dock that the
-// scripted runs in tests/e2e read.
+// Creates the result views and the Run Results dock.
 void MainWindow::setupRunResultsDock() {
 	m_resultViews = new ResultViews(this, m_runController, *this);
 	connect(m_resultViews, &ResultViews::trainSelected, this, &MainWindow::focusTrainInScene);
 	m_runResultsPanel.reset(new RunResultsDock(this, m_runController, m_resultViews, *this));
-	m_runResultsDock = m_runResultsPanel->dock();
-	m_runResultsDock->setProperty("manualSection", QStringLiteral("run-results"));
-	m_runResultsTable = m_runResultsPanel->table();
-	m_runResultsSummaryLabel = m_runResultsPanel->summaryLabel();
-	m_delayFeedbackLabel = m_runResultsPanel->delayFeedbackLabel();
-	m_setDelayBaselineButton = m_runResultsPanel->setDelayBaselineButton();
-	m_compareDelayButton = m_runResultsPanel->compareDelayButton();
+	m_runResultsPanel->dock()->setProperty("manualSection", QStringLiteral("run-results"));
 }
 
 void MainWindow::refreshRunResults() {

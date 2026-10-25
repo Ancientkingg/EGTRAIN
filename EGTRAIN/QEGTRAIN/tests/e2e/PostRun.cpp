@@ -16,6 +16,7 @@
 #include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
+#include "editors/CaseSettingsPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/FollowCamera.h"
@@ -340,8 +341,8 @@ void MainWindowTestAccess::autostart(MainWindow& w) {
 // snapshot of an autostarted run prints a marker, and QEGTRAIN_E2E_CLOSE_DURING_RUN closes the window then.
 void MainWindowTestAccess::snapshotDelivered(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
-		&& !w.m_runController->m_sceneChangedDuringRun && w.m_caseDescriptionEdit) {
-		w.m_caseDescriptionEdit->setText(QStringLiteral("discarded operational run"));
+		&& !w.m_runController->m_sceneChangedDuringRun && caseSettingsPanel(w)->descriptionEdit()) {
+		caseSettingsPanel(w)->descriptionEdit()->setText(QStringLiteral("discarded operational run"));
 		w.commitCaseSettings();
 		sceneEditedDuringRun = w.m_runController->m_sceneChangedDuringRun;
 	}
@@ -411,8 +412,8 @@ void MainWindowTestAccess::checkSignalHeads(MainWindow& w) {
 void MainWindowTestAccess::runResultsRefreshed(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		std::fprintf(stdout, "\nE2E_GUI_RUN_RESULTS rows=%d trains=%d dock_visible=%d output_dir=%s\n",
-			w.m_runResultsTable->rowCount(), static_cast<int>(w.m_runController->m_completedRun->results.trains.size()),
-			w.m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
+			w.m_runResultsPanel->table()->rowCount(), static_cast<int>(w.m_runController->m_completedRun->results.trains.size()),
+			w.m_runResultsPanel->dock()->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
 	}
 }
@@ -701,7 +702,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const QStringList energyNames{"Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)", "Substation request (kWh)",
 		"Substation request with regenerative braking (kWh)"};
 	for (int i = 0; i < headers.size(); ++i) {
-		const auto* header = w.m_runResultsTable ? w.m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
+		const auto* header = w.m_runResultsPanel->table() ? w.m_runResultsPanel->table()->horizontalHeaderItem(4 + i) : nullptr;
 		if (!header || header->text() != headers[i] || (i >= 3 && header->toolTip() != energyNames[i - 3])) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results header %d\n", 4 + i);
 			QCoreApplication::exit(2);
@@ -709,9 +710,9 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		}
 	}
 	// Names are left-aligned, numbers and times right-aligned.
-	for (int row = 0; row < w.m_runResultsTable->rowCount(); ++row) {
-		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column) {
-			const QTableWidgetItem* item = w.m_runResultsTable->item(row, column);
+	for (int row = 0; row < w.m_runResultsPanel->table()->rowCount(); ++row) {
+		for (int column = 0; column < w.m_runResultsPanel->table()->columnCount(); ++column) {
+			const QTableWidgetItem* item = w.m_runResultsPanel->table()->item(row, column);
 			if (!item || bool(item->textAlignment() & Qt::AlignRight) != (column >= 2)) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results alignment in row %d, column %d\n", row, column);
 				QCoreApplication::exit(2);
@@ -1341,7 +1342,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		w.m_replayTimer->start();
-		w.m_scenarioPanel->selectScenario(static_cast<int>(w.m_document->mutableModel().scenarios.size()) - 1);
+		scenarioPanel(w)->selectScenario(static_cast<int>(w.m_document->mutableModel().scenarios.size()) - 1);
 		if (w.m_replayTimer->isActive() || !w.m_completedReplay.empty() || w.m_snapshot
 			|| !w.m_showingTrackPreview || !w.m_presenter->allTrains.isEmpty() || !w.m_presenter->m_activeTrackItems.empty()
 			|| w.m_followTrainIndex >= 0 || w.m_followCamera->hasTarget() || w.m_followCamera->running() || w.m_replayBar->isVisible()) {
@@ -1536,16 +1537,16 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	// less its frame.
 	const QSize sizeBefore = w.size();
 	const auto openResults = [&w](int width, int height) {
-		w.m_runResultsDock->hide();
+		w.m_runResultsPanel->dock()->hide();
 		w.resize(width, height);
 		QApplication::processEvents();
 		w.m_runResultsPanel->refresh();
 		QApplication::processEvents();
 	};
 	openResults(1024, 690);
-	const auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsDock->widget());
+	const auto* resultsScroll = qobject_cast<QScrollArea*>(w.m_runResultsPanel->dock()->widget());
 	const int rowBottom = resultsScroll
-		? w.m_runResultsTable->mapTo(resultsScroll->viewport(), QPoint(0, w.m_runResultsTable->viewport()->y() + w.m_runResultsTable->rowHeight(0))).y()
+		? w.m_runResultsPanel->table()->mapTo(resultsScroll->viewport(), QPoint(0, w.m_runResultsPanel->table()->viewport()->y() + w.m_runResultsPanel->table()->rowHeight(0))).y()
 		: -1;
 	const int shownHeight = resultsScroll ? resultsScroll->viewport()->height() : -1;
 	// A dock on the right, such as the inspector after the signal checks, keeps the window wider than 819 pixels.
@@ -1558,11 +1559,11 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	QApplication::processEvents();
 	openResults(819, 614);
 	const QSize smallSize = w.size();
-	const int resultsHeight = w.m_runResultsDock->height();
+	const int resultsHeight = w.m_runResultsPanel->dock()->height();
 	const int canvasHeight = w.networkView->height();
 	const int minimumHeight = w.minimumSizeHint().height();
 	const auto* delayCaption = w.findChild<QLabel*>("delayComparisonCaption");
-	const bool tableApart = delayCaption && delayCaption->y() > w.m_runResultsTable->geometry().bottom();
+	const bool tableApart = delayCaption && delayCaption->y() > w.m_runResultsPanel->table()->geometry().bottom();
 	for (QDockWidget* dock : rightDocks)
 		dock->show();
 	std::fprintf(stdout, "E2E_RUN_RESULTS_SMALL_WINDOW size=%dx%d results=%d canvas=%d minimum_height=%d row_bottom_1024=%d shown_1024=%d\n",
@@ -1592,7 +1593,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	QWidget* focused = QApplication::focusWidget();
 	while (focused && order.size() < 60 && !order.contains(focused)) {
 		order << focused;
-		if (focused == w.m_runResultsTable || focused == w.networkView) {
+		if (focused == w.m_runResultsPanel->table() || focused == w.networkView) {
 			const QImage shown = focused->grab().toImage();
 			QString& edge = focused == w.networkView ? canvasEdge : tableEdge;
 			edge = shown.pixelColor(0, shown.height() / 2).name() + shown.pixelColor(1, shown.height() / 2).name();
@@ -1604,7 +1605,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 	}
 	const QList<QWidget*> replayRow{w.m_replayStartButton, w.m_replayPlayButton, endButton, w.m_replaySlider};
 	const QList<QWidget*> results{w.findChild<QWidget*>("runResultsViewsButton"), w.findChild<QWidget*>("resultView_ExportCSV"),
-		w.findChild<QWidget*>("resultView_ExportPNG"), w.m_runResultsTable};
+		w.findChild<QWidget*>("resultView_ExportPNG"), w.m_runResultsPanel->table()};
 	const int views = order.indexOf(results.first());
 	QStringList names;
 	for (QWidget* widget : order)

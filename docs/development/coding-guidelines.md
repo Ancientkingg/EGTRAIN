@@ -416,6 +416,9 @@ own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `OutputFolder.cpp`, `SceneR
 `StationOverlay.cpp`, `TrackPreview.cpp`, `VisualPolish.cpp`, `EditorSmoke.cpp`,
 `CreatorAcceptance.cpp`) is a member of
 it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
+A scenario reaches an editor panel or its dock through the getters of `MainWindowTestAccess`, such as
+`servicePanel(w)` and `serviceDock(w)`, and the fields of a panel through the accessors of the panel
+(`servicePanel(w)->idEdit()`). Do not copy such a pointer into a member of the window for a scenario.
 `PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
 the hooks of `MainWindowTestHooks`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
 that a build without tests compiles must not name a `QEGTRAIN_E2E_` variable, print an `E2E_` marker or

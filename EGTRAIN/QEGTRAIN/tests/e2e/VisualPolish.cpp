@@ -558,8 +558,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		return dock && !dock->isVisible();
 	};
 	if (!secondaryDockHidden(w.m_logPane) || !secondaryDockHidden(w.m_validationDock)
-		|| !secondaryDockHidden(w.m_compositionDock) || !secondaryDockHidden(w.m_serviceDock)
-		|| !secondaryDockHidden(w.m_incidentDock)) {
+		|| !secondaryDockHidden(compositionDock(w)) || !secondaryDockHidden(serviceDock(w))
+		|| !secondaryDockHidden(incidentDock(w))) {
 		ok = false;
 		failures << "secondary diagnostics docks are visible by default";
 	}
@@ -1109,22 +1109,22 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 
-	if (!w.networkView || !w.m_incidentDock) {
+	if (!w.networkView || !incidentDock(w)) {
 		ok = false;
 		failures << "incident geometry controls are missing";
 	} else {
-		w.m_incidentDock->show();
-		w.m_incidentDock->raise();
+		incidentDock(w)->show();
+		incidentDock(w)->raise();
 		QApplication::processEvents();
 		const int incidentNetworkWidth = w.networkView->width();
-		const int incidentDockWidth = w.m_incidentDock->width();
+		const int incidentDockWidth = incidentDock(w)->width();
 		if (incidentNetworkWidth < 560 || incidentNetworkWidth <= incidentDockWidth || incidentDockWidth > 360) {
 			ok = false;
 			failures << QString("incident geometry network=%1px, dock=%2px violates 560px/wider/360px limits")
 							.arg(incidentNetworkWidth)
 							.arg(incidentDockWidth);
 		}
-		w.m_incidentDock->hide();
+		incidentDock(w)->hide();
 		QApplication::processEvents();
 		const int restoredNetworkWidth = w.networkView->width();
 		if (qAbs(restoredNetworkWidth - defaultNetworkWidth) > 8) {
@@ -3159,7 +3159,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const auto* track = qgraphicsitem_cast<const TrackLineItem*>(item);
 					return track && track->pen().color() == kSelectionCueColor;
 				});
-				if (w.m_infrastructureTable->currentRow() != -1 || !w.m_infrastructurePanel->selectionId().isEmpty()
+				if (infrastructurePanel(w)->table()->currentRow() != -1 || !infrastructurePanel(w)->selectionId().isEmpty()
 					|| w.m_presenter->m_previewHasSelectedTrack || cueDrawn) {
 					ok = false;
 					failures << "Stop selected a track without a selection in the infrastructure editor";

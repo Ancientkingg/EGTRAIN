@@ -166,8 +166,8 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		} else if (mode == "late") {
 			// Real actions while disabled must not be reconstructed after enable.
 			w.openSceneDirectory(w.m_session->m_sceneDir);
-			w.m_caseSettingsDock->hide();
-			w.revealEditorDock(w.m_caseSettingsDock);
+			caseSettingsDock(w)->hide();
+			w.revealEditorDock(caseSettingsDock(w));
 			const int poll = smoke->polls.load();
 			saveSceneBundle(w.m_document->mutableModel(), (root + "/historical.egscene").toStdString());
 			telemetry_smoke::chooseFile(root + "/historical.egscene", [&w, poll, changed = false]() mutable {

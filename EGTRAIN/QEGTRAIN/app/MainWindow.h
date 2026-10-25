@@ -40,7 +40,6 @@
 
 class AboutDialog;
 class CaseSettingsPanel;
-class ColorChoiceButton;
 class CompositionPanel;
 class ConsoleWidget;
 class ElidedLabel;
@@ -59,13 +58,10 @@ class QCheckBox;
 class QCloseEvent;
 class QComboBox;
 class QDockWidget;
-class QDoubleSpinBox;
 class QDragEnterEvent;
 class QDropEvent;
 class QGraphicsItem;
 class QLabel;
-class QLineEdit;
-class QListWidget;
 class QMenu;
 class QPoint;
 class QPointF;
@@ -75,9 +71,6 @@ class QSettings;
 class QShortcut;
 class QShowEvent;
 class QSlider;
-class QSpinBox;
-class QTabWidget;
-class QTableWidget;
 class QThread;
 class QTimer;
 class QToolBar;
@@ -241,11 +234,7 @@ private:
 
 	// The inspector dock: the form of the selected item
 	InspectorPanel* m_inspector = nullptr;
-	QDockWidget* m_runResultsDock = nullptr;
-	QTableWidget* m_runResultsTable = nullptr;
-	QPushButton* m_setDelayBaselineButton = nullptr;
-	QPushButton* m_compareDelayButton = nullptr;
-	// The windows of the result views, and the dock that opens them. The pointers above are parts of the dock.
+	// The windows of the result views, and the dock that opens them.
 	ResultViews* m_resultViews = nullptr;
 	std::unique_ptr<RunResultsDock> m_runResultsPanel;
 
@@ -329,33 +318,9 @@ private:
 	QDockWidget* m_loadedDataDock = nullptr;
 	QDockWidget* m_caseSettingsDock = nullptr;
 	CaseSettingsPanel* m_caseSettingsPanel = nullptr;
-	// The fields of m_caseSettingsPanel, for the scripted runs in tests/e2e
-	QLineEdit* m_caseNameEdit = nullptr;
-	QLineEdit* m_caseDescriptionEdit = nullptr;
-	QLineEdit* m_caseBaseTimeEdit = nullptr;
-	QDoubleSpinBox* m_caseDurationSecondsEdit = nullptr;
-	QDoubleSpinBox* m_caseBufferSecondsEdit = nullptr;
-	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
 	QDockWidget* m_infrastructureDock = nullptr;
 	InfrastructurePanel* m_infrastructurePanel = nullptr;
-	// Parts of m_infrastructurePanel, for the scripted runs in tests/e2e and the facets that MainWindow implements
-	QComboBox* m_infrastructureFacetCombo = nullptr;
-	QTableWidget* m_infrastructureTable = nullptr;
-	QPushButton* m_addInfrastructureButton = nullptr;
-	QPushButton* m_deleteInfrastructureButton = nullptr;
-	QComboBox* m_blockTrackFilterCombo = nullptr;
-	QPushButton* m_insertBlockButton = nullptr;
-	QPushButton* m_moveBlockUpButton = nullptr;
-	QPushButton* m_moveBlockDownButton = nullptr;
-	QComboBox* m_routeSectionCatalogCombo = nullptr;
-	QListWidget* m_routeSectionListWidget = nullptr;
-	QPushButton* m_addRouteSectionButton = nullptr;
-	QPushButton* m_removeRouteSectionButton = nullptr;
-	QPushButton* m_moveRouteSectionUpButton = nullptr;
-	QPushButton* m_moveRouteSectionDownButton = nullptr;
 	RunSelection m_runSelection;
-	QLabel* m_runResultsSummaryLabel = nullptr;
-	QLabel* m_delayFeedbackLabel = nullptr;
 	int m_startupTimingIteration = 0;
 	int m_startupTimingWarmTrials = 0;
 	QString m_startupTimingScenePath;
@@ -364,104 +329,26 @@ private:
 	QDockWidget* m_trainUnitDock = nullptr;
 	TrainUnitPanel* m_trainUnitPanel = nullptr;
 	TrainUnitSourceLinker* m_trainUnitSourceLinker = nullptr;
-	// Parts of m_trainUnitPanel, for the scripted runs in tests/e2e
-	QListWidget* m_trainUnitListWidget = nullptr;
-	QLineEdit* m_trainUnitIdEdit = nullptr;
-	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
-	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
-	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
-	QTableWidget* m_trainUnitTractionTable = nullptr;
-	QPushButton* m_addTrainUnitButton = nullptr;
-	QPushButton* m_addTrainUnitTractionButton = nullptr;
 
 	// composition editor dock
 	QDockWidget* m_compositionDock = nullptr;
 	CompositionPanel* m_compositionPanel = nullptr;
-	// Parts of m_compositionPanel, for the scripted runs in tests/e2e
-	QListWidget* m_compositionListWidget = nullptr;
-	QLineEdit* m_compositionIdEdit = nullptr;
-	QListWidget* m_compositionUnitsListWidget = nullptr;
-	QPushButton* m_addCompositionButton = nullptr;
-	QPushButton* m_addUnitButton = nullptr;
-	QLabel* m_compositionUnitSourceDataLabel = nullptr;
-	QPushButton* m_plotTractionButton = nullptr;
-	QPushButton* m_plotTrainUnitTractionButton = nullptr;
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
 	ServicePanel* m_servicePanel = nullptr;
-	// Parts of m_servicePanel, for the scripted runs in tests/e2e
-	QListWidget* m_serviceListWidget = nullptr;
-	QLineEdit* m_serviceIdEdit = nullptr;
-	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
-	QComboBox* m_serviceCategoryCombo = nullptr;
-	ColorChoiceButton* m_serviceColorButton = nullptr;
-	QComboBox* m_serviceCompositionCombo = nullptr;
-	QComboBox* m_serviceRouteCombo = nullptr;
-	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
-	QDoubleSpinBox* m_serviceEntryTimeSecondsEdit = nullptr;
-	QCheckBox* m_serviceHasRepeatCheck = nullptr;
-	QDoubleSpinBox* m_serviceHeadwaySecondsEdit = nullptr;
-	QCheckBox* m_serviceHasRepeatCountCheck = nullptr;
-	QLineEdit* m_serviceRepeatCountEdit = nullptr;
-	QDoubleSpinBox* m_servicePerformancePercentEdit = nullptr;
-	QCheckBox* m_serviceHasMaximumSpeedCheck = nullptr;
-	QDoubleSpinBox* m_serviceMaximumSpeedKmhEdit = nullptr;
-	QCheckBox* m_serviceHasOperatingCodeStepCheck = nullptr;
-	QLineEdit* m_serviceOperatingCodeStepEdit = nullptr;
-	QPushButton* m_addServiceButton = nullptr;
-	QTableWidget* m_serviceOccurrenceTable = nullptr;
-	QPushButton* m_selectNoneOccurrencesButton = nullptr;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
 	TimetableStopsPanel* m_timetableStopsPanel = nullptr;
-	// Parts of m_timetableStopsPanel, for the scripted runs in tests/e2e
-	QTableWidget* m_stopTableWidget = nullptr;
-	QPushButton* m_addStopButton = nullptr;
-	QPushButton* m_insertStopAfterButton = nullptr;
-	QPushButton* m_moveStopUpButton = nullptr;
-	QPushButton* m_moveStopDownButton = nullptr;
-	QComboBox* m_stopTimeModeCombo = nullptr;
-	QLabel* m_stopTimeBaseLabel = nullptr;
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
 	ScenarioPanel* m_scenarioPanel = nullptr;
-	// Parts of m_scenarioPanel, for the scripted runs in tests/e2e
-	QListWidget* m_scenarioListWidget = nullptr;
-	QLineEdit* m_scenarioIdEdit = nullptr;
-	QLineEdit* m_scenarioNameEdit = nullptr;
-	QLineEdit* m_scenarioDescriptionEdit = nullptr;
-	QPushButton* m_blankScenarioButton = nullptr;
-	QPushButton* m_duplicateScenarioButton = nullptr;
-	QPushButton* m_deleteScenarioButton = nullptr;
 	IncidentPanel* m_incidentPanel = nullptr;
-	// Parts of m_incidentPanel, for the scripted runs in tests/e2e
-	QListWidget* m_incidentListWidget = nullptr;
-	QLineEdit* m_incidentIdEdit = nullptr;
-	QComboBox* m_incidentTypeCombo = nullptr;
-	QComboBox* m_incidentTargetCombo = nullptr;
-	QDoubleSpinBox* m_incidentStartSecondsEdit = nullptr;
-	QDoubleSpinBox* m_incidentEndSecondsEdit = nullptr;
-	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
-	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
-	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
-	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
-	QPushButton* m_addIncidentButton = nullptr;
 	// Esc while the target of an incident is picked on the network view; enabled only then.
 	QShortcut* m_endTargetPickShortcut = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
 	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
-	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
-	QListWidget* m_entranceDelayListWidget = nullptr;
-	QComboBox* m_entranceDelayServiceCombo = nullptr;
-	QSpinBox* m_entranceDelayOccurrenceEdit = nullptr;
-	QLabel* m_entranceDelayOccurrenceContextLabel = nullptr;
-	QComboBox* m_entranceDelayStationCombo = nullptr;
-	QDoubleSpinBox* m_entranceDelaySecondsEdit = nullptr;
-	QPushButton* m_addEntranceDelayButton = nullptr;
-	QPushButton* m_duplicateEntranceDelayButton = nullptr;
-	QPushButton* m_deleteEntranceDelayButton = nullptr;
 
 	// Compact shell state. These pointers observe scene-owned items without
 	// taking ownership; teardownGUI clears them after scene->clear().
@@ -620,25 +507,6 @@ private:
 	// passenger editor: canonical passengers, journeys, and ordered legs
 	QDockWidget* m_passengerDock = nullptr;
 	PassengerPanel* m_passengerPanel = nullptr;
-	// The fields of m_passengerPanel, for the scripted runs in tests/e2e
-	QListWidget* m_passengerListWidget = nullptr;
-	QLineEdit* m_passengerIdEdit = nullptr;
-	QPushButton* m_addPassengerButton = nullptr;
-	QTabWidget* m_passengerTabs = nullptr;
-	QListWidget* m_passengerJourneyListWidget = nullptr;
-	QPushButton* m_addPassengerJourneyButton = nullptr;
-	QLineEdit* m_passengerJourneyIdEdit = nullptr;
-	QLineEdit* m_passengerJourneyActivityEdit = nullptr;
-	QComboBox* m_passengerJourneyOriginCombo = nullptr;
-	QComboBox* m_passengerJourneyDestinationCombo = nullptr;
-	std::array<QDoubleSpinBox*, 4> m_passengerJourneyWindowEdits{};
-	QListWidget* m_passengerLegListWidget = nullptr;
-	QPushButton* m_addPassengerLegButton = nullptr;
-	QLineEdit* m_passengerLegIdEdit = nullptr;
-	QComboBox* m_passengerLegOriginCombo = nullptr;
-	QComboBox* m_passengerLegDestinationCombo = nullptr;
-	QComboBox* m_passengerLegServiceCombo = nullptr;
-	QSpinBox* m_passengerLegOccurrenceEdit = nullptr;
 
 	// opens the tractive-effort plot of a unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
