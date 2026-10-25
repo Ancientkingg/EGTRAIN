@@ -73,6 +73,33 @@ static void writeUtf16Le(const fs::path& path, const std::string& content) {
 	}
 }
 
+// Writes content as UTF-16 LE with one byte too many.
+static void writeOddUtf16Le(const fs::path& path, const std::string& content) {
+	writeUtf16Le(path, content);
+	std::ofstream output(path, std::ios::binary | std::ios::app);
+	output.put('\n');
+}
+
+// Writes a legacy case of one track, one station, one route and one service.
+static void writeSmallLegacyCase(const fs::path& legacy) {
+	writeText(legacy / "TrackLines/B0/NodiCumPari.txt", "0 0 0\n1 2 0\n");
+	writeText(legacy / "TrackLines/Stations.txt", "0\tOrigin\n");
+	writeText(legacy / "Routes/Route0.txt", "@0-B0@\n");
+	writeText(legacy / "trainNames.txt", "Service.txt\n");
+	writeText(legacy / "Trains/Service.txt", "Service 0 99999999 0 /Service.dat /Service-effort.dat /TimeTable/Service.txt\n");
+	writeText(legacy / "Service.dat", "1 2 3 4 5 6 7 8 9\n");
+	writeText(legacy / "Service-effort.dat", "0 1 2 3 4\n1 2 3 4 5\n");
+	writeText(legacy / "TimeTable/Service.txt", "Origin 2 -1 10\n");
+}
+
+static bool hasReadDiag(const std::vector<SceneDiagnostic>& diagnostics, const fs::path& file, SceneSeverity severity) {
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.code == "scene.import.read" && diagnostic.severity == severity && diagnostic.file == file.u8string())
+			return true;
+	}
+	return false;
+}
+
 static bool hasDiagAt(const std::vector<SceneDiagnostic>& diagnostics, const std::string& file,
 	const std::string& path) {
 	for (const auto& diagnostic : diagnostics) {
@@ -1127,6 +1154,55 @@ int main() {
 			namedAbsent = namedAbsent || (diagnostic.code == "scene.import.missing" && diagnostic.file == absent.u8string());
 		ok &= expect(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
 	}
+
+	// A UTF-16 file with an odd byte count cannot be read. A manifest is then replaced by the Trains directory, and a
+	// rollout is left out.
+	{
+		TempDir root;
+		const fs::path legacy = fs::path(root.dir) / "odd";
+		const fs::path destination = fs::path(root.dir) / "odd-scene";
+		writeSmallLegacyCase(legacy);
+		writeOddUtf16Le(legacy / "trainNames.txt", "Service.txt\n");
+		const fs::path rollout = legacy / "TimeTable/Scenarios_Entrance_Delays/Rollout_1.txt";
+		writeOddUtf16Le(rollout, "5\n");
+		const auto imported = importLegacyScene(legacy.string(), destination.string(), "Odd");
+		json services, scenarios;
+		ok &= expect(imported.success() && readJson(destination / "services.json", services)
+				&& readJson(destination / "scenarios.json", scenarios),
+			"A case with an odd-sized UTF-16 manifest and rollout imports");
+		ok &= expect(hasReadDiag(imported.diagnostics, legacy / "trainNames.txt", SceneSeverity::Warning)
+				&& !hasDiag(imported.diagnostics, "scene.import.info", SceneSeverity::Info),
+			"An odd-sized UTF-16 manifest is reported as unreadable, not as missing");
+		ok &= expect(services["services"].size() == 1, "An unreadable manifest falls back to the Trains directory");
+		bool rolloutImported = false;
+		for (const auto& scenario : scenarios["scenarios"])
+			rolloutImported = rolloutImported || scenario["id"] == "rollout_1";
+		ok &= expect(hasReadDiag(imported.diagnostics, rollout, SceneSeverity::Warning) && !rolloutImported,
+			"An odd-sized UTF-16 rollout is reported and left out");
+	}
+
+#ifndef _WIN32
+	// A file that cannot be opened is reported. A required file stops the import and an optional one is skipped. This
+	// does not apply to root.
+	if (geteuid() != 0) {
+		TempDir root;
+		const fs::path legacy = fs::path(root.dir) / "closed-file";
+		writeSmallLegacyCase(legacy);
+		const fs::path incidents = legacy / "Incidents.txt";
+		writeText(incidents, "signal_failure\t1\t0\t10\n");
+		fs::permissions(incidents, fs::perms::none, fs::perm_options::replace);
+		const auto optional = importLegacyScene(legacy.string(), (fs::path(root.dir) / "optional").string(), "Closed");
+		ok &= expect(optional.success() && hasReadDiag(optional.diagnostics, incidents, SceneSeverity::Warning),
+			"An optional file that cannot be opened is reported and skipped");
+		const fs::path stations = legacy / "TrackLines/Stations.txt";
+		fs::permissions(stations, fs::perms::none, fs::perm_options::replace);
+		const fs::path refused = fs::path(root.dir) / "required";
+		const auto required = importLegacyScene(legacy.string(), refused.string(), "Closed");
+		ok &= expect(!required.success() && hasReadDiag(required.diagnostics, stations, SceneSeverity::Error)
+				&& !fs::exists(refused),
+			"A station file that cannot be opened stops the import");
+	}
+#endif
 
 #ifndef _WIN32
 	{

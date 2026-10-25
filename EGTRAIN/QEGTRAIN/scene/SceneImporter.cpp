@@ -171,6 +171,8 @@ static bool utf16ToUtf8(const std::u16string& in, std::string& out) {
 	return true;
 }
 
+// Reads a file as UTF-8. A file that starts with the UTF-16 LE byte order mark is converted; an odd byte count or an
+// unpaired surrogate fails the read and leaves content empty.
 static bool readFile(const fs::path& path, std::string& content) {
 	std::ifstream f(path, std::ios::binary);
 	if (!f.good())
@@ -179,6 +181,10 @@ static bool readFile(const fs::path& path, std::string& content) {
 	if (content.size() >= 2
 		&& static_cast<unsigned char>(content[0]) == 0xff
 		&& static_cast<unsigned char>(content[1]) == 0xfe) {
+		if (content.size() % 2 != 0) {
+			content.clear();
+			return false;
+		}
 		std::u16string utf16;
 		utf16.reserve(content.size() / 2);
 		for (std::size_t i = 2; i + 1 < content.size(); i += 2) {
@@ -936,6 +942,18 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		result.diagnostics.push_back(diagnostic);
 		if (unresolved && !category.empty()) report.unresolved(category, file);
 	};
+	// Reads a legacy file. A file that cannot be read is reported with severity and counted as skipped, and content
+	// stays empty, so the caller parses no rows from it.
+	auto readLegacyFile = [&](const fs::path& path, SceneSeverity severity, const std::string& category,
+							  const std::string& source, std::string& content) {
+		if (readFile(path, content))
+			return true;
+		report.skipped(category, source);
+		addDiag(severity, "scene.import.read",
+			"Cannot read " + path.filename().u8string() + ": it cannot be opened or is not valid UTF-16",
+			path.u8string());
+		return false;
+	};
 	fs::path legacyPath = pathFromUtf8(legacyDir);
 	fs::path scenePath = pathFromUtf8(sceneDir);
 	const fs::path comparableLegacyPath = comparablePath(legacyPath);
@@ -1086,7 +1104,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 		if (!nodesPath.empty()) {
 			std::string content;
-			readFile(nodesPath, content);
+			readLegacyFile(nodesPath, SceneSeverity::Warning, "infrastructure.nodes", nodeSource, content);
 			std::stringstream input(content);
 			std::string line;
 			int rowIndex = 0;
@@ -1121,7 +1139,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 		if (!arcsPath.empty()) {
 			std::string content;
-			readFile(arcsPath, content);
+			readLegacyFile(arcsPath, SceneSeverity::Warning, "infrastructure.arcs", arcSource, content);
 			std::stringstream input(content);
 			std::string line;
 			int rowIndex = 0;
@@ -1180,7 +1198,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 		if (!blocksPath.empty()) {
 			std::string content;
-			readFile(blocksPath, content);
+			readLegacyFile(blocksPath, SceneSeverity::Warning, "infrastructure.blocks", blockSource, content);
 			std::stringstream input(content);
 			std::string line;
 			int rowIndex = 0;
@@ -1253,7 +1271,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	};
 	if (!connectionsPath.empty()) {
 		std::string content;
-		readFile(connectionsPath, content);
+		readLegacyFile(connectionsPath, SceneSeverity::Warning, "infrastructure.connections", connectionsSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -1331,7 +1349,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	};
 	if (!stationsPath.empty()) {
 		std::string content;
-		readFile(stationsPath, content);
+		readLegacyFile(stationsPath, SceneSeverity::Error, "stations", stationsSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -1409,7 +1427,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const fs::path hiddenTracksPath = guiDir.empty() ? fs::path() : findChild(guiDir, "unusedTracks.txt");
 	if (!hiddenTracksPath.empty()) {
 		std::string content;
-		readFile(hiddenTracksPath, content);
+		readLegacyFile(hiddenTracksPath, SceneSeverity::Warning, "views.tracks", hiddenTracksPath.u8string(), content);
 		std::stringstream input(content);
 		int trackNumber = 0;
 		while (input >> trackNumber)
@@ -1424,7 +1442,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	std::unordered_set<std::string> importedTrackIds;
 	if (!trackViewPath.empty()) {
 		std::string content;
-		readFile(trackViewPath, content);
+		readLegacyFile(trackViewPath, SceneSeverity::Warning, "views.tracks", trackViewSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -1483,7 +1501,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		: stationViewPath.u8string();
 	if (!stationViewPath.empty()) {
 		std::string content;
-		readFile(stationViewPath, content);
+		readLegacyFile(stationViewPath, SceneSeverity::Warning, "views.stations", stationViewSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -1610,10 +1628,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const fs::path trainsDir = findChild(legacyPath, "Trains");
 	const fs::path manifestPath = findChild(legacyPath, "trainNames.txt");
 	const std::string manifestSource = manifestPath.empty() ? (legacyPath / "trainNames.txt").u8string() : manifestPath.u8string();
-	if (!manifestPath.empty()) {
-		std::string content;
-		readFile(manifestPath, content);
-		std::stringstream input(content);
+	// A manifest that cannot be read is reported and replaced by the Trains directory, as a missing one is.
+	std::string manifestContent;
+	if (!manifestPath.empty()
+		&& readLegacyFile(manifestPath, SceneSeverity::Warning, "rolling_stock.manifest", manifestSource, manifestContent)) {
+		std::stringstream input(manifestContent);
 		std::string line;
 		while (std::getline(input, line)) {
 			line = trim(line);
@@ -1623,7 +1642,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 		report.row("rolling_stock.manifest", manifestSource).sourceCount = static_cast<int>(trainFiles.size());
 	} else {
-		addDiag(SceneSeverity::Info, "scene.import.info", "trainNames.txt missing, falling back to Trains directory enumeration", manifestSource);
+		if (manifestPath.empty())
+			addDiag(SceneSeverity::Info, "scene.import.info", "trainNames.txt missing, falling back to Trains directory enumeration", manifestSource);
 		std::error_code scanEc;
 		if (fs::is_directory(trainsDir, scanEc)) {
 			for (const auto& entry : fs::directory_iterator(trainsDir, scanEc)) {
@@ -1767,7 +1787,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const std::string corridorSource = corridorPath.empty() ? (legacyPath / "GUI/caseStudyRouteCorridors.txt").u8string() : corridorPath.u8string();
 	if (!corridorPath.empty()) {
 		std::string content;
-		readFile(corridorPath, content);
+		readLegacyFile(corridorPath, SceneSeverity::Warning, "signalling.corridors", corridorSource, content);
 		std::stringstream input(content);
 		std::string line;
 		while (std::getline(input, line)) {
@@ -1805,7 +1825,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const std::string joinsSource = joinsPath.empty() ? (legacyPath / "RoutesToWrite/RoutesToJoin.txt").u8string() : joinsPath.u8string();
 	if (!joinsPath.empty()) {
 		std::string content;
-		readFile(joinsPath, content);
+		readLegacyFile(joinsPath, SceneSeverity::Warning, "signalling.joined_routes", joinsSource, content);
 		std::stringstream input(content);
 		std::string line;
 		while (std::getline(input, line)) {
@@ -1863,7 +1883,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const std::string singleTrackSource = singleTrackPath.empty() ? (legacyPath / "GUI/singleTrackLimits.txt").u8string() : singleTrackPath.u8string();
 	if (!singleTrackPath.empty()) {
 		std::string content;
-		readFile(singleTrackPath, content);
+		readLegacyFile(singleTrackPath, SceneSeverity::Warning, "signalling.single_track_restrictions", singleTrackSource,
+			content);
 		std::stringstream input(content);
 		std::string line;
 		while (std::getline(input, line)) {
@@ -1892,7 +1913,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const std::string boundarySource = boundaryPath.empty() ? (legacyPath / "GUI/stationBoundarySections.txt").u8string() : boundaryPath.u8string();
 	if (!boundaryPath.empty()) {
 		std::string content;
-		readFile(boundaryPath, content);
+		readLegacyFile(boundaryPath, SceneSeverity::Warning, "signalling.station_boundaries", boundarySource, content);
 		std::stringstream input(content);
 		std::string line;
 		while (std::getline(input, line)) {
@@ -1977,7 +1998,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (areaSidecar.empty() && !areasPath.empty()) {
 		const std::string areasSource = areasPath.u8string();
 		std::string content;
-		readFile(areasPath, content);
+		readLegacyFile(areasPath, SceneSeverity::Warning, "signalling.areas", areasSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int rowCount = 0;
@@ -2205,7 +2226,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const std::string incidentsSource = incidentsPath.empty() ? (legacyPath / "Incidents.txt").u8string() : incidentsPath.u8string();
 	if (!incidentsPath.empty()) {
 		std::string content;
-		readFile(incidentsPath, content);
+		readLegacyFile(incidentsPath, SceneSeverity::Warning, "scenarios.incidents", incidentsSource, content);
 		std::stringstream input(content);
 		std::string line;
 		int lineNo = 0;
@@ -2276,7 +2297,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	for (const auto& rollout : rolloutFiles) {
 		const std::string source = rollout.second.u8string();
 		std::string content;
-		readFile(rollout.second, content);
+		// A rollout that cannot be read is left out, so that no scenario runs without its delays.
+		if (!readLegacyFile(rollout.second, SceneSeverity::Warning, "scenarios.rollouts", source, content))
+			continue;
 		const auto values = readTokens(content);
 		const std::string scenarioId = "rollout_" + std::to_string(rollout.first);
 		SceneScenario scenario;

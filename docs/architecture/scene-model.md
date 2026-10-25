@@ -288,6 +288,16 @@ not a fallback used when running a scene. `SceneExporter` remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.
 
+A legacy file that cannot be opened, or that starts with the UTF-16 byte order
+mark and has an odd byte count or an unpaired surrogate, is reported instead of
+read as empty. The train, train data, traction, route, timetable and passenger
+files and the two sidecars of an export keep their own diagnostics.
+`Stations.txt` gives the error `scene.import.read`
+and stops the import, as a missing one does. Any other file gives the warning
+`scene.import.read` and counts as skipped in `import_report`. An unreadable
+`trainNames.txt` is replaced by the files in `Trains`, as a missing one is, and
+an unreadable rollout adds no scenario.
+
 The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
 legacy trees are not duplicated.
