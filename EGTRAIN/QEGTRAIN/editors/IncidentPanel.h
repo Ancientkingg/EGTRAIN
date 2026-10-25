@@ -131,10 +131,10 @@ public:
 	/// The checkable button next to the target combo that starts and ends picking the target on the network view. It is
 	/// enabled when the combo is.
 	QToolButton* pickTargetButton() const { return m_pickTargetButton; }
-	/// The start in whole seconds from the start of the run.
-	QLineEdit* startSecondsEdit() const { return m_startSecondsEdit; }
-	/// The end (the recovery) in whole seconds from the start of the run.
-	QLineEdit* endSecondsEdit() const { return m_endSecondsEdit; }
+	/// The start in seconds from the start of the run.
+	QDoubleSpinBox* startSecondsEdit() const { return m_startSecondsEdit; }
+	/// The end (the recovery) in seconds from the start of the run.
+	QDoubleSpinBox* endSecondsEdit() const { return m_endSecondsEdit; }
 	/// Whether the incident has an end. A reduced-speed breakdown without one lasts until the train reaches its
 	/// destination.
 	QCheckBox* hasEndSecondsCheck() const { return m_hasEndSecondsCheck; }
@@ -199,8 +199,8 @@ private:
 	QComboBox* m_typeCombo = nullptr;
 	QComboBox* m_targetCombo = nullptr;
 	QToolButton* m_pickTargetButton = nullptr;
-	QLineEdit* m_startSecondsEdit = nullptr;
-	QLineEdit* m_endSecondsEdit = nullptr;
+	QDoubleSpinBox* m_startSecondsEdit = nullptr;
+	QDoubleSpinBox* m_endSecondsEdit = nullptr;
 	QCheckBox* m_hasEndSecondsCheck = nullptr;
 	QCheckBox* m_hasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_reducedSpeedKmhEdit = nullptr;

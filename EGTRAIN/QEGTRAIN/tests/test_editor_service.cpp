@@ -2,6 +2,8 @@
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 
+#include "scene/SceneWriter.h"
+
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/ElidedLabel.h"
@@ -161,9 +163,91 @@ static bool checked(const QTableWidget* table, int row) {
 	return table->item(row, 0)->checkState() == Qt::Checked;
 }
 
+// The text field of a number field.
+static QLineEdit* spinText(QDoubleSpinBox* edit) {
+	return edit->findChild<QLineEdit*>();
+}
+
+// What the user does to a number field: type text, then leave the field.
+static void typeNumber(QDoubleSpinBox* edit, const QString& text) {
+	spinText(edit)->setText(text);
+	edit->interpretText();
+}
+
+// Gives a field of a shown panel the focus, as a click does.
+static bool giveFocus(QWidget* edit) {
+	edit->setFocus();
+	QApplication::processEvents();
+	if (!edit->hasFocus())
+		std::cerr << "failed: " << edit->objectName().toStdString() << " did not get the focus\n";
+	return edit->hasFocus();
+}
+
+// Save, Undo and validation commit the field that is being edited. A stored number that a field rounds or shows at a
+// limit of its range reaches the saved file as it is while the user does not edit it, even when the field has the focus,
+// and a number that the user types is stored as typed.
+static bool keepsUntouchedNumbers() {
+	bool ok = true;
+	SceneModel scene = serviceScene();
+	SceneService& stored = scene.services[0];
+	stored.hasEntryTime = true;
+	stored.entryTimeSeconds = 600.5;
+	stored.hasRepeat = true;
+	stored.headwaySeconds = 0.5;
+	stored.performancePercent = 150.0;
+	stored.hasMaximumSpeed = true;
+	stored.maximumSpeedKmh = 1200.0;
+	SceneDocument document;
+	ServicePanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	Events events(panel, document);
+	ok &= expect(panel.entryTimeSecondsEdit()->value() == 600.5 && panel.entryTimeSecondsEdit()->text() == "600.5"
+			&& panel.headwaySecondsEdit()->value() == 0.5 && panel.headwaySecondsEdit()->text() == "0.5",
+		"an entry time and a headway are shown with their fractions");
+
+	const nlohmann::json saved = encodeServices(document.model());
+	const quint64 revision = document.revision();
+	panel.commitPendingEditors();
+	panel.show();
+	panel.activateWindow();
+	for (QDoubleSpinBox* field : {panel.entryTimeSecondsEdit(), panel.headwaySecondsEdit(), panel.performancePercentEdit(),
+			 panel.maximumSpeedKmhEdit()}) {
+		ok &= giveFocus(field);
+		panel.commitPendingEditors();
+	}
+	ok &= giveFocus(panel.idEdit());
+	panel.commitEntryTimeSeconds();
+	panel.commitHeadwaySeconds();
+	panel.commitPerformancePercent(panel.performancePercentEdit()->value());
+	panel.commitMaximumSpeed();
+	const SceneService& kept = document.model().services[0];
+	ok &= expect(kept.entryTimeSeconds == 600.5 && kept.headwaySeconds == 0.5 && kept.performancePercent == 150.0
+			&& kept.maximumSpeedKmh == 1200.0 && encodeServices(document.model()) == saved,
+		"an entry time of 600.5 s, a headway of 0.5 s, a performance of 150 and a maximum speed of 1200 km/h are saved as stored");
+	ok &= expect(events.log.empty() && document.revision() == revision && !document.isDirty(),
+		"visiting the number fields and committing them adds no Undo step");
+
+	ok &= giveFocus(panel.entryTimeSecondsEdit());
+	spinText(panel.entryTimeSecondsEdit())->setText("610.25");
+	panel.commitPendingEditors();
+	ok &= expect(kept.entryTimeSeconds == 610.25 && document.revision() == revision + 1
+			&& document.lastChangeLabel() == "Change service entry time",
+		"an entry time that is being typed is stored with its fraction");
+	ok &= giveFocus(panel.headwaySecondsEdit());
+	typeNumber(panel.headwaySecondsEdit(), "0.25");
+	panel.commitPendingEditors();
+	ok &= expect(kept.headwaySeconds == 0.25 && kept.entryTimeSeconds == 610.25 && kept.performancePercent == 150.0
+			&& kept.maximumSpeedKmh == 1200.0 && document.revision() == revision + 2,
+		"a headway that is typed is stored with its fraction, and the other fields keep their values");
+	panel.hide();
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	bool ok = true;
+	ok &= keepsUntouchedNumbers();
 	// An edit that lists the occurrences again, and one that does not.
 	const Log editWithOccurrences({"documentChanged", "occurrences", "panelChanged"});
 	const Log editOnly({"documentChanged", "panelChanged"});
@@ -244,7 +328,7 @@ int main(int argc, char** argv) {
 		events.log.clear();
 		panel.listWidget()->setCurrentRow(1);
 		ok &= expect(panel.idEdit()->text() == "s2" && panel.hasRepeatCheck()->isChecked() && panel.headwaySecondsEdit()->isEnabled()
-				&& panel.headwaySecondsEdit()->text() == "1200" && panel.routeCombo()->currentData().toString() == "r2"
+				&& panel.headwaySecondsEdit()->value() == 1200.0 && panel.routeCombo()->currentData().toString() == "r2"
 				&& events.log == Log({"selected:s2"}),
 			"another selected service shows its own fields and tells the timetable");
 
@@ -360,15 +444,20 @@ int main(int argc, char** argv) {
 				&& events.log == editWithOccurrences,
 			"the entry time switches on");
 		events.log.clear();
-		panel.entryTimeSecondsEdit()->setText("90");
+		typeNumber(panel.entryTimeSecondsEdit(), "90");
 		panel.commitEntryTimeSeconds();
 		ok &= expect(document.model().services[0].entryTimeSeconds == 90.0 && events.log == editWithOccurrences
 				&& panel.occurrenceTable()->item(0, 3)->text() == "+90 s",
 			"an entry time is written to the document and shown in the occurrences");
-		panel.entryTimeSecondsEdit()->setText("");
+		events.log.clear();
+		typeNumber(panel.entryTimeSecondsEdit(), "");
 		panel.commitEntryTimeSeconds();
-		ok &= expect(document.model().services[0].entryTimeSeconds == 0.0 && panel.entryTimeSecondsEdit()->text() == "0",
-			"a blank entry time is shown and stored as zero");
+		ok &= expect(document.model().services[0].entryTimeSeconds == 90.0 && panel.entryTimeSecondsEdit()->text() == "90"
+				&& events.log.empty(),
+			"a blank entry time shows the stored one again");
+		typeNumber(panel.entryTimeSecondsEdit(), "0");
+		panel.commitEntryTimeSeconds();
+		ok &= expect(document.model().services[0].entryTimeSeconds == 0.0, "an entry time can be zero");
 
 		panel.hasRepeatCheck()->setChecked(true);
 		panel.hasRepeatCountCheck()->setChecked(true);
@@ -391,7 +480,7 @@ int main(int argc, char** argv) {
 		panel.operatingCodeStepEdit()->setText("-2");
 		panel.commitOperatingCodeStep();
 		ok &= expect(document.model().services[0].operatingCodeStep == -2, "a negative code step is kept");
-		panel.headwaySecondsEdit()->setText("600");
+		typeNumber(panel.headwaySecondsEdit(), "600");
 		panel.commitHeadwaySeconds();
 		ok &= expect(document.model().services[0].headwaySeconds == 600.0, "a headway is written to the document");
 		panel.hasRepeatCheck()->setChecked(false);
@@ -416,16 +505,23 @@ int main(int argc, char** argv) {
 		ok &= expect(document.model().services[0].maximumSpeedKmh == 87.25 && panel.occurrenceTable()->item(0, 5)->text() == "87.25",
 			"a maximum speed is written to the document");
 
-		// pending edits
+		// pending edits: a number field commits the text in it only while it has the focus
 		events.log.clear();
+		panel.show();
+		panel.activateWindow();
 		panel.hasEntryTimeCheck()->setChecked(true);
-		panel.entryTimeSecondsEdit()->setText("45");
+		spinText(panel.entryTimeSecondsEdit())->setText("45");
 		panel.operatingCodeEdit()->setText("300");
 		ok &= expect(document.model().services[0].entryTimeSeconds == 0.0 && document.model().services[0].operatingCode == "200",
 			"text that is still being typed is not in the document");
 		panel.commitPendingEditors();
-		ok &= expect(document.model().services[0].entryTimeSeconds == 45.0 && document.model().services[0].operatingCode == "300",
-			"committing the pending editors takes the text that is being typed");
+		ok &= expect(document.model().services[0].entryTimeSeconds == 0.0 && document.model().services[0].operatingCode == "300",
+			"committing the pending editors takes the text of the code, and not a number in a field without the focus");
+		ok &= giveFocus(panel.entryTimeSecondsEdit());
+		panel.commitPendingEditors();
+		ok &= expect(document.model().services[0].entryTimeSeconds == 45.0,
+			"committing the pending editors takes the number that is being typed in the field with the focus");
+		panel.hide();
 
 		// cancel: text that was typed and not finished is dropped when the panel is refreshed
 		events.log.clear();

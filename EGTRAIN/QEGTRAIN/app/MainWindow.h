@@ -417,9 +417,9 @@ private:
 	QComboBox* m_serviceCompositionCombo = nullptr;
 	QComboBox* m_serviceRouteCombo = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
-	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr;
+	QDoubleSpinBox* m_serviceEntryTimeSecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
-	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr;
+	QDoubleSpinBox* m_serviceHeadwaySecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCountCheck = nullptr;
 	QLineEdit* m_serviceRepeatCountEdit = nullptr;
 	QDoubleSpinBox* m_servicePerformancePercentEdit = nullptr;
@@ -459,8 +459,8 @@ private:
 	QLineEdit* m_incidentIdEdit = nullptr;
 	QComboBox* m_incidentTypeCombo = nullptr;
 	QComboBox* m_incidentTargetCombo = nullptr;
-	QLineEdit* m_incidentStartSecondsEdit = nullptr;
-	QLineEdit* m_incidentEndSecondsEdit = nullptr;
+	QDoubleSpinBox* m_incidentStartSecondsEdit = nullptr;
+	QDoubleSpinBox* m_incidentEndSecondsEdit = nullptr;
 	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;

@@ -369,6 +369,28 @@ static bool testFailedWrite() {
 	return ok;
 }
 
+// The editors allow an empty case, station and scenario name, and the copy keeps them.
+static bool testWriteEmptyNames() {
+	bool ok = true;
+	QTemporaryDir temp;
+	const RecoverySource source = makeBundleSource(temp.filePath("source"), "source");
+	RecoveryStore store(temp.filePath("root"));
+	ok &= expect(store.open().ok, "empty names: open");
+	SceneModel scene = makeScene("");
+	SceneStation station;
+	station.id = "station.a";
+	scene.stations.push_back(station);
+	scene.scenarios.front().name.clear();
+	const RecoveryResult written = store.write(scene, source);
+	ok &= expect(written.ok && written.error.isEmpty(), "empty names: the copy is written");
+	const SceneLoadResult loaded = loadSceneBundle(written.bundlePath.toStdString());
+	ok &= expect(!hasErrors(loaded.diagnostics) && loaded.scene.name.empty() && loaded.scene.stations.size() == 1
+			&& loaded.scene.stations[0].id == "station.a" && loaded.scene.stations[0].name.empty()
+			&& loaded.scene.scenarios.size() == 1 && loaded.scene.scenarios[0].name.empty(),
+		"empty names: the copy loads with the empty names");
+	return ok;
+}
+
 static bool testLeftBehind() {
 	bool ok = true;
 	QTemporaryDir temp;
@@ -1091,6 +1113,7 @@ int main(int argc, char** argv) {
 		ok &= testOpenAndLayout();
 		ok &= testWrite();
 		ok &= testFailedWrite();
+		ok &= testWriteEmptyNames();
 		ok &= testLeftBehind();
 		ok &= testNewestCompleteBundle();
 		ok &= testRecordProblems();

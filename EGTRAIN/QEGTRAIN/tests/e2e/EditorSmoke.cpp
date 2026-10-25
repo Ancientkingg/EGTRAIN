@@ -1289,8 +1289,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					else {
 						w.m_incidentTargetCombo->setCurrentIndex(w.m_incidentTargetCombo->findData("e2e-signal"));
 						if (w.m_incidentStartSecondsEdit && w.m_incidentEndSecondsEdit) {
-							w.m_incidentStartSecondsEdit->setText("10");
-							w.m_incidentEndSecondsEdit->setText("20");
+							w.m_incidentStartSecondsEdit->setValue(10);
+							w.m_incidentEndSecondsEdit->setValue(20);
 							w.m_incidentPanel->commitStartSeconds();
 							w.m_incidentPanel->commitEndSeconds();
 						}
@@ -2765,11 +2765,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_servicePanel->commitHasEntryTime(false);
 			w.m_servicePanel->commitHasEntryTime(true);
 			if (w.m_serviceEntryTimeSecondsEdit)
-				w.m_serviceEntryTimeSecondsEdit->setText("600");
+				w.m_serviceEntryTimeSecondsEdit->setValue(600);
 			w.m_servicePanel->commitEntryTimeSeconds();
 			w.m_servicePanel->commitHasRepeat(true);
 			if (w.m_serviceHeadwaySecondsEdit)
-				w.m_serviceHeadwaySecondsEdit->setText("1800");
+				w.m_serviceHeadwaySecondsEdit->setValue(1800);
 			w.m_servicePanel->commitHeadwaySeconds();
 			if (w.m_serviceHasRepeatCountCheck)
 				w.m_serviceHasRepeatCountCheck->setChecked(true);
@@ -2778,7 +2778,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QMetaObject::invokeMethod(w.m_serviceRepeatCountEdit, "editingFinished", Qt::DirectConnection);
 			}
 			// Typed digits change nothing until editing ends. Return applies the typed value as one scene change,
-			// and ServicePanel::commitPendingEditors applies a text that is still being typed.
+			// and ServicePanel::commitPendingEditors applies a text that is still being typed in the field with the focus.
 			const bool dirtyBeforeTyping = w.m_document->isDirty();
 			const QString typingFailure = [&]() -> QString {
 				if (!w.m_servicePerformancePercentEdit || !w.m_servicePerformancePercentEdit->isEnabled())
@@ -2795,6 +2795,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						.arg(valueBeforeTyping);
 				if (valueBeforeTyping == 9.0 || valueBeforeTyping == 93.0 || valueBeforeTyping == 94.0)
 					return QString("service running performance %1 equals a value typed by the check").arg(valueBeforeTyping);
+				w.revealEditorDock(w.m_serviceDock);
+				w.activateWindow();
+				w.m_servicePerformancePercentEdit->setFocus(Qt::OtherFocusReason);
+				QApplication::processEvents();
+				if (!w.m_servicePerformancePercentEdit->hasFocus())
+					return QStringLiteral("running performance editor did not receive focus");
 				const auto typeDigits = [&](const QString& digits) -> QString {
 					const double valueBefore = w.m_document->mutableModel().services[1].performancePercent;
 					w.m_document->setDirty(false);
@@ -2993,7 +2999,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		} else {
 			w.m_serviceListWidget->setCurrentRow(serviceRow);
 			QApplication::processEvents();
-			w.m_serviceEntryTimeSecondsEdit->setText("0");
+			w.m_serviceEntryTimeSecondsEdit->setValue(0);
 			w.m_servicePanel->commitEntryTimeSeconds();
 			const int originalStopCount = static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size());
 			if (originalStopCount <= 0)
@@ -3526,10 +3532,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			}
 			if (w.m_incidentStartSecondsEdit)
-				w.m_incidentStartSecondsEdit->setText("100");
+				w.m_incidentStartSecondsEdit->setValue(100);
 			w.m_incidentPanel->commitStartSeconds();
 			if (w.m_incidentEndSecondsEdit)
-				w.m_incidentEndSecondsEdit->setText("200");
+				w.m_incidentEndSecondsEdit->setValue(200);
 			w.m_incidentPanel->commitEndSeconds();
 			if (w.m_incidentHasReducedSpeedCheck)
 				w.m_incidentHasReducedSpeedCheck->setChecked(true);
@@ -4275,7 +4281,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							if (w.m_incidentHasEndSecondsCheck->isChecked())
 								w.m_incidentHasEndSecondsCheck->setChecked(false);
 							const int pendingIncidentEnd = static_cast<int>(pendingIncident->endSeconds) + 200;
-							w.m_incidentEndSecondsEdit->setText(QString::number(pendingIncidentEnd));
+							w.m_incidentEndSecondsEdit->findChild<QLineEdit*>()->setText(QString::number(pendingIncidentEnd));
 							w.m_incidentEndSecondsEdit->setFocus();
 							QApplication::processEvents();
 							if (!w.m_incidentEndSecondsEdit->hasFocus())
@@ -5975,7 +5981,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				QStringLiteral("%1 changed the view: zoom %2, centre moved %3 px").arg(how).arg(w.networkView->zoomRatio()).arg(moved));
 		};
 		if (!step("an incident start", "Edit", [&] {
-				w.m_incidentStartSecondsEdit->setText("120");
+				w.m_incidentStartSecondsEdit->setValue(120);
 				w.m_incidentPanel->commitStartSeconds();
 			}))
 			return finish();

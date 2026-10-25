@@ -48,6 +48,12 @@ inline constexpr SceneFieldCodes kScenarioFileFieldCodes{
 // and the sink must outlive the reader.
 class SceneFieldReader {
 public:
+	/// Whether stringField takes an empty string as the value of a required key. An optional key may always be empty.
+	enum class Empty {
+		Invalid, ///< An empty string is invalid, as for an id or a reference.
+		Allowed, ///< An empty string is a value, as for a display name.
+	};
+
 	SceneFieldReader(std::string_view file, const SceneFieldCodes& codes, std::vector<SceneDiagnostic>& sink)
 		: file_(file), codes_(codes), sink_(sink) {}
 
@@ -57,7 +63,7 @@ public:
 	bool objectItem(const nlohmann::json& item, const std::string& path, const char* message) const;
 	bool arraySection(const nlohmann::json& object, const char* key, const std::string& path, bool required) const;
 	bool stringField(const nlohmann::json& object, const char* key, const std::string& path, std::string& output,
-		bool required = true) const;
+		bool required = true, Empty empty = Empty::Invalid) const;
 	bool numberField(const nlohmann::json& object, const char* key, const std::string& path, double& output,
 		bool required = true) const;
 	// A value that does not fit an int is invalid.

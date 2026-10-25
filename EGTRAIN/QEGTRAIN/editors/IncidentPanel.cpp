@@ -18,7 +18,6 @@
 #include <QHash>
 #include <QHideEvent>
 #include <QIcon>
-#include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -68,6 +67,28 @@ QString signalFailureTargetText(const SceneModel& sceneModel, const SceneSection
 bool hasEditorFocus(QWidget* editor) {
 	QWidget* focus = QApplication::focusWidget();
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
+}
+
+// The value that a field shows for a stored value. A stored value outside the range is shown at the nearest limit, and
+// committing it from an untouched field is not an edit.
+double shownValue(const QDoubleSpinBox* edit, double stored) {
+	return std::clamp(stored, edit->minimum(), edit->maximum());
+}
+
+// The speed cap that the field shows: the stored one, or 40 km/h to start from when none is stored.
+double shownReducedSpeed(const QDoubleSpinBox* edit, const SceneIncident* incident) {
+	const bool stored = incident && std::isfinite(incident->reducedSpeedKmh) && incident->reducedSpeedKmh > 0.0;
+	return shownValue(edit, stored ? incident->reducedSpeedKmh : 40.0);
+}
+
+// A field of seconds that keeps the fractions of a stored time.
+CompactDoubleSpinBox* secondsEdit(const char* objectName, QWidget* parent) {
+	auto* edit = new CompactDoubleSpinBox(parent);
+	edit->setObjectName(objectName);
+	edit->setRange(0.0, std::numeric_limits<double>::max());
+	edit->setDecimals(std::numeric_limits<double>::max_digits10);
+	edit->setKeyboardTracking(false);
+	return edit;
 }
 
 // The name of an incident type on screen; a type that is none of the two shows as it is stored.
@@ -166,17 +187,13 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	targetLayout->addWidget(m_targetCombo, 1);
 	targetLayout->addWidget(m_pickTargetButton);
 	detailLayout->addRow(targetLabel, targetLayout);
-	m_startSecondsEdit = new QLineEdit(detailPane);
-	m_startSecondsEdit->setObjectName("incidentStartSecondsEdit");
-	m_startSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_startSecondsEdit));
+	m_startSecondsEdit = secondsEdit("incidentStartSecondsEdit", detailPane);
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
 	m_hasEndSecondsCheck = new QCheckBox("End (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_hasEndSecondsCheck->setToolTip("Leave off to keep a slowed train slow until its destination.");
-	m_endSecondsEdit = new QLineEdit(detailPane);
-	m_endSecondsEdit->setObjectName("incidentEndSecondsEdit");
+	m_endSecondsEdit = secondsEdit("incidentEndSecondsEdit", detailPane);
 	m_endSecondsEdit->setAccessibleName("End (s)");
-	m_endSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_endSecondsEdit));
 	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
 	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed", detailPane);
 	m_hasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
@@ -213,8 +230,8 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 			commitType(m_typeCombo->itemData(index).toString());
 	});
 	connect(m_targetCombo, &QComboBox::currentTextChanged, this, [this] { commitTarget(); });
-	connect(m_startSecondsEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitStartSeconds);
-	connect(m_endSecondsEdit, &QLineEdit::editingFinished, this, &IncidentPanel::commitEndSeconds);
+	connect(m_startSecondsEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitStartSeconds);
+	connect(m_endSecondsEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitEndSeconds);
 	connect(m_hasReducedSpeedCheck, &QCheckBox::toggled, this, &IncidentPanel::commitHasReducedSpeed);
 	connect(m_reducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &IncidentPanel::commitReducedSpeed);
 	connect(m_hasEndSecondsCheck, &QCheckBox::toggled, this, &IncidentPanel::commitHasEndSeconds);
@@ -405,13 +422,13 @@ void IncidentPanel::updateDetail() {
 
 	{
 		const QSignalBlocker blocker(m_startSecondsEdit);
-		m_startSecondsEdit->setText(QString::number(hasSelection ? static_cast<int>(incident->startSeconds) : 0));
+		m_startSecondsEdit->setValue(hasSelection ? incident->startSeconds : 0.0);
 		m_startSecondsEdit->setEnabled(hasSelection);
 	}
 
 	{
 		const QSignalBlocker blocker(m_endSecondsEdit);
-		m_endSecondsEdit->setText(QString::number(hasSelection ? static_cast<int>(incident->endSeconds) : 0));
+		m_endSecondsEdit->setValue(hasSelection ? incident->endSeconds : 0.0);
 		m_endSecondsEdit->setEnabled(hasSelection);
 	}
 	{
@@ -426,10 +443,7 @@ void IncidentPanel::updateDetail() {
 	}
 	{
 		const QSignalBlocker blocker(m_reducedSpeedKmhEdit);
-		const double cap = hasSelection && std::isfinite(incident->reducedSpeedKmh) && incident->reducedSpeedKmh > 0.0
-			? incident->reducedSpeedKmh
-			: 40.0;
-		m_reducedSpeedKmhEdit->setValue(cap);
+		m_reducedSpeedKmhEdit->setValue(shownReducedSpeed(m_reducedSpeedKmhEdit, hasSelection ? incident : nullptr));
 		m_reducedSpeedKmhEdit->setEnabled(isBreakdown && m_hasReducedSpeedCheck->isChecked());
 	}
 	{
@@ -715,19 +729,8 @@ void IncidentPanel::commitStartSeconds() {
 	if (!incident)
 		return;
 
-	bool ok = false;
-	int seconds = m_startSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_startSecondsEdit);
-		m_startSecondsEdit->setText(QString::number(seconds));
-	}
-
-	const double newValue = static_cast<double>(seconds);
-	if (newValue == incident->startSeconds)
+	const double newValue = m_startSecondsEdit->value();
+	if (newValue == shownValue(m_startSecondsEdit, incident->startSeconds))
 		return;
 
 	incident->startSeconds = newValue;
@@ -741,19 +744,9 @@ void IncidentPanel::commitEndSeconds() {
 	if (!incident)
 		return;
 
-	bool ok = false;
-	int seconds = m_endSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_endSecondsEdit);
-		m_endSecondsEdit->setText(QString::number(seconds));
-	}
-
-	const double newValue = static_cast<double>(seconds);
-	if (newValue == incident->endSeconds && incident->hasEndSeconds)
+	// The field shows the end while its box is off too. Leaving it as it is does not switch the end on.
+	const double newValue = m_endSecondsEdit->value();
+	if (newValue == shownValue(m_endSecondsEdit, incident->endSeconds))
 		return;
 
 	incident->endSeconds = newValue;
@@ -768,7 +761,7 @@ void IncidentPanel::commitReducedSpeed() {
 	if (!incident)
 		return;
 	const double speed = m_reducedSpeedKmhEdit->value();
-	if (incident->reducedSpeedKmh == speed && incident->hasReducedSpeed)
+	if (speed == shownReducedSpeed(m_reducedSpeedKmhEdit, incident))
 		return;
 	incident->reducedSpeedKmh = speed;
 	incident->hasReducedSpeed = true;
@@ -822,10 +815,16 @@ void IncidentPanel::commitPendingEditors() {
 	if (!canEdit())
 		return;
 	commitIdEdit();
-	commitStartSeconds();
-	if (m_hasEndSecondsCheck->isChecked() || hasEditorFocus(m_endSecondsEdit))
+	// A number field commits only the text that is being typed in it, so that a value the user did not edit is kept.
+	if (hasEditorFocus(m_startSecondsEdit)) {
+		m_startSecondsEdit->interpretText();
+		commitStartSeconds();
+	}
+	if (hasEditorFocus(m_endSecondsEdit)) {
+		m_endSecondsEdit->interpretText();
 		commitEndSeconds();
-	if (m_hasReducedSpeedCheck->isChecked()) {
+	}
+	if (hasEditorFocus(m_reducedSpeedKmhEdit)) {
 		m_reducedSpeedKmhEdit->interpretText();
 		commitReducedSpeed();
 	}

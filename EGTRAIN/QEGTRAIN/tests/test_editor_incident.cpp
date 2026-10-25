@@ -178,8 +178,29 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	return -1;
 }
 
+// The text field of a number field.
+static QLineEdit* spinText(QDoubleSpinBox* edit) {
+	return edit->findChild<QLineEdit*>();
+}
+
+// What the user does to a number field: type text, then leave the field.
+static void typeNumber(QDoubleSpinBox* edit, const QString& text) {
+	spinText(edit)->setText(text);
+	edit->interpretText();
+}
+
+// Gives a field of a shown panel the focus, as a click does.
+static bool giveFocus(QWidget* edit) {
+	edit->setFocus();
+	QApplication::processEvents();
+	if (!edit->hasFocus())
+		std::cerr << "failed: " << edit->objectName().toStdString() << " did not get the focus\n";
+	return edit->hasFocus();
+}
+
 static bool addsIncidentWithTarget(const Log& edit);
 static bool namesTypes(const Log& edit);
+static bool keepsUntouchedNumbers(const Log& edit);
 
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
@@ -189,6 +210,7 @@ int main(int argc, char** argv) {
 	const Log edit({"documentChanged", "panelChanged"});
 	ok &= addsIncidentWithTarget(edit);
 	ok &= namesTypes(edit);
+	ok &= keepsUntouchedNumbers(edit);
 
 	{
 		IncidentPanel panel;
@@ -322,19 +344,21 @@ int main(int argc, char** argv) {
 		ok &= expect(!converted.hasEndSeconds && converted.endSeconds == 0.0 && panel.endSecondsEdit()->text() == "0" && events.log == edit
 				&& !panel.hasEndSecondsCheck()->isChecked(),
 			"a breakdown can go on without a recovery end");
-		panel.endSecondsEdit()->setText("500");
+		typeNumber(panel.endSecondsEdit(), "500");
 		panel.commitEndSeconds();
 		ok &= expect(converted.hasEndSeconds && converted.endSeconds == 500.0 && panel.hasEndSecondsCheck()->isChecked() == false,
 			"a recovery end is written to the document");
 		panel.refresh();
 		ok &= expect(panel.hasEndSecondsCheck()->isChecked() && panel.endSecondsEdit()->text() == "500", "the recovery end is shown again");
-		panel.endSecondsEdit()->setText("");
+		events.log.clear();
+		typeNumber(panel.endSecondsEdit(), "");
 		panel.commitEndSeconds();
-		ok &= expect(converted.endSeconds == 0.0 && converted.hasEndSeconds && panel.endSecondsEdit()->text() == "0",
-			"a blank recovery end is shown and stored as zero");
+		ok &= expect(converted.endSeconds == 500.0 && converted.hasEndSeconds && panel.endSecondsEdit()->text() == "500"
+				&& events.log.empty(),
+			"a blank recovery end shows the stored one again");
 		panel.hasEndSecondsCheck()->setChecked(true);
 		ok &= expect(converted.hasEndSeconds && panel.hasEndSecondsCheck()->isChecked(), "the recovery end switches on");
-		panel.startSecondsEdit()->setText("250");
+		typeNumber(panel.startSecondsEdit(), "250");
 		panel.commitStartSeconds();
 		ok &= expect(converted.startSeconds == 250.0 && document.lastChangeLabel() == "Change incident start", "a start is written to the document");
 		events.log.clear();
@@ -405,7 +429,7 @@ int main(int argc, char** argv) {
 			"the incidents of the selected scenario are shown, and a breakdown of every occurrence is a historical scope");
 		events.log.clear();
 		selection.clearModifiedScenarios();
-		panel.startSecondsEdit()->setText("5");
+		typeNumber(panel.startSecondsEdit(), "5");
 		panel.commitStartSeconds();
 		ok &= expect(document.model().scenarios[1].incidents[0].startSeconds == 5.0 && selection.isScenarioModified("alt")
 				&& !selection.isScenarioModified("base"),
@@ -413,23 +437,28 @@ int main(int argc, char** argv) {
 		selection.selectScenario("base");
 		panel.refresh();
 
-		// pending edits
+		// pending edits: a number field commits the text in it only while it has the focus
 		document.markSaved();
 		events.log.clear();
 		panel.listWidget()->setCurrentRow(0);
-		panel.startSecondsEdit()->setText("77");
+		panel.show();
+		panel.activateWindow();
+		spinText(panel.startSecondsEdit())->setText("77");
+		panel.commitPendingEditors();
+		ok &= expect(document.model().scenarios[0].incidents[0].startSeconds == 10.0 && events.log.empty(),
+			"unfinished text in a field without the focus is not pending");
+		ok &= giveFocus(panel.startSecondsEdit());
 		panel.commitPendingEditors();
 		ok &= expect(document.model().scenarios[0].incidents[0].startSeconds == 77.0 && events.log == edit,
-			"unfinished text is taken into the document");
+			"unfinished text in the field with the focus is taken into the document");
 		events.log.clear();
-		panel.endSecondsEdit()->setText("99");
-		panel.hasEndSecondsCheck()->blockSignals(true);
-		panel.hasEndSecondsCheck()->setChecked(true);
-		panel.hasEndSecondsCheck()->blockSignals(false);
+		ok &= giveFocus(panel.endSecondsEdit());
+		spinText(panel.endSecondsEdit())->setText("99");
 		panel.commitPendingEditors();
-		ok &= expect(document.model().scenarios[0].incidents[0].endSeconds == 99.0, "an unfinished recovery end is taken in when it is switched on");
+		ok &= expect(document.model().scenarios[0].incidents[0].endSeconds == 99.0, "an unfinished recovery end is taken in");
 		panel.commitPendingEditors();
 		ok &= expect(events.log == edit, "committing again changes nothing");
+		panel.hide();
 
 		// the scene is in use by a run
 		document.markSaved();
@@ -443,7 +472,7 @@ int main(int argc, char** argv) {
 				&& !panel.terminateAtDestinationCheck()->isEnabled() && panel.idEdit()->text().isEmpty(),
 			"nothing can be done with the incidents, and the fields are empty, while a run uses the scene");
 		panel.idEdit()->setText("while-running");
-		panel.startSecondsEdit()->setText("1");
+		spinText(panel.startSecondsEdit())->setText("1");
 		panel.commitPendingEditors();
 		panel.commitIdEdit();
 		panel.addIncident();
@@ -921,5 +950,75 @@ static bool namesTypes(const Log& edit) {
 	panel.listWidget()->setCurrentRow(1);
 	ok &= expect(type->currentText() == "Train breakdown" && type->currentData().toString() == "train_breakdown",
 		"a breakdown shows the name of its type");
+	return ok;
+}
+
+// Save, Undo and validation commit the field that is being edited. A start and an end with fractions of a second, and a
+// speed cap above the range of its field, reach the saved file as stored while the user does not edit them, even when
+// the field has the focus. The End field shows the end while its box is off, and visiting it does not switch the end on.
+static bool keepsUntouchedNumbers(const Log& edit) {
+	bool ok = true;
+	SceneModel scene = incidentScene();
+	SceneIncident& failure = scene.scenarios[0].incidents[0];
+	failure.startSeconds = 10.5;
+	failure.endSeconds = 20.75;
+	SceneIncident& capped = scene.scenarios[0].incidents[1];
+	capped.startSeconds = 100.25;
+	capped.hasEndSeconds = false;
+	capped.endSeconds = 0.0;
+	capped.reducedSpeedKmh = 1200.0;
+	SceneDocument document;
+	IncidentPanel panel;
+	RunSelection selection;
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	selection.selectScenario("base");
+	panel.refresh();
+	Events events(panel, document);
+	ok &= expect(panel.startSecondsEdit()->value() == 10.5 && panel.startSecondsEdit()->text() == "10.5"
+			&& panel.endSecondsEdit()->value() == 20.75 && panel.endSecondsEdit()->text() == "20.75",
+		"a start and an end are shown with their fractions");
+
+	const nlohmann::json saved = encodeScenarios(document.model());
+	const quint64 revision = document.revision();
+	panel.commitPendingEditors();
+	panel.show();
+	panel.activateWindow();
+	for (QDoubleSpinBox* field : {panel.startSecondsEdit(), panel.endSecondsEdit()}) {
+		ok &= giveFocus(field);
+		panel.commitPendingEditors();
+	}
+	panel.listWidget()->setCurrentRow(1);
+	ok &= expect(!panel.hasEndSecondsCheck()->isChecked() && panel.endSecondsEdit()->isEnabled()
+			&& panel.reducedSpeedKmhEdit()->isEnabled(),
+		"the End field of a breakdown without an end can be edited");
+	for (QDoubleSpinBox* field : {panel.startSecondsEdit(), panel.endSecondsEdit(), panel.reducedSpeedKmhEdit()}) {
+		ok &= giveFocus(field);
+		panel.commitPendingEditors();
+	}
+	ok &= giveFocus(panel.idEdit());
+	panel.commitStartSeconds();
+	panel.commitEndSeconds();
+	panel.commitReducedSpeed();
+	const std::vector<SceneIncident>& kept = document.model().scenarios[0].incidents;
+	ok &= expect(kept[0].startSeconds == 10.5 && kept[0].endSeconds == 20.75 && kept[1].startSeconds == 100.25
+			&& !kept[1].hasEndSeconds && kept[1].reducedSpeedKmh == 1200.0 && encodeScenarios(document.model()) == saved,
+		"a start of 10.5 s, an end of 20.75 s, a breakdown without an end and a speed cap of 1200 km/h are saved as stored");
+	ok &= expect(events.log.empty() && document.revision() == revision && !document.isDirty(),
+		"visiting the number fields and committing them adds no Undo step");
+
+	ok &= giveFocus(panel.endSecondsEdit());
+	spinText(panel.endSecondsEdit())->setText("130.5");
+	panel.commitPendingEditors();
+	ok &= expect(kept[1].hasEndSeconds && kept[1].endSeconds == 130.5 && events.log == edit
+			&& document.lastChangeLabel() == "Change incident end",
+		"an end that is being typed while its box is off is stored with its fraction and switches the end on");
+	ok &= giveFocus(panel.startSecondsEdit());
+	typeNumber(panel.startSecondsEdit(), "110.75");
+	panel.commitPendingEditors();
+	ok &= expect(kept[1].startSeconds == 110.75 && kept[1].reducedSpeedKmh == 1200.0 && document.revision() == revision + 2,
+		"a start that is typed is stored with its fraction, and the speed cap keeps its value");
+	panel.hide();
 	return ok;
 }

@@ -128,12 +128,12 @@ public:
 	QComboBox* routeCombo() const { return m_routeCombo; }
 	/// Whether the service has an entry time.
 	QCheckBox* hasEntryTimeCheck() const { return m_hasEntryTimeCheck; }
-	/// The entry time in whole seconds from the base time.
-	QLineEdit* entryTimeSecondsEdit() const { return m_entryTimeSecondsEdit; }
+	/// The entry time in seconds from the base time.
+	QDoubleSpinBox* entryTimeSecondsEdit() const { return m_entryTimeSecondsEdit; }
 	/// Whether the service repeats.
 	QCheckBox* hasRepeatCheck() const { return m_hasRepeatCheck; }
-	/// The headway between occurrences in whole seconds.
-	QLineEdit* headwaySecondsEdit() const { return m_headwaySecondsEdit; }
+	/// The headway between occurrences in seconds.
+	QDoubleSpinBox* headwaySecondsEdit() const { return m_headwaySecondsEdit; }
 	/// Whether the number of occurrences is given.
 	QCheckBox* hasRepeatCountCheck() const { return m_hasRepeatCountCheck; }
 	/// The number of occurrences, including the first.
@@ -207,9 +207,9 @@ private:
 	QComboBox* m_compositionCombo = nullptr;
 	QComboBox* m_routeCombo = nullptr;
 	QCheckBox* m_hasEntryTimeCheck = nullptr;
-	QLineEdit* m_entryTimeSecondsEdit = nullptr;
+	QDoubleSpinBox* m_entryTimeSecondsEdit = nullptr;
 	QCheckBox* m_hasRepeatCheck = nullptr;
-	QLineEdit* m_headwaySecondsEdit = nullptr;
+	QDoubleSpinBox* m_headwaySecondsEdit = nullptr;
 	QCheckBox* m_hasRepeatCountCheck = nullptr;
 	QLineEdit* m_repeatCountEdit = nullptr;
 	QDoubleSpinBox* m_performancePercentEdit = nullptr;

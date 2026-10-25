@@ -1078,6 +1078,45 @@ static bool checkScenarioFileDiagnostics(const TempDir& temp) {
 	return ok;
 }
 
+// A case, a station and a scenario may have an empty name. A save loads what it wrote, so the loader takes an empty
+// name, and a missing one is still an error.
+static bool checkEmptyNames(const TempDir& temp) {
+	bool ok = true;
+	SceneModel scene = completeScene();
+	scene.name.clear();
+	scene.stations[0].name.clear();
+	scene.scenarios[0].name.clear();
+	const fs::path scenePath = temp.path / "empty-names";
+	const SceneSaveResult saved = saveScene(scene, scenePath.string());
+	printErrors(saved.diagnostics, "empty names save");
+	ok &= expect(saved.success(), "a scene with an empty case, station and scenario name saves");
+	SceneModel reloaded;
+	ok &= expect(loadHasNoErrors(scenePath, reloaded) && reloaded.name.empty() && reloaded.stations.size() == 2
+			&& reloaded.stations[0].name.empty() && reloaded.stations[1].name == scene.stations[1].name
+			&& reloaded.scenarios.size() == 2 && reloaded.scenarios[0].name.empty(),
+		"the empty names load as empty");
+
+	const fs::path scenarioFile = temp.path / "empty-name-scenario.json";
+	ok &= expect(saveScenarioJson(scene.scenarios[0], scenarioFile.string()).success(), "a scenario with an empty name is exported");
+	const ScenarioLoadResult imported = loadScenarioJson(scenarioFile.string());
+	ok &= expect(!hasErrors(imported.diagnostics) && imported.scenario.name.empty() && imported.scenario.id == scene.scenarios[0].id,
+		"a scenario file with an empty name is imported");
+	if (!saved.success())
+		return false;
+
+	json stations = readJsonFile(scenePath / "stations.json");
+	stations["stations"][0].erase("name");
+	std::ofstream(scenePath / "stations.json", std::ios::trunc) << stations.dump(4) << "\n";
+	const SceneLoadResult missing = loadScene(scenePath.string());
+	bool missingName = false;
+	for (const SceneDiagnostic& diagnostic : missing.diagnostics)
+		missingName = missingName
+			|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.field.missing"
+				&& diagnostic.file == "stations.json" && diagnostic.path == "stations[0].name");
+	ok &= expect(missingName, "a station without a name key is still an error");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	bool ok = true;
 	TempDir temp;
@@ -1784,6 +1823,10 @@ int main(int argc, char** argv) {
 	{
 		TempDir scenarioTemp;
 		ok &= checkScenarioFileDiagnostics(scenarioTemp);
+	}
+	{
+		TempDir emptyNamesTemp;
+		ok &= checkEmptyNames(emptyNamesTemp);
 	}
 
 	if (!ok)
