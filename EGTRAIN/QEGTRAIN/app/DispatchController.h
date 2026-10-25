@@ -79,10 +79,10 @@ public:
 	/// lastRunError() and the log, and executionFailed is emitted. The function itself does not throw.
 	void runSimulation();
 
-	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. v1, v2 and v3 go to
-	/// Train::trajectoryComputationIncludingMovingBlock; runSimulation passes signalCode1 to signalCode3, in m/s. Called by
-	/// runSimulation, which sets the control of the run first.
-	void Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3);
+	/// The steps of a run, t from 0 while t < settings.times, each in seconds from the start of the run. Before a step the control
+	/// of the run applies its commands, pause, stop and step delay; runSimulationStep (simulation/Simulation.h) runs the step, and the
+	/// snapshot of the step is published after it. Called by runSimulation, which sets the control of the run first.
+	void Train_Simulation_Mixed_Signalling_With_Passengers();
 
 	/// Appends the service path diagram of each train that departs before the end of the run to
 	/// TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not

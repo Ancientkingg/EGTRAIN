@@ -10,7 +10,6 @@
 #include "util/portability.h" // localtime_r shim on MSVC
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
-#include <numeric>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -27,8 +26,6 @@
 using namespace std;
 
 namespace {
-// The step loop reports its progress once in this many steps.
-constexpr int kProgressEverySteps = 100;
 // A passenger who has left the network stays in the list of the platform of the exit for this many seconds.
 constexpr int kExitedPassengerShownSeconds = 5;
 // A snapshot holds the virtual coupling messages of this many seconds before its step.
@@ -40,8 +37,6 @@ constexpr double kBlockingReleaseTimeSeconds = 3;
 constexpr double kBlockingSightReactionTimeSeconds = 0.5;
 constexpr double kBlockingRunningTimeSupplementSeconds = 0;
 constexpr double kBlockingSafetyMarginMetres = 50;
-// The margin of the ends of authority that the trains report at levels 3 and 4, in metres.
-constexpr double kEndOfAuthorityMarginMetres = 50;
 
 // Makes the folder and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
@@ -574,7 +569,7 @@ void DispatchController::runSimulationStages() {
 
 	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
 
-	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
+	Train_Simulation_Mixed_Signalling_With_Passengers(); // Function to Launch EGTRAIN considering passenger flow simulation
 
 	if (stoppedHere())
 		return;
@@ -667,17 +662,10 @@ void DispatchController::runSimulationStages() {
 	emit executionReturned(observationTimer.elapsed(), false);
 }
 
-void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
+void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers() {
 	SimulationRun& run = mutableRun();
 	const InitialParameters& settings = run.settings;
-
-	// The trains by departure time; trains due at the same time stay in the order of the trains of the run.
-	std::vector<int> dueOrder(run.numTrains);
-	std::iota(dueOrder.begin(), dueOrder.end(), 0);
-	std::stable_sort(dueOrder.begin(), dueOrder.end(), [&](int a, int b) {
-		return run.trains[a].departure_time < run.trains[b].departure_time;
-	});
-	std::vector<int> movementOrder;
+	TrainMovementOrder order(run);
 	int lastStep = -1;
 
 	RunControl& control = *runControl_;
@@ -690,97 +678,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		if (!control.beginStep(fetchCommands))
 			break;
 		lastStep = t;
-		{
-			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
-			clock_t startEGTRAIN = clock(); // EGTRAIN start time
-			if (t % kProgressEverySteps == 0) {
-				EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
-			}
-
-			{
-				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
-					"worker/playback_step/compute");
-				// Simulate entrance process of passengers on the railway network according to route choice
-				checkJourneyStartForAllPassengers(t, settings.startingSimulationTime, run.passengers);
-
-				// This function will update the list of all waiting passengers at all platforms in the network at every instant
-				// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
-				// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
-				if (settings.PAX_GUI) {
-					Update_List_Passengers_Waiting_At_ALL_Platforms(run.platforms, run.passengers);
-				}
-			}
-
-			{
-				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
-					"worker/playback_step/compute");
-				// Simulate train movement at each simulation step
-				// Every train keeps its place in the order of the trains of the run, except that the trains that are due and still
-				// waiting to enter take the places of those trains in the order in which they are due. Of several trains
-				// waiting at the entry of a route the one due first then enters first.
-				movementOrder.resize(run.numTrains);
-				std::iota(movementOrder.begin(), movementOrder.end(), 0);
-				const auto dueAndWaiting = [&](int j) { return !run.trains[j].CanEnter && t >= run.trains[j].departure_time; };
-				auto nextDue = dueOrder.begin();
-				for (int& place : movementOrder) {
-					if (!dueAndWaiting(place))
-						continue;
-					while (!dueAndWaiting(*nextDue))
-						++nextDue;
-					place = *nextDue++;
-				}
-				for (const int j : movementOrder) {
-					run.trains[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
-					run.trains[j].recordEarliestActiveTrajectoryIndex(t);
-					run.trains[j].recordStationPassagesAtTime(t);
-
-					// check if train arrived at destination or departed from origin
-					run.trains[j].checkTrainArrDep(t);
-				}
-			}
-
-			{
-				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
-					"worker/playback_step/compute");
-				// The interaction of trains and passengers, with the passenger-dependent dwell times at the platforms
-				for (int n = 0; n < run.numTrains; n++)
-					Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, run.trains[n], run.passengers, run.platforms);
-			}
-
-			{
-				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
-					"worker/playback_step/compute");
-				run.etcsMa.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
-
-				Occupy_Block_Sections_Of_Route(run, t); // Fill in the lists Blocks_Occupied and BlocksConnected
-
-				// Occupy failed sections and give them an End of Authority so both
-				// aspect-driven and moving-block trains react to the incident
-				Apply_Signal_Failures_Mixed_Signalling(run, t);
-
-				// Held single-track sections give trains of the other direction an End of Authority at levels 3 and 4
-				Apply_Single_Track_Authorities_Mixed_Signalling(run);
-
-				// Only levels 3 and 4
-				ReportAllTrainPositionsToRBC(run, t, kEndOfAuthorityMarginMetres);
-
-				// function to protect all station areas
-				protectStationAreas(run, t);
-
-				releaseMixedSignallingSystem(run); // Release Blocks connected with the one really occupied by a train
-
-				activateMixedSignallingSystem(run); // Apply the rules of the signalling system for all the Blocks contained
-
-				unlockDoubleSwitches(run); // unlock double switches (otherwise trains stop in the middle of double switches)
-
-				run.blocksOccupied.clear();	 // Clear the list of the occupied blocks
-				run.blocksConnected.clear(); // Clear the list of the connected blocks
-			}
-
-			clock_t endEGTRAIN = clock();																	// variable that sets the time in which EGTRAIN ends
-			run.compTimeEgtrain = run.compTimeEgtrain + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
-		}
-
+		runSimulationStep(run, t, order);
 		publishSimulationSnapshot(t);
 	}
 	if (live_) {

@@ -76,4 +76,23 @@ void Update_List_Passengers_Waiting_At_ALL_Platforms(std::list<StationPlatform>&
 /// passenger-dependent dwell replaces the stop time when it is longer. Passenger times are t + SimulationStartingTime (s since midnight).
 void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
 
+/// The order in which the trains of a run move in its steps. The loop that steps a run makes one before the first step and passes
+/// it to every step.
+struct TrainMovementOrder {
+	/// The trains of run by departure time; trains due at the same time stay in the order of the trains of the run.
+	explicit TrainMovementOrder(const SimulationRun& run);
+	/// The indexes of the trains by departure time.
+	std::vector<int> dueOrder;
+	/// The order of the trains in the current step. It is kept between steps so that each step reuses its storage.
+	std::vector<int> movementOrder;
+};
+
+/// Runs step t of run, in seconds from the start of the run. The passengers whose journey starts enter the network and, with
+/// settings.PAX_GUI, the waiting lists of the platforms are refreshed. Every train then moves, in the order of the trains of the run
+/// except that the trains that are due and still waiting to enter take those places in the order in which they are due, so the
+/// one due first enters first. The trains and passengers interact, the signalling routines set the sections and the authorities
+/// for the next step, and the processor time of the step is added to run.compTimeEgtrain. order belongs to the run and keeps its
+/// due order for every step.
+void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order);
+
 #endif
