@@ -331,7 +331,10 @@ tests that run committed scenes have a limit of their own, `-DEGTRAIN_CHARACTERI
 `startup_launch_contract.py` multiplies its 60 second launch wait by the scale, and the fresh process
 of one step in the `--repeat-files` tests may take five sixths of the scene limit. The `Sanitizers` job of `release.yml` passes a scale
 of 10 and a scene limit of 5400 seconds, and runs `ctest --parallel 3` like the macOS leg of the CMake
-workflow. The leak check passes only a scene limit of 1500 seconds.
+workflow. The nightly `sanitizers (Linux)` job of the CMake workflow passes the same scale and scene limit,
+runs `ctest --parallel 4` like the Linux leg, and stops a test without a limit of its own after 1500 seconds;
+the nightly `thread sanitizer (Linux)` job passes a scale of 10 (see [Nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs)).
+The leak check passes only a scene limit of 1500 seconds.
 
 `test_dialog_presentation_contract` runs `creator_acceptance_smoke.sh --dialog-contract`,
 which starts the creator acceptance run and then checks the case chooser and the Run

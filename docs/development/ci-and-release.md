@@ -14,7 +14,7 @@ scripts that build, sign and check the release packages.
   `tools/docs/check_docs.py` on every pull request, documentation-only ones
   included. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
-  always build, and both also start the [leak check](smoke-tests.md#leak-check) on Linux.
+  always build, and both also start the [leak check](smoke-tests.md#leak-check) and the [nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs) on Linux.
   A push to `main` starts no run. A scheduled workflow runs
   on the default branch only, and GitHub pauses schedules in a repository
   without activity for 60 days. The three legs run independently

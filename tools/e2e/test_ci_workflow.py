@@ -8,6 +8,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+# The jobs of the CMake workflow that run only at night or by hand. The result job, which main requires, does not wait for them.
+NIGHTLY_SANITIZER_JOBS = ("sanitizers", "thread-sanitizer")
+
 # The path rules that decide which workflows start, in the filter syntax of GitHub, where * stays within a directory and
 # ** crosses directories. The CMake workflow skips a pull request that changes only these files. The production release
 # workflow still skips on them as a trigger filter.
@@ -169,8 +172,9 @@ def selects(branches: list[tuple[str, str]], files: list[str], action: str) -> b
     return False
 
 
-def result_job_problems(text: str, name: str) -> list[str]:
-    """The last job of a pull request workflow reports the result of all other required jobs under a fixed name."""
+def result_job_problems(text: str, name: str, not_required: tuple[str, ...] = ()) -> list[str]:
+    """The last job of a pull request workflow reports the result of all other required jobs under a fixed name. The jobs in
+    not_required are left out."""
     ids = job_ids(text)
     job = job_block(text, "result")
     needs = re.findall(r"^    needs: \[(.+)\]$", job, re.MULTILINE)
@@ -181,7 +185,7 @@ def result_job_problems(text: str, name: str) -> list[str]:
         problems.append(f"{name} as the last job")
     if f"    name: {name}\n" not in job or "    if: always()\n" not in job:
         problems.append(f"{name} that always runs")
-    if len(needs) != 1 or needs[0].split(", ") != ids[:-1]:
+    if len(needs) != 1 or needs[0].split(", ") != [job_id for job_id in ids[:-1] if job_id not in not_required]:
         problems.append(f"{name} that needs every other required job")
     if (
         steps != ["Fail when a job failed or was cancelled"]
@@ -196,17 +200,17 @@ def required_result_problems(workflow: str, format_workflow: str, tidy_workflow:
     """Every pull request to main starts the CMake, Format, Tidy and Package check workflows, and each reports one result job
     that main can require. The path rules that the triggers had decide in a first job whether the other jobs work."""
     problems = []
-    for name, text, label in (
-        ("CMake", workflow, "CMake result"),
-        ("Format", format_workflow, "Format result"),
-        ("Tidy", tidy_workflow, "Tidy result"),
-        ("Package check", package_check, "Package check result"),
+    for name, text, label, not_required in (
+        ("CMake", workflow, "CMake result", NIGHTLY_SANITIZER_JOBS),
+        ("Format", format_workflow, "Format result", ()),
+        ("Tidy", tidy_workflow, "Tidy result", ()),
+        ("Package check", package_check, "Package check result", ()),
     ):
         trigger = trigger_block(text)
         pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", trigger, re.MULTILINE)
         if "paths" in trigger or not pull_request or pull_request.group(1) != "    branches: [main]\n":
             problems.append(f"{name} starting for every pull request to main, without a path filter")
-        problems.extend(result_job_problems(text, label))
+        problems.extend(result_job_problems(text, label, not_required))
         changes = job_block(text, "changes")
         if (
             "    runs-on: ubuntu-latest\n" not in changes
@@ -334,9 +338,11 @@ def main() -> None:
     if any(smoke in workflow for smoke in standalone_smokes):
         missing.append("standalone smoke steps")
     # LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job. It builds with sanitizers,
-    # takes longer than the pull request checks, and runs only in the nightly and manual runs. No other job of the file
-    # uses sanitizers.
+    # takes longer than the pull request checks, and runs only in the nightly and manual runs. Only the nightly sanitizer
+    # jobs below use sanitizers as well.
     leak_job = job_block(workflow, "leak-check")
+    nightly_job = job_block(workflow, "sanitizers")
+    tsan_job = job_block(workflow, "thread-sanitizer")
     leak_upload = step_block(leak_job, "Upload leak check logs")
     suppressions = re.search(r"^      LSAN_OPTIONS: suppressions=\$\{\{ github\.workspace \}\}/(\S+)$", leak_job, re.MULTILINE)
     smoke_script = re.search(r"run: python3 (tools/e2e/\S+\.py) build/QEGTRAIN \"\$RUNNER_TEMP/leak-check\"\n", leak_job)
@@ -345,10 +351,14 @@ def main() -> None:
     characterization_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/characterization/CMakeLists.txt").read_text(encoding="utf-8")
     if (
         "\n  sanitizer:" in workflow
-        or workflow.count("EGTRAIN_ENABLE_SANITIZERS=ON") != 1
+        or workflow.count("EGTRAIN_ENABLE_SANITIZERS=ON") != 2
         or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON" not in leak_job
+        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON" not in nightly_job
+        or workflow.count("-fsanitize=thread") != 2
+        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON\n" not in tsan_job
+        or "-DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread" not in tsan_job
     ):
-        missing.append("sanitizers only in a Debug build of the leak check job")
+        missing.append("sanitizers only in Debug builds of the leak check and the nightly sanitizer jobs")
     if (
         "    runs-on: ubuntu-latest\n" not in leak_job
         or "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n" not in leak_job
@@ -383,6 +393,66 @@ def main() -> None:
         or "path: ${{ runner.temp }}/leak-check\n" not in leak_upload
     ):
         missing.append("leak check logs uploaded after a failure")
+    # The nightly sanitizer job runs the whole suite on Linux with the options and the test environment of the Sanitizers job
+    # of release.yml, so that the two cannot drift apart, and as many tests at once as the Linux leg. The thread sanitizer job
+    # builds and runs registered tests of the threaded parts. Both run only in the nightly and manual runs.
+    nightly_gate = "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n"
+    if any("    runs-on: ubuntu-latest\n" not in job or nightly_gate not in job for job in (nightly_job, tsan_job)):
+        missing.append("nightly sanitizer jobs on Linux in the nightly and manual runs only")
+    release_sanitizer = job_block(release_only, "sanitizer")
+    plain_option = r"-D[A-Za-z_]+=[\w.]+(?=\s)"
+    release_options = set(re.findall(plain_option, step_block(release_sanitizer, "Configure") + "\n"))
+    nightly_options = set(re.findall(plain_option, step_block(nightly_job, "Configure with sanitizers") + "\n"))
+    # Leak detection and the fake stack for returned frames are off by default on macOS and on by default on Linux. The
+    # nightly job turns both off, so that it checks what the release job checks. The leak check owns the leaks. The nightly
+    # job also lists the known reports of UndefinedBehaviorSanitizer.
+    test_environment = r"^          ([A-Z_]+): (.+)$"
+    ubsan_suppressions = "tools/e2e/ubsan_suppressions.txt"
+    nightly_additions = {
+        "ASAN_OPTIONS": ":detect_leaks=0:detect_stack_use_after_return=0",
+        "UBSAN_OPTIONS": f":suppressions=${{{{ github.workspace }}}}/{ubsan_suppressions}",
+    }
+    release_environment = [
+        (key, value + nightly_additions.get(key, ""))
+        for key, value in re.findall(test_environment, step_block(release_sanitizer, "Test"), re.MULTILINE)
+    ]
+    nightly_test = step_block(nightly_job, "Test with sanitizers")
+    linux_jobs = re.search(r"^ +- name: Linux\n +os: \S+\n +jobs: (\d+)$", workflow, re.MULTILINE)
+    if (
+        not release_options
+        or release_options != nightly_options
+        or not set(nightly_additions) <= set(dict(release_environment))
+        or not (ROOT / ubsan_suppressions).is_file()
+        or re.findall(test_environment, nightly_test, re.MULTILINE) != release_environment
+        or not linux_jobs
+        or f"run: ctest --test-dir build --parallel {linux_jobs.group(1)} --timeout 1500 --output-on-failure"
+        ' --output-log "$RUNNER_TEMP/ctest-sanitizer.log"\n' not in nightly_test
+        or "run: cmake --build build\n" not in step_block(nightly_job, "Build with sanitizers")
+    ):
+        missing.append("nightly sanitizer job that runs all of CTest with the options and environment of the release sanitizer job")
+    tsan_build = " ".join(step_block(tsan_job, "Build with ThreadSanitizer").split())
+    tsan_targets = tsan_build.split("cmake --build build --target ", 1)[-1].split() if "--target " in tsan_build else []
+    tsan_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", step_block(tsan_job, "Test the threaded parts"))
+    tsan_names = tsan_tests.group(1).split("|") if tsan_tests else []
+    # Qt, libzmq and the C library are not instrumented, so the job ignores their own accesses and lists the known reports.
+    tsan_suppressions = re.search(
+        r"^      TSAN_OPTIONS: second_deadlock_stack=1:ignore_noninstrumented_modules=1"
+        r":suppressions=\$\{\{ github\.workspace \}\}/(\S+)$",
+        tsan_job,
+        re.MULTILINE,
+    )
+    if (
+        not {"test_recoverycontroller", "test_telemetrysender", "test_liveserver", "test_simulationworker"} <= set(tsan_names)
+        or any(not test_registration(tests_cmake, name) or name not in tsan_targets for name in tsan_names)
+        or '--no-tests=error --output-on-failure --output-log "$RUNNER_TEMP/ctest-thread-sanitizer.log"' not in tsan_job
+        or not tsan_suppressions
+        or not (ROOT / tsan_suppressions.group(1)).is_file()
+    ):
+        missing.append("thread sanitizer runs of registered tests of the threaded parts, built with ThreadSanitizer")
+    for job in (nightly_job, tsan_job):
+        upload = step_block(job, "Upload failure diagnostics")
+        if "if: failure()" not in upload or "actions/upload-artifact@v4" not in upload or "${{ runner.temp }}/ctest-" not in upload:
+            missing.append("nightly sanitizer logs uploaded after a failure")
     if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_gui_autostart_smoke")):
         missing.append("GUI smoke CTest timeout")
     if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_package_contents_smoke")):
@@ -391,9 +461,13 @@ def main() -> None:
         missing.append("bounded GUI smoke horizon")
     if "DEFAULT_MARKER_SECONDS = 300" not in gui_smoke:
         missing.append("hosted-runner GUI startup budget")
-    if workflow.count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 1:
+    if any(
+        job_block(workflow, job).count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 1
+        for job in ("build", *NIGHTLY_SANITIZER_JOBS)
+    ):
         missing.append("TMPDIR routing step for CTest logs")
-    uploads = [block for block in blocks if block.startswith("name: Upload failure diagnostics\n")]
+    build_blocks = job_block(workflow, "build").split("\n      - ")
+    uploads = [block for block in build_blocks if block.startswith("name: Upload failure diagnostics\n")]
     if len(uploads) != 1 or any(
         "if: failure()" not in block
         or "actions/upload-artifact@v4" not in block
@@ -487,7 +561,7 @@ def main() -> None:
         missing.append("production sanitizer diagnostics and time budgets")
     # An instrumented build runs several times slower. The sanitizer job scales the time limits of the tests and runs as many
     # tests at once as the macOS leg of the CMake workflow, so that it neither times out nor takes an hour. The scale is 1 by
-    # default and no other build passes it, so every other build keeps its limits.
+    # default and only the nightly sanitizer jobs of the CMake workflow pass it too, so every other build keeps its limits.
     sanitizer_job = job_block(release_only, "sanitizer")
     sanitizer_configure = " ".join(step_block(sanitizer_job, "Configure").split()) + " "
     sanitizer_ctest = step_block(sanitizer_job, "Test")
@@ -506,10 +580,10 @@ def main() -> None:
     if (
         'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' not in tests_cmake
         or "set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING" not in characterization_cmake
-        or "EGTRAIN_TEST_TIMEOUT_SCALE" in workflow
+        or "EGTRAIN_TEST_TIMEOUT_SCALE" in workflow.replace(nightly_job, "").replace(tsan_job, "")
         or "EGTRAIN_TEST_TIMEOUT_SCALE" in job_block(release_only, "validation")
     ):
-        missing.append("test time limits that only the sanitizer job of the release workflow scales")
+        missing.append("test time limits that only the sanitizer jobs scale")
     publish_job = release_only.split("\n  release:\n", 1)[1]
     publish_condition = publish_job.split("\n    runs-on:", 1)[0]
     if "needs: [version, validation, sanitizer, package]" not in publish_condition:
@@ -680,9 +754,10 @@ def main() -> None:
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
-    # The Linux leg and the leak check get Qt from the action and the other libraries from these packages.
-    if len(apt_installs) != 2 or apt_installs[0] != apt_installs[-1]:
-        missing.append("the same Linux packages in the build and leak check jobs")
+    # The Linux leg, the leak check and the nightly sanitizer jobs get Qt from the action and the other libraries from these
+    # packages.
+    if len(apt_installs) != 4 or len(set(apt_installs)) != 1:
+        missing.append("the same Linux packages in the build, leak check and nightly sanitizer jobs")
     if not apt_packages or any(
         not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
         for package in apt_packages
@@ -767,8 +842,8 @@ def main() -> None:
         re.DOTALL,
     ):
         missing.append("Windows image size CTest")
-    # One leg per platform, each with Qt 6.8.3 from the action, as the leak check has. No step names a Qt 5 package, option or
-    # file, and the legs count in the result job.
+    # One leg per platform, each with Qt 6.8.3 from the action, as the leak check and the nightly sanitizer jobs have. No step
+    # names a Qt 5 package, option or file, and the legs count in the result job.
     legs = re.findall(r"^          - name: (.+)$", build_job, re.MULTILINE)
     qt_install = "        uses: jurplel/install-qt-action@v4\n        with:\n          version: '6.8.3'\n          modules: qtcharts\n"
     if (
@@ -778,8 +853,12 @@ def main() -> None:
         or step_block(build_job, "Install Qt 6") != "name: Install Qt 6\n        if: needs.changes.outputs.build == 'true'\n" + qt_install + "          cache: true\n"
         or qt_install not in step_block(leak_job, "Install Qt 6")
         or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(leak_job, "Configure with sanitizers")
+        or qt_install not in step_block(nightly_job, "Install Qt 6")
+        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(nightly_job, "Configure with sanitizers")
+        or qt_install not in step_block(tsan_job, "Install Qt 6")
+        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(tsan_job, "Configure with ThreadSanitizer")
     ):
-        missing.append("one leg per platform and the leak check, each on Qt 6.8.3 from the action, all counted in the result job")
+        missing.append("one leg per platform, the leak check and the nightly sanitizer jobs, each on Qt 6.8.3 from the action")
     qt5_names = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|ARTIFACT_SUFFIX")
     for name in ("cmake.yml", "package.yml", "package-check.yml", "release.yml", "tidy.yml"):
         found = qt5_names.search(workflow_text(name))
