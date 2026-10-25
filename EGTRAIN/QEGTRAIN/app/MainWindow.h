@@ -119,8 +119,6 @@ struct SceneHistoryEntry;
 struct StableRelease;
 struct UpdateCheckResult;
 
-using namespace std;
-
 /// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
 /// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
 /// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
