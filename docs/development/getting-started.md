@@ -209,12 +209,12 @@ sources, and `python3 tools/tidy.py` for the sources outside `simulation/`.
 This changes no product behavior. It shows the build, test and failure loop on `util/TimeFormat`,
 which has no Qt dependency and builds quickly. It starts from the finished build above.
 
-1. Open `EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`. Tests here are plain programs with a `main()` and a
-   local `expect(bool, message)`. After the line `formatSimTime negative clamp`, add an assertion that
-   is wrong on purpose:
+1. Open `EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp`. It is a Qt Test class
+   ([Writing a test](testing.md#writing-a-test)). In `formatsSimTime_data()`, after the row
+   `negative clamp`, add a row that is wrong on purpose:
 
    ```cpp
-   ok &= expect(formatSimTime(7200) == "02:00:01", "formatSimTime two hours");
+   QTest::newRow("two hours") << 7200LL << 0LL << "02:00:01";
    ```
 
 2. Build and run only that test (with a multi-config generator, add `--config Release` and
@@ -225,7 +225,9 @@ which has no Qt dependency and builds quickly. It starts from the finished build
    ctest --test-dir build -R '^test_timeformat$' --output-on-failure
    ```
 
-   CTest reports the test as failed and the output has the line `failed: formatSimTime two hours`.
+   CTest reports the test as failed, and the output has the line
+   `FAIL!  : TestTimeFormat::formatsSimTime(two hours) Compared values are not the same`, followed by
+   the actual and the expected text.
 
 3. Correct the expected text to `"02:00:00"` and run the two commands again. The test passes.
 
