@@ -499,6 +499,8 @@ handles its mode arguments before it calls <code class="docutils literal notrans
 <li><p>A Qt Test program that skips (<code class="docutils literal notranslate"><span class="pre">QSKIP</span></code>) exits with 0, so a test with <code class="docutils literal notranslate"><span class="pre">SKIP_RETURN_CODE</span></code> keeps a <code class="docutils literal notranslate"><span class="pre">main</span></code> of its own
 that returns the skip code before it calls <code class="docutils literal notranslate"><span class="pre">QTest::qExec</span></code>. So does a test that must set the environment before the
 application object exists (<code class="docutils literal notranslate"><span class="pre">tests/test_consolestream.cpp</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/support/FakePrompts.h</span></code> answers the prompts of an editor panel without a dialog and keeps what the panel
+asked (<code class="docutils literal notranslate"><span class="pre">tests/test_editor_infrastructure_blocks.cpp</span></code>).</p></li>
 <li><p>Files that are not converted yet keep their local <code class="docutils literal notranslate"><span class="pre">expect</span></code> or <code class="docutils literal notranslate"><span class="pre">check</span></code> helper (<a class="reference internal" href="coding-guidelines.html#tests"><span class="std std-ref">Tests</span></a>).</p></li>
 </ul>
 </section>
