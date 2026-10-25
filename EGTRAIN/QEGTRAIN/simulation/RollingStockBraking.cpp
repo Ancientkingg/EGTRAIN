@@ -846,7 +846,6 @@ void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks
 	if (successor >= 0) {
 		instant_train_speed[time_seconds] = Vbrak[successor];
 		instant_spatial_position[time_seconds] = Sbrak[successor];
-		brakingPoint = successor;
 		Eq[time_seconds] = 52;
 		GradientExceptionInBraking = Vbrak[successor] < Vobmin && successor < BrakStep;
 		return;
@@ -864,7 +863,6 @@ void Train::brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks
 	if (planned) {
 		instant_train_speed[time_seconds] = Vbrak[1];
 		instant_spatial_position[time_seconds] = Sbrak[1];
-		brakingPoint = 1;
 		Eq[time_seconds] = newCurve ? 55 : 53;
 		counter = 1;
 		GradientExceptionInBraking = Vbrak[1] < Vobmin && BrakStep > 1;

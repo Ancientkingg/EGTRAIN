@@ -1297,15 +1297,6 @@ static bool runTrackDetectionBorderNameChecks() {
 	same(endId(named, 0), "@Q@/@40.888889-Bf@Point-Start", "the named border at the start of a switch");
 	same(endId(named, 1), "@40.222222-Be@/@R@Point-End", "the named border at the end of a switch");
 	same(endId(named, 2), "@45.555556-Bf@Point", "the border after a switch");
-
-	Node connected;
-	connected.numConnections = 1;
-	connected.connectIdBlockSet[0] = 30;
-	connected.connectXNode[0] = 4.5923456;
-	std::string candidates[] = {"@1-B3@-4.592346/@4-B5@-6.700000", "@1-B30@-4.592346/@5-B7@-4.620000"};
-	connected.initialiseIdConnectedBlocks(candidates, 2);
-	ok &= expect(connected.IDConnectedBlocks.size() == 1 && connected.IDConnectedBlocks.front() == candidates[1],
-		"a node finds the connected block with its block set and abscissa");
 	return ok;
 }
 

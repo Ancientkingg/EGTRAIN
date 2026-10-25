@@ -41,8 +41,6 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-// const int Max_N_Reg = 150;
-
 Train::Train() {
 	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
 	BrakStep = -1;
@@ -50,24 +48,18 @@ Train::Train() {
 	numStations = 0;
 	Xobmin = Vobmin = 0;
 	// instant_train_energy_consumption[0] = 0; // moved to function that sets the size of vectors from user input (at this point vector size is zero, can't set value)
-	brakingPoint = 0;
-	delayed = 0;
 	RunStartTime = 0;
 	CanEnter = false;
-	direction = 0;
-	Final_Delay = TotalInputDelays = 0;
-	N_Station_Stopped = 0;
+	TotalInputDelays = 0;
 	indexOfRoute = 0;
 	OutOfSimulation = false;
 	GradientExceptionInBraking = false;
 	IsTrainStoppedForEoA = false;
 	type = "None";
-	ETCS3StoppingPoint = -1;
 	Start_Node_X = -10000;
 	EntranceDelay = 0;
 	N_BlockSections = 0;
 	N_BlockTimeComplete = 0;
-	N_ConflictingTrains = 0;
 	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
 	LeadingTrainInFollowingMode = "None";
 	CurrentServiceStopPlatform = "None";
@@ -76,7 +68,6 @@ Train::Train() {
 	TotalEnergyConsWithRegBrak = 0;
 	TotalEnergySubstRequestWithRegBrak = 0;
 	EnergyForAuxiliaries = 0;
-	numOverlaps = 0;
 	MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
 	Current_OnBoard_Passengers = 0; // It is considered that the train starts with no passengers onboard
 	for (int i = 0; i < kMaxTimetableStations; i++) {
@@ -86,8 +77,6 @@ Train::Train() {
 		StationConsecDelay[i] = -1;
 		StationDisturbance[i] = 0;
 	}
-
-	prevIntendedDepTime = 0; // initialized as 0 to print from t=0 in the 1st service
 
 	for (int p = 0; p < 8; p++) {
 		this->GibsonDwellTimeParameters[p] = -1;
@@ -469,20 +458,12 @@ void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 		OutputFile << "\n";
 
 		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
-			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
-			OutputFile<<regional_train[i].BlockTime[j].PosStart<<" ";
-			else
-			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosEnd<<" ";*/
 			OutputFile << run.trains[i].BlockTime[j].GeoPosStart << " ";
 		}
 
 		OutputFile << "\n";
 
 		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
-			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
-			OutputFile<<regional_train[i].BlockTime[j].PosEnd<<" ";
-			else
-			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosStart<<" ";*/
 			OutputFile << run.trains[i].BlockTime[j].GeoPosEnd << " ";
 		}
 
@@ -554,17 +535,15 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	std::ofstream FileOutput;
 
 	// avoid different corridor for initial service (entering station for the first time)
-	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
+	if (nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
 		indexOfRoute = nextServiceRouteID;
 	}
 
 	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
 
-	FileOutput << trainDescription << "\t" << dispLineID << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
+	FileOutput << trainDescription << "\t" << -1 << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
 
-	const int activeFirst = earliestActiveTrajectoryIndex < 0
-		? -1
-		: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
+	const int activeFirst = std::max(earliestActiveTrajectoryIndex, -1);
 	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
 	for (int t = 0; t < run_->settings.times; t++) {
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;

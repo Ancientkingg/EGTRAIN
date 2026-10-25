@@ -29,9 +29,10 @@ namespace {
 constexpr int kFirstStep = 2;
 constexpr int kLastStep = 400;
 
-// The train stands at the last stop of its service from step 2 and has no planned departure there.
+// The train entered at step 1, stands at the last stop of its service from step 2 and has no planned departure there.
 Train trainAtLastStop(const Train& native, double plannedDwell) {
 	Train service = native;
+	service.departure_time = 1;
 	const int station = service.numStations - 1;
 	service.Stations[station].StepStopped = 0;
 	service.Stations[station].StopTime = plannedDwell;

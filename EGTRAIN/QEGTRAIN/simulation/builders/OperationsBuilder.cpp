@@ -1,7 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
-#include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 #include "simulation/SimulationRun.h"
 
@@ -45,7 +44,6 @@ struct NativeTrainPlan {
 	std::vector<NativeStopPlan> stops;
 	int occurrence = 1;
 	int routeIndex = -1;
-	bool direction = false;
 	double servicePerformancePercent = 100.0;
 	bool hasConfiguredMaximumSpeed = false;
 	double configuredMaximumSpeedKmh = 0.0;
@@ -222,7 +220,6 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Region
 	train.TrainRouteID = plan.routeId;
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
-	train.direction = plan.direction;
 	train.Start_Node_X = run.infra.routes[plan.routeIndex].x_of_start_node;
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
@@ -639,7 +636,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 			plan.tractionCurve = composition.tractionCurve;
 			plan.occurrence = occurrence;
 			plan.routeIndex = routeIt->second;
-			plan.direction = runtimeRoute.reversed_direction;
 			plan.servicePerformancePercent = service.performancePercent;
 			plan.hasConfiguredMaximumSpeed = service.hasMaximumSpeed;
 			plan.configuredMaximumSpeedKmh = service.maximumSpeedKmh;
@@ -1109,7 +1105,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	run.numTrains = static_cast<int>(trains.size());
 	for (std::size_t index = 0; index < trains.size(); ++index)
 		nativeCopyTrainPlan(run, trains[index], run.trains[index], vectorSize);
-	changeTrainDepartureTimesForHourlyTimetabling(run, run.trains.data(), run.numTrains);
 	run.platforms = std::move(stagedPlatforms);
 	run.numPlatforms = static_cast<int>(run.platforms.size());
 	run.passengers = std::move(stagedPassengers);

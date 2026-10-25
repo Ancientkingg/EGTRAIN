@@ -1,7 +1,6 @@
 #include "simulation/Signalling.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
-#include "simulation/builders/InfrastructureBuilderInternal.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
@@ -756,25 +755,8 @@ void setList(SimulationRun& run, string input, list<Section>& BSConnected) {
 	}
 }
 
-// This Function is used to set the dependencies between two block section connected by means of switches
-static void setLegacyConnectedBlockIdsOnNodes(SimulationRun& run) {
-	for (int i = 0; i < run.infra.numBlocks; i++) {
-		for (int h = 0; h < run.infra.sections[i].total_arcs; h++) {
-			Node& node = run.infra.sections[i].arcs_in_signalling_block_section[h].endNode;
-			if (node.numConnections > 0) {
-				node.IDConnectedBlocks.clear();
-				node.initialiseIdConnectedBlocks(run.infra.sections[i].IDConnectedBS,
-					run.infra.sections[i].N_ConnectedBS);
-			}
-		}
-	}
-}
-
+// Sets the dependencies between block sections connected by switches.
 void setDependenciesBetweenBlocks(SimulationRun& run) {
-	setDependenciesBetweenBlocksInternal(run, true);
-}
-
-void setDependenciesBetweenBlocksInternal(SimulationRun& run, bool includeCopenhagenDependency) {
 	for (int i = 0; i < run.infra.numBlocks; i++) {
 		auto& section = run.infra.sections[i];
 		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
@@ -794,12 +776,7 @@ void setDependenciesBetweenBlocksInternal(SimulationRun& run, bool includeCopenh
 			if (it->ID != section.ID && !addConnection(it->ID))
 				break;
 		}
-		// Keep the legacy Copenhagen exception out of the native scene path.
-		if (includeCopenhagenDependency && section.ID == "@5-B6@")
-			addConnection("@1-B30@-4.592000/@5-B7@-4.620000");
 	}
-	if (includeCopenhagenDependency)
-		setLegacyConnectedBlockIdsOnNodes(run);
 }
 
 // Function to recognize if two block sections are overlapping

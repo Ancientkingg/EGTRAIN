@@ -574,12 +574,6 @@ void DispatchController::runSimulationStages() {
 
 	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
 
-	// Setting departing time of train to the scheduled one
-	for (int i = 0; i < run.numTrains; i++) {
-
-		run.trains[i].departure_time = run.trains[i].scheduled_departure_time;
-	}
-
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 
 	if (stoppedHere())

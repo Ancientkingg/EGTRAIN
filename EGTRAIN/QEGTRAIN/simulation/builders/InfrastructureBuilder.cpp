@@ -4,7 +4,6 @@
 #include "simulation/Passengers.h"
 #include "simulation/Signalling.h"
 #include "simulation/SimulationRun.h"
-#include "simulation/builders/InfrastructureBuilderInternal.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -930,7 +929,7 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 	}
 	if (nativeHasErrors(diagnostics))
 		return;
-	setDependenciesBetweenBlocksInternal(run, false);
+	setDependenciesBetweenBlocks(run);
 
 	auto resolveSection = [&](const std::string& reference) -> int {
 		const auto* planned = plan.sectionInventory.resolve(reference);

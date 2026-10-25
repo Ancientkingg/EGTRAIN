@@ -161,9 +161,8 @@ decimal base (for example `1723`, `1725`, `1727`). An explicit repeat count is
 the total occurrence count, including the base, and overrides the duration
 horizon; without it, the count is `ceil(duration / headway)`. Entry and stop
 offsets remain `(occurrence - 1) * headway`. The canonical service ID never
-advances. Repetition keeps the canonical entry in `scheduled_departure_time`;
-the compatibility hourly-retiming algorithm may derive `departure_time` while
-leaving that canonical value unchanged. Arrival and departure timetable values
+advances. Repetition keeps the canonical entry in `scheduled_departure_time`,
+and `departure_time` starts equal to it. Arrival and departure timetable values
 remain independently optional and are staged as runtime `-1` when absent,
 including repeated occurrences.
 

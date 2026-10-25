@@ -110,10 +110,6 @@ public:
 		else
 			return false;
 	}
-
-	/// Fills IDConnectedBlocks from the given block section IDs, choosing for each connection the ID that names its track
-	/// and node position.
-	void initialiseIdConnectedBlocks(std::string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock);
 };
 
 /// A directed piece of track between two nodes.
@@ -275,16 +271,5 @@ public:
 };
 
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
-
-/// A block section or station on the route of a train. Train::LocationNames holds these, and nothing fills it.
-class Location {
-public:
-	std::string Name;				 ///< Not set or read by the simulation.
-	double MaxHW;					 ///< Not set or read by the simulation.
-	double MinHW;					 ///< Not set or read by the simulation.
-	double Position;				 ///< Not set or read by the simulation.
-	std::string MinimumTrainCouple;	 ///< Not set or read by the simulation.
-	std::string CriticalTrainCouple; ///< Not set or read by the simulation.
-};
 
 #endif

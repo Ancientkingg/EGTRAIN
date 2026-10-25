@@ -251,10 +251,6 @@ public:
 
 	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
 	void reverseBlockSection(const Section& blockSets, double RouteLength);
-
-
-	/// Names a function that does not exist.
-	friend void SetBlockSpeed();
 };
 
 /// When N1 lies before N2, makes BS3 the section over a switch: BS1 up to node N1, a switch arc from N1 to N2 with the speed limit of
@@ -272,8 +268,7 @@ void setAllConnections(SimulationRun& run);
 /// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
 void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
 
-/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10). This entry point also adds
-/// the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (Node::IDConnectedBlocks).
+/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10).
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
 /// True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.

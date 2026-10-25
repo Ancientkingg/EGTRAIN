@@ -240,10 +240,8 @@ public:
 
 	double EnergyForAuxiliaries = 0.0; ///< Energy for auxiliaries in MJ: 10 % of the traction energy.
 	/// Step from which the train may enter, in seconds from the start of the run. The builder sets it to
-	/// scheduled_departure_time and then spreads the trains over one hour per direction
-	/// (changeTrainDepartureTimesForHourlyTimetabling); runSimulation sets it back to scheduled_departure_time before the first step.
+	/// scheduled_departure_time.
 	double departure_time = 0.0;
-	int brakingPoint;					   ///< Index in Sbrak and Vbrak used by the last braking step. Nothing reads it.
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
 	/// Last accelerating, cruising or following step, from which brakingEffort counts the braking time (temp + 1 is the
 	/// first braking step).
@@ -270,13 +268,11 @@ public:
 	double firstDirectIncidentLocation = -1.0;	  ///< Position in metres where the first direct incident acted; -1 when there is none.
 	bool destinationTerminationRequested = false; ///< True when a breakdown asks to mark the train terminated at the end of its route.
 	bool destinationTerminated = false;			  ///< True once such a train has reached the end of its route.
-	Arc As;										  ///< Not used: the step and the braking routines keep their own arc.
 	Section Bs;									  ///< Copy of the section of the head in the current step.
 	double Start_Node_X = 0.0;					  ///< X in kilometres of the start of the route.
 	std::string TrainRouteID;					  ///< ID of the route of the train.
 	int indexOfRoute;							  ///< Index of the route in RunInfrastructure::routes, from 0.
 	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
-	bool direction;								  ///< Copy of Route::reversed_direction of the route of the train. Nothing reads it.
 	/// True while the stored braking plan is below its target speed before its last point.
 	bool GradientExceptionInBraking;
 	std::vector<double> BX; ///< Route position in metres, at each step, where braking for the current target begins.
@@ -310,12 +306,10 @@ public:
 	/// there is none.
 	double StationConsecDelay[kMaxTimetableStations];
 	double StationDisturbance[kMaxTimetableStations];	  ///< Disturbance of the dwell at each stop in seconds; 0, since nothing sets it.
-	int N_Station_Stopped;								  ///< Set to 0 and never changed.
 	double ScheduledArrivals[kMaxTimetableStations] = {}; ///< Planned arrival at each stop in seconds from the start of the run; -1 when the stop has none.
 	/// Planned departure at each stop in seconds from the start of the run, moved by an entrance delay at that stop; -1 when
 	/// the stop has none. The train does not leave a stop before it.
 	double ScheduledDepartures[kMaxTimetableStations] = {};
-	int delayed;				   ///< Set to 0 and never changed.
 	double TotalInputDelays = 0.0; ///< Sum of the Entrance Delays +stochastic disturbances to dwell times, in seconds.
 	double EntranceDelay;		   ///< Entrance delay of the train in seconds from the scenario; 0 when there is none.
 	/// Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty
@@ -359,22 +353,13 @@ public:
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
 	int N_BlockSections;		///< Number of entries of BlockTime.
 	int N_BlockTimeComplete;	///< Number of entries of BlockTime that are complete.
-	int numOverlaps;			///< Set to 0 and never changed.
-	double Final_Delay;			///< Set to 0 and never changed.
 	/// Last step of the train: the first step at which its head is at or past the end of its route, or the last step of the
 	/// run while it has not reached it.
 	int End_Time;
-	int earliestActiveTrajectoryIndex = -1;	  ///< First simulation sample in the active run; -1 until the train enters.
-	std::list<Location> LocationNames;		  ///< Not filled by the simulation, so empty.
-	std::list<std::string> ConflictingTrains; ///< Not filled by the simulation, so empty.
-	int N_ConflictingTrains;				  ///< Set to 0 and never changed.
-	double ETCS3StoppingPoint;				  ///< Set to -1 and never changed.
-	bool IsTrainStoppedForEoA;				  ///< True while the train stands at an end of authority (Last_MA_StoppedAt).
+	int earliestActiveTrajectoryIndex = -1; ///< First simulation sample in the active run; -1 until the train enters.
+	bool IsTrainStoppedForEoA;				///< True while the train stands at an end of authority (Last_MA_StoppedAt).
 	/// Arrival and departure at each station node on the route, where the train stops or not (ComputeTimetablingPoints).
 	std::list<TrainEvent> TimetablePoints;
-	int prevIntendedDepTime; ///< First step that printTrainServicePathDiagram may print; set to 0 and never changed.
-	int dispLineID = -1;	 ///< Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1.
-	// std::map<char, std::list<std::pair<int, double>>> trainCorrPosTime; // train position over time for each corridor
 
 	float GibsonDwellTimeParameters[8]; ///< The eight parameters of the passenger dwell model (computePaxDependentDwellTimeAtStations); -1 until set.
 	/// Passenger capacity of the train (trainPassengerCapacity).
@@ -690,8 +675,9 @@ public:
 	/// takes its X from run.infra.stations.
 	void checkTrainArrDep(int t);
 
-	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
-	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1.
+	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets),
+	/// direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run.
+	/// nextServiceRouteID is a route index or -1.
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;

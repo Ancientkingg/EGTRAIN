@@ -3457,9 +3457,9 @@ int main() {
 	ok &= expect(defaultRun().trains[0].entranceDelayStationId.empty() && defaultRun().trains[1].entranceDelayStationId == "Zero"
 			&& defaultRun().trains[2].entranceDelayStationId.empty(),
 		"the first delayed stop of the delayed occurrence names the entrance delay station");
-	ok &= expect(defaultRun().trains[0].departure_time == 1.0 && defaultRun().trains[1].departure_time == 1201.0
-			&& defaultRun().trains[2].departure_time == 2401.0,
-		"hourly departure retiming preserves the legacy algorithm");
+	ok &= expect(defaultRun().trains[0].departure_time == 100.0 && defaultRun().trains[1].departure_time == 130.0
+			&& defaultRun().trains[2].departure_time == 160.0,
+		"trains may enter at their scheduled times");
 	ok &= expect(defaultRun().incidents.size() == 2
 			&& defaultRun().incidents[0].target == "signal.0"
 			&& defaultRun().incidents[1].target == "service.native",
