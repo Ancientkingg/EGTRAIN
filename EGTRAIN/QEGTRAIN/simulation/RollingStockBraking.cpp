@@ -490,6 +490,135 @@ int Train::cachedBrakingSuccessor(int previousInstant, const Arc& arc, double ta
 	return -1;
 }
 
+Train::AuthorityTarget Train::authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V) {
+	AuthorityTarget target;
+	target.position = authorityRoutePosition(authority, BS[section]);
+	// A behind or front end cannot become a forward leader through virtual projection.
+	if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && authority.type == "TrainEnd"
+		&& authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
+		&& (authority.typePart != "Tale" || !(target.position > S)))
+		return target;
+
+	if (authority.type == "SignalFailure") {
+		// a failed signal or a held single-track section is a stop target at every signalling level
+		target.speed = 0;
+	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
+		target.speed = 0;
+
+	} else if (BS[section].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
+		string NextBlockID;
+		if (section == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
+			NextBlockID = "None";
+		} else {
+			NextBlockID = BS[section + 1].ID;
+		}
+		if (authority.type == "DivergingSwitchOccupied") {
+			if ((authority.TrainInfo.NextSectionID != NextBlockID) || ((authority.TrainInfo.CurrentSectionID != BS[section].ID) && (authority.TrainInfo.NextSectionID == NextBlockID))) {
+				target.speed = 0;
+			}
+		} else if (authority.type == "TrainEnd") {
+			// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
+			if (authority.ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
+				target.speed = 0;
+
+			}
+			// Otherwise
+			else {
+				if ((authority.TrainInfo.NextSectionID == NextBlockID) || (authority.TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
+					target.speed = authority.TrainInfo.TrainSpeed;														   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
+
+					if ((this->IsTrainInFollowingMode == 0) && (authority.TrainInfo.Acceleration < 0)) {
+						// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
+						// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
+						// authority stays where the leader reported it.
+						const double LeaderBrakingStart = BrakDist_Block(authority.TrainInfo.TrainSpeed, 0, target.position, BS, Blocks);
+						// The inverse ends at X - 0.002; its holdback is not forward travel.
+						const double LeaderStandstill = LeaderBrakingStart < 0 || authority.TrainInfo.TrainSpeed == 0
+							? target.position
+							: std::min(target.position + ((target.position - 0.002) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
+						target.distance = LeaderStandstill - target.position;
+						target.position = LeaderStandstill;
+						target.moved = true;
+						target.speed = 0;
+					} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (authority.TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
+						if (V > target.speed) {
+							target.canCouple = true;											// This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
+							double TimeToBrake = ((V - target.speed) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
+							target.distance = authority.TrainInfo.TrainSpeed * TimeToBrake;
+							// With the statement below trains will always try to couple with a train ahead if that is possible
+							if ((target.position + target.distance) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
+								target.position = target.position + target.distance;												  // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
+								target.moved = true;
+							}
+						}
+					}
+				} else { // or if the trains do not have the next block section in common the trains need to split apart and this train will separate from the previous by means of an absolute braking distance
+					target.speed = 0;
+				}
+			}
+		}
+	}
+	return target;
+}
+
+void Train::closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed, std::list<Node>& decouplingPoints) {
+	double ClosestPointToBrakeForETCS = 9999999999; // This is the value of the closese Point to Brake For ETCS
+	for (int section = first; section <= last; section++) {
+		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
+		bool hasSignalFailureMa = false;
+		for (const MovementAuthority& authority : run_->etcsMa) {
+			if ((authority.type == "SignalFailure") && (authority.BSID == BS[section].ID) && obeysAuthority(authority)) {
+				hasSignalFailureMa = true;
+				break;
+			}
+		}
+		if (!isMovingBlockLevel(BS[section].SignallingLevel) && !hasSignalFailureMa)
+			continue;
+		// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
+		if (IsTrainInFollowingMode == 1 && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None")
+			&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode) && BS[section].ID == Predicted_MA_To_DecoupleAt.BSID) {
+			Node DecouplingBrakingPoint;
+			DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
+			DecouplingBrakingPoint.isSignalled = true;
+			DecouplingBrakingPoint.stationName = "DecoupleTrain"; // For a Decoupling Point as a convention we say that it has a station name DecoupleTrain. We did so not to increase the number of variables of the class Node
+			decouplingPoints.push_back(DecouplingBrakingPoint);
+		}
+		// Now identifying braking points due to ETCS MA
+		for (const MovementAuthority& authority : run_->etcsMa) {
+			if ((authority.BSID != BS[section].ID) || (authority.TrainInfo.trainDescription == trainDescription) || !obeysAuthority(authority))
+				continue;
+			const AuthorityTarget target = authorityTarget(authority, BS, Blocks, section, S, V);
+			if (target.speed > -1) { // if we have a valid MA and the SpeedForEoa is therefore different from -1
+				// let us compute the approximate abscissa to Brake at for EoA
+				const double AbscissaToBrakeAtForEoA = target.position - (pow(V, 2) - pow(target.speed, 2)) / (2 * this->max_train_decelaration);
+
+				if ((target.position > S) && (AbscissaToBrakeAtForEoA < ClosestPointToBrakeForETCS)) {
+					ClosestPointToBrakeForETCS = AbscissaToBrakeAtForEoA; // if the AbscissaToBrakeAtForEoA is lower then ClosestPointToBrakeForETCS then this one becomes the ClosestPointToBrakeAt
+					closestSpeed = target.speed;						  // The TargetSpeed for MA becomes the Speed ForEoA
+					closest = Node();
+					closest.X = target.position;
+					closest.isSignalled = true; // putting isSignalled to true, gives a way to the Braking point to be recognised as an End of Authority
+
+					// if the train can link with a train ahead
+					closest.virtualCouplingNode = target.canCouple;
+					// Assigning the last received MA
+					this->Last_Received_MA = authority;
+					Last_Received_MA.RelativePosEoA = target.position; // Setting the Relative position of the EoA on the route of the train
+					// In case the distance of ETCSBrakingPoint was modified then we need to subtract the Predicted Distance from it
+					if (target.moved) {
+						Last_Received_MA.RelativePosEoA = target.position - target.distance;
+					}
+					if (closest.virtualCouplingNode == 1) { // In case the train is not in following mode and can couple at a train ahead
+						// Assigning the Predicted MA to link at
+						this->Predicted_MA_To_CoupleAt = authority;
+						Predicted_MA_To_CoupleAt.RelativePosEoA = target.position;
+					}
+				}
+			}
+		}
+	}
+}
+
 double Train::europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached) {
 	continueCached = false;
 	IsTrainCoupling = false;
@@ -498,12 +627,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	int BlockPos = 0;
 	double MinBX = 99999999999; // Number of Braking points in the Block Section occupied by the train, Index of the Arc of the signalling_block_sections occupied by the train, Index of the signalling_block_sections occupied by the train, Matrix of all Brak Distance of the Braking point of the Block Section occupied by the train, Minimum Braking Abscissa, Braking Abscissa of the block section arcs which follows the signalling_block_sections occupied by the train
 	Node ClosestETCSBrakingPoint;
-	ClosestETCSBrakingPoint.X = 9999999999;			 // This is the closest ETCS braking point. In this case the closestpoint is not the MA having teh closest abscissa to the current position of the train but it is the MA which requirest the train to brake the earliest to be met
-	double TargetSpeedForMA = -1;					 // This is the Speed the train needs to target to meet the most restrictive MA
-	double ClosestPointToBrakeForETCS = 9999999999;	 // This is the value of the closese Point to Brake For ETCS
-	int SignallingLevelClosestETCSBrakingPoint = -1; // This is the signalling level of the closest ETCS Braking Point
-
-	Node ETCSBrakingPoint; // Node to collect all the information of the ETCS BrakingPoints
+	ClosestETCSBrakingPoint.X = 9999999999; // This is the closest ETCS braking point. In this case the closestpoint is not the MA having teh closest abscissa to the current position of the train but it is the MA which requirest the train to brake the earliest to be met
+	double TargetSpeedForMA = -1;			// This is the Speed the train needs to target to meet the most restrictive MA
 
 	// The braking points: end nodes of the arcs of the route, decoupling points and the closest end of authority. The list
 	// points to them instead of copying them; stop marks a stop of this train.
@@ -559,138 +684,9 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	}
 
 	// Identification of the closest EoA where the train needs to brake at (i.e. the EoA for which the train needs to brake the earliest to meet it)
-	for (int z = 0; z <= Cons_Block; z++) {
-		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
-		bool hasSignalFailureMa = false;
-		for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
-			if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID) && obeysAuthority(*it)) {
-				hasSignalFailureMa = true;
-				break;
-			}
-		}
-		if (isMovingBlockLevel(BS[z + BlockPos].SignallingLevel) || hasSignalFailureMa) {
-			// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
-			if (IsTrainInFollowingMode == 1) { // if the train is in following mode
-				if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None") && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) {
-					if (BS[z + BlockPos].ID == Predicted_MA_To_DecoupleAt.BSID) {
-						Node DecouplingBrakingPoint;
-						DecouplingBrakingPoint.X = Predicted_MA_To_DecoupleAt.RelativePosEoA;
-						DecouplingBrakingPoint.isSignalled = true;
-						DecouplingBrakingPoint.stationName = "DecoupleTrain"; // For a Decoupling Point as a convention we say that it has a station name DecoupleTrain. We did so not to increase the number of variables of the class Node
-						DecouplingBrakingPoints.push_back(DecouplingBrakingPoint);
-						BrakingPoints.push_back({&DecouplingBrakingPoints.back(), false});
-					}
-				}
-			}
-			// Now identifying braking points due to ETCS MA
-			if (run_->etcsMa.size() > 0) {
-				for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
-					if ((it->BSID == BS[z + BlockPos].ID) && (it->TrainInfo.trainDescription != trainDescription) && obeysAuthority(*it)) {
-						double AbscissaToBrakeAtForEoA = -1;	// This is the progressive the train needs to start braking at to meet the EoA
-						double SpeedForEoA = -1;				// This is the speed to be met to respect the MA
-						bool BrakingForEoAModified = false;		// This variable is true when we modify the BrakingPoint because of a prediction distance to allow the train to couple with the one ahead
-						bool CanTrainLinkForCoupling = false;	// This variable is a local variable to state whether the train is linking to another train ahead for virtual coupling. This boolean is true only when the closest breaking point is the Train End of a train in the same direction having the next Route section in common on a Bs with Signalling Level 4
-						double PredictedDistanceToCoupling = 0; // This is the Distance need by the train to Couple with the train ahead
-
-						ETCSBrakingPoint.X = authorityRoutePosition(*it, BS[z + BlockPos]);
-						// A behind or front end cannot become a forward leader through virtual projection.
-						if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && it->type == "TrainEnd"
-							&& it->ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
-							&& (it->typePart != "Tale" || !(ETCSBrakingPoint.X > S)))
-							continue;
-
-						if (it->type == "SignalFailure") {
-							// a failed signal or a held single-track section is a stop target at every signalling level
-							SpeedForEoA = 0;
-						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
-							SpeedForEoA = 0;
-
-						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
-							string NextBlockID;
-							if (z + BlockPos == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
-								NextBlockID = "None";
-							} else {
-								NextBlockID = BS[z + BlockPos + 1].ID;
-							}
-							if (it->type == "DivergingSwitchOccupied") {
-								if ((it->TrainInfo.NextSectionID != NextBlockID) || ((it->TrainInfo.CurrentSectionID != BS[z + BlockPos].ID) && (it->TrainInfo.NextSectionID == NextBlockID))) {
-									SpeedForEoA = 0;
-								}
-							} else if (it->type == "TrainEnd") {
-								// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
-								if (it->ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
-									SpeedForEoA = 0;
-
-								}
-								// Otherwise
-								else {
-									if ((it->TrainInfo.NextSectionID == NextBlockID) || (it->TrainInfo.NextSectionID == "None")) { // when the trains have the same next block section or the leading train is approahing the end of its route
-										SpeedForEoA = it->TrainInfo.TrainSpeed;													   // the speed is the one of the train ahead if the trains are following the same direction and ahve at least one more block section in common
-
-										if ((this->IsTrainInFollowingMode == 0) && (it->TrainInfo.Acceleration < 0)) {
-											// A leader that brakes stops where this train would stop from the speed of the leader. A train that is not coupled yet
-											// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
-											// authority stays where the leader reported it.
-											const double LeaderBrakingStart = BrakDist_Block(it->TrainInfo.TrainSpeed, 0, ETCSBrakingPoint.X, BS, Blocks);
-											// The inverse ends at X - 0.002; its holdback is not forward travel.
-											const double LeaderStandstill = LeaderBrakingStart < 0 || it->TrainInfo.TrainSpeed == 0
-												? ETCSBrakingPoint.X
-												: std::min(ETCSBrakingPoint.X + ((ETCSBrakingPoint.X - 0.002) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
-											PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
-											ETCSBrakingPoint.X = LeaderStandstill;
-											BrakingForEoAModified = true;
-											SpeedForEoA = 0;
-										} else if ((this->IsTrainInFollowingMode == 0) || ((this->IsInUnintentionalDecoupling == 1) && (it->TrainInfo.Acceleration >= 0))) { // if the train is not yet in following mode then
-											if (V > SpeedForEoA) {
-												CanTrainLinkForCoupling = true;									   // This is the only case when trains can start linking to be virtually coupled, if they are not coupled already
-												double TimeToBrake = ((V - SpeedForEoA) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
-												PredictedDistanceToCoupling = it->TrainInfo.TrainSpeed * TimeToBrake;
-												// With the statement below trains will always try to couple with a train ahead if that is possible
-												if ((ETCSBrakingPoint.X + PredictedDistanceToCoupling) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
-													ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;												 // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
-													BrakingForEoAModified = true;
-												}
-											}
-										}
-									} else { // or if the trains do not have the next block section in common the trains need to split apart and this train will separate from the previous by means of an absolute braking distance
-										SpeedForEoA = 0;
-									}
-								}
-							}
-						}
-
-						if (SpeedForEoA > -1) { // if we have a valid MA and the SpeedForEoa is therefore different from -1
-							// let us compute the approximate abscissa to Brake at for EoA
-							AbscissaToBrakeAtForEoA = ETCSBrakingPoint.X - (pow(V, 2) - pow(SpeedForEoA, 2)) / (2 * this->max_train_decelaration);
-
-							if ((ETCSBrakingPoint.X > S) && (AbscissaToBrakeAtForEoA < ClosestPointToBrakeForETCS)) {
-								ClosestPointToBrakeForETCS = AbscissaToBrakeAtForEoA; // if the AbscissaToBrakeAtForEoA is lower then ClosestPointToBrakeForETCS then this one becomes the ClosestPointToBrakeAt
-								TargetSpeedForMA = SpeedForEoA;						  // The TargetSpeed for MA becomes the Speed ForEoA
-								ClosestETCSBrakingPoint = ETCSBrakingPoint;
-								ClosestETCSBrakingPoint.isSignalled = true; // putting isSignalled to true, gives a way to the Braking point to be recognised as an End of Authority
-								SignallingLevelClosestETCSBrakingPoint = BS[z + BlockPos].SignallingLevel;
-
-								// if the train can link with a train ahead
-								ClosestETCSBrakingPoint.virtualCouplingNode = CanTrainLinkForCoupling;
-								// Assigning the last received MA
-								this->Last_Received_MA = *it;
-								Last_Received_MA.RelativePosEoA = ETCSBrakingPoint.X; // Setting the Relative position of the EoA on the route of the train
-								// In case the distance of ETCSBrakingPoint was modified then we need to subtract the Predicted Distance from it
-								if (BrakingForEoAModified == 1) {
-									Last_Received_MA.RelativePosEoA = ETCSBrakingPoint.X - PredictedDistanceToCoupling;
-								}
-								if (ClosestETCSBrakingPoint.virtualCouplingNode == 1) { // In case the train is not in following mode and can couple at a train ahead
-									// Assigning the Predicted MA to link at
-									this->Predicted_MA_To_CoupleAt = *it;
-									Predicted_MA_To_CoupleAt.RelativePosEoA = ETCSBrakingPoint.X;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	closestEndOfAuthority(S, V, BS, Blocks, BlockPos, BlockPos + Cons_Block, ClosestETCSBrakingPoint, TargetSpeedForMA, DecouplingBrakingPoints);
+	for (const Node& point : DecouplingBrakingPoints)
+		BrakingPoints.push_back({&point, false});
 	// if there is a Closest ETCS Braking point that has been assigned, then add it to the list of braking points
 	if (ClosestETCSBrakingPoint.X != 9999999999) {
 		BrakingPoints.push_back({&ClosestETCSBrakingPoint, false});

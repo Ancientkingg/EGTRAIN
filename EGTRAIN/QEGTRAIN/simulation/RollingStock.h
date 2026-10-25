@@ -569,6 +569,31 @@ public:
 	/// large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on.
 	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached);
 
+	/// An end of authority as a braking target: where the train has to meet which speed.
+	struct AuthorityTarget {
+		double position = 0; ///< Route position (m) of the target.
+		double speed = -1;	 ///< Speed (m/s) to meet at position; -1 when the authority sets no target.
+		/// True when position lies distance (m) ahead of the authority: at the standstill point behind a leader that brakes, or at
+		/// the point where the train is predicted to couple to the leader.
+		bool moved = false;
+		double distance = 0;	///< The distance (m) by which a moved position lies ahead of the authority.
+		bool canCouple = false; ///< True when the train can start to couple virtually to the train ahead.
+	};
+
+	/// The target that authority, on section BS[section] of the Blocks sections of the route, sets for the train at S (m) and V
+	/// (m/s). The speed is 0 for a signal failure and on ETCS Level 3. With virtual coupling it is 0 for an occupied diverging
+	/// switch the train does not share and for a train ahead that runs the other way or does not go on to the next section of this
+	/// route, and otherwise the speed of the train ahead; an end of a train in the same direction that is not its tail ahead of S
+	/// sets no target.
+	AuthorityTarget authorityTarget(const MovementAuthority& authority, Section* BS, int Blocks, int section, double S, double V);
+
+	/// Finds, on the sections BS[first] to BS[last] of the Blocks sections of the route, the end of authority where the train at S
+	/// (m) and V (m/s) has to start braking the earliest. closest receives it as a signalled braking target and closestSpeed its
+	/// speed (m/s); both keep their values when there is none. Sets Last_Received_MA and, for a target where the train can couple,
+	/// Predicted_MA_To_CoupleAt. In following mode, decouplingPoints receives the points where the train decouples from its leader.
+	void closestEndOfAuthority(double S, double V, Section* BS, int Blocks, int first, int last, Node& closest, double& closestSpeed,
+		std::list<Node>& decouplingPoints);
+
 	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
 	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
 	bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
