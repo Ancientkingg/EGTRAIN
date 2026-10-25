@@ -1,13 +1,12 @@
 #include "editors/CaseSettingsPanel.h"
 
-#include "widgets/CompactDoubleSpinBox.h"
+#include "editors/EditorHelpers.h"
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QSignalBlocker>
 
-#include <limits>
 #include <string>
 
 CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent) {
@@ -23,18 +22,9 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	layout->addRow("Name", m_nameEdit);
 	layout->addRow("Description", m_descriptionEdit);
 	layout->addRow("Base time", m_baseTimeEdit);
-	const auto makeSpinBox = [this](const char* widgetName) {
-		auto* edit = new CompactDoubleSpinBox(this);
-		edit->setObjectName(widgetName);
-		edit->setRange(0.0, std::numeric_limits<double>::max());
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
-		edit->setSingleStep(1.0);
-		edit->setKeyboardTracking(false);
-		return edit;
-	};
-	m_durationSecondsEdit = makeSpinBox("caseDurationSecondsEdit");
-	m_bufferSecondsEdit = makeSpinBox("caseBufferSecondsEdit");
-	m_recoveryPercentEdit = makeSpinBox("caseRecoveryPercentEdit");
+	m_durationSecondsEdit = exactNumberEdit("caseDurationSecondsEdit", this);
+	m_bufferSecondsEdit = exactNumberEdit("caseBufferSecondsEdit", this);
+	m_recoveryPercentEdit = exactNumberEdit("caseRecoveryPercentEdit", this);
 	layout->addRow("Duration (s)", m_durationSecondsEdit);
 	layout->addRow("Buffer (s)", m_bufferSecondsEdit);
 	layout->addRow("Recovery (%)", m_recoveryPercentEdit);
@@ -104,9 +94,11 @@ void CaseSettingsPanel::refresh() {
 }
 
 void CaseSettingsPanel::commitPendingEditors() {
-	m_durationSecondsEdit->interpretText();
-	m_bufferSecondsEdit->interpretText();
-	m_recoveryPercentEdit->interpretText();
+	// A number field commits only the text that is being typed in it, so that a value the user did not edit is kept.
+	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit}) {
+		if (hasEditorFocus(edit))
+			edit->interpretText();
+	}
 	commit();
 }
 
@@ -121,9 +113,10 @@ void CaseSettingsPanel::commit() {
 	const double bufferSeconds = m_bufferSecondsEdit->value();
 	const double recoveryPercent = m_recoveryPercentEdit->value();
 	const bool baseTimeEdited = model.baseTime != baseTime;
-	const bool durationEdited = model.settings.durationSeconds != durationSeconds;
-	const bool bufferEdited = model.settings.bufferTimeSeconds != bufferSeconds;
-	const bool recoveryEdited = model.settings.recoveryTimePercent != recoveryPercent;
+	// A number field shows a stored value outside its range at the nearest limit, which is not an edit.
+	const bool durationEdited = shownValue(m_durationSecondsEdit, model.settings.durationSeconds) != durationSeconds;
+	const bool bufferEdited = shownValue(m_bufferSecondsEdit, model.settings.bufferTimeSeconds) != bufferSeconds;
+	const bool recoveryEdited = shownValue(m_recoveryPercentEdit, model.settings.recoveryTimePercent) != recoveryPercent;
 	if (model.name == name && model.description == description && !baseTimeEdited && !durationEdited
 		&& !bufferEdited && !recoveryEdited)
 		return;
@@ -131,12 +124,18 @@ void CaseSettingsPanel::commit() {
 	model.name = name;
 	model.description = description;
 	model.baseTime = baseTime;
-	model.settings.hasDuration = model.settings.hasDuration || durationEdited;
-	model.settings.durationSeconds = durationSeconds;
-	model.settings.hasBufferTime = model.settings.hasBufferTime || bufferEdited;
-	model.settings.bufferTimeSeconds = bufferSeconds;
-	model.settings.hasRecoveryTime = model.settings.hasRecoveryTime || recoveryEdited;
-	model.settings.recoveryTimePercent = recoveryPercent;
+	if (durationEdited) {
+		model.settings.hasDuration = true;
+		model.settings.durationSeconds = durationSeconds;
+	}
+	if (bufferEdited) {
+		model.settings.hasBufferTime = true;
+		model.settings.bufferTimeSeconds = bufferSeconds;
+	}
+	if (recoveryEdited) {
+		model.settings.hasRecoveryTime = true;
+		model.settings.recoveryTimePercent = recoveryPercent;
+	}
 	if (baseTimeEdited)
 		emit baseTimeChanged(m_baseTimeEdit->text());
 	m_document->markChanged(SceneDocument::CaseSettings, "Edit case settings");

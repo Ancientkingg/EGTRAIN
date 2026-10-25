@@ -24,10 +24,12 @@ public:
 	/// Refreshes when the document is replaced.
 	void setDocument(SceneDocument* document) override;
 	void refresh() override;
+	/// Commits the text fields and the number field with the focus.
 	void commitPendingEditors() override;
-	/// Takes the values of the fields into the document, when one differs from the model, as one change "Edit case
-	/// settings". The fields call it when editing finishes. A duration, buffer or recovery value that is set this way
-	/// counts as given in the scene from then on.
+	/// Takes the values of the fields into the document, when one differs from what the field shows of the model, as one
+	/// change "Edit case settings". The fields call it when editing finishes. A stored number outside the range of its
+	/// field, which the field shows at the nearest limit, stays as it is until the user edits it. A duration, buffer or
+	/// recovery value that is set this way counts as given in the scene from then on.
 	void commit();
 
 	/// The field of the scene name.
