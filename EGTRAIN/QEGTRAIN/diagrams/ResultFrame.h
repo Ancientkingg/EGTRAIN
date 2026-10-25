@@ -18,6 +18,7 @@ class QShowEvent;
 class QSplitter;
 class QToolButton;
 class QVBoxLayout;
+struct RunProvenance;
 
 /// The side panel of a result window: titled sections in a column that scrolls when it is taller than the window,
 /// with a rule between the sections that are shown, and a cursor readout below the column.
@@ -151,6 +152,10 @@ public:
 private:
 	QPointer<QWidget> m_widget;
 };
+
+/// The run of a result window named by its case and scenario, for its header and for messages: "case / scenario", one of
+/// the two when the other is empty, or "(none)" when both are.
+QString runContextText(const RunProvenance& provenance);
 
 /// The main widget of a table window, for ResultFrame: `widgets` in a column on white, inside the margins of the main area,
 /// the last one taking the height that is left, such as a status above tabs. Takes the widgets.

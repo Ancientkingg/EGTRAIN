@@ -121,14 +121,6 @@ std::string joinIds(const std::vector<std::string>& ids, const char* separator) 
 	return result;
 }
 
-QString runText(const RunProvenance& provenance) {
-	const QString caseName = fromStd(provenance.caseName);
-	const QString scenario = fromStd(provenance.appliedScenario);
-	if (caseName.isEmpty())
-		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
-	return scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
-}
-
 // The occurrences and stations that the person left checked.
 struct Selection {
 	QSet<QString> occurrences;
@@ -760,8 +752,8 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	});
 
 	// The window title is the name of the view; the context names the run and the baseline.
-	frame->setContext(runText(m_scenario.provenance) + QStringLiteral(" \u00b7 ")
-		+ (m_baseline ? "delay baseline " + runText(m_baseline->provenance) : QStringLiteral("no delay baseline set")));
+	frame->setContext(runContextText(m_scenario.provenance) + QStringLiteral(" \u00b7 ")
+		+ (m_baseline ? "delay baseline " + runContextText(m_baseline->provenance) : QStringLiteral("no delay baseline set")));
 	frame->installInDialog(*this, QStringLiteral("Delay analysis"), closeButtons);
 	resize(qMin(maximumWidth(), 960), qMin(maximumHeight(), 640));
 	refresh();

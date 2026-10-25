@@ -156,9 +156,7 @@ void TimetableTableWindow::fillTrainFilter() {
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {
 	m_runProvenance = std::move(provenance);
 	m_hasRunProvenance = true;
-	const QString scenario = QString::fromStdString(m_runProvenance.appliedScenario);
-	setPresentation(QStringLiteral("Timetable"),
-		QString::fromStdString(m_runProvenance.caseName) + (scenario.isEmpty() ? QString() : " / " + scenario));
+	setPresentation(QStringLiteral("Timetable"), runContextText(m_runProvenance));
 }
 
 void TimetableTableWindow::setPresentation(const QString& heading, const QString& context) {

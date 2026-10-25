@@ -1,5 +1,6 @@
 #include "diagrams/ResultFrame.h"
 
+#include "diagrams/RunResults.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/ElidedLabel.h"
@@ -295,6 +296,14 @@ KeepInFront::~KeepInFront() {
 	QWidget* window = m_widget->window();
 	window->raise();
 	window->activateWindow();
+}
+
+QString runContextText(const RunProvenance& provenance) {
+	const QString caseName = QString::fromStdString(provenance.caseName);
+	const QString scenario = QString::fromStdString(provenance.appliedScenario);
+	if (caseName.isEmpty())
+		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
+	return scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
 }
 
 QWidget* resultTableArea(const QList<QWidget*>& widgets) {

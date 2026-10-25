@@ -74,14 +74,6 @@ bool chainHasCycle(const CapacityAnalysisResult& chain) {
 	return chain.analyzable && !chain.cycleEndIdentity.empty() && std::isfinite(chain.cycleTime) && chain.cycleTime >= 0.0;
 }
 
-QString runText(const RunProvenance& provenance) {
-	const QString caseName = QString::fromStdString(provenance.caseName);
-	const QString scenario = QString::fromStdString(provenance.appliedScenario);
-	if (caseName.isEmpty())
-		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
-	return scenario.isEmpty() ? caseName : QStringLiteral("%1 / %2").arg(caseName, scenario);
-}
-
 // With `labels` the resources are named by their labels, for the tooltips of the window; the export names them by id.
 QString evidenceText(const std::vector<CapacityHeadwayEvidence>& evidence, const SceneSectionLabels* labels = nullptr) {
 	return QString::fromStdString(capacityEvidenceText(evidence, labels));
@@ -858,7 +850,7 @@ AreaCapacityWindow::AreaCapacityWindow(AreaCapacityResult result, const QString&
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, this);
 	connect(closeButtons, &QDialogButtonBox::rejected, this, &QDialog::close);
 	// The window title names the view; the header names the run, the area and partial traffic.
-	QString context = runText(m_provenance) + QStringLiteral(" \u00b7 ") + (areaText.isEmpty() ? m_areaLabel : areaText);
+	QString context = runContextText(m_provenance) + QStringLiteral(" \u00b7 ") + (areaText.isEmpty() ? m_areaLabel : areaText);
 	if (!m_result.complete)
 		context += QStringLiteral(" \u00b7 partial traffic");
 	frame->setContext(context, m_result.complete ? QString() : QStringLiteral("Rates count only the checked trains"));

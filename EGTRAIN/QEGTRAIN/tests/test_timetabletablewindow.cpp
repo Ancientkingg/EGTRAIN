@@ -36,6 +36,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <tuple>
 #include <utility>
 
 static bool expect(bool condition, const char* message) {
@@ -398,6 +399,24 @@ static bool exerciseTableImageHeaders() {
 	return ok;
 }
 
+// The header names the run as the other result windows do: the scenario alone for a case without a name, and "(none)"
+// for a run without either.
+static bool exerciseRunContext() {
+	bool ok = true;
+	for (const auto& [caseName, scenario, shown] : {std::tuple("", "S", "S"), std::tuple("Paimpol", "", "Paimpol"), std::tuple("", "", "(none)")}) {
+		TimetableTableWindow window(twoTrainRows(), 0, {});
+		RunProvenance provenance;
+		provenance.caseName = caseName;
+		provenance.appliedScenario = scenario;
+		window.setRunProvenance(provenance);
+		const auto* context = window.findChild<QLabel*>("timetableContext");
+		ok &= expect(context && context->text() == shown && !context->isHidden(),
+			qPrintable(QString("the header of a run of case \"%1\" and scenario \"%2\" reads %3: %4")
+					.arg(caseName, scenario, shown, context ? context->text() : QStringLiteral("missing"))));
+	}
+	return ok;
+}
+
 // Handles events until `done` holds, for at most about a second.
 static bool waitFor(const std::function<bool()>& done) {
 	for (int round = 0; round < 200 && !done(); ++round) {
@@ -513,6 +532,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseTrainColorsForRun();
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseFrame();
+	ok &= exerciseRunContext();
 	ok &= exerciseDelayColors();
 	ok &= exerciseExportKeepsWindowInFront();
 	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
