@@ -1,11 +1,9 @@
 // Length of a stop with and without passengers.
 //
-//   test_stopdwell SCENE_DIR
-//
-// A train of the scene stands at its last stop. The test counts the steps it stands there, in the order of a step of the
-// simulation: the movement of the train, then the passenger phase that may lengthen the stop. The planned dwell is set
-// below and above the dwell that one boarding passenger needs, with nobody waiting and with one passenger waiting.
-// The stop lasts the planned dwell unless the passengers need longer. A step is one second.
+// A train of the scene tests/fixtures/scenes/crossovers stands at its last stop. The test counts the steps it stands
+// there, in the order of a step of the simulation: the movement of the train, then the passenger phase that may lengthen
+// the stop. The planned dwell is set below and above the dwell that one boarding passenger needs, with nobody waiting and
+// with one passenger waiting. The stop lasts the planned dwell unless the passengers need longer. A step is one second.
 
 #include "scene/SceneModel.h"
 #include "simulation/Infrastructure.h"
@@ -16,16 +14,11 @@
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
+#include <QTest>
+
 #include <cmath>
-#include <iostream>
 #include <list>
 #include <string>
-
-static bool expect(bool condition, const std::string& message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static bool near(double a, double b) {
 	return std::fabs(a - b) < 1e-4;
@@ -85,48 +78,90 @@ int lengthOfStop(const Train& native, double plannedDwell, int waiting) {
 	return -1;
 }
 
+// The dwell of the passengers when one passenger boards: the fixed time of the stop and the time of that passenger at
+// the one door that is used.
+double boardingOnlyDwell(const Train& train) {
+	const float* beta = train.GibsonDwellTimeParameters;
+	return static_cast<double>(beta[0]) + beta[2];
+}
+
+const Train& nativeTrain() {
+	return defaultRun().trains[0];
+}
+
 } // namespace
 
-int main(int argc, char** argv) {
-	if (argc != 2) {
-		std::cerr << "usage: test_stopdwell SCENE_DIR\n";
-		return 2;
-	}
-	const auto loaded = loadScene(argv[1]);
-	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1) {
-		std::cerr << "failed: the scene does not prepare a run\n";
-		return 1;
-	}
-	defaultRun().settings.PAX_GUI = true;
-	const Train& native = defaultRun().trains[0];
-	bool ok = true;
-	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+class TestStopDwell : public QObject {
+	Q_OBJECT
 
-	// The dwell of the passengers alone: nobody gives none, one passenger gives the fixed time of the stop and the
-	// time of that passenger at the one door that is used.
-	Train formula = native;
+private slots:
+	void initTestCase();
+	void passengerDwell();
+	void stopLength_data();
+	void stopLength();
+	void morePassengersLengthenStop();
+
+private:
+	// The dwell that one boarding passenger needs (25 s with the parameters of the builder), and planned dwells below and
+	// above it.
+	int m_needed = 0;
+	int m_below = 0;
+	int m_above = 0;
+};
+
+void TestStopDwell::initTestCase() {
+	// The scene prepares a run.
+	const auto loaded = loadScene(EGTRAIN_TEST_SOURCE_DIR "/fixtures/scenes/crossovers");
+	QVERIFY(!hasErrors(loaded.diagnostics));
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})));
+	QCOMPARE(defaultRun().numTrains, 1);
+	defaultRun().settings.PAX_GUI = true;
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	m_needed = static_cast<int>(boardingOnlyDwell(nativeTrain()));
+	m_below = m_needed - 15;
+	m_above = m_needed + 15;
+}
+
+// The dwell of the passengers alone: nobody gives none, one passenger gives the fixed time of the stop and the time of
+// that passenger at the one door that is used.
+void TestStopDwell::passengerDwell() {
+	Train formula = nativeTrain();
 	formula.Current_OnBoard_Passengers = 0;
 	const float* beta = formula.GibsonDwellTimeParameters;
 	const auto dwell = [&formula, beta](int boarding, int alighting) {
 		return formula.computePaxDependentDwellTimeAtStations(boarding, alighting, 0.0, beta[0], beta[1], beta[2], beta[3], beta[4], beta[5], beta[6], beta[7]);
 	};
-	const double boardingOnly = static_cast<double>(beta[0]) + beta[2];
+	const double boardingOnly = boardingOnlyDwell(formula);
 	const double alightingOnly = static_cast<double>(beta[0]) + beta[5] * std::exp(-static_cast<double>(beta[6]));
-	ok &= expect(dwell(0, 0) == 0.0, "nobody boards or alights: no dwell of the passengers");
-	ok &= expect(near(dwell(1, 0), boardingOnly), "one boarding passenger: the fixed time and one boarding time");
-	ok &= expect(near(dwell(0, 1), alightingOnly), "one alighting passenger: the fixed time and one alighting time");
-	ok &= expect(dwell(80, 0) > dwell(1, 0) && dwell(0, 80) > dwell(0, 1), "more passengers need a longer dwell");
-
-	// Planned dwells below and above the dwell that one boarding passenger needs (25 s with the parameters of the builder).
-	const int needed = static_cast<int>(boardingOnly);
-	const int below = needed - 15;
-	const int above = needed + 15;
-	ok &= expect(lengthOfStop(native, below, 0) == below, "nobody waits, planned dwell below the passenger dwell: the planned dwell");
-	ok &= expect(lengthOfStop(native, above, 0) == above, "nobody waits, planned dwell above the passenger dwell: the planned dwell");
-	ok &= expect(lengthOfStop(native, below, 1) == needed, "one passenger boards, planned dwell below the passenger dwell: the passenger dwell");
-	ok &= expect(lengthOfStop(native, above, 1) == above, "one passenger boards, planned dwell above the passenger dwell: the planned dwell");
-	ok &= expect(lengthOfStop(native, below, 8) > needed, "more passengers lengthen the stop");
-
-	return ok ? 0 : 1;
+	QCOMPARE_EQ(dwell(0, 0), 0.0);
+	QVERIFY2(near(dwell(1, 0), boardingOnly), "one boarding passenger: the fixed time and one boarding time");
+	QVERIFY2(near(dwell(0, 1), alightingOnly), "one alighting passenger: the fixed time and one alighting time");
+	// More passengers need a longer dwell.
+	QCOMPARE_GT(dwell(80, 0), dwell(1, 0));
+	QCOMPARE_GT(dwell(0, 80), dwell(0, 1));
 }
+
+void TestStopDwell::stopLength_data() {
+	QTest::addColumn<int>("planned");
+	QTest::addColumn<int>("waiting");
+	QTest::addColumn<int>("expected");
+	QTest::newRow("nobody waits, planned dwell below the passenger dwell: the planned dwell") << m_below << 0 << m_below;
+	QTest::newRow("nobody waits, planned dwell above the passenger dwell: the planned dwell") << m_above << 0 << m_above;
+	QTest::newRow("one passenger boards, planned dwell below the passenger dwell: the passenger dwell") << m_below << 1 << m_needed;
+	QTest::newRow("one passenger boards, planned dwell above the passenger dwell: the planned dwell") << m_above << 1 << m_above;
+}
+
+void TestStopDwell::stopLength() {
+	QFETCH(int, planned);
+	QFETCH(int, waiting);
+	QFETCH(int, expected);
+	QCOMPARE(lengthOfStop(nativeTrain(), planned, waiting), expected);
+}
+
+void TestStopDwell::morePassengersLengthenStop() {
+	QCOMPARE_GT(lengthOfStop(nativeTrain(), m_below, 8), m_needed);
+}
+
+QTEST_APPLESS_MAIN(TestStopDwell)
+#include "test_stopdwell.moc"
