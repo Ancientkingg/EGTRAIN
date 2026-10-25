@@ -67,7 +67,7 @@ cannot see how Qt owns objects.
 | `bugprone-exception-escape` | `main`, destructors and lambdas of slots; the application does not throw across them |
 | `bugprone-throwing-static-initialization` | Statics that hold a `std::string` or a mutex |
 | `bugprone-implicit-widening-of-multiplication-result` | Products of small values, such as milliseconds per second |
-| `bugprone-unchecked-string-to-number-conversion` | `atoi` and `atof` on command line values in `app/main.cpp` |
+| `bugprone-unchecked-string-to-number-conversion` | `atof` on legacy text fields in `simulation/Simulation.cpp`, `graphics/NetworkPresenter.cpp` and `scene/SceneExporter.cpp` |
 | `bugprone-nondeterministic-pointer-iteration-order` | Vectors of pointers that are sorted by a field, not by address |
 | `bugprone-derived-method-shadowing-base-method` | `NetworkView::centerOn` hides the Qt method on purpose |
 | `bugprone-misplaced-widening-cast` | `static_cast<std::size_t>(index + 1)` on a checked index |
