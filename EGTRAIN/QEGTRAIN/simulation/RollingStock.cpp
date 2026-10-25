@@ -230,23 +230,6 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	return Total_Dwell_Time;
 }
 
-Regional::Regional() {
-	g = kSceneGravityMs2;
-	ID = 0;
-	mass_of_traction_unit = 0;
-	mass_of_a_wagon = 0;
-	number_of_wagons = 0;
-	max_train_speed = 0;
-	max_train_decelaration = 1.3;
-	frontal_wagon_area = 1.45;
-	resistanceCoefficient = 0;
-	Jerk = 0;
-	train_length = 0;
-	massPerWagonAxle = mass_of_a_wagon * number_of_wagons;
-	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
-	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
-}
-
 // Function to compute Blocking Times of trains in mixed signalling areas
 void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
 	for (int i = 0; i < run.numTrains; i++) {

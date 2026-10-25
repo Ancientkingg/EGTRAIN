@@ -198,7 +198,7 @@ int nativeResolveRuntimeSection(SimulationRun& run, const std::string& runtimeSe
 	return -1;
 }
 
-void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Regional& train, int vectorSize) {
+void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train& train, int vectorSize) {
 	train.run_ = &run;
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
@@ -1071,7 +1071,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 
 	initial_variables = stagedParameters;
 	// The new storage exists before the old trains are released.
-	std::vector<Regional> storage(trains.size());
+	std::vector<Train> storage(trains.size());
 	run.trains = std::move(storage);
 	run.numTrains = static_cast<int>(trains.size());
 	for (std::size_t index = 0; index < trains.size(); ++index)

@@ -3,7 +3,7 @@
 
 // The member functions of the classes in this header are defined in the RollingStock*.cpp files in this folder. Only these short
 // bodies stay inline, with the files that call them:
-// - the empty destructors of Train and Regional;
+// - the empty destructor of Train;
 // - BlockingTimeList (RollingStockBlockingTimes.cpp, RollingStock.cpp, MainWindow.cpp, test_characterization.cpp);
 // - isShortOfBrakingPoint, isPastStopHoldback and their constants (RollingStockStops.cpp, RollingStockTrajectory.cpp,
 //   test_operationsbuilder.cpp);
@@ -386,30 +386,31 @@ public:
 
 	/// Tractive effort in N at speed V in m/s, from the band of the traction curve that holds V, scaled by
 	/// servicePerformancePercent. 0 outside every band.
-	virtual double tractiveEffort(double V);
+	double tractiveEffort(double V);
 
 	/// Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.
-	virtual double brakingEffort(double T);
+	double brakingEffort(double T);
 
 
 	/// Resistance in N of the traction unit at speed V in m/s
 	/// (Modified Strahl Formulae_Italian FS Formulation)
-	virtual double traction_unit_resistences(double V);
+	double traction_unit_resistences(double V);
 
 	/// Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula
-	virtual double wagons_resistances(double V);
+	double wagons_resistances(double V);
 
 	/// Resistance in N of the gradient G, as rise per length (Arc::gradient).
-	virtual double gradient_resistances(double G);
+	double gradient_resistances(double G);
 
 	/// Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).
-	virtual double curvature_resistances(double R);
+	double curvature_resistances(double R);
 
 	/// Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.
+	/// Virtual so that a test can replace the resistances.
 	virtual double total_train_resistances(double V, double G, double R);
 
 	/// Stores the eight parameters of the passenger dwell model in GibsonDwellTimeParameters.
-	virtual void Initialise_Gibson_Dwell_Time_Parameters(float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
+	void Initialise_Gibson_Dwell_Time_Parameters(float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
 	/// Adds the energy of step t to instant_train_energy_consumption and returns the total in MJ.
 	double train_energy_consumption(int t);
@@ -467,12 +468,12 @@ public:
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
 	/// (X1, X2] (m).
-	virtual double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
+	double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
 	/// (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it
 	/// cannot accelerate on that either the result is -99999.
-	virtual double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
+	double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Finds the arc of the route under a head position in metres, continuing from the previous lookup.
 	///
@@ -532,6 +533,7 @@ public:
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
 	/// When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead.
+	/// Virtual so that a test can make the lookup fail.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks,
 		double cutoff = std::numeric_limits<double>::infinity());
 
@@ -549,7 +551,7 @@ public:
 
 	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
 	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
-	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
+	bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
 
 	/// Plans braking from head (m) and speed (m/s) to Vobmin 0.002 m before Xobmin (m): a first speed within the actual force range,
 	/// then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan.
@@ -567,13 +569,13 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
-	virtual void PrintTrajectory();
+	void PrintTrajectory();
 
 	/// Does nothing.
 	virtual ~Train() {}
 
 	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
-	virtual std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
+	std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
 
 	/// Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is the first.
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
@@ -592,7 +594,7 @@ public:
 
 	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
 	/// signalCode2 and signalCode3 are not read.
-	virtual void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
+	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
 	/// Finds the steps in which the head reaches and leaves the route position LocationPosition (m) and writes them to PassingPoint as
 	/// Time and Time2 (s), with Position in the coordinates of the original direction. Nothing is written when the train never gets
@@ -605,7 +607,7 @@ public:
 
 	/// Adds the sections that the train covers from tail to head in step i to run.blocksOccupied, with its double switches and
 	/// diverging switches, and releases its last section when it has left the route. BS holds the Blocks sections of its route.
-	virtual void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks);
+	void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks);
 
 	/// Adds the ends of authority of the train in step i on the level 3 and 4 sections of its route to run.etcsMa: the tail less
 	/// ETCS3SafetyMargin (m) as "Tale", the head plus the margin as "Front", and the locks of the switches it covers.
@@ -713,24 +715,8 @@ public:
 	void setTrainVectorSizesFromInput(int vec_size);
 };
 
-/// The train class that the operations builder fills. It adds no member to Train.
-class Regional : public Train {
-
-public:
-	/// Sets the default rolling stock values, which the operations builder replaces.
-	Regional();
-
-	/// Does nothing.
-	~Regional() {}
-
-	/// Copies the rolling stock data and the service and incident fields of ob2, and sets the passenger capacity from the wagons. The
-	/// traction curve, resistanceCoefficient, route, timetable and trajectory are not copied.
-	Regional& operator=(const Regional& ob2);
-};
-
-// ComputeEnergyConsumptionForAllTrains takes Train* and is called with SimulationRun::trains.data(),
-// so both types must have the same size.
-static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
+/// Another name for Train, which the tests use.
+using Regional = Train;
 
 /// Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers
 /// (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in

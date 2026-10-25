@@ -6,7 +6,7 @@
 #include <vector>
 
 /// Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoints).
-void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
+void Compute_TimetablingPoints_For_All_Trains(Train* Trains, int numTrains);
 
 /// Sets the actual station arrivals and the arrival delays of every train (Train::Determine_Actual_Station_Arrivals and
 /// Train::computeArrivalDelaysAtStations).
@@ -42,7 +42,7 @@ void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
 
 /// Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head
 /// position (m, original coordinates) in every step, -9999 where it does not run.
-void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, std::string FolderName);
+void PrintTrainPathDiagram(const SimulationRun& run, Train* S, int N_S, std::string FolderName);
 
 /// Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8
 /// and a regeneration factor of 0.7 (Train::TotalEnergyConsumptionWithAndWithoutRegBraking). The totals of the other trains are 0.
@@ -50,7 +50,7 @@ void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
 /// Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all
 /// trains, converted from MJ to kWh.
-void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, std::string OutputFolder);
+void ComputeTimetableEnergyConsumption(Train* Trains, int numTrains, std::string OutputFolder);
 
 /// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
 /// network (Passenger::checkJourneyStart).
