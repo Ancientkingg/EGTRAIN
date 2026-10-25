@@ -22,19 +22,14 @@
 #include <QSignalBlocker>
 #include <QSlider>
 #include <QSpinBox>
-#include <QWheelEvent>
+#include <QTest>
 #include <QToolTip>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 
 #include <algorithm>
-#include <iostream>
 
 namespace {
-bool check(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << message << '\n';
-	return condition;
-}
 
 QString choiceName(int length) {
 	return QStringLiteral("Stop_abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz_0123456789_"
@@ -125,174 +120,6 @@ bool tooltipMatches(QComboBox* combo) {
 void press(QComboBox* combo, int key) {
 	QKeyEvent event(QEvent::KeyPress, key, Qt::NoModifier);
 	QApplication::sendEvent(combo, &event);
-}
-
-bool exerciseLayout(const QRect& screen, qreal scale) {
-	StopForm f(screen, scale, choiceName(95));
-	bool ok = check(f.dialog.width() <= screen.width() * 9 / 10
-			&& f.dialog.height() <= screen.height() * 4 / 5,
-		"dialog exceeds the size budget");
-	ok &= check(f.platform->currentText().endsWith(QStringLiteral(" (not on the route)")),
-		"layout form does not hold the invalid platform item");
-	ok &= check(!f.scroll->horizontalScrollBar()->isVisible()
-			&& f.scroll->horizontalScrollBar()->maximum() == 0,
-		"form needs a horizontal scroll bar");
-	const QRect viewport = f.scroll->viewport()->rect();
-	for (ChoiceComboBox* combo : f.combos()) {
-		const QRect rect(combo->mapTo(f.scroll->viewport(), QPoint()), combo->size());
-		ok &= check(viewport.contains(rect), "combo lies outside the scroll viewport");
-		ok &= check(combo->width() >= combo->sizeHint().width()
-				|| f.dialog.width() == f.dialog.maximumWidth(),
-			"dialog stays narrower than its content although the budget allows more");
-	}
-	ok &= check(f.platform->minimumSizeHint().width() < f.platform->sizeHint().width() / 2,
-		"long choice combo cannot shrink");
-
-	const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
-	for (ChoiceComboBox* combo : f.combos()) {
-		int widest = 0;
-		for (int i = 0; i < combo->count(); ++i)
-			widest = std::max(widest, combo->view()->fontMetrics().horizontalAdvance(combo->itemText(i)));
-		combo->showPopup();
-		QApplication::processEvents();
-		ok &= check(combo->view()->isVisible(), "popup did not open");
-		ok &= check(combo->view()->width() >= std::min(widest, available.width() * 9 / 10),
-			"popup is narrower than its widest item within the screen budget");
-		ok &= check(available.contains(combo->view()->window()->frameGeometry()),
-			"popup lies outside the available screen area");
-		combo->hidePopup();
-		QApplication::processEvents();
-	}
-	return ok;
-}
-
-bool exerciseSelection() {
-	const QRect screen(0, 0, 1280, 800);
-	StopForm f(screen, 1.0, QStringLiteral("p95"));
-	bool ok = true;
-	for (ChoiceComboBox* combo : f.combos())
-		ok &= check(tooltipMatches(combo), "tooltip is not the current text");
-	ok &= check(f.platform->currentText() == choiceName(95) && shownTip(f.platform) == choiceName(95),
-		"tooltip is not the full text of a long item");
-
-	f.platform->setCurrentIndex(1);
-	press(f.platform, Qt::Key_Down);
-	ok &= check(f.platform->currentIndex() == 2 && shownTip(f.platform) == choiceName(95),
-		"Down did not select the next item or update the tooltip");
-	press(f.platform, Qt::Key_Up);
-	ok &= check(f.platform->currentIndex() == 1 && shownTip(f.platform) == choiceName(31),
-		"Up did not select the previous item or update the tooltip");
-	{
-		const QSignalBlocker blocker(f.platform);
-		f.platform->setCurrentIndex(0);
-	}
-	ok &= check(shownTip(f.platform) == QStringLiteral("(no platform)") && f.platform->toolTip().isEmpty(),
-		"a selection made with signals blocked left an old tooltip");
-	return ok;
-}
-
-bool exerciseElision() {
-	// The size hint reserves the bounding width of the widest text. A large digit ends
-	// in a wide bearing, so the advance of this text is more than its bounding width.
-	ChoiceComboBox lone;
-	QFont large = lone.font();
-	large.setPointSizeF(48);
-	lone.setFont(large);
-	lone.addItem(QStringLiteral("abc"));
-	lone.addItem(QStringLiteral("Platform 1"));
-	lone.setCurrentIndex(1);
-	lone.resize(lone.sizeHint());
-	bool ok = check(lone.displayText() == lone.currentText(), "the widest text is elided in a field at its size hint");
-
-	const QRect screen(0, 0, 1280, 800);
-	StopForm f(screen, 1.0, QStringLiteral("p31"));
-	ok &= check(f.platform->displayText() == choiceName(31), "a text that fits its field is elided");
-	f.platform->setCurrentIndex(f.platform->findData(QStringLiteral("p95")));
-	f.dialog.resize(420, f.dialog.height());
-	QApplication::processEvents();
-	const QString shown = f.platform->displayText();
-	ok &= check(f.platform->width() < f.platform->sizeHint().width(), "the field did not shrink with the dialog");
-	ok &= check(shown != choiceName(95) && shown.contains(QChar(0x2026))
-			&& shown.startsWith(choiceName(3)) && shown.endsWith(choiceName(95).right(3)),
-		"a text wider than its field is not elided in the middle");
-	ok &= check(f.platform->fontMetrics().horizontalAdvance(shown) <= f.platform->width(),
-		"the elided text is wider than the field");
-	return ok;
-}
-
-bool exerciseInvalidChoice() {
-	const QRect screen(0, 0, 1280, 800);
-	const QString invalidId = choiceName(95);
-	const QString shown = QStringLiteral("%1 (not on the route)").arg(invalidId);
-	int firstIndex = -2;
-	bool ok = true;
-	for (int round = 0; round < 2; ++round) {
-		StopForm f(screen, 1.0, invalidId);
-		const int index = f.platform->currentIndex();
-		if (round == 0)
-			firstIndex = index;
-		ok &= check(index >= 0 && index == firstIndex,
-			"rebuilt dialog selects a different platform item");
-		ok &= check(f.platform->currentText() == shown && f.platform->currentData().toString() == invalidId,
-			"invalid platform lost its text or data");
-		ok &= check(f.platform->itemData(index, Qt::ToolTipRole).toString() == kExplanation,
-			"invalid platform item lost its explanation");
-		ok &= check(shownTip(f.platform) == shown + QLatin1Char('\n') + kExplanation,
-			"tooltip of the invalid item is not its full text followed by its explanation");
-		f.platform->showPopup();
-		QApplication::processEvents();
-		ok &= check(f.platform->currentText() == shown && f.platform->currentData().toString() == invalidId,
-			"opening the popup changed the invalid selection");
-		f.platform->hidePopup();
-	}
-	return ok;
-}
-
-// The tip shows the current text, then the tooltip of the current item (the id behind a label), then the tooltip of the
-// field, and a line that is already shown only once.
-bool exerciseItemTip() {
-	ChoiceComboBox combo;
-	combo.addItem(QStringLiteral("B0 0.000 to 0.230 km"), QStringLiteral("@0-B0@"));
-	combo.setItemData(0, QStringLiteral("@0-B0@"), Qt::ToolTipRole);
-	combo.addItem(QStringLiteral("(none)"));
-	combo.addItem(QStringLiteral("route0"));
-	combo.setItemData(2, QStringLiteral("The route of the scope."), Qt::ToolTipRole);
-	combo.setToolTip(QStringLiteral("The route of the scope."));
-	combo.show();
-	QApplication::processEvents();
-	bool ok = check(shownTip(&combo) == QStringLiteral("B0 0.000 to 0.230 km\n@0-B0@\nThe route of the scope."),
-		"the tip does not show the text, the id of the item and the tip of the field");
-	combo.setCurrentIndex(1);
-	ok &= check(shownTip(&combo) == QStringLiteral("(none)\nThe route of the scope."),
-		"an item without a tooltip does not show the text and the tip of the field");
-	combo.setCurrentIndex(2);
-	ok &= check(shownTip(&combo) == QStringLiteral("route0\nThe route of the scope."),
-		"a tooltip that the item and the field share is not shown once");
-	return ok;
-}
-
-// A field with focus opens a list that shows each of its items whole, without scrolling.
-bool exercisePopupHeight() {
-	StopForm f(QRect(0, 0, 1280, 800), 1.0, QStringLiteral("p31"));
-	f.mode->setFocus();
-	QApplication::processEvents();
-	bool ok = check(f.mode->hasFocus(), "the planned time display did not take focus, so the test proves nothing");
-	f.mode->showPopup();
-	QApplication::processEvents();
-	QAbstractItemView* list = f.mode->view();
-	// A list that cuts its last item can scroll, so a list that cannot scroll shows every item whole.
-	const bool whole = list->isVisible() && list->verticalScrollBar()->maximum() == 0;
-	if (!whole) {
-		int rows = 0;
-		for (int row = 0; row < f.mode->count(); ++row)
-			rows += list->visualRect(f.mode->model()->index(row, 0)).height();
-		std::cerr << "the list of a field with focus scrolls: the popup is " << list->window()->height() << " px, its list "
-				  << list->viewport()->height() << " px for " << rows << " px of items, and it scrolls by "
-				  << list->verticalScrollBar()->maximum() << '\n';
-	}
-	ok &= whole;
-	f.mode->hidePopup();
-	return ok;
 }
 
 // Turns the wheel one step down over target. The event goes to the widget under the pointer, which is the line edit
@@ -407,61 +234,257 @@ struct WheelForm {
 	}
 };
 
-// The wheel scrolls a form over a combo box, spin box or slider without changing it, until the field has keyboard focus.
-bool exerciseWheel(FormKind kind) {
-	WheelForm f(kind);
-	const QString form = kind == FormKind::Installed ? QStringLiteral("installed form: ")
-		: kind == FormKind::Plain					 ? QStringLiteral("plain scroll area: ")
-													 : QStringLiteral("watched form: ");
-	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, qPrintable(form + "the wheel form does not scroll, so the test proves nothing"));
-	// An installed form opens with the focus on its first field.
-	if (QWidget* focused = QApplication::focusWidget())
-		focused->clearFocus();
-	for (QWidget* field : f.fields()) {
-		const QString name = form + field->metaObject()->className();
-		const QString before = f.value(field);
-		f.scroll->verticalScrollBar()->setValue(0);
-		wheelDown(field);
-		ok &= check(f.value(field) == before, qPrintable(name + ": the wheel changed a field without focus"));
-		ok &= check(f.scroll->verticalScrollBar()->value() > 0, qPrintable(name + ": the wheel over a field without focus did not scroll the form"));
-	}
-	for (QWidget* field : f.fields()) {
-		const QString name = form + field->metaObject()->className();
-		const QString before = f.value(field);
-		field->setFocus();
-		QApplication::processEvents();
-		ok &= check(field->hasFocus(), qPrintable(name + ": the field did not take focus, so the test proves nothing"));
-		f.scroll->verticalScrollBar()->setValue(0);
-		wheelDown(field);
-		ok &= check(f.value(field) != before, qPrintable(name + ": the wheel did not change a field with focus"));
-		ok &= check(f.scroll->verticalScrollBar()->value() == 0, qPrintable(name + ": the wheel over a field with focus scrolled the form"));
-	}
-	return ok;
-}
 } // namespace
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
+// The choice combo box of the stop editor and the dialogs fits its form, shows its whole text as a tooltip, elides a
+// long text in the middle, keeps a choice that is not on the route, and leaves the wheel to the form until it has focus.
+class TestChoiceCombo : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void layout_data();
+	void layout();
+	void selection();
+	void elision();
+	void invalidChoice();
+	void itemTip();
+	void popupHeight();
+	void wheel_data();
+	void wheel();
+};
+
+void TestChoiceCombo::initTestCase() {
 	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
-	if (!qss.open(QIODevice::ReadOnly)) {
-		std::cerr << "cannot load application QSS\n";
-		return 1;
-	}
+	QVERIFY2(qss.open(QIODevice::ReadOnly), "cannot load application QSS");
 	// The test binary has no Qt resources, so point the stylesheet at the icon files.
 	QString styleSheet = QString::fromUtf8(qss.readAll());
 	styleSheet.replace(QStringLiteral(":/icons/"),
 		QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
-	app.setStyleSheet(styleSheet);
-	const bool small = exerciseLayout(QRect(0, 0, 1280, 800), 1.0);
-	const bool scaledSmall = exerciseLayout(QRect(0, 0, 1280, 800), 1.5);
-	const bool large = exerciseLayout(QRect(0, 0, 1920, 1080), 1.5);
-	const bool selection = exerciseSelection();
-	const bool elision = exerciseElision();
-	const bool invalid = exerciseInvalidChoice();
-	const bool itemTip = exerciseItemTip();
-	const bool popupHeight = exercisePopupHeight();
-	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
-	const bool wheelPlain = exerciseWheel(FormKind::Plain);
-	const bool wheelWatched = exerciseWheel(FormKind::Watched);
-	return small && scaledSmall && large && selection && elision && invalid && itemTip && popupHeight && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
+	qApp->setStyleSheet(styleSheet);
 }
+
+void TestChoiceCombo::layout_data() {
+	QTest::addColumn<QRect>("screen");
+	QTest::addColumn<qreal>("scale");
+	QTest::newRow("1280x800 at 1.0") << QRect(0, 0, 1280, 800) << qreal(1.0);
+	QTest::newRow("1280x800 at 1.5") << QRect(0, 0, 1280, 800) << qreal(1.5);
+	QTest::newRow("1920x1080 at 1.5") << QRect(0, 0, 1920, 1080) << qreal(1.5);
+}
+
+void TestChoiceCombo::layout() {
+	QFETCH(QRect, screen);
+	QFETCH(qreal, scale);
+	StopForm f(screen, scale, choiceName(95));
+	// The dialog stays within the size budget.
+	QCOMPARE_LE(f.dialog.width(), screen.width() * 9 / 10);
+	QCOMPARE_LE(f.dialog.height(), screen.height() * 4 / 5);
+	QVERIFY2(f.platform->currentText().endsWith(QStringLiteral(" (not on the route)")),
+		"layout form does not hold the invalid platform item");
+	// The form needs no horizontal scroll bar.
+	QVERIFY(!f.scroll->horizontalScrollBar()->isVisible());
+	QCOMPARE(f.scroll->horizontalScrollBar()->maximum(), 0);
+	const QRect viewport = f.scroll->viewport()->rect();
+	for (ChoiceComboBox* combo : f.combos()) {
+		const QRect rect(combo->mapTo(f.scroll->viewport(), QPoint()), combo->size());
+		QVERIFY2(viewport.contains(rect), "combo lies outside the scroll viewport");
+		QVERIFY2(combo->width() >= combo->sizeHint().width()
+				|| f.dialog.width() == f.dialog.maximumWidth(),
+			"dialog stays narrower than its content although the budget allows more");
+	}
+	// A long choice combo can shrink.
+	QCOMPARE_LT(f.platform->minimumSizeHint().width(), f.platform->sizeHint().width() / 2);
+
+	const QRect available = QGuiApplication::primaryScreen()->availableGeometry();
+	for (ChoiceComboBox* combo : f.combos()) {
+		int widest = 0;
+		for (int i = 0; i < combo->count(); ++i)
+			widest = std::max(widest, combo->view()->fontMetrics().horizontalAdvance(combo->itemText(i)));
+		combo->showPopup();
+		QApplication::processEvents();
+		QVERIFY2(combo->view()->isVisible(), "popup did not open");
+		// The popup is as wide as its widest item within the screen budget.
+		QCOMPARE_GE(combo->view()->width(), std::min(widest, available.width() * 9 / 10));
+		QVERIFY2(available.contains(combo->view()->window()->frameGeometry()),
+			"popup lies outside the available screen area");
+		combo->hidePopup();
+		QApplication::processEvents();
+	}
+}
+
+void TestChoiceCombo::selection() {
+	const QRect screen(0, 0, 1280, 800);
+	StopForm f(screen, 1.0, QStringLiteral("p95"));
+	for (ChoiceComboBox* combo : f.combos())
+		QVERIFY2(tooltipMatches(combo), "tooltip is not the current text");
+	// The tooltip is the full text of a long item.
+	QCOMPARE(f.platform->currentText(), choiceName(95));
+	QCOMPARE(shownTip(f.platform), choiceName(95));
+
+	f.platform->setCurrentIndex(1);
+	press(f.platform, Qt::Key_Down);
+	// Down selects the next item and updates the tooltip.
+	QCOMPARE(f.platform->currentIndex(), 2);
+	QCOMPARE(shownTip(f.platform), choiceName(95));
+	press(f.platform, Qt::Key_Up);
+	// Up selects the previous item and updates the tooltip.
+	QCOMPARE(f.platform->currentIndex(), 1);
+	QCOMPARE(shownTip(f.platform), choiceName(31));
+	{
+		const QSignalBlocker blocker(f.platform);
+		f.platform->setCurrentIndex(0);
+	}
+	// A selection made with signals blocked leaves no old tooltip.
+	QCOMPARE(shownTip(f.platform), QStringLiteral("(no platform)"));
+	QVERIFY(f.platform->toolTip().isEmpty());
+}
+
+void TestChoiceCombo::elision() {
+	// The size hint reserves the bounding width of the widest text. A large digit ends
+	// in a wide bearing, so the advance of this text is more than its bounding width.
+	ChoiceComboBox lone;
+	QFont large = lone.font();
+	large.setPointSizeF(48);
+	lone.setFont(large);
+	lone.addItem(QStringLiteral("abc"));
+	lone.addItem(QStringLiteral("Platform 1"));
+	lone.setCurrentIndex(1);
+	lone.resize(lone.sizeHint());
+	// The widest text is not elided in a field at its size hint.
+	QCOMPARE(lone.displayText(), lone.currentText());
+
+	const QRect screen(0, 0, 1280, 800);
+	StopForm f(screen, 1.0, QStringLiteral("p31"));
+	// A text that fits its field is not elided.
+	QCOMPARE(f.platform->displayText(), choiceName(31));
+	f.platform->setCurrentIndex(f.platform->findData(QStringLiteral("p95")));
+	f.dialog.resize(420, f.dialog.height());
+	QApplication::processEvents();
+	const QString shown = f.platform->displayText();
+	// The field shrinks with the dialog.
+	QCOMPARE_LT(f.platform->width(), f.platform->sizeHint().width());
+	// A text wider than its field is elided in the middle.
+	QCOMPARE_NE(shown, choiceName(95));
+	QVERIFY(shown.contains(QChar(0x2026)));
+	QVERIFY(shown.startsWith(choiceName(3)));
+	QVERIFY(shown.endsWith(choiceName(95).right(3)));
+	// The elided text is not wider than the field.
+	QCOMPARE_LE(f.platform->fontMetrics().horizontalAdvance(shown), f.platform->width());
+}
+
+// A platform that is not on the route keeps its item, text, data and explanation, also in a rebuilt dialog.
+void TestChoiceCombo::invalidChoice() {
+	const QRect screen(0, 0, 1280, 800);
+	const QString invalidId = choiceName(95);
+	const QString shown = QStringLiteral("%1 (not on the route)").arg(invalidId);
+	int firstIndex = -2;
+	for (int round = 0; round < 2; ++round) {
+		StopForm f(screen, 1.0, invalidId);
+		const int index = f.platform->currentIndex();
+		if (round == 0)
+			firstIndex = index;
+		// The rebuilt dialog selects the same platform item.
+		QCOMPARE_GE(index, 0);
+		QCOMPARE(index, firstIndex);
+		// The invalid platform keeps its text and data.
+		QCOMPARE(f.platform->currentText(), shown);
+		QCOMPARE(f.platform->currentData().toString(), invalidId);
+		// The invalid platform item keeps its explanation.
+		QCOMPARE(f.platform->itemData(index, Qt::ToolTipRole).toString(), kExplanation);
+		// The tooltip of the invalid item is its full text followed by its explanation.
+		QCOMPARE(shownTip(f.platform), shown + QLatin1Char('\n') + kExplanation);
+		f.platform->showPopup();
+		QApplication::processEvents();
+		// Opening the popup does not change the invalid selection.
+		QCOMPARE(f.platform->currentText(), shown);
+		QCOMPARE(f.platform->currentData().toString(), invalidId);
+		f.platform->hidePopup();
+	}
+}
+
+// The tip shows the current text, then the tooltip of the current item (the id behind a label), then the tooltip of the
+// field, and a line that is already shown only once.
+void TestChoiceCombo::itemTip() {
+	ChoiceComboBox combo;
+	combo.addItem(QStringLiteral("B0 0.000 to 0.230 km"), QStringLiteral("@0-B0@"));
+	combo.setItemData(0, QStringLiteral("@0-B0@"), Qt::ToolTipRole);
+	combo.addItem(QStringLiteral("(none)"));
+	combo.addItem(QStringLiteral("route0"));
+	combo.setItemData(2, QStringLiteral("The route of the scope."), Qt::ToolTipRole);
+	combo.setToolTip(QStringLiteral("The route of the scope."));
+	combo.show();
+	QApplication::processEvents();
+	// The tip shows the text, the id of the item and the tip of the field.
+	QCOMPARE(shownTip(&combo), QStringLiteral("B0 0.000 to 0.230 km\n@0-B0@\nThe route of the scope."));
+	combo.setCurrentIndex(1);
+	// An item without a tooltip shows the text and the tip of the field.
+	QCOMPARE(shownTip(&combo), QStringLiteral("(none)\nThe route of the scope."));
+	combo.setCurrentIndex(2);
+	// A tooltip that the item and the field share is shown once.
+	QCOMPARE(shownTip(&combo), QStringLiteral("route0\nThe route of the scope."));
+}
+
+// A field with focus opens a list that shows each of its items whole, without scrolling.
+void TestChoiceCombo::popupHeight() {
+	StopForm f(QRect(0, 0, 1280, 800), 1.0, QStringLiteral("p31"));
+	f.mode->setFocus();
+	QApplication::processEvents();
+	QVERIFY2(f.mode->hasFocus(), "the planned time display did not take focus, so the test proves nothing");
+	f.mode->showPopup();
+	QApplication::processEvents();
+	QAbstractItemView* list = f.mode->view();
+	// A list that cuts its last item can scroll, so a list that cannot scroll shows every item whole.
+	const bool whole = list->isVisible() && list->verticalScrollBar()->maximum() == 0;
+	QString problem;
+	if (!whole) {
+		int rows = 0;
+		for (int row = 0; row < f.mode->count(); ++row)
+			rows += list->visualRect(f.mode->model()->index(row, 0)).height();
+		problem = QStringLiteral("the list of a field with focus scrolls: the popup is %1 px, its list %2 px for %3 px of items, and it scrolls by %4")
+					  .arg(list->window()->height())
+					  .arg(list->viewport()->height())
+					  .arg(rows)
+					  .arg(list->verticalScrollBar()->maximum());
+	}
+	f.mode->hidePopup();
+	QVERIFY2(whole, qPrintable(problem));
+}
+
+void TestChoiceCombo::wheel_data() {
+	QTest::addColumn<int>("kind");
+	QTest::newRow("installed form") << static_cast<int>(FormKind::Installed);
+	QTest::newRow("plain scroll area") << static_cast<int>(FormKind::Plain);
+	QTest::newRow("watched form") << static_cast<int>(FormKind::Watched);
+}
+
+// The wheel scrolls a form over a combo box, spin box or slider without changing it, until the field has keyboard focus.
+void TestChoiceCombo::wheel() {
+	QFETCH(int, kind);
+	WheelForm f(static_cast<FormKind>(kind));
+	QVERIFY2(f.scroll->verticalScrollBar()->maximum() > 0, "the wheel form does not scroll, so the test proves nothing");
+	// An installed form opens with the focus on its first field.
+	if (QWidget* focused = QApplication::focusWidget())
+		focused->clearFocus();
+	for (QWidget* field : f.fields()) {
+		const QString name = QString::fromLatin1(field->metaObject()->className());
+		const QString before = f.value(field);
+		f.scroll->verticalScrollBar()->setValue(0);
+		wheelDown(field);
+		QVERIFY2(f.value(field) == before, qPrintable(name + ": the wheel changed a field without focus"));
+		QVERIFY2(f.scroll->verticalScrollBar()->value() > 0, qPrintable(name + ": the wheel over a field without focus did not scroll the form"));
+	}
+	for (QWidget* field : f.fields()) {
+		const QString name = QString::fromLatin1(field->metaObject()->className());
+		const QString before = f.value(field);
+		field->setFocus();
+		QApplication::processEvents();
+		QVERIFY2(field->hasFocus(), qPrintable(name + ": the field did not take focus, so the test proves nothing"));
+		f.scroll->verticalScrollBar()->setValue(0);
+		wheelDown(field);
+		QVERIFY2(f.value(field) != before, qPrintable(name + ": the wheel did not change a field with focus"));
+		QVERIFY2(f.scroll->verticalScrollBar()->value() == 0, qPrintable(name + ": the wheel over a field with focus scrolled the form"));
+	}
+}
+
+QTEST_MAIN(TestChoiceCombo)
+#include "test_choicecombo.moc"
