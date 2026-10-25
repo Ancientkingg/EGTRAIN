@@ -290,6 +290,19 @@ void ResultViews::showWindow(QWidget* window) {
 	m_windows.append(window);
 }
 
+void ResultViews::addCaseWindow(QWidget* window) {
+	m_caseWindows.removeAll(QPointer<QWidget>());
+	m_caseWindows.append(window);
+}
+
+void ResultViews::closeAll() {
+	for (const QPointer<QWidget>& window : m_windows + m_caseWindows)
+		if (window)
+			window->close();
+	m_windows.clear();
+	m_caseWindows.clear();
+}
+
 // Choose a reference from routes that were actually used in this run.
 int ResultViews::chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const {
 	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(m_host.sceneModel(), usedRouteReferencesFrom(run));

@@ -548,6 +548,11 @@ private:
 	void sceneCreated(const telemetry::OperationObservation& operation) override;
 	bool sceneOpened(const SceneSession::OpenedScene& opened) override;
 	void sceneSaved() override;
+	// The steps that sceneCreated and sceneOpened share: the output folder, the delay baseline, the scenario of the next
+	// run, the history, the recovery source, the run results, the title, the actions and the editors follow the scene that
+	// has replaced the previous one. baselineNote says why a delay baseline is gone, saved marks the history as saved, and
+	// resetInfrastructureSelection clears the selection of the infrastructure editor.
+	void resetForNewScene(const QString& baselineNote, bool saved, const RecoverySource& recovery, bool resetInfrastructureSelection);
 	// RunController::Host: what the controller asks of the window, and the points at which it tells the window that the
 	// run changed.
 	bool advancedDetailsEnabled() const override;

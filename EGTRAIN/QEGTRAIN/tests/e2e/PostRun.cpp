@@ -62,6 +62,7 @@
 #include <QPoint>
 #include <QPointF>
 #include <QPolygonF>
+#include <QPointer>
 #include <QPushButton>
 #include <QRectF>
 #include <QScrollArea>
@@ -106,6 +107,8 @@ bool sceneEditedDuringRun = false;
 // How many runs the operational completion check has seen, and the frame on which the first one ended.
 int operationalCompletions = 0;
 std::shared_ptr<const GuiSimulationSnapshot> operationalFirstFrame;
+// The result window and the traction curve that the first completion opens, which stay open through the rerun.
+QList<QPointer<QWidget>> operationalCaseWindows;
 
 // True when every head shows what the snapshot holds for it: the display code
 // and failed flag of its state, or unavailable when the snapshot has none.
@@ -1242,6 +1245,23 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		}
 		if (operationalCompletions == 1) {
 			operationalFirstFrame = selectedFrame;
+			w.m_resultViews->showSpeedDistanceDiagram();
+			const auto& units = w.m_document->model().trainUnits;
+			const auto unit = std::find_if(units.begin(), units.end(), [](const SceneTrainUnit& each) { return !each.tractionCurve.empty(); });
+			if (unit != units.end())
+				w.plotTrainUnitTraction(*unit);
+			for (DiagramWindow* window : w.findChildren<DiagramWindow*>())
+				if (window->isVisible())
+					operationalCaseWindows.append(window);
+			// The checks of the next completion use the keyboard focus of the main window.
+			w.activateWindow();
+			QApplication::processEvents();
+			if (operationalCaseWindows.size() != 2) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: %lld windows for a chart and a traction curve\n",
+					static_cast<long long>(operationalCaseWindows.size()));
+				QCoreApplication::exit(2);
+				return;
+			}
 			w.m_replayTimer->start();
 			w.m_runController->runCurrent();
 			if (!w.m_runController->m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
@@ -1251,6 +1271,12 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
+		for (const QPointer<QWidget>& window : operationalCaseWindows)
+			if (!window || !window->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: the rerun closed a result window\n");
+				QCoreApplication::exit(2);
+				return;
+			}
 		if (w.m_document->mutableModel().scenarios.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no scenario fixture\n");
 			QCoreApplication::exit(2);
@@ -1293,6 +1319,14 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			QCoreApplication::exit(2);
 			return;
 		}
+		// The windows showed the case that was replaced.
+		for (const QPointer<QWidget>& window : operationalCaseWindows)
+			if (window && window->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: %s is still open after the case was opened again\n",
+					qPrintable(window->windowTitle()));
+				QCoreApplication::exit(2);
+				return;
+			}
 		QTimer::singleShot(0, &w, [&w]() {
 			if (w.m_snapshot || simulation.takeSimulationSnapshot()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: stale case notification\n");
