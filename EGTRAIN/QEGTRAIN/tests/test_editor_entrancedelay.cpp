@@ -131,6 +131,10 @@ struct DelayFixture {
 		selection.selectScenario("base");
 		panel.refresh();
 	}
+
+	// The panel is hidden while the fixture is whole. A panel destroyed while shown loses the focus in its QWidget
+	// destructor, and a field that had the focus then calls a slot of the panel whose own part is already gone.
+	~DelayFixture() { panel.hide(); }
 };
 
 class TestEntranceDelayPanel : public QObject {
