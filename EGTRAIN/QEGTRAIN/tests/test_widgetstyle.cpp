@@ -4,61 +4,77 @@
 #include "widgets/WidgetStyle.h"
 
 #include <QApplication>
+#include <QByteArray>
 #include <QOperatingSystemVersion>
+#include <QScopeGuard>
+#include <QStringList>
 #include <QStyle>
+#include <QTest>
 
-#include <initializer_list>
-#include <iostream>
 #include <vector>
 
-static bool chosen(std::initializer_list<const char*> arguments) {
+// widgetStyleChosen reads only its arguments and the environment, so it gives the same answer after the application
+// object exists.
+static bool chosen(const QStringList& arguments) {
+	std::vector<QByteArray> texts;
+	for (const QString& argument : arguments)
+		texts.push_back(argument.toLocal8Bit());
 	std::vector<char*> argv;
-	for (const char* argument : arguments)
-		argv.push_back(const_cast<char*>(argument));
+	for (QByteArray& text : texts)
+		argv.push_back(text.data());
 	return widgetStyleChosen(static_cast<int>(argv.size()), argv.data());
 }
 
-int main(int argc, char** argv) {
-	bool ok = true;
-	const auto expect = [&ok](bool actual, bool expected, const char* arguments) {
-		if (actual == expected)
-			return;
-		std::cerr << arguments << (expected ? " chooses no style\n" : " chooses a style\n");
-		ok = false;
-	};
-	expect(chosen({"QEGTRAIN"}), false, "QEGTRAIN");
-	expect(chosen({"QEGTRAIN", "-style", "fusion"}), true, "QEGTRAIN -style fusion");
-	expect(chosen({"QEGTRAIN", "--style", "fusion"}), true, "QEGTRAIN --style fusion");
-	expect(chosen({"QEGTRAIN", "-style=fusion"}), true, "QEGTRAIN -style=fusion");
-	expect(chosen({"QEGTRAIN", "--style=fusion"}), true, "QEGTRAIN --style=fusion");
-	expect(chosen({"QEGTRAIN", "-stylesheet", "egtrain.qss"}), false, "QEGTRAIN -stylesheet egtrain.qss");
-	const bool overridden = qEnvironmentVariableIsSet("QT_STYLE_OVERRIDE");
-	if (!overridden) {
-		qputenv("QT_STYLE_OVERRIDE", "fusion");
-		expect(chosen({"QEGTRAIN"}), true, "QT_STYLE_OVERRIDE=fusion QEGTRAIN");
-		qunsetenv("QT_STYLE_OVERRIDE");
-	}
+class TestWidgetStyle : public QObject {
+	Q_OBJECT
 
-	QApplication app(argc, argv);
+private slots:
+	void commandLine_data();
+	void commandLine();
+	void styleOverride();
+	void windows11BecomesWindowsVista();
+};
+
+void TestWidgetStyle::commandLine_data() {
+	QTest::addColumn<QStringList>("arguments");
+	QTest::addColumn<bool>("expected");
+	QTest::newRow("QEGTRAIN") << QStringList{"QEGTRAIN"} << false;
+	QTest::newRow("QEGTRAIN -style fusion") << QStringList{"QEGTRAIN", "-style", "fusion"} << true;
+	QTest::newRow("QEGTRAIN --style fusion") << QStringList{"QEGTRAIN", "--style", "fusion"} << true;
+	QTest::newRow("QEGTRAIN -style=fusion") << QStringList{"QEGTRAIN", "-style=fusion"} << true;
+	QTest::newRow("QEGTRAIN --style=fusion") << QStringList{"QEGTRAIN", "--style=fusion"} << true;
+	QTest::newRow("QEGTRAIN -stylesheet egtrain.qss") << QStringList{"QEGTRAIN", "-stylesheet", "egtrain.qss"} << false;
+}
+
+void TestWidgetStyle::commandLine() {
+	QFETCH(QStringList, arguments);
+	QFETCH(bool, expected);
+	QCOMPARE(chosen(arguments), expected);
+}
+
+void TestWidgetStyle::styleOverride() {
+	if (qEnvironmentVariableIsSet("QT_STYLE_OVERRIDE"))
+		QSKIP("QT_STYLE_OVERRIDE is set for the test");
+	qputenv("QT_STYLE_OVERRIDE", "fusion");
+	const auto unsetOverride = qScopeGuard([] { qunsetenv("QT_STYLE_OVERRIDE"); });
+	QVERIFY2(chosen({"QEGTRAIN"}), "QT_STYLE_OVERRIDE=fusion QEGTRAIN chooses no style");
+}
+
+void TestWidgetStyle::windows11BecomesWindowsVista() {
 	const QString first = QApplication::style()->name();
 	const bool windows11 = first.compare(QLatin1String("windows11"), Qt::CaseInsensitive) == 0;
 #ifdef Q_OS_WIN
-	if (!overridden && QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows11 && !windows11) {
-		std::cerr << "Windows 11 gave the style " << qPrintable(first) << " instead of windows11\n";
-		ok = false;
-	}
+	if (!qEnvironmentVariableIsSet("QT_STYLE_OVERRIDE") && QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows11)
+		QVERIFY2(windows11, qPrintable(QStringLiteral("Windows 11 gave the style %1 instead of windows11").arg(first)));
 #endif
 	preferWindowsVistaStyle(true);
-	if (QApplication::style()->name() != first) {
-		std::cerr << "the chosen style " << qPrintable(first) << " became " << qPrintable(QApplication::style()->name()) << '\n';
-		ok = false;
-	}
+	// The chosen style stays.
+	QCOMPARE(QApplication::style()->name(), first);
 	preferWindowsVistaStyle(false);
 	const QString expected = windows11 ? QStringLiteral("windowsvista") : first;
-	if (QApplication::style()->name().compare(expected, Qt::CaseInsensitive) != 0) {
-		std::cerr << "the style " << qPrintable(first) << " became " << qPrintable(QApplication::style()->name()) << " instead of "
-				  << qPrintable(expected) << '\n';
-		ok = false;
-	}
-	return ok ? 0 : 1;
+	QVERIFY2(QApplication::style()->name().compare(expected, Qt::CaseInsensitive) == 0,
+		qPrintable(QStringLiteral("the style %1 became %2 instead of %3").arg(first, QApplication::style()->name(), expected)));
 }
+
+QTEST_MAIN(TestWidgetStyle)
+#include "test_widgetstyle.moc"

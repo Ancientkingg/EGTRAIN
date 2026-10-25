@@ -2,15 +2,12 @@
 #include "scene/SectionInventory.h"
 #include "scene/StopInsertion.h"
 
-#include <iostream>
+#include <QByteArray>
+#include <QStringList>
+#include <QTest>
+
 #include <string>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static bool contains(const std::string& text, const std::string& part) {
 	return text.find(part) != std::string::npos;
@@ -129,263 +126,309 @@ static std::vector<std::string> stopStations(const SceneService& service) {
 
 using Names = std::vector<std::string>;
 
-int main() {
-	bool ok = true;
-	const SceneModel line = lineScene(false);
-	const SceneModel loop = lineScene(true);
-
-	auto withStops = [](const SceneModel& base, std::vector<SceneStop> stops) {
-		SceneModel scene = base;
-		scene.services[0].stops = std::move(stops);
-		return scene;
-	};
-
-	// Traversal helpers.
-	ok &= expect(stationsOf(sceneServiceTraversal(line, line.services[0]))
-			== Names({"station-a", "station-b", "station-c", "station-d"}),
-		"service traversal visits the stations of the route in order");
-	ok &= expect(stationsOf(sceneServiceTraversal(loop, loop.services[0]))
-				== Names({"station-a", "station-b", "station-a"})
-			&& platformsOf(sceneServiceTraversal(loop, loop.services[0]), "station-a")
-				== Names({"platform-a1", "platform-a2"}),
-		"service traversal keeps the second visit of a repeated station");
-	SceneService noRoute = line.services[0];
-	noRoute.route = "missing";
-	ok &= expect(!sceneServiceTraversal(line, noRoute).resolved
-			&& sceneServiceTraversal(line, noRoute).visits.empty(),
-		"a service without a route has an unresolved traversal");
-
-	const SceneModel bc = withStops(line, {lineStop('B', 100.0), lineStop('C', 200.0)});
-	ok &= expect(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 0))
-				== Names({"station-a", "station-b", "station-c", "station-d"})
-			&& stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 1))
-				== Names({"station-c", "station-d"})
-			&& stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 2))
-				== Names({"station-d"})
-			&& stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 9))
-				== Names({"station-d"}),
-		"remaining traversal starts after the last resolved stop before the index");
-	const SceneModel offRoute = withStops(line, {lineStop('A', 100.0), stop("station-off", "", 150.0, 160.0)});
-	ok &= expect(stationsOf(sceneRemainingStopTraversal(offRoute, offRoute.services[0], 2))
-			== Names({"station-b", "station-c", "station-d"}),
-		"remaining traversal skips a stop that is off-route context");
-	const SceneModel unknownFirst = withStops(line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});
-	ok &= expect(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 1).visits.empty()
-			&& stationsOf(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 0)).size() == 4,
-		"remaining traversal is empty after a stop that does not resolve");
-
-	// a. Before the first stop.
-	{
-		SceneModel scene = withStops(line, {lineStop('B', 100.0), lineStop('C', 200.0)});
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
-		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-a"}),
-			"the window before the first stop holds only the visits before it");
-		const auto result = insertSceneStop(scene, scene.services[0], 0, lineStop('A', 20.0));
-		ok &= expect(result.inserted && result.error.empty()
-				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-c"}),
-			"a stop is inserted before the first stop");
-	}
-	// b. Between two stops.
-	{
-		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('D', 300.0)});
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
-		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-b", "station-c"})
-				&& platformsOf(window.visits, "station-c") == Names({"platform-c"}),
-			"the window between two stops holds the visits between them");
-		const auto result = insertSceneStop(scene, scene.services[0], 1, lineStop('C', 200.0));
-		ok &= expect(result.inserted
-				&& stopStations(scene.services[0]) == Names({"station-a", "station-c", "station-d"}),
-			"a stop is inserted between two stops");
-	}
-	// c. After the last stop.
-	{
-		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('B', 100.0)});
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 2);
-		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-c", "station-d"}),
-			"the window after the last stop holds the rest of the route");
-		const auto result = insertSceneStop(scene, scene.services[0], 2, lineStop('D', 300.0));
-		ok &= expect(result.inserted
-				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-d"}),
-			"a stop is inserted after the last stop");
-	}
-	// d. The destination is already in the timetable.
-	{
-		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0), lineStop('D', 300.0)});
-		const auto last = sceneStopInsertionWindow(scene, scene.services[0], 3);
-		ok &= expect(last.ok && last.visits.visits.empty()
-				&& sceneRemainingStopTraversal(scene, scene.services[0], 3).visits.empty(),
-			"no visit remains after the last stop when the destination is present");
-		ok &= expect(!insertSceneStop(scene, scene.services[0], 3, lineStop('D', 400.0)).inserted
-				&& scene.services[0].stops.size() == 3,
-			"a stop cannot be inserted after the destination");
-		const auto middle = sceneStopInsertionWindow(scene, scene.services[0], 1);
-		ok &= expect(middle.ok && stationsOf(middle.visits) == Names({"station-b"}),
-			"the same timetable offers the station in the middle");
-		ok &= expect(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted
-				&& stopStations(scene.services[0])
-					== Names({"station-a", "station-b", "station-c", "station-d"}),
-			"the same timetable accepts an insertion in the middle");
-	}
-	// e. Incompatible order.
-	{
-		SceneModel scene = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0)});
-		const SceneService before = scene.services[0];
-		const auto refused = insertSceneStop(scene, scene.services[0], 1, lineStop('D', 300.0));
-		ok &= expect(!refused.inserted && contains(refused.error, "stop 2")
-				&& contains(refused.error, "(C)"),
-			"an insertion that strands a later stop is refused and names that stop");
-		ok &= expect(scene.services[0].id == before.id && scene.services[0].route == before.route
-				&& sameStops(scene.services[0].stops, before.stops),
-			"a refused insertion leaves the service as it was");
-		ok &= expect(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted
-				&& stopStations(scene.services[0]) == Names({"station-a", "station-b", "station-c"}),
-			"a compatible station is inserted at the same position");
-		const auto outOfRange = insertSceneStop(scene, scene.services[0], 9, lineStop('D', 300.0));
-		ok &= expect(!outOfRange.inserted && scene.services[0].stops.size() == 3
-				&& !sceneStopInsertionWindow(scene, scene.services[0], 9).ok,
-			"a position past the end is refused");
-		SceneModel unknownStation = withStops(line, {lineStop('A', 20.0), lineStop('C', 200.0)});
-		const auto unknown = insertSceneStop(unknownStation, unknownStation.services[0], 1,
-			stop("station-x", "", 0.0, 0.0));
-		ok &= expect(!unknown.inserted && unknownStation.services[0].stops.size() == 2,
-			"a station that does not exist is refused");
-	}
-	// f. Repeated stations and loops.
-	{
-		SceneModel scene = withStops(loop, {stop("station-a", "platform-a1", 20.0, 50.0)});
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
-		ok &= expect(window.ok && stationsOf(window.visits) == Names({"station-b", "station-a"})
-				&& platformsOf(window.visits, "station-a") == Names({"platform-a2"}),
-			"the window after the first visit offers B and the second visit of A");
-		const auto second = insertSceneStop(scene, scene.services[0], 1,
-			stop("station-a", "platform-a2", 300.0, 330.0));
-		ok &= expect(second.inserted && scene.services[0].stops.size() == 2
-				&& scene.services[0].stops[1].platformId == "platform-a2",
-			"the second visit of A is inserted after the first");
-
-		SceneModel both = withStops(loop, {stop("station-a", "platform-a1", 20.0, 50.0), stop("station-a", "platform-a2", 300.0, 330.0)});
-		const SceneService before = both.services[0];
-		const auto between = sceneStopInsertionWindow(both, both.services[0], 1);
-		ok &= expect(between.ok && stationsOf(between.visits) == Names({"station-b"}),
-			"A is not offered between two stops that use both of its visits");
-		for (const char* platform : {"platform-a1", "platform-a2", ""}) {
-			const auto refused = insertSceneStop(both, both.services[0], 1,
-				stop("station-a", platform, 100.0, 130.0));
-			ok &= expect(!refused.inserted && sameStops(both.services[0].stops, before.stops),
-				"A is refused between two stops that use both of its visits");
-		}
-		ok &= expect(insertSceneStop(both, both.services[0], 1,
-						 stop("station-b", "platform-b", 100.0, 130.0))
-						 .inserted,
-			"B is accepted between the two visits of A");
-
-		SceneModel secondOnly = withStops(loop, {stop("station-b", "platform-b", 100.0, 130.0)});
-		const SceneService beforeAmbiguous = secondOnly.services[0];
-		const auto ambiguous = insertSceneStop(secondOnly, secondOnly.services[0], 0,
-			stop("station-a", "", 20.0, 50.0));
-		ok &= expect(!ambiguous.inserted && ambiguous.error == "The new stop (A) has no platform and the route reaches more than one here. Choose a platform."
-				&& sameStops(secondOnly.services[0].stops, beforeAmbiguous.stops),
-			"a stop without a platform at a station with two reachable platforms asks for a platform");
-		ok &= expect(insertSceneStop(secondOnly, secondOnly.services[0], 0,
-						 stop("station-a", "platform-a1", 20.0, 50.0))
-						 .inserted,
-			"the same stop with a platform is accepted");
-	}
-	// A platform that the route reaches twice: the new stop must not take the visit of an existing stop.
-	{
-		SceneModel samePlatform = loop;
-		samePlatform.stations[0].platforms = {{"platform-a", {"node-1", "node-5"}}};
-		SceneModel scene = withStops(samePlatform, {stop("station-a", "platform-a", 20.0, 50.0)});
-		const SceneService before = scene.services[0];
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
-		ok &= expect(window.ok && window.visits.visits.empty(),
-			"no visit is free before a stop that uses the first of two visits of one platform");
-		const auto refused = insertSceneStop(scene, scene.services[0], 0,
-			stop("station-a", "platform-a", 10.0, 15.0));
-		ok &= expect(!refused.inserted && contains(refused.error, "stop 1")
-				&& contains(refused.error, "(A)") && sameStops(scene.services[0].stops, before.stops),
-			"a stop that would move an existing stop to another visit is refused and names it");
-		ok &= expect(insertSceneStop(scene, scene.services[0], 1,
-						 stop("station-a", "platform-a", 300.0, 330.0))
-						 .inserted,
-			"the same stop is accepted after the existing stop");
-	}
-	// g. An unresolved neighbour.
-	{
-		SceneModel scene = withStops(line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});
-		const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
-		ok &= expect(!window.ok && window.blockingStop == 0 && contains(window.problem, "stop 1")
-				&& contains(window.problem, "station-x") && window.visits.visits.empty(),
-			"an unresolved stop before the position is reported as the obstacle");
-		const auto first = sceneStopInsertionWindow(scene, scene.services[0], 0);
-		ok &= expect(first.ok && stationsOf(first.visits) == Names({"station-a", "station-b"}),
-			"the position before an unresolved stop still has a window");
-		SceneModel noStation = withStops(line, {stop("", "", 0.0, 0.0), lineStop('C', 200.0)});
-		const auto afterNoStation = sceneStopInsertionWindow(noStation, noStation.services[0], 1);
-		ok &= expect(afterNoStation.problem
-				== "Cannot insert after stop 1: it has no station. Fix that stop first.",
-			"a stop without a station is named without empty brackets");
-		SceneModel empty = withStops(line, {});
-		const auto newWithoutStation = insertSceneStop(empty, empty.services[0], 0, stop("", "", 0.0, 0.0));
-		ok &= expect(newWithoutStation.error
-				== "The new stop has no station. Choose another position, station or platform.",
-			"a new stop without a station is named without empty brackets");
-		SceneModel noRouteScene = line;
-		noRouteScene.services[0].route = "missing";
-		const auto unresolved = sceneStopInsertionWindow(noRouteScene, noRouteScene.services[0], 0);
-		ok &= expect(!unresolved.ok && unresolved.blockingStop == SceneStopInsertionWindow::kNoStop
-				&& !unresolved.problem.empty()
-				&& !insertSceneStop(noRouteScene, noRouteScene.services[0], 0, lineStop('A', 20.0)).inserted,
-			"a service without a route has no window");
-	}
-	// h. Existing stops and their times are unchanged.
-	{
-		SceneStop first = lineStop('A', 20.0);
-		SceneStop last = lineStop('D', 300.0);
-		last.hasPlannedArrival = false;
-		last.dwellSeconds = 12.5;
-		SceneModel scene = withStops(line, {first, last});
-		SceneStop added = stop("station-b", "platform-b", 111.0, 141.0);
-		added.dwellSeconds = 7.0;
-		ok &= expect(insertSceneStop(scene, scene.services[0], 1, added).inserted
-				&& scene.services[0].stops.size() == 3
-				&& sameStop(scene.services[0].stops[0], first)
-				&& sameStop(scene.services[0].stops[1], added)
-				&& sameStop(scene.services[0].stops[2], last),
-			"existing stops and the planned times of the new stop are kept exactly");
-		SceneStop untimed;
-		untimed.stationId = "station-c";
-		untimed.platformId = "platform-c";
-		ok &= expect(insertSceneStop(scene, scene.services[0], 2, untimed).inserted
-				&& sameStop(scene.services[0].stops[2], untimed)
-				&& !scene.services[0].stops[2].hasPlannedArrival
-				&& !scene.services[0].stops[2].hasPlannedDeparture,
-			"no planned time is invented for the inserted stop");
-	}
-	// i. A window holds nothing before the previous stop or after the next stop.
-	{
-		const SceneModel scene = withStops(line, {lineStop('B', 100.0), lineStop('C', 200.0)});
-		const Names expected[] = {{"station-a"}, {}, {"station-d"}};
-		for (std::size_t index = 0; index < 3; ++index) {
-			const auto window = sceneStopInsertionWindow(scene, scene.services[0], index);
-			ok &= expect(window.ok && stationsOf(window.visits) == expected[index],
-				"each window holds exactly the visits between its neighbours");
-		}
-		const SceneModel off = withStops(line, {lineStop('A', 20.0), stop("station-off", "", 1.0, 2.0), lineStop('C', 200.0)});
-		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 2).visits)
-				== Names({"station-b"}),
-			"a stop that is off-route context does not bound the window");
-		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 1).visits)
-				== Names({"station-b"}),
-			"a stop that is off-route context after the position does not bound the window");
-		const SceneModel empty = withStops(line, {});
-		const auto whole = sceneStopInsertionWindow(empty, empty.services[0], 0);
-		ok &= expect(whole.ok && stationsOf(whole.visits) == Names({"station-a", "station-b", "station-c", "station-d"}),
-			"an empty timetable offers every station of the route");
-	}
-
-	if (!ok)
-		return 1;
-	std::cout << "all stop insertion tests passed\n";
-	return 0;
+// The scene with `stops` as the timetable of its service.
+static SceneModel withStops(const SceneModel& base, std::vector<SceneStop> stops) {
+	SceneModel scene = base;
+	scene.services[0].stops = std::move(stops);
+	return scene;
 }
+
+// A stop is inserted into a timetable only where the route of the service passes the station between the
+// neighbouring stops, and the other stops are kept exactly.
+class TestStopInsertion : public QObject {
+	Q_OBJECT
+
+private slots:
+	void serviceTraversal();
+	void remainingTraversal();
+	void beforeFirstStop();
+	void betweenTwoStops();
+	void afterLastStop();
+	void destinationAlreadyPresent();
+	void incompatibleOrder();
+	void repeatedStationsAndLoops();
+	void platformReachedTwice();
+	void unresolvedNeighbour();
+	void existingStopsUnchanged();
+	void windowHoldsVisitsBetweenNeighbours_data();
+	void windowHoldsVisitsBetweenNeighbours();
+	void windowIgnoresOffRouteStops();
+
+private:
+	const SceneModel m_line = lineScene(false);
+	const SceneModel m_loop = lineScene(true);
+};
+
+void TestStopInsertion::serviceTraversal() {
+	// The service traversal visits the stations of the route in order.
+	QCOMPARE(stationsOf(sceneServiceTraversal(m_line, m_line.services[0])), Names({"station-a", "station-b", "station-c", "station-d"}));
+	// The service traversal keeps the second visit of a repeated station.
+	QCOMPARE(stationsOf(sceneServiceTraversal(m_loop, m_loop.services[0])), Names({"station-a", "station-b", "station-a"}));
+	QCOMPARE(platformsOf(sceneServiceTraversal(m_loop, m_loop.services[0]), "station-a"), Names({"platform-a1", "platform-a2"}));
+	SceneService noRoute = m_line.services[0];
+	noRoute.route = "missing";
+	// A service without a route has an unresolved traversal.
+	QVERIFY(!sceneServiceTraversal(m_line, noRoute).resolved);
+	QVERIFY(sceneServiceTraversal(m_line, noRoute).visits.empty());
+}
+
+void TestStopInsertion::remainingTraversal() {
+	const SceneModel bc = withStops(m_line, {lineStop('B', 100.0), lineStop('C', 200.0)});
+	// The remaining traversal starts after the last resolved stop before the index.
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 0)), Names({"station-a", "station-b", "station-c", "station-d"}));
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 1)), Names({"station-c", "station-d"}));
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 2)), Names({"station-d"}));
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(bc, bc.services[0], 9)), Names({"station-d"}));
+	const SceneModel offRoute = withStops(m_line, {lineStop('A', 100.0), stop("station-off", "", 150.0, 160.0)});
+	// The remaining traversal skips a stop that is off-route context.
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(offRoute, offRoute.services[0], 2)), Names({"station-b", "station-c", "station-d"}));
+	const SceneModel unknownFirst = withStops(m_line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});
+	// The remaining traversal is empty after a stop that does not resolve.
+	QVERIFY(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 1).visits.empty());
+	QCOMPARE(stationsOf(sceneRemainingStopTraversal(unknownFirst, unknownFirst.services[0], 0)).size(), std::size_t(4));
+}
+
+// a. Before the first stop.
+void TestStopInsertion::beforeFirstStop() {
+	SceneModel scene = withStops(m_line, {lineStop('B', 100.0), lineStop('C', 200.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
+	// The window before the first stop holds only the visits before it.
+	QVERIFY(window.ok);
+	QCOMPARE(stationsOf(window.visits), Names({"station-a"}));
+	const auto result = insertSceneStop(scene, scene.services[0], 0, lineStop('A', 20.0));
+	// A stop is inserted before the first stop.
+	QVERIFY(result.inserted);
+	QCOMPARE(result.error, std::string());
+	QCOMPARE(stopStations(scene.services[0]), Names({"station-a", "station-b", "station-c"}));
+}
+
+// b. Between two stops.
+void TestStopInsertion::betweenTwoStops() {
+	SceneModel scene = withStops(m_line, {lineStop('A', 20.0), lineStop('D', 300.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
+	// The window between two stops holds the visits between them.
+	QVERIFY(window.ok);
+	QCOMPARE(stationsOf(window.visits), Names({"station-b", "station-c"}));
+	QCOMPARE(platformsOf(window.visits, "station-c"), Names({"platform-c"}));
+	const auto result = insertSceneStop(scene, scene.services[0], 1, lineStop('C', 200.0));
+	// A stop is inserted between two stops.
+	QVERIFY(result.inserted);
+	QCOMPARE(stopStations(scene.services[0]), Names({"station-a", "station-c", "station-d"}));
+}
+
+// c. After the last stop.
+void TestStopInsertion::afterLastStop() {
+	SceneModel scene = withStops(m_line, {lineStop('A', 20.0), lineStop('B', 100.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 2);
+	// The window after the last stop holds the rest of the route.
+	QVERIFY(window.ok);
+	QCOMPARE(stationsOf(window.visits), Names({"station-c", "station-d"}));
+	const auto result = insertSceneStop(scene, scene.services[0], 2, lineStop('D', 300.0));
+	// A stop is inserted after the last stop.
+	QVERIFY(result.inserted);
+	QCOMPARE(stopStations(scene.services[0]), Names({"station-a", "station-b", "station-d"}));
+}
+
+// d. The destination is already in the timetable.
+void TestStopInsertion::destinationAlreadyPresent() {
+	SceneModel scene = withStops(m_line, {lineStop('A', 20.0), lineStop('C', 200.0), lineStop('D', 300.0)});
+	const auto last = sceneStopInsertionWindow(scene, scene.services[0], 3);
+	// No visit remains after the last stop when the destination is present.
+	QVERIFY(last.ok);
+	QVERIFY(last.visits.visits.empty());
+	QVERIFY(sceneRemainingStopTraversal(scene, scene.services[0], 3).visits.empty());
+	// A stop cannot be inserted after the destination.
+	QVERIFY(!insertSceneStop(scene, scene.services[0], 3, lineStop('D', 400.0)).inserted);
+	QCOMPARE(scene.services[0].stops.size(), std::size_t(3));
+	const auto middle = sceneStopInsertionWindow(scene, scene.services[0], 1);
+	// The same timetable offers the station in the middle.
+	QVERIFY(middle.ok);
+	QCOMPARE(stationsOf(middle.visits), Names({"station-b"}));
+	// The same timetable accepts an insertion in the middle.
+	QVERIFY(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted);
+	QCOMPARE(stopStations(scene.services[0]), Names({"station-a", "station-b", "station-c", "station-d"}));
+}
+
+// e. Incompatible order.
+void TestStopInsertion::incompatibleOrder() {
+	SceneModel scene = withStops(m_line, {lineStop('A', 20.0), lineStop('C', 200.0)});
+	const SceneService before = scene.services[0];
+	const auto refused = insertSceneStop(scene, scene.services[0], 1, lineStop('D', 300.0));
+	// An insertion that strands a later stop is refused and names that stop.
+	QVERIFY(!refused.inserted);
+	QVERIFY(contains(refused.error, "stop 2"));
+	QVERIFY(contains(refused.error, "(C)"));
+	// A refused insertion leaves the service as it was.
+	QCOMPARE(scene.services[0].id, before.id);
+	QCOMPARE(scene.services[0].route, before.route);
+	QVERIFY(sameStops(scene.services[0].stops, before.stops));
+	// A compatible station is inserted at the same position.
+	QVERIFY(insertSceneStop(scene, scene.services[0], 1, lineStop('B', 100.0)).inserted);
+	QCOMPARE(stopStations(scene.services[0]), Names({"station-a", "station-b", "station-c"}));
+	const auto outOfRange = insertSceneStop(scene, scene.services[0], 9, lineStop('D', 300.0));
+	// A position past the end is refused.
+	QVERIFY(!outOfRange.inserted);
+	QCOMPARE(scene.services[0].stops.size(), std::size_t(3));
+	QVERIFY(!sceneStopInsertionWindow(scene, scene.services[0], 9).ok);
+	SceneModel unknownStation = withStops(m_line, {lineStop('A', 20.0), lineStop('C', 200.0)});
+	const auto unknown = insertSceneStop(unknownStation, unknownStation.services[0], 1, stop("station-x", "", 0.0, 0.0));
+	// A station that does not exist is refused.
+	QVERIFY(!unknown.inserted);
+	QCOMPARE(unknownStation.services[0].stops.size(), std::size_t(2));
+}
+
+// f. Repeated stations and loops.
+void TestStopInsertion::repeatedStationsAndLoops() {
+	SceneModel scene = withStops(m_loop, {stop("station-a", "platform-a1", 20.0, 50.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
+	// The window after the first visit offers B and the second visit of A.
+	QVERIFY(window.ok);
+	QCOMPARE(stationsOf(window.visits), Names({"station-b", "station-a"}));
+	QCOMPARE(platformsOf(window.visits, "station-a"), Names({"platform-a2"}));
+	const auto second = insertSceneStop(scene, scene.services[0], 1, stop("station-a", "platform-a2", 300.0, 330.0));
+	// The second visit of A is inserted after the first.
+	QVERIFY(second.inserted);
+	QCOMPARE(scene.services[0].stops.size(), std::size_t(2));
+	QCOMPARE(scene.services[0].stops[1].platformId, std::string("platform-a2"));
+
+	SceneModel both = withStops(m_loop, {stop("station-a", "platform-a1", 20.0, 50.0), stop("station-a", "platform-a2", 300.0, 330.0)});
+	const SceneService before = both.services[0];
+	const auto between = sceneStopInsertionWindow(both, both.services[0], 1);
+	// A is not offered between two stops that use both of its visits.
+	QVERIFY(between.ok);
+	QCOMPARE(stationsOf(between.visits), Names({"station-b"}));
+	for (const char* platform : {"platform-a1", "platform-a2", ""}) {
+		const auto refused = insertSceneStop(both, both.services[0], 1, stop("station-a", platform, 100.0, 130.0));
+		// A is refused between two stops that use both of its visits.
+		const QByteArray message = "A is refused between two stops that use both of its visits, platform '" + QByteArray(platform) + "'";
+		QVERIFY2(!refused.inserted, message.constData());
+		QVERIFY2(sameStops(both.services[0].stops, before.stops), message.constData());
+	}
+	QVERIFY2(insertSceneStop(both, both.services[0], 1, stop("station-b", "platform-b", 100.0, 130.0)).inserted,
+		"B is accepted between the two visits of A");
+
+	SceneModel secondOnly = withStops(m_loop, {stop("station-b", "platform-b", 100.0, 130.0)});
+	const SceneService beforeAmbiguous = secondOnly.services[0];
+	const auto ambiguous = insertSceneStop(secondOnly, secondOnly.services[0], 0, stop("station-a", "", 20.0, 50.0));
+	// A stop without a platform at a station with two reachable platforms asks for a platform.
+	QVERIFY(!ambiguous.inserted);
+	QCOMPARE(ambiguous.error, std::string("The new stop (A) has no platform and the route reaches more than one here. Choose a platform."));
+	QVERIFY(sameStops(secondOnly.services[0].stops, beforeAmbiguous.stops));
+	QVERIFY2(insertSceneStop(secondOnly, secondOnly.services[0], 0, stop("station-a", "platform-a1", 20.0, 50.0)).inserted,
+		"the same stop with a platform is accepted");
+}
+
+// A platform that the route reaches twice: the new stop must not take the visit of an existing stop.
+void TestStopInsertion::platformReachedTwice() {
+	SceneModel samePlatform = m_loop;
+	samePlatform.stations[0].platforms = {{"platform-a", {"node-1", "node-5"}}};
+	SceneModel scene = withStops(samePlatform, {stop("station-a", "platform-a", 20.0, 50.0)});
+	const SceneService before = scene.services[0];
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 0);
+	// No visit is free before a stop that uses the first of two visits of one platform.
+	QVERIFY(window.ok);
+	QVERIFY(window.visits.visits.empty());
+	const auto refused = insertSceneStop(scene, scene.services[0], 0, stop("station-a", "platform-a", 10.0, 15.0));
+	// A stop that would move an existing stop to another visit is refused and names it.
+	QVERIFY(!refused.inserted);
+	QVERIFY(contains(refused.error, "stop 1"));
+	QVERIFY(contains(refused.error, "(A)"));
+	QVERIFY(sameStops(scene.services[0].stops, before.stops));
+	QVERIFY2(insertSceneStop(scene, scene.services[0], 1, stop("station-a", "platform-a", 300.0, 330.0)).inserted,
+		"the same stop is accepted after the existing stop");
+}
+
+// g. An unresolved neighbour.
+void TestStopInsertion::unresolvedNeighbour() {
+	SceneModel scene = withStops(m_line, {stop("station-x", "", 0.0, 0.0), lineStop('C', 200.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], 1);
+	// An unresolved stop before the position is reported as the obstacle.
+	QVERIFY(!window.ok);
+	QCOMPARE(window.blockingStop, std::size_t(0));
+	QVERIFY(contains(window.problem, "stop 1"));
+	QVERIFY(contains(window.problem, "station-x"));
+	QVERIFY(window.visits.visits.empty());
+	const auto first = sceneStopInsertionWindow(scene, scene.services[0], 0);
+	// The position before an unresolved stop still has a window.
+	QVERIFY(first.ok);
+	QCOMPARE(stationsOf(first.visits), Names({"station-a", "station-b"}));
+	SceneModel noStation = withStops(m_line, {stop("", "", 0.0, 0.0), lineStop('C', 200.0)});
+	const auto afterNoStation = sceneStopInsertionWindow(noStation, noStation.services[0], 1);
+	// A stop without a station is named without empty brackets.
+	QCOMPARE(afterNoStation.problem, std::string("Cannot insert after stop 1: it has no station. Fix that stop first."));
+	SceneModel empty = withStops(m_line, {});
+	const auto newWithoutStation = insertSceneStop(empty, empty.services[0], 0, stop("", "", 0.0, 0.0));
+	// A new stop without a station is named without empty brackets.
+	QCOMPARE(newWithoutStation.error, std::string("The new stop has no station. Choose another position, station or platform."));
+	SceneModel noRouteScene = m_line;
+	noRouteScene.services[0].route = "missing";
+	const auto unresolved = sceneStopInsertionWindow(noRouteScene, noRouteScene.services[0], 0);
+	// A service without a route has no window.
+	QVERIFY(!unresolved.ok);
+	QCOMPARE(unresolved.blockingStop, SceneStopInsertionWindow::kNoStop);
+	QVERIFY(!unresolved.problem.empty());
+	QVERIFY(!insertSceneStop(noRouteScene, noRouteScene.services[0], 0, lineStop('A', 20.0)).inserted);
+}
+
+// h. Existing stops and their times are unchanged.
+void TestStopInsertion::existingStopsUnchanged() {
+	SceneStop first = lineStop('A', 20.0);
+	SceneStop last = lineStop('D', 300.0);
+	last.hasPlannedArrival = false;
+	last.dwellSeconds = 12.5;
+	SceneModel scene = withStops(m_line, {first, last});
+	SceneStop added = stop("station-b", "platform-b", 111.0, 141.0);
+	added.dwellSeconds = 7.0;
+	// Existing stops and the planned times of the new stop are kept exactly.
+	QVERIFY(insertSceneStop(scene, scene.services[0], 1, added).inserted);
+	QCOMPARE(scene.services[0].stops.size(), std::size_t(3));
+	QVERIFY(sameStop(scene.services[0].stops[0], first));
+	QVERIFY(sameStop(scene.services[0].stops[1], added));
+	QVERIFY(sameStop(scene.services[0].stops[2], last));
+	SceneStop untimed;
+	untimed.stationId = "station-c";
+	untimed.platformId = "platform-c";
+	// No planned time is invented for the inserted stop.
+	QVERIFY(insertSceneStop(scene, scene.services[0], 2, untimed).inserted);
+	QVERIFY(sameStop(scene.services[0].stops[2], untimed));
+	QVERIFY(!scene.services[0].stops[2].hasPlannedArrival);
+	QVERIFY(!scene.services[0].stops[2].hasPlannedDeparture);
+}
+
+// i. A window holds nothing before the previous stop or after the next stop.
+void TestStopInsertion::windowHoldsVisitsBetweenNeighbours_data() {
+	QTest::addColumn<int>("position");
+	QTest::addColumn<QStringList>("stations");
+	QTest::newRow("before B") << 0 << QStringList{"station-a"};
+	QTest::newRow("between B and C") << 1 << QStringList{};
+	QTest::newRow("after C") << 2 << QStringList{"station-d"};
+}
+
+// Each window holds exactly the visits between its neighbours.
+void TestStopInsertion::windowHoldsVisitsBetweenNeighbours() {
+	QFETCH(int, position);
+	QFETCH(QStringList, stations);
+	Names expected;
+	for (const QString& station : stations)
+		expected.push_back(station.toStdString());
+	const SceneModel scene = withStops(m_line, {lineStop('B', 100.0), lineStop('C', 200.0)});
+	const auto window = sceneStopInsertionWindow(scene, scene.services[0], static_cast<std::size_t>(position));
+	QVERIFY(window.ok);
+	QCOMPARE(stationsOf(window.visits), expected);
+}
+
+void TestStopInsertion::windowIgnoresOffRouteStops() {
+	const SceneModel off = withStops(m_line, {lineStop('A', 20.0), stop("station-off", "", 1.0, 2.0), lineStop('C', 200.0)});
+	// A stop that is off-route context does not bound the window.
+	QCOMPARE(stationsOf(sceneStopInsertionWindow(off, off.services[0], 2).visits), Names({"station-b"}));
+	// A stop that is off-route context after the position does not bound the window.
+	QCOMPARE(stationsOf(sceneStopInsertionWindow(off, off.services[0], 1).visits), Names({"station-b"}));
+	const SceneModel empty = withStops(m_line, {});
+	const auto whole = sceneStopInsertionWindow(empty, empty.services[0], 0);
+	// An empty timetable offers every station of the route.
+	QVERIFY(whole.ok);
+	QCOMPARE(stationsOf(whole.visits), Names({"station-a", "station-b", "station-c", "station-d"}));
+}
+
+QTEST_APPLESS_MAIN(TestStopInsertion)
+#include "test_stopinsertion.moc"

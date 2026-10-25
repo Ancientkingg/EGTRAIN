@@ -729,7 +729,7 @@ egtrain_add_test(test_routestations
 egtrain_add_test(test_routereferencechoice
 	SOURCES ${SRC_DIR}/tests/test_routereferencechoice.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene Qt::Network Qt::Core Qt::Gui Qt::Widgets
-	COMMAND test_routereferencechoice ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit gui)
 
 egtrain_add_test(test_scenevalidator
