@@ -134,6 +134,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa05ce5a8ff68dea76d457f4ff2d0d1ba" id="r_aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa05ce5a8ff68dea76d457f4ff2d0d1ba">Train</a> ()</td></tr>
 <tr class="memdesc:aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.  <br /></td></tr>
 <tr class="memitem:aab13668e235554b116f7a32d2ea894db" id="r_aab13668e235554b116f7a32d2ea894db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab13668e235554b116f7a32d2ea894db">cacheStationPositions</a> ()</td></tr>
+<tr class="memitem:a7e2990e6f543460759cde3d36dd6adc3" id="r_a7e2990e6f543460759cde3d36dd6adc3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7e2990e6f543460759cde3d36dd6adc3">isStopArc</a> (int section, int arc) const</td></tr>
 <tr class="memitem:a0d15f6d3dc453d6aba319e852f21714e" id="r_a0d15f6d3dc453d6aba319e852f21714e"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a0d15f6d3dc453d6aba319e852f21714e">tractiveEffort</a> (double V)</td></tr>
 <tr class="memitem:a82de975c4acc0c503964ccce89396d74" id="r_a82de975c4acc0c503964ccce89396d74"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a82de975c4acc0c503964ccce89396d74">brakingEffort</a> (double T)</td></tr>
 <tr class="memdesc:a82de975c4acc0c503964ccce89396d74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.  <br /></td></tr>
@@ -223,10 +224,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad957a56a73a52d5cf0cc904fa651c356" id="r_ad957a56a73a52d5cf0cc904fa651c356"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad957a56a73a52d5cf0cc904fa651c356">recordStationPassagesAtTime</a> (int time_seconds)</td></tr>
 <tr class="memitem:a23977edf7b951918b731c0164af29425" id="r_a23977edf7b951918b731c0164af29425"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a23977edf7b951918b731c0164af29425">stationNameForArrivalStats</a> (int stationIndex) const</td></tr>
 <tr class="memdesc:a23977edf7b951918b731c0164af29425"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of stop stationIndex for the arrival statistics; "None" for an index outside the stops.  <br /></td></tr>
-<tr class="memitem:a0c3821bc1613a0ef5b42a3031099ed34" id="r_a0c3821bc1613a0ef5b42a3031099ed34"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0c3821bc1613a0ef5b42a3031099ed34">checkTrainArrDep</a> (int trainIdx, int t)</td></tr>
+<tr class="memitem:a6a89d30e670917549af3871d7949b261" id="r_a6a89d30e670917549af3871d7949b261"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6a89d30e670917549af3871d7949b261">checkTrainArrDep</a> (int t)</td></tr>
 <tr class="memitem:af9e8f39bd094820ec5cb7eee001b996c" id="r_af9e8f39bd094820ec5cb7eee001b996c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af9e8f39bd094820ec5cb7eee001b996c">printTrainServicePathDiagram</a> (std::string FolderName, int nextServiceRouteID)</td></tr>
-<tr class="memitem:a129221a8c97a0156389b2bfda0522dc8" id="r_a129221a8c97a0156389b2bfda0522dc8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a129221a8c97a0156389b2bfda0522dc8">printTrainArrDepMsg</a> (std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName)</td></tr>
-<tr class="memdesc:a129221a8c97a0156389b2bfda0522dc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends "egtrain,&lt;stationName&gt;,&lt;msgType&gt;,&lt;dispLineID&gt;,&lt;trainIdx&gt;,&lt;t&gt;" to FolderName/EGTRAINOutput.txt and then waits 5 ms.  <br /></td></tr>
 <tr class="memitem:a30e47997e3c286ecf68dc457f1b99a67" id="r_a30e47997e3c286ecf68dc457f1b99a67"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a30e47997e3c286ecf68dc457f1b99a67">trainXPosition</a> (int t, int wagon=0)</td></tr>
 <tr class="memitem:a2227178ed28567e80def50fba1b5f44f" id="r_a2227178ed28567e80def50fba1b5f44f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2227178ed28567e80def50fba1b5f44f">speedKmhAt</a> (int t) const</td></tr>
 <tr class="memdesc:a2227178ed28567e80def50fba1b5f44f"><td class="mdescLeft">&#160;</td><td class="mdescRight">instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples  <br /></td></tr>
@@ -431,11 +430,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac1ee6773eb12a8f4a6c988dca4fbadc9" id="r_ac1ee6773eb12a8f4a6c988dca4fbadc9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac1ee6773eb12a8f4a6c988dca4fbadc9">prevIntendedDepTime</a></td></tr>
 <tr class="memdesc:ac1ee6773eb12a8f4a6c988dca4fbadc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First step that printTrainServicePathDiagram may print; set to 0 and never changed.  <br /></td></tr>
 <tr class="memitem:ab33effe4ea0276e764d194be2b3597f5" id="r_ab33effe4ea0276e764d194be2b3597f5"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab33effe4ea0276e764d194be2b3597f5">dispLineID</a> = -1</td></tr>
-<tr class="memdesc:ab33effe4ea0276e764d194be2b3597f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Line ID written to the dispatching output files; nothing sets it, so it is -1.  <br /></td></tr>
-<tr class="memitem:aae0681f95bd0fbfbb209eee900fb5549" id="r_aae0681f95bd0fbfbb209eee900fb5549"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aae0681f95bd0fbfbb209eee900fb5549">arrivalPlatform</a> = -1</td></tr>
-<tr class="memdesc:aae0681f95bd0fbfbb209eee900fb5549"><td class="mdescLeft">&#160;</td><td class="mdescRight">Platform to book at the destination; nothing sets it, so it is -1.  <br /></td></tr>
-<tr class="memitem:a3ecae96f913f1658bb02cc54ce06ebc6" id="r_a3ecae96f913f1658bb02cc54ce06ebc6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3ecae96f913f1658bb02cc54ce06ebc6">reservedPlatform</a></td></tr>
-<tr class="memdesc:a3ecae96f913f1658bb02cc54ce06ebc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Platform booked at the destination, copied from arrivalPlatform; -1 until booked.  <br /></td></tr>
+<tr class="memdesc:ab33effe4ea0276e764d194be2b3597f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1.  <br /></td></tr>
 <tr class="memitem:a5a4bc47327bbcb9d3eb98c5a600338bc" id="r_a5a4bc47327bbcb9d3eb98c5a600338bc"><td class="memItemLeft">float&#160;</td><td class="memItemRight"><a class="el" href="#a5a4bc47327bbcb9d3eb98c5a600338bc">GibsonDwellTimeParameters</a> [8]</td></tr>
 <tr class="memitem:a62cafe5bc37059c476c5571e52eedc8b" id="r_a62cafe5bc37059c476c5571e52eedc8b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a62cafe5bc37059c476c5571e52eedc8b">MAX_OnBoard_Passengers</a></td></tr>
 <tr class="memdesc:a62cafe5bc37059c476c5571e52eedc8b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_passenger.html">Passenger</a> capacity of the train (trainPassengerCapacity).  <br /></td></tr>
@@ -997,8 +992,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a0c3821bc1613a0ef5b42a3031099ed34" name="a0c3821bc1613a0ef5b42a3031099ed34"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c3821bc1613a0ef5b42a3031099ed34">&#9670;&#160;</a></span>checkTrainArrDep()</h2>
+<a id="a6a89d30e670917549af3871d7949b261" name="a6a89d30e670917549af3871d7949b261"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a89d30e670917549af3871d7949b261">&#9670;&#160;</a></span>checkTrainArrDep()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1006,20 +1001,16 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void Train::checkTrainArrDep </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>trainIdx</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>t</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>t</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>In step t, logs the arrival of the train at its last stop and its departure from its first stop. An arrival is also appended to EGTRAINOutput.txt in the Rescheduling output folder (printTrainArrDepMsg). A first or last stop with X 0 takes its X from run.infra.stations. </p>
+<p>In step t, logs the arrival of the train at its last stop and its departure from its first stop. A first or last stop with X 0 takes its X from run.infra.stations. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0c3821bc1613a0ef5b42a3031099ed34_cgraph.svg" width="604" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a6a89d30e670917549af3871d7949b261_cgraph.svg" width="562" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1815,7 +1806,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="1471" height="496"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="1471" height="544"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2027,6 +2018,36 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a469fabb03f7d48a3748c3bbb8fbe7ba3_cgraph.svg" width="406" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a7e2990e6f543460759cde3d36dd6adc3" name="a7e2990e6f543460759cde3d36dd6adc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e2990e6f543460759cde3d36dd6adc3">&#9670;&#160;</a></span>isStopArc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Train::isStopArc </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>section</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>arc</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>True when the end node of arc arc of route section section is a stop of this train (stationBlockSection and stationArc). The route is shared by the trains that run on it, so a stop is a property of the train and not of the route. False when section or arc is -1, the index of a stop that is not the end of an arc of the route. </p>
 
 </div>
 </div>
@@ -2349,44 +2370,6 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a518c09b45fe8dd0df01a9ce6be22c2c7_cgraph.svg" width="868" height="200"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="a129221a8c97a0156389b2bfda0522dc8" name="a129221a8c97a0156389b2bfda0522dc8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a129221a8c97a0156389b2bfda0522dc8">&#9670;&#160;</a></span>printTrainArrDepMsg()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Train::printTrainArrDepMsg </td>
-          <td>(</td>
-          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>stationName</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>msgType</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>trainIdx</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>t</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>FolderName</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Appends "egtrain,&lt;stationName&gt;,&lt;msgType&gt;,&lt;dispLineID&gt;,&lt;trainIdx&gt;,&lt;t&gt;" to FolderName/EGTRAINOutput.txt and then waits 5 ms. </p>
 
 </div>
 </div>
@@ -3006,7 +2989,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="2267" height="1894"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a09e55bf615f21184e4a57367932d4a61_cgraph.svg" width="2247" height="1955"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -3095,22 +3078,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Maximum speed in m/s the train runs at: the lower of the two above, scaled by servicePerformancePercent. </p>
-
-</div>
-</div>
-<a id="aae0681f95bd0fbfbb209eee900fb5549" name="aae0681f95bd0fbfbb209eee900fb5549"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae0681f95bd0fbfbb209eee900fb5549">&#9670;&#160;</a></span>arrivalPlatform</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::arrivalPlatform = -1</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Platform to book at the destination; nothing sets it, so it is -1. </p>
 
 </div>
 </div>
@@ -3533,7 +3500,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Line ID written to the dispatching output files; nothing sets it, so it is -1. </p>
+<p>Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1. </p>
 
 </div>
 </div>
@@ -4367,22 +4334,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>First step that printTrainServicePathDiagram may print; set to 0 and never changed. </p>
-
-</div>
-</div>
-<a id="a3ecae96f913f1658bb02cc54ce06ebc6" name="a3ecae96f913f1658bb02cc54ce06ebc6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ecae96f913f1658bb02cc54ce06ebc6">&#9670;&#160;</a></span>reservedPlatform</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::reservedPlatform</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Platform booked at the destination, copied from arrivalPlatform; -1 until booked. </p>
 
 </div>
 </div>

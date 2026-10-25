@@ -1,19 +1,21 @@
 <map id="Train::europeanVitalComputerWithListsImproved" name="Train::europeanVitalComputerWithListsImproved">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,282,221,322"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,308,221,348"/>
 <area shape="rect" id="Node000002" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title="Position in metres of the authority on the route of this train, for an authority on section." alt="" coords="269,138,480,163"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,280,192,231,229,204,268,180,305,165,307,170,271,185,232,208,195,235,137,284"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,306,186,244,225,210,268,180,301,165,303,170,271,185,228,214,190,248,133,309"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a86fe06b963d9fe57ec35dae0764265aa" title=" " alt="" coords="295,239,455,264"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,280,295,264,296,270,217,285"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,305,316,266,318,271,184,310"/>
 <area shape="rect" id="Node000016" href="$class_train.html#a9af946ff334ff93ba3b214da13ae0050" title=" " alt="" coords="563,338,719,363"/>
-<area shape="poly" id="edge38_Node000001_Node000016" title=" " alt="" coords="222,305,480,325,550,334,550,339,480,330,221,311"/>
+<area shape="poly" id="edge39_Node000001_Node000016" title=" " alt="" coords="221,325,346,327,480,332,550,337,549,343,480,337,345,332,221,330"/>
 <area shape="rect" id="Node000018" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="530,51,753,76"/>
-<area shape="poly" id="edge28_Node000001_Node000018" title=" " alt="" coords="149,280,204,252,268,224,301,214,329,210,379,206,426,199,451,189,478,172,494,155,502,137,510,118,526,99,564,79,566,83,530,103,514,121,507,139,499,158,482,177,453,194,427,204,379,212,330,215,302,220,270,229,206,256,151,285"/>
-<area shape="rect" id="Node000019" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="299,364,451,390"/>
-<area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="185,320,317,358,315,363,183,325"/>
+<area shape="poly" id="edge28_Node000001_Node000018" title=" " alt="" coords="138,306,195,264,268,224,300,213,328,207,378,204,426,198,451,189,478,172,494,155,502,137,510,118,526,99,564,79,566,83,530,103,514,121,507,139,499,158,482,177,453,194,427,203,379,210,329,213,301,218,270,229,198,269,141,310"/>
+<area shape="rect" id="Node000019" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="299,415,451,440"/>
+<area shape="poly" id="edge32_Node000001_Node000019" title=" " alt="" coords="168,346,329,408,327,413,166,351"/>
 <area shape="rect" id="Node000020" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="596,412,687,438"/>
-<area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="139,320,196,363,232,384,270,400,353,420,438,429,517,430,582,428,582,433,517,436,438,434,352,425,269,405,230,389,193,367,136,325"/>
-<area shape="rect" id="Node000021" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="295,466,455,491"/>
-<area shape="poly" id="edge37_Node000001_Node000021" title=" " alt="" coords="133,321,190,382,229,415,271,444,304,459,302,464,268,449,225,419,186,386,129,325"/>
+<area shape="poly" id="edge37_Node000001_Node000020" title=" " alt="" coords="222,337,346,353,481,377,588,406,587,411,479,382,346,359,221,342"/>
+<area shape="rect" id="Node000021" href="$class_train.html#a7e2990e6f543460759cde3d36dd6adc3" title=" " alt="" coords="313,464,436,490"/>
+<area shape="poly" id="edge36_Node000001_Node000021" title=" " alt="" coords="135,346,193,399,230,427,270,451,301,462,299,467,268,456,227,432,189,403,132,350"/>
+<area shape="rect" id="Node000022" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="295,514,455,539"/>
+<area shape="poly" id="edge38_Node000001_Node000022" title=" " alt="" coords="129,347,151,381,184,423,224,465,271,500,283,507,281,511,268,505,220,469,180,426,147,384,124,350"/>
 <area shape="rect" id="Node000004" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="539,114,744,139"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="432,237,479,217,493,207,502,196,526,174,589,142,592,147,530,178,506,200,496,211,481,222,435,242"/>
 <area shape="rect" id="Node000013" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="528,188,755,214"/>
@@ -55,7 +57,7 @@
 <area shape="poly" id="edge30_Node000018_Node000007" title=" " alt="" coords="672,48,732,28,813,9,858,4,903,3,948,9,992,21,1027,40,1058,65,1105,117,1101,121,1054,69,1024,45,990,26,947,14,903,9,858,9,814,14,734,33,674,54"/>
 <area shape="poly" id="edge31_Node000018_Node000012" title=" " alt="" coords="753,55,809,51,810,57,753,60"/>
 <area shape="poly" id="edge29_Node000018_Node000014" title=" " alt="" coords="714,74,736,84,756,99,770,115,778,130,784,160,789,190,805,224,833,255,865,280,861,284,830,259,800,227,784,192,779,161,773,132,765,118,753,103,734,89,711,79"/>
-<area shape="poly" id="edge33_Node000019_Node000019" title=" " alt="" coords="332,366,323,356,328,346,345,340,375,338,412,342,422,347,426,353,421,356,419,351,411,347,375,343,347,345,332,350,329,355,336,362"/>
-<area shape="poly" id="edge34_Node000019_Node000020" title=" " alt="" coords="446,387,583,412,582,417,445,392"/>
+<area shape="poly" id="edge33_Node000019_Node000019" title=" " alt="" coords="332,417,323,407,328,397,345,391,375,388,412,393,422,398,426,404,421,406,419,401,411,398,375,394,347,396,332,401,329,406,336,413"/>
+<area shape="poly" id="edge34_Node000019_Node000020" title=" " alt="" coords="451,424,582,423,582,428,451,430"/>
 <area shape="poly" id="edge35_Node000020_Node000020" title=" " alt="" coords="600,414,591,404,596,394,613,388,641,386,677,390,687,395,691,400,687,403,684,399,676,395,641,391,614,393,600,398,597,403,604,411"/>
 </map>

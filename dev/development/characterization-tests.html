@@ -323,7 +323,9 @@ twelve scenarios (<code class="docutils literal notranslate"><span class="pre">b
 The stub cases add the routes <code class="docutils literal notranslate"><span class="pre">routeStubIn</span></code> and <code class="docutils literal notranslate"><span class="pre">routeStubOut</span></code> and the services
 <code class="docutils literal notranslate"><span class="pre">U1</span></code> and <code class="docutils literal notranslate"><span class="pre">D1</span></code> to the scene in the test, because a route with <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> or <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> in
 the fixture would add a movement authority to the cases with a signal failure on
-those sections.</p>
+those sections.
+The case <code class="docutils literal notranslate"><span class="pre">skip-stop-level-0</span></code> adds the service <code class="docutils literal notranslate"><span class="pre">E1</span></code>, a copy of <code class="docutils literal notranslate"><span class="pre">F1</span></code> without its
+stop at B, in the test.</p>
 <p>The passenger cases add station <code class="docutils literal notranslate"><span class="pre">P</span></code>, services <code class="docutils literal notranslate"><span class="pre">Q1</span></code> to <code class="docutils literal notranslate"><span class="pre">Q3</span></code> and passengers in the
 test. Transfer cases also add <code class="docutils literal notranslate"><span class="pre">Platform_4</span></code> on B: its numeric label reaches the
 walking time calculation, while <code class="docutils literal notranslate"><span class="pre">B.platform.1</span></code> reads as 0. Only transfer cases
@@ -391,64 +393,67 @@ does and cites these cases.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">late-leader-level-3</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">L1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code>; <code class="docutils literal notranslate"><span class="pre">L1</span></code> is <code class="docutils literal notranslate"><span class="pre">F1</span></code> with a dwell of 100 s at C, so <code class="docutils literal notranslate"><span class="pre">F2</span></code> is held behind it there</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">skip-stop-level-0</span></code></p></td>
+<td><p>trains <code class="docutils literal notranslate"><span class="pre">F2</span></code> and <code class="docutils literal notranslate"><span class="pre">E1</span></code>; <code class="docutils literal notranslate"><span class="pre">E1</span></code> enters first and runs through B at line speed while <code class="docutils literal notranslate"><span class="pre">F2</span></code>, which moves before it in every step, stops there</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-level-none</span></code>, <code class="docutils literal notranslate"><span class="pre">-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>train <code class="docutils literal notranslate"><span class="pre">S1</span></code> from A to B and <code class="docutils literal notranslate"><span class="pre">R1</span></code> from C to A, with a single-track restriction from <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">4-B0</span></code>, protected by <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">5-B0</span></code>; with a signalling level <code class="docutils literal notranslate"><span class="pre">R1</span></code> waits in front of the section while <code class="docutils literal notranslate"><span class="pre">S1</span></code> is in it</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-follow-level-3</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">single-track-follow-level-3</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> in the same direction through the restricted section; the output equals <code class="docutils literal notranslate"><span class="pre">follow-level-3</span></code> and <code class="docutils literal notranslate"><span class="pre">-4</span></code>, because the restriction does not delay a train that follows the holder</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">D1</span></code> (due at 60 s) and <code class="docutils literal notranslate"><span class="pre">U1</span></code> (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over <code class="docutils literal notranslate"><span class="pre">5-B0</span></code> to <code class="docutils literal notranslate"><span class="pre">7-B0</span></code>, protected by <code class="docutils literal notranslate"><span class="pre">4-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">7-B0</span></code>; <code class="docutils literal notranslate"><span class="pre">D1</span></code> runs out of the stub and <code class="docutils literal notranslate"><span class="pre">U1</span></code> into it, and <code class="docutils literal notranslate"><span class="pre">U1</span></code> waits at the entry of its route until <code class="docutils literal notranslate"><span class="pre">D1</span></code> has left the stub</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-arrival-first-level-0</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-arrival-first-level-0</span></code></p></td>
 <td><p>the same stub with <code class="docutils literal notranslate"><span class="pre">U1</span></code> due at 60 s and <code class="docutils literal notranslate"><span class="pre">D1</span></code> due at 160 s; <code class="docutils literal notranslate"><span class="pre">D1</span></code> waits at the entry of its route until <code class="docutils literal notranslate"><span class="pre">U1</span></code> has left the stub</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>the same stub with both trains due at 60 s; the forward route of <code class="docutils literal notranslate"><span class="pre">U1</span></code> reserves the free stub at 59 s, and <code class="docutils literal notranslate"><span class="pre">D1</span></code> waits outside until <code class="docutils literal notranslate"><span class="pre">U1</span></code> has left; both reach their last stop</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-zero-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-zero-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>the same stub with both trains due at step zero; step zero initializes trajectories and reserves before the first movement; both finish without overlap</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">running-tie-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>S1 runs from A to B and a copy of R1 runs from C to B on existing blocks 7 to 4; both are moving and requesting when the free 4000 to 12000 m stretch is first reserved, and both finish without opposing overlap</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">running-forward-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code>, <code class="docutils literal notranslate"><span class="pre">running-reverse-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-forward-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code>, <code class="docutils literal notranslate"><span class="pre">running-reverse-first-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>the same approaches with one entry 3 s later and capped at the existing 40 km/h approach speed; both are moving at different speeds, giving each direction a turn at priority</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-follower-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">running-follower-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>F2 follows S1 to B while R1 waits; all finish without opposing zone overlap</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stub-breakdown-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stub-breakdown-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">-4</span></code></p></td>
 <td><p>the forward owner is held at its origin by a breakdown from 60 to 120 s; its reservation survives, the opposing train waits, and both finish</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">running-through-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">running-through-level-0</span></code> to <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></td>
 <td><p>the original full-route F1 and R1 on the line without a passing loop; no opposing zone overlap, but both cannot finish because the waiting loser occupies the winner’s exit track</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-2-rev</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-2-rev</span></code></p></td>
 <td><p>level 0 from A to 8 km and level 2 from 8 km to C; <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> run from A to C, <code class="docutils literal notranslate"><span class="pre">R1</span></code> and <code class="docutils literal notranslate"><span class="pre">R2</span></code> from C to A, so a <code class="docutils literal notranslate"><span class="pre">rev</span></code> case enters on the C side and <code class="docutils literal notranslate"><span class="pre">border-0-2-rev</span></code> mirrors <code class="docutils literal notranslate"><span class="pre">border-2-0-fwd</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-2-0-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-2-0-rev</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-2-0-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-2-0-rev</span></code></p></td>
 <td><p>the same trains with level 2 from A to 8 km and level 0 from 8 km to C</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-3-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-3-rev</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-3-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-3-rev</span></code></p></td>
 <td><p>the same trains with level 0 from A to 8 km and level 3 from 8 km to C</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-1-fwd</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-1-fwd</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with level 0 from A to 8 km and level 1 from 8 km to C</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-near-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-1-near-fwd</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">border-0-2-near-fwd</span></code>, <code class="docutils literal notranslate"><span class="pre">border-0-1-near-fwd</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in <code class="docutils literal notranslate"><span class="pre">2-B0</span></code> has the level 0 sections <code class="docutils literal notranslate"><span class="pre">1-B0</span></code> and <code class="docutils literal notranslate"><span class="pre">0-B0</span></code> behind it</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pax-board-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-board-gui1</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui1</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pax-board-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-board-gui1</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-full-gui1</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Q1</span></code> boards passengers at P, including ties and an entry during the stop; a later entry stays at P. Full cases cut ties with three seats at P and B; alighting at B frees seats before boarding</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pax-transfer-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-transfer-gui1</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pax-transfer-gui0</span></code>, <code class="docutils literal notranslate"><span class="pre">pax-transfer-gui1</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Q1</span></code> connects to <code class="docutils literal notranslate"><span class="pre">Q2</span></code> on the same platform and to <code class="docutils literal notranslate"><span class="pre">Q3</span></code> on another label; a passenger also starts a second journey on <code class="docutils literal notranslate"><span class="pre">Q3</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entrance-delay-f2-level-0</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">entrance-delay-f2-level-0</span></code></p></td>
 <td><p>trains <code class="docutils literal notranslate"><span class="pre">F1</span></code> and <code class="docutils literal notranslate"><span class="pre">F2</span></code> with an entrance delay of 120 s for <code class="docutils literal notranslate"><span class="pre">F2</span></code> at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals <code class="docutils literal notranslate"><span class="pre">follow-level-0</span></code> and only the planned departure of <code class="docutils literal notranslate"><span class="pre">F2</span></code> at A moves, from 180 s to 300 s</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">breakdown-f1-level-0</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">breakdown-f1-level-0</span></code></p></td>
 <td><p>the same trains with a breakdown of <code class="docutils literal notranslate"><span class="pre">F1</span></code> from 200 s that caps its speed at 40 km/h until the end of its route; <code class="docutils literal notranslate"><span class="pre">F1</span></code> reaches C late and <code class="docutils literal notranslate"><span class="pre">F2</span></code>, held behind it, has not reached C when the run ends at 1500 s</p></td>
 </tr>
 </tbody>
