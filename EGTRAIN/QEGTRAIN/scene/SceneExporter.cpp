@@ -1,5 +1,6 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneBundle.h"
+#include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
@@ -1323,17 +1324,8 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 		trainFiles.push_back(fname);
 
-		double entryTime = 0.0;
-		if (svc.hasEntryTime) {
-			entryTime = svc.entryTimeSeconds;
-		} else if (!svc.stops.empty()) {
-			entryTime = svc.stops[0].plannedDepartureSeconds;
-		}
-
-		double headway = 99999999.0;
-		if (svc.hasRepeat) {
-			headway = svc.headwaySeconds;
-		}
+		const double entryTime = sceneServiceScheduledEntry(svc);
+		const double headway = svc.hasRepeat ? svc.headwaySeconds : kLegacyNoRepeatHeadwaySeconds;
 
 		auto rIt = routeIndices.find(svc.route);
 		if (rIt == routeIndices.end()) {

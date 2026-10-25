@@ -1687,7 +1687,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		relation.timetablePath = tokens[6];
 		relation.entryTime = entryTime;
 		relation.headway = headway;
-		relation.hasRepeat = headway < 99999999.0;
+		relation.hasRepeat = headway < kLegacyNoRepeatHeadwaySeconds;
 		relation.routeIndex = routeIndex;
 		relations.push_back(relation);
 		report.converted("rolling_stock.manifest", manifestSource);
@@ -2298,9 +2298,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			continue;
 		}
 		for (const auto& relation : relations) {
-			int occurrences = 1;
-			if (relation.hasRepeat && relation.headway > 0.0)
-				occurrences = std::max(1, static_cast<int>(std::ceil(settings.durationSeconds / relation.headway)));
+			// Counted from the relation, because a relation whose timetable is missing has no service.
+			SceneService repeat;
+			repeat.hasRepeat = relation.hasRepeat;
+			repeat.headwaySeconds = relation.headway;
+			const int occurrences = sceneServiceOccurrenceCount(repeat, settings.durationSeconds);
 			for (int occurrence = 1; occurrence <= occurrences; ++occurrence) {
 				report.source("scenarios.rollouts", source);
 				if (valueIndex >= values.size()) {
