@@ -1130,6 +1130,9 @@ egtrain_add_test(test_installer_script
 egtrain_add_test(test_ci_workflow
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py
 	LABELS unit)
+egtrain_add_test(test_changed_files
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/ci/test_changed_files.py
+	LABELS unit)
 egtrain_add_test(test_signalling_bounds
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py
 	LABELS unit)

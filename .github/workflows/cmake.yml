@@ -29,26 +29,11 @@ jobs:
         with:
           fetch-depth: 2
 
-      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job, and an
-      # empty list of files builds.
+      # The merge commit of a pull request has the base branch as its first parent. The rule is the cmake entry of the
+      # script. A failure here fails the job, and an empty list of files builds.
       - name: Select the build from the changed files
         id: select
-        run: |
-          build=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
-            build=false
-            while IFS= read -r file; do
-              case "$file" in
-                *.md) ;;
-                docs/*) ;;
-                LICENSE) ;;
-                .github/ISSUE_TEMPLATE/*) ;;
-                *) build=true ;;
-              esac
-            done <<< "$files"
-          fi
-          echo "build=$build" >> "$GITHUB_OUTPUT"
+        run: python3 tools/ci/changed_files.py cmake HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"
 
   # CTest runs the same check, but the build job skips CTest for a pull request that changes only documentation.
   docs:
@@ -119,27 +104,11 @@ jobs:
           "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
-      - name: Install Qt 6
+      # Qt 6.8.3, and the libraries from Homebrew on macOS and from apt on Linux. On Windows the MSVC environment; the
+      # configure step installs the libraries of the vcpkg manifest.
+      - name: Set up the dependencies
         if: needs.changes.outputs.build == 'true'
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (macOS)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
-        run: brew install zeromq cppzmq nlohmann-json
-
-      - name: Install dependencies (Linux)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
-
-      - name: Set up MSVC environment
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ./.github/actions/setup-deps
 
       # The packages and the builtin-baseline of the vcpkg manifest, for the key of the vcpkg binary cache.
       - name: Read the vcpkg manifest
@@ -303,17 +272,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
       - name: Lower address space randomization
@@ -387,17 +347,8 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
       - name: Lower address space randomization
@@ -456,17 +407,8 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, ThreadSanitizer stops at start on the kernel of the runner.
       - name: Lower address space randomization

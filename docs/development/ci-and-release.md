@@ -29,8 +29,8 @@ scripts that build, sign and check the release packages.
   `main` that changes `EGTRAIN/QEGTRAIN/`, `.clang-format`, `.clang-format-ignore`,
   `tools/format.py` or `format.yml`, and when started by hand.
 - The tidy check (`tidy.yml`) runs `tools/tidy.py` for a pull request to `main` that
-  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py` or
-  `tidy.yml`. A pull request analyses the changed sources and the sources that include a
+  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py`,
+  `tidy.yml` or the setup action in `.github/actions/`. A pull request analyses the changed sources and the sources that include a
   changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
   run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
@@ -41,7 +41,8 @@ scripts that build, sign and check the release packages.
   and `latest/` after a successful release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
-  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`, the vcpkg manifest in `tools/vcpkg/`,
+  `package-check.yml`, `package.yml` and `release.yml`, the setup action in `.github/actions/`, `tools/release/`, the
+  vcpkg manifest in `tools/vcpkg/`,
   `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
   `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
   and can be started by hand, which covers changes that reach the packages
@@ -234,7 +235,7 @@ are not filtered by changed paths.
 
 ### Required checks on `main`
 
-Every pull request to `main` starts the CMake, Format and Package check
+Every pull request to `main` starts the CMake, Format, Tidy and Package check
 workflows; their triggers have no path filter. The first job of each, `changes`,
 compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:
@@ -245,6 +246,17 @@ real jobs skip when the rule selects nothing:
 - Format runs for the files of the format check, listed above.
 - Tidy runs for the files of the tidy check, listed above.
 - The package check runs its jobs for the packaging inputs, listed above.
+
+The CMake, Tidy and Package check workflows read their rule from `tools/ci/changed_files.py`, which holds one
+entry per workflow and prints the output line of the `changes` job. The Format workflow keeps the same patterns in a
+`case` statement of `format.yml`. To see what a branch selects:
+
+```sh
+python3 tools/ci/changed_files.py tidy origin/main HEAD
+```
+
+`tools/ci/test_changed_files.py` (CTest `test_changed_files`) checks the rules on sample paths and runs the script on
+the commits of a temporary repository.
 
 A nightly or manual run always does its jobs. The condition of a job is
 evaluated before its matrix is expanded, so a skipped `build` job would be
@@ -732,6 +744,12 @@ baseline newer than the checkout of the image fails the configure step, because 
 checkout.
 
 ### Dependency caches
+
+The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
+dependencies with the local action `.github/actions/setup-deps`. It installs Qt 6.8.3 with Qt Charts through
+`jurplel/install-qt-action`, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
+extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. The `validation` and
+`sanitizer` jobs of `release.yml` install the same Qt and Homebrew packages in steps of their own.
 
 Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg

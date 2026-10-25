@@ -46,15 +46,8 @@ jobs:
           python -m venv build/docs-venv
           build/docs-venv/bin/python -m pip install -r docs/requirements.txt
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies
-        run: brew install zeromq cppzmq nlohmann-json
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # As in cmake.yml: the keg folders of the other libraries, and the OpenGL framework in place of the AGL framework that
       # Qt 6.8.3 links and that the macOS 26 SDK no longer has.
@@ -352,15 +345,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Set up MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       - name: Install the packages of the manual
         # The build makes the manual EGTRAIN.qch from docs/guides with Sphinx in this environment.
@@ -825,21 +811,13 @@ jobs:
           python3 -m venv build/docs-venv
           build/docs-venv/bin/python -m pip install -r docs/requirements.txt
 
-      # The action also installs the X11 libraries that the Qt 6 platform plugin loads, libxcb-cursor0 among them. It puts the
-      # qmake of Qt 6 first on PATH and the Qt library folder on LD_LIBRARY_PATH, where the AppImage step and linuxdeploy find them.
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
+      # The Qt action also installs the X11 libraries that the Qt 6 platform plugin loads, libxcb-cursor0 among them. It puts
+      # the qmake of Qt 6 first on PATH and the Qt library folder on LD_LIBRARY_PATH, where the AppImage step and linuxdeploy
+      # find them. The display packages are for the start of the package.
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
         with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake patchelf wget file desktop-file-utils \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev xvfb xauth
+          apt-packages: build-essential cmake patchelf wget file desktop-file-utils xvfb xauth
 
       - name: Configure
         run: >

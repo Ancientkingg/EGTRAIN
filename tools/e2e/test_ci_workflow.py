@@ -31,12 +31,14 @@ TIDY_PATHS = [
     ".clang-tidy",
     "tools/tidy.py",
     ".github/workflows/tidy.yml",
+    ".github/actions/**",
 ]
 # The package check runs for a pull request that changes one of these files.
 PACKAGE_CHECK_PATHS = [
     ".github/workflows/package-check.yml",
     ".github/workflows/package.yml",
     ".github/workflows/release.yml",
+    ".github/actions/**",
     "tools/release/**",
     "tools/vcpkg/**",
     "installer/**",
@@ -62,6 +64,7 @@ RULE_SAMPLES = [
     ".github/workflows/package.yml",
     ".github/workflows/package-check.yml",
     ".github/workflows/release.yml",
+    ".github/actions/setup-deps/action.yml",
     "CMakeLists.txt",
     "EGTRAIN/QEGTRAIN/a.cpp",
     "EGTRAIN/QEGTRAIN/scene/b.h",
@@ -224,13 +227,17 @@ def result_job_problems(text: str, name: str, not_required: tuple[str, ...] = ()
 
 def required_result_problems(workflow: str, format_workflow: str, tidy_workflow: str, package_check: str) -> list[str]:
     """Every pull request to main starts the CMake, Format, Tidy and Package check workflows, and each reports one result job
-    that main can require. The path rules that the triggers had decide in a first job whether the other jobs work."""
+    that main can require. The path rules that the triggers had decide in a first job whether the other jobs work. The CMake,
+    Tidy and Package check workflows read them from tools/ci/changed_files.py."""
+    sys.path.insert(0, str(ROOT / "tools/ci"))
+    from changed_files import needs_jobs
+
     problems = []
-    for name, text, label, not_required in (
-        ("CMake", workflow, "CMake result", NIGHTLY_SANITIZER_JOBS),
-        ("Format", format_workflow, "Format result", ()),
-        ("Tidy", tidy_workflow, "Tidy result", ()),
-        ("Package check", package_check, "Package check result", ()),
+    for name, text, label, not_required, rule in (
+        ("CMake", workflow, "CMake result", NIGHTLY_SANITIZER_JOBS, "cmake"),
+        ("Format", format_workflow, "Format result", (), None),
+        ("Tidy", tidy_workflow, "Tidy result", (), "tidy"),
+        ("Package check", package_check, "Package check result", (), "package-check"),
     ):
         trigger = trigger_block(text)
         pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", trigger, re.MULTILINE)
@@ -238,11 +245,13 @@ def required_result_problems(workflow: str, format_workflow: str, tidy_workflow:
             problems.append(f"{name} starting for every pull request to main, without a path filter")
         problems.extend(result_job_problems(text, label, not_required))
         changes = job_block(text, "changes")
+        script = f'run: python3 tools/ci/changed_files.py {rule} HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"\n'
         if (
             "    runs-on: ubuntu-latest\n" not in changes
             or "          fetch-depth: 2\n" not in changes
-            or 'if [ "$GITHUB_EVENT_NAME" = pull_request ]; then\n' not in changes
-            or "files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)\n" not in changes
+            or (rule and script not in changes)
+            or (not rule and 'if [ "$GITHUB_EVENT_NAME" = pull_request ]; then\n' not in changes)
+            or (not rule and "files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)\n" not in changes)
         ):
             problems.append(f"{name} changes job that reads the files of a pull request and selects the other events without a diff")
 
@@ -259,14 +268,8 @@ def required_result_problems(workflow: str, format_workflow: str, tidy_workflow:
             ungated.append(block.split("\n", 1)[0])
     if "    needs: changes\n" not in build_job or ungated:
         problems.append("CMake build job after the changes job, with every step but the failure upload checking its output")
-    changes = job_block(workflow, "changes")
-    if "      build: ${{ steps.select.outputs.build }}\n" not in changes or 'echo "build=$build" >> "$GITHUB_OUTPUT"\n' not in changes:
+    if "      build: ${{ steps.select.outputs.build }}\n" not in job_block(workflow, "changes"):
         problems.append("CMake changes job with the output build")
-    if "build=true\n          if [" not in changes:
-        problems.append("CMake build for every event but a pull request")
-    cmake_branches = case_branches(changes)
-    if cmake_branches[-1:] != [("*", "build=true")] or any(action for _, action in cmake_branches[:-1]):
-        problems.append("CMake build for every file that no documentation pattern matches")
     # Format and the package check: one job waits for the changes job and checks its output. The package check skips only the
     # version job, and the package and release assets jobs follow it.
     format_job = job_block(format_workflow, "check")
@@ -278,35 +281,27 @@ def required_result_problems(workflow: str, format_workflow: str, tidy_workflow:
     tidy_job = job_block(tidy_workflow, "check")
     if "    name: tidy\n    needs: changes\n    if: needs.changes.outputs.tidy == 'true'\n" not in tidy_job:
         problems.append("tidy job after the changes job, checking its output")
-    tidy_changes = job_block(tidy_workflow, "changes")
-    if "      tidy: ${{ steps.select.outputs.tidy }}\n" not in tidy_changes or "tidy=true\n          if [" not in tidy_changes:
-        problems.append("tidy changes job with the output tidy, true for every event but a pull request")
+    if "      tidy: ${{ steps.select.outputs.tidy }}\n" not in job_block(tidy_workflow, "changes"):
+        problems.append("tidy changes job with the output tidy")
     package_version = job_block(package_check, "version")
     if "    name: Select application version\n    needs: changes\n    if: needs.changes.outputs.package == 'true'\n" not in package_version:
         problems.append("package check version job after the changes job, checking its output")
-    package_changes = job_block(package_check, "changes")
-    if "      package: ${{ steps.select.outputs.package }}\n" not in package_changes or "package=true\n          if [" not in package_changes:
-        problems.append("package check changes job with the output package, true for every event but a pull request")
+    if "      package: ${{ steps.select.outputs.package }}\n" not in job_block(package_check, "changes"):
+        problems.append("package check changes job with the output package")
 
-    # The case patterns select the same pull requests as the filters did: on every file and every pair of files of the samples.
+    # The rules select the same pull requests as the filters did: on every file and every pair of files of the samples.
     format_branches = case_branches(format_changes)
-    tidy_branches = case_branches(tidy_changes)
-    package_branches = case_branches(package_changes)
-    if not cmake_branches or not format_branches or not tidy_branches or not package_branches:
-        problems.append("changes jobs with a case statement of one pattern for each branch")
-    if (
-        any(action != "format=true" for _, action in format_branches)
-        or any(action != "tidy=true" for _, action in tidy_branches)
-        or any(action != "package=true" for _, action in package_branches)
-    ):
-        problems.append("format, tidy and package check changes jobs whose patterns only select")
+    if not format_branches:
+        problems.append("format changes job with a case statement of one pattern for each branch")
+    if any(action != "format=true" for _, action in format_branches):
+        problems.append("format changes job whose patterns only select")
     sets = [[sample] for sample in RULE_SAMPLES] + [list(pair) for pair in itertools.combinations(RULE_SAMPLES, 2)]
     for files in sets:
         for label, selected, expected in (
-            ("CMake", selects(cmake_branches, files, "build=true"), runs_by_filter(files, DOCUMENTATION_PATHS, ignore=True)),
+            ("CMake", needs_jobs("cmake", files), runs_by_filter(files, DOCUMENTATION_PATHS, ignore=True)),
             ("Format", selects(format_branches, files, "format=true"), runs_by_filter(files, FORMAT_PATHS, ignore=False)),
-            ("Tidy", selects(tidy_branches, files, "tidy=true"), runs_by_filter(files, TIDY_PATHS, ignore=False)),
-            ("Package check", selects(package_branches, files, "package=true"), runs_by_filter(files, PACKAGE_CHECK_PATHS, ignore=False)),
+            ("Tidy", needs_jobs("tidy", files), runs_by_filter(files, TIDY_PATHS, ignore=False)),
+            ("Package check", needs_jobs("package-check", files), runs_by_filter(files, PACKAGE_CHECK_PATHS, ignore=False)),
         ):
             if selected != expected:
                 problems.append(f"{label} jobs that run for {files} as the path filter did ({expected})")
@@ -328,6 +323,9 @@ def main() -> None:
     release_only = workflow_text("release.yml")
     package_only = workflow_text("package.yml")
     package_check = workflow_text("package-check.yml")
+    # Qt and the libraries of the build: the CMake, tidy and package jobs set them up with this action.
+    setup_action = (ROOT / ".github/actions/setup-deps/action.yml").read_text(encoding="utf-8")
+    setup_step = "        uses: ./.github/actions/setup-deps\n"
     format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
     format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
     tidy_workflow = workflow_text("tidy.yml")
@@ -786,7 +784,8 @@ def main() -> None:
     }
     package_configure = step_block(job_block(package_only, "package-windows"), "Configure")
     if (
-        any("ilammy/msvc-dev-cmd@v1" not in text for text in (workflow, release_workflow))
+        "ilammy/msvc-dev-cmd@v1" not in setup_action
+        or any(setup_step not in job for job in (build_job, job_block(package_only, "package-windows")))
         or "vcpkg install" in workflow + release_workflow
         or "cmake --preset ci-windows " not in step_block(build_job, "Configure (Windows)")
         or any(ci_windows.get(name) != preset_value for name, (preset_value, _) in windows_vcpkg.items())
@@ -810,15 +809,14 @@ def main() -> None:
         for name, preset in ci_presets.items()
     ):
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
-    apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
-    apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
-    # The Linux leg, the leak check and the nightly sanitizer jobs get Qt from the action and the other libraries from these
-    # packages.
-    if len(apt_installs) != 4 or len(set(apt_installs)) != 1:
+    # The Linux leg, the leak check and the nightly sanitizer jobs get Qt and the other libraries from the setup action, as
+    # the Linux package job does.
+    setup_jobs = [job_block(workflow, name) for name in ("build", "leak-check", "sanitizers", "thread-sanitizer")]
+    if "apt-get install" in workflow or any(setup_step not in job for job in setup_jobs) or "apt-packages:" in workflow:
         missing.append("the same Linux packages in the build, leak check and nightly sanitizer jobs")
-    if not apt_packages or any(
-        not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
-        for package in apt_packages
+    if (
+        "sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES\n" not in setup_action
+        or setup_step not in job_block(package_only, "package-linux")
     ):
         missing.append("Linux packages shared with the release workflow")
     build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
@@ -913,17 +911,20 @@ def main() -> None:
     # One leg per platform, each with Qt 6.8.3 from the action, as the leak check and the nightly sanitizer jobs have. No step
     # names a Qt 5 package, option or file, and the legs count in the result job.
     legs = re.findall(r"^          - name: (.+)$", build_job, re.MULTILINE)
-    qt_install = "        uses: jurplel/install-qt-action@v4\n        with:\n          version: '6.8.3'\n          modules: qtcharts\n"
+    qt_install = "      uses: jurplel/install-qt-action@v4\n      with:\n        version: '6.8.3'\n        modules: qtcharts\n"
     if (
         sorted(legs) != ["Linux", "Windows", "macOS"]
         or "continue-on-error" in build_job
         or "matrix.qt" in workflow
-        or step_block(build_job, "Install Qt 6") != "name: Install Qt 6\n        if: needs.changes.outputs.build == 'true'\n" + qt_install + "          cache: true\n"
-        or qt_install not in step_block(leak_job, "Install Qt 6")
+        or qt_install + "        cache: true\n" not in setup_action
+        or not step_block(build_job, "Set up the dependencies").startswith(
+            "name: Set up the dependencies\n        if: needs.changes.outputs.build == 'true'\n" + setup_step
+        )
+        or setup_step not in step_block(leak_job, "Set up the dependencies")
         or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(leak_job, "Configure with sanitizers")
-        or qt_install not in step_block(nightly_job, "Install Qt 6")
+        or setup_step not in step_block(nightly_job, "Set up the dependencies")
         or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(nightly_job, "Configure with sanitizers")
-        or qt_install not in step_block(tsan_job, "Install Qt 6")
+        or setup_step not in step_block(tsan_job, "Set up the dependencies")
         or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(tsan_job, "Configure with ThreadSanitizer")
     ):
         missing.append("one leg per platform, the leak check and the nightly sanitizer jobs, each on Qt 6.8.3 from the action")
@@ -1002,7 +1003,7 @@ def main() -> None:
     tidy_step = step_block(job_block(tidy_workflow, "check"), "Run clang-tidy")
     # The compile database is made with the Qt of the CMake workflow, which CMake finds through CMAKE_PREFIX_PATH.
     if (
-        qt_install not in step_block(job_block(tidy_workflow, "check"), "Install Qt 6")
+        setup_step not in step_block(job_block(tidy_workflow, "check"), "Set up the dependencies")
         or "        env:\n          CMAKE_PREFIX_PATH: ${{ env.QT_ROOT_DIR }}\n" not in tidy_step
     ):
         missing.append("tidy check with Qt 6.8.3 from the action, passed to CMake in CMAKE_PREFIX_PATH")
@@ -1946,7 +1947,7 @@ def main() -> None:
     if job_block(package_check, "package") != "  package:\n" + package_call:
         missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
     # The packages are built with Qt 6.8.3 from the action and checked for the Qt 6 files.
-    if any(name not in package_only for name in ('"Qt6Help.dll"', "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'")):
+    if any(name not in package_only for name in ('"Qt6Help.dll"', "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR")) or qt_install not in setup_action:
         missing.append("packages built with Qt 6.8.3 and checked for Qt6Help.dll")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
     # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
@@ -2015,8 +2016,8 @@ def main() -> None:
         not in step_block(linux_job, "Verify AppImage contents")
     ):
         missing.append("Linux package job that deploys the SVG icon engine and fails without it")
-    linux_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", step_block(linux_job, "Install dependencies"))
-    linux_apt_packages = linux_install.group(1).replace("\\", " ").split() if linux_install else []
+    linux_install = re.search(r"^          apt-packages: (.+)$", step_block(linux_job, "Set up the dependencies"), re.MULTILINE)
+    linux_apt_packages = linux_install.group(1).split() if linux_install else []
     if "xvfb" not in linux_apt_packages or "xauth" not in linux_apt_packages:
         missing.append("Linux package job that installs xvfb and xauth for the virtual display")
     linux_start = step_block(linux_job, "Start the package")

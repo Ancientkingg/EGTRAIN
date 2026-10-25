@@ -36,29 +36,11 @@ jobs:
         with:
           fetch-depth: 2
 
-      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      # The merge commit of a pull request has the base branch as its first parent. The rule is the package-check entry of
+      # the script. A failure here fails the job.
       - name: Select the package jobs from the changed files
         id: select
-        run: |
-          package=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
-            package=false
-            while IFS= read -r file; do
-              case "$file" in
-                .github/workflows/package-check.yml) package=true ;;
-                .github/workflows/package.yml) package=true ;;
-                .github/workflows/release.yml) package=true ;;
-                tools/release/*) package=true ;;
-                tools/vcpkg/*) package=true ;;
-                installer/*) package=true ;;
-                Info.plist.in) package=true ;;
-                EGTRAIN/QEGTRAIN/update/*) package=true ;;
-                EGTRAIN/QEGTRAIN/app/main.cpp) package=true ;;
-              esac
-            done <<< "$files"
-          fi
-          echo "package=$package" >> "$GITHUB_OUTPUT"
+        run: python3 tools/ci/changed_files.py package-check HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"
 
   # The package and release assets jobs follow this job, so a skipped version job skips them too.
   version:
