@@ -499,7 +499,6 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/scene/SceneWriter.h
 	${SRC_DIR}/scene/TrackPreview.h
     ${SRC_DIR}/util/timeutil.hpp
-    ${SRC_DIR}/util/Util.hpp
     ${SRC_DIR}/util/SpeedFormat.h
     ${SRC_DIR}/util/CsvWriter.h
     ${SRC_DIR}/util/TrajectoryUtil.h
