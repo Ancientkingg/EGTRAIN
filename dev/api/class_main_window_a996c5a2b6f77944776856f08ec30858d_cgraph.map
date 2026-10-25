@@ -43,14 +43,14 @@
 <area shape="poly" id="edge56_Node000001_Node000150" title=" " alt="" coords="109,786,118,848,141,940,159,990,183,1040,214,1085,252,1124,274,1137,271,1142,249,1128,210,1089,179,1043,154,993,136,942,113,849,104,787"/>
 <area shape="rect" id="Node000151" href="$class_main_window.html#a02741c67604fffb2cb80ed21aab9cc12" title="Creates the result views and the Run Results dock." alt="" coords="253,1188,508,1213"/>
 <area shape="poly" id="edge57_Node000001_Node000151" title=" " alt="" coords="108,787,114,856,122,906,135,961,153,1019,178,1076,211,1128,252,1173,260,1179,257,1183,249,1177,206,1132,173,1078,148,1021,129,963,117,907,109,856,103,787"/>
-<area shape="rect" id="Node000414" href="$_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13" title=" " alt="" coords="297,1261,464,1287"/>
-<area shape="poly" id="edge62_Node000001_Node000414" title=" " alt="" coords="108,787,114,861,121,916,133,978,152,1043,177,1108,210,1170,253,1224,275,1242,300,1254,298,1259,272,1246,249,1228,206,1173,172,1110,147,1045,128,979,116,917,108,862,103,787"/>
-<area shape="rect" id="Node000415" href="$_main_window_support_8h.html#af34a68855c5c3448cbe4bc9b0b35086c" title="The delay between two steps, in milliseconds: how far sliderValue is from the fast end of the speed s..." alt="" coords="308,1335,453,1360"/>
-<area shape="poly" id="edge64_Node000001_Node000415" title=" " alt="" coords="108,787,109,872,115,936,126,1008,143,1084,169,1161,205,1233,227,1267,253,1297,274,1315,299,1328,297,1332,271,1319,249,1301,223,1270,200,1236,164,1163,138,1086,120,1009,110,936,104,872,102,787"/>
-<area shape="rect" id="Node000416" href="$class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" title="A bar 28 pixels high in the fixed&#45;width system font, without keyboard focus." alt="" coords="255,1384,507,1409"/>
-<area shape="poly" id="edge66_Node000001_Node000416" title=" " alt="" coords="109,787,123,900,151,1077,170,1170,194,1256,221,1325,237,1351,253,1371,256,1374,253,1378,249,1375,232,1354,217,1327,189,1257,165,1172,145,1078,117,901,104,787"/>
-<area shape="rect" id="Node000417" href="$class_network_view.html#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call." alt="" coords="285,1434,476,1474"/>
-<area shape="poly" id="edge67_Node000001_Node000417" title=" " alt="" coords="109,787,121,907,149,1099,168,1200,192,1293,220,1369,236,1399,253,1420,274,1436,271,1440,249,1424,231,1401,215,1372,187,1295,163,1201,143,1100,116,908,104,787"/>
+<area shape="rect" id="Node000416" href="$_visual_polish_8cpp.html#a390edc9c1e6f62d5b3ed847698920d13" title=" " alt="" coords="297,1261,464,1287"/>
+<area shape="poly" id="edge62_Node000001_Node000416" title=" " alt="" coords="108,787,114,861,121,916,133,978,152,1043,177,1108,210,1170,253,1224,275,1242,300,1254,298,1259,272,1246,249,1228,206,1173,172,1110,147,1045,128,979,116,917,108,862,103,787"/>
+<area shape="rect" id="Node000417" href="$_main_window_support_8h.html#af34a68855c5c3448cbe4bc9b0b35086c" title="The delay between two steps, in milliseconds: how far sliderValue is from the fast end of the speed s..." alt="" coords="308,1335,453,1360"/>
+<area shape="poly" id="edge64_Node000001_Node000417" title=" " alt="" coords="108,787,109,872,115,936,126,1008,143,1084,169,1161,205,1233,227,1267,253,1297,274,1315,299,1328,297,1332,271,1319,249,1301,223,1270,200,1236,164,1163,138,1086,120,1009,110,936,104,872,102,787"/>
+<area shape="rect" id="Node000418" href="$class_time_progress_bar.html#a203db15ba1769e7868a4505f0f57afbe" title="A bar 28 pixels high in the fixed&#45;width system font, without keyboard focus." alt="" coords="255,1384,507,1409"/>
+<area shape="poly" id="edge66_Node000001_Node000418" title=" " alt="" coords="109,787,123,900,151,1077,170,1170,194,1256,221,1325,237,1351,253,1371,256,1374,253,1378,249,1375,232,1354,217,1327,189,1257,165,1172,145,1078,117,901,104,787"/>
+<area shape="rect" id="Node000419" href="$class_network_view.html#ad6908933da4b5fadff421905542bbf48" title="The paint that armTimingPaint() waited for has finished, elapsedNanoseconds after the call." alt="" coords="285,1434,476,1474"/>
+<area shape="poly" id="edge67_Node000001_Node000419" title=" " alt="" coords="109,787,121,907,149,1099,168,1200,192,1293,220,1369,236,1399,253,1420,274,1436,271,1440,249,1424,231,1401,215,1372,187,1295,163,1201,143,1100,116,908,104,787"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="336,55,327,45,332,35,350,29,381,27,420,31,431,36,434,42,430,44,427,40,419,36,381,32,351,34,335,39,332,44,340,51"/>
 <area shape="rect" id="Node000003" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="561,29,799,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="486,55,547,50,547,55,486,60"/>
@@ -112,9 +112,9 @@
 <area shape="poly" id="edge58_Node000151_Node000152" title=" " alt="" coords="465,1185,582,1167,582,1173,465,1191"/>
 <area shape="rect" id="Node000153" href="$class_run_results_dock.html#a44cfbb38df803b25ff418cfdf680b09f" title=" " alt="" coords="559,1192,801,1217"/>
 <area shape="poly" id="edge59_Node000151_Node000153" title=" " alt="" coords="508,1200,545,1200,545,1206,508,1205"/>
-<area shape="rect" id="Node000307" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="582,1265,778,1291"/>
-<area shape="poly" id="edge60_Node000151_Node000307" title=" " alt="" coords="454,1211,511,1223,629,1258,628,1264,510,1229,453,1216"/>
-<area shape="poly" id="edge61_Node000307_Node000307" title=" " alt="" coords="632,1267,622,1257,627,1247,647,1241,680,1239,724,1243,735,1249,738,1255,733,1257,731,1252,723,1248,680,1244,648,1246,630,1251,627,1256,636,1263"/>
-<area shape="poly" id="edge63_Node000414_Node000414" title=" " alt="" coords="336,1263,327,1253,332,1243,350,1237,381,1235,420,1239,431,1244,434,1250,430,1252,427,1248,419,1244,381,1240,351,1242,335,1247,332,1252,340,1259"/>
-<area shape="poly" id="edge65_Node000415_Node000415" title=" " alt="" coords="336,1336,327,1326,332,1316,350,1310,381,1308,420,1312,431,1317,434,1323,430,1326,427,1321,419,1317,381,1313,351,1315,335,1320,332,1326,340,1333"/>
+<area shape="rect" id="Node000309" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="582,1265,778,1291"/>
+<area shape="poly" id="edge60_Node000151_Node000309" title=" " alt="" coords="454,1211,511,1223,629,1258,628,1264,510,1229,453,1216"/>
+<area shape="poly" id="edge61_Node000309_Node000309" title=" " alt="" coords="632,1267,622,1257,627,1247,647,1241,680,1239,724,1243,735,1249,738,1255,733,1257,731,1252,723,1248,680,1244,648,1246,630,1251,627,1256,636,1263"/>
+<area shape="poly" id="edge63_Node000416_Node000416" title=" " alt="" coords="336,1263,327,1253,332,1243,350,1237,381,1235,420,1239,431,1244,434,1250,430,1252,427,1248,419,1244,381,1240,351,1242,335,1247,332,1252,340,1259"/>
+<area shape="poly" id="edge65_Node000417_Node000417" title=" " alt="" coords="336,1336,327,1326,332,1316,350,1310,381,1308,420,1312,431,1317,434,1323,430,1326,427,1321,419,1317,381,1313,351,1315,335,1320,332,1326,340,1333"/>
 </map>

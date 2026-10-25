@@ -33,15 +33,23 @@ var _scene_model_8h =
     [ "SceneLoadedData", "struct_scene_loaded_data.html", "struct_scene_loaded_data" ],
     [ "SceneImportReportRow", "struct_scene_import_report_row.html", "struct_scene_import_report_row" ],
     [ "SceneModel", "struct_scene_model.html", "struct_scene_model" ],
+    [ "SceneFile", "struct_scene_file.html", "struct_scene_file" ],
     [ "SceneLoadResult", "struct_scene_load_result.html", "struct_scene_load_result" ],
     [ "SceneInputSnapshot", "struct_scene_input_snapshot.html", "struct_scene_input_snapshot" ],
     [ "SceneRunSelection", "_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761", null ],
+    [ "SceneFileWrite", "_scene_model_8h.html#a2f0af6395a02c0c742ec145287c7bfdf", [
+      [ "Always", "_scene_model_8h.html#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c", null ],
+      [ "WithViews", "_scene_model_8h.html#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d", null ],
+      [ "WithPassengers", "_scene_model_8h.html#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539", null ],
+      [ "Never", "_scene_model_8h.html#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c", null ]
+    ] ],
     [ "buildSceneComposition", "_scene_model_8h.html#a7418be61af0a9727c27e9fa61338e4f1", null ],
     [ "buildSceneDirectorySnapshot", "_scene_model_8h.html#a9b4d098f5d08e110343420ff55701cd5", null ],
     [ "defaultScenario", "_scene_model_8h.html#a317b1e12cc4ba5e512895f95047a81b5", null ],
     [ "defaultScenario", "_scene_model_8h.html#a39ad93f62654bff8be543d068944da66", null ],
     [ "defaultScenarioIncidents", "_scene_model_8h.html#a7d56b4000d5a003692532f673ca5e86b", null ],
     [ "defaultScenarioIncidents", "_scene_model_8h.html#ad21b25a9d108aa335fddc1ed87ac807e", null ],
+    [ "isSceneFileName", "_scene_model_8h.html#af51b10f4dc5891e7440bf1e644e8fa26", null ],
     [ "loadScene", "_scene_model_8h.html#aa2c6c115f657599ea4028c2b7a4bcbca", null ],
     [ "makeBaselineScenario", "_scene_model_8h.html#a2f2bd3d29dc4bdb1f84a048068fd7823", null ],
     [ "makeNewSceneModel", "_scene_model_8h.html#a0219e27a2e17a2f4ae3ba1e1a4de311d", null ],
@@ -50,6 +58,7 @@ var _scene_model_8h =
     [ "refreshLoadedDataSummary", "_scene_model_8h.html#a0718b83b572768e7db46382d1ff2a3ce", null ],
     [ "refreshSavedSceneMetadata", "_scene_model_8h.html#ae3ce8bbd695e81b69906adede3343951", null ],
     [ "resolveScenePassengerLegStops", "_scene_model_8h.html#a542427b235c1ce700a1b79692704626c", null ],
+    [ "sceneFileWritten", "_scene_model_8h.html#a69af3c8a54fe5e718e34066cf176e53c", null ],
     [ "sceneOutputDirectoryComponent", "_scene_model_8h.html#a70e6d3f731dfc337f8a100a644af72bb", null ],
     [ "sceneParseVisualizationColor", "_scene_model_8h.html#ab10f507639591bed1de9bc0ac881da66", null ],
     [ "scenePlatformCapacity", "_scene_model_8h.html#ae4bfb9afb6e2e3f0a21b349b907bdb1e", null ],
@@ -66,5 +75,6 @@ var _scene_model_8h =
     [ "kCurrentSceneSchemaVersion", "_scene_model_8h.html#abc26f5639867b24c9e8a891a57b86f3a", null ],
     [ "kDefaultPlatformLengthM", "_scene_model_8h.html#ae5fc684ef6fbebe5d0cc8a95d979bd79", null ],
     [ "kDefaultPlatformWidthM", "_scene_model_8h.html#ad132147496247c482e942adece81c530", null ],
+    [ "kSceneFiles", "_scene_model_8h.html#a17ea65fad1be8609ef1271a2c2c855d1", null ],
     [ "kSceneGravityMs2", "_scene_model_8h.html#ac24f3e5205302959b94756ed22d13564", null ]
 ];

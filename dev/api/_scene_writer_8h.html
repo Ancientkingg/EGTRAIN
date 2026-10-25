@@ -140,6 +140,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a45802402f953087d9d858f26a4b92e6b" id="r_a45802402f953087d9d858f26a4b92e6b"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a45802402f953087d9d858f26a4b92e6b">saveScene</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;sceneDir)</td></tr>
+<tr class="memitem:a14d13a5dbe40153deb002c8e543d98b5" id="r_a14d13a5dbe40153deb002c8e543d98b5"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a14d13a5dbe40153deb002c8e543d98b5">replaceSceneDirectory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;sceneDir)</td></tr>
 <tr class="memitem:a786a7acd10c619ec634411db420b77ae" id="r_a786a7acd10c619ec634411db420b77ae"><td class="memItemLeft"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a786a7acd10c619ec634411db420b77ae">saveScenarioJson</a> (const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &amp;scenario, const std::string &amp;filePath)</td></tr>
 <tr class="memdesc:a786a7acd10c619ec634411db420b77ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes one scenario as a standalone scenario file, replacing the file at filePath.  <br /></td></tr>
 <tr class="memitem:aae8bfdfec6055624487397a2e164e593" id="r_aae8bfdfec6055624487397a2e164e593"><td class="memItemLeft"><a class="el" href="struct_scenario_load_result.html">ScenarioLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aae8bfdfec6055624487397a2e164e593">loadScenarioJson</a> (const std::string &amp;filePath)</td></tr>
@@ -430,6 +431,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a14d13a5dbe40153deb002c8e543d98b5" name="a14d13a5dbe40153deb002c8e543d98b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14d13a5dbe40153deb002c8e543d98b5">&#9670;&#160;</a></span>replaceSceneDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_scene_save_result.html">SceneSaveResult</a> replaceSceneDirectory </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneDir</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Writes the scene files like saveScene, but the new directory replaces a directory at sceneDir with everything in it and keeps the default mode of a new directory. The legacy importer writes its scene with it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8h_a14d13a5dbe40153deb002c8e543d98b5_cgraph.svg" width="1671" height="2036"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a786a7acd10c619ec634411db420b77ae" name="a786a7acd10c619ec634411db420b77ae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a786a7acd10c619ec634411db420b77ae">&#9670;&#160;</a></span>saveScenarioJson()</h2>
 
@@ -480,7 +508,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8h_a45802402f953087d9d858f26a4b92e6b_cgraph.svg" width="1391" height="1952"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_writer_8h_a45802402f953087d9d858f26a4b92e6b_cgraph.svg" width="1594" height="2036"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -7,15 +7,18 @@
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="168,149,265,128,266,133,170,155"/>
 <area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="297,152,372,177"/>
 <area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="216,162,283,162,283,167,216,167"/>
-<area shape="rect" id="Node000006" href="$_scene_importer_8cpp.html#af011a6ca680ac004aafb810c1cfe41ef" title=" " alt="" coords="287,225,382,251"/>
-<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="151,175,283,218,281,223,150,180"/>
-<area shape="rect" id="Node000007" href="$_scene_importer_8cpp.html#aa06f54b9db3428f5c864f4052a0a7352" title=" " alt="" coords="267,299,402,324"/>
-<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="133,175,304,289,301,293,130,180"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,31,301,21,304,11,315,5,335,3,358,6,368,15,364,19,355,11,335,8,317,10,308,15,306,20,311,28"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="307,104,301,94,304,85,315,78,335,76,358,79,368,88,364,92,355,84,335,81,317,83,308,88,306,94,311,101"/>
-<area shape="rect" id="Node000005" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="453,152,552,177"/>
-<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="372,162,439,162,439,167,372,167"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="475,153,469,144,472,134,483,128,503,125,526,129,536,137,532,141,523,134,503,131,485,133,476,137,474,143,479,150"/>
-<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="307,227,301,217,304,207,315,201,335,199,358,202,368,211,364,215,355,207,335,204,317,206,308,211,306,216,311,224"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="307,300,301,290,304,281,315,274,335,272,358,275,368,284,364,288,355,280,335,277,317,279,308,284,306,290,311,297"/>
+<area shape="rect" id="Node000007" href="$_scene_importer_8cpp.html#af011a6ca680ac004aafb810c1cfe41ef" title=" " alt="" coords="287,225,382,251"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="151,175,283,218,281,223,150,180"/>
+<area shape="rect" id="Node000008" href="$_scene_importer_8cpp.html#aa06f54b9db3428f5c864f4052a0a7352" title=" " alt="" coords="267,299,402,324"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="133,175,304,289,301,293,130,180"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,31,300,21,303,11,315,5,335,3,359,6,369,15,365,19,356,11,335,8,316,10,307,15,305,20,310,28"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="306,104,300,94,303,85,315,78,335,76,359,80,369,88,365,92,356,84,335,81,316,83,307,88,305,94,310,101"/>
+<area shape="rect" id="Node000005" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="453,116,564,141"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="372,154,439,140,440,146,373,160"/>
+<area shape="rect" id="Node000006" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="459,189,558,215"/>
+<area shape="poly" id="edge9_Node000004_Node000006" title=" " alt="" coords="373,170,446,186,445,191,372,175"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="480,117,474,108,477,98,489,92,509,89,533,93,543,102,539,106,530,98,509,95,490,97,481,101,479,107,484,114"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="480,191,474,181,477,171,489,165,509,163,533,166,543,175,539,179,530,171,509,168,490,170,481,175,479,180,484,188"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="306,227,300,217,303,207,315,201,335,199,359,202,369,211,365,215,356,207,335,204,316,206,307,211,305,216,310,224"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="306,300,300,290,303,281,315,274,335,272,359,276,369,284,365,288,356,280,335,277,316,279,307,284,305,290,310,297"/>
 </map>

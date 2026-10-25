@@ -391,7 +391,10 @@ loaded and saved again.</p>
 <code class="docutils literal notranslate"><span class="pre">encodeRollingStock</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeServices</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeScenarios</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeViews</span></code> and
 <code class="docutils literal notranslate"><span class="pre">encodePassengers</span></code>), and <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneModel.cpp</span></code> and
 <code class="docutils literal notranslate"><span class="pre">SceneFieldReader.cpp</span></code> read the files. The importer fills a <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and
-writes it with the encoders, so an imported scene has the form of a saved one.
+hands it to <code class="docutils literal notranslate"><span class="pre">replaceSceneDirectory</span></code>, which writes, loads back and publishes it
+as <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> does, so an imported scene has the form of a saved one. Unlike a
+save, it replaces a folder at the destination with everything in it and keeps
+the default mode of a new folder.
 The exporter writes the items of its area sidecar with <code class="docutils literal notranslate"><span class="pre">encodeSignallingArea</span></code>,
 and the importer reads them with <code class="docutils literal notranslate"><span class="pre">decodeSignallingArea</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_scene_codec_contract</span></code> (<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_scene_codec_contract.py</span></code>) fails when
@@ -598,7 +601,10 @@ in <a class="reference internal" href="../guides/scene-schema.html#historical-co
 <p><code class="docutils literal notranslate"><span class="pre">SceneImporter</span></code> maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
 and passengers into the model. It is an explicit conversion command/UI action,
-not a fallback used when running a scene. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
+not a fallback used when running a scene. A legacy number that reads as <code class="docutils literal notranslate"><span class="pre">nan</span></code>
+or <code class="docutils literal notranslate"><span class="pre">inf</span></code> is malformed, like any other unreadable number: a row of a file is
+skipped with the warning <code class="docutils literal notranslate"><span class="pre">scene.import.parse</span></code>, and a Trains or train data file
+gives that code as an error and stops the import. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.</p>
 <p>A legacy file that cannot be opened, or that starts with the UTF-16 byte order
@@ -613,15 +619,30 @@ an unreadable rollout adds no scenario.</p>
 <p><code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> writes a legacy case into a staging folder next to the
 destination and publishes it only when the export is complete, so a failed
 export leaves the destination as it was. A new destination is the staging
-folder renamed. In an existing destination the publish first removes the old
-files that the importer would read as part of the new case: every
-<code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, the
-area sidecar, and <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> when the scene has no
-signalling areas, each in any letter case. It then moves the staged files over
-the files of the same name. The files that the exporter writes only when they
-are missing, such as the track line files, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>,
-the GUI layout and the passenger files, stay as the destination has them, and so
-does every other file there.</p>
+folder renamed. Whether a file is still to be written is decided from the
+staging folder alone: the export copies the files of the legacy passthrough
+first and then writes the files that are still missing, such as the track line
+files, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>, the GUI layout, the route corridors,
+the single-track limits, the station boundaries and the passenger files. In an
+existing destination the publish first removes every input of the importer that
+the destination holds and the staging folder does not, and then moves the staged
+files over the files of the same name. <code class="docutils literal notranslate"><span class="pre">kLegacyInputs</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneExporter.cpp</span></code>
+names these inputs, in any letter case: the track folders <code class="docutils literal notranslate"><span class="pre">B&lt;n&gt;</span></code> in <code class="docutils literal notranslate"><span class="pre">TrackLines</span></code>
+or in the case folder, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">AreasCaseStudy.txt</span></code>
+and the area sidecar in <code class="docutils literal notranslate"><span class="pre">TrackLines</span></code>, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, <code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code> in the
+case folder, the files <code class="docutils literal notranslate"><span class="pre">Route&lt;N&gt;.*</span></code> in <code class="docutils literal notranslate"><span class="pre">Routes</span></code>, the <code class="docutils literal notranslate"><span class="pre">.txt</span></code> files in <code class="docutils literal notranslate"><span class="pre">Trains</span></code>,
+the six GUI files, <code class="docutils literal notranslate"><span class="pre">RoutesToWrite/RoutesToJoin.txt</span></code>, the two passenger files in
+<code class="docutils literal notranslate"><span class="pre">Passengers</span></code> or in the case folder, and the files <code class="docutils literal notranslate"><span class="pre">Rollout_&lt;N&gt;.txt</span></code> in
+<code class="docutils literal notranslate"><span class="pre">TimeTable/Scenarios_Entrance_Delays</span></code>. A track folder goes with everything in
+it. The area sidecar goes first, also when the export writes it again, so that a
+publish that fails part way never leaves an old sidecar beside new track files.
+So the published folder imports as the new scene: a scene with fewer tracks,
+without corridors or without passengers leaves no old track folder, corridor
+file or passenger file behind. The train data and timetable files are read only
+through the paths in the train files, which name only files of this export, so
+they are not removed. Every other file and folder in the destination stays, and
+so do the files in a track folder that the export writes again.</p>
 <p>The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">import_report</span></code>; full
 legacy trees are not duplicated.</p>

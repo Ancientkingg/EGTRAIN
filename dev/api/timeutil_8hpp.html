@@ -134,13 +134,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a8a3fab977012433c3681fdb2da145944" id="r_a8a3fab977012433c3681fdb2da145944"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8a3fab977012433c3681fdb2da145944">formatDateTime</a> (const tm &amp;tm)</td></tr>
 <tr class="memitem:a7e50cdbb92fc52410f369821ad241484" id="r_a7e50cdbb92fc52410f369821ad241484"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7e50cdbb92fc52410f369821ad241484">formatDateTimeFilename</a> (const tm &amp;tm)</td></tr>
 <tr class="memdesc:a7e50cdbb92fc52410f369821ad241484"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code class="param">tm</code> in a form safe for file names, "1900_01_01_12_00_00". The hour has no leading zero.  <br /></td></tr>
-<tr class="memitem:aab9c459724d33a356810baaf7dd5c468" id="r_aab9c459724d33a356810baaf7dd5c468"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aab9c459724d33a356810baaf7dd5c468">getDateTimeStr</a> ()</td></tr>
-<tr class="memdesc:aab9c459724d33a356810baaf7dd5c468"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current local date and time in the form of <a class="el" href="#a8a3fab977012433c3681fdb2da145944">formatDateTime()</a>, "Mon 01.01.1900 12:00:00".  <br /></td></tr>
-<tr class="memitem:ad265e75a076791ef54cd5630ec34770a" id="r_ad265e75a076791ef54cd5630ec34770a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad265e75a076791ef54cd5630ec34770a">getDateTimeFilenameStr</a> ()</td></tr>
-<tr class="memdesc:ad265e75a076791ef54cd5630ec34770a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current local date and time in the form of <a class="el" href="#a7e50cdbb92fc52410f369821ad241484" title="tm in a form safe for file names, &quot;1900_01_01_12_00_00&quot;. The hour has no leading zero.">formatDateTimeFilename()</a>, "1900_01_01_12_00_00".  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Text forms of simulation times and of the current local date and time. </p>
+<div class="textblock"><p>Text forms of simulation times and of a local date and time. </p>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a8a3fab977012433c3681fdb2da145944" name="a8a3fab977012433c3681fdb2da145944"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8a3fab977012433c3681fdb2da145944">&#9670;&#160;</a></span>formatDateTime()</h2>
@@ -201,70 +197,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="timeutil_8hpp_a7e50cdbb92fc52410f369821ad241484_cgraph.svg" width="202" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ad265e75a076791ef54cd5630ec34770a" name="ad265e75a076791ef54cd5630ec34770a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad265e75a076791ef54cd5630ec34770a">&#9670;&#160;</a></span>getDateTimeFilenameStr()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string getDateTimeFilenameStr </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The current local date and time in the form of <a class="el" href="#a7e50cdbb92fc52410f369821ad241484" title="tm in a form safe for file names, &quot;1900_01_01_12_00_00&quot;. The hour has no leading zero.">formatDateTimeFilename()</a>, "1900_01_01_12_00_00". </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="timeutil_8hpp_ad265e75a076791ef54cd5630ec34770a_cgraph.svg" width="435" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aab9c459724d33a356810baaf7dd5c468" name="aab9c459724d33a356810baaf7dd5c468"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab9c459724d33a356810baaf7dd5c468">&#9670;&#160;</a></span>getDateTimeStr()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string getDateTimeStr </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The current local date and time in the form of <a class="el" href="#a8a3fab977012433c3681fdb2da145944">formatDateTime()</a>, "Mon 01.01.1900 12:00:00". </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="timeutil_8hpp_aab9c459724d33a356810baaf7dd5c468_cgraph.svg" width="315" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

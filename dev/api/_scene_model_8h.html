@@ -128,7 +128,7 @@ Include dependency graph for SceneModel.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h__dep__incl.svg" width="5508" height="344"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h__dep__incl.svg" width="6504" height="344"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_scene_model_8h_source.html">Go to the source code of this file.</a></p>
@@ -197,6 +197,8 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A row of import_report in scene.json. The counts describe the conversion source, not a run.  <a href="struct_scene_import_report_row.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneModel" id="r_SceneModel"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_model.html">SceneModel</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole scene: the content of the scene files and the summaries derived from them.  <a href="struct_scene_model.html#details">More...</a><br /></td></tr>
+<tr class="memitem:SceneFile" id="r_SceneFile"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_file.html">SceneFile</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A file of a scene directory.  <a href="struct_scene_file.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneLoadResult" id="r_SceneLoadResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of loading a scene directory or bundle.  <a href="struct_scene_load_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneInputSnapshot" id="r_SceneInputSnapshot"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_input_snapshot.html">SceneInputSnapshot</a></td></tr>
@@ -206,6 +208,15 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:ad9ed02f1c27b585001ed98c686bc3761" id="r_ad9ed02f1c27b585001ed98c686bc3761"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> = std::set&lt;<a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a>&gt;</td></tr>
 <tr class="memdesc:ad9ed02f1c27b585001ed98c686bc3761"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrences chosen for a run. An empty set means every occurrence.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a2f0af6395a02c0c742ec145287c7bfdf" id="r_a2f0af6395a02c0c742ec145287c7bfdf"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdf">SceneFileWrite</a> { <a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">Always</a>
+, <a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">WithViews</a>
+, <a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">WithPassengers</a>
+, <a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">Never</a>
+ }</td></tr>
+<tr class="memdesc:a2f0af6395a02c0c742ec145287c7bfdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">When saveScene writes a file of a scene directory.  <a href="#a2f0af6395a02c0c742ec145287c7bfdf">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -234,6 +245,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a765f734ddc8d717d03dfb08048237303" id="r_a765f734ddc8d717d03dfb08048237303"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a765f734ddc8d717d03dfb08048237303">sceneSignals</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a47ec40739fdcf8b8b023d48cc1e371a4" id="r_a47ec40739fdcf8b8b023d48cc1e371a4"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a47ec40739fdcf8b8b023d48cc1e371a4">sceneSignals</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a47ec40739fdcf8b8b023d48cc1e371a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signals of the scene, read-only.  <br /></td></tr>
+<tr class="memitem:af51b10f4dc5891e7440bf1e644e8fa26" id="r_af51b10f4dc5891e7440bf1e644e8fa26"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af51b10f4dc5891e7440bf1e644e8fa26">isSceneFileName</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:af51b10f4dc5891e7440bf1e644e8fa26"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when name is the name of a file in kSceneFiles.  <br /></td></tr>
+<tr class="memitem:a69af3c8a54fe5e718e34066cf176e53c" id="r_a69af3c8a54fe5e718e34066cf176e53c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a69af3c8a54fe5e718e34066cf176e53c">sceneFileWritten</a> (const <a class="el" href="struct_scene_file.html">SceneFile</a> &amp;file, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a69af3c8a54fe5e718e34066cf176e53c"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when saveScene writes file for scene.  <br /></td></tr>
 <tr class="memitem:a9b4d098f5d08e110343420ff55701cd5" id="r_a9b4d098f5d08e110343420ff55701cd5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9b4d098f5d08e110343420ff55701cd5">buildSceneDirectorySnapshot</a> (const std::vector&lt; std::pair&lt; std::string, std::string &gt; &gt; &amp;files)</td></tr>
 <tr class="memitem:ab470a024de4ed1752b1d3e0f02ba84c1" id="r_ab470a024de4ed1752b1d3e0f02ba84c1"><td class="memItemLeft"><a class="el" href="struct_scene_input_snapshot.html">SceneInputSnapshot</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab470a024de4ed1752b1d3e0f02ba84c1">readSceneDirectorySnapshot</a> (const std::string &amp;sceneDir)</td></tr>
 <tr class="memitem:aa2c6c115f657599ea4028c2b7a4bcbca" id="r_aa2c6c115f657599ea4028c2b7a4bcbca"><td class="memItemLeft"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2c6c115f657599ea4028c2b7a4bcbca">loadScene</a> (const std::string &amp;sceneDir)</td></tr>
@@ -254,6 +269,7 @@ Variables</h2></td></tr>
 <tr class="memitem:ad132147496247c482e942adece81c530" id="r_ad132147496247c482e942adece81c530"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ad132147496247c482e942adece81c530">kDefaultPlatformWidthM</a> = 2.5</td></tr>
 <tr class="memdesc:ad132147496247c482e942adece81c530"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width of a platform in metres when the platform states none.  <br /></td></tr>
 <tr class="memitem:ac24f3e5205302959b94756ed22d13564" id="r_ac24f3e5205302959b94756ed22d13564"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#ac24f3e5205302959b94756ed22d13564">kSceneGravityMs2</a> = 9.81</td></tr>
+<tr class="memitem:a17ea65fad1be8609ef1271a2c2c855d1" id="r_a17ea65fad1be8609ef1271a2c2c855d1"><td class="memItemLeft">constexpr std::array&lt; <a class="el" href="struct_scene_file.html">SceneFile</a>, 10 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a17ea65fad1be8609ef1271a2c2c855d1">kSceneFiles</a></td></tr>
 </table>
 <a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
 <a id="ad9ed02f1c27b585001ed98c686bc3761" name="ad9ed02f1c27b585001ed98c686bc3761"></a>
@@ -269,6 +285,41 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The occurrences chosen for a run. An empty set means every occurrence. </p>
+
+</div>
+</div>
+<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
+<a id="a2f0af6395a02c0c742ec145287c7bfdf" name="a2f0af6395a02c0c742ec145287c7bfdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f0af6395a02c0c742ec145287c7bfdf">&#9670;&#160;</a></span>SceneFileWrite</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a2f0af6395a02c0c742ec145287c7bfdf">SceneFileWrite</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>When saveScene writes a file of a scene directory. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c" name="a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c"></a>Always&#160;</td><td class="fielddoc"><p>On every save. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d" name="a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d"></a>WithViews&#160;</td><td class="fielddoc"><p>When the scene has track or station views. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539" name="a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539"></a>WithPassengers&#160;</td><td class="fielddoc"><p>When the scene has passengers. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c" name="a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c"></a>Never&#160;</td><td class="fielddoc"><p>Never; the loader still reads it from an older scene. </p>
+</td></tr>
+</table>
 
 </div>
 </div>
@@ -428,6 +479,30 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="af51b10f4dc5891e7440bf1e644e8fa26" name="af51b10f4dc5891e7440bf1e644e8fa26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af51b10f4dc5891e7440bf1e644e8fa26">&#9670;&#160;</a></span>isSceneFileName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool isSceneFileName </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True when name is the name of a file in kSceneFiles. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_af51b10f4dc5891e7440bf1e644e8fa26_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aa2c6c115f657599ea4028c2b7a4bcbca" name="aa2c6c115f657599ea4028c2b7a4bcbca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa2c6c115f657599ea4028c2b7a4bcbca">&#9670;&#160;</a></span>loadScene()</h2>
 
@@ -446,7 +521,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1138" height="879"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1138" height="1027"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -516,7 +591,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ab470a024de4ed1752b1d3e0f02ba84c1_cgraph.svg" width="483" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ab470a024de4ed1752b1d3e0f02ba84c1_cgraph.svg" width="483" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -591,7 +666,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="895" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="895" height="170"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -624,6 +699,34 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_a542427b235c1ce700a1b79692704626c_cgraph.svg" width="210" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a69af3c8a54fe5e718e34066cf176e53c" name="a69af3c8a54fe5e718e34066cf176e53c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69af3c8a54fe5e718e34066cf176e53c">&#9670;&#160;</a></span>sceneFileWritten()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool sceneFileWritten </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_file.html">SceneFile</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>file</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True when saveScene writes file for scene. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_a69af3c8a54fe5e718e34066cf176e53c_cgraph.svg" width="142" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1051,6 +1154,45 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Width of a platform in metres when the platform states none. </p>
+
+</div>
+</div>
+<a id="a17ea65fad1be8609ef1271a2c2c855d1" name="a17ea65fad1be8609ef1271a2c2c855d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17ea65fad1be8609ef1271a2c2c855d1">&#9670;&#160;</a></span>kSceneFiles</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::array&lt;<a class="el" href="struct_scene_file.html">SceneFile</a>, 10&gt; kSceneFiles</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel constexpr">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{{</div>
+<div class="line">    {<span class="stringliteral">&quot;scene.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;infrastructure.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;stations.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;signalling.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;rolling_stock.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;services.json&quot;</span>, <span class="keyword">true</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;scenarios.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;views.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;passengers.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a>},</div>
+<div class="line">    {<span class="stringliteral">&quot;incidents.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a>},</div>
+<div class="line">}}</div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a></div><div class="ttdeci">@ Always</div><div class="ttdoc">On every save.</div><div class="ttdef"><b>Definition</b> SceneModel.h:479</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a></div><div class="ttdeci">@ Never</div><div class="ttdoc">Never; the loader still reads it from an older scene.</div><div class="ttdef"><b>Definition</b> SceneModel.h:482</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a></div><div class="ttdeci">@ WithViews</div><div class="ttdoc">When the scene has track or station views.</div><div class="ttdef"><b>Definition</b> SceneModel.h:480</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a></div><div class="ttdeci">@ WithPassengers</div><div class="ttdoc">When the scene has passengers.</div><div class="ttdef"><b>Definition</b> SceneModel.h:481</div></div>
+</div><!-- fragment --><p>Every file of a scene directory, in the order in which saveScene writes them. The snapshot of a directory holds all of them. A bundle holds the files that saveScene writes, and those that it always writes are required there. </p>
 
 </div>
 </div>

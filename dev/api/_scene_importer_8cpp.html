@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
 <code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
-<code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;locale&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;unordered_set&gt;</code><br />
@@ -138,7 +137,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneImporter.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp__incl.svg" width="2792" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp__incl.svg" width="2703" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -158,8 +157,6 @@ Functions</h2></td></tr>
 <tr class="memitem:ade7e37ac73a4aaa31469db5376843898" id="r_ade7e37ac73a4aaa31469db5376843898"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ade7e37ac73a4aaa31469db5376843898">readFile</a> (const fs::path &amp;path, std::string &amp;content)</td></tr>
 <tr class="memitem:ab5cba885129b8c9b017c168d6f62fb46" id="r_ab5cba885129b8c9b017c168d6f62fb46"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab5cba885129b8c9b017c168d6f62fb46">trimRight</a> (const std::string &amp;s)</td></tr>
 <tr class="memitem:a8c7f671a4eaae43db4839df0abcb514a" id="r_a8c7f671a4eaae43db4839df0abcb514a"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a8c7f671a4eaae43db4839df0abcb514a">trim</a> (const std::string &amp;s)</td></tr>
-<tr class="memitem:a75925cf258bf89c8557962077084a052" id="r_a75925cf258bf89c8557962077084a052"><td class="memItemLeft">static fs::path&#160;</td><td class="memItemRight"><a class="el" href="#a75925cf258bf89c8557962077084a052">comparablePath</a> (const fs::path &amp;path)</td></tr>
-<tr class="memitem:a0d22c674dfdd3b9eb040c615c492fa74" id="r_a0d22c674dfdd3b9eb040c615c492fa74"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0d22c674dfdd3b9eb040c615c492fa74">containsPath</a> (const fs::path &amp;parent, const fs::path &amp;child)</td></tr>
 <tr class="memitem:a958a60e28b09996849ec7665c6206390" id="r_a958a60e28b09996849ec7665c6206390"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a958a60e28b09996849ec7665c6206390">lowerCopy</a> (std::string value)</td></tr>
 <tr class="memitem:a2368828ed01ecf60634935e6a32c40d2" id="r_a2368828ed01ecf60634935e6a32c40d2"><td class="memItemLeft">static fs::path&#160;</td><td class="memItemRight"><a class="el" href="#a2368828ed01ecf60634935e6a32c40d2">findChild</a> (const fs::path &amp;parent, const std::string &amp;wanted)</td></tr>
 <tr class="memitem:aeb67ac0899e16f66f4bc593ee7ee86a0" id="r_aeb67ac0899e16f66f4bc593ee7ee86a0"><td class="memItemLeft">static std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aeb67ac0899e16f66f4bc593ee7ee86a0">splitTab</a> (const std::string &amp;line)</td></tr>
@@ -222,70 +219,6 @@ Functions</h2></td></tr>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a43e685f5959241ac53cd7084a393b657_cgraph.svg" width="470" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a75925cf258bf89c8557962077084a052" name="a75925cf258bf89c8557962077084a052"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a75925cf258bf89c8557962077084a052">&#9670;&#160;</a></span>comparablePath()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">fs::path comparablePath </td>
-          <td>(</td>
-          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a75925cf258bf89c8557962077084a052_cgraph.svg" width="312" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a0d22c674dfdd3b9eb040c615c492fa74" name="a0d22c674dfdd3b9eb040c615c492fa74"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d22c674dfdd3b9eb040c615c492fa74">&#9670;&#160;</a></span>containsPath()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool containsPath </td>
-          <td>(</td>
-          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>child</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a0d22c674dfdd3b9eb040c615c492fa74_cgraph.svg" width="270" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -380,7 +313,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_af073cc46a3a51cb4473f73f12825f8ce_cgraph.svg" width="1074" height="911"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_af073cc46a3a51cb4473f73f12825f8ce_cgraph.svg" width="1074" height="948"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -412,7 +345,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1436" height="2899"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1202" height="2507"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -699,7 +632,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a2f5776be3b2a317ae03a8f48cc9ef105_cgraph.svg" width="842" height="868"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a2f5776be3b2a317ae03a8f48cc9ef105_cgraph.svg" width="842" height="879"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -722,7 +655,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_aacfecc4e25bcb168faf76da83167440f_cgraph.svg" width="558" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_aacfecc4e25bcb168faf76da83167440f_cgraph.svg" width="570" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -745,7 +678,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_af2140a30b929da68c19a93d11c3a6177_cgraph.svg" width="554" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_af2140a30b929da68c19a93d11c3a6177_cgraph.svg" width="566" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -852,7 +785,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ade7e37ac73a4aaa31469db5376843898_cgraph.svg" width="232" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ade7e37ac73a4aaa31469db5376843898_cgraph.svg" width="244" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

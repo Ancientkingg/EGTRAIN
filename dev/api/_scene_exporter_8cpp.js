@@ -1,13 +1,20 @@
 var _scene_exporter_8cpp =
 [
+    [ "LegacyInput", "struct_legacy_input.html", "struct_legacy_input" ],
     [ "ExportFolders", "struct_export_folders.html", "struct_export_folders" ],
+    [ "LegacyInputKind", "_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011", [
+      [ "Entry", "_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c", null ],
+      [ "File", "_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e", null ],
+      [ "Folder", "_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af", null ],
+      [ "Sidecar", "_scene_exporter_8cpp.html#a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062", null ]
+    ] ],
     [ "buildLegacyBlockIds", "_scene_exporter_8cpp.html#a4530c314faeed1ecb0bfab255b4b1627", null ],
     [ "buildLegacyTrackIds", "_scene_exporter_8cpp.html#a4936e0d018814c6e7b32d572b2ebc4c3", null ],
-    [ "comparablePath", "_scene_exporter_8cpp.html#a75925cf258bf89c8557962077084a052", null ],
-    [ "containsPath", "_scene_exporter_8cpp.html#a0d22c674dfdd3b9eb040c615c492fa74", null ],
+    [ "collectOldInputs", "_scene_exporter_8cpp.html#a757d9d92c57ed0654216b0194409d237", null ],
     [ "exportLegacyScene", "_scene_exporter_8cpp.html#a3c8e917e697fb1590f70c3894717040b", null ],
     [ "formatNumber", "_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441", null ],
     [ "isLegacyRouteFile", "_scene_exporter_8cpp.html#a9c3144d5d9f799f08430e9081be7c26e", null ],
+    [ "isLegacyTrackFolderName", "_scene_exporter_8cpp.html#a803fd08886164f526fc725105c0266e9", null ],
     [ "isPositionedRouteEndpoint", "_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f", null ],
     [ "isSwitchTransitionRouteEntry", "_scene_exporter_8cpp.html#aad950abdec606049de6ad0e476ccf2f1", null ],
     [ "legacyBoundaryToken", "_scene_exporter_8cpp.html#a852c4c61a8d9505c440d48336336808b", null ],
@@ -23,5 +30,6 @@ var _scene_exporter_8cpp =
     [ "synthesizeGuiLayout", "_scene_exporter_8cpp.html#a3f6a40b2209c24df28e7a1237aa035e5", null ],
     [ "synthesizeSignallingAreas", "_scene_exporter_8cpp.html#a9b4874707e0d44d9698942d7235c828b", null ],
     [ "writeInitialParameters", "_scene_exporter_8cpp.html#a974520e4a9aae840f353f2886f664de6", null ],
-    [ "writeViewLayout", "_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67", null ]
+    [ "writeViewLayout", "_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67", null ],
+    [ "kLegacyInputs", "_scene_exporter_8cpp.html#abfa2c30132affc4af2362448d4858b93", null ]
 ];

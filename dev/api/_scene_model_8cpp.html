@@ -115,12 +115,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_model_8
 <div class="textblock"><code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_fields_8h_source.html">scene/SceneFields.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cctype&gt;</code><br />
 <code>#include &lt;climits&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
-<code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;nlohmann/json.hpp&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_model_8
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneModel.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp__incl.svg" width="1762" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp__incl.svg" width="2015" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -165,6 +165,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a0718b83b572768e7db46382d1ff2a3ce" id="r_a0718b83b572768e7db46382d1ff2a3ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0718b83b572768e7db46382d1ff2a3ce">refreshLoadedDataSummary</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a0718b83b572768e7db46382d1ff2a3ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rebuilds loadedData from the model and sourceFiles.  <br /></td></tr>
 <tr class="memitem:af50f126ec84573bc40322ddf0a48140d" id="r_af50f126ec84573bc40322ddf0a48140d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af50f126ec84573bc40322ddf0a48140d">refreshLoadedDataDiagnostics</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
+<tr class="memitem:af51b10f4dc5891e7440bf1e644e8fa26" id="r_af51b10f4dc5891e7440bf1e644e8fa26"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af51b10f4dc5891e7440bf1e644e8fa26">isSceneFileName</a> (const std::string &amp;name)</td></tr>
+<tr class="memdesc:af51b10f4dc5891e7440bf1e644e8fa26"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when name is the name of a file in kSceneFiles.  <br /></td></tr>
+<tr class="memitem:a69af3c8a54fe5e718e34066cf176e53c" id="r_a69af3c8a54fe5e718e34066cf176e53c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a69af3c8a54fe5e718e34066cf176e53c">sceneFileWritten</a> (const <a class="el" href="struct_scene_file.html">SceneFile</a> &amp;file, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a69af3c8a54fe5e718e34066cf176e53c"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when saveScene writes file for scene.  <br /></td></tr>
 <tr class="memitem:ae3ce8bbd695e81b69906adede3343951" id="r_ae3ce8bbd695e81b69906adede3343951"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3ce8bbd695e81b69906adede3343951">refreshSavedSceneMetadata</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes and rebuilds loadedData.  <br /></td></tr>
 <tr class="memitem:aa2c6c115f657599ea4028c2b7a4bcbca" id="r_aa2c6c115f657599ea4028c2b7a4bcbca"><td class="memItemLeft"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2c6c115f657599ea4028c2b7a4bcbca">loadScene</a> (const std::string &amp;sceneDir)</td></tr>
@@ -325,6 +329,30 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="af51b10f4dc5891e7440bf1e644e8fa26" name="af51b10f4dc5891e7440bf1e644e8fa26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af51b10f4dc5891e7440bf1e644e8fa26">&#9670;&#160;</a></span>isSceneFileName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool isSceneFileName </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True when name is the name of a file in kSceneFiles. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_af51b10f4dc5891e7440bf1e644e8fa26_cgraph.svg" width="146" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aa2c6c115f657599ea4028c2b7a4bcbca" name="aa2c6c115f657599ea4028c2b7a4bcbca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa2c6c115f657599ea4028c2b7a4bcbca">&#9670;&#160;</a></span>loadScene()</h2>
 
@@ -343,7 +371,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1138" height="879"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1138" height="1027"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -413,7 +441,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ab470a024de4ed1752b1d3e0f02ba84c1_cgraph.svg" width="483" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ab470a024de4ed1752b1d3e0f02ba84c1_cgraph.svg" width="483" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -488,7 +516,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="895" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="895" height="170"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -521,6 +549,34 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_a542427b235c1ce700a1b79692704626c_cgraph.svg" width="210" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a69af3c8a54fe5e718e34066cf176e53c" name="a69af3c8a54fe5e718e34066cf176e53c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69af3c8a54fe5e718e34066cf176e53c">&#9670;&#160;</a></span>sceneFileWritten()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool sceneFileWritten </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_scene_file.html">SceneFile</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>file</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>True when saveScene writes file for scene. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_a69af3c8a54fe5e718e34066cf176e53c_cgraph.svg" width="142" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

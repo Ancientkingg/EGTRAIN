@@ -1,16 +1,19 @@
 <map id="refreshSavedSceneMetadata" name="refreshSavedSceneMetadata">
-<area shape="rect" id="Node000001" title="Sets sourceFiles to the files that a save writes and rebuilds loadedData." alt="" coords="5,67,215,92"/>
-<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="69,68,60,58,64,48,81,42,110,40,146,44,156,49,160,54,156,57,153,53,145,49,110,45,82,47,68,52,65,58,72,65"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title="Rebuilds loadedData from the model and sourceFiles." alt="" coords="263,67,472,92"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,77,249,77,249,82,215,82"/>
-<area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="330,68,322,58,327,48,342,42,367,40,399,44,411,53,408,57,397,49,367,45,343,47,330,52,328,58,334,65"/>
+<area shape="rect" id="Node000001" title="Sets sourceFiles to the files that a save writes and rebuilds loadedData." alt="" coords="5,103,215,128"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="69,104,60,94,64,84,81,78,110,76,146,80,156,85,160,90,156,93,153,89,145,85,110,81,82,83,68,88,65,94,72,101"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title="Rebuilds loadedData from the model and sourceFiles." alt="" coords="263,65,472,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,100,265,90,266,95,198,105"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a69af3c8a54fe5e718e34066cf176e53c" title="True when saveScene writes file for scene." alt="" coords="302,139,433,164"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="201,125,289,138,288,143,201,131"/>
+<area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="330,67,322,57,327,47,342,41,367,39,399,43,411,52,408,56,397,47,367,44,343,46,330,51,328,56,334,63"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="533,29,657,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="445,64,519,52,520,57,446,69"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,63,520,51,520,56,449,68"/>
 <area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="520,103,671,128"/>
-<area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="449,89,507,99,506,104,448,95"/>
+<area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="446,88,507,98,506,103,445,93"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="561,31,554,21,558,11,572,5,595,3,624,6,636,15,632,20,622,11,595,8,573,10,561,15,559,20,565,28"/>
 <area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="719,29,889,55"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="657,39,705,39,705,45,657,45"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="770,31,763,21,766,11,781,5,804,3,833,6,844,15,841,20,831,11,804,8,782,10,770,15,768,20,774,28"/>
 <area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="561,104,554,94,558,84,572,78,595,76,624,80,636,89,632,93,622,85,595,81,573,83,561,88,559,94,565,101"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="330,140,322,130,327,120,342,114,367,112,399,116,411,125,408,129,397,121,367,117,343,119,330,124,328,130,334,137"/>
 </map>

@@ -1,25 +1,22 @@
 <map id="synthesizeGuiLayout" name="synthesizeGuiLayout">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,164,117"/>
-<area shape="poly" id="edge8_Node000001_Node000001" title=" " alt="" coords="51,94,44,84,47,74,61,68,85,65,113,69,125,78,121,82,111,74,85,71,63,73,51,77,49,83,55,90"/>
-<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title=" " alt="" coords="419,29,589,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,90,156,69,211,51,311,38,405,35,405,40,311,43,213,57,158,74,111,94"/>
-<area shape="rect" id="Node000004" href="$struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650" title="True when existing finds a file at relative." alt="" coords="212,67,371,92"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="164,92,198,88,199,93,165,98"/>
-<area shape="rect" id="Node000005" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="445,117,563,143"/>
-<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="165,107,431,123,431,128,164,112"/>
-<area shape="rect" id="Node000006" href="$_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67" title=" " alt="" coords="226,192,357,217"/>
-<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="113,115,253,183,250,188,111,120"/>
-<area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="637,29,728,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="590,39,624,39,624,45,590,45"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="653,31,647,21,650,11,662,5,683,3,707,6,718,15,714,19,705,11,683,8,664,10,654,15,652,20,657,28"/>
-<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="364,64,417,54,418,60,365,69"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="474,119,468,109,471,99,484,93,504,91,529,94,539,103,535,107,526,99,504,96,485,98,475,103,473,108,479,116"/>
-<area shape="poly" id="edge10_Node000006_Node000005" title=" " alt="" coords="321,189,418,151,441,144,443,149,420,157,323,194"/>
-<area shape="poly" id="edge15_Node000006_Node000006" title=" " alt="" coords="258,194,250,184,254,174,268,168,291,165,320,169,331,178,328,182,318,174,291,171,269,173,258,177,256,183,262,190"/>
-<area shape="rect" id="Node000007" href="$_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b" title=" " alt="" coords="429,191,579,216"/>
-<area shape="poly" id="edge11_Node000006_Node000007" title=" " alt="" coords="357,202,415,201,415,207,357,207"/>
-<area shape="rect" id="Node000008" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="448,264,560,289"/>
-<area shape="poly" id="edge13_Node000006_Node000008" title=" " alt="" coords="331,215,454,257,452,262,329,220"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="474,192,468,182,471,173,484,166,504,164,529,168,539,176,535,180,526,172,504,169,485,171,475,176,473,182,479,189"/>
-<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="474,265,468,256,471,246,484,240,504,237,529,241,539,250,535,254,526,246,504,243,485,245,475,249,473,255,479,262"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,164,93"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="51,70,44,60,47,50,61,44,85,41,113,45,125,54,121,58,111,50,85,47,63,49,51,53,49,59,55,66"/>
+<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="419,5,589,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,66,156,45,211,27,311,14,405,11,405,16,311,19,213,33,158,50,111,70"/>
+<area shape="rect" id="Node000003" href="$struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650" title="True when existing finds a file at relative." alt="" coords="212,43,371,68"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,68,198,64,199,69,165,74"/>
+<area shape="rect" id="Node000004" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="445,93,563,119"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="165,83,431,99,431,104,164,88"/>
+<area shape="rect" id="Node000005" href="$_scene_exporter_8cpp.html#aea56aab1e162a700d87bce2e6b546c67" title=" " alt="" coords="226,168,357,193"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="113,91,253,159,250,164,111,96"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="364,40,417,30,418,36,365,45"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="469,95,462,85,466,75,480,69,504,67,533,70,545,79,542,84,531,75,504,72,482,74,470,79,467,84,474,92"/>
+<area shape="poly" id="edge8_Node000005_Node000004" title=" " alt="" coords="321,165,418,127,441,120,443,125,420,133,323,170"/>
+<area shape="poly" id="edge13_Node000005_Node000005" title=" " alt="" coords="258,170,250,160,254,150,268,144,291,141,320,145,331,154,328,158,318,150,291,147,269,149,258,153,256,159,262,166"/>
+<area shape="rect" id="Node000006" href="$_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b" title=" " alt="" coords="429,167,579,192"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="357,178,415,177,415,183,357,183"/>
+<area shape="rect" id="Node000007" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="448,240,560,265"/>
+<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="331,191,454,233,452,238,329,196"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="469,168,462,158,466,148,480,142,504,140,533,144,545,153,542,157,531,149,504,145,482,147,470,152,467,158,474,165"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="469,242,462,232,466,222,480,216,504,213,533,217,545,226,542,230,531,222,504,219,482,221,470,225,467,231,474,238"/>
 </map>

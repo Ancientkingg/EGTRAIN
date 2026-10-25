@@ -8,6 +8,7 @@ var _scene_writer_8cpp =
     [ "encodePassengers", "_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147", null ],
     [ "encodeRollingStock", "_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314", null ],
     [ "encodeScenarios", "_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17", null ],
+    [ "encodeSceneFile", "_scene_writer_8cpp.html#a57608590d6bb9a44f3a24d1f85c71890", null ],
     [ "encodeSceneMetadata", "_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de", null ],
     [ "encodeServices", "_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486", null ],
     [ "encodeSignalling", "_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc", null ],
@@ -17,6 +18,7 @@ var _scene_writer_8cpp =
     [ "encodeViews", "_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12", null ],
     [ "inspectDestination", "_scene_writer_8cpp.html#ae653d17bef461bf7eaf89f96ea45485c", null ],
     [ "loadScenarioJson", "_scene_writer_8cpp.html#aae8bfdfec6055624487397a2e164e593", null ],
+    [ "replaceSceneDirectory", "_scene_writer_8cpp.html#a14d13a5dbe40153deb002c8e543d98b5", null ],
     [ "saveScenarioJson", "_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae", null ],
     [ "saveScene", "_scene_writer_8cpp.html#a45802402f953087d9d858f26a4b92e6b", null ],
     [ "serializeJson", "_scene_writer_8cpp.html#a13d90d8066135562db9ad8368921daa6", null ],
@@ -25,5 +27,6 @@ var _scene_writer_8cpp =
     [ "writeJsonFileReplacing", "_scene_writer_8cpp.html#a54c92eff3d4b83adcc7ab02a5020aad4", null ],
     [ "writePhysical", "_scene_writer_8cpp.html#a9f704ed2bf3a6d752874400c6a256212", null ],
     [ "writeScenarioValue", "_scene_writer_8cpp.html#a2937bfe822fa84a0fd4ec1e474744733", null ],
+    [ "writeSceneDirectory", "_scene_writer_8cpp.html#acb758208b15b36fd3e891b99992950cf", null ],
     [ "writeSceneGeneration", "_scene_writer_8cpp.html#a4c312eb521372713ae6a8bfd29d391f1", null ]
 ];
