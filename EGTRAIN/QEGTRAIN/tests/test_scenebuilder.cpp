@@ -10,10 +10,19 @@
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
+// The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
+#include <QObject>
+#include <QScopeGuard>
+#include <QString>
+#include <QTest>
+#ifdef signals
+#undef signals
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <iostream>
+#include <iterator>
 #include <list>
 #include <locale>
 #include <map>
@@ -23,10 +32,93 @@
 #include <tuple>
 #include <vector>
 
-static bool expect(bool condition, const std::string& message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
+// The builders write the run of the process. The slots run in the order of their declaration, as the groups of checks did
+// before them, and a slot that reads what a build left starts with that build.
+class TestSceneBuilder : public QObject {
+	Q_OBJECT
+
+private slots:
+	void cleanupTestCase();
+	void buildsCompleteScene();
+	void regionalRouteFollowsFirstSegment();
+	void derivesSwitchSectionFromStableIds();
+	void rejectsDerivedRouteReversals();
+	void appliesSignallingAreasBeforeRoutes();
+	void explicitReverseKeepsReferenceCoordinate();
+	void descendingBlockOrderReversesRoute();
+	void declaredTopologyControlsDirection();
+	void multiRegionRouteKeepsAuthoredOrder();
+	void partialAreaLeavesOtherSectionsUnset();
+	void labelsReadAsTrackAndKilometres();
+	void showsRoundedKilometreOnce();
+	void sharedLabelEndsWithId();
+	void unknownReferenceKeepsId();
+	void labelWithIdNamesIdOnce();
+	void ambiguousReferenceKeepsId();
+	void labelsExactlyResolvableReferences();
+	void routeSectionsCarrySectionLevels();
+	void areaLevelsOfLineSections_data();
+	void areaLevelsOfLineSections();
+	void trackScopedAreaOverridesOwnTrack();
+	void reversedRouteKeepsSectionLevels();
+	void levelWarningAgreesWithBuild_data();
+	void levelWarningAgreesWithBuild();
+	void areasSurviveExportAndImport_data();
+	void areasSurviveExportAndImport();
+	void buildsLongTrack();
+	void buildsManySections();
+	void routeHoldsExactlyItsSections();
+	void routeEndsWhereLastSectionEnds();
+	void copiesNode();
+	void nodesDifferingInOneMemberDiffer_data();
+	void nodesDifferingInOneMemberDiffer();
+	void copiesArc();
+	void arcsDifferingInOneMemberDiffer_data();
+	void arcsDifferingInOneMemberDiffer();
+	void copiesSection();
+	void sectionsDifferingInOneMemberDiffer_data();
+	void sectionsDifferingInOneMemberDiffer();
+	void namesTrackDetectionBorders();
+	void logsRouteSetup();
+	void logsCutOutsideSection();
+	void logsCutsAtSwitchEdges();
+	void logsCrossedElementsWithoutName();
+	void logsDetectionBorderWarnings();
+	void logsShortSwitchNames();
+	void logsSwitchConnectedToOtherBlocks();
+	void logsTooManyConnectedSections();
+	void occupiesSectionAndConnectedSections();
+	void tailConnectsSectionsOfPreviousSection();
+	void occupiesTenConnectedSections();
+	void releasesSectionAndConnectedSections();
+	void releasesSwitchWithItsBlocks();
+	void switchWithoutBlocksChangesNoList();
+	void occupiesAndReleasesDoubleSwitch();
+	void sceneSectionsListTheirNodes();
+	void switchSectionListsNodesOfBothBlocks();
+	void cutSectionListsNodesToCut();
+	void copiesShareNodeList();
+	void cutSectionOwnsItsList_data();
+	void cutSectionOwnsItsList();
+	void routeSectionsShareNetworkLists();
+	void crossoverElsewhereKeepsOwnStart();
+	void crossoverAtSharedSwitchTakesOverStart();
+	void lastLocationHasNoClearingTime_data();
+	void lastLocationHasNoClearingTime();
+	void failedBuildKeepsPreviousRuntime_data();
+	void failedBuildKeepsPreviousRuntime();
+	void buildsAgainAfterFailedBuilds();
+
+private:
+	// The folder of the export round trips. Its rows share it, so a later row saves and exports over the folders of the
+	// earlier ones.
+	std::filesystem::path m_roundtripRoot;
+};
+
+void TestSceneBuilder::cleanupTestCase() {
+	std::error_code ec;
+	if (!m_roundtripRoot.empty())
+		std::filesystem::remove_all(m_roundtripRoot, ec);
 }
 
 static SceneModel tinyScene() {
@@ -136,60 +228,71 @@ static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, Scene
 	return false;
 }
 
-static bool runTinyBuilderChecks() {
-	bool ok = true;
-	SceneModel scene = tinyScene();
-	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
-	ok &= expect(!hasErrors(diagnostics), "complete scene builds without errors");
-	ok &= expect(defaultRun().infra.numTrackLines == 1 && defaultRun().infra.blockSets[0].numNodes == 3 && defaultRun().infra.blockSets[0].arcs == 2,
-		"track nodes and arcs retain canonical topology");
-	ok &= expect(defaultRun().infra.blockSets[0].hasGraphLayout && defaultRun().infra.blockSets[0].graphID == -1
-			&& defaultRun().infra.blockSets[0].region == 2,
-		"authored track layout retains a valid negative display level");
-	ok &= expect(defaultRun().infra.numBlocks == 2, "two canonical blocks become two straight runtime sections");
-	ok &= expect(defaultRun().infra.sections[0].ID == "@block.a@"
-			&& defaultRun().infra.sections[1].ID == "@block.b@",
-		"block IDs use the runtime boundary form");
-	ok &= expect(defaultRun().infra.numStations == 2 && defaultRun().numPlatforms == 2, "station and platform counts are bound");
-	ok &= expect(defaultRun().infra.stations[0].X == 1.0, "platform node anchors a station without a separate position");
-	ok &= expect(defaultRun().infra.stations[0].latitude == 1.0 && defaultRun().infra.stations[0].longitude == 0.1
-			&& defaultRun().infra.stations[0].regions == std::vector<int>({2})
-			&& defaultRun().infra.stations[0].regionX[2] == 1.0
-			&& defaultRun().infra.stations[0].corridors == std::vector<std::string>({"corridor.tiny"}),
-		"authored station layout reaches the runtime station model");
+void TestSceneBuilder::buildsCompleteScene() {
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
+	QVERIFY2(!hasErrors(diagnostics), "complete scene builds without errors");
+	// Track nodes and arcs retain canonical topology.
+	QCOMPARE(defaultRun().infra.numTrackLines, 1);
+	QCOMPARE(defaultRun().infra.blockSets[0].numNodes, 3);
+	QCOMPARE(defaultRun().infra.blockSets[0].arcs, 2);
+	// Authored track layout retains a valid negative display level.
+	QVERIFY(defaultRun().infra.blockSets[0].hasGraphLayout);
+	QCOMPARE(defaultRun().infra.blockSets[0].graphID, -1);
+	QCOMPARE(defaultRun().infra.blockSets[0].region, 2);
+	// Two canonical blocks become two straight runtime sections.
+	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	// Block IDs use the runtime boundary form.
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@block.a@");
+	QCOMPARE(defaultRun().infra.sections[1].ID, "@block.b@");
+	// Station and platform counts are bound.
+	QCOMPARE(defaultRun().infra.numStations, 2);
+	QCOMPARE(defaultRun().numPlatforms, 2);
+	// Platform node anchors a station without a separate position.
+	QCOMPARE_EQ(defaultRun().infra.stations[0].X, 1.0);
+	// Authored station layout reaches the runtime station model.
+	QCOMPARE_EQ(defaultRun().infra.stations[0].latitude, 1.0);
+	QCOMPARE_EQ(defaultRun().infra.stations[0].longitude, 0.1);
+	QCOMPARE(defaultRun().infra.stations[0].regions, std::vector<int>({2}));
+	QCOMPARE_EQ(defaultRun().infra.stations[0].regionX[2], 1.0);
+	QCOMPARE(defaultRun().infra.stations[0].corridors, std::vector<std::string>({"corridor.tiny"}));
 	if (!defaultRun().platforms.empty()) {
 		const auto& platform = defaultRun().platforms.front();
-		ok &= expect(platform.ID == "platform.1" && platform.StationID == "station.tiny",
-			"platform retains canonical station binding");
-		ok &= expect(platform.BlockSectionID == "@block.a@", "platform resolves to its canonical block section");
+		// Platform retains canonical station binding.
+		QCOMPARE(platform.ID, "platform.1");
+		QCOMPARE(platform.StationID, "station.tiny");
+		// Platform resolves to its canonical block section.
+		QCOMPARE(platform.BlockSectionID, "@block.a@");
 	}
 	if (defaultRun().platforms.size() == 2) {
 		const auto& platform = defaultRun().platforms.back();
-		ok &= expect(platform.ID == "platform.2" && platform.StationID == "station.end"
-				&& platform.BlockSectionID == "@block.b@",
-			"destination platform resolves on the same authored route");
+		// Destination platform resolves on the same authored route.
+		QCOMPARE(platform.ID, "platform.2");
+		QCOMPARE(platform.StationID, "station.end");
+		QCOMPARE(platform.BlockSectionID, "@block.b@");
 	}
-	ok &= expect(defaultRun().infra.numRoutes == 1 && defaultRun().infra.routes.size() == 1, "one native route is available");
-	if (!defaultRun().infra.routes.empty()) {
-		const Route& route = defaultRun().infra.routes.front();
-		ok &= expect(route.ID == "route.tiny" && route.corridor == "corridor.tiny",
-			"route retains canonical ID and corridor");
-		ok &= expect(route.N_Block_Sections == 2
-				&& route.sequence_of_block_sections[0].ID == "@block.a@"
-				&& route.sequence_of_block_sections[1].ID == "@block.b@",
-			"route retains every canonical block reference");
-	}
-	ok &= expect(defaultRun().infra.sections[0].N_ConnectedBS == 1
-			&& defaultRun().infra.sections[0].IDConnectedBS[0] == "@block.b@",
-		"explicit block dependency is applied without a hard-coded case dependency");
-	ok &= expect(defaultRun().infra.singleTrackLimits.size() == 1
-			&& std::get<0>(defaultRun().infra.singleTrackLimits.front()) == "@block.a@"
-			&& std::get<2>(defaultRun().infra.singleTrackLimits.front()) == "@block.a@",
-		"single-track references resolve to runtime block IDs");
-	ok &= expect(defaultRun().infra.stationBoundaries.size() == 1
-			&& defaultRun().infra.stationBoundaries.front().entrance->ID == "@block.a@"
-			&& defaultRun().infra.stationBoundaries.front().exit->ID == "@block.b@",
-		"station boundary references resolve to runtime sections");
+	// One native route is available.
+	QCOMPARE(defaultRun().infra.numRoutes, 1);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	const Route& route = defaultRun().infra.routes.front();
+	// Route retains canonical ID and corridor.
+	QCOMPARE(route.ID, "route.tiny");
+	QCOMPARE(route.corridor, "corridor.tiny");
+	// Route retains every canonical block reference.
+	QCOMPARE(route.N_Block_Sections, 2);
+	QCOMPARE(route.sequence_of_block_sections[0].ID, "@block.a@");
+	QCOMPARE(route.sequence_of_block_sections[1].ID, "@block.b@");
+	// Explicit block dependency is applied without a hard-coded case dependency.
+	QCOMPARE(defaultRun().infra.sections[0].N_ConnectedBS, 1);
+	QCOMPARE(defaultRun().infra.sections[0].IDConnectedBS[0], "@block.b@");
+	// Single-track references resolve to runtime block IDs.
+	QCOMPARE(defaultRun().infra.singleTrackLimits.size(), std::size_t(1));
+	QCOMPARE(std::get<0>(defaultRun().infra.singleTrackLimits.front()), "@block.a@");
+	QCOMPARE(std::get<2>(defaultRun().infra.singleTrackLimits.front()), "@block.a@");
+	// Station boundary references resolve to runtime sections.
+	QCOMPARE(defaultRun().infra.stationBoundaries.size(), std::size_t(1));
+	QCOMPARE(defaultRun().infra.stationBoundaries.front().entrance->ID, "@block.a@");
+	QCOMPARE(defaultRun().infra.stationBoundaries.front().exit->ID, "@block.b@");
+
 	const int blocksBeforeReservedId = defaultRun().infra.numBlocks;
 	const std::string firstSectionBeforeReservedId = defaultRun().infra.sections[0].ID;
 	SceneModel reservedBlockId = tinyScene();
@@ -200,11 +303,13 @@ static bool runTinyBuilderChecks() {
 	reservedBlockId.singleTrackRestrictions[0].protectedStartBlock = "Depot/1";
 	reservedBlockId.stationBoundaries[0].entranceBlock = "Depot/1";
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reservedBlockId);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved")
-			&& defaultRun().infra.numBlocks == blocksBeforeReservedId
-			&& defaultRun().infra.sections[0].ID == firstSectionBeforeReservedId,
-		"reserved block-id delimiters are rejected before native mutation");
+	// Reserved block-id delimiters are rejected before native mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeReservedId);
+	QCOMPARE(defaultRun().infra.sections[0].ID, firstSectionBeforeReservedId);
+}
 
+void TestSceneBuilder::regionalRouteFollowsFirstSegment() {
 	SceneModel segmentedRegionRoute = tinyScene();
 	segmentedRegionRoute.tracks.push_back({"region.track"});
 	segmentedRegionRoute.nodes.push_back({"region.0", "region.track", 100.0, 0.0});
@@ -216,91 +321,105 @@ static bool runTinyBuilderChecks() {
 	segmentedRegionRoute.routes[0].blocks = {
 		"block.a", "block.b", "region.block.2", "region.block.1"};
 	segmentedRegionRoute.importReport.push_back({"legacy_root", ""});
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), segmentedRegionRoute);
-	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
-			&& defaultRun().infra.numRoutes == 1 && defaultRun().infra.routes.size() == 1 && !defaultRun().infra.routes[0].reversed_direction,
-		"native route direction follows the first connected legacy regional segment");
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), segmentedRegionRoute);
+	// Native route direction follows the first connected legacy regional segment.
+	QVERIFY(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction"));
+	QCOMPARE(defaultRun().infra.numRoutes, 1);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(!defaultRun().infra.routes[0].reversed_direction);
+}
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 3, "stable-ID connection scene builds one switch section");
-	if (!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 3) {
-		const Section& source = defaultRun().infra.sections[0];
-		ok &= expect(source.ID == "@alpha.block@" && source.N_ConnectedBS == 1,
-			"switch dependency is derived without numeric track naming");
-		ok &= expect(!source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.empty()
-				&& source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.front()
-					== "@alpha.block@-1.000000/@beta.block@-2.000000",
-			"connection nodes resolve switch sections through stable runtime references");
-		bool hasCanonicalSwitchSpeed = false;
-		for (int index = 0; index < defaultRun().infra.sections[2].total_arcs; ++index)
-			hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
-				|| defaultRun().infra.sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
-		ok &= expect(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
-		Section creatorNamedSwitch = defaultRun().infra.sections[2];
-		creatorNamedSwitch.ID = "@creator@main-block@-1.000000/@creator-yard@block@-2.000000";
-		creatorNamedSwitch.FirstConnectedTrackLineID = 0;
-		creatorNamedSwitch.SecondConnectedTrackLineID = 1;
-		defaultRun().blocksOccupied.clear();
-		defaultRun().blocksConnected.clear();
-		activateBlocksWithSwitchesDivFixedBlock(defaultRun(), creatorNamedSwitch, 0, -1.0);
-		ok &= expect(creatorNamedSwitch.ID
-					== "@creator@main-block@-1.000000/@creator-yard@block@-2.000000"
-				&& std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(), "@creator@main-block@")
-					!= defaultRun().blocksOccupied.end()
-				&& std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(), "@creator-yard@block@")
-					!= defaultRun().blocksOccupied.end(),
-			"switch occupation preserves creator section IDs containing hyphens and wrapper characters");
-		defaultRun().blocksOccupied = {"occupied.before"};
-		defaultRun().blocksConnected = {"connected.before"};
-		const auto occupiedBefore = defaultRun().blocksOccupied;
-		const auto connectedBefore = defaultRun().blocksConnected;
-		Section malformedSwitch;
-		malformedSwitch.ID = "malformed/switch";
-		Section malformedPrevious;
-		malformedPrevious.ID = "also-malformed/switch";
-		occupyDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
-		ok &= expect(defaultRun().blocksOccupied == occupiedBefore && defaultRun().blocksConnected == connectedBefore,
-			"malformed double-switch identities are rejected before occupancy mutation");
-		releaseDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
-		ok &= expect(defaultRun().blocksOccupied == occupiedBefore && defaultRun().blocksConnected == connectedBefore,
-			"malformed double-switch identities are rejected before release mutation");
-		occupyDoubleSwitch(defaultRun(), defaultRun().infra.sections[2], malformedPrevious);
-		releaseDoubleSwitch(defaultRun(), defaultRun().infra.sections[2], malformedPrevious);
-		ok &= expect(defaultRun().blocksOccupied == occupiedBefore && defaultRun().blocksConnected == connectedBefore,
-			"a valid first switch half cannot mutate before a malformed second half is rejected");
-		Section unresolvedSwitch;
-		unresolvedSwitch.ID = "@missing.a@-1.000000/@missing.b@-2.000000";
-		unresolvedSwitch.withSwitchDiv = true;
-		Section unresolvedPrevious;
-		unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
-		unresolvedPrevious.withSwitchDiv = true;
-		occupyDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
-		ok &= expect(defaultRun().blocksOccupied == occupiedBefore && defaultRun().blocksConnected == connectedBefore,
-			"unresolved double-switch branches are rejected before occupancy mutation");
-		releaseDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
-		ok &= expect(defaultRun().blocksOccupied == occupiedBefore && defaultRun().blocksConnected == connectedBefore,
-			"unresolved double-switch branches are rejected before release mutation");
-		defaultRun().blocksOccupied.clear();
-		defaultRun().blocksConnected.clear();
-	}
+void TestSceneBuilder::derivesSwitchSectionFromStableIds() {
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene());
+	// Stable-ID connection scene builds one switch section.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	const Section& source = defaultRun().infra.sections[0];
+	// Switch dependency is derived without numeric track naming.
+	QCOMPARE(source.ID, "@alpha.block@");
+	QCOMPARE(source.N_ConnectedBS, 1);
+	// Connection nodes resolve switch sections through stable runtime references.
+	QVERIFY(!source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.empty());
+	QCOMPARE(source.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.front(),
+		"@alpha.block@-1.000000/@beta.block@-2.000000");
+	bool hasCanonicalSwitchSpeed = false;
+	for (int index = 0; index < defaultRun().infra.sections[2].total_arcs; ++index)
+		hasCanonicalSwitchSpeed = hasCanonicalSwitchSpeed
+			|| defaultRun().infra.sections[2].arcs_in_signalling_block_section[index].speedLimit == 7.5;
+	QVERIFY2(hasCanonicalSwitchSpeed, "connection speed is retained independently of endpoint order");
+	Section creatorNamedSwitch = defaultRun().infra.sections[2];
+	creatorNamedSwitch.ID = "@creator@main-block@-1.000000/@creator-yard@block@-2.000000";
+	creatorNamedSwitch.FirstConnectedTrackLineID = 0;
+	creatorNamedSwitch.SecondConnectedTrackLineID = 1;
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
+	activateBlocksWithSwitchesDivFixedBlock(defaultRun(), creatorNamedSwitch, 0, -1.0);
+	// Switch occupation preserves creator section IDs containing hyphens and wrapper characters.
+	QCOMPARE(creatorNamedSwitch.ID, "@creator@main-block@-1.000000/@creator-yard@block@-2.000000");
+	QVERIFY(std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(), "@creator@main-block@")
+		!= defaultRun().blocksOccupied.end());
+	QVERIFY(std::find(defaultRun().blocksOccupied.begin(), defaultRun().blocksOccupied.end(), "@creator-yard@block@")
+		!= defaultRun().blocksOccupied.end());
+	defaultRun().blocksOccupied = {"occupied.before"};
+	defaultRun().blocksConnected = {"connected.before"};
+	const auto occupiedBefore = defaultRun().blocksOccupied;
+	const auto connectedBefore = defaultRun().blocksConnected;
+	Section malformedSwitch;
+	malformedSwitch.ID = "malformed/switch";
+	Section malformedPrevious;
+	malformedPrevious.ID = "also-malformed/switch";
+	occupyDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
+	// Malformed double-switch identities are rejected before occupancy mutation.
+	QCOMPARE(defaultRun().blocksOccupied, occupiedBefore);
+	QCOMPARE(defaultRun().blocksConnected, connectedBefore);
+	releaseDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
+	// Malformed double-switch identities are rejected before release mutation.
+	QCOMPARE(defaultRun().blocksOccupied, occupiedBefore);
+	QCOMPARE(defaultRun().blocksConnected, connectedBefore);
+	occupyDoubleSwitch(defaultRun(), defaultRun().infra.sections[2], malformedPrevious);
+	releaseDoubleSwitch(defaultRun(), defaultRun().infra.sections[2], malformedPrevious);
+	// A valid first switch half cannot mutate before a malformed second half is rejected.
+	QCOMPARE(defaultRun().blocksOccupied, occupiedBefore);
+	QCOMPARE(defaultRun().blocksConnected, connectedBefore);
+	Section unresolvedSwitch;
+	unresolvedSwitch.ID = "@missing.a@-1.000000/@missing.b@-2.000000";
+	unresolvedSwitch.withSwitchDiv = true;
+	Section unresolvedPrevious;
+	unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
+	unresolvedPrevious.withSwitchDiv = true;
+	occupyDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
+	// Unresolved double-switch branches are rejected before occupancy mutation.
+	QCOMPARE(defaultRun().blocksOccupied, occupiedBefore);
+	QCOMPARE(defaultRun().blocksConnected, connectedBefore);
+	releaseDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
+	// Unresolved double-switch branches are rejected before release mutation.
+	QCOMPARE(defaultRun().blocksOccupied, occupiedBefore);
+	QCOMPARE(defaultRun().blocksConnected, connectedBefore);
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
+
 	const int blocksBeforeDisconnectedRoute = defaultRun().infra.numBlocks;
 	const std::string firstSectionBeforeDisconnectedRoute = defaultRun().infra.sections[0].ID;
 	SceneModel disconnectedRoute = tinyScene();
 	disconnectedRoute.routes.front().blocks = {"block.a", "block.a"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), disconnectedRoute);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
-			&& defaultRun().infra.numBlocks == blocksBeforeDisconnectedRoute
-			&& defaultRun().infra.sections[0].ID == firstSectionBeforeDisconnectedRoute,
-		"direct native-builder callers reject disconnected routes before runtime mutation");
+	// Direct native-builder callers reject disconnected routes before runtime mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeDisconnectedRoute);
+	QCOMPARE(defaultRun().infra.sections[0].ID, firstSectionBeforeDisconnectedRoute);
+}
+
+void TestSceneBuilder::rejectsDerivedRouteReversals() {
 	SceneModel epsilonConnection = stableConnectionScene();
 	epsilonConnection.nodes[2].xKm = 1.0 + 5e-9;
 	epsilonConnection.nodes[3].xKm = 2.0 + 5e-9;
 	const SceneSectionInventory epsilonInventory = buildSceneSectionInventory(epsilonConnection);
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), epsilonConnection);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 3
-			&& epsilonInventory.sections.size() == 3
-			&& defaultRun().infra.sections[2].ID == epsilonInventory.sections[2].id,
-		"sub-tolerance connection spacing retains inventory and native section-ID parity");
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), epsilonConnection);
+	// Sub-tolerance connection spacing retains inventory and native section-ID parity.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(epsilonInventory.sections.size(), std::size_t(3));
+	QCOMPARE(defaultRun().infra.sections[2].ID, epsilonInventory.sections[2].id);
 	SceneModel derivedUTurn = switchChainScene();
 	derivedUTurn.blocks = {{"a.block", "switch-a", 1.0}, {"b.left", "switch-b", 1.0},
 		{"b.right", "switch-b", 1.0}, {"c.block", "switch-c", 1.0}};
@@ -317,18 +436,19 @@ static bool runTinyBuilderChecks() {
 	const int blocksBeforeDerivedUTurn = defaultRun().infra.numBlocks;
 	const std::string firstSectionBeforeDerivedUTurn = defaultRun().infra.sections[0].ID;
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), derivedUTurn);
-	ok &= expect(!aToB.empty() && !bToC.empty()
-			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
-			&& defaultRun().infra.numBlocks == blocksBeforeDerivedUTurn
-			&& defaultRun().infra.sections[0].ID == firstSectionBeforeDerivedUTurn,
-		"legacy provenance cannot hide a connection-derived U-turn from native preflight");
+	// Legacy provenance cannot hide a connection-derived U-turn from native preflight.
+	QVERIFY(!aToB.empty());
+	QVERIFY(!bToC.empty());
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeDerivedUTurn);
+	QCOMPARE(defaultRun().infra.sections[0].ID, firstSectionBeforeDerivedUTurn);
 	SceneModel mixedDerivedUTurn = derivedUTurn;
 	mixedDerivedUTurn.routes = {{"mixed-switch-u-turn", {"b.left", bToC, aToB}, false, {}, false}};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), mixedDerivedUTurn);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
-			&& defaultRun().infra.numBlocks == blocksBeforeDerivedUTurn
-			&& defaultRun().infra.sections[0].ID == firstSectionBeforeDerivedUTurn,
-		"mixed route evidence cannot hide a legacy derived U-turn before native mutation");
+	// Mixed route evidence cannot hide a legacy derived U-turn before native mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeDerivedUTurn);
+	QCOMPARE(defaultRun().infra.sections[0].ID, firstSectionBeforeDerivedUTurn);
 	SceneModel legacyFork = switchChainScene();
 	legacyFork.connections.push_back({"a-to-c", "a.1", "c.0", false, 0.0});
 	legacyFork.nodes[0].xKm = 100.0;
@@ -349,24 +469,29 @@ static bool runTinyBuilderChecks() {
 	legacyFork.routes.push_back({"legacy-fork", {bToA, cToA}, false, {}, false});
 	const int blocksBeforeLegacyFork = defaultRun().infra.numBlocks;
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), legacyFork);
-	ok &= expect(!bToA.empty() && !cToA.empty()
-			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
-			&& defaultRun().infra.numBlocks == blocksBeforeLegacyFork,
-		"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), signallingAreasScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 3,
-		"signalling areas apply before route construction");
-	if (!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 3) {
-		const Section& alpha = defaultRun().infra.sections[0];
-		const Section& beta = defaultRun().infra.sections[1];
-		const Section& derived = defaultRun().infra.sections[2];
-		ok &= expect(alpha.SignallingLevel == 3 && beta.SignallingLevel == 1
-				&& derived.SignallingLevel == 3,
-			"network and track-scoped levels reach base and derived switch sections");
-		ok &= expect(!defaultRun().infra.routes.empty() && defaultRun().infra.routes.front().N_Block_Sections == 1
-				&& defaultRun().infra.routes.front().sequence_of_block_sections[0].SignallingLevel == 3,
-			"signalling level is copied into the derived route section");
-	}
+	// Legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation.
+	QVERIFY(!bToA.empty());
+	QVERIFY(!cToA.empty());
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeLegacyFork);
+}
+
+void TestSceneBuilder::appliesSignallingAreasBeforeRoutes() {
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), signallingAreasScene());
+	// Signalling areas apply before route construction.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	const Section& alpha = defaultRun().infra.sections[0];
+	const Section& beta = defaultRun().infra.sections[1];
+	const Section& derived = defaultRun().infra.sections[2];
+	// Network and track-scoped levels reach base and derived switch sections.
+	QCOMPARE(alpha.SignallingLevel, 3);
+	QCOMPARE(beta.SignallingLevel, 1);
+	QCOMPARE(derived.SignallingLevel, 3);
+	// Signalling level is copied into the derived route section.
+	QVERIFY(!defaultRun().infra.routes.empty());
+	QCOMPARE(defaultRun().infra.routes.front().N_Block_Sections, 1);
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[0].SignallingLevel, 3);
 	const int blocksBeforeConflict = defaultRun().infra.numBlocks;
 	std::vector<std::string> sectionIdsBeforeConflict;
 	for (int index = 0; index < defaultRun().infra.numBlocks; ++index)
@@ -382,23 +507,25 @@ static bool runTinyBuilderChecks() {
 	bool sectionIdsUnchanged = defaultRun().infra.numBlocks == blocksBeforeConflict;
 	for (std::size_t index = 0; sectionIdsUnchanged && index < sectionIdsBeforeConflict.size(); ++index)
 		sectionIdsUnchanged = defaultRun().infra.sections[index].ID == sectionIdsBeforeConflict[index];
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "signalling_area.conflict")
-			&& sectionIdsUnchanged,
-		"same-tier conflicting track areas are rejected before replacing the prior runtime");
+	// Same-tier conflicting track areas are rejected before replacing the prior runtime.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "signalling_area.conflict"));
+	QVERIFY(sectionIdsUnchanged);
 	SceneModel invalidSwitchReference = stableConnectionScene();
 	invalidSwitchReference.blockDependencies.push_back(
 		{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidSwitchReference);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
-			&& defaultRun().infra.numBlocks == 3 && defaultRun().infra.sections[0].ID == "@alpha.block@",
-		"invalid switch references are rejected before replacing the existing runtime");
+	// Invalid switch references are rejected before replacing the existing runtime.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@alpha.block@");
 	SceneModel duplicateSwitchSection = stableConnectionScene();
 	duplicateSwitchSection.connections.push_back(
 		{"switch.duplicate", "alpha.end", "beta.start", true, 7.5});
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), duplicateSwitchSection);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
-			&& defaultRun().infra.numBlocks == 3 && defaultRun().infra.sections[0].ID == "@alpha.block@",
-		"duplicate switch sections are rejected before fixed-capacity runtime mutation");
+	// Duplicate switch sections are rejected before fixed-capacity runtime mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate"));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@alpha.block@");
 	SceneModel oversizedSwitchSection;
 	oversizedSwitchSection.tracks = {{"long.alpha"}, {"long.beta"}};
 	for (int index = 0; index <= 10; ++index) {
@@ -420,10 +547,11 @@ static bool runTinyBuilderChecks() {
 	oversizedSwitchSection.connections.push_back(
 		{"long.switch", "alpha.10", "beta.0", false, 0.0});
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), oversizedSwitchSection);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity")
-			&& defaultRun().infra.numBlocks == 3 && defaultRun().infra.sections[0].ID == "@alpha.block@",
-		"derived switch arc capacity is rejected before runtime mutation");
-	SceneModel runtimeBlockIdCollision = scene;
+	// Derived switch arc capacity is rejected before runtime mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity"));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@alpha.block@");
+	SceneModel runtimeBlockIdCollision = tinyScene();
 	runtimeBlockIdCollision.blocks[1].id = "@block.a@";
 	runtimeBlockIdCollision.routes.front().blocks[1] = "@block.a@";
 	runtimeBlockIdCollision.blockDependencies.front().dependsOn = "@block.a@";
@@ -431,10 +559,11 @@ static bool runTinyBuilderChecks() {
 	runtimeBlockIdCollision.singleTrackRestrictions.front().protectedEndBlock = "@block.a@";
 	runtimeBlockIdCollision.stationBoundaries.front().exitBlock = "@block.a@";
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), runtimeBlockIdCollision);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
-			&& defaultRun().infra.numBlocks == 3 && defaultRun().infra.sections[0].ID == "@alpha.block@",
-		"canonical block IDs that collapse to one runtime ID are rejected before mutation");
-	SceneModel excessiveDependencies = scene;
+	// Canonical block IDs that collapse to one runtime ID are rejected before mutation.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate"));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@alpha.block@");
+	SceneModel excessiveDependencies = tinyScene();
 	for (int index = 0; index < 10; ++index) {
 		const std::string suffix = std::to_string(index);
 		const std::string track = "dependency.track." + suffix;
@@ -449,97 +578,116 @@ static bool runTinyBuilderChecks() {
 		excessiveDependencies.blockDependencies.push_back({"block.a", block});
 	}
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), excessiveDependencies);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "capacity")
-			&& defaultRun().infra.numBlocks == 3 && defaultRun().infra.sections[0].ID == "@alpha.block@",
-		"dependency overflow is rejected before replacing the existing runtime");
+	// Dependency overflow is rejected before replacing the existing runtime.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "capacity"));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	QCOMPARE(defaultRun().infra.sections[0].ID, "@alpha.block@");
+}
 
-	SceneModel explicitReversed = scene;
+void TestSceneBuilder::explicitReverseKeepsReferenceCoordinate() {
+	SceneModel explicitReversed = tinyScene();
 	explicitReversed.routes.front().reversed = true;
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), explicitReversed);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1
-			&& defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().OriginalRefReversedRoute == defaultRun().infra.routes.front().x_of_end_node * 1000.0,
-		"explicit reverse metadata retains the joined-route reference coordinate");
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), explicitReversed);
+	// Explicit reverse metadata retains the joined-route reference coordinate.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE_EQ(defaultRun().infra.routes.front().OriginalRefReversedRoute, defaultRun().infra.routes.front().x_of_end_node * 1000.0);
+}
 
-	SceneModel descendingRoute = scene;
+void TestSceneBuilder::descendingBlockOrderReversesRoute() {
+	SceneModel descendingRoute = tinyScene();
 	descendingRoute.routes.front().blocks = {"block.b", "block.a"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), descendingRoute);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1
-			&& defaultRun().infra.routes.front().reversed_direction,
-		"descending canonical block order retains the runtime reverse direction");
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
-	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), descendingRoute);
+	// Descending canonical block order retains the runtime reverse direction.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
+	QVERIFY2(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
+}
+
+void TestSceneBuilder::declaredTopologyControlsDirection() {
 	SceneModel regionalDirection = stableConnectionScene();
 	regionalDirection.nodes[2].xKm = 0.0;
 	regionalDirection.nodes[3].xKm = 1.0;
 	regionalDirection.routes.push_back(
 		{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), regionalDirection);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1
-			&& !defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().sequence_of_block_sections[0].ID == "@alpha.block@"
-			&& defaultRun().infra.routes.front().sequence_of_block_sections[1].ID == "@beta.block@",
-		"declared route topology controls direction across regional coordinate references");
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), regionalDirection);
+	// Declared route topology controls direction across regional coordinate references.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(!defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[0].ID, "@alpha.block@");
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[1].ID, "@beta.block@");
 
 	const int blocksBeforeInvalid = defaultRun().infra.numBlocks;
-	SceneModel invalidReference = scene;
+	SceneModel invalidReference = tinyScene();
 	invalidReference.routes.front().blocks = {"missing.block"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidReference);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"),
+	QVERIFY2(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"),
 		"unknown route block returns an actionable signalling diagnostic");
-	ok &= expect(defaultRun().infra.numBlocks == blocksBeforeInvalid && defaultRun().infra.routes.size() == 1,
-		"invalid route does not mutate or silently truncate the existing runtime");
+	// Invalid route does not mutate or silently truncate the existing runtime.
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeInvalid);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
 
 	const int routesBeforeMalformed = defaultRun().infra.numRoutes;
 	const std::string routeIdBeforeMalformed = defaultRun().infra.routes.front().ID;
 	const int routeBlocksBeforeMalformed = defaultRun().infra.routes.front().N_Block_Sections;
-	SceneModel malformedReference = scene;
+	SceneModel malformedReference = tinyScene();
 	malformedReference.routes.front().blocks = {"@block.a@-0.500000"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), malformedReference);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
-			&& defaultRun().infra.numBlocks == blocksBeforeInvalid && defaultRun().infra.numRoutes == routesBeforeMalformed
-			&& defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().ID == routeIdBeforeMalformed
-			&& defaultRun().infra.routes.front().N_Block_Sections == routeBlocksBeforeMalformed,
-		"malformed decorated route references are rejected before replacing the existing runtime");
+	// Malformed decorated route references are rejected before replacing the existing runtime.
+	QVERIFY(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"));
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeInvalid);
+	QCOMPARE(defaultRun().infra.numRoutes, routesBeforeMalformed);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QCOMPARE(defaultRun().infra.routes.front().ID, routeIdBeforeMalformed);
+	QCOMPARE(defaultRun().infra.routes.front().N_Block_Sections, routeBlocksBeforeMalformed);
+}
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.numRoutes == 1 && defaultRun().infra.routes.size() == 1,
-		"multi-region route builds with a multi-arc middle block");
-	if (!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().N_Block_Sections == 3) {
-		ok &= expect(defaultRun().infra.routes.front().sequence_of_block_sections[0].ID == "@a.block@"
-				&& defaultRun().infra.routes.front().sequence_of_block_sections[1].ID == "@b.block@"
-				&& defaultRun().infra.routes.front().sequence_of_block_sections[2].ID == "@c.block@",
-			"native route construction retains authored order across coordinate regions");
+void TestSceneBuilder::multiRegionRouteKeepsAuthoredOrder() {
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
+	// Multi-region route builds with a multi-arc middle block.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.numRoutes, 1);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	if (defaultRun().infra.routes.front().N_Block_Sections == 3) {
+		// Native route construction retains authored order across coordinate regions.
+		QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[0].ID, "@a.block@");
+		QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[1].ID, "@b.block@");
+		QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections[2].ID, "@c.block@");
 		const Section& later = defaultRun().infra.routes.front().sequence_of_block_sections[1];
 		const bool kilometerEndpoints = later.total_arcs == 2
 			&& std::fabs(later.arcs_in_signalling_block_section[0].startNode.X - 1.0) < 1e-9
 			&& std::fabs(later.arcs_in_signalling_block_section[0].endNode.X - 2.0) < 1e-9
 			&& std::fabs(later.arcs_in_signalling_block_section[1].startNode.X - 2.0) < 1e-9
 			&& std::fabs(later.arcs_in_signalling_block_section[1].endNode.X - 3.0) < 1e-9;
-		ok &= expect(kilometerEndpoints,
-			"route normalization keeps native multi-arc lengths in kilometres");
+		QVERIFY2(kilometerEndpoints, "route normalization keeps native multi-arc lengths in kilometres");
 	}
 
 	const int blocksBeforeInvalidTopology = defaultRun().infra.numBlocks;
-	SceneModel invalidTopology = scene;
+	SceneModel invalidTopology = tinyScene();
 	invalidTopology.arcs.front().toNodeId = "missing.node";
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidTopology);
-	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
+	QVERIFY2(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
 		"unknown arc endpoint returns an actionable infrastructure diagnostic");
-	ok &= expect(defaultRun().infra.numBlocks == blocksBeforeInvalidTopology, "invalid topology is rejected before runtime mutation");
-	SceneModel partialArea = tinyScene();
-	partialArea.signallingAreas = {{"partial-area", 0.0, 1.5, 2, {}}};
-	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), partialArea);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 2, "partial signalling area scene builds");
-	if (!hasErrors(diagnostics) && defaultRun().infra.numBlocks == 2) {
-		constexpr int unsetLevel = -99999999;
-		ok &= expect(defaultRun().infra.sections[0].SignallingLevel == 2
-				&& defaultRun().infra.sections[1].SignallingLevel == unsetLevel,
-			"only sections inside an area get a level, the others keep the unset default");
-	}
-	return ok;
+	// Invalid topology is rejected before runtime mutation.
+	QCOMPARE(defaultRun().infra.numBlocks, blocksBeforeInvalidTopology);
 }
 
+void TestSceneBuilder::partialAreaLeavesOtherSectionsUnset() {
+	SceneModel partialArea = tinyScene();
+	partialArea.signallingAreas = {{"partial-area", 0.0, 1.5, 2, {}}};
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), partialArea);
+	// Partial signalling area scene builds.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	constexpr int unsetLevel = -99999999;
+	// Only sections inside an area get a level, the others keep the unset default.
+	QCOMPARE(defaultRun().infra.sections[0].SignallingLevel, 2);
+	QCOMPARE(defaultRun().infra.sections[1].SignallingLevel, unsetLevel);
+}
 
 constexpr int kUnsetLevel = -99999999;
 constexpr int kMissingSection = -2;
@@ -614,12 +762,6 @@ static std::vector<int> buildLineLevels(const SceneModel& scene, std::size_t cou
 	return levelsOfLine("", count);
 }
 
-static bool lineLevelsAre(const SceneModel& scene, const std::vector<int>& expected, const std::string& message) {
-	bool built = false;
-	const std::vector<int> levels = buildLineLevels(scene, expected.size(), built);
-	return expect(built && levels == expected, message);
-}
-
 // The section names in the validator's missing-level warning, and whether it names all of them.
 static std::set<std::string> namedUncoveredSections(const SceneModel& scene, bool& complete) {
 	std::set<std::string> names;
@@ -670,201 +812,255 @@ static std::set<std::string> builtUncoveredRouteSections() {
 	return ids;
 }
 
-static bool driftGuard(const SceneModel& scene, std::size_t uncovered, const std::string& what) {
-	bool complete = false;
-	const std::set<std::string> named = namedUncoveredSections(scene, complete);
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
-	const std::set<std::string> unset = builtUncoveredRouteSections();
-	return expect(!hasErrors(diagnostics) && complete && named == unset && unset.size() == uncovered, what);
+void TestSceneBuilder::areasSurviveExportAndImport_data() {
+	QTest::addColumn<bool>("reverse");
+	QTest::addColumn<bool>("empty");
+	QTest::newRow("forward") << false << false;
+	QTest::newRow("reverse") << true << false;
+	QTest::newRow("forward without areas") << false << true;
+	QTest::newRow("reverse without areas") << true << true;
 }
 
 // Compare canonical and reimported native assignments, including route copies in both travel directions.
-static bool runAreaRoundtripChecks() {
-	bool ok = true;
+void TestSceneBuilder::areasSurviveExportAndImport() {
+	QFETCH(bool, reverse);
+	QFETCH(bool, empty);
 	namespace fs = std::filesystem;
-	const fs::path root = fs::temp_directory_path() / ("area_roundtrip_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-	fs::create_directories(root);
-	struct Cleanup {
-		fs::path path;
-		~Cleanup() {
-			std::error_code ec;
-			fs::remove_all(path, ec);
-		}
-	} cleanup{root};
-	for (int variant : {0, 1, 2, 3}) {
-		const bool reverse = variant % 2 != 0;
-		const bool empty = variant >= 2;
-		SceneModel source = twoLineScene(4);
-		source.schemaVersion = kCurrentSceneSchemaVersion;
-		for (auto& route : source.routes)
-			if (reverse) std::reverse(route.blocks.begin(), route.blocks.end());
-		source.signallingAreas = {{" network area ", 0.0, 4.0, 1, {}},
-			{"head", 0.0, 2.0 - 5e-9, 3, "line.a"}, {"tail", 2.5, 4.0, 4, "line.a"},
-			{"other", 1.0 + 1e-7, 3.0, 5, "line.b"}};
-		if (empty) source.signallingAreas.clear();
-		source.routes[0].id = "route0";
-		source.routes[1].id = "route1";
-		SceneStation origin;
-		origin.id = "Origin";
-		origin.name = "Origin";
-		origin.hasPosition = true;
-		origin.positionKm = 0;
-		source.stations.push_back(origin);
-		const auto built = buildInfrastructureAndSignallingFromScene(defaultRun(), source);
-		ok &= expect(!hasErrors(built) && defaultRun().infra.numBlocks == 8, "roundtrip source builds");
-		const std::vector<int> base = [&] {
-			auto first = levelsOfLine("a.", 4), second = levelsOfLine("b.", 4);
-			first.insert(first.end(), second.begin(), second.end());
-			return first;
-		}();
-		ok &= expect(base == (empty ? std::vector<int>(8, kUnsetLevel) : std::vector<int>({3, 3, 1, 4, 1, 1, 5, 1})), "roundtrip fixture covers contained, straddling and tolerance boundary sections");
-		const auto routeLevels = [] {
-			std::vector<std::vector<int>> levels;
-			for (const auto& route : defaultRun().infra.routes) {
-				std::vector<int> row;
-				for (int i = 0; i < route.N_Block_Sections; ++i) row.push_back(route.sequence_of_block_sections[i].SignallingLevel);
-				levels.push_back(row);
-			}
-			return levels;
-		};
-		const auto beforeRoutes = routeLevels();
-		ok &= expect(defaultRun().infra.routes.size() == 2 && defaultRun().infra.routes[0].reversed_direction == reverse
-				&& defaultRun().infra.routes[1].reversed_direction == reverse,
-			"source route directions match fixture");
-		const fs::path scene = root / (reverse ? "reverse" : "forward");
-		ok &= expect(saveScene(source, scene.string()).success(), "roundtrip canonical source saves");
-		ok &= expect(exportLegacyScene(scene.string(), (root / "exported").string()).success(), "roundtrip source exports");
-		ok &= expect(importLegacyScene((root / "exported").string(), (root / "imported").string(), "Areas").success(), "roundtrip output imports");
-		const auto loaded = loadScene((root / "imported").string());
-		ok &= expect(!hasErrors(loaded.diagnostics), "roundtrip output loads");
-		const auto after = buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene);
-		std::vector<int> afterBase;
-		const auto mapped = builtSectionLevels();
-		for (const auto& track : {"B0", "B1"})
-			for (int i = 0; i < 4; ++i) {
-				const auto found = mapped.find("@" + std::to_string(i) + "-" + track + "@");
-				afterBase.push_back(found == mapped.end() ? kMissingSection : found->second);
-			}
-		ok &= expect(!hasErrors(after) && afterBase == base && routeLevels() == beforeRoutes
-				&& defaultRun().infra.routes.size() == 2 && defaultRun().infra.routes[0].reversed_direction == reverse
-				&& defaultRun().infra.routes[1].reversed_direction == reverse,
-			"export/import retains base and route assignments in both directions without snapping boundaries");
+	if (m_roundtripRoot.empty()) {
+		m_roundtripRoot = fs::temp_directory_path() / ("area_roundtrip_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+		fs::create_directories(m_roundtripRoot);
 	}
-	return ok;
+	const fs::path& root = m_roundtripRoot;
+	SceneModel source = twoLineScene(4);
+	source.schemaVersion = kCurrentSceneSchemaVersion;
+	for (auto& route : source.routes)
+		if (reverse) std::reverse(route.blocks.begin(), route.blocks.end());
+	source.signallingAreas = {{" network area ", 0.0, 4.0, 1, {}},
+		{"head", 0.0, 2.0 - 5e-9, 3, "line.a"}, {"tail", 2.5, 4.0, 4, "line.a"},
+		{"other", 1.0 + 1e-7, 3.0, 5, "line.b"}};
+	if (empty) source.signallingAreas.clear();
+	source.routes[0].id = "route0";
+	source.routes[1].id = "route1";
+	SceneStation origin;
+	origin.id = "Origin";
+	origin.name = "Origin";
+	origin.hasPosition = true;
+	origin.positionKm = 0;
+	source.stations.push_back(origin);
+	const auto built = buildInfrastructureAndSignallingFromScene(defaultRun(), source);
+	// Roundtrip source builds.
+	QVERIFY(!hasErrors(built));
+	QCOMPARE(defaultRun().infra.numBlocks, 8);
+	const std::vector<int> base = [&] {
+		auto first = levelsOfLine("a.", 4), second = levelsOfLine("b.", 4);
+		first.insert(first.end(), second.begin(), second.end());
+		return first;
+	}();
+	// Roundtrip fixture covers contained, straddling and tolerance boundary sections.
+	QCOMPARE(base, empty ? std::vector<int>(8, kUnsetLevel) : std::vector<int>({3, 3, 1, 4, 1, 1, 5, 1}));
+	const auto routeLevels = [] {
+		std::vector<std::vector<int>> levels;
+		for (const auto& route : defaultRun().infra.routes) {
+			std::vector<int> row;
+			for (int i = 0; i < route.N_Block_Sections; ++i) row.push_back(route.sequence_of_block_sections[i].SignallingLevel);
+			levels.push_back(row);
+		}
+		return levels;
+	};
+	const auto beforeRoutes = routeLevels();
+	// Source route directions match fixture.
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(2));
+	QCOMPARE(defaultRun().infra.routes[0].reversed_direction, reverse);
+	QCOMPARE(defaultRun().infra.routes[1].reversed_direction, reverse);
+	const fs::path scene = root / (reverse ? "reverse" : "forward");
+	QVERIFY2(saveScene(source, scene.string()).success(), "roundtrip canonical source saves");
+	QVERIFY2(exportLegacyScene(scene.string(), (root / "exported").string()).success(), "roundtrip source exports");
+	QVERIFY2(importLegacyScene((root / "exported").string(), (root / "imported").string(), "Areas").success(), "roundtrip output imports");
+	const auto loaded = loadScene((root / "imported").string());
+	QVERIFY2(!hasErrors(loaded.diagnostics), "roundtrip output loads");
+	const auto after = buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene);
+	std::vector<int> afterBase;
+	const auto mapped = builtSectionLevels();
+	for (const auto& track : {"B0", "B1"})
+		for (int i = 0; i < 4; ++i) {
+			const auto found = mapped.find("@" + std::to_string(i) + "-" + track + "@");
+			afterBase.push_back(found == mapped.end() ? kMissingSection : found->second);
+		}
+	// Export/import retains base and route assignments in both directions without snapping boundaries.
+	QVERIFY(!hasErrors(after));
+	QCOMPARE(afterBase, base);
+	QCOMPARE(routeLevels(), beforeRoutes);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(2));
+	QCOMPARE(defaultRun().infra.routes[0].reversed_direction, reverse);
+	QCOMPARE(defaultRun().infra.routes[1].reversed_direction, reverse);
 }
 
-static bool runAreaMappingChecks() {
-	bool ok = true;
-	using Levels = std::vector<int>;
-	const int u = kUnsetLevel;
-
-	// Network-wide areas and containment.
+// Network-wide areas and containment.
+void TestSceneBuilder::routeSectionsCarrySectionLevels() {
 	SceneModel scene = lineScene(4);
 	scene.signallingAreas = {{"all", 0.0, 4.0, 2, {}}};
-	ok &= lineLevelsAre(scene, {2, 2, 2, 2}, "a network-wide area gives every section its level");
-	if (!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)))
-		ok &= expect(builtRouteLevels(0) == builtSectionLevels() && builtRouteLevels(0).size() == 4,
-			"the route sections carry the levels of the same sections");
-	scene.signallingAreas = {{"head", 0.0, 2.0, 3, {}}};
-	ok &= lineLevelsAre(scene, {3, 3, u, u}, "a section that ends at the area end is inside");
-	scene.signallingAreas = {{"head", 0.0, 2.5, 3, {}}};
-	ok &= lineLevelsAre(scene, {3, 3, u, u}, "a section that crosses the area end is not inside");
-	scene.signallingAreas = {{"tail", 0.5, 4.0, 3, {}}};
-	ok &= lineLevelsAre(scene, {u, 3, 3, 3}, "a section that crosses the area start is not inside");
-	scene.signallingAreas = {{"middle", 1.0, 3.0, 5, {}}};
-	ok &= lineLevelsAre(scene, {u, 5, 5, u}, "an area from one section edge to another covers the sections between");
-	scene.signallingAreas = {{"adjacent-a", 0.0, 2.0, 1, {}}, {"adjacent-b", 2.0, 4.0, 4, {}}};
-	ok &= lineLevelsAre(scene, {1, 1, 4, 4}, "adjacent areas that meet on a section edge split the sections");
-	scene.signallingAreas = {{"adjacent-a", 0.0, 2.5, 1, {}}, {"adjacent-b", 2.5, 4.0, 4, {}}};
-	ok &= lineLevelsAre(scene, {1, 1, u, 4}, "a section that crosses the edge between two areas stays unset");
-	scene.signallingAreas.push_back({"bridge", 1.5, 3.5, 4, {}});
-	ok &= lineLevelsAre(scene, {1, 1, 4, 4}, "a third area that contains the straddling section decides it");
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)), "the network-wide area scene builds");
+	// The route sections carry the levels of the same sections.
+	QCOMPARE(builtRouteLevels(0), builtSectionLevels());
+	QCOMPARE(builtRouteLevels(0).size(), std::size_t(4));
+}
 
+// The areas on a line of four 1 km sections and the levels the sections get, in their order on the line.
+struct LineLevels {
+	const char* what;
+	std::vector<SceneSignallingArea> areas;
+	std::vector<int> levels;
+};
+
+static const LineLevels kLineLevels[] = {
+	// Network-wide areas and containment.
+	{"a network-wide area gives every section its level", {{"all", 0.0, 4.0, 2, {}}}, {2, 2, 2, 2}},
+	{"a section that ends at the area end is inside", {{"head", 0.0, 2.0, 3, {}}}, {3, 3, kUnsetLevel, kUnsetLevel}},
+	{"a section that crosses the area end is not inside", {{"head", 0.0, 2.5, 3, {}}}, {3, 3, kUnsetLevel, kUnsetLevel}},
+	{"a section that crosses the area start is not inside", {{"tail", 0.5, 4.0, 3, {}}}, {kUnsetLevel, 3, 3, 3}},
+	{"an area from one section edge to another covers the sections between", {{"middle", 1.0, 3.0, 5, {}}},
+		{kUnsetLevel, 5, 5, kUnsetLevel}},
+	{"adjacent areas that meet on a section edge split the sections",
+		{{"adjacent-a", 0.0, 2.0, 1, {}}, {"adjacent-b", 2.0, 4.0, 4, {}}}, {1, 1, 4, 4}},
+	{"a section that crosses the edge between two areas stays unset",
+		{{"adjacent-a", 0.0, 2.5, 1, {}}, {"adjacent-b", 2.5, 4.0, 4, {}}}, {1, 1, kUnsetLevel, 4}},
+	{"a third area that contains the straddling section decides it",
+		{{"adjacent-a", 0.0, 2.5, 1, {}}, {"adjacent-b", 2.5, 4.0, 4, {}}, {"bridge", 1.5, 3.5, 4, {}}}, {1, 1, 4, 4}},
 	// Edge tolerance of 1e-8 km on both edges.
-	scene.signallingAreas = {{"end", 0.0, 2.0 - 5e-9, 3, {}}};
-	ok &= lineLevelsAre(scene, {3, 3, u, u}, "an area end just inside the tolerance still contains the section");
-	scene.signallingAreas = {{"end", 0.0, 2.0 - 1e-7, 3, {}}};
-	ok &= lineLevelsAre(scene, {3, u, u, u}, "an area end outside the tolerance does not contain the section");
-	scene.signallingAreas = {{"start", 1.0 + 5e-9, 4.0, 3, {}}};
-	ok &= lineLevelsAre(scene, {u, 3, 3, 3}, "an area start just inside the tolerance still contains the section");
-	scene.signallingAreas = {{"start", 1.0 + 1e-7, 4.0, 3, {}}};
-	ok &= lineLevelsAre(scene, {u, u, 3, 3}, "an area start outside the tolerance does not contain the section");
-
+	{"an area end just inside the tolerance still contains the section", {{"end", 0.0, 2.0 - 5e-9, 3, {}}},
+		{3, 3, kUnsetLevel, kUnsetLevel}},
+	{"an area end outside the tolerance does not contain the section", {{"end", 0.0, 2.0 - 1e-7, 3, {}}},
+		{3, kUnsetLevel, kUnsetLevel, kUnsetLevel}},
+	{"an area start just inside the tolerance still contains the section", {{"start", 1.0 + 5e-9, 4.0, 3, {}}},
+		{kUnsetLevel, 3, 3, 3}},
+	{"an area start outside the tolerance does not contain the section", {{"start", 1.0 + 1e-7, 4.0, 3, {}}},
+		{kUnsetLevel, kUnsetLevel, 3, 3}},
 	// An area that covers no section changes nothing.
-	scene.signallingAreas = {{"inside-one", 1.2, 1.8, 5, {}}};
-	ok &= lineLevelsAre(scene, {u, u, u, u}, "an area inside one section covers no section");
-	scene.signallingAreas = {{"beyond", 10.0, 12.0, 5, {}}};
-	ok &= lineLevelsAre(scene, {u, u, u, u}, "an area beyond the track covers no section");
-	scene.signallingAreas = {{"all", 0.0, 4.0, 2, {}}, {"inside-one", 1.2, 1.8, 5, {}},
-		{"beyond", 10.0, 12.0, 5, {}}};
-	ok &= lineLevelsAre(scene, {2, 2, 2, 2}, "areas that cover no section leave the other areas as they are");
+	{"an area inside one section covers no section", {{"inside-one", 1.2, 1.8, 5, {}}},
+		{kUnsetLevel, kUnsetLevel, kUnsetLevel, kUnsetLevel}},
+	{"an area beyond the track covers no section", {{"beyond", 10.0, 12.0, 5, {}}},
+		{kUnsetLevel, kUnsetLevel, kUnsetLevel, kUnsetLevel}},
+	{"areas that cover no section leave the other areas as they are",
+		{{"all", 0.0, 4.0, 2, {}}, {"inside-one", 1.2, 1.8, 5, {}}, {"beyond", 10.0, 12.0, 5, {}}}, {2, 2, 2, 2}},
+};
 
-	// Track scope overrides the network-wide level on its own track.
+void TestSceneBuilder::areaLevelsOfLineSections_data() {
+	QTest::addColumn<int>("index");
+	for (int index = 0; index < static_cast<int>(std::size(kLineLevels)); ++index)
+		QTest::newRow(kLineLevels[index].what) << index;
+}
+
+void TestSceneBuilder::areaLevelsOfLineSections() {
+	QFETCH(int, index);
+	const LineLevels& test = kLineLevels[index];
+	SceneModel scene = lineScene(4);
+	scene.signallingAreas = test.areas;
+	bool built = false;
+	const std::vector<int> levels = buildLineLevels(scene, test.levels.size(), built);
+	QVERIFY(built);
+	QCOMPARE(levels, test.levels);
+}
+
+// Track scope overrides the network-wide level on its own track.
+void TestSceneBuilder::trackScopedAreaOverridesOwnTrack() {
+	using Levels = std::vector<int>;
+	const int u = kUnsetLevel;
 	SceneModel tracks = twoLineScene(3);
 	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-a", 0.0, 3.0, 4, "line.a"}};
-	bool built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && defaultRun().infra.numBlocks == 6;
-	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({1, 1, 1}),
-		"a track-scoped area overrides the network-wide area on its track only");
+	// A track-scoped area overrides the network-wide area on its track only.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)));
+	QCOMPARE(defaultRun().infra.numBlocks, 6);
+	QCOMPARE(levelsOfLine("a.", 3), Levels({4, 4, 4}));
+	QCOMPARE(levelsOfLine("b.", 3), Levels({1, 1, 1}));
 	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 1.0, 5, "line.b"}};
-	built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && defaultRun().infra.numBlocks == 6;
-	ok &= expect(built && levelsOfLine("a.", 3) == Levels({1, 1, 1}) && levelsOfLine("b.", 3) == Levels({5, 1, 1}),
-		"a track-scoped area overrides only the sections it contains");
+	// A track-scoped area overrides only the sections it contains.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)));
+	QCOMPARE(defaultRun().infra.numBlocks, 6);
+	QCOMPARE(levelsOfLine("a.", 3), Levels({1, 1, 1}));
+	QCOMPARE(levelsOfLine("b.", 3), Levels({5, 1, 1}));
 	tracks.signallingAreas = {{"track-a", 0.0, 3.0, 4, "line.a"}};
-	built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && defaultRun().infra.numBlocks == 6;
-	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({u, u, u}),
-		"a track-scoped area leaves the other tracks without a level");
+	// A track-scoped area leaves the other tracks without a level.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)));
+	QCOMPARE(defaultRun().infra.numBlocks, 6);
+	QCOMPARE(levelsOfLine("a.", 3), Levels({4, 4, 4}));
+	QCOMPARE(levelsOfLine("b.", 3), Levels({u, u, u}));
+}
 
-	// A route used in reverse has the same levels on its sections.
+// A route used in reverse has the same levels on its sections.
+void TestSceneBuilder::reversedRouteKeepsSectionLevels() {
+	const int u = kUnsetLevel;
 	SceneModel forward = lineScene(4);
 	forward.signallingAreas = {{"low", 0.0, 2.0, 1, {}}, {"high", 2.0, 3.0, 4, {}}};
 	SceneModel reverse = lineScene(4, true);
 	reverse.signallingAreas = forward.signallingAreas;
-	bool forwardBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), forward)) && defaultRun().infra.routes.size() == 1
+	const bool forwardBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), forward)) && defaultRun().infra.routes.size() == 1
 		&& !defaultRun().infra.routes.front().reversed_direction;
 	const std::map<std::string, int> forwardLevels = builtRouteLevels(0);
-	bool reverseBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), reverse)) && defaultRun().infra.routes.size() == 1
+	const bool reverseBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), reverse)) && defaultRun().infra.routes.size() == 1
 		&& defaultRun().infra.routes.front().reversed_direction;
 	const std::map<std::string, int> reverseLevels = builtRouteLevels(0);
-	ok &= expect(forwardBuilt && reverseBuilt && forwardLevels.size() == 4
-			&& forwardLevels.at("@b.0@") == 1 && forwardLevels.at("@b.2@") == 4
-			&& forwardLevels.at("@b.3@") == u,
-		"the forward route carries the levels of its sections");
-	ok &= expect(reverseBuilt && reverseLevels == forwardLevels,
-		"a route used in reverse has the same levels on its sections");
-	ok &= expect(reverseBuilt && reverseLevels == builtSectionLevels(),
-		"the reversed route sections equal the built sections by ID");
-
-	// The validator's missing-level warning names the route sections that the build leaves without a level.
-	SceneModel drift = lineScene(5);
-	drift.signallingAreas = {{"head", 0.0, 3.0, 2, {}}};
-	ok &= driftGuard(drift, 2, "the warning names the route sections left without a level");
-	drift.signallingAreas = {{"head", 0.0, 2.5, 2, {}}};
-	ok &= driftGuard(drift, 3, "the warning and the build agree on a section that crosses the area end");
-	drift.signallingAreas = {{"head", 0.0, 3.0 - 5e-9, 2, {}}};
-	ok &= driftGuard(drift, 2, "the warning and the build agree inside the edge tolerance");
-	drift.signallingAreas = {{"head", 0.0, 3.0 - 1e-7, 2, {}}};
-	ok &= driftGuard(drift, 3, "the warning and the build agree outside the edge tolerance");
-	drift.signallingAreas = {{"tail", 1.0 + 1e-7, 5.0, 2, {}}};
-	ok &= driftGuard(drift, 2, "the warning and the build agree at the area start");
-	drift.signallingAreas.clear();
-	ok &= driftGuard(drift, 5, "the warning and the build agree when there is no area");
-	drift.signallingAreas = {{"all", 0.0, 5.0, 2, {}}};
-	ok &= driftGuard(drift, 0, "the warning and the build agree when every section is covered");
-	drift.signallingAreas = {{"head", 0.0, 3.0, 2, {}}};
-	std::reverse(drift.routes.front().blocks.begin(), drift.routes.front().blocks.end());
-	ok &= driftGuard(drift, 2, "the warning and the build agree on a reversed route");
-	SceneModel scoped = twoLineScene(3);
-	scoped.signallingAreas = {{"track-a", 0.0, 3.0, 4, "line.a"}};
-	ok &= driftGuard(scoped, 3, "the warning and the build agree on a track-scoped area");
-	scoped.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 2.0, 5, "line.b"}};
-	ok &= driftGuard(scoped, 0, "the warning and the build agree when a track-scoped area adds to a network-wide one");
-	scoped.signallingAreas = {{"cover", 0.0, 2.0, 1, {}}, {"track-b-tail", 1.0 + 1e-7, 3.0, 5, "line.b"}};
-	ok &= driftGuard(scoped, 1, "the warning and the build agree when the track-scoped area misses a start edge");
-	return ok;
+	// The forward route carries the levels of its sections.
+	QVERIFY(forwardBuilt);
+	QVERIFY(reverseBuilt);
+	QCOMPARE(forwardLevels.size(), std::size_t(4));
+	QCOMPARE(forwardLevels.at("@b.0@"), 1);
+	QCOMPARE(forwardLevels.at("@b.2@"), 4);
+	QCOMPARE(forwardLevels.at("@b.3@"), u);
+	// A route used in reverse has the same levels on its sections.
+	QCOMPARE(reverseLevels, forwardLevels);
+	// The reversed route sections equal the built sections by ID.
+	QCOMPARE(reverseLevels, builtSectionLevels());
 }
 
-static bool runLongTrackChecks() {
-	bool ok = true;
+// A scene of the warning checks: one line of five sections, or two lines of three, with these areas, and the number of
+// route sections that neither the warning nor the build give a level.
+struct LevelWarningCase {
+	const char* what;
+	bool twoLines;
+	bool reversedRoute;
+	std::vector<SceneSignallingArea> areas;
+	std::size_t uncovered;
+};
+
+static const LevelWarningCase kLevelWarningCases[] = {
+	{"the warning names the route sections left without a level", false, false, {{"head", 0.0, 3.0, 2, {}}}, 2},
+	{"the warning and the build agree on a section that crosses the area end", false, false, {{"head", 0.0, 2.5, 2, {}}}, 3},
+	{"the warning and the build agree inside the edge tolerance", false, false, {{"head", 0.0, 3.0 - 5e-9, 2, {}}}, 2},
+	{"the warning and the build agree outside the edge tolerance", false, false, {{"head", 0.0, 3.0 - 1e-7, 2, {}}}, 3},
+	{"the warning and the build agree at the area start", false, false, {{"tail", 1.0 + 1e-7, 5.0, 2, {}}}, 2},
+	{"the warning and the build agree when there is no area", false, false, {}, 5},
+	{"the warning and the build agree when every section is covered", false, false, {{"all", 0.0, 5.0, 2, {}}}, 0},
+	{"the warning and the build agree on a reversed route", false, true, {{"head", 0.0, 3.0, 2, {}}}, 2},
+	{"the warning and the build agree on a track-scoped area", true, false, {{"track-a", 0.0, 3.0, 4, "line.a"}}, 3},
+	{"the warning and the build agree when a track-scoped area adds to a network-wide one", true, false,
+		{{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 2.0, 5, "line.b"}}, 0},
+	{"the warning and the build agree when the track-scoped area misses a start edge", true, false,
+		{{"cover", 0.0, 2.0, 1, {}}, {"track-b-tail", 1.0 + 1e-7, 3.0, 5, "line.b"}}, 1},
+};
+
+void TestSceneBuilder::levelWarningAgreesWithBuild_data() {
+	QTest::addColumn<int>("index");
+	for (int index = 0; index < static_cast<int>(std::size(kLevelWarningCases)); ++index)
+		QTest::newRow(kLevelWarningCases[index].what) << index;
+}
+
+// The validator's missing-level warning names the route sections that the build leaves without a level.
+void TestSceneBuilder::levelWarningAgreesWithBuild() {
+	QFETCH(int, index);
+	const LevelWarningCase& test = kLevelWarningCases[index];
+	SceneModel scene = test.twoLines ? twoLineScene(3) : lineScene(5, test.reversedRoute);
+	scene.signallingAreas = test.areas;
+	bool complete = false;
+	const std::set<std::string> named = namedUncoveredSections(scene, complete);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+	const std::set<std::string> unset = builtUncoveredRouteSections();
+	QVERIFY(!hasErrors(diagnostics));
+	QVERIFY(complete);
+	QVERIFY2(named == unset, "the warning names the sections that the build leaves without a level");
+	QCOMPARE(unset.size(), test.uncovered);
+}
+
+void TestSceneBuilder::buildsLongTrack() {
 	constexpr int arcCount = 1600;
 	constexpr int arcsPerBlock = 16;
 	SceneModel scene;
@@ -879,32 +1075,31 @@ static bool runLongTrackChecks() {
 		scene.blocks.push_back({"block." + std::to_string(index), "track.long",
 			static_cast<double>(arcsPerBlock)});
 	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
-	ok &= expect(!hasErrors(diagnostics), "a track with more than 1500 nodes and arcs builds");
-	ok &= expect(defaultRun().infra.numTrackLines == 1 && defaultRun().infra.blockSets[0].numNodes == arcCount + 1
-			&& defaultRun().infra.blockSets[0].arcs == arcCount
-			&& defaultRun().infra.blockSets[0].len == arcCount,
-		"the long track keeps all nodes and arcs");
-	ok &= expect(defaultRun().infra.blockSets[0].N.size() == static_cast<std::size_t>(arcCount + 1)
-			&& defaultRun().infra.blockSets[0].A.size() == static_cast<std::size_t>(arcCount)
-			&& defaultRun().infra.blockSets[0].member.size() == static_cast<std::size_t>(arcCount),
-		"the track buffers are sized from the scene");
-	if (defaultRun().infra.blockSets[0].member.size() == static_cast<std::size_t>(arcCount)) {
-		ok &= expect(defaultRun().infra.blockSets[0].member.front().startNode.X == 0.0
-				&& defaultRun().infra.blockSets[0].member.back().endNode.X == static_cast<double>(arcCount),
-			"the long track keeps its first and last coordinates");
-		ok &= expect(defaultRun().infra.blockSets[0].A.back().endNode.X == static_cast<double>(arcCount),
-			"the long track keeps its arcs past the former limit");
-	}
-	ok &= expect(defaultRun().infra.numBlocks == arcCount / arcsPerBlock, "the long track yields one section per block");
+	QVERIFY2(!hasErrors(diagnostics), "a track with more than 1500 nodes and arcs builds");
+	// The long track keeps all nodes and arcs.
+	QCOMPARE(defaultRun().infra.numTrackLines, 1);
+	QCOMPARE(defaultRun().infra.blockSets[0].numNodes, arcCount + 1);
+	QCOMPARE(defaultRun().infra.blockSets[0].arcs, arcCount);
+	QCOMPARE(defaultRun().infra.blockSets[0].len, arcCount);
+	// The track buffers are sized from the scene.
+	QCOMPARE(defaultRun().infra.blockSets[0].N.size(), static_cast<std::size_t>(arcCount + 1));
+	QCOMPARE(defaultRun().infra.blockSets[0].A.size(), static_cast<std::size_t>(arcCount));
+	QCOMPARE(defaultRun().infra.blockSets[0].member.size(), static_cast<std::size_t>(arcCount));
+	// The long track keeps its first and last coordinates.
+	QCOMPARE_EQ(defaultRun().infra.blockSets[0].member.front().startNode.X, 0.0);
+	QCOMPARE_EQ(defaultRun().infra.blockSets[0].member.back().endNode.X, static_cast<double>(arcCount));
+	// The long track keeps its arcs past the former limit.
+	QCOMPARE_EQ(defaultRun().infra.blockSets[0].A.back().endNode.X, static_cast<double>(arcCount));
+	// The long track yields one section per block.
+	QCOMPARE(defaultRun().infra.numBlocks, arcCount / arcsPerBlock);
 	resetNativeInfrastructureState(defaultRun());
-	ok &= expect(defaultRun().infra.blockSets[0].N.capacity() == 0 && defaultRun().infra.blockSets[0].A.capacity() == 0
-			&& defaultRun().infra.blockSets[0].member.capacity() == 0,
-		"the runtime reset releases the track buffers");
-	return ok;
+	// The runtime reset releases the track buffers.
+	QCOMPARE(defaultRun().infra.blockSets[0].N.capacity(), std::size_t(0));
+	QCOMPARE(defaultRun().infra.blockSets[0].A.capacity(), std::size_t(0));
+	QCOMPARE(defaultRun().infra.blockSets[0].member.capacity(), std::size_t(0));
 }
 
-static bool runManySectionsChecks() {
-	bool ok = true;
+void TestSceneBuilder::buildsManySections() {
 	constexpr int blockCount = 6001;
 	SceneModel scene;
 	scene.name = "many-sections";
@@ -917,82 +1112,97 @@ static bool runManySectionsChecks() {
 	for (int index = 0; index < blockCount; ++index)
 		scene.blocks.push_back({"block." + std::to_string(index), "track.many", 1.0});
 	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
-	ok &= expect(!hasErrors(diagnostics), "a scene with more than 6000 sections builds");
-	ok &= expect(defaultRun().infra.numBlocks == blockCount && defaultRun().infra.sections.size() == static_cast<std::size_t>(blockCount),
-		"the section storage is sized from the scene");
-	if (defaultRun().infra.sections.size() == static_cast<std::size_t>(blockCount))
-		ok &= expect(defaultRun().infra.sections.front().ID == "@block.0@"
-				&& defaultRun().infra.sections.back().ID == "@block.6000@",
-			"the sections past the former limit are built");
+	QVERIFY2(!hasErrors(diagnostics), "a scene with more than 6000 sections builds");
+	// The section storage is sized from the scene.
+	QCOMPARE(defaultRun().infra.numBlocks, blockCount);
+	QCOMPARE(defaultRun().infra.sections.size(), static_cast<std::size_t>(blockCount));
+	// The sections past the former limit are built.
+	QCOMPARE(defaultRun().infra.sections.front().ID, "@block.0@");
+	QCOMPARE(defaultRun().infra.sections.back().ID, "@block.6000@");
 	resetNativeInfrastructureState(defaultRun());
-	ok &= expect(defaultRun().infra.numBlocks == 0 && defaultRun().infra.sections.capacity() == 0,
-		"the runtime reset releases the section storage");
-	return ok;
+	// The runtime reset releases the section storage.
+	QCOMPARE(defaultRun().infra.numBlocks, 0);
+	QCOMPARE(defaultRun().infra.sections.capacity(), std::size_t(0));
 }
 
-static bool runRouteStorageChecks() {
-	bool ok = true;
+void TestSceneBuilder::routeHoldsExactlyItsSections() {
 	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && !defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().N_Block_Sections == 2
-			&& defaultRun().infra.routes.front().sequence_of_block_sections.size() == 2,
-		"a route holds exactly the sections of its route");
+	// A route holds exactly the sections of its route.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(!defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE(defaultRun().infra.routes.front().N_Block_Sections, 2);
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections.size(), std::size_t(2));
 
 	SceneModel reversed = tinyScene();
 	reversed.routes.front().blocks = {"block.b", "block.a"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversed);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().N_Block_Sections == 2
-			&& defaultRun().infra.routes.front().sequence_of_block_sections.size() == 2,
-		"a reversed route holds exactly the sections of its route");
+	// A reversed route holds exactly the sections of its route.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE(defaultRun().infra.routes.front().N_Block_Sections, 2);
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections.size(), std::size_t(2));
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().N_Block_Sections == 3
-			&& defaultRun().infra.routes.front().sequence_of_block_sections.size() == 3,
-		"a route over several regions holds exactly the sections of its route");
+	// A route over several regions holds exactly the sections of its route.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QCOMPARE(defaultRun().infra.routes.front().N_Block_Sections, 3);
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections.size(), std::size_t(3));
 
 	resetNativeInfrastructureState(defaultRun());
-	ok &= expect(defaultRun().infra.numRoutes == 0 && defaultRun().infra.routes.empty(), "the runtime reset removes the routes");
-	return ok;
+	// The runtime reset removes the routes.
+	QCOMPARE(defaultRun().infra.numRoutes, 0);
+	QVERIFY(defaultRun().infra.routes.empty());
+}
+
+// The route starts and ends where its first and last sections do, at these kilometres.
+static bool spansSections(const Route& route, double start, double end) {
+	return route.N_Block_Sections > 0
+		&& std::fabs(route.x_of_start_node - start) < 1e-9 && std::fabs(route.x_of_end_node - end) < 1e-9
+		&& route.x_of_start_node == route.sequence_of_block_sections.front().start_node.X
+		&& route.x_of_end_node == route.sequence_of_block_sections.back().end_node.X;
 }
 
 // A train leaves the network when its head passes the end of its route, so the end must lie where the last section ends, also when the
 // sections after a jump of the km reference were moved to one reference.
-static bool runRouteEndChecks() {
-	bool ok = true;
-	const auto spansSections = [](const Route& route, double start, double end) {
-		return route.N_Block_Sections > 0
-			&& std::fabs(route.x_of_start_node - start) < 1e-9 && std::fabs(route.x_of_end_node - end) < 1e-9
-			&& route.x_of_start_node == route.sequence_of_block_sections.front().start_node.X
-			&& route.x_of_end_node == route.sequence_of_block_sections.back().end_node.X;
-	};
-
+void TestSceneBuilder::routeEndsWhereLastSectionEnds() {
 	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().diffRegionsJumpX.first == 0
-			&& spansSections(defaultRun().infra.routes.front(), 0.0, 2.0),
-		"a route without a jump ends where its last section ends");
+	// A route without a jump ends where its last section ends.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QCOMPARE_EQ(defaultRun().infra.routes.front().diffRegionsJumpX.first, 0.0);
+	QVERIFY(spansSections(defaultRun().infra.routes.front(), 0.0, 2.0));
 
 	SceneModel reversed = tinyScene();
 	reversed.routes.front().blocks = {"block.b", "block.a"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversed);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().diffRegionsJumpX.first == 0 && spansSections(defaultRun().infra.routes.front(), 0.0, 2.0),
-		"a reversed route without a jump ends where its last section ends");
+	// A reversed route without a jump ends where its last section ends.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE_EQ(defaultRun().infra.routes.front().diffRegionsJumpX.first, 0.0);
+	QVERIFY(spansSections(defaultRun().infra.routes.front(), 0.0, 2.0));
 
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().diffRegionsJumpX.first != 0
-			&& spansSections(defaultRun().infra.routes.front(), 0.0, 4.0),
-		"a route across a jump ends where its last section ends after the shift");
+	// A route across a jump ends where its last section ends after the shift.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QCOMPARE_NE(defaultRun().infra.routes.front().diffRegionsJumpX.first, 0.0);
+	QVERIFY(spansSections(defaultRun().infra.routes.front(), 0.0, 4.0));
 
 	SceneModel reversedRegions = multiRegionRouteScene();
 	reversedRegions.routes.front().blocks = {"c.block", "b.block", "a.block"};
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversedRegions);
-	ok &= expect(!hasErrors(diagnostics) && defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().reversed_direction
-			&& defaultRun().infra.routes.front().diffRegionsJumpX.first != 0 && spansSections(defaultRun().infra.routes.front(), 0.0, 4.0),
-		"a reversed route across a jump ends where its last section ends after the shift");
+	// A reversed route across a jump ends where its last section ends after the shift.
+	QVERIFY(!hasErrors(diagnostics));
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
+	QCOMPARE_NE(defaultRun().infra.routes.front().diffRegionsJumpX.first, 0.0);
+	QVERIFY(spansSections(defaultRun().infra.routes.front(), 0.0, 4.0));
 
 	resetNativeInfrastructureState(defaultRun());
-	return ok;
 }
 
 // The sample objects give every member that the copy operators copy a value of its own, different from the constructor default.
@@ -1095,160 +1305,220 @@ static bool sameSection(const Section& a, const Section& b) {
 	return same;
 }
 
-// An object that differs from the sample in one member compares unequal to it, in both directions.
-template <typename T, typename Fill, typename Change>
-static bool unequalAfter(const char* what, const char* member, Fill fill, Change change) {
-	T sample, changed;
-	fill(sample);
-	fill(changed);
-	change(changed);
-	return expect(!(sample == changed) && !(changed == sample), std::string(what) + " that differ only in " + member + " compare unequal");
+// A change to one member of a sample object.
+template <typename T>
+struct MemberChange {
+	const char* member;
+	void (*change)(T&);
+};
+
+static const MemberChange<Node> kNodeChanges[] = {
+	{"ID", [](Node& n) { n.ID += 1; }},
+	{"X", [](Node& n) { n.X += 1; }},
+	{"Y", [](Node& n) { n.Y += 1; }},
+	{"isSignalled", [](Node& n) { n.isSignalled = false; }},
+	{"station", [](Node& n) { n.station = false; }},
+	{"dwellTime", [](Node& n) { n.dwellTime += 1; }},
+};
+
+static const MemberChange<Arc> kArcChanges[] = {
+	{"ID", [](Arc& a) { a.ID += 1; }},
+	{"length", [](Arc& a) { a.length += 1; }},
+	{"startNode.ID", [](Arc& a) { a.startNode.ID += 1; }},
+	{"endNode.ID", [](Arc& a) { a.endNode.ID += 1; }},
+	{"speedLimit", [](Arc& a) { a.speedLimit += 1; }},
+	{"curvature", [](Arc& a) { a.curvature += 1; }},
+	{"fs", [](Arc& a) { a.fs += 1; }},
+	{"brakingDistance", [](Arc& a) { a.brakingDistance += 1; }},
+	{"speedInBraking", [](Arc& a) { a.speedInBraking += 1; }},
+	{"signalSpeedLimit", [](Arc& a) { a.signalSpeedLimit += 1; }},
+};
+
+// A change to one member of a sample section. The list of nodes changes to the other list.
+struct SectionChange {
+	const char* member;
+	void (*change)(Section&, const NodeList& otherNodes);
+};
+
+static const SectionChange kSectionChanges[] = {
+	{"the gradient of the second arc", [](Section& s, const NodeList&) { s.arcs_in_signalling_block_section[1].gradient = 0.03; }},
+	{"ID", [](Section& s, const NodeList&) { s.ID = "section.other"; }},
+	{"state", [](Section& s, const NodeList&) { s.state = SignalState::Green; }},
+	{"the list of nodes", [](Section& s, const NodeList& otherNodes) { s.nodelist_of_nodes_in_signalling_section = otherNodes; }},
+	{"total_nodes", [](Section& s, const NodeList&) { s.total_nodes = 1; }},
+	{"total_arcs", [](Section& s, const NodeList&) { s.total_arcs = 1; }},
+	{"length", [](Section& s, const NodeList&) { s.length += 1; }},
+	{"exit_speed", [](Section& s, const NodeList&) { s.exit_speed += 1; }},
+	{"code", [](Section& s, const NodeList&) { s.code += 1; }},
+	{"start_node.ID", [](Section& s, const NodeList&) { s.start_node.ID += 1; }},
+};
+
+// A row for each change of the table, named by the member it changes.
+template <typename Change, std::size_t Count>
+static void addChangeRows(const Change (&changes)[Count]) {
+	QTest::addColumn<int>("index");
+	for (int index = 0; index < static_cast<int>(Count); ++index)
+		QTest::newRow(changes[index].member) << index;
 }
 
-static bool runNodeValueChecks() {
-	bool ok = true;
+void TestSceneBuilder::copiesNode() {
 	Node source, reference;
 	fillNode(source, 7);
 	fillNode(reference, 7);
 
 	Node copied(source);
-	ok &= expect(sameNode(copied, source), "a copied node holds the members and the block list of its source");
-	ok &= expect(copied.virtualSignal, "a copied node keeps the virtual signal flag");
+	QVERIFY2(sameNode(copied, source), "a copied node holds the members and the block list of its source");
+	QVERIFY2(copied.virtualSignal, "a copied node keeps the virtual signal flag");
 
 	Node target;
 	target.IDConnectedBlocks = {"old.1", "old.2", "old.3"};
 	target = source;
-	ok &= expect(sameNode(target, source), "an assigned node holds the members and the block list of its source");
-	ok &= expect(target.virtualSignal, "an assigned node takes the virtual signal flag of its source");
-	ok &= expect(sameNode(source, reference), "assigning a node leaves its source unchanged");
+	QVERIFY2(sameNode(target, source), "an assigned node holds the members and the block list of its source");
+	QVERIFY2(target.virtualSignal, "an assigned node takes the virtual signal flag of its source");
+	QVERIFY2(sameNode(source, reference), "assigning a node leaves its source unchanged");
 
 	Node stale, plain;
 	stale.virtualSignal = true;
 	stale = plain;
-	ok &= expect(!stale.virtualSignal, "an assigned node loses its virtual signal flag when its source has none");
+	QVERIFY2(!stale.virtualSignal, "an assigned node loses its virtual signal flag when its source has none");
 
 	Node& alias = source;
 	source = alias;
-	ok &= expect(sameNode(source, reference), "a node assigned to itself keeps its members and its block list");
+	QVERIFY2(sameNode(source, reference), "a node assigned to itself keeps its members and its block list");
 
-	ok &= expect(source == reference && reference == source, "nodes with the same members compare equal in both directions");
-	auto fill = [](Node& n) { fillNode(n, 7); };
-	ok &= unequalAfter<Node>("nodes", "ID", fill, [](Node& n) { n.ID += 1; });
-	ok &= unequalAfter<Node>("nodes", "X", fill, [](Node& n) { n.X += 1; });
-	ok &= unequalAfter<Node>("nodes", "Y", fill, [](Node& n) { n.Y += 1; });
-	ok &= unequalAfter<Node>("nodes", "isSignalled", fill, [](Node& n) { n.isSignalled = false; });
-	ok &= unequalAfter<Node>("nodes", "station", fill, [](Node& n) { n.station = false; });
-	ok &= unequalAfter<Node>("nodes", "dwellTime", fill, [](Node& n) { n.dwellTime += 1; });
-	return ok;
+	// Nodes with the same members compare equal in both directions.
+	QVERIFY(source == reference);
+	QVERIFY(reference == source);
 }
 
-static bool runArcValueChecks() {
-	bool ok = true;
+void TestSceneBuilder::nodesDifferingInOneMemberDiffer_data() {
+	addChangeRows(kNodeChanges);
+}
+
+// A node that differs from the sample in one member compares unequal to it, in both directions.
+void TestSceneBuilder::nodesDifferingInOneMemberDiffer() {
+	QFETCH(int, index);
+	Node sample, changed;
+	fillNode(sample, 7);
+	fillNode(changed, 7);
+	kNodeChanges[index].change(changed);
+	QVERIFY(!(sample == changed));
+	QVERIFY(!(changed == sample));
+}
+
+void TestSceneBuilder::copiesArc() {
 	Arc source, reference;
 	fillArc(source, 1, 0.01);
 	fillArc(reference, 1, 0.01);
 
 	Arc copied(source);
-	ok &= expect(sameArc(copied, source), "a copied arc holds the members of its source");
+	QVERIFY2(sameArc(copied, source), "a copied arc holds the members of its source");
 
 	Arc target;
 	target = source;
-	ok &= expect(sameArc(target, source), "an assigned arc holds the members of its source");
-	ok &= expect(sameArc(source, reference), "assigning an arc leaves its source unchanged");
+	QVERIFY2(sameArc(target, source), "an assigned arc holds the members of its source");
+	QVERIFY2(sameArc(source, reference), "assigning an arc leaves its source unchanged");
 
 	Arc& alias = source;
 	source = alias;
-	ok &= expect(sameArc(source, reference), "an arc assigned to itself keeps its members");
+	QVERIFY2(sameArc(source, reference), "an arc assigned to itself keeps its members");
 
 	Arc flat, otherFlat;
-	ok &= expect(flat == otherFlat, "two default arcs compare equal");
-	ok &= expect(source == reference && reference == source, "arcs with the same members compare equal in both directions");
-	ok &= expect(source.gradient == 0.01 && reference.gradient == 0.01, "comparing equal arcs leaves their gradients unchanged");
+	QVERIFY2(flat == otherFlat, "two default arcs compare equal");
+	// Arcs with the same members compare equal in both directions.
+	QVERIFY(source == reference);
+	QVERIFY(reference == source);
+	// Comparing equal arcs leaves their gradients unchanged.
+	QCOMPARE_EQ(source.gradient, 0.01);
+	QCOMPARE_EQ(reference.gradient, 0.01);
 	Arc steeper;
 	fillArc(steeper, 1, 0.02);
-	ok &= expect(!(source == steeper) && !(steeper == source), "arcs that differ only in gradient compare unequal in both directions");
-	ok &= expect(source.gradient == 0.01 && steeper.gradient == 0.02, "comparing unequal arcs leaves their gradients unchanged");
-
-	auto fill = [](Arc& a) { fillArc(a, 1, 0.01); };
-	ok &= unequalAfter<Arc>("arcs", "ID", fill, [](Arc& a) { a.ID += 1; });
-	ok &= unequalAfter<Arc>("arcs", "length", fill, [](Arc& a) { a.length += 1; });
-	ok &= unequalAfter<Arc>("arcs", "startNode.ID", fill, [](Arc& a) { a.startNode.ID += 1; });
-	ok &= unequalAfter<Arc>("arcs", "endNode.ID", fill, [](Arc& a) { a.endNode.ID += 1; });
-	ok &= unequalAfter<Arc>("arcs", "speedLimit", fill, [](Arc& a) { a.speedLimit += 1; });
-	ok &= unequalAfter<Arc>("arcs", "curvature", fill, [](Arc& a) { a.curvature += 1; });
-	ok &= unequalAfter<Arc>("arcs", "fs", fill, [](Arc& a) { a.fs += 1; });
-	ok &= unequalAfter<Arc>("arcs", "brakingDistance", fill, [](Arc& a) { a.brakingDistance += 1; });
-	ok &= unequalAfter<Arc>("arcs", "speedInBraking", fill, [](Arc& a) { a.speedInBraking += 1; });
-	ok &= unequalAfter<Arc>("arcs", "signalSpeedLimit", fill, [](Arc& a) { a.signalSpeedLimit += 1; });
-	return ok;
+	// Arcs that differ only in gradient compare unequal in both directions.
+	QVERIFY(!(source == steeper));
+	QVERIFY(!(steeper == source));
+	// Comparing unequal arcs leaves their gradients unchanged.
+	QCOMPARE_EQ(source.gradient, 0.01);
+	QCOMPARE_EQ(steeper.gradient, 0.02);
 }
 
-static bool runSectionValueChecks() {
-	bool ok = true;
+void TestSceneBuilder::arcsDifferingInOneMemberDiffer_data() {
+	addChangeRows(kArcChanges);
+}
+
+// An arc that differs from the sample in one member compares unequal to it, in both directions.
+void TestSceneBuilder::arcsDifferingInOneMemberDiffer() {
+	QFETCH(int, index);
+	Arc sample, changed;
+	fillArc(sample, 1, 0.01);
+	fillArc(changed, 1, 0.01);
+	kArcChanges[index].change(changed);
+	QVERIFY(!(sample == changed));
+	QVERIFY(!(changed == sample));
+}
+
+void TestSceneBuilder::copiesSection() {
 	const NodeList nodes = std::make_shared<const std::vector<Node>>(2);
-	const NodeList otherNodes = std::make_shared<const std::vector<Node>>(2);
 	TDS tds, firstOtherTds, secondOtherTds;
 	Section source, reference;
 	fillSection(source, nodes, &tds);
 	fillSection(reference, nodes, &tds);
 
 	Section copied(source);
-	ok &= expect(sameSection(copied, source), "a copied section holds the members, arcs and detection sections of its source");
+	QVERIFY2(sameSection(copied, source), "a copied section holds the members, arcs and detection sections of its source");
 
 	Section target;
 	target.TDS_in_block = {&firstOtherTds, &secondOtherTds};
 	target = source;
-	ok &= expect(sameSection(target, source), "an assigned section holds the members, arcs and detection sections of its source");
-	ok &= expect(sameSection(source, reference), "assigning a section leaves its source unchanged");
+	QVERIFY2(sameSection(target, source), "an assigned section holds the members, arcs and detection sections of its source");
+	QVERIFY2(sameSection(source, reference), "assigning a section leaves its source unchanged");
 
 	Section& alias = source;
 	source = alias;
-	ok &= expect(sameSection(source, reference), "a section assigned to itself keeps its members, arcs and detection sections");
+	QVERIFY2(sameSection(source, reference), "a section assigned to itself keeps its members, arcs and detection sections");
 
 	// A section with the flag at its end node only, as the first half of a double switch has it in a route that runs forward.
 	Section firstHalf, assignedHalf;
 	fillSection(firstHalf, nodes, &tds);
 	firstHalf.start_node.virtualSignal = false;
 	assignedHalf = firstHalf;
-	ok &= expect(!assignedHalf.start_node.virtualSignal && assignedHalf.end_node.virtualSignal,
-		"an assigned section keeps which of its end nodes carries the virtual signal");
+	// An assigned section keeps which of its end nodes carries the virtual signal.
+	QVERIFY(!assignedHalf.start_node.virtualSignal);
+	QVERIFY(assignedHalf.end_node.virtualSignal);
 
-	ok &= expect(source == reference && reference == source, "sections with the same members compare equal in both directions");
-	ok &= expect(sameSection(source, reference), "comparing equal sections leaves their arcs unchanged");
+	// Sections with the same members compare equal in both directions.
+	QVERIFY(source == reference);
+	QVERIFY(reference == source);
+	QVERIFY2(sameSection(source, reference), "comparing equal sections leaves their arcs unchanged");
 	Section steeper;
 	fillSection(steeper, nodes, &tds);
 	steeper.arcs_in_signalling_block_section[0].gradient = 0.05;
-	ok &= expect(!(source == steeper) && !(steeper == source), "sections that differ only in the gradient of the first arc compare unequal");
-	ok &= expect(sameSection(source, reference), "comparing unequal sections leaves the arcs of the left section unchanged");
-
-	auto fill = [&](Section& s) { fillSection(s, nodes, &tds); };
-	ok &= unequalAfter<Section>("sections", "the gradient of the second arc", fill, [](Section& s) { s.arcs_in_signalling_block_section[1].gradient = 0.03; });
-	ok &= unequalAfter<Section>("sections", "ID", fill, [](Section& s) { s.ID = "section.other"; });
-	ok &= unequalAfter<Section>("sections", "state", fill, [](Section& s) { s.state = SignalState::Green; });
-	ok &= unequalAfter<Section>("sections", "the list of nodes", fill, [&](Section& s) { s.nodelist_of_nodes_in_signalling_section = otherNodes; });
-	ok &= unequalAfter<Section>("sections", "total_nodes", fill, [](Section& s) { s.total_nodes = 1; });
-	ok &= unequalAfter<Section>("sections", "total_arcs", fill, [](Section& s) { s.total_arcs = 1; });
-	ok &= unequalAfter<Section>("sections", "length", fill, [](Section& s) { s.length += 1; });
-	ok &= unequalAfter<Section>("sections", "exit_speed", fill, [](Section& s) { s.exit_speed += 1; });
-	ok &= unequalAfter<Section>("sections", "code", fill, [](Section& s) { s.code += 1; });
-	ok &= unequalAfter<Section>("sections", "start_node.ID", fill, [](Section& s) { s.start_node.ID += 1; });
-	return ok;
+	// Sections that differ only in the gradient of the first arc compare unequal.
+	QVERIFY(!(source == steeper));
+	QVERIFY(!(steeper == source));
+	QVERIFY2(sameSection(source, reference), "comparing unequal sections leaves the arcs of the left section unchanged");
 }
 
-static bool runValueSemanticsChecks() {
-	bool ok = runNodeValueChecks();
-	ok &= runArcValueChecks();
-	ok &= runSectionValueChecks();
-	return ok;
+void TestSceneBuilder::sectionsDifferingInOneMemberDiffer_data() {
+	addChangeRows(kSectionChanges);
+}
+
+// A section that differs from the sample in one member compares unequal to it, in both directions.
+void TestSceneBuilder::sectionsDifferingInOneMemberDiffer() {
+	QFETCH(int, index);
+	const NodeList nodes = std::make_shared<const std::vector<Node>>(2);
+	const NodeList otherNodes = std::make_shared<const std::vector<Node>>(2);
+	TDS tds;
+	Section sample, changed;
+	fillSection(sample, nodes, &tds);
+	fillSection(changed, nodes, &tds);
+	kSectionChanges[index].change(changed, otherNodes);
+	QVERIFY(!(sample == changed));
+	QVERIFY(!(changed == sample));
 }
 
 // The texts of the track detection section border ids, for plain sections and for sections with a diverging switch,
 // and the text that a node searches its connected blocks with.
-static bool runTrackDetectionBorderNameChecks() {
-	bool ok = true;
-	const auto same = [&ok](const std::string& actual, const std::string& expected, const std::string& what) {
-		ok &= expect(actual == expected, what + " is '" + actual + "'");
-	};
+void TestSceneBuilder::namesTrackDetectionBorders() {
 	const auto addArc = [](Section& target, double startX, double endX, int connections = 0, const std::string& name = std::string()) {
 		Arc& added = target.arcs_in_signalling_block_section[target.total_arcs++];
 		added.startNode.X = startX;
@@ -1285,127 +1555,161 @@ static bool runTrackDetectionBorderNameChecks() {
 	const auto endId = [](const Section& target, int index) -> const std::string& {
 		return target.arcs_in_signalling_block_section[index].endNode.tdsbId;
 	};
-	same(endId(plain, 0), "@-7.234568-P1@Point", "the border of a first arc end without a switch");
-	same(endId(plain, 1), "@12.345679-P1@Point", "the border of a later arc end without a switch");
-	same(whole.arcs_in_signalling_block_section[0].startNode.tdsbId, "@Beg-Ba@/@20.765432-Bb@Point-Start",
-		"the border at the start of a switch at the section start");
-	same(endId(whole, 0), "@20.123457-Ba@/@20.765432-Bb@Point-End@20.123457-Ba@/@End-Bb@Point-End",
-		"the border at the end of a switch at the section end");
-	same(endId(ahead, 0), "@29.333333-Bc@Point", "the border before a switch");
-	same(endId(ahead, 1), "@30.555556-Bc@/@31.444444-Bd@Point-Start@End-Bc@/@31.444444-Bd@Point-Start",
-		"the border at the start of a switch at the section end");
-	same(endId(named, 0), "@Q@/@40.888889-Bf@Point-Start", "the named border at the start of a switch");
-	same(endId(named, 1), "@40.222222-Be@/@R@Point-End", "the named border at the end of a switch");
-	same(endId(named, 2), "@45.555556-Bf@Point", "the border after a switch");
-	return ok;
+	// The border of a first arc end without a switch.
+	QCOMPARE(endId(plain, 0), "@-7.234568-P1@Point");
+	// The border of a later arc end without a switch.
+	QCOMPARE(endId(plain, 1), "@12.345679-P1@Point");
+	// The border at the start of a switch at the section start.
+	QCOMPARE(whole.arcs_in_signalling_block_section[0].startNode.tdsbId, "@Beg-Ba@/@20.765432-Bb@Point-Start");
+	// The border at the end of a switch at the section end.
+	QCOMPARE(endId(whole, 0), "@20.123457-Ba@/@20.765432-Bb@Point-End@20.123457-Ba@/@End-Bb@Point-End");
+	// The border before a switch.
+	QCOMPARE(endId(ahead, 0), "@29.333333-Bc@Point");
+	// The border at the start of a switch at the section end.
+	QCOMPARE(endId(ahead, 1), "@30.555556-Bc@/@31.444444-Bd@Point-Start@End-Bc@/@31.444444-Bd@Point-Start");
+	// The named border at the start of a switch.
+	QCOMPARE(endId(named, 0), "@Q@/@40.888889-Bf@Point-Start");
+	// The named border at the end of a switch.
+	QCOMPARE(endId(named, 1), "@40.222222-Be@/@R@Point-End");
+	// The border after a switch.
+	QCOMPARE(endId(named, 2), "@45.555556-Bf@Point");
 }
 
 // The messages of the infrastructure builder are sim.setup messages of the logging core. A sink collects them, because the console
 // shows neither the category nor the level, and each text is compared with the exact wording, quirks included (a missing space,
 // a tail that is written twice, "ahving").
-static bool runSignallingMessageChecks() {
-	bool ok = true;
-	struct Logged {
-		eglog::Category category;
-		eglog::Level level;
-		std::string text;
-	};
-	struct Expected {
-		eglog::Level level;
-		std::string text;
-	};
-	// Collects the messages and puts the default sink and the default rules back on every path out of the function.
-	struct Capture {
-		std::vector<Logged> messages;
-		Capture() {
-			eglog::setSink([this](eglog::Category category, eglog::Level level, const std::string& text) { this->messages.push_back(Logged{category, level, text}); });
-		}
-		~Capture() {
-			eglog::setSink({});
-			eglog::configure("");
-		}
-		std::vector<Logged> take() {
-			std::vector<Logged> taken;
-			taken.swap(messages);
-			return taken;
-		}
-	} capture;
-	const eglog::Level infoLevel = eglog::Level::Info;
-	const eglog::Level warningLevel = eglog::Level::Warning;
-	const eglog::Level errorLevel = eglog::Level::Error;
-	const auto visible = [](std::string text) {
-		for (std::size_t at = 0; (at = text.find_first_of("\r\n", at)) != std::string::npos; at += 2)
-			text.replace(at, 1, text[at] == '\r' ? "\\r" : "\\n");
-		return text;
-	};
-	const auto shows = [&](const std::vector<Logged>& found, const std::vector<Expected>& wanted, const std::string& what) {
-		bool same = found.size() == wanted.size();
-		for (std::size_t index = 0; same && index < found.size(); ++index)
-			same = found[index].category == eglog::Category::SimSetup && found[index].level == wanted[index].level
-				&& found[index].text == wanted[index].text;
-		std::string described;
-		if (!same) {
-			described = "\n  found:";
-			for (const Logged& message : found)
-				described += std::string("\n    ") + eglog::categoryName(message.category) + " " + eglog::levelName(message.level)
-					+ " '" + visible(message.text) + "'";
-			described += "\n  wanted:";
-			for (const Expected& message : wanted)
-				described += std::string("\n    sim.setup ") + eglog::levelName(message.level) + " '" + visible(message.text) + "'";
-		}
-		ok &= expect(same, what + described);
-	};
+struct Logged {
+	eglog::Category category;
+	eglog::Level level;
+	std::string text;
+};
 
-	// The route setup of a build: the progress text of each route, then the line end, also without routes.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the scene with one route builds");
-	shows(capture.take(), {{infoLevel, "\rCreating Scene Route : 0 route.tiny"}, {infoLevel, "\n"}}, "the route setup of a scene with one route");
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())), "the scene without routes builds");
-	shows(capture.take(), {{infoLevel, "\n"}}, "the route setup of a scene without routes");
+struct Expected {
+	eglog::Level level;
+	std::string text;
+};
+
+// Collects the messages and puts the default sink and the default rules back on every path out of the slot.
+struct Capture {
+	std::vector<Logged> messages;
+	Capture() {
+		eglog::setSink([this](eglog::Category category, eglog::Level level, const std::string& text) { this->messages.push_back(Logged{category, level, text}); });
+	}
+	~Capture() {
+		eglog::setSink({});
+		eglog::configure("");
+	}
+	std::vector<Logged> take() {
+		std::vector<Logged> taken;
+		taken.swap(messages);
+		return taken;
+	}
+};
+
+constexpr eglog::Level infoLevel = eglog::Level::Info;
+constexpr eglog::Level warningLevel = eglog::Level::Warning;
+constexpr eglog::Level errorLevel = eglog::Level::Error;
+
+static std::string visible(std::string text) {
+	for (std::size_t at = 0; (at = text.find_first_of("\r\n", at)) != std::string::npos; at += 2)
+		text.replace(at, 1, text[at] == '\r' ? "\\r" : "\\n");
+	return text;
+}
+
+// Nothing when the messages found are the sim.setup messages wanted, and otherwise what with both lists.
+static std::string loggedProblem(const std::vector<Logged>& found, const std::vector<Expected>& wanted, const std::string& what) {
+	bool same = found.size() == wanted.size();
+	for (std::size_t index = 0; same && index < found.size(); ++index)
+		same = found[index].category == eglog::Category::SimSetup && found[index].level == wanted[index].level
+			&& found[index].text == wanted[index].text;
+	if (same)
+		return {};
+	std::string described = what + "\n  found:";
+	for (const Logged& message : found)
+		described += std::string("\n    ") + eglog::categoryName(message.category) + " " + eglog::levelName(message.level)
+			+ " '" + visible(message.text) + "'";
+	described += "\n  wanted:";
+	for (const Expected& message : wanted)
+		described += std::string("\n    sim.setup ") + eglog::levelName(message.level) + " '" + visible(message.text) + "'";
+	return described;
+}
+
+// The messages of a cut of a section of length 10 with a diverging switch. The failed cut replaces the section by a default one, so
+// the id is a constant.
+static std::vector<Logged> cutMessages(Capture& capture, const std::string& part, double abscissa, double xStartSwitch, double xEndSwitch) {
+	Section section;
+	section.ID = "@Cut@";
+	section.withSwitchDiv = true;
+	section.XStartSwitch = xStartSwitch;
+	section.XEndSwitch = xEndSwitch;
+	section.end_node.X = 10.0;
+	section.total_arcs = 1;
+	section.arcs_in_signalling_block_section[0].endNode.X = 10.0;
+	section.CutBlockSection(part, abscissa);
+	return capture.take();
+}
+
+// The route setup of a build: the progress text of each route, then the line end, also without routes.
+void TestSceneBuilder::logsRouteSetup() {
+	Capture capture;
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the scene with one route builds");
+	std::string problem = loggedProblem(capture.take(), {{infoLevel, "\rCreating Scene Route : 0 route.tiny"}, {infoLevel, "\n"}},
+		"the route setup of a scene with one route");
+	QVERIFY2(problem.empty(), problem.c_str());
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())), "the scene without routes builds");
+	problem = loggedProblem(capture.take(), {{infoLevel, "\n"}}, "the route setup of a scene without routes");
+	QVERIFY2(problem.empty(), problem.c_str());
 	resetNativeInfrastructureState(defaultRun());
-	capture.take();
+}
 
-	// A cut abscissa outside the section is an error. The failed cut replaces the section by a default one, so the id is a constant.
-	const auto cut = [&](const std::string& part, double abscissa, double xStartSwitch, double xEndSwitch) {
-		Section section;
-		section.ID = "@Cut@";
-		section.withSwitchDiv = true;
-		section.XStartSwitch = xStartSwitch;
-		section.XEndSwitch = xEndSwitch;
-		section.end_node.X = 10.0;
-		section.total_arcs = 1;
-		section.arcs_in_signalling_block_section[0].endNode.X = 10.0;
-		section.CutBlockSection(part, abscissa);
-		return capture.take();
-	};
-	shows(cut("CutEnd", 12.5, 2.0, 4.0),
+// A cut abscissa outside the section is an error.
+void TestSceneBuilder::logsCutOutsideSection() {
+	Capture capture;
+	std::string problem = loggedProblem(cutMessages(capture, "CutEnd", 12.5, 2.0, 4.0),
 		{{errorLevel, "ERROR: The Block Section @Cut@ cannot be cut in the inserted abscissa 12.5\n\n"}},
 		"a cut outside the section");
-	ok &= expect(eglog::configure("sim.setup=false"), "the rule that switches sim.setup off is well formed");
-	shows(cut("CutEnd", 12.5, 2.0, 4.0), {}, "a cut outside the section with sim.setup off");
-	eglog::configure("");
+	QVERIFY2(problem.empty(), problem.c_str());
+	QVERIFY2(eglog::configure("sim.setup=false"), "the rule that switches sim.setup off is well formed");
+	problem = loggedProblem(cutMessages(capture, "CutEnd", 12.5, 2.0, 4.0), {}, "a cut outside the section with sim.setup off");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// Valid cuts of a section of length 10 with a diverging switch from 2 to 4, where the cut touches or removes a switch edge.
+// Valid cuts of a section of length 10 with a diverging switch from 2 to 4, where the cut touches or removes a switch edge.
+void TestSceneBuilder::logsCutsAtSwitchEdges() {
+	Capture capture;
 	const std::string endEdgeCut = " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, "
 								   "please consider repositioning the final edge of this switch or the starting edge of the switch "
 								   "of the next block section in the route\n";
 	const std::string startEdgeCut = " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, "
 									 "please consider repositioning the starting edge of this switch or the final edge of the switch "
 									 "of the previous block section in the route\n";
-	shows(cut("CutEnd", 4.0, 2.0, 4.0),
+	std::string problem = loggedProblem(cutMessages(capture, "CutEnd", 4.0, 2.0, 4.0),
 		{{infoLevel, "Cutting Block Section: @Cut@ at the ending edge of its diverging switch\n\n"}},
 		"a cut at the end of the switch");
-	shows(cut("CutEnd", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}}, "a cut inside the switch");
-	shows(cut("CutEnd", 1.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}}, "a cut before the switch");
-	shows(cut("CutBegin", 2.0, 2.0, 4.0),
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = loggedProblem(cutMessages(capture, "CutEnd", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
+		"a cut inside the switch");
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = loggedProblem(cutMessages(capture, "CutEnd", 1.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}},
+		"a cut before the switch");
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = loggedProblem(cutMessages(capture, "CutBegin", 2.0, 2.0, 4.0),
 		{{infoLevel, "Cutting Block Section: @Cut@at the starting edge of its diverging switch\n\n"}},
 		"a cut at the start of the switch");
-	shows(cut("CutBegin", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section : @Cut@" + startEdgeCut}}, "a cut inside the switch from the start");
-	shows(cut("CutBegin", 3.0, 4.0, 2.0),
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = loggedProblem(cutMessages(capture, "CutBegin", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section : @Cut@" + startEdgeCut}},
+		"a cut inside the switch from the start");
+	QVERIFY2(problem.empty(), problem.c_str());
+	problem = loggedProblem(cutMessages(capture, "CutBegin", 3.0, 4.0, 2.0),
 		{{errorLevel, "ERROR: Block Section: @Cut@ has Ending Edge of diverging switch with a progressive inferior to its Starting Egde. "
 					  "Problems in cutting the block section. PLease correct Switch on the infrastructure\n\n"}},
 		"a cut of a switch that ends before it starts");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// The elements that a train crosses between 4 and 6 and that miss a name.
+// The elements that a train crosses between 4 and 6 and that miss a name.
+void TestSceneBuilder::logsCrossedElementsWithoutName() {
+	Capture capture;
 	const auto crossing = [&](const InfraElement& element) {
 		std::list<InfraElement> elements(1);
 		elements.front() = element;
@@ -1416,27 +1720,34 @@ static bool runSignallingMessageChecks() {
 	divergingSwitch.XCoordinate = 5.0;
 	divergingSwitch.IsSwitch = true;
 	divergingSwitch.withSwitchDiv = true;
-	shows(crossing(divergingSwitch),
+	std::string problem = loggedProblem(crossing(divergingSwitch),
 		{{warningLevel, "Warning: Diverging Switch: Noneat position 5 on Route of Train T1 has no SwitchName. Please investigate on it\n"},
 			{warningLevel, "Warning: Position not found for connected Point of Switch: None on Route of TrainT1\n"}},
 		"a diverging switch with no name and no connected point");
+	QVERIFY2(problem.empty(), problem.c_str());
 	divergingSwitch.ID = "sw1";
 	divergingSwitch.XConnectedPoint = 7.0;
-	shows(crossing(divergingSwitch),
+	problem = loggedProblem(crossing(divergingSwitch),
 		{{warningLevel, "Warning: Diverging Switch: sw1at position 5 on Route of Train T1 has no SwitchName. Please investigate on it\n"}},
 		"a diverging switch with no switch name");
+	QVERIFY2(problem.empty(), problem.c_str());
 	divergingSwitch.SwitchName = "@s@Point";
 	divergingSwitch.XConnectedPoint = -1;
-	shows(crossing(divergingSwitch),
+	problem = loggedProblem(crossing(divergingSwitch),
 		{{warningLevel, "Warning: Position not found for connected Point of Switch: sw1 on Route of TrainT1\n"}},
 		"a diverging switch with no connected point");
+	QVERIFY2(problem.empty(), problem.c_str());
 	InfraElement unnamed;
 	unnamed.XCoordinate = 5.0;
-	shows(crossing(unnamed),
+	problem = loggedProblem(crossing(unnamed),
 		{{warningLevel, "Warning: Infrastructure Element at position 5 on Route of Train T1 has no ID. Please investigate on it\n"}},
 		"an element with no id");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// The track detection section borders of one hand-made section per call. A switch section has the tokens of two blocks in its id.
+// The track detection section borders of one hand-made section per call. A switch section has the tokens of two blocks in its id.
+void TestSceneBuilder::logsDetectionBorderWarnings() {
+	Capture capture;
 	const auto oneSection = [](const std::string& id, bool withSwitch, double xStartSwitch, double xEndSwitch, double endX) {
 		std::vector<Section> sections(1);
 		sections[0].ID = id;
@@ -1467,52 +1778,66 @@ static bool runSignallingMessageChecks() {
 	std::vector<Section> plain = oneSection("@P1@", false, 0.0, 0.0, 20.0);
 	addArc(plain[0], -9.0, -7.2345678, 0, "", 0);
 	addArc(plain[0], -7.2345678, 20.0, 0, "", 1);
-	shows(borders(plain), {{warningLevel, "Warning: Block @P1@" + noEndName}}, "the last node of a section without a switch has no name");
+	std::string problem = loggedProblem(borders(plain), {{warningLevel, "Warning: Block @P1@" + noEndName}},
+		"the last node of a section without a switch has no name");
+	QVERIFY2(problem.empty(), problem.c_str());
 	const double wholeStart = 20.1234567;
 	const double wholeEnd = 20.7654321;
 	std::vector<Section> whole = oneSection(switchId, true, wholeStart, wholeEnd, wholeEnd);
 	addArc(whole[0], wholeStart, wholeEnd, 0, "", 0);
-	shows(borders(whole), {{warningLevel, noBeginningName}}, "the first node of the first arc is the start of the switch and has no name");
+	problem = loggedProblem(borders(whole), {{warningLevel, noBeginningName}},
+		"the first node of the first arc is the start of the switch and has no name");
+	QVERIFY2(problem.empty(), problem.c_str());
 	const double xStart = 40.2222222;
 	const double xEnd = 40.8888888;
 	std::vector<Section> beforeSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
 	addArc(beforeSwitch[0], 40.0, 41.0, 1, "", 0);
-	shows(borders(beforeSwitch),
+	problem = loggedProblem(borders(beforeSwitch),
 		{{warningLevel, noBeginningName}},
 		"the first node of the first arc is a switch before the switch of the section and has no name");
+	QVERIFY2(problem.empty(), problem.c_str());
 	std::vector<Section> named = oneSection(switchId, true, xStart, xEnd, 50.0);
 	addArc(named[0], 40.0, 41.0, 1, "@Q@", 0);
-	shows(borders(named),
+	problem = loggedProblem(borders(named),
 		{{warningLevel, "Warning: The initial Node of Block Section: " + switchId + "is also a switch: Changing its TDSB ID accordingly in: @Q@Point\n"}},
 		"the first node of the first arc is a switch and has a name");
-	ok &= expect(named[0].arcs_in_signalling_block_section[0].startNode.tdsbId == "@Q@Point", "the name in the message is the name of the node");
+	QVERIFY2(problem.empty(), problem.c_str());
+	// The name in the message is the name of the node.
+	QCOMPARE(named[0].arcs_in_signalling_block_section[0].startNode.tdsbId, "@Q@Point");
 	std::vector<Section> afterSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
 	addArc(afterSwitch[0], 41.5, 45.0, 1, "", 0);
-	shows(borders(afterSwitch),
+	problem = loggedProblem(borders(afterSwitch),
 		{{warningLevel, noBeginningName}, {errorLevel, startingNode + "that goes after the end of the Switch\n"}},
 		"the first node of the first arc is a switch after the switch of the section");
+	QVERIFY2(problem.empty(), problem.c_str());
 	std::vector<Section> insideSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
 	addArc(insideSwitch[0], 40.5, 41.0, 1, "", 0);
-	shows(borders(insideSwitch),
+	problem = loggedProblem(borders(insideSwitch),
 		{{warningLevel, noBeginningName}, {errorLevel, startingNode + "in between the start and the end of the switch\n"}},
 		"the first node of the first arc is a switch inside the switch of the section");
+	QVERIFY2(problem.empty(), problem.c_str());
 	const std::string aheadId = "@Bc@-1.000000/@Bd@-2.000000";
 	const double aheadStart = 30.5555556;
 	std::vector<Section> ahead = oneSection(aheadId, true, aheadStart, 31.4444444, aheadStart);
 	addArc(ahead[0], 29.0, aheadStart, 0, "", 0);
-	shows(borders(ahead),
+	problem = loggedProblem(borders(ahead),
 		{{warningLevel, "Warning: Check correctness of Block Section:" + aheadId + " its ending Node is the start of the switch "
 																				   "on the same block section\n\n"}},
 		"the last node of the section is the start of its switch");
+	QVERIFY2(problem.empty(), problem.c_str());
 	std::vector<Section> between = oneSection(switchId, true, xStart, xEnd, 50.0);
 	addArc(between[0], 40.0, 40.5, 0, "", 1);
 	const std::string betweenSwitchEdges = " Node at position: 40.5 is a switch defined in between the start (XStartSwitch) "
 										   "and the end (XEndSwitch) of the diverging switch. A name will be automatically assigned to it\n";
-	shows(borders(between),
+	problem = loggedProblem(borders(between),
 		{{warningLevel, "WARNING: in Block Section" + switchId + betweenSwitchEdges}},
 		"the end node of an arc is a switch inside the switch of the section");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// A switch edge with a one-token name cannot be read as a diverging switch. Three of the four messages write the tail twice.
+// A switch edge with a one-token name cannot be read as a diverging switch. Three of the four messages write the tail twice.
+void TestSceneBuilder::logsShortSwitchNames() {
+	Capture capture;
 	const auto edge = [] {
 		Section made;
 		made.ID = "@S1@";
@@ -1530,33 +1855,40 @@ static bool runSignallingMessageChecks() {
 	Section startEdge = edge();
 	startEdge.start_node.tdsbId = "AB";
 	startEdge.start_node.numConnections = 1;
-	shows(switchName(false, startEdge),
+	std::string problem = loggedProblem(switchName(false, startEdge),
 		{{warningLevel, "Warning: Switch at starting Node: AB on Block Section @S1@for Route R1 that has reversed = 0" + tail}},
 		"a switch at the start of a section");
+	QVERIFY2(problem.empty(), problem.c_str());
 	Section arcEdge = edge();
 	arcEdge.total_arcs = 1;
 	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbId = "AB";
 	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbGeoCoordX = 0.0;
 	arcEdge.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
-	shows(switchName(false, arcEdge),
+	problem = loggedProblem(switchName(false, arcEdge),
 		{{warningLevel, "Warning: Switch at end of one of the arcs: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
 		"a switch at the end of an arc");
+	QVERIFY2(problem.empty(), problem.c_str());
 	Section reversedEdge = edge();
 	reversedEdge.total_arcs = 1;
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbId = "AB";
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbGeoCoordX = 0.0;
 	reversedEdge.arcs_in_signalling_block_section[0].startNode.numConnections = 1;
-	shows(switchName(true, reversedEdge),
+	problem = loggedProblem(switchName(true, reversedEdge),
 		{{warningLevel, "Warning: Switch at one of the beginning nodes: AB on Block Section @S1@for RouteR1that has reversed = 1" + tail + tail}},
 		"a switch at the start of an arc of a reversed route");
+	QVERIFY2(problem.empty(), problem.c_str());
 	Section endEdge = edge();
 	endEdge.end_node.tdsbId = "AB";
 	endEdge.end_node.numConnections = 1;
-	shows(switchName(false, endEdge),
+	problem = loggedProblem(switchName(false, endEdge),
 		{{warningLevel, "Warning: Switch at ending Node: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
 		"a switch at the end of a section");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// The switch of a section is connected to blocks that are not the section.
+// The switch of a section is connected to blocks that are not the section.
+void TestSceneBuilder::logsSwitchConnectedToOtherBlocks() {
+	Capture capture;
 	Section unknownBlock;
 	unknownBlock.ID = "@C@";
 	unknownBlock.total_arcs = 1;
@@ -1565,12 +1897,16 @@ static bool runSignallingMessageChecks() {
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.push_back("@A@-1.000000/@B@-2.000000");
 	lockSwitchesOnAllConnectedSections(defaultRun(), 1010.0, 990.0, 10.0, 0.0, unknownBlock, "now", "next", "T1", false, "None");
 	defaultRun().etcsMa.clear();
-	shows(capture.take(),
+	const std::string problem = loggedProblem(capture.take(),
 		{{errorLevel, "\n\nError: there is not Block ahving the same ID of Block signalling_block_sections in Function: "
 					  "lockSwitchesOnAllConnectedSections...Please investigate on that\n\n"}},
 		"a switch connected to blocks that are not the section");
+	QVERIFY2(problem.empty(), problem.c_str());
+}
 
-	// A section whose id is part of the ids of eleven others has more connected sections than it can hold.
+// A section whose id is part of the ids of eleven others has more connected sections than it can hold.
+void TestSceneBuilder::logsTooManyConnectedSections() {
+	Capture capture;
 	defaultRun().infra.sections = std::vector<Section>(12);
 	defaultRun().infra.numBlocks = static_cast<int>(defaultRun().infra.sections.size());
 	defaultRun().infra.sections[0].ID = "@Cap@";
@@ -1578,101 +1914,141 @@ static bool runSignallingMessageChecks() {
 		defaultRun().infra.sections[index].ID = "@Cap@-" + std::to_string(index);
 	setDependenciesBetweenBlocks(defaultRun());
 	resetNativeInfrastructureState(defaultRun());
-	shows(capture.take(),
+	const std::string problem = loggedProblem(capture.take(),
 		{{errorLevel, "ERROR: Block section @Cap@ has more than 10 connected block sections\n"}},
 		"a section with more connected sections than it holds");
-	return ok;
+	QVERIFY2(problem.empty(), problem.c_str());
 }
 
 // The ids that occupyBlockAndConnected, occupyDoubleSwitch, releaseDoubleSwitch and releaseLastBlockAndConnected add to blocksOccupied
 // and blocksConnected of the run: the section, its connected sections and, for a diverging switch, the two block ids of its name, in this order
 // and each id once.
-static bool runOccupancyListChecks() {
-	bool ok = true;
-	using IdList = std::list<std::string>;
-	const auto joined = [](const IdList& ids) {
-		std::string text;
-		for (const std::string& id : ids)
-			text += (text.empty() ? "'" : ", '") + id + "'";
-		return text;
-	};
-	const auto listsAre = [&](const IdList& wantedOccupied, const IdList& wantedConnected, const std::string& what) {
-		ok &= expect(defaultRun().blocksOccupied == wantedOccupied && defaultRun().blocksConnected == wantedConnected,
-			what + "\n  occupied: " + joined(defaultRun().blocksOccupied) + "\n  connected: " + joined(defaultRun().blocksConnected));
-	};
-	const auto startWith = [](const IdList& occupied, const IdList& connected) {
-		defaultRun().blocksOccupied = occupied;
-		defaultRun().blocksConnected = connected;
-	};
-	const auto describe = [](Section& target, const std::string& id, const std::vector<std::string>& linked, bool diverging = false) {
-		target.ID = id;
-		target.withSwitchDiv = diverging;
-		target.N_ConnectedBS = static_cast<int>(linked.size());
-		for (std::size_t index = 0; index < linked.size(); ++index)
-			target.IDConnectedBS[index] = linked[index];
-	};
+using IdList = std::list<std::string>;
+
+static void startWith(const IdList& occupied, const IdList& connected) {
+	defaultRun().blocksOccupied = occupied;
+	defaultRun().blocksConnected = connected;
+}
+
+static void describe(Section& target, const std::string& id, const std::vector<std::string>& linked, bool diverging = false) {
+	target.ID = id;
+	target.withSwitchDiv = diverging;
+	target.N_ConnectedBS = static_cast<int>(linked.size());
+	for (std::size_t index = 0; index < linked.size(); ++index)
+		target.IDConnectedBS[index] = linked[index];
+}
+
+// A section is added to blocksOccupied after the connected sections that are listed already, and the previous section is released.
+void TestSceneBuilder::occupiesSectionAndConnectedSections() {
 	std::vector<Section> halves(2);
 	Section& current = halves[0];
 	Section& previous = halves[1];
-
-	// A section is added to blocksOccupied after the connected sections that are listed already, and the previous section is released.
 	describe(current, "occ.main", {"occ.c1", "occ.c2"});
 	describe(previous, "occ.prev", {});
 	startWith({"occ.c1"}, {});
 	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
-	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "an occupied section adds itself and the connected sections that are missing");
+	// An occupied section adds itself and the connected sections that are missing.
+	QCOMPARE(defaultRun().blocksOccupied, (IdList{"occ.c1", "occ.main", "occ.c2"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"occ.prev"}));
 	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
-	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "a second occupation of the same sections adds no id twice");
+	// A second occupation of the same sections adds no id twice.
+	QCOMPARE(defaultRun().blocksOccupied, (IdList{"occ.c1", "occ.main", "occ.c2"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"occ.prev"}));
+}
 
-	// The connected sections of the previous section are added to blocksConnected when the train tail crosses its end node, before the
-	// previous section itself.
+// The connected sections of the previous section are added to blocksConnected when the train tail crosses its end node, before the
+// previous section itself.
+void TestSceneBuilder::tailConnectsSectionsOfPreviousSection() {
+	std::vector<Section> halves(2);
+	Section& current = halves[0];
+	Section& previous = halves[1];
+	describe(current, "occ.main", {"occ.c1", "occ.c2"});
 	describe(previous, "occ.prev", {"prev.c1"});
 	previous.end_node.X = 2.0;
 	startWith({}, {});
 	occupyBlockAndConnected(defaultRun(), current, previous, 2001.0, 1999.0);
-	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"prev.c1", "occ.prev"}, "the tail crossing the end of the previous section connects its sections first");
+	// The tail crossing the end of the previous section connects its sections first.
+	QCOMPARE(defaultRun().blocksOccupied, (IdList{"occ.main", "occ.c1", "occ.c2"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"prev.c1", "occ.prev"}));
 	startWith({}, {});
 	occupyBlockAndConnected(defaultRun(), current, previous, 2002.0, 2001.0);
-	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"occ.prev", "prev.c1"},
-		"the tail past the end of the previous section connects its sections after the section");
+	// The tail past the end of the previous section connects its sections after the section.
+	QCOMPARE(defaultRun().blocksOccupied, (IdList{"occ.main", "occ.c1", "occ.c2"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"occ.prev", "prev.c1"}));
+}
 
-	// A section with the largest number of connected sections.
+// A section with the largest number of connected sections.
+void TestSceneBuilder::occupiesTenConnectedSections() {
+	std::vector<Section> halves(2);
+	Section& current = halves[0];
+	Section& previous = halves[1];
 	describe(current, "big.main", {"big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"});
 	describe(previous, "occ.prev", {});
 	startWith({}, {});
 	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
-	listsAre({"big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"}, {"occ.prev"},
-		"a section with ten connected sections adds all eleven ids");
+	// A section with ten connected sections adds all eleven ids.
+	QCOMPARE(defaultRun().blocksOccupied,
+		(IdList{"big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"occ.prev"}));
 	startWith({"big.c9"}, {});
 	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
-	listsAre({"big.c9", "big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8"}, {"occ.prev"},
-		"the last connected section of ten is skipped when it is listed already");
+	// The last connected section of ten is skipped when it is listed already.
+	QCOMPARE(defaultRun().blocksOccupied,
+		(IdList{"big.c9", "big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"occ.prev"}));
+}
 
-	// A released section without a switch adds itself and its connected sections to blocksConnected only.
+// A released section without a switch adds itself and its connected sections to blocksConnected only.
+void TestSceneBuilder::releasesSectionAndConnectedSections() {
+	Section current;
 	describe(current, "rel.main", {"rel.c1", "rel.c2"});
 	startWith({}, {"rel.c2"});
 	releaseLastBlockAndConnected(defaultRun(), current);
-	listsAre({}, {"rel.c2", "rel.main", "rel.c1"}, "a released section adds itself and the connected sections that are missing");
+	// A released section adds itself and the connected sections that are missing.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"rel.c2", "rel.main", "rel.c1"}));
+}
 
-	// A released section with a diverging switch also adds the two block ids of its name, before the connected sections.
+// A released section with a diverging switch also adds the two block ids of its name, before the connected sections.
+void TestSceneBuilder::releasesSwitchWithItsBlocks() {
+	Section current;
 	const std::string switchId = "@sw.a@-1.000000/@sw.b@-2.000000";
 	describe(current, switchId, {"sw.c1", "sw.c2"}, true);
 	startWith({}, {"sw.c1"});
 	releaseLastBlockAndConnected(defaultRun(), current);
-	listsAre({}, {"sw.c1", switchId, "@sw.a@", "@sw.b@", "sw.c2"}, "a released section with a switch adds the two blocks of its name");
+	// A released section with a switch adds the two blocks of its name.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"sw.c1", switchId, "@sw.a@", "@sw.b@", "sw.c2"}));
 	describe(current, switchId, {"sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"}, true);
 	startWith({}, {});
 	releaseLastBlockAndConnected(defaultRun(), current);
-	listsAre({}, {switchId, "@sw.a@", "@sw.b@", "sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"},
-		"a released section with a switch and ten connected sections adds thirteen ids");
+	// A released section with a switch and ten connected sections adds thirteen ids.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected,
+		(IdList{switchId, "@sw.a@", "@sw.b@", "sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"}));
+}
 
-	// A switch whose name holds no two block ids changes nothing.
+// A switch whose name holds no two block ids changes nothing.
+void TestSceneBuilder::switchWithoutBlocksChangesNoList() {
+	Section current;
 	describe(current, "sw.without.blocks", {"sw.c1"}, true);
 	startWith({"kept.occupied"}, {"kept.connected"});
 	releaseLastBlockAndConnected(defaultRun(), current);
-	listsAre({"kept.occupied"}, {"kept.connected"}, "a section with a switch and a name without two blocks changes neither list");
+	// A section with a switch and a name without two blocks changes neither list.
+	QCOMPARE(defaultRun().blocksOccupied, (IdList{"kept.occupied"}));
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"kept.connected"}));
+}
 
-	// A double switch: two switch halves, each with its two blocks in the section list.
+// A double switch: two switch halves, each with its two blocks in the section list.
+void TestSceneBuilder::occupiesAndReleasesDoubleSwitch() {
+	const auto clear = qScopeGuard([] {
+		defaultRun().blocksOccupied.clear();
+		defaultRun().blocksConnected.clear();
+		resetNativeInfrastructureState(defaultRun());
+	});
+	std::vector<Section> halves(2);
+	Section& current = halves[0];
+	Section& previous = halves[1];
 	resetNativeInfrastructureState(defaultRun());
 	defaultRun().infra.sections = std::vector<Section>(4);
 	defaultRun().infra.numBlocks = static_cast<int>(defaultRun().infra.sections.size());
@@ -1687,32 +2063,36 @@ static bool runOccupancyListChecks() {
 	const IdList fullOccupied = {firstId, "s1.c", "@dsA@", "@dsB@", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"};
 	startWith({}, {});
 	occupyDoubleSwitch(defaultRun(), current, previous);
-	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"}, "a double switch occupies both halves, their blocks and the sections connected to them");
+	// A double switch occupies both halves, their blocks and the sections connected to them.
+	QCOMPARE(defaultRun().blocksOccupied, fullOccupied);
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"@dsA@", "@dsB@", "@dsC@", "@dsD@"}));
 	startWith({firstId}, {});
 	occupyDoubleSwitch(defaultRun(), current, previous);
-	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"},
-		"a double switch whose first half is listed already still adds the sections connected to it");
+	// A double switch whose first half is listed already still adds the sections connected to it.
+	QCOMPARE(defaultRun().blocksOccupied, fullOccupied);
+	QCOMPARE(defaultRun().blocksConnected, (IdList{"@dsA@", "@dsB@", "@dsC@", "@dsD@"}));
 
 	current.withSwitchDiv = true;
 	previous.withSwitchDiv = false;
 	startWith({}, {});
 	releaseDoubleSwitch(defaultRun(), current, previous);
-	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId}, "a released double switch with a switch on its first half only");
+	// A released double switch with a switch on its first half only.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected, (IdList{firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId}));
 	current.withSwitchDiv = false;
 	startWith({}, {});
 	releaseDoubleSwitch(defaultRun(), current, previous);
-	listsAre({}, {firstId, "s1.c", secondId}, "a released double switch without a switch on either half");
+	// A released double switch without a switch on either half.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected, (IdList{firstId, "s1.c", secondId}));
 	current.withSwitchDiv = true;
 	previous.withSwitchDiv = true;
 	startWith({}, {});
 	releaseDoubleSwitch(defaultRun(), current, previous);
-	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"},
-		"a released double switch with a switch on both halves");
-
-	defaultRun().blocksOccupied.clear();
-	defaultRun().blocksConnected.clear();
-	resetNativeInfrastructureState(defaultRun());
-	return ok;
+	// A released double switch with a switch on both halves.
+	QCOMPARE(defaultRun().blocksOccupied, IdList());
+	QCOMPARE(defaultRun().blocksConnected,
+		(IdList{firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"}));
 }
 
 // The nodes that a section lists are read through this one function.
@@ -1750,122 +2130,144 @@ static void describeCuttableSection(Section& section) {
 	section.arcs_in_signalling_block_section[1].endNode.X = 10.0;
 }
 
-// The nodes that a section lists, for the sections of a scene, the section that a switch derives and the sections that a cut makes.
-static bool runNodeListChecks() {
-	bool ok = true;
+// A section built from a scene lists the nodes of its track that it passes, from its first node to its last.
+void TestSceneBuilder::sceneSectionsListTheirNodes() {
 	resetNativeInfrastructureState(defaultRun());
+	// The scene with two blocks builds.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())));
+	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	const Section& first = defaultRun().infra.sections[0];
+	const Section& second = defaultRun().infra.sections[1];
+	// The first block of the scene lists its two nodes.
+	QCOMPARE(first.ID, "@block.a@");
+	QCOMPARE(first.total_nodes, 2);
+	QCOMPARE(listedAbscissas(first), std::vector<double>({0.0, 1.0}));
+	QCOMPARE(listedSceneIds(first), std::vector<std::string>({"node.0", "node.1"}));
+	// The second block of the scene lists its two nodes.
+	QCOMPARE(second.ID, "@block.b@");
+	QCOMPARE(second.total_nodes, 2);
+	QCOMPARE(listedAbscissas(second), std::vector<double>({1.0, 2.0}));
+	QCOMPARE(listedSceneIds(second), std::vector<std::string>({"node.1", "node.2"}));
+}
 
-	// A section built from a scene lists the nodes of its track that it passes, from its first node to its last.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene()))
-			&& defaultRun().infra.numBlocks == 2,
-		"the scene with two blocks builds");
-	if (defaultRun().infra.numBlocks == 2) {
-		const Section& first = defaultRun().infra.sections[0];
-		const Section& second = defaultRun().infra.sections[1];
-		ok &= expect(first.ID == "@block.a@" && first.total_nodes == 2 && listedAbscissas(first) == std::vector<double>({0.0, 1.0})
-				&& listedSceneIds(first) == std::vector<std::string>({"node.0", "node.1"}),
-			"the first block of the scene lists its two nodes");
-		ok &= expect(second.ID == "@block.b@" && second.total_nodes == 2 && listedAbscissas(second) == std::vector<double>({1.0, 2.0})
-				&& listedSceneIds(second) == std::vector<std::string>({"node.1", "node.2"}),
-			"the second block of the scene lists its two nodes");
-	}
+// A section derived for a switch lists the nodes of the first section up to the switch node, the switch node of the second section
+// and the nodes of the second section behind it.
+void TestSceneBuilder::switchSectionListsNodesOfBothBlocks() {
+	const auto reset = qScopeGuard([] { resetNativeInfrastructureState(defaultRun()); });
+	// The scene with a switch builds.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())));
+	QCOMPARE(defaultRun().infra.numBlocks, 3);
+	const Section& alpha = defaultRun().infra.sections[0];
+	const Section& beta = defaultRun().infra.sections[1];
+	const Section& derived = defaultRun().infra.sections[2];
+	// The first block of the switch scene lists its two nodes.
+	QCOMPARE(alpha.ID, "@alpha.block@");
+	QCOMPARE(alpha.total_nodes, 2);
+	QCOMPARE(listedAbscissas(alpha), std::vector<double>({0.0, 1.0}));
+	QCOMPARE(listedSceneIds(alpha), std::vector<std::string>({"alpha.start", "alpha.end"}));
+	// The second block of the switch scene lists its two nodes.
+	QCOMPARE(beta.ID, "@beta.block@");
+	QCOMPARE(beta.total_nodes, 2);
+	QCOMPARE(listedAbscissas(beta), std::vector<double>({2.0, 3.0}));
+	QCOMPARE(listedSceneIds(beta), std::vector<std::string>({"beta.start", "beta.end"}));
+	// The section derived for the switch lists the nodes of both blocks in order.
+	QCOMPARE(derived.ID, "@alpha.block@-1.000000/@beta.block@-2.000000");
+	QCOMPARE(derived.total_nodes, 4);
+	QCOMPARE(listedAbscissas(derived), std::vector<double>({0.0, 1.0, 2.0, 3.0}));
+	QCOMPARE(listedSceneIds(derived), std::vector<std::string>({"alpha.start", "alpha.end", "beta.start", "beta.end"}));
+}
 
-	// A section derived for a switch lists the nodes of the first section up to the switch node, the switch node of the second section
-	// and the nodes of the second section behind it.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene()))
-			&& defaultRun().infra.numBlocks == 3,
-		"the scene with a switch builds");
-	if (defaultRun().infra.numBlocks == 3) {
-		const Section& alpha = defaultRun().infra.sections[0];
-		const Section& beta = defaultRun().infra.sections[1];
-		const Section& derived = defaultRun().infra.sections[2];
-		ok &= expect(alpha.ID == "@alpha.block@" && alpha.total_nodes == 2 && listedAbscissas(alpha) == std::vector<double>({0.0, 1.0})
-				&& listedSceneIds(alpha) == std::vector<std::string>({"alpha.start", "alpha.end"}),
-			"the first block of the switch scene lists its two nodes");
-		ok &= expect(beta.ID == "@beta.block@" && beta.total_nodes == 2 && listedAbscissas(beta) == std::vector<double>({2.0, 3.0})
-				&& listedSceneIds(beta) == std::vector<std::string>({"beta.start", "beta.end"}),
-			"the second block of the switch scene lists its two nodes");
-		ok &= expect(derived.ID == "@alpha.block@-1.000000/@beta.block@-2.000000" && derived.total_nodes == 4
-				&& listedAbscissas(derived) == std::vector<double>({0.0, 1.0, 2.0, 3.0})
-				&& listedSceneIds(derived) == std::vector<std::string>({"alpha.start", "alpha.end", "beta.start", "beta.end"}),
-			"the section derived for the switch lists the nodes of both blocks in order");
-	}
-	resetNativeInfrastructureState(defaultRun());
-
-	// A cut section lists its start node and the end node of each of its arcs.
+// A cut section lists its start node and the end node of each of its arcs.
+void TestSceneBuilder::cutSectionListsNodesToCut() {
 	Section source;
 	describeCuttableSection(source);
 	{
 		Section cut(source);
 		cut.CutBlockSection("CutEnd", 6.0);
-		ok &= expect(cut.total_nodes == 3 && listedAbscissas(cut) == std::vector<double>({0.0, 4.0, 6.0}),
-			"a section cut at its end lists the nodes up to the cut");
+		// A section cut at its end lists the nodes up to the cut.
+		QCOMPARE(cut.total_nodes, 3);
+		QCOMPARE(listedAbscissas(cut), std::vector<double>({0.0, 4.0, 6.0}));
 	}
 	{
 		Section cut(source);
 		cut.CutBlockSection("CutBegin", 6.0);
-		ok &= expect(cut.total_nodes == 2 && listedAbscissas(cut) == std::vector<double>({6.0, 10.0}),
-			"a section cut at its start lists the nodes from the cut");
+		// A section cut at its start lists the nodes from the cut.
+		QCOMPARE(cut.total_nodes, 2);
+		QCOMPARE(listedAbscissas(cut), std::vector<double>({6.0, 10.0}));
 	}
+}
 
-	// A default section has an empty list. A list that a section and its copies share is freed when the last of them lets go of it.
-	using WeakList = std::weak_ptr<const std::vector<Node>>;
+using WeakList = std::weak_ptr<const std::vector<Node>>;
+
+// A default section has an empty list. A list that a section and its copies share is freed when the last of them lets go of it.
+void TestSceneBuilder::copiesShareNodeList() {
+	Section owner;
+	QVERIFY2(owner.nodelist_of_nodes_in_signalling_section == nullptr, "a default section has an empty list");
+	owner.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(2);
 	{
-		Section owner;
-		ok &= expect(owner.nodelist_of_nodes_in_signalling_section == nullptr, "a default section has an empty list");
-		owner.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(2);
-		{
-			Section copied(owner);
-			Section assigned;
-			assigned = owner;
-			ok &= expect(copied.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section
-					&& assigned.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section
-					&& owner.nodelist_of_nodes_in_signalling_section.use_count() == 3,
-				"a copied and an assigned section share the list of their source");
-		}
-		ok &= expect(owner.nodelist_of_nodes_in_signalling_section.use_count() == 1, "a copy that is gone no longer holds the list");
-		Section other;
-		other.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(3);
-		const WeakList replaced = other.nodelist_of_nodes_in_signalling_section;
-		other = owner;
-		ok &= expect(replaced.expired() && other.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section,
-			"a section that is assigned another list releases its own");
+		Section copied(owner);
+		Section assigned;
+		assigned = owner;
+		// A copied and an assigned section share the list of their source.
+		QVERIFY(copied.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section);
+		QVERIFY(assigned.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section);
+		QCOMPARE(owner.nodelist_of_nodes_in_signalling_section.use_count(), 3L);
 	}
+	// A copy that is gone no longer holds the list.
+	QCOMPARE(owner.nodelist_of_nodes_in_signalling_section.use_count(), 1L);
+	Section other;
+	other.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(3);
+	const WeakList replaced = other.nodelist_of_nodes_in_signalling_section;
+	other = owner;
+	// A section that is assigned another list releases its own.
+	QVERIFY(replaced.expired());
+	QVERIFY(other.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section);
+}
 
-	// A cut section is the only owner of the list that the cut made, and frees it with the section.
-	for (const std::string& part : std::vector<std::string>{"CutEnd", "CutBegin"}) {
-		Section cut(source);
-		cut.CutBlockSection(part, 6.0);
-		const WeakList cutList = cut.nodelist_of_nodes_in_signalling_section;
-		ok &= expect(cut.nodelist_of_nodes_in_signalling_section.use_count() == 1, "a section cut with " + part + " is the only owner of its list");
-		cut = Section();
-		ok &= expect(cutList.expired(), "the list of a section cut with " + part + " is freed with the section");
+void TestSceneBuilder::cutSectionOwnsItsList_data() {
+	QTest::addColumn<QString>("part");
+	QTest::newRow("CutEnd") << QStringLiteral("CutEnd");
+	QTest::newRow("CutBegin") << QStringLiteral("CutBegin");
+}
+
+// A cut section is the only owner of the list that the cut made, and frees it with the section.
+void TestSceneBuilder::cutSectionOwnsItsList() {
+	QFETCH(QString, part);
+	Section source;
+	describeCuttableSection(source);
+	Section cut(source);
+	cut.CutBlockSection(part.toStdString(), 6.0);
+	const WeakList cutList = cut.nodelist_of_nodes_in_signalling_section;
+	// The cut section is the only owner of its list.
+	QCOMPARE(cut.nodelist_of_nodes_in_signalling_section.use_count(), 1L);
+	cut = Section();
+	QVERIFY2(cutList.expired(), "the list of the cut section is freed with the section");
+}
+
+// The sections of a route share the lists of the network, and a copy of a section keeps its list when the network is reset.
+void TestSceneBuilder::routeSectionsShareNetworkLists() {
+	const auto reset = qScopeGuard([] { resetNativeInfrastructureState(defaultRun()); });
+	// The scene with one route builds.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())));
+	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t(1));
+	QCOMPARE(defaultRun().infra.routes.front().sequence_of_block_sections.size(), std::size_t(2));
+	for (int index = 0; index < 2; ++index) {
+		const NodeList& routeList = defaultRun().infra.routes.front().sequence_of_block_sections[index].nodelist_of_nodes_in_signalling_section;
+		// A section of the route shares the list of its section of the network.
+		QVERIFY(routeList != nullptr);
+		QVERIFY(routeList == defaultRun().infra.sections[index].nodelist_of_nodes_in_signalling_section);
 	}
-
-	// The sections of a route share the lists of the network, and a copy of a section keeps its list when the network is reset.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())) && defaultRun().infra.numBlocks == 2
-			&& defaultRun().infra.routes.size() == 1
-			&& defaultRun().infra.routes.front().sequence_of_block_sections.size() == 2,
-		"the scene with one route builds");
-	if (defaultRun().infra.numBlocks == 2 && defaultRun().infra.routes.size() == 1
-		&& defaultRun().infra.routes.front().sequence_of_block_sections.size() == 2) {
-		for (int index = 0; index < 2; ++index) {
-			const NodeList& routeList = defaultRun().infra.routes.front().sequence_of_block_sections[index].nodelist_of_nodes_in_signalling_section;
-			ok &= expect(routeList != nullptr && routeList == defaultRun().infra.sections[index].nodelist_of_nodes_in_signalling_section,
-				"a section of the route shares the list of its section of the network");
-		}
-		Section kept = defaultRun().infra.sections[0];
-		const WeakList keptList = defaultRun().infra.sections[0].nodelist_of_nodes_in_signalling_section;
-		const WeakList droppedList = defaultRun().infra.sections[1].nodelist_of_nodes_in_signalling_section;
-		resetNativeInfrastructureState(defaultRun());
-		ok &= expect(!keptList.expired() && kept.nodelist_of_nodes_in_signalling_section.use_count() == 1 && kept.total_nodes == 2
-				&& listedAbscissas(kept) == std::vector<double>({0.0, 1.0}),
-			"a copy of a section keeps its list after the reset");
-		ok &= expect(droppedList.expired(), "the list of a section that no copy holds is freed by the reset");
-	}
-
+	Section kept = defaultRun().infra.sections[0];
+	const WeakList keptList = defaultRun().infra.sections[0].nodelist_of_nodes_in_signalling_section;
+	const WeakList droppedList = defaultRun().infra.sections[1].nodelist_of_nodes_in_signalling_section;
 	resetNativeInfrastructureState(defaultRun());
-	return ok;
+	// A copy of a section keeps its list after the reset.
+	QVERIFY(!keptList.expired());
+	QCOMPARE(kept.nodelist_of_nodes_in_signalling_section.use_count(), 1L);
+	QCOMPARE(kept.total_nodes, 2);
+	QCOMPARE(listedAbscissas(kept), std::vector<double>({0.0, 1.0}));
+	QVERIFY2(droppedList.expired(), "the list of a section that no copy holds is freed by the reset");
 }
 
 // The infrastructure of the run. Two snapshots are equal only when the storage is the same too, because the station
@@ -2060,56 +2462,85 @@ static bool hasErrorMessage(const std::vector<SceneDiagnostic>& diagnostics, con
 	});
 }
 
-// Builds the scene that the previous runtime holds, then a scene that passes the checks and fails while the runtime is built.
-static bool failedBuildKeepsRuntime(const SceneModel& failing, const std::string& code, const std::string& message, const std::string& what) {
-	bool ok = expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), what + ": the previous scene builds");
-	defaultRun().infra.stations[0].virtualSignal = true;
-	const InfrastructureSnapshot before = takeInfrastructureSnapshot();
-	ok &= expect(before.blocks == 2 && before.routeCount == 1 && before.platformCount == 2 && before.firstStationName == "Tiny"
-			&& before.detectionSectionCount > 0 && before.boundaryEntrances.size() == 1,
-		what + ": the previous runtime holds the scene");
+// Keeps the messages of the failing builds out of the test output.
+struct QuietLog {
+	QuietLog() {
+		eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+	}
+	~QuietLog() {
+		eglog::setSink({});
+	}
+};
 
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), failing);
-	ok &= expect(hasErrorMessage(diagnostics, code, message), what + ": the build reaches its error '" + message + "'");
-	ok &= expect(before == takeInfrastructureSnapshot(), what + ": the previous infrastructure is still in the runtime");
-	ok &= expect(runtimePointersAreValid(), what + ": the pointers into the sections and the detection sections are valid");
-	return ok;
-}
+// A scene that passes the checks and fails while the runtime is built, with the code and the message of its error.
+struct FailedBuild {
+	const char* what;
+	SceneModel (*scene)();
+	const char* code;
+	const char* message;
+};
 
 // A build that fails after it started to write the runtime leaves the infrastructure of the previous build. The builder has ten
 // errors that it can add at that stage. Four cannot be reached by a scene that passes the checks, because the checks resolve the
 // references of a dependency, a single-track restriction and a route as the builder does, and a route keeps all its blocks.
 // The other six are below.
-static bool runFailedBuildChecks() {
-	// Keeps the messages of the failing builds out of the test output.
-	struct QuietLog {
-		QuietLog() {
-			eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
-		}
-		~QuietLog() {
-			eglog::setSink({});
-		}
-	} quiet;
+static const FailedBuild kFailedBuilds[] = {
+	{"a block without an arc", blockBetweenShortArcsScene, "scene.native.topology.blocks",
+		"Block section could not be mapped to track arcs"},
+	{"a platform outside every section", platformBetweenShortArcsScene, "scene.native.binding.platform",
+		"Platform node is not part of a block section"},
+	{"sections that differ from the plan", connectionBetweenShortArcsScene, "scene.native.sections.mismatch",
+		"Legacy connection construction produced section IDs different from the planned inventory"},
+	{"a section with all its dependency places taken", crowdedDependencyScene, "scene.native.capacity",
+		"Block dependency exceeds the runtime dependency capacity"},
+	{"a station boundary without an entrance", boundaryWithoutEntranceScene, "scene.native.ref.unresolved",
+		"Station boundary could not resolve a runtime section"},
+	{"a route cut outside its section", routeOverEndNodeSwitchesScene, "scene.native.route.order",
+		"Native route order does not retain the authored section IDs"},
+};
 
-	bool ok = true;
-	ok &= failedBuildKeepsRuntime(blockBetweenShortArcsScene(), "scene.native.topology.blocks",
-		"Block section could not be mapped to track arcs", "a block without an arc");
-	ok &= failedBuildKeepsRuntime(platformBetweenShortArcsScene(), "scene.native.binding.platform",
-		"Platform node is not part of a block section", "a platform outside every section");
-	ok &= failedBuildKeepsRuntime(connectionBetweenShortArcsScene(), "scene.native.sections.mismatch",
-		"Legacy connection construction produced section IDs different from the planned inventory", "sections that differ from the plan");
-	ok &= failedBuildKeepsRuntime(crowdedDependencyScene(), "scene.native.capacity",
-		"Block dependency exceeds the runtime dependency capacity", "a section with all its dependency places taken");
-	ok &= failedBuildKeepsRuntime(boundaryWithoutEntranceScene(), "scene.native.ref.unresolved",
-		"Station boundary could not resolve a runtime section", "a station boundary without an entrance");
-	ok &= failedBuildKeepsRuntime(routeOverEndNodeSwitchesScene(), "scene.native.route.order",
-		"Native route order does not retain the authored section IDs", "a route cut outside its section");
+void TestSceneBuilder::failedBuildKeepsPreviousRuntime_data() {
+	QTest::addColumn<int>("index");
+	for (int index = 0; index < static_cast<int>(std::size(kFailedBuilds)); ++index)
+		QTest::newRow(kFailedBuilds[index].what) << index;
+}
 
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())) && defaultRun().infra.numBlocks == 2
-			&& runtimePointersAreValid(),
-		"the scene builds again after the failed builds");
+// Builds the scene that the previous runtime holds, then a scene that passes the checks and fails while the runtime is built.
+void TestSceneBuilder::failedBuildKeepsPreviousRuntime() {
+	QFETCH(int, index);
+	const FailedBuild& test = kFailedBuilds[index];
+	const QuietLog quiet;
+	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the previous scene builds");
+	defaultRun().infra.stations[0].virtualSignal = true;
+	const InfrastructureSnapshot before = takeInfrastructureSnapshot();
+	// The previous runtime holds the scene.
+	QCOMPARE(before.blocks, 2);
+	QCOMPARE(before.routeCount, 1);
+	QCOMPARE(before.platformCount, 2);
+	QCOMPARE(before.firstStationName, "Tiny");
+	QCOMPARE_GT(before.detectionSectionCount, std::size_t(0));
+	QCOMPARE(before.boundaryEntrances.size(), std::size_t(1));
+
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), test.scene());
+	QVERIFY2(hasErrorMessage(diagnostics, test.code, test.message),
+		("the build reaches its error '" + std::string(test.message) + "'").c_str());
+	QVERIFY2(before == takeInfrastructureSnapshot(), "the previous infrastructure is still in the runtime");
+	QVERIFY2(runtimePointersAreValid(), "the pointers into the sections and the detection sections are valid");
+}
+
+// The failed builds again, each after the build of the previous scene, and then the build of the previous scene.
+void TestSceneBuilder::buildsAgainAfterFailedBuilds() {
+	const QuietLog quiet;
+	for (const FailedBuild& test : kFailedBuilds) {
+		buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
+		defaultRun().infra.stations[0].virtualSignal = true;
+		buildInfrastructureAndSignallingFromScene(defaultRun(), test.scene());
+	}
+	// The scene builds again after the failed builds.
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())));
+	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	QVERIFY(runtimePointersAreValid());
 	resetNativeInfrastructureState(defaultRun());
-	return ok;
 }
 
 // A locale that writes a decimal comma, as many user locales do.
@@ -2117,68 +2548,95 @@ struct DecimalComma : std::numpunct<char> {
 	char do_decimal_point() const override { return ','; }
 };
 
-static bool runSectionLabelChecks() {
-	bool ok = true;
-	const std::locale previous = std::locale::global(std::locale(std::locale::classic(), new DecimalComma));
-	const SceneSectionInventory connected = buildSceneSectionInventory(stableConnectionScene());
-	const SceneSectionLabels labels = sceneSectionLabels(connected);
-	ok &= expect(labels.label("@alpha.block@") == "alpha 0.000 to 1.000 km" && labels.label("alpha.block") == "alpha 0.000 to 1.000 km",
-		"a block section reads as its track and kilometres, by runtime id and by block id, with a full stop in every locale");
-	ok &= expect(labels.label("@alpha.block@-1.000000/@beta.block@-2.000000") == "alpha 0.000 to 1.000, beta 2.000 to 3.000 km",
-		"a switch section reads as the piece on each track");
-	std::locale::global(previous);
+// Two blocks of 0.2 m round to the same kilometres.
+static SceneModel shortBlocksScene() {
+	SceneModel scene = lineScene(1);
+	scene.blocks = {{"short.0", "line", 0.0002}, {"short.1", "line", 0.0002}, {"rest", "line", 0.9996}};
+	return scene;
+}
 
-	// The connection ends at the end of the block of beta, so the piece on beta has one kilometre.
+// Two lines whose blocks have the same id.
+static SceneModel sameIdScene() {
+	SceneModel scene = twoLineScene(1);
+	scene.blocks.back().id = scene.blocks.front().id;
+	return scene;
+}
+
+void TestSceneBuilder::labelsReadAsTrackAndKilometres() {
+	const std::locale previous = std::locale::global(std::locale(std::locale::classic(), new DecimalComma));
+	const auto restore = qScopeGuard([&previous] { std::locale::global(previous); });
+	const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(stableConnectionScene()));
+	// A block section reads as its track and kilometres, by runtime id and by block id, with a full stop in every locale.
+	QCOMPARE(labels.label("@alpha.block@"), "alpha 0.000 to 1.000 km");
+	QCOMPARE(labels.label("alpha.block"), "alpha 0.000 to 1.000 km");
+	// A switch section reads as the piece on each track.
+	QCOMPARE(labels.label("@alpha.block@-1.000000/@beta.block@-2.000000"), "alpha 0.000 to 1.000, beta 2.000 to 3.000 km");
+}
+
+// The connection ends at the end of the block of beta, so the piece on beta has one kilometre.
+void TestSceneBuilder::showsRoundedKilometreOnce() {
 	SceneModel atBlockEnd = stableConnectionScene();
 	atBlockEnd.connections.front().fromNodeId = "beta.end";
 	const SceneSectionInventory endInventory = buildSceneSectionInventory(atBlockEnd);
 	const auto atEnd = std::find_if(endInventory.sections.begin(), endInventory.sections.end(),
 		[](const SceneSectionDescriptor& section) { return section.connectionDerived; });
-	ok &= expect(atEnd != endInventory.sections.end() && sceneSectionLabel(*atEnd) == "alpha 0.000 to 1.000, beta 3.000 km",
-		"a piece whose ends round to the same kilometre shows it once");
+	// A piece whose ends round to the same kilometre shows it once.
+	QVERIFY(atEnd != endInventory.sections.end());
+	QCOMPARE(sceneSectionLabel(*atEnd), "alpha 0.000 to 1.000, beta 3.000 km");
+}
 
-	// Two blocks of 0.2 m round to the same kilometres.
-	SceneModel shortBlocks = lineScene(1);
-	shortBlocks.blocks = {{"short.0", "line", 0.0002}, {"short.1", "line", 0.0002}, {"rest", "line", 0.9996}};
-	const SceneSectionLabels shortLabels = sceneSectionLabels(buildSceneSectionInventory(shortBlocks));
-	ok &= expect(shortLabels.label("short.0") == "line 0.000 to 0.000 km (@short.0@)"
-			&& shortLabels.label("@short.1@") == "line 0.000 to 0.000 km (@short.1@)"
-			&& shortLabels.label("rest") == "line 0.000 to 1.000 km",
-		"a label that two sections share ends with the id");
+void TestSceneBuilder::sharedLabelEndsWithId() {
+	const SceneSectionLabels shortLabels = sceneSectionLabels(buildSceneSectionInventory(shortBlocksScene()));
+	// A label that two sections share ends with the id.
+	QCOMPARE(shortLabels.label("short.0"), "line 0.000 to 0.000 km (@short.0@)");
+	QCOMPARE(shortLabels.label("@short.1@"), "line 0.000 to 0.000 km (@short.1@)");
+	QCOMPARE(shortLabels.label("rest"), "line 0.000 to 1.000 km");
+}
 
-	ok &= expect(labels.label("no-such-block") == "no-such-block" && labels.label("").empty(),
-		"an unknown or missing reference keeps its id");
-	ok &= expect(labels.labelWithId("@alpha.block@") == "alpha 0.000 to 1.000 km (@alpha.block@)"
-			&& labels.labelWithId("no-such-block") == "no-such-block"
-			&& shortLabels.labelWithId("@short.0@") == "line 0.000 to 0.000 km (@short.0@)",
-		"the label with the id names the id once, and an unknown reference by its id alone");
-	SceneModel sameId = twoLineScene(1);
-	sameId.blocks.back().id = sameId.blocks.front().id;
-	const SceneSectionInventory sameIdInventory = buildSceneSectionInventory(sameId);
+void TestSceneBuilder::unknownReferenceKeepsId() {
+	const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(stableConnectionScene()));
+	// An unknown or missing reference keeps its id.
+	QCOMPARE(labels.label("no-such-block"), "no-such-block");
+	QVERIFY(labels.label("").empty());
+}
+
+void TestSceneBuilder::labelWithIdNamesIdOnce() {
+	const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(stableConnectionScene()));
+	const SceneSectionLabels shortLabels = sceneSectionLabels(buildSceneSectionInventory(shortBlocksScene()));
+	// The label with the id names the id once, and an unknown reference by its id alone.
+	QCOMPARE(labels.labelWithId("@alpha.block@"), "alpha 0.000 to 1.000 km (@alpha.block@)");
+	QCOMPARE(labels.labelWithId("no-such-block"), "no-such-block");
+	QCOMPARE(shortLabels.labelWithId("@short.0@"), "line 0.000 to 0.000 km (@short.0@)");
+}
+
+void TestSceneBuilder::ambiguousReferenceKeepsId() {
+	const SceneSectionInventory sameIdInventory = buildSceneSectionInventory(sameIdScene());
 	const SceneSectionLabels sameIdLabels = sceneSectionLabels(sameIdInventory);
-	ok &= expect(sameIdInventory.sections.size() == 2 && sameIdLabels.label("a.b.0") == "a.b.0"
-			&& sameIdLabels.label("@a.b.0@") == "@a.b.0@",
-		"a reference that names two sections keeps its id");
+	// A reference that names two sections keeps its id.
+	QCOMPARE(sameIdInventory.sections.size(), std::size_t(2));
+	QCOMPARE(sameIdLabels.label("a.b.0"), "a.b.0");
+	QCOMPARE(sameIdLabels.label("@a.b.0@"), "@a.b.0@");
+}
 
-	// A label exists for exactly the references that resolve() accepts, also for a block whose id is a runtime id.
+// A label exists for exactly the references that resolve() accepts, also for a block whose id is a runtime id.
+void TestSceneBuilder::labelsExactlyResolvableReferences() {
 	SceneModel wrapped = twoLineScene(1);
 	wrapped.blocks.back().id = "@a.b.0@";
-	for (const SceneModel& scene : {stableConnectionScene(), switchChainScene(), shortBlocks, sameId, wrapped}) {
+	for (const SceneModel& scene : {stableConnectionScene(), switchChainScene(), shortBlocksScene(), sameIdScene(), wrapped}) {
 		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 		const SceneSectionLabels sceneLabels = sceneSectionLabels(inventory);
 		for (const SceneSectionDescriptor& section : inventory.sections)
 			for (const std::string& reference : {section.id, section.sourceBlockId, section.id.substr(1, section.id.size() - 2)})
-				ok &= expect((sceneLabels.byReference.count(reference) != 0) == (inventory.resolve(reference) != nullptr),
-					"the labels name the sections that resolve() finds: " + scene.name + " " + reference);
+				QVERIFY2((sceneLabels.byReference.count(reference) != 0) == (inventory.resolve(reference) != nullptr),
+					("the labels name the sections that resolve() finds: " + scene.name + " " + reference).c_str());
 	}
-	return ok;
 }
 
 // At level 3 the two edges of a diverging switch get one blocking time. A train runs over two crossovers, and the end of the
 // first and the start of the second have the same switch name, as two switch nodes at the platform of one station on one
 // block have. The start of the second crossover takes over the times of the end of the first only when it lies at the
 // same position, where the end of one crossover is the start of the next.
-static bool runSwitchBlockingTimeChecks() {
+static Train connectCrossovers(double secondStart) {
 	struct Edge {
 		const char* id;
 		const char* switchName;
@@ -2186,46 +2644,60 @@ static bool runSwitchBlockingTimeChecks() {
 		double position;
 		double startOcc;
 	};
-	const auto connect = [](double secondStart) {
-		const Edge edges[] = {
-			{"first.start", "@first.start@Point", "first.end", 2145.0, 119.0},
-			{"first.end", "@M-0-T2@Point", "first.start", 2159.0, 124.0},
-			{"second.start", "@M-0-T2@Point", "second.end", secondStart, 120.0},
-			{"second.end", "@second.end@Point", "second.start", 2210.0, 125.0},
-		};
-		Train train;
-		for (const Edge& edge : edges) {
-			BlockingTimes& time = train.BlockTime[train.N_BlockSections++];
-			time.BlockID = edge.id;
-			time.SwitchName = edge.switchName;
-			time.ConnectedBlockingTimeID = edge.connected;
-			time.SignallingLevel = levelValue(SignallingLevel::EtcsLevel3);
-			time.LocationWithSwitch = true;
-			time.GeoPosStart = time.GeoPosEnd = edge.position;
-			time.StartOccTime = edge.startOcc;
-		}
-		train.N_BlockTimeComplete = train.N_BlockSections;
-		train.ConnectBlockTimesOfSwitchesForTrainCentricSignalling();
-		return train;
+	const Edge edges[] = {
+		{"first.start", "@first.start@Point", "first.end", 2145.0, 119.0},
+		{"first.end", "@M-0-T2@Point", "first.start", 2159.0, 124.0},
+		{"second.start", "@M-0-T2@Point", "second.end", secondStart, 120.0},
+		{"second.end", "@second.end@Point", "second.start", 2210.0, 125.0},
 	};
-	bool ok = true;
-	const Train apart = connect(2175.0);
-	ok &= expect(apart.BlockTime[1].GeoPosStart == 2159.0 && apart.BlockTime[1].GeoPosEnd == 2159.0,
-		"the end of the first crossover keeps its position");
-	ok &= expect(apart.BlockTime[2].GeoPosStart == 2175.0 && apart.BlockTime[2].StartOccTime == 120.0 && apart.BlockTime[3].StartOccTime == 120.0,
-		"a second crossover elsewhere keeps its own start of occupation");
-	const Train shared = connect(2159.0);
-	ok &= expect(shared.BlockTime[1].GeoPosStart == 2159.0 && shared.BlockTime[2].GeoPosStart == 2159.0,
-		"the shared switch keeps its position");
-	ok &= expect(shared.BlockTime[2].StartOccTime == 119.0 && shared.BlockTime[3].StartOccTime == 119.0,
-		"a second crossover that starts where the first ends takes over its start of occupation");
-	return ok;
+	Train train;
+	for (const Edge& edge : edges) {
+		BlockingTimes& time = train.BlockTime[train.N_BlockSections++];
+		time.BlockID = edge.id;
+		time.SwitchName = edge.switchName;
+		time.ConnectedBlockingTimeID = edge.connected;
+		time.SignallingLevel = levelValue(SignallingLevel::EtcsLevel3);
+		time.LocationWithSwitch = true;
+		time.GeoPosStart = time.GeoPosEnd = edge.position;
+		time.StartOccTime = edge.startOcc;
+	}
+	train.N_BlockTimeComplete = train.N_BlockSections;
+	train.ConnectBlockTimesOfSwitchesForTrainCentricSignalling();
+	return train;
+}
+
+void TestSceneBuilder::crossoverElsewhereKeepsOwnStart() {
+	const Train apart = connectCrossovers(2175.0);
+	// The end of the first crossover keeps its position.
+	QCOMPARE_EQ(apart.BlockTime[1].GeoPosStart, 2159.0);
+	QCOMPARE_EQ(apart.BlockTime[1].GeoPosEnd, 2159.0);
+	// A second crossover elsewhere keeps its own start of occupation.
+	QCOMPARE_EQ(apart.BlockTime[2].GeoPosStart, 2175.0);
+	QCOMPARE_EQ(apart.BlockTime[2].StartOccTime, 120.0);
+	QCOMPARE_EQ(apart.BlockTime[3].StartOccTime, 120.0);
+}
+
+void TestSceneBuilder::crossoverAtSharedSwitchTakesOverStart() {
+	const Train shared = connectCrossovers(2159.0);
+	// The shared switch keeps its position.
+	QCOMPARE_EQ(shared.BlockTime[1].GeoPosStart, 2159.0);
+	QCOMPARE_EQ(shared.BlockTime[2].GeoPosStart, 2159.0);
+	// A second crossover that starts where the first ends takes over its start of occupation.
+	QCOMPARE_EQ(shared.BlockTime[2].StartOccTime, 119.0);
+	QCOMPARE_EQ(shared.BlockTime[3].StartOccTime, 119.0);
+}
+
+void TestSceneBuilder::lastLocationHasNoClearingTime_data() {
+	QTest::addColumn<int>("level");
+	QTest::newRow("level 3") << levelValue(SignallingLevel::EtcsLevel3);
+	QTest::newRow("level 4") << levelValue(SignallingLevel::VirtualCoupling);
 }
 
 // At levels 3 and 4 the last location of the last block section has no clearing time, because the train leaves the network
 // when its head reaches it. A 100 m train runs at 20 m/s over two sections of 1 km, with one location on the first and two
 // on the second. Its tail passes the location at 1200 m at 65 s and never passes the last one at 1950 m.
-static bool runLastSectionBlockingTimeChecks() {
+void TestSceneBuilder::lastLocationHasNoClearingTime() {
+	QFETCH(int, level);
 	struct Location {
 		const char* id;
 		const char* sectionId;
@@ -2237,6 +2709,10 @@ static bool runLastSectionBlockingTimeChecks() {
 	savedRoutes.swap(run.infra.routes);
 	std::list<InfraEvent> savedEvents;
 	savedEvents.swap(run.infra.infraEvents);
+	const auto restore = qScopeGuard([&] {
+		run.infra.routes.swap(savedRoutes);
+		run.infra.infraEvents.swap(savedEvents);
+	});
 	run.infra.routes.resize(1);
 	Route& route = run.infra.routes[0];
 	route.N_Block_Sections = 2;
@@ -2250,6 +2726,7 @@ static bool runLastSectionBlockingTimeChecks() {
 		section.arcs_in_signalling_block_section[0].endNode.X = s + 1;
 		section.arcs_in_signalling_block_section[0].gradient = 0.0;
 		section.arcs_in_signalling_block_section[0].curvature = 0.0;
+		section.SignallingLevel = level;
 	}
 	for (const Location& location : locations) {
 		InfraElement element;
@@ -2263,57 +2740,28 @@ static bool runLastSectionBlockingTimeChecks() {
 		event.RecordedEvent.back().trainDescription = "T1";
 		run.infra.infraEvents.push_back(event);
 	}
-	const auto blockingTimesAt = [&](SignallingLevel level) {
-		for (Section& section : route.sequence_of_block_sections)
-			section.SignallingLevel = levelValue(level);
-		Train train;
-		train.run_ = &run;
-		train.indexOfRoute = 0;
-		train.trainDescription = "T1";
-		train.train_length = 100.0;
-		train.max_train_decelaration = 0.5;
-		train.total_train_mass = train.massFactor = 1.0;
-		train.End_Time = 100;
-		for (int t = 0; t <= train.End_Time; ++t) {
-			train.instant_spatial_position.push_back(20.0 * t);
-			train.instant_train_speed.push_back(t == 0 ? 0.0 : 20.0);
-		}
-		train.ComputeBlockingTimesInMixedSignallingAreas(0, 0, 0, 0, 0, 5);
-		return train;
-	};
-	bool ok = true;
-	for (const SignallingLevel level : {SignallingLevel::EtcsLevel3, SignallingLevel::VirtualCoupling}) {
-		const std::string name = "level " + std::to_string(levelValue(level)) + ": ";
-		const Train train = blockingTimesAt(level);
-		ok &= expect(train.N_BlockSections == 3, name + "one blocking time per location");
-		if (train.N_BlockSections != 3)
-			continue;
-		ok &= expect(train.BlockTime[2].EndClearTime == train.BlockTime[2].EndRunTime && train.BlockTime[2].clearingTime == 0,
-			name + "the last location of the last section has no clearing time (" + std::to_string(train.BlockTime[2].clearingTime) + ")");
-		ok &= expect(train.BlockTime[1].EndClearTime == 65 && train.BlockTime[1].clearingTime > 0,
-			name + "the location before it on the last section is cleared when the tail passes");
+	Train train;
+	train.run_ = &run;
+	train.indexOfRoute = 0;
+	train.trainDescription = "T1";
+	train.train_length = 100.0;
+	train.max_train_decelaration = 0.5;
+	train.total_train_mass = train.massFactor = 1.0;
+	train.End_Time = 100;
+	for (int t = 0; t <= train.End_Time; ++t) {
+		train.instant_spatial_position.push_back(20.0 * t);
+		train.instant_train_speed.push_back(t == 0 ? 0.0 : 20.0);
 	}
-	run.infra.routes.swap(savedRoutes);
-	run.infra.infraEvents.swap(savedEvents);
-	return ok;
+	train.ComputeBlockingTimesInMixedSignallingAreas(0, 0, 0, 0, 0, 5);
+	// One blocking time per location.
+	QCOMPARE(train.N_BlockSections, 3);
+	// The last location of the last section has no clearing time.
+	QCOMPARE_EQ(train.BlockTime[2].EndClearTime, train.BlockTime[2].EndRunTime);
+	QCOMPARE_EQ(train.BlockTime[2].clearingTime, 0.0);
+	// The location before it on the last section is cleared when the tail passes.
+	QCOMPARE_EQ(train.BlockTime[1].EndClearTime, 65.0);
+	QCOMPARE_GT(train.BlockTime[1].clearingTime, 0.0);
 }
 
-int main() {
-	bool ok = runTinyBuilderChecks();
-	ok &= runSectionLabelChecks();
-	ok &= runAreaMappingChecks();
-	ok &= runAreaRoundtripChecks();
-	ok &= runLongTrackChecks();
-	ok &= runManySectionsChecks();
-	ok &= runRouteStorageChecks();
-	ok &= runRouteEndChecks();
-	ok &= runValueSemanticsChecks();
-	ok &= runTrackDetectionBorderNameChecks();
-	ok &= runSignallingMessageChecks();
-	ok &= runOccupancyListChecks();
-	ok &= runNodeListChecks();
-	ok &= runSwitchBlockingTimeChecks();
-	ok &= runLastSectionBlockingTimeChecks();
-	ok &= runFailedBuildChecks();
-	return ok ? 0 : 1;
-}
+QTEST_APPLESS_MAIN(TestSceneBuilder)
+#include "test_scenebuilder.moc"

@@ -391,7 +391,7 @@ egtrain_add_test(test_delayanalysiswindow
 egtrain_add_test(test_simulationworker SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationworker.cpp
 	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
-	COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit)
 
 egtrain_add_test(test_blockingtimediagram
@@ -869,7 +869,7 @@ egtrain_add_test(test_completedrun SIMULATION_HEADERS
 egtrain_add_test(test_simulationrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationrun.cpp
 	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
-	COMMAND test_simulationrun ${SRC_DIR}/tests/fixtures/scenes/line ${SRC_DIR}/Scenes/Paimpol
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests" EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 	TIMEOUT 120)
