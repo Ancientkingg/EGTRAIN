@@ -14,13 +14,16 @@ if(WIN32)
 	file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
 endif()
 
+# Every test that egtrain_add_test builds links Qt Test (docs/development/testing.md).
+find_package(Qt6 REQUIRED COMPONENTS Test)
+
 # egtrain_add_test(<name> LABELS <label>...
 #                  [SOURCES <file>... [LIBS <library>...] [DEFINITIONS <definition>...] [SIMULATION_HEADERS]]
 #                  [COMMAND <program> <argument>...] [ENVIRONMENT <variable>=<value>...] [TIMEOUT <seconds>] [COST <cost>]
 #                  [SKIP_RETURN_CODE <code>] [PASS_REGULAR_EXPRESSION <expression>...]
 #                  [OWN_SETTINGS] [OWN_OUTPUT] [WINDOWS_PLATFORM])
-# registers the CTest test <name>. SOURCES builds the executable <name>, which links LIBS, compiles with DEFINITIONS and
-# is a strict target. The simulation headers still give warnings (#453, #454, #482), so for a test with
+# registers the CTest test <name>. SOURCES builds the executable <name>, which links Qt Test and LIBS, compiles with
+# DEFINITIONS and is a strict target. The simulation headers still give warnings (#453, #454, #482), so for a test with
 # SIMULATION_HEADERS, which includes them, the headers below SRC_DIR are system headers and their warnings do not count.
 # COMMAND is the command line of the test, by default the executable <name>. The labels:
 #   unit           runs in-process or is a static check
@@ -56,7 +59,7 @@ function(egtrain_add_test name)
 
 	if(ARG_SOURCES)
 		add_executable(${name} ${ARG_SOURCES})
-		target_link_libraries(${name} PRIVATE ${ARG_LIBS})
+		target_link_libraries(${name} PRIVATE Qt::Test ${ARG_LIBS})
 		if(ARG_DEFINITIONS)
 			target_compile_definitions(${name} PRIVATE ${ARG_DEFINITIONS})
 		endif()
@@ -302,10 +305,8 @@ egtrain_add_test(test_guisimulationsnapshot SIMULATION_HEADERS
 egtrain_add_test(test_liveframe SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_liveframe.cpp
 	LIBS egtrain_live egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
-	COMMAND test_liveframe
-		--fixture ${SRC_DIR}/tests/fixtures/scenes/line
-		--expect ${SRC_DIR}/tests/live/expected
-		--schema ${CMAKE_CURRENT_SOURCE_DIR}/docs/live/frame-v1.schema.json
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
+		EGTRAIN_LIVE_SCHEMA="${CMAKE_CURRENT_SOURCE_DIR}/docs/live/frame-v1.schema.json"
 	LABELS unit
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 	TIMEOUT 120)
@@ -841,7 +842,7 @@ egtrain_add_test(test_scenebuilder SIMULATION_HEADERS
 egtrain_add_test(test_stopdwell SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_stopdwell.cpp
 	LIBS egtrain_sim
-	COMMAND test_stopdwell ${SRC_DIR}/tests/fixtures/scenes/crossovers
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v1 unit)
 
 egtrain_add_test(test_operationsbuilder SIMULATION_HEADERS

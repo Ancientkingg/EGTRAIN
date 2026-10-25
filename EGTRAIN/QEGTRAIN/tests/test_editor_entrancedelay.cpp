@@ -9,16 +9,10 @@
 #include <QSpinBox>
 #include <QString>
 #include <QStringList>
+#include <QTest>
 
-#include <iostream>
 #include <string>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneStop stop(const char* stationId, bool departs) {
 	SceneStop result;
@@ -118,315 +112,434 @@ static QStringList choices(const QComboBox* combo) {
 	return result;
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	bool ok = true;
-	const Log edit({"documentChanged", "panelChanged"});
+static const Log edit({"documentChanged", "panelChanged"});
 
-	{
-		EntranceDelayPanel panel;
-		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled()
-				&& !panel.serviceCombo()->isEnabled() && !panel.occurrenceEdit()->isEnabled() && !panel.stationCombo()->isEnabled()
-				&& !panel.secondsEdit()->isEnabled() && panel.occurrenceContextLabel()->text().isEmpty()
-				&& panel.emptyStateLabel()->isHidden(),
-			"a panel without a document shows nothing and offers nothing, and does not point to the disabled Add button");
-		SceneDocument document;
-		panel.setDocument(&document);
-		panel.addEntranceDelay();
-		panel.duplicateEntranceDelay();
-		panel.deleteEntranceDelay();
-		panel.commitOccurrence();
-		panel.commitSeconds();
-		panel.commitPendingEditors();
-		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty() && document.model().scenarios.empty(),
-			"a panel stays disabled while its document holds no scene, and its actions change nothing");
-	}
+// A panel with prompts and a run selection of its own on a document that shows delayScene(), with the scenario base
+// selected.
+struct DelayFixture {
+	SceneDocument document;
+	EntranceDelayPanel panel;
+	FakePrompts prompts;
+	RunSelection selection;
+	Events events{panel, document};
 
-	{
-		SceneDocument document;
-		EntranceDelayPanel panel;
-		FakePrompts prompts;
-		RunSelection selection;
+	DelayFixture() {
 		panel.setPrompts(&prompts);
 		panel.setRunSelection(&selection);
 		panel.setDocument(&document);
-		Events events(panel, document);
-
-		// refresh
 		document.replace(delayScene(), false);
 		selection.selectScenario("base");
 		panel.refresh();
-		ok &= expect(items(panel.listWidget()) == QStringList({"100-2 at A: +30 s", "s2 at X: +0 s"})
-				&& panel.listWidget()->currentRow() == 0 && panel.listWidget()->isEnabled() && panel.addButton()->isEnabled()
-				&& panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled(),
-			"the delays of the selected scenario are listed with the service code, and the first is selected");
-		ok &= expect(events.log.empty() && !document.isDirty() && document.revision() == 1 && !selection.isScenarioModified("base"),
-			"showing a scene edits nothing");
-
-		// the fields
-		ok &= expect(choices(panel.serviceCombo())
-					== QStringList({"100-1 (route r1, +0 s)", "s2 (route r1, +0 s)", "s3 (route r1, +0 s)"})
-				&& panel.serviceCombo()->currentData().toString() == "s1" && panel.serviceCombo()->isEnabled(),
-			"the services are offered by their first occurrence, and the service of the delay is chosen");
-		ok &= expect(panel.occurrenceEdit()->minimum() == 1 && panel.occurrenceEdit()->maximum() == 3 && panel.occurrenceEdit()->value() == 2
-				&& panel.occurrenceEdit()->isEnabled(),
-			"the occurrences of the service limit the occurrence");
-		ok &= expect(panel.occurrenceContextLabel()->text() == "100-2 (route r1, +1200 s)" && panel.occurrenceEdit()->suffix() == " of 3",
-			"the context names the generated service, and the occurrence the number of occurrences");
-		ok &= expect(choices(panel.stationCombo()) == QStringList({"A", "D"}) && panel.stationCombo()->currentText() == "A"
-				&& panel.stationCombo()->isEnabled(),
-			"the stations are the first calls of the service with a planned departure");
-		ok &= expect(panel.secondsEdit()->value() == 30.0 && panel.secondsEdit()->isEnabled(), "the delay is shown");
-
-		// another delay
-		panel.listWidget()->setCurrentRow(1);
-		ok &= expect(panel.serviceCombo()->currentData().toString() == "s2" && panel.occurrenceEdit()->maximum() == 1
-				&& panel.occurrenceContextLabel()->text() == "s2 (route r1, +0 s)" && panel.occurrenceEdit()->suffix() == " of 1"
-				&& choices(panel.stationCombo()) == QStringList({"X"}) && panel.secondsEdit()->value() == 0.0 && events.log.empty(),
-			"another delay shows its own fields, and selecting it edits nothing");
-		panel.listWidget()->setCurrentRow(0);
-
-		// edits
-		panel.stationCombo()->setCurrentIndex(1);
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].stationId == "D" && document.isDirty() && selection.isScenarioModified("base")
-				&& events.log == edit && events.kinds == SceneDocument::Scenarios && document.lastChangeLabel() == "Change entrance delay station"
-				&& panel.stationCombo()->currentText() == "D",
-			"a chosen station is written to the document, and the scenario counts as edited");
-		events.log.clear();
-		panel.stationCombo()->setCurrentIndex(1);
-		ok &= expect(events.log.empty(), "choosing the station that is chosen does not touch the document");
-		panel.occurrenceEdit()->setValue(3);
-		panel.commitOccurrence();
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].occurrence == 3 && events.log == edit
-				&& panel.occurrenceContextLabel()->text() == "100-3 (route r1, +2400 s)"
-				&& items(panel.listWidget())[0] == "100-3 at D: +30 s",
-			"an occurrence is written to the document, and the context and the list show it");
-		events.log.clear();
-		panel.commitOccurrence();
-		ok &= expect(events.log.empty(), "an unchanged occurrence does not touch the document");
-		panel.secondsEdit()->setValue(-12.5);
-		panel.commitSeconds();
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].delaySeconds == -12.5 && events.log == edit
-				&& items(panel.listWidget())[0] == "100-3 at D: -12.5 s",
-			"a delay that is negative is written to the document, and the list shows it");
-		events.log.clear();
-		panel.commitSeconds();
-		ok &= expect(events.log.empty(), "an unchanged delay does not touch the document");
-
-		// another service starts at its first occurrence and its first station
-		panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s2"));
-		const SceneEntranceDelay& changed = document.model().scenarios[0].entranceDelays[0];
-		ok &= expect(changed.serviceId == "s2" && changed.occurrence == 1 && changed.stationId == "X" && changed.delaySeconds == -12.5
-				&& choices(panel.stationCombo()) == QStringList({"X"}) && panel.occurrenceEdit()->maximum() == 1
-				&& document.lastChangeLabel() == "Change entrance delay service",
-			"another service starts at its first occurrence and at a station where it plans to depart");
-		panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s3"));
-		ok &= expect(changed.serviceId == "s3" && changed.stationId.empty() && panel.stationCombo()->currentText() == "(none)"
-				&& choices(panel.stationCombo()) == QStringList({"(none)"})
-				&& panel.occurrenceContextLabel()->text() == "s3 (route r1, +0 s)",
-			"a service without a call where it departs has no station to choose");
-		panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s1"));
-		ok &= expect(changed.serviceId == "s1" && changed.stationId == "A" && changed.occurrence == 1, "the first station is chosen again");
-
-		// a service that is not in the scene
-		document.mutableModel().scenarios[0].entranceDelays[1].serviceId = "gone";
-		document.mutableModel().scenarios[0].entranceDelays[1].stationId.clear();
-		panel.refresh();
-		panel.listWidget()->setCurrentRow(1);
-		ok &= expect(panel.serviceCombo()->currentText() == "gone (missing)" && panel.stationCombo()->currentText() == "(none)"
-				&& panel.occurrenceContextLabel()->text().isEmpty() && panel.occurrenceEdit()->suffix() == " of 1"
-				&& items(panel.listWidget())[1] == "gone #1 at (none): +0 s",
-			"a delay of a service that is gone is shown as missing, without a code");
-		document.mutableModel().scenarios[0].entranceDelays[1] = delay("s2", 1, "X", 0.0);
-		panel.refresh();
-
-		// add, duplicate and delete
-		document.markSaved();
-		selection.clearModifiedScenarios();
-		events.log.clear();
-		panel.addEntranceDelay();
-		const SceneEntranceDelay& added = document.model().scenarios[0].entranceDelays.back();
-		ok &= expect(document.model().scenarios[0].entranceDelays.size() == 3 && added.serviceId == "s1" && added.stationId == "A"
-				&& added.occurrence == 1 && added.delaySeconds == 0.0 && panel.listWidget()->count() == 3 && panel.listWidget()->currentRow() == 2
-				&& document.isDirty() && selection.isScenarioModified("base") && events.log == edit && document.lastChangeLabel() == "Add entrance delay",
-			"a delay is added for the first service that departs from a station, selected and shown");
-		events.log.clear();
-		panel.listWidget()->setCurrentRow(0);
-		panel.duplicateEntranceDelay();
-		ok &= expect(document.model().scenarios[0].entranceDelays.size() == 4 && document.model().scenarios[0].entranceDelays[1].serviceId == "s1"
-				&& document.model().scenarios[0].entranceDelays[1].delaySeconds == -12.5 && panel.listWidget()->currentRow() == 1 && events.log == edit
-				&& document.lastChangeLabel() == "Duplicate entrance delay",
-			"a copy is put after the delay and selected");
-		prompts.confirmCount = 0;
-		events.log.clear();
-		panel.deleteEntranceDelay();
-		ok &= expect(prompts.confirmCount == 1 && prompts.confirmQuestion == "Delete entrance delay for service 's1'?"
-				&& document.model().scenarios[0].entranceDelays.size() == 4 && events.log.empty(),
-			"declining the question keeps the delay");
-		prompts.confirmAnswer = true;
-		panel.deleteEntranceDelay();
-		ok &= expect(document.model().scenarios[0].entranceDelays.size() == 3 && panel.listWidget()->count() == 3 && events.log == edit
-				&& document.lastChangeLabel() == "Delete entrance delay",
-			"a deleted delay is removed");
-
-		// a scene without stops puts the first service in the new delay
-		SceneModel noStops = delayScene();
-		for (SceneService& service : noStops.services)
-			service.stops.clear();
-		document.replace(noStops, false);
-		panel.addEntranceDelay();
-		ok &= expect(document.model().scenarios[0].entranceDelays.back().serviceId == "s1" && document.model().scenarios[0].entranceDelays.back().stationId.empty(),
-			"a new delay of a scene without calls names the first service and no station");
-		document.replace(delayScene(), false);
-		selection.selectScenario("base");
-		selection.clearModifiedScenarios();
-		panel.refresh();
-
-		// the other scenario
-		selection.selectScenario("alt");
-		panel.refresh();
-		ok &= expect(panel.listWidget()->count() == 0 && panel.addButton()->isEnabled() && !panel.duplicateButton()->isEnabled()
-				&& !panel.deleteButton()->isEnabled() && panel.occurrenceContextLabel()->text().isEmpty()
-				&& panel.emptyStateLabel()->text() == "This scenario has no entrance delays. Use Add."
-				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
-				&& !panel.serviceCombo()->isEnabled(),
-			"a scenario without delays shows an empty list and says so, and a delay can be added");
-		panel.addEntranceDelay();
-		ok &= expect(document.model().scenarios[1].entranceDelays.size() == 1 && document.model().scenarios[0].entranceDelays.size() == 2
-				&& selection.isScenarioModified("alt") && !selection.isScenarioModified("base"),
-			"a delay is added to the selected scenario");
-		ok &= expect(panel.emptyStateLabel()->isHidden(), "the selected delay has no empty-state message");
-		panel.listWidget()->setCurrentRow(-1);
-		ok &= expect(panel.emptyStateLabel()->text() == "Select an entrance delay or use Add." && !panel.emptyStateLabel()->isHidden(),
-			"a scenario with delays and no selected row asks for a selection");
-		panel.listWidget()->setCurrentRow(0);
-		selection.selectScenario("base");
-		panel.refresh();
-
-		// pending edits belong to the field that has the focus
-		document.markSaved();
-		events.log.clear();
-		panel.show();
-		panel.activateWindow();
-		panel.secondsEdit()->setValue(77.0);
-		panel.commitPendingEditors();
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].delaySeconds == 30.0 && events.log.empty(),
-			"a value in a field that does not have the focus is not pending");
-		panel.secondsEdit()->setFocus();
-		QApplication::processEvents();
-		panel.commitPendingEditors();
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].delaySeconds == 77.0 && events.log == edit,
-			"a value in the field that has the focus is taken into the document");
-		panel.hide();
-		panel.refresh();
-
-		// the choices follow the document
-		events.log.clear();
-		document.mutableModel().services[0].stops[2].stationId = "E";
-		ok &= expect(choices(panel.stationCombo()) == QStringList({"A", "D"}), "a station that the document has not announced is not offered");
-		document.markChanged(SceneDocument::Services, "Edit timetable stop");
-		ok &= expect(choices(panel.stationCombo()) == QStringList({"A", "E"}) && panel.listWidget()->currentRow() == 0,
-			"the stations follow the timetable of the service, and the selection stays");
-		document.mutableModel().settings.durationSeconds = 7200.0;
-		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
-		ok &= expect(panel.occurrenceEdit()->maximum() == 6 && panel.occurrenceEdit()->suffix() == " of 6",
-			"a longer case gives the service more occurrences");
-		panel.setOccurrenceDuration([] { return 2400.0; });
-		document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
-		ok &= expect(panel.occurrenceEdit()->maximum() == 2, "the duration that the window gives counts the occurrences");
-		panel.setOccurrenceDuration({});
-		document.mutableModel().services[0].operatingCode = "200";
-		document.markChanged(SceneDocument::Services, "Change service code");
-		ok &= expect(items(panel.listWidget())[0].startsWith("200-2 at "), "the list follows the service code");
-		document.mutableModel().services[0].operatingCode = "300";
-		document.markChanged(SceneDocument::Scenarios, "Edit scenario");
-		ok &= expect(items(panel.listWidget())[0].startsWith("200-2 at "), "the delays stay as they are when only scenarios change");
-		document.mutableModel().services[0].operatingCode = "100";
-		document.mutableModel().settings.durationSeconds = 3600.0;
-		document.markChanged(SceneDocument::Services | SceneDocument::CaseSettings, "Edit");
-
-		// the scene is in use by a run
-		document.markSaved();
-		events.log.clear();
-		document.setEditable(false);
-		panel.refresh();
-		const int shownRow = panel.listWidget()->currentRow();
-		panel.listWidget()->setCurrentRow(-1);
-		ok &= expect(panel.emptyStateLabel()->isHidden(), "a scene that a run uses does not point to the disabled Add button");
-		panel.listWidget()->setCurrentRow(shownRow);
-		ok &= expect(!panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled() && !panel.duplicateButton()->isEnabled()
-				&& !panel.deleteButton()->isEnabled() && !panel.serviceCombo()->isEnabled() && !panel.occurrenceEdit()->isEnabled()
-				&& !panel.stationCombo()->isEnabled() && !panel.secondsEdit()->isEnabled(),
-			"nothing can be done with the delays while a run uses the scene");
-		panel.secondsEdit()->setValue(5.0);
-		panel.occurrenceEdit()->setValue(2);
-		panel.commitPendingEditors();
-		panel.commitSeconds();
-		panel.commitOccurrence();
-		panel.commitStation(0);
-		panel.commitService(0);
-		panel.addEntranceDelay();
-		panel.duplicateEntranceDelay();
-		panel.deleteEntranceDelay();
-		ok &= expect(document.model().scenarios[0].entranceDelays[0].delaySeconds == 77.0 && document.model().scenarios[0].entranceDelays.size() == 2
-				&& events.log.empty() && !document.isDirty(),
-			"actions change nothing while a run uses the scene");
-		document.setEditable(true);
-		panel.refresh();
-
-		// another scene
-		SceneModel other = delayScene();
-		other.scenarios[0].entranceDelays.resize(1);
-		other.scenarios[0].entranceDelays[0].delaySeconds = 4.0;
-		document.replace(other, false);
-		ok &= expect(items(panel.listWidget()) == QStringList({"100-2 at A: +4 s"}) && !document.isDirty(),
-			"opening another scene shows its delays without an edit");
-
-		// detach
-		panel.setDocument(nullptr);
-		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && panel.serviceCombo()->count() == 0,
-			"a detached panel shows nothing");
-		const quint64 revisionDetached = document.revision();
-		panel.addEntranceDelay();
-		document.replace(delayScene(), false);
-		ok &= expect(panel.listWidget()->count() == 0 && document.revision() == revisionDetached + 1,
-			"a detached panel neither edits nor follows the document");
 	}
+};
 
-	{
-		auto* document = new SceneDocument;
-		EntranceDelayPanel panel;
-		panel.setDocument(document);
-		document->replace(delayScene(), false);
-		delete document;
-		panel.commitSeconds();
-		panel.addEntranceDelay();
-		panel.refresh();
-		ok &= expect(panel.listWidget()->count() == 0 && !panel.addButton()->isEnabled(),
-			"a panel whose document is gone shows nothing and edits nothing");
-	}
+class TestEntranceDelayPanel : public QObject {
+	Q_OBJECT
 
-	{
-		// long names of services and stations do not widen the panel
-		SceneModel scene = delayScene();
-		const std::string longService(150, 's');
-		const std::string longStation(150, 'a');
-		scene.services[0].id = longService;
-		scene.services[0].stops[0].stationId = longStation;
-		scene.scenarios[0].entranceDelays[0] = delay(longService.c_str(), 2, longStation.c_str(), 30.0);
-		SceneDocument document;
-		EntranceDelayPanel panel;
-		panel.setDocument(&document);
-		document.replace(scene, false);
-		panel.listWidget()->setCurrentRow(0);
-		ok &= expect(panel.serviceCombo()->currentData().toString() == QString::fromStdString(longService)
-				&& panel.stationCombo()->currentText() == QString::fromStdString(longStation),
-			"the fields show the long names");
-		ok &= expect(panel.minimumSizeHint().width() < 400, "long names of services and stations do not widen the panel");
-	}
+private slots:
+	void showsNothingWithoutScene();
+	void listsDelaysOfSelectedScenario();
+	void showsFieldsOfSelectedDelay();
+	void showsFieldsOfAnotherDelay();
+	void editsAddsAndDeletesDelays();
+	void showsDelayOfMissingService();
+	void addsDelayToSceneWithoutCalls();
+	void showsOtherScenario();
+	void takesPendingEditOfFocusedField();
+	void choicesFollowDocument();
+	void ignoresActionsWhileRunUsesScene();
+	void showsAnotherScene();
+	void detachedPanelIgnoresDocument();
+	void forgetsDeletedDocument();
+	void longNamesDoNotWidenPanel();
+};
 
-	if (!ok)
-		return 1;
-	std::cout << "all entrance delay panel tests passed\n";
-	return 0;
+void TestEntranceDelayPanel::showsNothingWithoutScene() {
+	EntranceDelayPanel panel;
+	// A panel without a document shows nothing and offers nothing, and does not point to the disabled Add button.
+	QCOMPARE(panel.listWidget()->count(), 0);
+	QVERIFY(!panel.listWidget()->isEnabled());
+	QVERIFY(!panel.addButton()->isEnabled());
+	QVERIFY(!panel.serviceCombo()->isEnabled());
+	QVERIFY(!panel.occurrenceEdit()->isEnabled());
+	QVERIFY(!panel.stationCombo()->isEnabled());
+	QVERIFY(!panel.secondsEdit()->isEnabled());
+	QCOMPARE(panel.occurrenceContextLabel()->text(), QString());
+	QVERIFY(panel.emptyStateLabel()->isHidden());
+	SceneDocument document;
+	panel.setDocument(&document);
+	panel.addEntranceDelay();
+	panel.duplicateEntranceDelay();
+	panel.deleteEntranceDelay();
+	panel.commitOccurrence();
+	panel.commitSeconds();
+	panel.commitPendingEditors();
+	// A panel stays disabled while its document holds no scene, and its actions change nothing.
+	QVERIFY(!panel.addButton()->isEnabled());
+	QCOMPARE(document.revision(), quint64(0));
+	QVERIFY(!document.isDirty());
+	QVERIFY(document.model().scenarios.empty());
 }
+
+void TestEntranceDelayPanel::listsDelaysOfSelectedScenario() {
+	DelayFixture f;
+	// The delays of the selected scenario are listed with the service code, and the first is selected.
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"100-2 at A: +30 s", "s2 at X: +0 s"}));
+	QCOMPARE(f.panel.listWidget()->currentRow(), 0);
+	QVERIFY(f.panel.listWidget()->isEnabled());
+	QVERIFY(f.panel.addButton()->isEnabled());
+	QVERIFY(f.panel.duplicateButton()->isEnabled());
+	QVERIFY(f.panel.deleteButton()->isEnabled());
+	// Showing a scene edits nothing.
+	QVERIFY(f.events.log.empty());
+	QVERIFY(!f.document.isDirty());
+	QCOMPARE(f.document.revision(), quint64(1));
+	QVERIFY(!f.selection.isScenarioModified("base"));
+}
+
+void TestEntranceDelayPanel::showsFieldsOfSelectedDelay() {
+	DelayFixture f;
+	// The services are offered by their first occurrence, and the service of the delay is chosen.
+	QCOMPARE(choices(f.panel.serviceCombo()), QStringList({"100-1 (route r1, +0 s)", "s2 (route r1, +0 s)", "s3 (route r1, +0 s)"}));
+	QCOMPARE(f.panel.serviceCombo()->currentData().toString(), "s1");
+	QVERIFY(f.panel.serviceCombo()->isEnabled());
+	// The occurrences of the service limit the occurrence.
+	QCOMPARE(f.panel.occurrenceEdit()->minimum(), 1);
+	QCOMPARE(f.panel.occurrenceEdit()->maximum(), 3);
+	QCOMPARE(f.panel.occurrenceEdit()->value(), 2);
+	QVERIFY(f.panel.occurrenceEdit()->isEnabled());
+	// The context names the generated service, and the occurrence the number of occurrences.
+	QCOMPARE(f.panel.occurrenceContextLabel()->text(), "100-2 (route r1, +1200 s)");
+	QCOMPARE(f.panel.occurrenceEdit()->suffix(), " of 3");
+	// The stations are the first calls of the service with a planned departure.
+	QCOMPARE(choices(f.panel.stationCombo()), QStringList({"A", "D"}));
+	QCOMPARE(f.panel.stationCombo()->currentText(), "A");
+	QVERIFY(f.panel.stationCombo()->isEnabled());
+	// The delay is shown.
+	QCOMPARE_EQ(f.panel.secondsEdit()->value(), 30.0);
+	QVERIFY(f.panel.secondsEdit()->isEnabled());
+}
+
+// Another delay shows its own fields, and selecting it edits nothing.
+void TestEntranceDelayPanel::showsFieldsOfAnotherDelay() {
+	DelayFixture f;
+	f.panel.listWidget()->setCurrentRow(1);
+	QCOMPARE(f.panel.serviceCombo()->currentData().toString(), "s2");
+	QCOMPARE(f.panel.occurrenceEdit()->maximum(), 1);
+	QCOMPARE(f.panel.occurrenceContextLabel()->text(), "s2 (route r1, +0 s)");
+	QCOMPARE(f.panel.occurrenceEdit()->suffix(), " of 1");
+	QCOMPARE(choices(f.panel.stationCombo()), QStringList({"X"}));
+	QCOMPARE_EQ(f.panel.secondsEdit()->value(), 0.0);
+	QVERIFY(f.events.log.empty());
+}
+
+// The edits of the fields, then a change of the service and the actions Add, Duplicate and Delete, which see the delay
+// that the edits left.
+void TestEntranceDelayPanel::editsAddsAndDeletesDelays() {
+	DelayFixture f;
+	SceneDocument& document = f.document;
+	EntranceDelayPanel& panel = f.panel;
+	Events& events = f.events;
+
+	// A chosen station is written to the document, and the scenario counts as edited.
+	panel.stationCombo()->setCurrentIndex(1);
+	QCOMPARE(document.model().scenarios[0].entranceDelays[0].stationId, "D");
+	QVERIFY(document.isDirty());
+	QVERIFY(f.selection.isScenarioModified("base"));
+	QCOMPARE(events.log, edit);
+	QCOMPARE(events.kinds, SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	QCOMPARE(document.lastChangeLabel(), "Change entrance delay station");
+	QCOMPARE(panel.stationCombo()->currentText(), "D");
+	events.log.clear();
+	panel.stationCombo()->setCurrentIndex(1);
+	QVERIFY2(events.log.empty(), "choosing the station that is chosen does not touch the document");
+	// An occurrence is written to the document, and the context and the list show it.
+	panel.occurrenceEdit()->setValue(3);
+	panel.commitOccurrence();
+	QCOMPARE(document.model().scenarios[0].entranceDelays[0].occurrence, 3);
+	QCOMPARE(events.log, edit);
+	QCOMPARE(panel.occurrenceContextLabel()->text(), "100-3 (route r1, +2400 s)");
+	QCOMPARE(items(panel.listWidget())[0], "100-3 at D: +30 s");
+	events.log.clear();
+	panel.commitOccurrence();
+	QVERIFY2(events.log.empty(), "an unchanged occurrence does not touch the document");
+	// A delay that is negative is written to the document, and the list shows it.
+	panel.secondsEdit()->setValue(-12.5);
+	panel.commitSeconds();
+	QCOMPARE_EQ(document.model().scenarios[0].entranceDelays[0].delaySeconds, -12.5);
+	QCOMPARE(events.log, edit);
+	QCOMPARE(items(panel.listWidget())[0], "100-3 at D: -12.5 s");
+	events.log.clear();
+	panel.commitSeconds();
+	QVERIFY2(events.log.empty(), "an unchanged delay does not touch the document");
+
+	// Another service starts at its first occurrence and at a station where it plans to depart.
+	panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s2"));
+	const SceneEntranceDelay& changed = document.model().scenarios[0].entranceDelays[0];
+	QCOMPARE(changed.serviceId, "s2");
+	QCOMPARE(changed.occurrence, 1);
+	QCOMPARE(changed.stationId, "X");
+	QCOMPARE_EQ(changed.delaySeconds, -12.5);
+	QCOMPARE(choices(panel.stationCombo()), QStringList({"X"}));
+	QCOMPARE(panel.occurrenceEdit()->maximum(), 1);
+	QCOMPARE(document.lastChangeLabel(), "Change entrance delay service");
+	// A service without a call where it departs has no station to choose.
+	panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s3"));
+	QCOMPARE(changed.serviceId, "s3");
+	QVERIFY(changed.stationId.empty());
+	QCOMPARE(panel.stationCombo()->currentText(), "(none)");
+	QCOMPARE(choices(panel.stationCombo()), QStringList({"(none)"}));
+	QCOMPARE(panel.occurrenceContextLabel()->text(), "s3 (route r1, +0 s)");
+	// The first station is chosen again.
+	panel.serviceCombo()->setCurrentIndex(panel.serviceCombo()->findData("s1"));
+	QCOMPARE(changed.serviceId, "s1");
+	QCOMPARE(changed.stationId, "A");
+	QCOMPARE(changed.occurrence, 1);
+
+	// A delay is added for the first service that departs from a station, selected and shown.
+	document.markSaved();
+	f.selection.clearModifiedScenarios();
+	events.log.clear();
+	panel.addEntranceDelay();
+	const SceneEntranceDelay& added = document.model().scenarios[0].entranceDelays.back();
+	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(3));
+	QCOMPARE(added.serviceId, "s1");
+	QCOMPARE(added.stationId, "A");
+	QCOMPARE(added.occurrence, 1);
+	QCOMPARE_EQ(added.delaySeconds, 0.0);
+	QCOMPARE(panel.listWidget()->count(), 3);
+	QCOMPARE(panel.listWidget()->currentRow(), 2);
+	QVERIFY(document.isDirty());
+	QVERIFY(f.selection.isScenarioModified("base"));
+	QCOMPARE(events.log, edit);
+	QCOMPARE(document.lastChangeLabel(), "Add entrance delay");
+	// A copy is put after the delay and selected.
+	events.log.clear();
+	panel.listWidget()->setCurrentRow(0);
+	panel.duplicateEntranceDelay();
+	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(4));
+	QCOMPARE(document.model().scenarios[0].entranceDelays[1].serviceId, "s1");
+	QCOMPARE_EQ(document.model().scenarios[0].entranceDelays[1].delaySeconds, -12.5);
+	QCOMPARE(panel.listWidget()->currentRow(), 1);
+	QCOMPARE(events.log, edit);
+	QCOMPARE(document.lastChangeLabel(), "Duplicate entrance delay");
+	// Declining the question keeps the delay.
+	f.prompts.confirmCount = 0;
+	events.log.clear();
+	panel.deleteEntranceDelay();
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmQuestion, "Delete entrance delay for service 's1'?");
+	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(4));
+	QVERIFY(events.log.empty());
+	// A deleted delay is removed.
+	f.prompts.confirmAnswer = true;
+	panel.deleteEntranceDelay();
+	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(3));
+	QCOMPARE(panel.listWidget()->count(), 3);
+	QCOMPARE(events.log, edit);
+	QCOMPARE(document.lastChangeLabel(), "Delete entrance delay");
+}
+
+// A delay of a service that is gone is shown as missing, without a code.
+void TestEntranceDelayPanel::showsDelayOfMissingService() {
+	DelayFixture f;
+	f.document.mutableModel().scenarios[0].entranceDelays[1].serviceId = "gone";
+	f.document.mutableModel().scenarios[0].entranceDelays[1].stationId.clear();
+	f.panel.refresh();
+	f.panel.listWidget()->setCurrentRow(1);
+	QCOMPARE(f.panel.serviceCombo()->currentText(), "gone (missing)");
+	QCOMPARE(f.panel.stationCombo()->currentText(), "(none)");
+	QCOMPARE(f.panel.occurrenceContextLabel()->text(), QString());
+	QCOMPARE(f.panel.occurrenceEdit()->suffix(), " of 1");
+	QCOMPARE(items(f.panel.listWidget())[1], "gone #1 at (none): +0 s");
+}
+
+// A new delay of a scene without calls names the first service and no station.
+void TestEntranceDelayPanel::addsDelayToSceneWithoutCalls() {
+	DelayFixture f;
+	SceneModel noStops = delayScene();
+	for (SceneService& service : noStops.services)
+		service.stops.clear();
+	f.document.replace(noStops, false);
+	f.panel.addEntranceDelay();
+	QCOMPARE(f.document.model().scenarios[0].entranceDelays.back().serviceId, "s1");
+	QVERIFY(f.document.model().scenarios[0].entranceDelays.back().stationId.empty());
+}
+
+void TestEntranceDelayPanel::showsOtherScenario() {
+	DelayFixture f;
+	EntranceDelayPanel& panel = f.panel;
+	// A scenario without delays shows an empty list and says so, and a delay can be added.
+	f.selection.selectScenario("alt");
+	panel.refresh();
+	QCOMPARE(panel.listWidget()->count(), 0);
+	QVERIFY(panel.addButton()->isEnabled());
+	QVERIFY(!panel.duplicateButton()->isEnabled());
+	QVERIFY(!panel.deleteButton()->isEnabled());
+	QCOMPARE(panel.occurrenceContextLabel()->text(), QString());
+	QCOMPARE(panel.emptyStateLabel()->text(), "This scenario has no entrance delays. Use Add.");
+	QVERIFY(!panel.emptyStateLabel()->isHidden());
+	QVERIFY(panel.emptyStateLabel()->property("dialogHelp").toBool());
+	QVERIFY(!panel.serviceCombo()->isEnabled());
+	// A delay is added to the selected scenario.
+	panel.addEntranceDelay();
+	QCOMPARE(f.document.model().scenarios[1].entranceDelays.size(), std::size_t(1));
+	QCOMPARE(f.document.model().scenarios[0].entranceDelays.size(), std::size_t(2));
+	QVERIFY(f.selection.isScenarioModified("alt"));
+	QVERIFY(!f.selection.isScenarioModified("base"));
+	QVERIFY2(panel.emptyStateLabel()->isHidden(), "the selected delay has no empty-state message");
+	// A scenario with delays and no selected row asks for a selection.
+	panel.listWidget()->setCurrentRow(-1);
+	QCOMPARE(panel.emptyStateLabel()->text(), "Select an entrance delay or use Add.");
+	QVERIFY(!panel.emptyStateLabel()->isHidden());
+}
+
+// Pending edits belong to the field that has the focus.
+void TestEntranceDelayPanel::takesPendingEditOfFocusedField() {
+	DelayFixture f;
+	f.document.markSaved();
+	f.events.log.clear();
+	f.panel.show();
+	f.panel.activateWindow();
+	f.panel.secondsEdit()->setValue(77.0);
+	f.panel.commitPendingEditors();
+	// A value in a field that does not have the focus is not pending.
+	QCOMPARE_EQ(f.document.model().scenarios[0].entranceDelays[0].delaySeconds, 30.0);
+	QVERIFY(f.events.log.empty());
+	f.panel.secondsEdit()->setFocus();
+	QApplication::processEvents();
+	f.panel.commitPendingEditors();
+	// A value in the field that has the focus is taken into the document.
+	QCOMPARE_EQ(f.document.model().scenarios[0].entranceDelays[0].delaySeconds, 77.0);
+	QCOMPARE(f.events.log, edit);
+}
+
+// The choices follow the document.
+void TestEntranceDelayPanel::choicesFollowDocument() {
+	DelayFixture f;
+	SceneDocument& document = f.document;
+	EntranceDelayPanel& panel = f.panel;
+	document.mutableModel().services[0].stops[2].stationId = "E";
+	// A station that the document has not announced is not offered.
+	QCOMPARE(choices(panel.stationCombo()), QStringList({"A", "D"}));
+	document.markChanged(SceneDocument::Services, "Edit timetable stop");
+	// The stations follow the timetable of the service, and the selection stays.
+	QCOMPARE(choices(panel.stationCombo()), QStringList({"A", "E"}));
+	QCOMPARE(panel.listWidget()->currentRow(), 0);
+	document.mutableModel().settings.durationSeconds = 7200.0;
+	document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
+	// A longer case gives the service more occurrences.
+	QCOMPARE(panel.occurrenceEdit()->maximum(), 6);
+	QCOMPARE(panel.occurrenceEdit()->suffix(), " of 6");
+	panel.setOccurrenceDuration([] { return 2400.0; });
+	document.markChanged(SceneDocument::CaseSettings, "Edit case settings");
+	// The duration that the window gives counts the occurrences.
+	QCOMPARE(panel.occurrenceEdit()->maximum(), 2);
+	panel.setOccurrenceDuration({});
+	document.mutableModel().services[0].operatingCode = "200";
+	document.markChanged(SceneDocument::Services, "Change service code");
+	QVERIFY2(items(panel.listWidget())[0].startsWith("200-2 at "), "the list follows the service code");
+	document.mutableModel().services[0].operatingCode = "300";
+	document.markChanged(SceneDocument::Scenarios, "Edit scenario");
+	QVERIFY2(items(panel.listWidget())[0].startsWith("200-2 at "), "the delays stay as they are when only scenarios change");
+}
+
+// The scene is in use by a run.
+void TestEntranceDelayPanel::ignoresActionsWhileRunUsesScene() {
+	DelayFixture f;
+	SceneDocument& document = f.document;
+	EntranceDelayPanel& panel = f.panel;
+	document.markSaved();
+	f.events.log.clear();
+	document.setEditable(false);
+	panel.refresh();
+	const int shownRow = panel.listWidget()->currentRow();
+	panel.listWidget()->setCurrentRow(-1);
+	QVERIFY2(panel.emptyStateLabel()->isHidden(), "a scene that a run uses does not point to the disabled Add button");
+	panel.listWidget()->setCurrentRow(shownRow);
+	// Nothing can be done with the delays while a run uses the scene.
+	QVERIFY(!panel.listWidget()->isEnabled());
+	QVERIFY(!panel.addButton()->isEnabled());
+	QVERIFY(!panel.duplicateButton()->isEnabled());
+	QVERIFY(!panel.deleteButton()->isEnabled());
+	QVERIFY(!panel.serviceCombo()->isEnabled());
+	QVERIFY(!panel.occurrenceEdit()->isEnabled());
+	QVERIFY(!panel.stationCombo()->isEnabled());
+	QVERIFY(!panel.secondsEdit()->isEnabled());
+	panel.secondsEdit()->setValue(5.0);
+	panel.occurrenceEdit()->setValue(2);
+	panel.commitPendingEditors();
+	panel.commitSeconds();
+	panel.commitOccurrence();
+	panel.commitStation(0);
+	panel.commitService(0);
+	panel.addEntranceDelay();
+	panel.duplicateEntranceDelay();
+	panel.deleteEntranceDelay();
+	// Actions change nothing while a run uses the scene: the delay keeps the 30 s of the scene.
+	QCOMPARE_EQ(document.model().scenarios[0].entranceDelays[0].delaySeconds, 30.0);
+	QCOMPARE(document.model().scenarios[0].entranceDelays.size(), std::size_t(2));
+	QVERIFY(f.events.log.empty());
+	QVERIFY(!document.isDirty());
+}
+
+// Opening another scene shows its delays without an edit.
+void TestEntranceDelayPanel::showsAnotherScene() {
+	DelayFixture f;
+	SceneModel other = delayScene();
+	other.scenarios[0].entranceDelays.resize(1);
+	other.scenarios[0].entranceDelays[0].delaySeconds = 4.0;
+	f.document.replace(other, false);
+	QCOMPARE(items(f.panel.listWidget()), QStringList({"100-2 at A: +4 s"}));
+	QVERIFY(!f.document.isDirty());
+}
+
+void TestEntranceDelayPanel::detachedPanelIgnoresDocument() {
+	DelayFixture f;
+	f.panel.setDocument(nullptr);
+	// A detached panel shows nothing.
+	QCOMPARE(f.panel.listWidget()->count(), 0);
+	QVERIFY(!f.panel.listWidget()->isEnabled());
+	QCOMPARE(f.panel.serviceCombo()->count(), 0);
+	const quint64 revisionDetached = f.document.revision();
+	f.panel.addEntranceDelay();
+	f.document.replace(delayScene(), false);
+	// A detached panel neither edits nor follows the document.
+	QCOMPARE(f.panel.listWidget()->count(), 0);
+	QCOMPARE(f.document.revision(), revisionDetached + 1);
+}
+
+// A panel whose document is gone shows nothing and edits nothing.
+void TestEntranceDelayPanel::forgetsDeletedDocument() {
+	auto* document = new SceneDocument;
+	EntranceDelayPanel panel;
+	panel.setDocument(document);
+	document->replace(delayScene(), false);
+	delete document;
+	panel.commitSeconds();
+	panel.addEntranceDelay();
+	panel.refresh();
+	QCOMPARE(panel.listWidget()->count(), 0);
+	QVERIFY(!panel.addButton()->isEnabled());
+}
+
+void TestEntranceDelayPanel::longNamesDoNotWidenPanel() {
+	SceneModel scene = delayScene();
+	const std::string longService(150, 's');
+	const std::string longStation(150, 'a');
+	scene.services[0].id = longService;
+	scene.services[0].stops[0].stationId = longStation;
+	scene.scenarios[0].entranceDelays[0] = delay(longService.c_str(), 2, longStation.c_str(), 30.0);
+	SceneDocument document;
+	EntranceDelayPanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	panel.listWidget()->setCurrentRow(0);
+	// The fields show the long names.
+	QCOMPARE(panel.serviceCombo()->currentData().toString(), QString::fromStdString(longService));
+	QCOMPARE(panel.stationCombo()->currentText(), QString::fromStdString(longStation));
+	QCOMPARE_LT(panel.minimumSizeHint().width(), 400);
+}
+
+QTEST_MAIN(TestEntranceDelayPanel)
+#include "test_editor_entrancedelay.moc"

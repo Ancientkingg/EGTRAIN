@@ -1,7 +1,7 @@
 # Testing
 
-This page covers the CTest suite: how to run it, its labels, the tests each platform registers and the
-package checks. It ends with the checks to run for each kind of change and the documentation site.
+This page covers the CTest suite: how to run it, how to write a test, its labels, the tests each platform
+registers and the package checks. It ends with the checks to run for each kind of change and the documentation site.
 
 ## Unit Tests
 
@@ -164,6 +164,47 @@ the recent cases. On macOS the startup callback waits 300 ms before it opens
 the chooser, so that the event of a launch from Finder is seen first; the `startup`
 moment checks that no chooser opens then. A real double-click in Finder is not part
 of it.
+
+### Writing a test
+
+The C++ tests are moving to Qt Test. A converted file is one test class (`tests/test_speedformat.cpp`):
+
+```cpp
+class TestSpeedFormat : public QObject {
+	Q_OBJECT
+
+private slots:
+	void roundsToWholeKilometresPerHour(); // QCOMPARE(formatSpeedLabel(82.6), "83 km/h");
+};
+
+QTEST_APPLESS_MAIN(TestSpeedFormat)
+#include "test_speedformat.moc"
+```
+
+- `egtrain_add_test` links Qt Test into every test that it builds. The file ends with `QTEST_APPLESS_MAIN` when it
+  needs no Qt application, `QTEST_GUILESS_MAIN` for a `QCoreApplication` and `QTEST_MAIN` for widgets, which also
+  sets `Qt::AA_Use96Dpi`.
+- One slot per behaviour. A failed check ends its slot, so checks that must run after a failure go in a slot of
+  their own. Setup goes into `initTestCase()` (once) or `init()` (before each slot), shared state into members, and
+  every slot passes when it runs alone. Checks that build on what an earlier group left stay in its slot.
+- `QCOMPARE(actual, expected)` shows both values on failure; use it where both sides print, such as numbers, `QString`
+  and `std::string` (Qt 6.4 prints no value for it). A check that joined comparisons with `&&` becomes one line per
+  comparison, in the same order. Anything else, a `nlohmann::json` comparison for example, is
+  `QVERIFY2(condition, message)`.
+- `QCOMPARE` treats floating-point values as equal within a relative 1e-12, and anything within 1e-12 of zero as zero.
+  `QCOMPARE_EQ` compares exactly. Keep it to numbers: with a string literal, Qt 6.8.3 crashes when the comparison fails.
+- A check over a table becomes a `_data()` slot with `QTest::addColumn` and `QTest::newRow`; each row reports on its
+  own (`tests/test_timeformat.cpp`).
+- `QTRY_VERIFY_WITH_TIMEOUT(condition, milliseconds)` waits for a condition instead of a sleep. An exception that leaves
+  a slot fails it and ends the program.
+- `build/test_timeformat formatsSimTime` runs one slot, `formatsSimTime:offset` one row of it, and `-functions` lists
+  the slots. A `gui` test outside CTest needs `QT_QPA_PLATFORM=offscreen`.
+- Qt Test rejects arguments that it does not know. A test reads its paths from compile definitions of its
+  registration, such as `EGTRAIN_TEST_SOURCE_DIR`, and a mode such as `EGTRAIN_UPDATE_EXPECTATIONS=1` from the
+  environment (`tests/test_liveframe.cpp`).
+- A Qt Test program that skips (`QSKIP`) exits with 0, so a test with `SKIP_RETURN_CODE` keeps a `main` of its own
+  that returns the skip code before it calls `QTest::qExec`.
+- Files that are not converted yet keep their local `expect` or `check` helper ([Tests](coding-guidelines.md#tests)).
 
 ### Test labels
 
