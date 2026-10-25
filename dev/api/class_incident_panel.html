@@ -182,10 +182,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a71dafdaeb8bc89c96eee497e02f14374" id="r_a71dafdaeb8bc89c96eee497e02f14374"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#a71dafdaeb8bc89c96eee497e02f14374">typeCombo</a> () const</td></tr>
 <tr class="memitem:ab3445b8930481b443aec196e8bbbb442" id="r_ab3445b8930481b443aec196e8bbbb442"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ab3445b8930481b443aec196e8bbbb442">targetCombo</a> () const</td></tr>
 <tr class="memitem:a392c31e821282d871db32f0280f9cdb5" id="r_a392c31e821282d871db32f0280f9cdb5"><td class="memItemLeft">QToolButton *&#160;</td><td class="memItemRight"><a class="el" href="#a392c31e821282d871db32f0280f9cdb5">pickTargetButton</a> () const</td></tr>
-<tr class="memitem:a39246626cd12fed462970ed94b36c520" id="r_a39246626cd12fed462970ed94b36c520"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a39246626cd12fed462970ed94b36c520">startSecondsEdit</a> () const</td></tr>
-<tr class="memdesc:a39246626cd12fed462970ed94b36c520"><td class="mdescLeft">&#160;</td><td class="mdescRight">The start in whole seconds from the start of the run.  <br /></td></tr>
-<tr class="memitem:a7a61173790e141212bfd7665939daeaf" id="r_a7a61173790e141212bfd7665939daeaf"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#a7a61173790e141212bfd7665939daeaf">endSecondsEdit</a> () const</td></tr>
-<tr class="memdesc:a7a61173790e141212bfd7665939daeaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The end (the recovery) in whole seconds from the start of the run.  <br /></td></tr>
+<tr class="memitem:a51c48752d4ad56b869cb056f89441c13" id="r_a51c48752d4ad56b869cb056f89441c13"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#a51c48752d4ad56b869cb056f89441c13">startSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:a51c48752d4ad56b869cb056f89441c13"><td class="mdescLeft">&#160;</td><td class="mdescRight">The start in seconds from the start of the run.  <br /></td></tr>
+<tr class="memitem:af7a4087daa63654e3ca3fce03662c012" id="r_af7a4087daa63654e3ca3fce03662c012"><td class="memItemLeft">QDoubleSpinBox *&#160;</td><td class="memItemRight"><a class="el" href="#af7a4087daa63654e3ca3fce03662c012">endSecondsEdit</a> () const</td></tr>
+<tr class="memdesc:af7a4087daa63654e3ca3fce03662c012"><td class="mdescLeft">&#160;</td><td class="mdescRight">The end (the recovery) in seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:a49980b6ad232df0b6bc70c788a2f2bbc" id="r_a49980b6ad232df0b6bc70c788a2f2bbc"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a49980b6ad232df0b6bc70c788a2f2bbc">hasEndSecondsCheck</a> () const</td></tr>
 <tr class="memitem:a0d10ca0322412992b5acee134064c789" id="r_a0d10ca0322412992b5acee134064c789"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a0d10ca0322412992b5acee134064c789">hasReducedSpeedCheck</a> () const</td></tr>
 <tr class="memdesc:a0d10ca0322412992b5acee134064c789"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a breakdown caps the speed of the train instead of stopping it.  <br /></td></tr>
@@ -718,8 +718,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7a61173790e141212bfd7665939daeaf" name="a7a61173790e141212bfd7665939daeaf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a61173790e141212bfd7665939daeaf">&#9670;&#160;</a></span>endSecondsEdit()</h2>
+<a id="af7a4087daa63654e3ca3fce03662c012" name="af7a4087daa63654e3ca3fce03662c012"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7a4087daa63654e3ca3fce03662c012">&#9670;&#160;</a></span>endSecondsEdit()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -728,7 +728,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">QLineEdit * IncidentPanel::endSecondsEdit </td>
+          <td class="memname">QDoubleSpinBox * IncidentPanel::endSecondsEdit </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -741,7 +741,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The end (the recovery) in whole seconds from the start of the run. </p>
+<p>The end (the recovery) in seconds from the start of the run. </p>
 
 </div>
 </div>
@@ -1171,8 +1171,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a39246626cd12fed462970ed94b36c520" name="a39246626cd12fed462970ed94b36c520"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39246626cd12fed462970ed94b36c520">&#9670;&#160;</a></span>startSecondsEdit()</h2>
+<a id="a51c48752d4ad56b869cb056f89441c13" name="a51c48752d4ad56b869cb056f89441c13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51c48752d4ad56b869cb056f89441c13">&#9670;&#160;</a></span>startSecondsEdit()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1181,7 +1181,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">QLineEdit * IncidentPanel::startSecondsEdit </td>
+          <td class="memname">QDoubleSpinBox * IncidentPanel::startSecondsEdit </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -1194,7 +1194,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>The start in whole seconds from the start of the run. </p>
+<p>The start in seconds from the start of the run. </p>
 
 </div>
 </div>

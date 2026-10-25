@@ -1,5 +1,8 @@
 var NAVTREEINDEX26 =
 {
+"structtelemetry__smoke_1_1_state.html":[1,0,14,0],
+"structtelemetry__smoke_1_1_state.html":[2,0,4,0],
+"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[1,0,14,0,3],
 "structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[2,0,4,0,3],
 "structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[1,0,14,0,1],
 "structtelemetry__smoke_1_1_state.html#a4ea70fb20baba02fb555ddc4162d4d3d":[2,0,4,0,1],

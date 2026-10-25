@@ -115,17 +115,55 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_fi
 
 <p><code>#include &lt;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:aac4c941310f67c49d7d3e852d9ab85de" id="r_aac4c941310f67c49d7d3e852d9ab85de"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#aac4c941310f67c49d7d3e852d9ab85de">Empty</a> { <a class="el" href="#aac4c941310f67c49d7d3e852d9ab85dea4bbb8f967da6d1a610596d7257179c2b">Invalid</a>
+, <a class="el" href="#aac4c941310f67c49d7d3e852d9ab85deabb5fe5cd9c8c778e81b05ef53c166612">Allowed</a>
+ }</td></tr>
+<tr class="memdesc:aac4c941310f67c49d7d3e852d9ab85de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether stringField takes an empty string as the value of a required key. An optional key may always be empty.  <a href="#aac4c941310f67c49d7d3e852d9ab85de">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac22d8fb2929d5c9591c13c725c109d08" id="r_ac22d8fb2929d5c9591c13c725c109d08"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ac22d8fb2929d5c9591c13c725c109d08">SceneFieldReader</a> (std::string_view file, const <a class="el" href="struct_scene_field_codes.html">SceneFieldCodes</a> &amp;codes, std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;sink)</td></tr>
 <tr class="memitem:a38681a834cd04f10752c10054793098f" id="r_a38681a834cd04f10752c10054793098f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a38681a834cd04f10752c10054793098f">objectItem</a> (const nlohmann::json &amp;item, const std::string &amp;path, const char *message) const</td></tr>
 <tr class="memitem:a5c5c383343a40b1b6ddf0017b79651e6" id="r_a5c5c383343a40b1b6ddf0017b79651e6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5c5c383343a40b1b6ddf0017b79651e6">arraySection</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, bool required) const</td></tr>
-<tr class="memitem:ac59c7e6e401f150543e71bda5659b71b" id="r_ac59c7e6e401f150543e71bda5659b71b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac59c7e6e401f150543e71bda5659b71b">stringField</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, std::string &amp;output, bool required=true) const</td></tr>
+<tr class="memitem:a1001afd3bd09165d2eab058a8d63d147" id="r_a1001afd3bd09165d2eab058a8d63d147"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1001afd3bd09165d2eab058a8d63d147">stringField</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, std::string &amp;output, bool required=true, <a class="el" href="#aac4c941310f67c49d7d3e852d9ab85de">Empty</a> empty=<a class="el" href="#aac4c941310f67c49d7d3e852d9ab85dea4bbb8f967da6d1a610596d7257179c2b">Empty::Invalid</a>) const</td></tr>
 <tr class="memitem:a932adc727f7c89d79dffd3087997ed7e" id="r_a932adc727f7c89d79dffd3087997ed7e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a932adc727f7c89d79dffd3087997ed7e">numberField</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, double &amp;output, bool required=true) const</td></tr>
 <tr class="memitem:a509d7ecf050ccce5fc405ee817bda3ad" id="r_a509d7ecf050ccce5fc405ee817bda3ad"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a509d7ecf050ccce5fc405ee817bda3ad">integerField</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, int &amp;output, bool required=true) const</td></tr>
 <tr class="memitem:a74f91bc2604c802d05aa3373043124de" id="r_a74f91bc2604c802d05aa3373043124de"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a74f91bc2604c802d05aa3373043124de">boolField</a> (const nlohmann::json &amp;object, const char *key, const std::string &amp;path, bool &amp;output) const</td></tr>
 <tr class="memitem:a53879345feee72005c27d93ac4a54315" id="r_a53879345feee72005c27d93ac4a54315"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a53879345feee72005c27d93ac4a54315">report</a> (const char *code, const std::string &amp;message, const std::string &amp;path) const</td></tr>
 </table>
+<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a id="aac4c941310f67c49d7d3e852d9ab85de" name="aac4c941310f67c49d7d3e852d9ab85de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac4c941310f67c49d7d3e852d9ab85de">&#9670;&#160;</a></span>Empty</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#aac4c941310f67c49d7d3e852d9ab85de">SceneFieldReader::Empty</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether stringField takes an empty string as the value of a required key. An optional key may always be empty. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aac4c941310f67c49d7d3e852d9ab85dea4bbb8f967da6d1a610596d7257179c2b" name="aac4c941310f67c49d7d3e852d9ab85dea4bbb8f967da6d1a610596d7257179c2b"></a>Invalid&#160;</td><td class="fielddoc"><p>An empty string is invalid, as for an id or a reference. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aac4c941310f67c49d7d3e852d9ab85deabb5fe5cd9c8c778e81b05ef53c166612" name="aac4c941310f67c49d7d3e852d9ab85deabb5fe5cd9c8c778e81b05ef53c166612"></a>Allowed&#160;</td><td class="fielddoc"><p>An empty string is a value, as for a display name. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac22d8fb2929d5c9591c13c725c109d08" name="ac22d8fb2929d5c9591c13c725c109d08"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac22d8fb2929d5c9591c13c725c109d08">&#9670;&#160;</a></span>SceneFieldReader()</h2>
@@ -373,8 +411,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac59c7e6e401f150543e71bda5659b71b" name="ac59c7e6e401f150543e71bda5659b71b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac59c7e6e401f150543e71bda5659b71b">&#9670;&#160;</a></span>stringField()</h2>
+<a id="a1001afd3bd09165d2eab058a8d63d147" name="a1001afd3bd09165d2eab058a8d63d147"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1001afd3bd09165d2eab058a8d63d147">&#9670;&#160;</a></span>stringField()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -402,14 +440,19 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>required</em></span><span class="paramdefsep"> = </span><span class="paramdefval">true</span>&#160;) const</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>required</em></span><span class="paramdefsep"> = </span><span class="paramdefval">true</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#aac4c941310f67c49d7d3e852d9ab85de">Empty</a></td>          <td class="paramname"><span class="paramname"><em>empty</em></span><span class="paramdefsep"> = </span><span class="paramdefval"><a class="el" href="#aac4c941310f67c49d7d3e852d9ab85dea4bbb8f967da6d1a610596d7257179c2b">Empty::Invalid</a></span>&#160;) const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_field_reader_ac59c7e6e401f150543e71bda5659b71b_cgraph.svg" width="691" height="70"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_field_reader_a1001afd3bd09165d2eab058a8d63d147_cgraph.svg" width="691" height="70"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

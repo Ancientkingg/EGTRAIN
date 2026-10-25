@@ -377,6 +377,9 @@ the scene.</p>
 the panel. It checks that a refresh lists the model and, as far as the panel has them, that an edit, an addition and a
 deletion change the model and mark the document once, that a refused or cancelled edit changes nothing, and that a rename
 keeps what refers to the entity.
+<code class="docutils literal notranslate"><span class="pre">test_editor_service</span></code> and <code class="docutils literal notranslate"><span class="pre">test_editor_incident</span></code> also check that a stored number that a field rounds or shows at a limit
+of its range, such as an entry time of 600.5 s, a performance of 150 or a speed cap of 1200 km/h, is saved as stored while
+the user does not edit it, even when the field has the focus at Save, and that a typed fraction of a second is stored.
 The infrastructure facets have one test for each file of facets: <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_topology</span></code>,
 <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_blocks</span></code>, <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_stations</span></code> and <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure_signals</span></code>.
 <code class="docutils literal notranslate"><span class="pre">test_editor_infrastructure</span></code> checks the panel itself with facets of its own, including where its buttons and the sections of a route are placed. <code class="docutils literal notranslate"><span class="pre">test_infrastructureguidance</span></code> checks the sentence above the table for each of the thirteen facets, with and without entities and a scene.</p>

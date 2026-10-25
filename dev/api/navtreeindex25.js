@@ -1,5 +1,8 @@
 var NAVTREEINDEX25 =
 {
+"struct_track_preview_point.html#a286c5579d26233c2435c3c6bfb603a3f":[2,0,309,3],
+"struct_track_preview_point.html#a478b2200a9011e896c1024ebf1de0994":[2,0,309,1],
+"struct_track_preview_point.html#ab1909304dcb55f1192ab429ba33ad320":[2,0,309,0],
 "struct_track_preview_point.html#ae499c02de775764cdd91fd2db40808f4":[2,0,309,2],
 "struct_track_preview_result.html":[2,0,310],
 "struct_track_preview_result.html#a2afbed622ec81e596169a0b912936d3d":[2,0,310,7],
@@ -246,8 +249,5 @@ var NAVTREEINDEX25 =
 "structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[1,0,13,12,0],
 "structtelemetry_1_1_usage_record.html#a7dc693ce653501b0de3b93061ba9e9d5":[2,0,3,12,0],
 "structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[1,0,13,12,1],
-"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[2,0,3,12,1],
-"structtelemetry__smoke_1_1_state.html":[1,0,14,0],
-"structtelemetry__smoke_1_1_state.html":[2,0,4,0],
-"structtelemetry__smoke_1_1_state.html#a28860380a973f187037c750f5421bca4":[1,0,14,0,3]
+"structtelemetry_1_1_usage_record.html#acbf2a7937e5c73b8414381c09c68aeec":[2,0,3,12,1]
 };

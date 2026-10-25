@@ -27,7 +27,7 @@ var searchData=
   ['header_24',['header',['../class_http_reply.html#af2002152a16ea55e15f6e18b84ec28cb',1,'HttpReply']]],
   ['headertext_25',['headerText',['../class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f',1,'ScenarioPanel']]],
   ['headertextchanged_26',['headerTextChanged',['../class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f',1,'ScenarioPanel']]],
-  ['headwaysecondsedit_27',['headwaySecondsEdit',['../class_service_panel.html#ad9928e46d769b391ded78ef6bd5a3814',1,'ServicePanel']]],
+  ['headwaysecondsedit_27',['headwaySecondsEdit',['../class_service_panel.html#a23a259f4b395cec7f5f2488259df7d43',1,'ServicePanel']]],
   ['healthy_28',['healthy',['../classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f',1,'telemetry::TelemetryQueue']]],
   ['heightforcontent_29',['heightForContent',['../namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac',1,'DialogLayout::detail']]],
   ['hideevent_30',['hideEvent',['../class_incident_panel.html#ab755519e686d0bcfb5cd4b70e15cab47',1,'IncidentPanel']]],
