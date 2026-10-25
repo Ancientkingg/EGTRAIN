@@ -436,7 +436,7 @@ void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(con
 // run. Both end the run and the process.
 bool MainWindowTestAccess::runFinished(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
-		bool ok = w.m_runController->m_resultsAvailable && !w.m_runController->m_completedRun->trains.empty();
+		bool ok = w.m_runController->resultsAvailable() && !w.m_runController->m_completedRun->trains.empty();
 		if (ok) {
 			const int reference = w.m_runController->m_completedRun->trains.front().routeIndex;
 			w.buildRouteDiagram(w.m_runController->m_completedRun, false, reference);
@@ -544,7 +544,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;
 		};
-		bool ok = w.m_runController->m_resultsAvailable;
+		bool ok = w.m_runController->resultsAvailable();
 		if (ok) {
 			const QStringList ids = trainIdsFrom(*w.m_runController->m_completedRun);
 			const QHash<QString, QString> services = trainServicesForRun(w.m_runController->m_completedRun->results);
@@ -655,14 +655,14 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 // discarded run (QEGTRAIN_E2E_OPERATIONAL_DISCARD), the replay row of a whole run (QEGTRAIN_E2E_REPLAY_WHOLE_RUN) and the
 // completion with its rerun (QEGTRAIN_E2E_OPERATIONAL_COMPLETION).
 void MainWindowTestAccess::runSettled(MainWindow& w) {
-	if (w.m_runController->m_resultsAvailable && !w.m_completedReplay.empty() && qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
+	if (w.m_runController->resultsAvailable() && !w.m_completedReplay.empty() && qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
 		QTimer::singleShot(0, &w, [&w] { runReplaySignals(w); });
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
 		const QStringList labels = w.m_networkLegendWidget ? w.m_networkLegendWidget->entryLabels() : QStringList();
-		const bool preview = sceneEditedDuringRun && w.m_runController->m_runtimeStatus == QStringLiteral("Failed")
+		const bool preview = sceneEditedDuringRun && w.m_runController->state() == RunController::RunState::Failed
 			&& w.m_completedReplay.empty() && !w.m_replayBar->isVisible()
-			&& w.m_showingTrackPreview && !w.m_runController->m_worker && !w.m_runController->m_resultsAvailable
+			&& w.m_showingTrackPreview && !w.m_runController->m_worker && !w.m_runController->resultsAvailable()
 			&& labels.contains(QStringLiteral("Local track"))
 			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
 			&& !labels.contains(QStringLiteral("Permissive signalling"))
@@ -720,7 +720,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			}
 		}
 	}
-	const bool clean = w.m_runController->m_runtimeStatus == QStringLiteral("Completed") && w.m_snapshot
+	const bool clean = w.m_runController->state() == RunController::RunState::Completed && w.m_snapshot
 		&& (operationalCompletions == 0
 			|| w.m_snapshot != operationalFirstFrame)
 		&& std::all_of(w.m_presenter->allArcs.cbegin(), w.m_presenter->allArcs.cend(), [](const TrackLineItem* track) {

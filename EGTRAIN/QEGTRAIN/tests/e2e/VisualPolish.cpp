@@ -3141,7 +3141,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << QString("Stop left the inspector open (shown before=%1)").arg(inspectorShownBeforeStop);
 			}
-			if (w.m_runController->m_runtimeStatus != QStringLiteral("Stopped") || w.m_runController->m_resultsAvailable
+			if (w.m_runController->state() != RunController::RunState::Stopped || w.m_runController->resultsAvailable()
 				|| w.statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;

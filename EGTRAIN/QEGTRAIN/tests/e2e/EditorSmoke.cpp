@@ -5608,7 +5608,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			where + " moved the history to another place");
 		expect(w.m_document->isDirty() == dirty && w.isWindowModified() == dirty && w.m_history->isAtSavedPoint() == !dirty,
 			where + " left a wrong unsaved mark");
-		expect(!w.m_runController->m_resultsAvailable && !w.m_runController->m_completedRun, where + " kept results of a run");
+		expect(!w.m_runController->resultsAvailable() && !w.m_runController->m_completedRun, where + " kept results of a run");
 		const QString mismatch = editorMismatch();
 		expect(mismatch.isEmpty(), where + " left the " + mismatch + " editor with another scene");
 		expect(validationCurrent(), where + " left the validation of another scene");
@@ -5754,9 +5754,9 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		}
 		QElapsedTimer waited;
 		waited.start();
-		while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
+		while ((w.m_runController->m_worker || !w.m_runController->resultsAvailable()) && waited.elapsed() < 60000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
-		if (!expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable, "the run did not complete"))
+		if (!expect(!w.m_runController->m_worker && w.m_runController->resultsAvailable(), "the run did not complete"))
 			return finish();
 		expect(w.m_inspector->m_incidentButton->isVisible() && w.m_inspector->m_incidentButton->isEnabled()
 				&& w.m_inspector->m_incidentButton->toolTip().isEmpty(),
@@ -5776,9 +5776,9 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			w.m_runSceneAction->trigger();
 			QElapsedTimer waited;
 			waited.start();
-			while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
+			while ((w.m_runController->m_worker || !w.m_runController->resultsAvailable()) && waited.elapsed() < 60000)
 				QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
-			return expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable,
+			return expect(!w.m_runController->m_worker && w.m_runController->resultsAvailable(),
 				QStringLiteral("the run in %1 did not complete").arg(folder));
 		};
 		// An edit ends a replay, and the inspector dock of a train that is selected in it closes.
@@ -5856,7 +5856,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				&& added->target == trainState.serviceId && added->hasOccurrence && added->occurrence == trainState.occurrence,
 			"the menu of a train did not add a breakdown of its occurrence");
 		const QString occurrence = QString("%1 #%2").arg(QString::fromStdString(trainState.serviceId)).arg(trainState.occurrence);
-		expect(!w.m_runController->m_resultsAvailable && !w.m_replayActive && message == "Added a breakdown of " + occurrence + ". Run results discarded."
+		expect(!w.m_runController->resultsAvailable() && !w.m_replayActive && message == "Added a breakdown of " + occurrence + ". Run results discarded."
 				&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(pickHint),
 			"a breakdown from the menu of a train did not discard the results with a short message: " + message);
 		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");

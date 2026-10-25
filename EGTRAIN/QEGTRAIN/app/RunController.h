@@ -42,6 +42,16 @@ class RunController : public QObject {
 	Q_OBJECT
 
 public:
+	/// The state of the run, which the loaded data shows as its status.
+	enum class RunState {
+		NotBuilt,  ///< No run is prepared, or the results of the last one were discarded.
+		Ready,	   ///< The scene is prepared and the run has not started.
+		Running,   ///< The run has started and has not ended. A worker that is ended before the run has ended leaves it so.
+		Completed, ///< The run ended with results.
+		Stopped,   ///< The user stopped the run before its last stage.
+		Failed,	   ///< The preparation or the run failed, the scene changed during the run, or the run ended without results.
+	};
+
 	/// What Pause, Stop and Output Folder allow.
 	enum class RunPhase {
 		Idle,	  ///< No worker exists.
@@ -172,7 +182,8 @@ public:
 	/// The next run writes to the folder of the scene `sceneName`, unless the user chose a folder.
 	void selectSceneOutputFolder(const std::string& sceneName);
 
-	/// The run exists from the moment that it starts until its worker has finished.
+	/// A worker exists, from the moment that the run starts until its worker has finished. The state is Running a little
+	/// longer: from just before the worker starts, and after a worker that clearSimulationWorker ends early.
 	bool running() const { return !m_worker.isNull(); }
 	/// The worker of the run. Qt deletes it when its thread has finished; null while no run exists.
 	SimulationWorker* worker() const { return m_worker.data(); }
@@ -185,13 +196,15 @@ public:
 	/// Sets the delay between two steps of the run, in milliseconds. Does nothing without a run.
 	void setDelayMs(int delayMs);
 
-	/// The status of the run as the loaded data shows it: "Not built", "Ready", "Running", "Completed", "Stopped" or
+	/// The state of the run.
+	RunState state() const { return m_state; }
+	/// The state of the run as the loaded data shows it: "Not built", "Ready", "Running", "Completed", "Stopped" or
 	/// "Failed".
-	const QString& runtimeStatus() const { return m_runtimeStatus; }
+	const QString& runtimeStatus() const;
 	/// The diagnostics with which the simulation prepared the last run.
 	const std::vector<SceneDiagnostic>& runtimeDiagnostics() const { return m_runtimeDiagnostics; }
 	/// The last run completed and its results are valid for the scene as it is.
-	bool resultsAvailable() const { return m_resultsAvailable; }
+	bool resultsAvailable() const { return m_state == RunState::Completed && !m_sceneChangedDuringRun; }
 	/// The finished run as values. Null while no run has completed.
 	const std::shared_ptr<const CompletedRunData>& completedRun() const { return m_completedRun; }
 	/// Results of a completed run exist and the simulation still holds the trajectories behind them.
@@ -260,6 +273,9 @@ private:
 	// The scripted runs in tests/e2e set the state of the controller directly.
 	friend class MainWindowTestAccess;
 
+	// Every change of the state goes through here. The loaded data shows a prepared and a started run at once; the
+	// other changes tell the window when they have changed the rest.
+	void setState(RunState state);
 	// Asks the user to look at the run before it starts. Returns whether the run starts.
 	bool showRunReview();
 	void runDeferredAction();
@@ -296,9 +312,10 @@ private:
 	// Each connection is in the slot that ObservationSlot names.
 	std::array<QMetaObject::Connection, static_cast<std::size_t>(ObservationSlot::Count)> m_simulationObservations{};
 
-	QString m_runtimeStatus = QStringLiteral("Not built");
+	RunState m_state = RunState::NotBuilt;
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
-	bool m_resultsAvailable = false;
+	// The scene was edited while a worker existed. The results of that run are discarded, and a completed run whose
+	// scene was edited before its worker was cleared has none.
 	bool m_sceneChangedDuringRun = false;
 	std::shared_ptr<const CompletedRunData> m_completedRun;
 	RunProvenance m_pendingRunProvenance;

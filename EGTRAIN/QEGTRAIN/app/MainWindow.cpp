@@ -3434,8 +3434,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 		afterFirstShow(*this);
 }
 
-// Raw trajectories can survive a scene edit; the explicit availability flag is
-// the ownership boundary for result actions.
+// Raw trajectories can survive a scene edit; the state of the run is the
+// ownership boundary for result actions.
 bool MainWindow::hasRunResults() const {
 	return m_runController->hasRunResults();
 }
@@ -3666,7 +3666,7 @@ void MainWindow::waitForUpdates() {
 	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery", "gui", "");
 	// A queued notification can outlive its worker or arrive after Stop. Drain
 	// the mailbox, but never apply that late publication to the current scene.
-	if (!m_runController->running() || m_runController->runtimeStatus() != QStringLiteral("Running")
+	if (!m_runController->running() || m_runController->state() != RunController::RunState::Running
 		|| m_runController->stopRequested()) {
 		simulation.takeSimulationSnapshot();
 		return;
@@ -3701,7 +3701,7 @@ void MainWindow::waitForUpdates() {
 			connect(m_trailingRenderTimer, &QTimer::timeout, this, [this]() {
 				if (!m_snapshot || m_snapshot == m_lastRenderedSnapshot || m_replayActive || !m_runController->running()
 					|| m_runController->worker() != m_trailingRenderWorker || m_runController->stopRequested()
-					|| m_runController->runtimeStatus() != QStringLiteral("Running"))
+					|| m_runController->state() != RunController::RunState::Running)
 					return;
 				renderSnapshot(false);
 				m_lastRenderedSnapshot = m_snapshot;

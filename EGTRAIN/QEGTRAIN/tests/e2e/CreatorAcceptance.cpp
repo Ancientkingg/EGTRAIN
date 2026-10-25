@@ -1700,7 +1700,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		while ((w.m_runController->m_worker || w.m_runController->m_afterRunAction) && reloadWait.elapsed() < 15000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		process();
-		if (w.m_runController->m_worker || w.m_runController->m_resultsAvailable || w.m_runController->m_runtimeStatus != "Not built"
+		if (w.m_runController->m_worker || w.m_runController->resultsAvailable() || w.m_runController->state() != RunController::RunState::NotBuilt
 			|| w.m_followAction->isChecked() || followButton->isChecked() || w.m_followTrainIndex != -1
 			|| w.progressBar->isVisible()
 			|| w.ui->actionSimulationPause->text() != "Pause"
@@ -1754,7 +1754,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 10) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("baseline simulation did not complete"));
 				return;
@@ -1830,7 +1830,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 12) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("entrance-delay simulation did not complete"));
 				return;
@@ -1940,7 +1940,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 13) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("incident simulation did not complete"));
 				return;
@@ -1982,7 +1982,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 14) {
 		const QString exportDir = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_EXPORT_DIR"));
-		if (!w.m_runController->m_resultsAvailable || exportDir.isEmpty() || !w.m_runResultsPanel->dock()) {
+		if (!w.m_runController->resultsAvailable() || exportDir.isEmpty() || !w.m_runResultsPanel->dock()) {
 			fail(QStringLiteral("public result controls or export target are unavailable"));
 			return;
 		}
@@ -2853,7 +2853,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (QAction* action : w.m_runResultsPanel->dock()->findChildren<QAction*>())
 			if (action->objectName().startsWith("resultView_"))
 				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
-		if (w.m_runController->m_resultsAvailable || w.m_runController->m_delayBaseline || w.m_runResultsPanel->dock()->isVisible() || !resultButtonsDisabled
+		if (w.m_runController->resultsAvailable() || w.m_runController->m_delayBaseline || w.m_runResultsPanel->dock()->isVisible() || !resultButtonsDisabled
 			|| !w.m_runResultsPanel->delayFeedbackLabel() || w.m_runResultsPanel->delayFeedbackLabel()->text() != QStringLiteral("Baseline cleared: the case changed")) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
 			return;

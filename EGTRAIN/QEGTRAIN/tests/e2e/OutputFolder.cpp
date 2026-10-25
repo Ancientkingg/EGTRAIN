@@ -169,7 +169,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		};
 		const auto caseUsable = [&w, run]() {
 			return w.m_document->isLoaded() && w.m_document->isEditable() && w.m_document->mutableModel().name == run->thirdName
-				&& w.m_runSceneAction->isEnabled() && w.m_runController->m_runtimeStatus == QStringLiteral("Failed");
+				&& w.m_runSceneAction->isEnabled() && w.m_runController->state() == RunController::RunState::Failed;
 		};
 		w.m_runController->m_worker->requestStop();
 		if (!runEnded()) {

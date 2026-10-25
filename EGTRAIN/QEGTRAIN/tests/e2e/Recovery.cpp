@@ -229,7 +229,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 		w.m_runController->runScene();
 		if (!w.m_runController->m_worker)
 			return QStringLiteral("the run did not start");
-		if (!waitFor([&w] { return !w.m_runController->m_worker && w.m_runController->m_resultsAvailable; }, kRunWaitMs))
+		if (!waitFor([&w] { return !w.m_runController->m_worker && w.m_runController->resultsAvailable(); }, kRunWaitMs))
 			return QStringLiteral("the run did not complete");
 		return {};
 	};

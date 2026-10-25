@@ -109,6 +109,36 @@ void RunController::setDelayMs(int delayMs) {
 		m_worker->setDelayMs(delayMs);
 }
 
+const QString& RunController::runtimeStatus() const {
+	static const QString notBuiltText = QStringLiteral("Not built");
+	static const QString readyText = QStringLiteral("Ready");
+	static const QString runningText = QStringLiteral("Running");
+	static const QString completedText = QStringLiteral("Completed");
+	static const QString stoppedText = QStringLiteral("Stopped");
+	static const QString failedText = QStringLiteral("Failed");
+	switch (m_state) {
+		case RunState::NotBuilt:
+			return notBuiltText;
+		case RunState::Ready:
+			return readyText;
+		case RunState::Running:
+			return runningText;
+		case RunState::Completed:
+			return completedText;
+		case RunState::Stopped:
+			return stoppedText;
+		case RunState::Failed:
+			return failedText;
+	}
+	return notBuiltText;
+}
+
+void RunController::setState(RunState state) {
+	m_state = state;
+	if (state == RunState::Ready || state == RunState::Running)
+		m_host.loadedDataChanged();
+}
+
 bool RunController::hasRawRunResults() {
 	for (int i = 0; i < simulation.run().numTrains; ++i)
 		if (simulation.run().trains[i].trajectorySize() > 0)
@@ -116,10 +146,10 @@ bool RunController::hasRawRunResults() {
 	return false;
 }
 
-// Raw trajectories can survive a scene edit; the explicit availability flag is
-// the ownership boundary for result actions.
+// Raw trajectories can survive a scene edit; the state of the run is the
+// ownership boundary for result actions.
 bool RunController::hasRunResults() const {
-	return m_resultsAvailable && m_completedRun && hasRawRunResults();
+	return resultsAvailable() && m_completedRun && hasRawRunResults();
 }
 
 void RunController::showError(const QString& title, const QString& message) {
@@ -393,7 +423,7 @@ RunProvenance RunController::captureRunProvenance() const {
 
 DelayRunSnapshot RunController::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
-	if (!m_resultsAvailable || !m_completedRun || m_completedRun->results.trains.empty())
+	if (!resultsAvailable() || !m_completedRun || m_completedRun->results.trains.empty())
 		return snapshot;
 	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_document->revision());
@@ -477,14 +507,12 @@ bool RunController::sceneChanged() {
 	if (!m_worker)
 		return false;
 	m_sceneChangedDuringRun = true;
-	m_resultsAvailable = false;
 	return true;
 }
 
 void RunController::discardResults() {
-	m_runtimeStatus = QStringLiteral("Not built");
+	setState(RunState::NotBuilt);
 	m_runtimeDiagnostics.clear();
-	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
 	m_selection.clearAppliedScenario();
 	m_completedRun.reset();
@@ -606,11 +634,12 @@ void RunController::onSimulationFinished() {
 	// A stop that arrives after the last stage leaves a completed run.
 	const bool stopped = failure.isEmpty() && m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
 	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
-	m_resultsAvailable = failure.isEmpty() && !sceneChangedDuringRun && !stopped && hasRawRunResults();
-	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
-		: stoppedByUser					 ? QStringLiteral("Stopped")
-										 : QStringLiteral("Failed");
-	if (m_resultsAvailable) {
+	const bool kept = failure.isEmpty() && !sceneChangedDuringRun && !stopped && hasRawRunResults();
+	if (kept)
+		setState(RunState::Completed);
+	else
+		setState(stoppedByUser ? RunState::Stopped : RunState::Failed);
+	if (resultsAvailable()) {
 		// Freeze result values before a subsequent run replaces the runtime trains.
 		m_completedRun = std::make_shared<const CompletedRunData>(
 			captureCompletedRun(simulation.run(), &m_document->model(), m_startOffsetSeconds, m_pendingRunProvenance));
@@ -635,20 +664,20 @@ void RunController::onSimulationFinished() {
 		? QStringLiteral("Results discarded: the case changed during the run")
 		: !failure.isEmpty()  ? QStringLiteral("Simulation failed")
 		: stopped			  ? QStringLiteral("Simulation stopped")
-		: !m_resultsAvailable ? QStringLiteral("Simulation ended without results")
+		: !resultsAvailable() ? QStringLiteral("Simulation ended without results")
 							  : QStringLiteral("Simulation complete");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
-	if (m_resultsAvailable && !stopped)
+	if (resultsAvailable() && !stopped)
 		m_host.replayReady(simulation.takeReplayCandidate());
 	else
 		simulation.resetReplayCandidate();
 	m_host.runEnded();
 	// The track preview that replaces a run without results cleared the status bar.
-	if (!m_resultsAvailable)
+	if (!resultsAvailable())
 		m_window->statusBar()->showMessage(status);
 	if (!failure.isEmpty())
 		showError(QStringLiteral("Simulation Failed"),
@@ -747,14 +776,13 @@ void RunController::runScene() {
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(diagnostics));
-		m_runtimeStatus = QStringLiteral("Failed");
+		setState(RunState::Failed);
 		m_host.sceneActionsChanged();
 		m_host.validateScene();
 		showError("Cannot Run Case", firstDiagnosticMessage(diagnostics));
 		return;
 	}
-	m_runtimeStatus = QStringLiteral("Ready");
-	m_host.loadedDataChanged();
+	setState(RunState::Ready);
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_document->model().baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 	m_pendingRunProvenance = captureRunProvenance();
@@ -796,8 +824,7 @@ void RunController::runScene() {
 	m_host.caseLayersChanged();
 	m_host.sceneActionsChanged();
 
-	m_runtimeStatus = QStringLiteral("Running");
-	m_host.loadedDataChanged();
+	setState(RunState::Running);
 	startSimulation(operation);
 	m_window->statusBar()->showMessage(QStringLiteral("Running"));
 }
