@@ -647,6 +647,12 @@ bool exerciseFilters() {
 	bool ok = expect(occurrences && stations && occurrences->text() == "Trains (2/2)" && stations->text() == "Stations (3/3)"
 			&& occurrences->visibleTrainIds() == QStringList({"F1 #1", "F2 #1"}) && stations->visibleTrainIds() == QStringList({"A", "B", "C"}),
 		"the buttons list the occurrences and the stations with their counts");
+	const auto* occurrenceSearch = occurrences ? occurrences->findChild<QLineEdit*>() : nullptr;
+	const auto* stationSearch = stations ? stations->findChild<QLineEdit*>() : nullptr;
+	ok &= expect(occurrenceSearch && occurrenceSearch->placeholderText() == "Search trains..." && stationSearch
+			&& stationSearch->placeholderText() == "Search stations..." && occurrences->toolTip() == "Choose which trains the tabs show"
+			&& stations->toolTip() == "Choose which stations the tabs show",
+		"the search boxes and the tooltips name what the buttons list");
 
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false) && occurrences->text() == "Trains (1/2)", "one occurrence is unchecked");
 	ok &= expect(rows(calls) == 3 && cell(calls, 0, 0) == "F2" && cell(calls, 2, 0) == "F2", "only F2 remains in the calls");
@@ -681,6 +687,32 @@ bool exerciseFilters() {
 DelayAnalysisWindow levelZeroWindow() {
 	return DelayAnalysisWindow(lineSnapshot("signal-failure-forward", {331, 660, 1218, 1219, 866, 1013, 1373, 1374}, {"inc.fwd"}),
 		lineSnapshot("baseline", kFollowLevel0));
+}
+
+// The columns whose cells lie at the right, which are the columns of numbers: the first row of each table of the window.
+bool exerciseNumberColumns() {
+	DelayAnalysisWindow window = levelZeroWindow();
+	window.show();
+	const auto rightColumns = [&window](const char* name) {
+		QList<int> columns;
+		const QTableWidget* shown = table(window, name);
+		for (int column = 0; shown && shown->rowCount() > 0 && column < shown->columnCount(); ++column)
+			if (shown->item(0, column)->textAlignment() & Qt::AlignRight)
+				columns << column;
+		return columns;
+	};
+	QList<int> summary;
+	for (int column = 1; column < table(window, "delaySummary")->columnCount(); ++column)
+		summary << column;
+	bool ok = expect(rightColumns("delayCalls") == QList<int>({1, 5, 6, 8, 9, 10}),
+		"the calls: the occurrence, the journey order, the call and the times");
+	ok &= expect(table(window, "delaySummary")->columnCount() > 13 && rightColumns("delaySummary") == summary,
+		"the summary: every column after the station");
+	ok &= expect(rightColumns("delayBaselineOccurrences") == QList<int>({1, 4, 8, 9, 10, 12}),
+		"the trains against the baseline: the occurrence and the delays and times");
+	ok &= expect(rightColumns("delayBaselineCalls") == QList<int>({1, 3, 4, 6, 7, 8, 10, 11, 12}),
+		"the calls against the baseline: the occurrence, the journey order, the call and the times");
+	return ok;
 }
 
 bool exerciseBaseline() {
@@ -1224,6 +1256,7 @@ int main(int argc, char** argv) {
 	ok &= exercisePunctualityShares();
 	ok &= exerciseFilters();
 	ok &= exerciseBaseline();
+	ok &= exerciseNumberColumns();
 	ok &= exerciseEvidenceAndInputDelay();
 	ok &= exerciseMissingCall();
 	ok &= exerciseIncompatible();

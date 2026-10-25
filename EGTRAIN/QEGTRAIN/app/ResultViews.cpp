@@ -48,6 +48,21 @@ void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	window->setProvenanceWriter(runProvenanceWriter(std::move(provenance)));
 }
 
+// The window title, the titles of the axes and whether time runs along the horizontal axis of each chart of the
+// trajectories, in the order of TrajectoryChart.
+struct TrajectoryChartSpec {
+	const char* title;
+	const char* xTitle;
+	const char* yTitle;
+	bool timeAxis;
+};
+constexpr TrajectoryChartSpec kTrajectoryCharts[] = {
+	{ResultViewName::kSpeedDistance, "Distance (km)", "Speed (km/h)", false},
+	{ResultViewName::kSpeedTime, "Time", "Speed (km/h)", true},
+	{ResultViewName::kTimeDistance, "Time", "Distance (km)", true},
+	{ResultViewName::kTractiveEffortDistance, "Distance (km)", "Simulated tractive effort (kN)", false},
+};
+
 // The layer of the outlines of the blocks.
 constexpr char kBlockingTimeLayer[] = "blocking time";
 
@@ -308,22 +323,25 @@ void ResultViews::displayTrainPathDiagrams() {
 
 // --- Per-train diagram slots ---
 void ResultViews::showSpeedDistanceDiagram() {
-	buildPerTrainDiagram(0);
+	buildPerTrainDiagram(TrajectoryChart::SpeedDistance);
 }
 void ResultViews::showSpeedTimeDiagram() {
-	buildPerTrainDiagram(1);
+	buildPerTrainDiagram(TrajectoryChart::SpeedTime);
 }
 void ResultViews::showTimeDistanceDiagram() {
-	buildPerTrainDiagram(2);
+	buildPerTrainDiagram(TrajectoryChart::TimeDistance);
 }
 
 void ResultViews::showTractiveEffortDistanceDiagram() {
-	buildPerTrainDiagram(3);
+	buildPerTrainDiagram(TrajectoryChart::TractiveEffortDistance);
 }
 
-// mode 0: speed vs distance, 1: speed vs time, 2: time vs distance,
-// 3: simulated tractive effort vs distance
 void ResultViews::buildPerTrainDiagram(int mode) {
+	if (mode >= 0 && mode < static_cast<int>(std::size(kTrajectoryCharts)))
+		buildPerTrainDiagram(static_cast<TrajectoryChart>(mode));
+}
+
+void ResultViews::buildPerTrainDiagram(TrajectoryChart kind) {
 	// require a completed run
 	if (!m_runController->hasRunResults()) {
 		m_host.resultMessage("Run a simulation to open diagrams", 5000);
@@ -331,9 +349,8 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	}
 
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
-	const char* titles[] = {ResultViewName::kSpeedDistance, ResultViewName::kSpeedTime, ResultViewName::kTimeDistance,
-		ResultViewName::kTractiveEffortDistance};
-	const QString heading = titles[mode];
+	const TrajectoryChartSpec& spec = kTrajectoryCharts[static_cast<int>(kind)];
+	const QString heading = spec.title;
 	QChart* chart = new QChart();
 
 	// one series per contiguous segment; legend distinguishes trains
@@ -347,25 +364,24 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 				double tSec = trajectoryTimeSeconds(i, run->settings.timestepSeconds);
 				double dist = trajectory.at(trajectory.position, i).value_or(0.0) / 1000.0;
 				double spd = trajectory.at(trajectory.speed, i).value_or(0.0) * 3.6; // m/s to km/h
-				if (mode == 0)
-					series->append(dist, spd); // x: distance (km), y: speed (km/h)
-				else if (mode == 1)
-					series->append(tSec, spd); // x: time (s),      y: speed (km/h)
-				else if (mode == 2)
-					series->append(tSec, dist); // x: time (s),      y: distance (km)
-				else if (const auto effort = trajectory.at(trajectory.effort, i))
-					series->append(dist, *effort / 1000.0);
+				switch (kind) {
+					case TrajectoryChart::SpeedDistance: series->append(dist, spd); break;
+					case TrajectoryChart::SpeedTime: series->append(tSec, spd); break;
+					case TrajectoryChart::TimeDistance: series->append(tSec, dist); break;
+					case TrajectoryChart::TractiveEffortDistance:
+						if (const auto effort = trajectory.at(trajectory.effort, i))
+							series->append(dist, *effort / 1000.0);
+						break;
+				}
 			}
 			chart->addSeries(series);
 		}
 	}
 	chart->createDefaultAxes();
-	const char* xTitles[] = {"Distance (km)", "Time", "Time", "Distance (km)"};
-	const char* yTitles[] = {"Speed (km/h)", "Speed (km/h)", "Distance (km)", "Simulated tractive effort (kN)"};
 	if (!chart->axes(Qt::Horizontal).isEmpty())
-		chart->axes(Qt::Horizontal).first()->setTitleText(xTitles[mode]);
+		chart->axes(Qt::Horizontal).first()->setTitleText(spec.xTitle);
 	if (!chart->axes(Qt::Vertical).isEmpty())
-		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
+		chart->axes(Qt::Vertical).first()->setTitleText(spec.yTitle);
 
 	DiagramWindow* win = new DiagramWindow(heading, m_window);
 	win->setPresentation(heading, completedRunContext(run->provenance));
@@ -377,7 +393,7 @@ void ResultViews::buildPerTrainDiagram(int mode) {
 	win->setCsvProvider(csvProviderFrom(run, &trajectoryCsvFrom), "trajectory.csv");
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
-	win->setTimeAxisX(mode == 1 || mode == 2, run->settings.startOffsetSeconds);
+	win->setTimeAxisX(spec.timeAxis, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	showWindow(win);
 }

@@ -98,6 +98,10 @@ void TrainFilterButton::setTrains(const QVector<QPair<QString, QColor>>& trains)
 	updateCaption();
 }
 
+void TrainFilterButton::setSearchPlaceholder(const QString& text) {
+	m_search->setPlaceholderText(text);
+}
+
 QStringList TrainFilterButton::visibleTrainIds() const {
 	QStringList ids;
 	for (int i = 0; i < m_list->count(); ++i) {
