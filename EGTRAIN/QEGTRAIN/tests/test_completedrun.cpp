@@ -2783,8 +2783,10 @@ void TestCompletedRun::fitsScopeDialogsWithLongIds() {
 }
 
 // With the footer of macOS the scope dialog opens with OK as the default and the focus on the route. Cancel with the
-// focus leaves the default to OK, so Return accepts. Runs last: it changes the application style.
+// focus leaves the default to OK, so Return accepts. The application style is put back at the end.
 void TestCompletedRun::keepsMacFooterOfScopeDialog() {
+	const QString styleName = QApplication::style()->name();
+	const auto restoreStyle = qScopeGuard([&styleName]() { QApplication::setStyle(styleName); });
 	QApplication::setStyle(new MacFooterStyle);
 	BlockingTimeScopeChoices choices;
 	choices.caseEndSeconds = 600.0;
