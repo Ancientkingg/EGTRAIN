@@ -440,7 +440,7 @@ egtrain_add_test(test_traincolours
 egtrain_add_test(test_routegeo SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_routegeo.cpp
 	LIBS egtrain_diagrams egtrain_sim
-	COMMAND test_routegeo ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit)
 
 egtrain_add_test(test_diagramwindow
@@ -729,7 +729,7 @@ egtrain_add_test(test_routestations
 egtrain_add_test(test_routereferencechoice
 	SOURCES ${SRC_DIR}/tests/test_routereferencechoice.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene Qt::Network Qt::Core Qt::Gui Qt::Widgets
-	COMMAND test_routereferencechoice ${SRC_DIR}/Scenes
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit gui)
 
 egtrain_add_test(test_scenevalidator
@@ -862,7 +862,7 @@ egtrain_add_test(test_operationsbuilder SIMULATION_HEADERS
 egtrain_add_test(test_completedrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_completedrun.cpp
 	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
-	COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol ${SRC_DIR}/Scenes/Milano_Brescia
+	DEFINITIONS EGTRAIN_SCENES_DIR="${SRC_DIR}/Scenes"
 	LABELS unit gui
 	TIMEOUT 300)
 
