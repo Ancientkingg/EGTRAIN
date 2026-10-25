@@ -36,7 +36,7 @@ On Paimpol:
 
 The `-` before a kilometre is a separator, not a minus sign. `@71-B0@-21.235000/@0-B1@-21.252000` is block 71 of track B0 up to the node at 21.235 km, then block 0 of track B1 from 21.252 km. A block that the editor adds is called `block`, `block_2` and so on (`editors/infrastructure/BlockRouteFacets.cpp:121`, `:149`), so not every block id holds a number.
 
-The run numbers its tracks by their place in the list of track ids sorted as text (`simulation/builders/InfrastructureBuilder.cpp:206` to `:208`, `:274` to `:276`, `:660`), and **Track ID**, **Next track** and the signal tooltips show that number. It matches the digits of the id only in scenes with at most ten tracks. In Netherlands 266 of the 268 tracks get another number: B10 is track 2 and B100 is track 3. In Copenhagen 166 of 168 differ and in Milano_Brescia 36 of 38.
+The run numbers its tracks by their place in the list of track ids sorted as text (`simulation/builders/InfrastructureBuilder.cpp:203` to `:205`, `:699` to `:701`, `:750` to `:751`), and **Track ID**, **Next track** and the signal tooltips show that number. It matches the digits of the id only in scenes with at most ten tracks. In Netherlands 266 of the 268 tracks get another number: B10 is track 2 and B100 is track 3. In Copenhagen 166 of 168 differ and in Milano_Brescia 36 of 38.
 
 ### The ids are data
 
