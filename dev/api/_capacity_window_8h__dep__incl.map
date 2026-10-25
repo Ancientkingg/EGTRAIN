@@ -1,7 +1,9 @@
 <map id="diagrams/CapacityWindow.h" name="diagrams/CapacityWindow.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,294,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="210,5,417,31"/>
 <area shape="rect" id="Node000002" href="$_result_views_8cpp.html" title=" " alt="" coords="5,79,163,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,40,103,81,100,76,161,36"/>
-<area shape="rect" id="Node000003" href="$_capacity_window_8cpp.html" title=" " alt="" coords="187,79,410,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,36,282,76,280,81,218,40"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,37,122,81,120,76,262,32"/>
+<area shape="rect" id="Node000003" href="$_area_capacity_window_8cpp.html" title=" " alt="" coords="187,79,439,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="316,44,316,79,311,79,311,44"/>
+<area shape="rect" id="Node000004" href="$_capacity_window_8cpp.html" title=" " alt="" coords="463,79,686,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="369,32,533,76,532,81,368,37"/>
 </map>

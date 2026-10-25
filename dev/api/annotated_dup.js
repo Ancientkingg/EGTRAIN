@@ -59,6 +59,7 @@ var annotated_dup =
     [ "CapacityAnalysisResult", "struct_capacity_analysis_result.html", "struct_capacity_analysis_result" ],
     [ "CapacityAnalysisScope", "struct_capacity_analysis_scope.html", "struct_capacity_analysis_scope" ],
     [ "CapacityAnalysisTrain", "struct_capacity_analysis_train.html", "struct_capacity_analysis_train" ],
+    [ "CapacityChainTable", "struct_capacity_chain_table.html", "struct_capacity_chain_table" ],
     [ "CapacityCompressionEvidence", "struct_capacity_compression_evidence.html", "struct_capacity_compression_evidence" ],
     [ "CapacityCompressionRow", "struct_capacity_compression_row.html", "struct_capacity_compression_row" ],
     [ "CapacityCriticalBlock", "struct_capacity_critical_block.html", "struct_capacity_critical_block" ],

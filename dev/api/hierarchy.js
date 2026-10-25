@@ -29,6 +29,7 @@ var hierarchy =
     [ "CapacityAnalysisResult", "struct_capacity_analysis_result.html", null ],
     [ "CapacityAnalysisScope", "struct_capacity_analysis_scope.html", null ],
     [ "CapacityAnalysisTrain", "struct_capacity_analysis_train.html", null ],
+    [ "CapacityChainTable", "struct_capacity_chain_table.html", null ],
     [ "CapacityCompressionEvidence", "struct_capacity_compression_evidence.html", null ],
     [ "CapacityCompressionRow", "struct_capacity_compression_row.html", null ],
     [ "CapacityCriticalBlock", "struct_capacity_critical_block.html", null ],

@@ -141,29 +141,31 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_train_filter_
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    QStringList <a class="code hl_function" href="class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e">visibleTrainIds</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_train_filter_button.html#a8a221b303ca4b6d225bb0552ba5e1117">isTrainVisible</a>(<span class="keyword">const</span> QString&amp; trainId) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>signals:</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db">   31</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db">selectionChanged</a>();</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">private</span> slots:</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordtype">void</span> applySearchFilter();</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordtype">void</span> checkAllVisible(<span class="keywordtype">bool</span> checked);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordtype">void</span> updateCaption();</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    QPointer&lt;QLineEdit&gt; m_search;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    QPointer&lt;QListWidget&gt; m_list;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordtype">bool</span> m_updating = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>};</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_train_filter_button.html#aadf1a8b00c01a38ead935c2e44b775b6">setSearchPlaceholder</a>(<span class="keyword">const</span> QString&amp; text);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>signals:</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db">   33</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db">selectionChanged</a>();</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keyword">private</span> slots:</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordtype">void</span> applySearchFilter();</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordtype">void</span> checkAllVisible(<span class="keywordtype">bool</span> checked);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">void</span> updateCaption();</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    QPointer&lt;QLineEdit&gt; m_search;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    QPointer&lt;QListWidget&gt; m_list;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordtype">bool</span> m_updating = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>};</div>
 </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif </span><span class="comment">// TRAINFILTERBUTTON_H</span></div>
-<div class="ttc" id="aclass_train_filter_button_html_a1bdd26f68b8a7bb21ad71e0b8a1cfb0e"><div class="ttname"><a href="class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e">TrainFilterButton::visibleTrainIds</a></div><div class="ttdeci">QStringList visibleTrainIds() const</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:101</div></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#endif </span><span class="comment">// TRAINFILTERBUTTON_H</span></div>
+<div class="ttc" id="aclass_train_filter_button_html_a1bdd26f68b8a7bb21ad71e0b8a1cfb0e"><div class="ttname"><a href="class_train_filter_button.html#a1bdd26f68b8a7bb21ad71e0b8a1cfb0e">TrainFilterButton::visibleTrainIds</a></div><div class="ttdeci">QStringList visibleTrainIds() const</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:105</div></div>
 <div class="ttc" id="aclass_train_filter_button_html_a63cb6ba918cf5701ce73849f4a366252"><div class="ttname"><a href="class_train_filter_button.html#a63cb6ba918cf5701ce73849f4a366252">TrainFilterButton::TrainFilterButton</a></div><div class="ttdeci">TrainFilterButton(QWidget *parent=nullptr)</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:23</div></div>
 <div class="ttc" id="aclass_train_filter_button_html_a6acd6c728f54da888367c3d8b7e7e29c"><div class="ttname"><a href="class_train_filter_button.html#a6acd6c728f54da888367c3d8b7e7e29c">TrainFilterButton::setTrains</a></div><div class="ttdeci">void setTrains(const QVector&lt; QPair&lt; QString, QColor &gt; &gt; &amp;trains)</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:83</div></div>
-<div class="ttc" id="aclass_train_filter_button_html_a8a221b303ca4b6d225bb0552ba5e1117"><div class="ttname"><a href="class_train_filter_button.html#a8a221b303ca4b6d225bb0552ba5e1117">TrainFilterButton::isTrainVisible</a></div><div class="ttdeci">bool isTrainVisible(const QString &amp;trainId) const</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:111</div></div>
+<div class="ttc" id="aclass_train_filter_button_html_a8a221b303ca4b6d225bb0552ba5e1117"><div class="ttname"><a href="class_train_filter_button.html#a8a221b303ca4b6d225bb0552ba5e1117">TrainFilterButton::isTrainVisible</a></div><div class="ttdeci">bool isTrainVisible(const QString &amp;trainId) const</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:115</div></div>
 <div class="ttc" id="aclass_train_filter_button_html_aa7ee5b9bfe6ca23209c90ce546a0d9db"><div class="ttname"><a href="class_train_filter_button.html#aa7ee5b9bfe6ca23209c90ce546a0d9db">TrainFilterButton::selectionChanged</a></div><div class="ttdeci">void selectionChanged()</div></div>
+<div class="ttc" id="aclass_train_filter_button_html_aadf1a8b00c01a38ead935c2e44b775b6"><div class="ttname"><a href="class_train_filter_button.html#aadf1a8b00c01a38ead935c2e44b775b6">TrainFilterButton::setSearchPlaceholder</a></div><div class="ttdeci">void setSearchPlaceholder(const QString &amp;text)</div><div class="ttdoc">Sets the grey text of the empty search box, which is &quot;Search trains...&quot; until it is set.</div><div class="ttdef"><b>Definition</b> TrainFilterButton.cpp:101</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

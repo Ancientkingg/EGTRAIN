@@ -131,14 +131,57 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_capacity_wind
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CapacityWindow.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_window_8cpp__incl.svg" width="2644" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_window_8cpp__incl.svg" width="3642" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:af5bd3c2372122e1b07e2775e044ee443" id="r_af5bd3c2372122e1b07e2775e044ee443"><td class="memItemLeft">QVector&lt; <a class="el" href="struct_capacity_chain_table.html">CapacityChainTable</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af5bd3c2372122e1b07e2775e044ee443">capacityChainTables</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;chain, const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;labels, const QString &amp;noun, const QString &amp;name, QWidget *parent)</td></tr>
 <tr class="memitem:a4c2498fced65f6754ef8685055813453" id="r_a4c2498fced65f6754ef8685055813453"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a4c2498fced65f6754ef8685055813453">capacityCycleText</a> (const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;result)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="af5bd3c2372122e1b07e2775e044ee443" name="af5bd3c2372122e1b07e2775e044ee443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5bd3c2372122e1b07e2775e044ee443">&#9670;&#160;</a></span>capacityChainTables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QVector&lt; <a class="el" href="struct_capacity_chain_table.html">CapacityChainTable</a> &gt; capacityChainTables </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_capacity_analysis_result.html">CapacityAnalysisResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>chain</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_scene_section_labels.html">SceneSectionLabels</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>labels</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>noun</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The tables of a chain of trains, which the Capacity window shows in tabs and Capacity by area on its Chain tab: Pairs, one row for each pair of adjacent trains, Compression, one for each train, and Critical blocks, one for each place where two trains touch after the compression. <span class="tt">noun</span> names what the trains occupy, "block" or "resource", in the headers Governing, Leader and Follower block and in the title Critical blocks. The tables are named <span class="tt">name</span> + "Pairs", "Compression" and "Critical". A cell names a block by its short id with its label in <span class="tt">labels</span> as its tooltip, and a cell that names a train has its reference time as its tooltip. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_capacity_window_8cpp_af5bd3c2372122e1b07e2775e044ee443_cgraph.svg" width="1036" height="270"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a4c2498fced65f6754ef8685055813453" name="a4c2498fced65f6754ef8685055813453"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4c2498fced65f6754ef8685055813453">&#9670;&#160;</a></span>capacityCycleText()</h2>
 

@@ -1,13 +1,15 @@
 <map id="diagrams/CapacityWindow.h" name="diagrams/CapacityWindow.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="807,5,1014,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="895,5,1102,31"/>
 <area shape="rect" id="Node000002" href="$_capacity_analysis_8h.html" title=" " alt="" coords="568,152,779,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="808,30,750,48,724,62,701,81,691,93,684,108,677,139,672,138,679,106,686,91,697,77,721,58,748,43,806,25"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="896,31,780,50,732,64,700,81,690,93,684,108,677,138,672,137,678,106,686,90,697,77,730,59,779,44,895,26"/>
 <area shape="rect" id="Node000010" href="$_completed_run_data_8h.html" title=" " alt="" coords="711,79,937,104"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="898,33,850,72,847,68,895,29"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="972,33,866,76,864,71,970,28"/>
 <area shape="rect" id="Node000019" title=" " alt="" coords="961,79,1036,104"/>
-<area shape="poly" id="edge35_Node000001_Node000019" title=" " alt="" coords="926,29,975,68,972,72,923,33"/>
+<area shape="poly" id="edge35_Node000001_Node000019" title=" " alt="" coords="1001,31,1001,65,996,65,996,31"/>
 <area shape="rect" id="Node000020" title=" " alt="" coords="1061,79,1131,104"/>
-<area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="941,28,1054,71,1052,76,939,33"/>
+<area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="1016,29,1070,68,1067,72,1013,33"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="1155,79,1229,104"/>
+<area shape="poly" id="edge37_Node000001_Node000021" title=" " alt="" coords="1031,28,1149,71,1147,76,1029,33"/>
 <area shape="rect" id="Node000003" href="$_blocking_time_diagram_8h.html" title=" " alt="" coords="187,225,431,251"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="615,180,382,225,381,220,614,175"/>
 <area shape="rect" id="Node000006" title=" " alt="" coords="1040,299,1099,324"/>

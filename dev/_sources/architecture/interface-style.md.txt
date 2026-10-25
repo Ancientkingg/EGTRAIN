@@ -101,7 +101,7 @@ The other values of the sheet are state shades of these roles: `#dce6eb` for Ope
 ## Exceptions
 
 - **Network canvas and railway notation:** drawn in code with their own colours and sizes, described in the [network renderer style map](renderer-style-map.md). Canvas text uses a default `QFont`, not the sheet.
-- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (`DiagramWindow::applyChartStyle`). A chart has no title, since the window title names it. The Key and the column of an exported figure use the window font.
+- **Chart text:** Qt Charts draws axes and ticks with its own fonts; only the brushes and pens are set (`styleResultChart` in `diagrams/ResultFrame.h`, which the diagram windows and the Punctuality chart of the delay analysis share). A chart has no title, since the window title names it. The Key and the column of an exported figure use the window font.
 - **Console:** fixed-pitch text `#dde3e5` on `#12191f`, 13.7:1.
 
 ## The #409 decision

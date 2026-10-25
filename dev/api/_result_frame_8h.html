@@ -117,15 +117,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_result_frame_
 <code>#include &lt;QString&gt;</code><br />
 <code>#include &lt;QVector&gt;</code><br />
 <code>#include &lt;QWidget&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ResultFrame.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__incl.svg" width="463" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__incl.svg" width="756" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__dep__incl.svg" width="1730" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__dep__incl.svg" width="1919" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_result_frame_8h_source.html">Go to the source code of this file.</a></p>
@@ -137,11 +140,67 @@ Classes</h2></td></tr>
 <tr class="memitem:ResultFrame" id="r_ResultFrame"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_result_frame.html">ResultFrame</a></td></tr>
 <tr class="memitem:KeepInFront" id="r_KeepInFront"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_keep_in_front.html">KeepInFront</a></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:telemetry" id="r_telemetry"><td class="memItemLeft">namespace &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html">telemetry</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:abd3c25e443776e5a924392f01451d8d3" id="r_abd3c25e443776e5a924392f01451d8d3"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> = std::function&lt;bool(const QString&amp; path, const char* suffix, const std::string&amp; bytes)&gt;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a4c2734712d18606efdd36eca758870f1" id="r_a4c2734712d18606efdd36eca758870f1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4c2734712d18606efdd36eca758870f1">styleResultChart</a> (QChart *chart, const QPalette &amp;palette)</td></tr>
+<tr class="memitem:a1274054f48288a6a94d11a8ea7d740aa" id="r_a1274054f48288a6a94d11a8ea7d740aa"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1274054f48288a6a94d11a8ea7d740aa">roundTickStep</a> (double span, int steps)</td></tr>
+<tr class="memitem:a5095494f6ef2db171327a7f6e96c6900" id="r_a5095494f6ef2db171327a7f6e96c6900"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a5095494f6ef2db171327a7f6e96c6900">saveExportInteractive</a> (QWidget *parent, <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">telemetry::ExportKind</a> kind, const QString &amp;title, const QString &amp;suggestedName, const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation, const std::function&lt; std::optional&lt; std::string &gt;()&gt; &amp;bytes, const <a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> &amp;write={})</td></tr>
+<tr class="memitem:af47eb84d1408655f8c9d84fb3b29fb15" id="r_af47eb84d1408655f8c9d84fb3b29fb15"><td class="memItemLeft">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af47eb84d1408655f8c9d84fb3b29fb15">pngBytes</a> (const QImage &amp;image)</td></tr>
+<tr class="memdesc:af47eb84d1408655f8c9d84fb3b29fb15"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of a PNG export of <span class="tt">image</span>, for saveExportInteractive; nothing when the image cannot be encoded.  <br /></td></tr>
+<tr class="memitem:af5fa318d02c8df37e09f7dd6f7846fa2" id="r_af5fa318d02c8df37e09f7dd6f7846fa2"><td class="memItemLeft"><a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a>&#160;</td><td class="memItemRight"><a class="el" href="#af5fa318d02c8df37e09f7dd6f7846fa2">runProvenanceWriter</a> (<a class="el" href="struct_run_provenance.html">RunProvenance</a> provenance)</td></tr>
+<tr class="memdesc:af5fa318d02c8df37e09f7dd6f7846fa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The writer of the exports of a run: writeRunArtifactWithProvenance with <span class="tt">provenance</span>, which it keeps.  <br /></td></tr>
+<tr class="memitem:a6ea9c7beca738c9a91b0709c49279117" id="r_a6ea9c7beca738c9a91b0709c49279117"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a6ea9c7beca738c9a91b0709c49279117">runContextText</a> (const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;provenance)</td></tr>
 <tr class="memitem:ad8be196188f3833116df03e38f65eb6e" id="r_ad8be196188f3833116df03e38f65eb6e"><td class="memItemLeft">QWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ad8be196188f3833116df03e38f65eb6e">resultTableArea</a> (const QList&lt; QWidget * &gt; &amp;widgets)</td></tr>
 </table>
+<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
+<a id="abd3c25e443776e5a924392f01451d8d3" name="abd3c25e443776e5a924392f01451d8d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd3c25e443776e5a924392f01451d8d3">&#9670;&#160;</a></span>ExportWriter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> = std::function&lt;bool(const QString&amp; path, const char* suffix, const std::string&amp; bytes)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Writes the content of an export to <span class="tt">path</span> as a file of the kind <span class="tt">suffix</span> names, "csv" or "png", and returns whether it did, such as writeRunArtifactWithProvenance. </p>
+
+</div>
+</div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="af47eb84d1408655f8c9d84fb3b29fb15" name="af47eb84d1408655f8c9d84fb3b29fb15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af47eb84d1408655f8c9d84fb3b29fb15">&#9670;&#160;</a></span>pngBytes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::string &gt; pngBytes </td>
+          <td>(</td>
+          <td class="paramtype">const QImage &amp;</td>          <td class="paramname"><span class="paramname"><em>image</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The content of a PNG export of <span class="tt">image</span>, for saveExportInteractive; nothing when the image cannot be encoded. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_af47eb84d1408655f8c9d84fb3b29fb15_cgraph.svg" width="94" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ad8be196188f3833116df03e38f65eb6e" name="ad8be196188f3833116df03e38f65eb6e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad8be196188f3833116df03e38f65eb6e">&#9670;&#160;</a></span>resultTableArea()</h2>
 
@@ -161,6 +220,159 @@ Functions</h2></td></tr>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_ad8be196188f3833116df03e38f65eb6e_cgraph.svg" width="134" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1274054f48288a6a94d11a8ea7d740aa" name="a1274054f48288a6a94d11a8ea7d740aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1274054f48288a6a94d11a8ea7d740aa">&#9670;&#160;</a></span>roundTickStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double roundTickStep </td>
+          <td>(</td>
+          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>span</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>steps</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The step of the ticks of an axis over <span class="tt">span</span>: the smallest of 1, 2 or 5 times a power of ten that divides <span class="tt">span</span> into no more than <span class="tt">steps</span> steps. <span class="tt">span</span> and <span class="tt">steps</span> are greater than 0. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_a1274054f48288a6a94d11a8ea7d740aa_cgraph.svg" width="126" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6ea9c7beca738c9a91b0709c49279117" name="a6ea9c7beca738c9a91b0709c49279117"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ea9c7beca738c9a91b0709c49279117">&#9670;&#160;</a></span>runContextText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString runContextText </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>provenance</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The run of a result window named by its case and scenario, for its header and for messages: "case / scenario", one of the two when the other is empty, or "(none)" when both are. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_a6ea9c7beca738c9a91b0709c49279117_cgraph.svg" width="132" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af5fa318d02c8df37e09f7dd6f7846fa2" name="af5fa318d02c8df37e09f7dd6f7846fa2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5fa318d02c8df37e09f7dd6f7846fa2">&#9670;&#160;</a></span>runProvenanceWriter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> runProvenanceWriter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_run_provenance.html">RunProvenance</a></td>          <td class="paramname"><span class="paramname"><em>provenance</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The writer of the exports of a run: writeRunArtifactWithProvenance with <span class="tt">provenance</span>, which it keeps. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_af5fa318d02c8df37e09f7dd6f7846fa2_cgraph.svg" width="452" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5095494f6ef2db171327a7f6e96c6900" name="a5095494f6ef2db171327a7f6e96c6900"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5095494f6ef2db171327a7f6e96c6900">&#9670;&#160;</a></span>saveExportInteractive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString saveExportInteractive </td>
+          <td>(</td>
+          <td class="paramtype">QWidget *</td>          <td class="paramname"><span class="paramname"><em>parent</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">telemetry::ExportKind</a></td>          <td class="paramname"><span class="paramname"><em>kind</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>title</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>suggestedName</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>operation</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; std::optional&lt; std::string &gt;()&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>bytes</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>write</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Exports a CSV file or a PNG image, as <span class="tt">kind</span> says, through the save dialog of <span class="tt">parent</span>: titled <span class="tt">title</span>, starting at <span class="tt">suggestedName</span> in the folder of <a class="el" href="namespacedialog__folders.html#ad02cf64edfe889f9f3910239062b46b8">dialog_folders::suggestedPath</a>, with a filter for the kind. A path without the suffix of the kind gets it. After the dialog <span class="tt">bytes</span> gives the content, or nothing when it cannot be made, which reports an internal failure of the export. <span class="tt">write</span> writes the content, or else it is written atomically without provenance; empty content is not written. A failed write reports a failed export. Either failure shows "Export failed" with the path as the person reads it. The window of <span class="tt">parent</span> stays in front (<a class="el" href="class_keep_in_front.html">KeepInFront</a>). Returns the path that was written, or an empty string when the dialog was cancelled or nothing was written. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_a5095494f6ef2db171327a7f6e96c6900_cgraph.svg" width="1470" height="319"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4c2734712d18606efdd36eca758870f1" name="a4c2734712d18606efdd36eca758870f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c2734712d18606efdd36eca758870f1">&#9670;&#160;</a></span>styleResultChart()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void styleResultChart </td>
+          <td>(</td>
+          <td class="paramtype">QChart *</td>          <td class="paramname"><span class="paramname"><em>chart</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QPalette &amp;</td>          <td class="paramname"><span class="paramname"><em>palette</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The look of the charts of the result windows: square corners, the base colour of <span class="tt">palette</span> behind the plot, margins of 12 px at the sides and 8 px above and below, a quiet grid and axis lines, and the text colour for the labels and the titles of the axes. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_a4c2734712d18606efdd36eca758870f1_cgraph.svg" width="142" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

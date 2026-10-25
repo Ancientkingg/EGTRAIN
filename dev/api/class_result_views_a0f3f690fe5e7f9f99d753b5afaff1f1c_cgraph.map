@@ -1,123 +1,124 @@
 <map id="ResultViews::showSpeedTimeDiagram" name="ResultViews::showSpeedTimeDiagram">
-<area shape="rect" id="Node000001" title="Opens ResultViewName::kSpeedTime." alt="" coords="5,611,223,651"/>
-<area shape="rect" id="Node000002" href="$class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50" title="Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance,..." alt="" coords="271,611,465,651"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,628,257,628,257,634,223,634"/>
+<area shape="rect" id="Node000001" title="Opens ResultViewName::kSpeedTime." alt="" coords="5,616,223,656"/>
+<area shape="rect" id="Node000002" href="$class_result_views.html#a49b770f809ffc200bcb2748fbd60ebc3" title="Opens the chart of the trajectories of the trains that kind names." alt="" coords="271,616,465,656"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,634,257,634,257,639,223,639"/>
 <area shape="rect" id="Node000003" href="$struct_completed_trajectory.html#a3e58f0c4baaaf37ad6dcea1a1a642e72" title="The value of series at a sample index, or empty when the series has no such sample." alt="" coords="834,6,1011,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="369,610,385,500,414,341,433,259,456,185,482,124,496,101,512,84,545,58,582,39,622,24,663,14,745,4,820,4,820,10,745,9,664,19,623,29,584,43,548,63,515,87,501,104,487,127,461,187,438,261,419,342,390,501,374,611"/>
-<area shape="rect" id="Node000004" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="553,290,719,316"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="370,610,383,553,408,475,427,434,450,393,478,356,512,325,538,310,541,315,515,329,482,360,455,396,432,436,413,477,388,554,375,611"/>
-<area shape="rect" id="Node000005" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title="A provider that calls csv on the shared run with the visible train ids." alt="" coords="571,364,701,389"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="373,610,390,565,419,507,459,448,484,421,512,398,533,387,556,379,558,384,535,392,515,402,488,425,463,451,423,510,395,567,378,612"/>
-<area shape="rect" id="Node000006" href="$class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" title="An empty window with the given title." alt="" coords="513,413,759,438"/>
-<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="377,609,397,574,427,529,465,484,512,447,523,441,526,446,515,452,469,488,431,533,401,576,381,612"/>
-<area shape="rect" id="Node000174" href="$class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df" title=" " alt="" coords="540,512,732,537"/>
-<area shape="poly" id="edge41_Node000002_Node000174" title=" " alt="" coords="396,609,449,576,512,546,537,538,539,543,514,551,451,581,399,613"/>
-<area shape="rect" id="Node000177" href="$class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d" title=" " alt="" coords="519,561,753,586"/>
-<area shape="poly" id="edge44_Node000002_Node000177" title=" " alt="" coords="458,608,513,596,559,586,560,592,514,601,459,613"/>
-<area shape="rect" id="Node000178" href="$class_diagram_window.html#a60cb3e3e03a095be4ab508fa8697f55f" title=" " alt="" coords="517,462,755,488"/>
-<area shape="poly" id="edge45_Node000002_Node000178" title=" " alt="" coords="383,609,436,552,472,522,512,497,528,490,530,494,515,501,475,526,440,556,387,612"/>
-<area shape="rect" id="Node000179" href="$class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" title="Sets the function that gives the telemetry observation of an export; empty for none." alt="" coords="525,611,747,651"/>
-<area shape="poly" id="edge47_Node000002_Node000179" title=" " alt="" coords="465,628,511,628,511,634,465,634"/>
-<area shape="rect" id="Node000180" href="$class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" title="As setTimeAxisY, for the X axis." alt="" coords="523,676,749,701"/>
-<area shape="poly" id="edge48_Node000002_Node000180" title=" " alt="" coords="459,648,514,660,560,670,559,675,513,665,458,654"/>
-<area shape="rect" id="Node000181" href="$class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2" title=" " alt="" coords="521,725,751,750"/>
-<area shape="poly" id="edge49_Node000002_Node000181" title=" " alt="" coords="400,649,452,680,514,710,544,719,542,724,512,715,450,685,398,653"/>
-<area shape="rect" id="Node000182" href="$class_diagram_window.html#ab408ce4b95e0ba9ab73fdbe8f4efbd62" title=" " alt="" coords="515,774,757,800"/>
-<area shape="poly" id="edge50_Node000002_Node000182" title=" " alt="" coords="387,649,440,705,476,735,515,759,534,767,532,772,512,764,472,739,436,709,384,653"/>
-<area shape="rect" id="Node000183" href="$_train_colors_8cpp.html#a0d05e7c9cd25392d1449b9be80d25689" title=" " alt="" coords="567,848,705,873"/>
-<area shape="poly" id="edge51_Node000002_Node000183" title=" " alt="" coords="383,649,434,726,472,770,515,809,545,827,576,841,574,845,542,832,512,813,468,774,430,729,378,652"/>
-<area shape="rect" id="Node000186" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="525,897,747,922"/>
-<area shape="poly" id="edge57_Node000002_Node000186" title=" " alt="" coords="377,650,393,699,420,762,461,828,486,857,515,882,525,889,523,893,512,886,482,861,456,831,416,765,388,701,372,652"/>
-<area shape="rect" id="Node000189" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="538,970,734,996"/>
-<area shape="poly" id="edge60_Node000002_Node000189" title=" " alt="" coords="376,651,391,706,418,780,459,861,485,898,515,932,540,950,568,963,566,968,537,954,512,936,481,902,454,864,413,783,386,707,371,652"/>
-<area shape="rect" id="Node000190" href="$_train_colors_8cpp.html#a3141efee723582bb5e8ef060b314fff4" title=" " alt="" coords="560,1044,712,1069"/>
-<area shape="poly" id="edge62_Node000002_Node000190" title=" " alt="" coords="374,651,385,718,408,812,427,864,450,915,480,964,515,1006,538,1024,564,1036,561,1041,535,1028,511,1010,475,967,446,918,422,866,403,814,379,719,369,652"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="369,616,384,505,413,344,433,262,456,186,482,125,496,101,512,84,545,58,582,39,622,24,663,14,745,4,820,4,820,10,745,9,664,19,623,29,584,43,548,63,515,88,501,104,487,127,461,188,438,263,419,345,390,506,374,616"/>
+<area shape="rect" id="Node000004" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="553,257,719,282"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="372,615,387,561,415,486,456,404,482,366,511,330,545,304,582,285,584,290,548,308,515,334,486,369,460,407,420,488,392,562,377,617"/>
+<area shape="rect" id="Node000006" href="$_run_exports_8cpp.html#a0fe35063db3c59420e10e14614f7889e" title="A provider that calls csv on the shared run with the visible train ids." alt="" coords="571,369,701,394"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="373,615,390,570,419,513,459,453,484,426,512,403,533,392,556,385,558,390,535,397,515,408,488,430,463,456,423,515,395,573,378,617"/>
+<area shape="rect" id="Node000007" href="$class_diagram_window.html#a02013e3da2fd785a63557a6f6db43d58" title="An empty window with the given title." alt="" coords="513,418,759,444"/>
+<area shape="poly" id="edge9_Node000002_Node000007" title=" " alt="" coords="377,615,397,579,427,535,465,490,512,453,523,447,526,451,515,457,469,494,431,538,401,582,381,617"/>
+<area shape="rect" id="Node000175" href="$class_diagram_window.html#a6a0470e83e6f726a252b1b7b308842df" title=" " alt="" coords="540,517,732,542"/>
+<area shape="poly" id="edge43_Node000002_Node000175" title=" " alt="" coords="396,614,449,581,512,551,537,543,539,548,514,556,451,586,399,618"/>
+<area shape="rect" id="Node000177" href="$class_diagram_window.html#aec15f7fbe7dff817ea556595a326c71d" title=" " alt="" coords="519,566,753,592"/>
+<area shape="poly" id="edge45_Node000002_Node000177" title=" " alt="" coords="458,614,513,602,559,592,560,597,514,607,459,619"/>
+<area shape="rect" id="Node000178" href="$class_diagram_window.html#a60cb3e3e03a095be4ab508fa8697f55f" title=" " alt="" coords="517,468,755,493"/>
+<area shape="poly" id="edge46_Node000002_Node000178" title=" " alt="" coords="383,614,436,558,472,527,512,502,528,495,530,500,515,507,475,531,440,561,387,618"/>
+<area shape="rect" id="Node000179" href="$class_diagram_window.html#ada70cd96c57e022ae8e6bfd6c649f2d9" title="Sets the function that gives the telemetry observation of an export; empty for none." alt="" coords="525,616,747,656"/>
+<area shape="poly" id="edge48_Node000002_Node000179" title=" " alt="" coords="465,634,511,634,511,639,465,639"/>
+<area shape="rect" id="Node000180" href="$class_diagram_window.html#a6d991a03ac97993a7dc5fc9b8a67f281" title="As setTimeAxisY, for the X axis." alt="" coords="523,681,749,706"/>
+<area shape="poly" id="edge49_Node000002_Node000180" title=" " alt="" coords="459,654,514,666,560,675,559,681,513,671,458,659"/>
+<area shape="rect" id="Node000181" href="$class_diagram_window.html#ae62313eba188517867e611dfa3a6f3b2" title=" " alt="" coords="521,730,751,756"/>
+<area shape="poly" id="edge50_Node000002_Node000181" title=" " alt="" coords="400,654,452,686,514,715,544,724,542,729,512,720,450,690,398,659"/>
+<area shape="rect" id="Node000182" href="$class_diagram_window.html#ab408ce4b95e0ba9ab73fdbe8f4efbd62" title=" " alt="" coords="515,780,757,805"/>
+<area shape="poly" id="edge51_Node000002_Node000182" title=" " alt="" coords="387,655,440,711,476,740,515,765,534,773,532,778,512,769,472,744,436,714,384,659"/>
+<area shape="rect" id="Node000183" href="$_train_colors_8cpp.html#a0d05e7c9cd25392d1449b9be80d25689" title=" " alt="" coords="567,853,705,878"/>
+<area shape="poly" id="edge52_Node000002_Node000183" title=" " alt="" coords="383,655,434,731,472,775,515,814,545,832,576,846,574,851,542,837,512,818,468,779,430,734,378,658"/>
+<area shape="rect" id="Node000186" href="$class_diagram_window.html#a223a88f35d30e0508c02eba4ea4228bc" title="A click on a series selected this train." alt="" coords="525,902,747,928"/>
+<area shape="poly" id="edge58_Node000002_Node000186" title=" " alt="" coords="377,656,393,704,420,767,461,833,486,862,515,887,525,894,523,899,512,892,482,866,456,836,416,770,388,706,372,657"/>
+<area shape="rect" id="Node000189" href="$class_result_views.html#ac39a1014377b4598155110fef99ec515" title="A train was selected in one of the windows." alt="" coords="538,976,734,1001"/>
+<area shape="poly" id="edge61_Node000002_Node000189" title=" " alt="" coords="376,656,391,711,418,786,459,866,485,904,515,937,540,955,568,969,566,973,537,960,512,941,481,907,454,869,413,788,386,712,371,657"/>
+<area shape="rect" id="Node000190" href="$_train_colors_8cpp.html#a3141efee723582bb5e8ef060b314fff4" title=" " alt="" coords="560,1049,712,1074"/>
+<area shape="poly" id="edge63_Node000002_Node000190" title=" " alt="" coords="374,656,385,723,408,818,427,869,450,921,480,969,515,1012,538,1029,564,1042,561,1047,535,1034,511,1016,475,972,446,923,422,871,403,819,379,724,369,657"/>
 <area shape="rect" id="Node000191" href="$_run_exports_8cpp.html#aef3655f13c5de447c146b76cd0783430" title=" " alt="" coords="565,122,707,148"/>
-<area shape="poly" id="edge64_Node000002_Node000191" title=" " alt="" coords="371,610,387,547,416,455,457,352,482,301,511,252,533,223,558,196,605,154,609,158,561,200,537,227,516,255,487,303,462,354,421,457,393,548,376,611"/>
-<area shape="rect" id="Node000194" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="550,1117,722,1142"/>
-<area shape="poly" id="edge70_Node000002_Node000194" title=" " alt="" coords="373,651,379,729,400,843,418,906,443,968,475,1027,515,1080,537,1097,562,1110,560,1115,534,1102,511,1083,470,1030,438,970,413,907,395,844,374,730,367,651"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="593,292,584,282,588,272,606,266,636,264,674,268,685,273,688,279,684,281,681,277,673,273,636,269,607,271,592,276,589,281,597,288"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="593,365,584,355,588,345,606,339,636,337,674,341,685,346,688,352,684,355,681,350,673,346,636,342,607,344,592,349,589,354,597,362"/>
-<area shape="rect" id="Node000007" href="$class_result_panel.html#a0210189bbf2b1bd46143959ed1ff199b" title=" " alt="" coords="833,349,1012,374"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="703,410,758,398,806,383,842,375,843,380,807,388,759,403,704,415"/>
-<area shape="rect" id="Node000010" href="$class_diagram_key.html#a530245b98292c23743b5fda84047d58c" title="An empty key." alt="" coords="828,398,1017,424"/>
-<area shape="poly" id="edge13_Node000006_Node000010" title=" " alt="" coords="759,417,814,414,814,419,759,422"/>
-<area shape="rect" id="Node000011" href="$class_result_panel.html#a6e83119b05deb18527df27a9715bbfcc" title="The plain&#45;text label at the bottom of the panel, below the column of sections; empty until a window s..." alt="" coords="845,448,1001,473"/>
-<area shape="poly" id="edge14_Node000006_Node000011" title=" " alt="" coords="742,436,831,447,831,452,741,441"/>
-<area shape="rect" id="Node000012" href="$class_result_frame.html#a2a6b0b20f080a727ef8494ab4f8a6bf4" title=" " alt="" coords="825,497,1020,522"/>
-<area shape="poly" id="edge15_Node000006_Node000012" title=" " alt="" coords="726,436,760,447,775,456,785,465,794,474,808,482,831,491,830,496,806,487,791,478,781,469,771,460,758,452,725,441"/>
-<area shape="rect" id="Node000165" href="$class_result_panel.html#ac233c43579130ef6e940d7389a313ab2" title="Shows or hides a section of the panel, with its rule." alt="" coords="813,194,1032,220"/>
-<area shape="poly" id="edge29_Node000006_Node000165" title=" " alt="" coords="739,410,757,398,772,380,779,360,781,320,782,279,789,258,805,237,823,223,826,228,809,241,794,260,787,280,786,320,785,362,777,382,760,402,742,415"/>
-<area shape="rect" id="Node000166" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="834,570,1011,596"/>
-<area shape="poly" id="edge30_Node000006_Node000166" title=" " alt="" coords="740,436,760,447,779,468,786,489,793,511,809,532,834,550,862,563,860,568,831,554,805,535,788,513,781,491,774,471,757,452,737,441"/>
-<area shape="rect" id="Node000170" href="$class_train_key_list.html#a175039cf40269ee3e660ffc6efb093fa" title="An empty list." alt="" coords="829,300,1016,325"/>
-<area shape="poly" id="edge36_Node000006_Node000170" title=" " alt="" coords="731,410,757,398,772,383,780,367,789,350,805,334,816,328,818,333,808,338,793,353,785,369,777,386,760,402,733,415"/>
-<area shape="rect" id="Node000172" href="$class_train_key_list.html#a72ce9eb6454f9676364e59040582f633" title="A check box of the list showed or hid trains." alt="" coords="1381,264,1545,304"/>
-<area shape="poly" id="edge40_Node000006_Node000172" title=" " alt="" coords="737,410,757,398,769,385,775,371,779,342,783,312,791,298,805,285,849,266,909,254,981,248,1060,247,1225,255,1367,269,1366,275,1224,261,1060,253,981,254,909,259,850,271,808,289,795,301,789,314,784,342,780,373,773,388,760,402,740,415"/>
-<area shape="rect" id="Node000008" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="1093,381,1307,406"/>
-<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="1012,369,1080,377,1079,382,1012,374"/>
-<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="1158,383,1149,373,1153,362,1171,356,1200,354,1237,358,1248,363,1251,369,1247,372,1244,367,1236,363,1200,360,1172,362,1157,367,1154,372,1162,379"/>
-<area shape="rect" id="Node000009" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="1361,381,1564,406"/>
-<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="1307,391,1348,391,1348,396,1307,396"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="1422,383,1413,373,1418,363,1435,356,1463,354,1498,358,1508,363,1512,369,1507,372,1505,367,1497,363,1463,360,1436,362,1421,366,1419,372,1426,379"/>
-<area shape="rect" id="Node000013" href="$class_result_frame.html#af8360796f81428353b36e177e46b14aa" title=" " alt="" coords="1087,553,1313,578"/>
-<area shape="poly" id="edge16_Node000012_Node000013" title=" " alt="" coords="987,520,1123,547,1122,553,986,525"/>
-<area shape="rect" id="Node000014" href="$class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9" title="A label for plain text." alt="" coords="1110,602,1290,628"/>
-<area shape="poly" id="edge17_Node000012_Node000014" title=" " alt="" coords="1015,520,1040,531,1056,545,1065,560,1073,574,1088,587,1103,595,1101,600,1085,592,1069,578,1060,563,1052,549,1037,536,1013,525"/>
-<area shape="rect" id="Node000015" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="1173,454,1227,480"/>
-<area shape="poly" id="edge18_Node000012_Node000015" title=" " alt="" coords="1005,494,1158,470,1159,476,1006,499"/>
-<area shape="rect" id="Node000164" href="$class_result_panel.html#a1d3894a9b0170f7f623747d886e1a314" title="An empty panel with its readout." alt="" coords="1109,504,1291,529"/>
-<area shape="poly" id="edge28_Node000012_Node000164" title=" " alt="" coords="1020,509,1095,511,1095,516,1020,515"/>
-<area shape="poly" id="edge21_Node000015_Node000015" title=" " alt="" coords="1171,462,1152,452,1148,445,1150,439,1167,430,1200,428,1229,430,1247,436,1251,446,1242,456,1238,452,1246,445,1243,440,1228,435,1200,433,1168,436,1154,442,1154,445,1156,448,1174,458"/>
-<area shape="rect" id="Node000016" href="$namespaceeglog.html#a8032c116a7ea7ca91e8378e4e5105e8f" title=" " alt="" coords="1414,454,1511,480"/>
-<area shape="poly" id="edge19_Node000015_Node000016" title=" " alt="" coords="1228,464,1400,464,1400,470,1228,470"/>
-<area shape="rect" id="Node000017" href="$main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd" title=" " alt="" coords="1425,528,1500,553"/>
-<area shape="poly" id="edge22_Node000015_Node000017" title=" " alt="" coords="1228,469,1314,488,1415,520,1413,525,1313,493,1227,474"/>
-<area shape="poly" id="edge20_Node000016_Node000016" title=" " alt="" coords="1422,456,1413,446,1418,436,1435,430,1463,428,1498,431,1508,436,1512,442,1507,445,1505,440,1497,437,1463,433,1436,435,1421,440,1419,445,1426,452"/>
-<area shape="poly" id="edge27_Node000017_Node000017" title=" " alt="" coords="1423,530,1413,520,1417,510,1434,503,1463,501,1500,505,1509,511,1512,517,1507,519,1505,514,1498,510,1463,506,1435,508,1421,513,1419,519,1427,526"/>
-<area shape="rect" id="Node000018" href="$class_open_request_relay.html#a0ea70ab9b3dbfb8e079ccb5537ddbd18" title=" " alt="" coords="1612,439,1816,479"/>
-<area shape="poly" id="edge23_Node000017_Node000018" title=" " alt="" coords="1500,525,1611,488,1636,480,1637,486,1613,493,1501,530"/>
-<area shape="rect" id="Node000019" href="$_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i..." alt="" coords="1639,528,1789,553"/>
-<area shape="poly" id="edge24_Node000017_Node000019" title=" " alt="" coords="1500,538,1625,538,1625,543,1500,543"/>
-<area shape="rect" id="Node000021" href="$class_self_updater.html#aa1bb90da2d756e38b8384ea94521a064" title="Removes staging folders that an earlier update left next to the installation." alt="" coords="1619,578,1809,618"/>
-<area shape="poly" id="edge26_Node000017_Node000021" title=" " alt="" coords="1501,546,1613,572,1612,577,1500,551"/>
-<area shape="poly" id="edge25_Node000019_Node000019" title=" " alt="" coords="1673,529,1665,519,1669,509,1686,503,1714,501,1749,505,1759,510,1763,515,1759,518,1756,514,1748,510,1714,506,1687,508,1673,513,1670,518,1677,526"/>
-<area shape="poly" id="edge31_Node000166_Node000166" title=" " alt="" coords="878,572,868,562,873,552,892,546,923,544,963,548,974,553,977,559,972,562,970,557,962,553,923,549,893,551,877,556,874,561,882,568"/>
-<area shape="rect" id="Node000167" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="1123,676,1277,716"/>
-<area shape="poly" id="edge32_Node000166_Node000167" title=" " alt="" coords="1001,593,1040,606,1065,620,1088,637,1147,668,1144,673,1085,641,1062,625,1038,611,999,598"/>
-<area shape="poly" id="edge35_Node000167_Node000167" title=" " alt="" coords="1152,677,1149,666,1156,657,1174,652,1200,650,1230,652,1247,660,1245,665,1229,658,1200,655,1175,657,1159,662,1154,668,1157,675"/>
-<area shape="rect" id="Node000168" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="1372,676,1553,716"/>
-<area shape="poly" id="edge33_Node000167_Node000168" title=" " alt="" coords="1277,694,1358,694,1358,699,1277,699"/>
-<area shape="poly" id="edge34_Node000168_Node000168" title=" " alt="" coords="1416,677,1413,666,1421,657,1437,652,1463,650,1492,652,1508,660,1505,665,1490,658,1463,655,1438,657,1424,662,1418,668,1421,675"/>
-<area shape="rect" id="Node000171" href="$class_train_key_list.html#a68e39a731ad6d25c88da404675f8fb95" title="Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibility..." alt="" coords="1106,292,1294,332"/>
-<area shape="poly" id="edge37_Node000170_Node000171" title=" " alt="" coords="1016,310,1092,310,1092,315,1016,315"/>
-<area shape="poly" id="edge38_Node000171_Node000172" title=" " alt="" coords="1294,300,1366,292,1367,297,1294,305"/>
-<area shape="rect" id="Node000173" href="$class_train_key_list.html#a2873886c5b9e37aeb6366b9509cfad6f" title=" " alt="" coords="1625,272,1803,297"/>
-<area shape="poly" id="edge39_Node000172_Node000173" title=" " alt="" coords="1545,282,1611,282,1611,287,1545,287"/>
-<area shape="rect" id="Node000175" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="821,685,1025,710"/>
-<area shape="poly" id="edge42_Node000174_Node000175" title=" " alt="" coords="734,531,760,546,774,561,782,577,785,610,789,641,796,656,808,670,816,676,813,680,805,674,791,659,784,643,780,610,776,579,770,564,757,550,731,535"/>
-<area shape="rect" id="Node000176" href="$class_diagram_window.html#a0365f0d7bf7ae2dd09e3f7933f9d5b1a" title=" " alt="" coords="821,620,1024,660"/>
-<area shape="poly" id="edge43_Node000174_Node000176" title=" " alt="" coords="734,534,760,546,776,560,785,576,793,591,808,605,821,612,818,617,805,609,789,594,781,578,772,564,757,550,731,539"/>
-<area shape="poly" id="edge46_Node000178_Node000166" title=" " alt="" coords="726,485,760,496,785,513,808,531,875,563,873,568,805,536,782,517,757,501,725,490"/>
-<area shape="poly" id="edge56_Node000183_Node000183" title=" " alt="" coords="593,849,584,839,588,829,606,823,636,821,674,825,685,830,688,836,684,839,681,834,673,830,636,826,607,828,592,833,589,838,597,846"/>
-<area shape="rect" id="Node000184" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="816,848,1029,873"/>
-<area shape="poly" id="edge52_Node000183_Node000184" title=" " alt="" coords="705,858,802,858,802,863,705,863"/>
-<area shape="rect" id="Node000185" href="$_scene_model_8cpp.html#ae53d137b1740d6eb1634c41e827293f5" title=" " alt="" coords="827,759,1019,799"/>
-<area shape="poly" id="edge54_Node000183_Node000185" title=" " alt="" coords="680,845,806,808,835,800,837,805,807,813,681,850"/>
-<area shape="poly" id="edge53_Node000184_Node000184" title=" " alt="" coords="878,849,868,839,873,829,892,823,923,821,963,825,974,830,977,837,972,839,970,834,962,830,923,826,893,828,877,833,874,838,882,846"/>
-<area shape="poly" id="edge55_Node000185_Node000185" title=" " alt="" coords="871,759,868,749,877,740,895,734,923,732,955,735,972,742,970,747,953,740,923,738,896,739,879,744,873,750,876,758"/>
-<area shape="rect" id="Node000187" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title=" " alt="" coords="819,946,1026,972"/>
-<area shape="poly" id="edge58_Node000186_Node000187" title=" " alt="" coords="711,920,835,941,834,946,710,925"/>
-<area shape="rect" id="Node000188" href="$class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939" title="Escape ends a selection, and closes the window only while nothing is selected." alt="" coords="807,897,1039,922"/>
-<area shape="poly" id="edge59_Node000186_Node000188" title=" " alt="" coords="748,907,793,907,793,912,748,912"/>
-<area shape="poly" id="edge61_Node000189_Node000189" title=" " alt="" coords="593,972,584,962,588,952,606,946,636,944,674,948,685,953,688,959,684,961,681,957,673,953,636,949,607,951,592,956,589,961,597,968"/>
-<area shape="poly" id="edge63_Node000190_Node000190" title=" " alt="" coords="593,1045,584,1035,588,1025,606,1019,636,1017,674,1021,685,1026,688,1032,684,1035,681,1030,673,1026,636,1022,607,1024,592,1029,589,1034,597,1042"/>
-<area shape="poly" id="edge65_Node000191_Node000003" title=" " alt="" coords="655,120,720,81,762,59,806,40,831,32,833,38,808,45,764,64,723,85,658,124"/>
-<area shape="poly" id="edge69_Node000191_Node000191" title=" " alt="" coords="593,124,584,114,588,104,606,98,636,96,674,100,685,105,688,111,684,113,681,109,673,105,636,101,607,103,592,108,589,113,597,120"/>
+<area shape="poly" id="edge65_Node000002_Node000191" title=" " alt="" coords="369,616,381,545,407,442,425,385,449,327,477,271,511,219,530,198,551,180,594,152,597,156,554,184,533,202,515,222,482,273,454,329,430,387,412,444,387,546,374,616"/>
+<area shape="rect" id="Node000194" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="550,1122,722,1148"/>
+<area shape="poly" id="edge71_Node000002_Node000194" title=" " alt="" coords="373,656,379,734,400,848,418,911,443,974,475,1033,515,1085,537,1103,562,1115,560,1120,534,1107,511,1089,470,1036,438,976,413,913,395,850,374,735,367,657"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="593,259,584,249,588,239,606,232,636,230,674,234,685,239,688,245,684,248,681,243,673,240,636,236,607,238,592,243,589,248,597,255"/>
+<area shape="rect" id="Node000005" href="$_result_frame_8cpp.html#a6ea9c7beca738c9a91b0709c49279117" title=" " alt="" coords="862,218,983,244"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="719,256,848,238,849,244,720,261"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="878,220,868,210,873,200,892,194,923,192,963,196,974,201,977,207,972,210,970,205,962,201,923,197,893,199,877,204,874,209,882,216"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="593,371,584,361,588,351,606,344,636,342,674,346,685,351,688,357,684,360,681,355,673,352,636,348,607,350,592,355,589,360,597,367"/>
+<area shape="rect" id="Node000008" href="$class_result_panel.html#a0210189bbf2b1bd46143959ed1ff199b" title=" " alt="" coords="833,418,1012,444"/>
+<area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="759,428,820,428,820,434,759,434"/>
+<area shape="rect" id="Node000011" href="$class_diagram_key.html#a530245b98292c23743b5fda84047d58c" title="An empty key." alt="" coords="828,468,1017,493"/>
+<area shape="poly" id="edge15_Node000007_Node000011" title=" " alt="" coords="711,441,835,463,834,468,710,446"/>
+<area shape="rect" id="Node000012" href="$class_result_panel.html#a6e83119b05deb18527df27a9715bbfcc" title="The plain&#45;text label at the bottom of the panel, below the column of sections; empty until a window s..." alt="" coords="845,517,1001,542"/>
+<area shape="poly" id="edge16_Node000007_Node000012" title=" " alt="" coords="733,441,760,453,776,465,785,478,794,491,808,502,833,513,831,518,805,507,790,494,781,481,772,469,757,457,731,446"/>
+<area shape="rect" id="Node000013" href="$class_result_frame.html#a2a6b0b20f080a727ef8494ab4f8a6bf4" title=" " alt="" coords="825,566,1020,592"/>
+<area shape="poly" id="edge17_Node000007_Node000013" title=" " alt="" coords="741,441,760,453,772,465,780,478,785,504,791,529,797,540,808,552,817,558,814,562,805,556,793,544,786,531,780,505,775,480,768,468,757,457,738,446"/>
+<area shape="rect" id="Node000166" href="$class_result_panel.html#ac233c43579130ef6e940d7389a313ab2" title="Shows or hides a section of the panel, with its rule." alt="" coords="813,268,1032,293"/>
+<area shape="poly" id="edge31_Node000007_Node000166" title=" " alt="" coords="735,416,757,403,768,393,774,382,780,359,787,334,794,322,805,310,829,296,831,300,808,314,798,325,792,336,786,360,779,384,772,396,760,408,738,420"/>
+<area shape="rect" id="Node000167" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="834,640,1011,665"/>
+<area shape="poly" id="edge32_Node000007_Node000167" title=" " alt="" coords="744,442,760,453,776,471,784,490,787,527,789,564,796,583,809,601,830,619,856,632,853,637,827,623,805,605,791,585,784,565,782,527,779,491,771,474,757,457,741,446"/>
+<area shape="rect" id="Node000171" href="$class_train_key_list.html#a175039cf40269ee3e660ffc6efb093fa" title="An empty list." alt="" coords="829,369,1016,394"/>
+<area shape="poly" id="edge38_Node000007_Node000171" title=" " alt="" coords="710,416,834,394,835,399,711,421"/>
+<area shape="rect" id="Node000173" href="$class_train_key_list.html#a72ce9eb6454f9676364e59040582f633" title="A check box of the list showed or hid trains." alt="" coords="1381,334,1545,374"/>
+<area shape="poly" id="edge42_Node000007_Node000173" title=" " alt="" coords="727,416,757,403,772,392,780,379,789,365,805,354,878,328,954,312,1031,303,1107,301,1181,304,1251,310,1368,329,1367,334,1250,316,1181,309,1107,307,1031,309,954,317,879,334,808,359,793,369,784,381,776,395,760,408,729,421"/>
+<area shape="rect" id="Node000009" href="$namespace_editor_layout.html#a8aeab0ef1896c245802221520b549af0" title=" " alt="" coords="1093,450,1307,476"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="1012,439,1080,446,1079,452,1012,444"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="1158,452,1149,442,1153,432,1171,426,1200,424,1237,428,1248,433,1251,439,1247,441,1244,437,1236,433,1200,429,1172,431,1157,436,1154,441,1162,448"/>
+<area shape="rect" id="Node000010" href="$namespace_editor_layout.html#a1bcc9ab5e8ef4ac521182638d3a22dde" title=" " alt="" coords="1361,450,1564,476"/>
+<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="1307,460,1348,460,1348,466,1307,466"/>
+<area shape="poly" id="edge14_Node000010_Node000010" title=" " alt="" coords="1422,452,1413,442,1418,432,1435,426,1463,424,1498,428,1508,432,1512,438,1507,441,1505,436,1497,433,1463,429,1436,431,1421,436,1419,441,1426,448"/>
+<area shape="rect" id="Node000014" href="$class_result_frame.html#af8360796f81428353b36e177e46b14aa" title=" " alt="" coords="1087,622,1313,648"/>
+<area shape="poly" id="edge18_Node000013_Node000014" title=" " alt="" coords="987,589,1123,617,1122,622,986,594"/>
+<area shape="rect" id="Node000015" href="$class_elided_label.html#acbacffeeff11ee0f3c9900c1511ee3f9" title="A label for plain text." alt="" coords="1110,672,1290,697"/>
+<area shape="poly" id="edge19_Node000013_Node000015" title=" " alt="" coords="1015,589,1040,601,1056,615,1065,630,1073,644,1088,657,1103,664,1101,669,1085,661,1069,647,1060,632,1052,618,1037,605,1013,594"/>
+<area shape="rect" id="Node000016" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="1173,524,1227,549"/>
+<area shape="poly" id="edge20_Node000013_Node000016" title=" " alt="" coords="1005,564,1158,540,1159,545,1006,569"/>
+<area shape="rect" id="Node000165" href="$class_result_panel.html#a1d3894a9b0170f7f623747d886e1a314" title="An empty panel with its readout." alt="" coords="1109,573,1291,598"/>
+<area shape="poly" id="edge30_Node000013_Node000165" title=" " alt="" coords="1020,579,1095,580,1095,586,1020,584"/>
+<area shape="poly" id="edge23_Node000016_Node000016" title=" " alt="" coords="1171,532,1152,521,1148,515,1150,508,1167,500,1200,497,1229,499,1247,505,1251,516,1242,526,1238,522,1246,515,1243,509,1228,504,1200,502,1168,505,1154,511,1154,514,1156,517,1174,527"/>
+<area shape="rect" id="Node000017" href="$namespaceeglog.html#a8032c116a7ea7ca91e8378e4e5105e8f" title=" " alt="" coords="1414,524,1511,549"/>
+<area shape="poly" id="edge21_Node000016_Node000017" title=" " alt="" coords="1228,534,1400,534,1400,539,1228,539"/>
+<area shape="rect" id="Node000018" href="$main_8cpp.html#aed07f9620734e5f118b11140cf0f35dd" title=" " alt="" coords="1425,597,1500,622"/>
+<area shape="poly" id="edge24_Node000016_Node000018" title=" " alt="" coords="1228,538,1314,558,1415,590,1413,595,1313,563,1227,544"/>
+<area shape="poly" id="edge22_Node000017_Node000017" title=" " alt="" coords="1422,525,1413,515,1418,505,1435,499,1463,497,1498,501,1508,506,1512,511,1507,514,1505,510,1497,506,1463,502,1436,504,1421,509,1419,514,1426,522"/>
+<area shape="poly" id="edge29_Node000018_Node000018" title=" " alt="" coords="1423,600,1413,589,1417,579,1434,573,1463,570,1500,575,1509,580,1512,587,1507,589,1505,584,1498,580,1463,576,1435,578,1421,583,1419,588,1427,596"/>
+<area shape="rect" id="Node000019" href="$class_open_request_relay.html#a0ea70ab9b3dbfb8e079ccb5537ddbd18" title=" " alt="" coords="1612,508,1816,548"/>
+<area shape="poly" id="edge25_Node000018_Node000019" title=" " alt="" coords="1500,595,1611,558,1636,550,1637,555,1613,563,1501,600"/>
+<area shape="rect" id="Node000020" href="$_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i..." alt="" coords="1639,597,1789,622"/>
+<area shape="poly" id="edge26_Node000018_Node000020" title=" " alt="" coords="1500,607,1625,607,1625,612,1500,612"/>
+<area shape="rect" id="Node000022" href="$class_self_updater.html#aa1bb90da2d756e38b8384ea94521a064" title="Removes staging folders that an earlier update left next to the installation." alt="" coords="1619,647,1809,687"/>
+<area shape="poly" id="edge28_Node000018_Node000022" title=" " alt="" coords="1501,615,1613,641,1612,646,1500,621"/>
+<area shape="poly" id="edge27_Node000020_Node000020" title=" " alt="" coords="1673,599,1665,589,1669,579,1686,572,1714,570,1749,574,1759,579,1763,585,1759,588,1756,583,1748,579,1714,576,1687,578,1673,583,1670,588,1677,595"/>
+<area shape="poly" id="edge33_Node000167_Node000167" title=" " alt="" coords="878,641,868,631,873,621,892,615,923,613,963,617,974,622,977,629,972,631,970,626,962,622,923,618,893,620,877,625,874,630,882,638"/>
+<area shape="rect" id="Node000168" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="1123,746,1277,786"/>
+<area shape="poly" id="edge34_Node000167_Node000168" title=" " alt="" coords="1005,662,1040,674,1065,689,1088,706,1145,737,1143,742,1085,711,1062,693,1038,679,1003,667"/>
+<area shape="poly" id="edge37_Node000168_Node000168" title=" " alt="" coords="1152,746,1149,736,1156,727,1174,721,1200,719,1230,722,1247,729,1245,734,1229,727,1200,724,1175,726,1159,731,1154,737,1157,744"/>
+<area shape="rect" id="Node000169" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="1372,746,1553,786"/>
+<area shape="poly" id="edge35_Node000168_Node000169" title=" " alt="" coords="1277,763,1358,763,1358,768,1277,768"/>
+<area shape="poly" id="edge36_Node000169_Node000169" title=" " alt="" coords="1416,746,1413,736,1421,727,1437,721,1463,719,1492,722,1508,729,1505,734,1490,727,1463,724,1438,726,1424,731,1418,737,1421,744"/>
+<area shape="rect" id="Node000172" href="$class_train_key_list.html#a68e39a731ad6d25c88da404675f8fb95" title="Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibility..." alt="" coords="1106,362,1294,402"/>
+<area shape="poly" id="edge39_Node000171_Node000172" title=" " alt="" coords="1016,379,1092,379,1092,384,1016,384"/>
+<area shape="poly" id="edge40_Node000172_Node000173" title=" " alt="" coords="1294,369,1366,361,1367,366,1294,374"/>
+<area shape="rect" id="Node000174" href="$class_train_key_list.html#a2873886c5b9e37aeb6366b9509cfad6f" title=" " alt="" coords="1625,341,1803,366"/>
+<area shape="poly" id="edge41_Node000173_Node000174" title=" " alt="" coords="1545,351,1611,351,1611,356,1545,356"/>
+<area shape="rect" id="Node000176" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="821,689,1025,714"/>
+<area shape="poly" id="edge44_Node000175_Node000176" title=" " alt="" coords="734,536,760,552,774,567,781,583,785,614,789,646,796,660,808,674,816,680,813,684,805,678,791,663,784,647,780,615,776,584,770,570,757,556,731,541"/>
+<area shape="poly" id="edge47_Node000178_Node000167" title=" " alt="" coords="741,491,760,502,772,514,780,526,787,552,792,577,798,589,808,601,833,619,860,632,858,637,830,624,805,605,794,592,787,578,781,553,775,529,768,517,757,506,738,495"/>
+<area shape="poly" id="edge57_Node000183_Node000183" title=" " alt="" coords="593,855,584,845,588,835,606,828,636,826,674,830,685,835,688,841,684,844,681,839,673,836,636,832,607,834,592,839,589,844,597,851"/>
+<area shape="rect" id="Node000184" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="816,853,1029,878"/>
+<area shape="poly" id="edge53_Node000183_Node000184" title=" " alt="" coords="705,863,802,863,802,868,705,868"/>
+<area shape="rect" id="Node000185" href="$_scene_model_8cpp.html#ae53d137b1740d6eb1634c41e827293f5" title=" " alt="" coords="827,764,1019,804"/>
+<area shape="poly" id="edge55_Node000183_Node000185" title=" " alt="" coords="680,850,806,814,835,805,837,811,807,819,681,855"/>
+<area shape="poly" id="edge54_Node000184_Node000184" title=" " alt="" coords="878,855,868,845,873,835,892,828,923,826,963,831,974,836,977,842,972,844,970,840,962,836,923,832,893,834,877,839,874,844,882,851"/>
+<area shape="poly" id="edge56_Node000185_Node000185" title=" " alt="" coords="871,765,868,755,877,745,895,740,923,738,955,740,972,748,970,753,953,746,923,743,896,745,879,750,873,756,876,763"/>
+<area shape="rect" id="Node000187" href="$class_diagram_window.html#adf2416ba68c9e6bfd18c22e165864c1a" title=" " alt="" coords="819,952,1026,977"/>
+<area shape="poly" id="edge59_Node000186_Node000187" title=" " alt="" coords="711,925,835,947,834,952,710,930"/>
+<area shape="rect" id="Node000188" href="$class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939" title="Escape ends a selection, and closes the window only while nothing is selected." alt="" coords="807,902,1039,928"/>
+<area shape="poly" id="edge60_Node000186_Node000188" title=" " alt="" coords="748,912,793,912,793,918,748,918"/>
+<area shape="poly" id="edge62_Node000189_Node000189" title=" " alt="" coords="593,977,584,967,588,957,606,951,636,949,674,953,685,958,688,964,684,967,681,962,673,958,636,954,607,956,592,961,589,966,597,974"/>
+<area shape="poly" id="edge64_Node000190_Node000190" title=" " alt="" coords="593,1051,584,1041,588,1031,606,1024,636,1022,674,1026,685,1031,688,1037,684,1040,681,1035,673,1032,636,1028,607,1030,592,1035,589,1040,597,1047"/>
+<area shape="poly" id="edge66_Node000191_Node000003" title=" " alt="" coords="655,120,720,81,762,59,806,40,831,32,833,38,808,45,764,64,723,85,658,125"/>
+<area shape="poly" id="edge70_Node000191_Node000191" title=" " alt="" coords="593,124,584,114,588,104,606,98,636,96,674,100,685,105,688,111,684,113,681,109,673,105,636,101,607,103,592,108,589,113,597,120"/>
 <area shape="rect" id="Node000192" href="$struct_completed_trajectory.html#a9bb023bc844c92e2c7449e037b717f30" title="The block index at a sample index, or kNoBlock when there is none." alt="" coords="844,130,1001,170"/>
-<area shape="poly" id="edge66_Node000191_Node000192" title=" " alt="" coords="708,136,830,142,830,148,707,141"/>
+<area shape="poly" id="edge67_Node000191_Node000192" title=" " alt="" coords="708,136,830,142,830,148,707,141"/>
 <area shape="rect" id="Node000193" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="852,80,993,105"/>
-<area shape="poly" id="edge67_Node000191_Node000193" title=" " alt="" coords="707,122,838,102,839,107,708,127"/>
-<area shape="poly" id="edge68_Node000193_Node000193" title=" " alt="" coords="878,81,868,71,873,61,892,55,923,53,963,57,974,62,977,69,972,71,970,66,962,62,923,58,893,60,877,65,874,70,882,78"/>
-<area shape="poly" id="edge71_Node000194_Node000194" title=" " alt="" coords="593,1119,584,1109,588,1098,606,1092,636,1090,674,1094,685,1099,688,1105,684,1108,681,1103,673,1099,636,1096,607,1098,592,1103,589,1108,597,1115"/>
+<area shape="poly" id="edge68_Node000191_Node000193" title=" " alt="" coords="707,122,838,102,839,107,708,127"/>
+<area shape="poly" id="edge69_Node000193_Node000193" title=" " alt="" coords="878,81,868,71,873,61,892,55,923,53,963,57,974,62,977,69,972,71,970,66,962,62,923,58,893,60,877,65,874,70,882,78"/>
+<area shape="poly" id="edge72_Node000194_Node000194" title=" " alt="" coords="593,1124,584,1114,588,1104,606,1098,636,1096,674,1100,685,1105,688,1111,684,1113,681,1109,673,1105,636,1101,607,1103,592,1108,589,1113,597,1120"/>
 </map>

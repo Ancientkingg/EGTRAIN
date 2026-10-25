@@ -4,6 +4,7 @@ var class_result_views =
     [ "ResultViews", "class_result_views.html#a42c9aed7a83ea11c459d44a7635bc03b", null ],
     [ "addCaseWindow", "class_result_views.html#aa0dcf889dde8371b8c7004df2904b4c0", null ],
     [ "buildPerTrainDiagram", "class_result_views.html#a000180b9df0075eb8c07dcf8e5bb5a50", null ],
+    [ "buildPerTrainDiagram", "class_result_views.html#a49b770f809ffc200bcb2748fbd60ebc3", null ],
     [ "buildRouteDiagram", "class_result_views.html#a0a1a09d502810a0902eeb4d48205af14", null ],
     [ "closeAll", "class_result_views.html#a2142298549b7e6b8aabe1e43ef39912f", null ],
     [ "displayTrainPathDiagrams", "class_result_views.html#a6654ed2f9732984a4810179a9275addf", null ],

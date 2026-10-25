@@ -1,5 +1,8 @@
 <map id="TimetableTableWindow::setRunProvenance" name="TimetableTableWindow::setRunProvenance">
-<area shape="rect" id="Node000001" title="Writes provenance as a sidecar with every export and shows its case and scenario as the context." alt="" coords="5,5,180,45"/>
-<area shape="rect" id="Node000002" href="$class_timetable_table_window.html#a0c2e12aacca56a4eac3d960b67658ccc" title="Sets the window title to heading and shows context in the header in one line; an empty context hides ..." alt="" coords="228,5,403,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
+<area shape="rect" id="Node000001" title="Writes provenance as a sidecar with every export and shows the run in the header, as runContextText n..." alt="" coords="5,51,180,91"/>
+<area shape="rect" id="Node000002" href="$_result_frame_8cpp.html#a6ea9c7beca738c9a91b0709c49279117" title=" " alt="" coords="255,29,376,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,57,240,49,241,54,181,62"/>
+<area shape="rect" id="Node000003" href="$class_timetable_table_window.html#a0c2e12aacca56a4eac3d960b67658ccc" title="Sets the window title to heading and shows context in the header in one line; an empty context hides ..." alt="" coords="228,79,403,119"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="181,80,215,84,214,89,180,85"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="279,31,271,21,275,11,290,5,315,3,346,6,358,15,355,20,344,11,315,8,292,10,279,15,277,20,283,28"/>
 </map>
