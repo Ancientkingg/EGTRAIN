@@ -16,39 +16,29 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QTextDocument>
 #include <QToolTip>
 
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 
 namespace {
-
-bool ok = true;
-
-void check(bool condition, const QString& scenario, const char* message) {
-	if (condition)
-		return;
-	ok = false;
-	std::cerr << scenario.toStdString() << ": " << message << '\n';
-}
 
 // A scene folder that the chooser lists: it reads only the manifest name.
 QString makeScene(const QDir& root, const QString& folder, const QString& name) {
 	root.mkpath(folder);
 	QFile manifest(root.filePath(folder + QStringLiteral("/scene.json")));
-	if (!manifest.open(QIODevice::WriteOnly)) {
-		std::cerr << "cannot write a scene manifest\n";
-		std::exit(1);
-	}
+	if (!manifest.open(QIODevice::WriteOnly))
+		qFatal("cannot write a scene manifest");
 	manifest.write(QJsonDocument(QJsonObject{{QStringLiteral("name"), name}}).toJson());
 	return root.filePath(folder);
 }
@@ -120,45 +110,55 @@ int faceGray(QPushButton* button) {
 }
 
 // The dialog stays within 90 percent by 80 percent of the screen with its footer visible, however long the
-// names are and however large the font.
-void checkFits(const QString& scenario, const CaseChooserDialog& dialog, const QRect& screen) {
-	check(dialog.width() <= screen.width() * 9 / 10 && dialog.height() <= screen.height() * 4 / 5, scenario,
-		"the dialog is larger than the screen budget");
+// names are and however large the font. The result is the first way in which it does not, or empty.
+QString fitProblem(const CaseChooserDialog& dialog, const QRect& screen) {
+	if (dialog.width() > screen.width() * 9 / 10 || dialog.height() > screen.height() * 4 / 5)
+		return QStringLiteral("the dialog is larger than the screen budget");
 	const auto* buttons = dialog.findChild<QDialogButtonBox*>();
 	const auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
-	check(buttons && scroll && buttons->isVisible() && dialog.rect().contains(buttons->geometry())
-			&& scroll->geometry().bottom() < buttons->geometry().top(),
-		scenario, "the footer is not visible below the body");
+	if (!(buttons && scroll && buttons->isVisible() && dialog.rect().contains(buttons->geometry())
+			&& scroll->geometry().bottom() < buttons->geometry().top()))
+		return QStringLiteral("the footer is not visible below the body");
 	// With nothing to open, Open is disabled and, outside a macOS footer, Qt hands the default to the focused button.
 	if (dialog.openButton()->isEnabled()) {
-		check(dialog.openButton()->isDefault(), scenario, "Open is enabled but not the default button");
-		check(faceGray(dialog.openButton()) + 60 < faceGray(dialog.continueButton()), scenario, "Open does not have the dark face of the default button");
+		if (!dialog.openButton()->isDefault())
+			return QStringLiteral("Open is enabled but not the default button");
+		if (faceGray(dialog.openButton()) + 60 >= faceGray(dialog.continueButton()))
+			return QStringLiteral("Open does not have the dark face of the default button");
 	}
-	check(dialog.openButton()->isVisible() && dialog.continueButton()->isVisible(), scenario, "a footer button is hidden");
+	if (!dialog.openButton()->isVisible() || !dialog.continueButton()->isVisible())
+		return QStringLiteral("a footer button is hidden");
 	const QListWidget* list = dialog.list();
-	check(list->isVisible() && list->height() > 0, scenario, "the list is not shown");
+	if (!list->isVisible() || list->height() <= 0)
+		return QStringLiteral("the list is not shown");
+	return QString();
 }
 
-// The rows that cannot be chosen are bold headings and italic labels; a case row keeps the list font.
-void checkRowStyles(const QString& scenario, const QListWidget* list) {
+// The rows that cannot be chosen are bold headings and italic labels; a case row keeps the list font. The result is the
+// first row that does not, or empty.
+QString rowStyleProblem(const QListWidget* list) {
 	for (int row = 0; row < list->count(); ++row) {
 		const QListWidgetItem* item = list->item(row);
 		const QString text = item->text();
 		const QFont font = item->font();
 		const bool selectable = !item->data(Qt::UserRole).toString().isEmpty();
 		if (selectable) {
-			check(bool(item->flags() & Qt::ItemIsEnabled), scenario, "a case row is not enabled");
-			check(!item->data(Qt::FontRole).isValid(), scenario, "a case row has a font of its own");
+			if (!(item->flags() & Qt::ItemIsEnabled))
+				return QStringLiteral("a case row is not enabled");
+			if (item->data(Qt::FontRole).isValid())
+				return QStringLiteral("a case row has a font of its own");
 			continue;
 		}
 		const bool unavailable = text.startsWith(QLatin1String("Unavailable: "));
 		// An unavailable row can be selected so that its reason shows, but it has no path to open.
-		check(item->flags() == (unavailable ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags), scenario,
-			unavailable ? "an unavailable row cannot be selected" : "a heading or message row can be selected or reached with the keyboard");
+		if (item->flags() != (unavailable ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags))
+			return unavailable ? QStringLiteral("an unavailable row cannot be selected")
+							   : QStringLiteral("a heading or message row can be selected or reached with the keyboard");
 		const bool heading = text == QLatin1String("Bundled cases") || text == QLatin1String("Recent cases");
-		check(font.bold() == heading && font.italic() == !heading, scenario,
-			heading ? "a group heading is not bold" : "an unavailable or message row is not italic and plain");
+		if (font.bold() != heading || font.italic() != !heading)
+			return heading ? QStringLiteral("a group heading is not bold") : QStringLiteral("an unavailable or message row is not italic and plain");
 	}
+	return QString();
 }
 
 // The text of a list row as the list draws it: the row text elided to the width of the text area of the row.
@@ -179,25 +179,29 @@ public:
 
 // A row with a 300 character name stays inside the list: no horizontal scroll bar, a row that does not extend past the
 // viewport, the middle of the name elided and its two ends shown. The tooltip and the item data keep the whole name and path.
-void checkLongRow(const QString& scenario, const CaseChooserDialog& dialog, const QString& name, const QString& path, int row) {
+// The result is the first way in which the row does not, or empty.
+QString longRowProblem(const CaseChooserDialog& dialog, const QString& name, const QString& path, int row) {
 	const QListWidget* list = dialog.list();
 	const QListWidgetItem* item = list->item(row);
-	check(item && item->text() == name, scenario, "the row text is not the manifest name");
-	if (!item)
-		return;
-	check(list->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff && !list->horizontalScrollBar()->isVisible()
-			&& list->horizontalScrollBar()->maximum() == 0,
-		scenario, "the list has a horizontal scroll bar");
-	check(list->visualItemRect(item).width() <= list->viewport()->width(), scenario, "the row is wider than the list");
+	if (!item || item->text() != name)
+		return QStringLiteral("the row text is not the manifest name");
+	if (list->horizontalScrollBarPolicy() != Qt::ScrollBarAlwaysOff || list->horizontalScrollBar()->isVisible()
+		|| list->horizontalScrollBar()->maximum() != 0)
+		return QStringLiteral("the list has a horizontal scroll bar");
+	if (list->visualItemRect(item).width() > list->viewport()->width())
+		return QStringLiteral("the row is wider than the list");
 	const RowTextProbe probe;
 	const QString drawn = probe.drawnText(list, row);
-	check(drawn != name && drawn.contains(QChar(0x2026)) && drawn.startsWith(name.left(5)) && drawn.endsWith(name.right(4)), scenario,
-		"the visible text is not the name elided in the middle");
-	check(list->fontMetrics().horizontalAdvance(drawn) <= list->viewport()->width(), scenario, "the visible text is wider than the list");
+	if (drawn == name || !drawn.contains(QChar(0x2026)) || !drawn.startsWith(name.left(5)) || !drawn.endsWith(name.right(4)))
+		return QStringLiteral("the visible text is not the name elided in the middle");
+	if (list->fontMetrics().horizontalAdvance(drawn) > list->viewport()->width())
+		return QStringLiteral("the visible text is wider than the list");
 	const QString tip = shownTip(list->viewport(), list->visualItemRect(item).center());
-	check(tip.contains(name) && tip.contains(display_path::format(path)), scenario,
-		"the tooltip does not hold the whole name and path with the separators of this system");
-	check(item->data(Qt::UserRole).toString() == path, scenario, "the item data is not the full path");
+	if (!tip.contains(name) || !tip.contains(display_path::format(path)))
+		return QStringLiteral("the tooltip does not hold the whole name and path with the separators of this system");
+	if (item->data(Qt::UserRole).toString() != path)
+		return QStringLiteral("the item data is not the full path");
+	return QString();
 }
 
 struct Scenarios {
@@ -215,15 +219,18 @@ struct Scenarios {
 	QString bundled(const QString& folder, const QString& name) { return makeScene(scenes, folder, name); }
 };
 
-// Opens one dialog, checks the layout, and returns it still open for further checks.
+// Opens one dialog and checks the layout, and keeps it open for further checks. `problem` is the first way in which the
+// layout is wrong, or empty.
 struct Shown {
 	CaseChooserDialog dialog;
-	Shown(const QString& scenario, const CaseChooserDialog::Options& options, const QRect& screen)
+	QString problem;
+	Shown(const CaseChooserDialog::Options& options, const QRect& screen)
 		: dialog(options) {
 		dialog.show();
 		QApplication::processEvents();
-		checkFits(scenario, dialog, screen);
-		checkRowStyles(scenario, dialog.list());
+		problem = fitProblem(dialog, screen);
+		if (problem.isEmpty())
+			problem = rowStyleProblem(dialog.list());
 	}
 };
 
@@ -242,9 +249,9 @@ double contrastRatio(QRgb first, QRgb second) {
 	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
 }
 
-// Selects the row and checks that its drawn text has a contrast ratio of at least 4.5 against the highlight. The
-// highlight is the colour at the right end of the row, the text colour the pixel of the text area farthest from it.
-void checkSelectedRowContrast(const QString& scenario, QListWidget* list, QListWidgetItem* item) {
+// Selects the row and gives the contrast ratio of its drawn text against the highlight. The highlight is the colour at
+// the right end of the row, the text colour the pixel of the text area farthest from it.
+double selectedRowContrast(QListWidget* list, QListWidgetItem* item) {
 	list->setFocus();
 	list->setCurrentItem(item);
 	QApplication::processEvents();
@@ -263,438 +270,551 @@ void checkSelectedRowContrast(const QString& scenario, QListWidget* list, QListW
 			}
 		}
 	}
-	check(contrastRatio(ink, highlight) >= 4.5, scenario, "the text of the selected row has a contrast ratio below 4.5 against its highlight");
+	return contrastRatio(ink, highlight);
 }
 
-// The six states of the chooser at one font size.
-void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
-	const QStringList roots = {s.scenes.path()};
-	const QString longName = QStringLiteral("Start") + QString(291, QLatin1Char('W')) + QStringLiteral("Tail");
+// The lines of a tooltip. The rich text breaks the line, so the name and the path are compared as the two lines of the
+// tooltip.
+QStringList tipLines(QString tip) {
+	return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
+}
+
+// The application font at 12 points times scale until the result goes out of scope.
+[[nodiscard]] auto useScaledFont(qreal scale) {
+	const QFont original = QApplication::font();
+	QFont font = original;
+	font.setPointSizeF(12 * scale);
+	QApplication::setFont(font);
+	return qScopeGuard([original] { QApplication::setFont(original); });
+}
+
+// The layout checks run with the application font at 12 points and at 1.5 times that.
+void addScaleRows() {
+	QTest::addColumn<qreal>("scale");
+	QTest::newRow("1.0x") << qreal(1.0);
+	QTest::newRow("1.5x") << qreal(1.5);
+}
+
+const QRect kScreen(0, 0, 1280, 800);
+
+} // namespace
+
+// The case chooser lists the bundled and the recent cases within the screen, at two font sizes, and opens the chosen case
+// with the keyboard, the mouse and its buttons. The application style sheet is loaded for every check.
+class TestCaseChooserDialog : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void nothingLoaded_data() { addScaleRows(); }
+	void nothingLoaded();
+	void longLoadedName_data() { addScaleRows(); }
+	void longLoadedName();
+	void missingRecentCases_data() { addScaleRows(); }
+	void missingRecentCases();
+	void emptyChooser_data() { addScaleRows(); }
+	void emptyChooser();
+	void onlyUnavailable_data() { addScaleRows(); }
+	void onlyUnavailable();
+	void spellingsOfOnePath_data() { addScaleRows(); }
+	void spellingsOfOnePath();
+	void fortyBundledCases_data() { addScaleRows(); }
+	void fortyBundledCases();
+	void longCaseTitle_data() { addScaleRows(); }
+	void longCaseTitle();
+	void arrowKeysSkipHeadings();
+	void selectedRowsStayReadable();
+	void tooltipsShowNamesAsTyped();
+	void tooltipsShowNativeSeparators();
+	void doubleClickOpensRow();
+	void openButtonOpensSelectedRow();
+	void escapeChoosesNothing();
+	void leftButtonChoosesNothing();
+	void tabReachesMenuAndFooter();
+	void openIsDefaultWhileTabbing();
+	void bundlesAreNamedWithoutExtension();
+
+private:
+	CaseChooserDialog::Options layoutOptions() const;
+	CaseChooserDialog::Options interactionOptions() const;
+
+	Scenarios m_scenarios;
+};
+
+void TestCaseChooserDialog::initTestCase() {
+	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
+	QVERIFY2(qss.open(QIODevice::ReadOnly), "cannot load application QSS");
+	// The test binary has no Qt resources, so point the stylesheet at the icon files.
+	QString styleSheet = QString::fromUtf8(qss.readAll());
+	styleSheet.replace(QStringLiteral(":/icons/"), QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
+	qApp->setStyleSheet(styleSheet);
+	m_scenarios.bundled(QStringLiteral("alpha"), QStringLiteral("Alpha case"));
+	m_scenarios.bundled(QStringLiteral("beta"), QStringLiteral("Beta case"));
+}
+
+// The bundled scenes, without a loaded case or recent cases.
+CaseChooserDialog::Options TestCaseChooserDialog::layoutOptions() const {
 	CaseChooserDialog::Options options;
-	options.sceneRoots = roots;
-	options.availableGeometry = screen;
+	options.sceneRoots = QStringList{m_scenarios.scenes.path()};
+	options.availableGeometry = kScreen;
+	return options;
+}
 
-	// 1. No case loaded, nothing recent.
-	{
-		const QString scenario = tag + QStringLiteral(" nothing loaded");
-		Shown shown(scenario, options, screen);
-		const QListWidget* list = shown.dialog.list();
-		check(rowTexts(list).first() == QLatin1String("Bundled cases") && !rowTexts(list).contains(QLatin1String("Recent cases")),
-			scenario, "the list has no bundled group first, or lists a recent group without a recent case");
-		check(shown.dialog.continueButton()->text() == QLatin1String("Cancel"), scenario, "the left button is not Cancel");
-		bool offersContinue = false;
-		for (const QPushButton* button : shown.dialog.findChildren<QPushButton*>())
-			offersContinue = offersContinue || button->text() == QLatin1String("Continue");
-		check(!offersContinue, scenario, "a dialog with no case loaded offers Continue");
-		check(!shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext")), scenario, "a dialog with no case loaded has a context line");
-		check(currentText(list) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled(), scenario,
-			"the first case is not selected with Open enabled");
-	}
+// The bundled scenes, and a missing and an existing recent case.
+CaseChooserDialog::Options TestCaseChooserDialog::interactionOptions() const {
+	CaseChooserDialog::Options options;
+	options.sceneRoots = QStringList{m_scenarios.scenes.path()};
+	options.recentPaths = QStringList{m_scenarios.missing.first(), m_scenarios.outside};
+	options.availableGeometry = kScreen;
+	return options;
+}
 
-	// 2. A loaded case with a 400 character name: the context line wraps and no button repeats the name.
-	{
-		const QString scenario = tag + QStringLiteral(" long loaded name");
-		CaseChooserDialog::Options loaded = options;
-		loaded.currentCaseName = QString(400, QLatin1Char('N'));
-		Shown shown(scenario, loaded, screen);
-		check(shown.dialog.continueButton()->text() == QLatin1String("Continue"), scenario, "the left button is not Continue");
-		check(shown.dialog.continueButton()->width() < screen.width() / 4, scenario, "the Continue button is as wide as the name");
-		check(shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"))->text() == QStringLiteral("Current case: ") + loaded.currentCaseName,
-			scenario, "the context line does not name the loaded case");
-	}
+// No case loaded, nothing recent.
+void TestCaseChooserDialog::nothingLoaded() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	Shown shown(layoutOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QListWidget* list = shown.dialog.list();
+	// The list has the bundled group first, and no recent group without a recent case.
+	QCOMPARE(rowTexts(list).first(), "Bundled cases");
+	QVERIFY(!rowTexts(list).contains(QLatin1String("Recent cases")));
+	// The left button is Cancel.
+	QCOMPARE(shown.dialog.continueButton()->text(), "Cancel");
+	bool offersContinue = false;
+	for (const QPushButton* button : shown.dialog.findChildren<QPushButton*>())
+		offersContinue = offersContinue || button->text() == QLatin1String("Continue");
+	QVERIFY2(!offersContinue, "a dialog with no case loaded offers Continue");
+	QVERIFY2(!shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext")), "a dialog with no case loaded has a context line");
+	// The first case is selected with Open enabled.
+	QCOMPARE(currentText(list), "Alpha case");
+	QVERIFY(shown.dialog.openButton()->isEnabled());
+}
 
-	// 3. Recent cases that are all missing: they stay in the list as unavailable and cannot be chosen.
-	{
-		const QString scenario = tag + QStringLiteral(" missing recent cases");
-		CaseChooserDialog::Options recents = options;
-		recents.recentPaths = s.missing;
-		Shown shown(scenario, recents, screen);
-		const QStringList texts = rowTexts(shown.dialog.list());
-		check(texts.mid(texts.size() - 3)
-				== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"),
-					QStringLiteral("Unavailable: other gone case")}),
-			scenario, "the missing recent cases are not listed as unavailable");
-		check(currentText(shown.dialog.list()) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled(), scenario,
-			"an unavailable row changed the selection");
-		check(statusText(shown.dialog).isEmpty(), scenario, "a reason shows while a case row is selected");
-		// A click selects the unavailable row, says why it cannot be opened and turns Open off; Enter and a double click
-		// open nothing, not the case that was selected before.
-		QListWidget* list = shown.dialog.list();
-		list->setFocus();
-		click(list, list->item(static_cast<int>(texts.size()) - 2));
-		check(currentText(list) == QLatin1String("Unavailable: gone case") && !shown.dialog.openButton()->isEnabled()
-				&& shown.dialog.selectedPath().isEmpty() && !statusText(shown.dialog).isEmpty(),
-			scenario, "an unavailable row is not selected with a reason and Open disabled");
-		sendKey(list, Qt::Key_Return);
-		doubleClick(list, list->item(static_cast<int>(texts.size()) - 2));
-		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
-				&& shown.dialog.chosenPath().isEmpty(),
-			scenario, "Enter or a double click on an unavailable row opened a case");
-		sendKey(list, Qt::Key_Up);
-		sendKey(list, Qt::Key_Up);
-		check(currentText(list) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled() && statusText(shown.dialog).isEmpty(),
-			scenario, "the reason stays or Open stays disabled after leaving the unavailable row");
-	}
+// A loaded case with a 400 character name: the context line wraps and no button repeats the name.
+void TestCaseChooserDialog::longLoadedName() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	CaseChooserDialog::Options loaded = layoutOptions();
+	loaded.currentCaseName = QString(400, QLatin1Char('N'));
+	Shown shown(loaded, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// The left button is Continue.
+	QCOMPARE(shown.dialog.continueButton()->text(), "Continue");
+	// The Continue button is not as wide as the name.
+	QCOMPARE_LT(shown.dialog.continueButton()->width(), kScreen.width() / 4);
+	const auto* context = shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
+	if (context == nullptr)
+		QFAIL("the context line does not name the loaded case");
+	// The context line names the loaded case.
+	QCOMPARE(context->text(), QStringLiteral("Current case: ") + loaded.currentCaseName);
+}
 
-	// 4. Nothing to list at all, and nothing but unavailable recent cases: Open stays disabled and Enter opens nothing.
-	{
-		const QString scenario = tag + QStringLiteral(" empty");
-		CaseChooserDialog::Options none;
-		none.availableGeometry = screen;
-		Shown shown(scenario, none, screen);
-		const QListWidget* list = shown.dialog.list();
-		check(rowTexts(list) == QStringList({QStringLiteral("No cases found. Use Other ways to open... below.")}), scenario,
-			"an empty chooser does not show the single message row");
-		check(!list->currentItem() && !shown.dialog.openButton()->isEnabled() && shown.dialog.selectedPath().isEmpty(), scenario,
-			"an empty chooser has a selection or an enabled Open button");
-		check(shown.dialog.otherMenu()->actions().size() == 3, scenario, "the other ways to open are missing");
-		shown.dialog.list()->setFocus();
-		sendKey(shown.dialog.list(), Qt::Key_Down);
-		sendKey(shown.dialog.list(), Qt::Key_Return);
-		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue && !shown.dialog.list()->currentItem(),
-			scenario, "Down and Enter in an empty chooser selected or opened something");
-	}
-	{
-		const QString scenario = tag + QStringLiteral(" only unavailable");
-		CaseChooserDialog::Options gone;
-		gone.recentPaths = s.missing;
-		gone.availableGeometry = screen;
-		Shown shown(scenario, gone, screen);
-		check(rowTexts(shown.dialog.list())
-				== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"),
-					QStringLiteral("Unavailable: other gone case")}),
-			scenario, "unavailable recent cases alone are not listed under their heading");
-		check(!shown.dialog.list()->currentItem() && !shown.dialog.openButton()->isEnabled(), scenario,
-			"a heading or an unavailable row is selected or Open is enabled");
-		doubleClick(shown.dialog.list(), shown.dialog.list()->item(0));
-		check(shown.dialog.isVisible() && shown.dialog.chosenPath().isEmpty() && !shown.dialog.list()->currentItem(), scenario,
-			"a double click on a heading opened or selected it");
-		doubleClick(shown.dialog.list(), shown.dialog.list()->item(1));
-		check(shown.dialog.isVisible() && shown.dialog.chosenPath().isEmpty() && currentText(shown.dialog.list()) == QLatin1String("Unavailable: gone case")
-				&& !shown.dialog.openButton()->isEnabled() && !statusText(shown.dialog).isEmpty(),
-			scenario, "a double click on an unavailable row opened it or gave no reason");
-		shown.dialog.list()->setFocus();
-		sendKey(shown.dialog.list(), Qt::Key_Return);
-		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue, scenario,
-			"Enter on an unavailable row opened something");
-	}
+// Recent cases that are all missing: they stay in the list as unavailable and cannot be chosen.
+void TestCaseChooserDialog::missingRecentCases() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	CaseChooserDialog::Options recents = layoutOptions();
+	recents.recentPaths = m_scenarios.missing;
+	Shown shown(recents, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QStringList texts = rowTexts(shown.dialog.list());
+	// The missing recent cases are listed as unavailable.
+	QCOMPARE(texts.mid(texts.size() - 3),
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Unavailable: other gone case")}));
+	// An unavailable row does not change the selection.
+	QCOMPARE(currentText(shown.dialog.list()), "Alpha case");
+	QVERIFY(shown.dialog.openButton()->isEnabled());
+	QVERIFY2(statusText(shown.dialog).isEmpty(), "a reason shows while a case row is selected");
+	// A click selects the unavailable row, says why it cannot be opened and turns Open off; Enter and a double click
+	// open nothing, not the case that was selected before.
+	QListWidget* list = shown.dialog.list();
+	list->setFocus();
+	click(list, list->item(static_cast<int>(texts.size()) - 2));
+	// An unavailable row is selected with a reason and Open disabled.
+	QCOMPARE(currentText(list), "Unavailable: gone case");
+	QVERIFY(!shown.dialog.openButton()->isEnabled());
+	QVERIFY(shown.dialog.selectedPath().isEmpty());
+	QVERIFY(!statusText(shown.dialog).isEmpty());
+	sendKey(list, Qt::Key_Return);
+	doubleClick(list, list->item(static_cast<int>(texts.size()) - 2));
+	// Enter or a double click on an unavailable row opens no case.
+	QVERIFY(shown.dialog.isVisible());
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::Continue);
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
+	sendKey(list, Qt::Key_Up);
+	sendKey(list, Qt::Key_Up);
+	// The reason goes and Open is enabled again after leaving the unavailable row.
+	QCOMPARE(currentText(list), "Alpha case");
+	QVERIFY(shown.dialog.openButton()->isEnabled());
+	QVERIFY(statusText(shown.dialog).isEmpty());
+}
 
-	// 4b. Several spellings of one path list one row, also when the case is missing; a different path stays.
-	{
-		const QString scenario = tag + QStringLiteral(" spellings of one path");
-		CaseChooserDialog::Options spelled;
-		spelled.availableGeometry = screen;
-		const QString gone = s.missing.first();
-		const QString elsewhere = QFileInfo(s.outside).absolutePath();
-		spelled.recentPaths = QStringList{gone, gone + QLatin1Char('/'), QFileInfo(gone).absolutePath() + QStringLiteral("/./gone_case"),
-			s.outside, s.outside + QLatin1Char('/'), elsewhere + QStringLiteral("/../elsewhere/recent_one"), s.missing.last()};
+// Nothing to list at all: Open stays disabled and Enter opens nothing.
+void TestCaseChooserDialog::emptyChooser() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	CaseChooserDialog::Options none;
+	none.availableGeometry = kScreen;
+	Shown shown(none, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QListWidget* list = shown.dialog.list();
+	// An empty chooser shows the single message row.
+	QCOMPARE(rowTexts(list), QStringList({QStringLiteral("No cases found. Use Other ways to open... below.")}));
+	// An empty chooser has no selection and a disabled Open button.
+	QVERIFY(!list->currentItem());
+	QVERIFY(!shown.dialog.openButton()->isEnabled());
+	QVERIFY(shown.dialog.selectedPath().isEmpty());
+	// The other ways to open are there.
+	QCOMPARE(shown.dialog.otherMenu()->actions().size(), 3);
+	shown.dialog.list()->setFocus();
+	sendKey(shown.dialog.list(), Qt::Key_Down);
+	sendKey(shown.dialog.list(), Qt::Key_Return);
+	// Down and Enter in an empty chooser select or open nothing.
+	QVERIFY(shown.dialog.isVisible());
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::Continue);
+	QVERIFY(!shown.dialog.list()->currentItem());
+}
+
+// Nothing but unavailable recent cases: Open stays disabled and Enter opens nothing.
+void TestCaseChooserDialog::onlyUnavailable() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	CaseChooserDialog::Options gone;
+	gone.recentPaths = m_scenarios.missing;
+	gone.availableGeometry = kScreen;
+	Shown shown(gone, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// Unavailable recent cases alone are listed under their heading.
+	QCOMPARE(rowTexts(shown.dialog.list()),
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Unavailable: other gone case")}));
+	// No heading or unavailable row is selected, and Open is disabled.
+	QVERIFY(!shown.dialog.list()->currentItem());
+	QVERIFY(!shown.dialog.openButton()->isEnabled());
+	doubleClick(shown.dialog.list(), shown.dialog.list()->item(0));
+	// A double click on a heading opens or selects nothing.
+	QVERIFY(shown.dialog.isVisible());
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
+	QVERIFY(!shown.dialog.list()->currentItem());
+	doubleClick(shown.dialog.list(), shown.dialog.list()->item(1));
+	// A double click on an unavailable row opens nothing and gives a reason.
+	QVERIFY(shown.dialog.isVisible());
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
+	QCOMPARE(currentText(shown.dialog.list()), "Unavailable: gone case");
+	QVERIFY(!shown.dialog.openButton()->isEnabled());
+	QVERIFY(!statusText(shown.dialog).isEmpty());
+	shown.dialog.list()->setFocus();
+	sendKey(shown.dialog.list(), Qt::Key_Return);
+	// Enter on an unavailable row opens nothing.
+	QVERIFY(shown.dialog.isVisible());
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::Continue);
+}
+
+// Several spellings of one path list one row, also when the case is missing; a different path stays.
+void TestCaseChooserDialog::spellingsOfOnePath() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	CaseChooserDialog::Options spelled;
+	spelled.availableGeometry = kScreen;
+	const QString gone = m_scenarios.missing.first();
+	const QString outside = m_scenarios.outside;
+	const QString elsewhere = QFileInfo(outside).absolutePath();
+	spelled.recentPaths = QStringList{gone, gone + QLatin1Char('/'), QFileInfo(gone).absolutePath() + QStringLiteral("/./gone_case"),
+		outside, outside + QLatin1Char('/'), elsewhere + QStringLiteral("/../elsewhere/recent_one"), m_scenarios.missing.last()};
 #ifdef Q_OS_WIN
-		spelled.recentPaths << gone.toUpper() << s.outside.toUpper();
+	spelled.recentPaths << gone.toUpper() << outside.toUpper();
 #endif
-		Shown shown(scenario, spelled, screen);
-		check(rowTexts(shown.dialog.list())
-				== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
-					QStringLiteral("Unavailable: other gone case")}),
-			scenario, "the spellings of one path do not list one row each");
-	}
-
-	// 5. Forty bundled cases: the list scrolls and the footer stays.
-	{
-		const QString scenario = tag + QStringLiteral(" forty bundled cases");
-		Scenarios many;
-		for (int i = 0; i < 40; ++i)
-			many.bundled(QStringLiteral("many_%1").arg(i, 2, 10, QLatin1Char('0')),
-				QStringLiteral("Bundled case number %1").arg(i + 1));
-		CaseChooserDialog::Options bundled = options;
-		bundled.sceneRoots = QStringList{many.scenes.path()};
-		Shown shown(scenario, bundled, screen);
-		check(shown.dialog.list()->count() == 41, scenario, "not every bundled case is listed");
-		const auto* scroll = shown.dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
-		check(shown.dialog.list()->verticalScrollBar()->maximum() > 0 || scroll->verticalScrollBar()->maximum() > 0, scenario,
-			"forty cases do not scroll");
-	}
-
-	// 6. A case title of 300 characters does not widen the dialog or add a horizontal scroll bar, in the bundled group and in the
-	// recent group. The row elides the middle of the name; the opened path is complete.
-	{
-		const QString scenario = tag + QStringLiteral(" long case title");
-		Scenarios one;
-		one.bundled(QStringLiteral("long_title"), longName);
-		const QString recent = makeScene(QDir(one.temporary.filePath(QStringLiteral("elsewhere"))), QStringLiteral("long_recent"), longName);
-		CaseChooserDialog::Options titled = options;
-		titled.sceneRoots = QStringList{one.scenes.path()};
-		titled.recentPaths = QStringList{recent};
-		Shown shown(scenario, titled, screen);
-		const QListWidget* list = shown.dialog.list();
-		check(list->count() == 4, scenario, "the list does not hold two headings and two cases");
-		checkLongRow(scenario + QStringLiteral(" bundled"), shown.dialog, longName, one.scenes.absoluteFilePath(QStringLiteral("long_title")), 1);
-		checkLongRow(scenario + QStringLiteral(" recent"), shown.dialog, longName, recent, 3);
-		shown.dialog.list()->setCurrentRow(3);
-		shown.dialog.openButton()->click();
-		check(shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected && shown.dialog.chosenPath() == recent, scenario,
-			"Open did not return the full path of the recent case");
-	}
+	Shown shown(spelled, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// The spellings of one path list one row each.
+	QCOMPARE(rowTexts(shown.dialog.list()),
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
+			QStringLiteral("Unavailable: other gone case")}));
 }
 
-void exerciseInteraction(Scenarios& s, const QRect& screen) {
-	CaseChooserDialog::Options options;
-	options.sceneRoots = QStringList{s.scenes.path()};
-	options.recentPaths = QStringList{s.missing.first(), s.outside};
-	options.availableGeometry = screen;
-	const QString betaPath = s.scenes.filePath(QStringLiteral("beta"));
+// Forty bundled cases: the list scrolls and the footer stays.
+void TestCaseChooserDialog::fortyBundledCases() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	Scenarios many;
+	for (int i = 0; i < 40; ++i)
+		many.bundled(QStringLiteral("many_%1").arg(i, 2, 10, QLatin1Char('0')),
+			QStringLiteral("Bundled case number %1").arg(i + 1));
+	CaseChooserDialog::Options bundled = layoutOptions();
+	bundled.sceneRoots = QStringList{many.scenes.path()};
+	Shown shown(bundled, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// Every bundled case is listed.
+	QCOMPARE(shown.dialog.list()->count(), 41);
+	const auto* scroll = shown.dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	QVERIFY2(shown.dialog.list()->verticalScrollBar()->maximum() > 0 || scroll->verticalScrollBar()->maximum() > 0,
+		"forty cases do not scroll");
+}
 
-	// Arrow keys skip the headings, reach the unavailable row and stop at the first and last case.
-	{
-		const QString scenario = QStringLiteral("keyboard");
-		Shown shown(scenario, options, screen);
-		QListWidget* list = shown.dialog.list();
-		check(rowTexts(list)
-				== QStringList({QStringLiteral("Bundled cases"), QStringLiteral("Alpha case"), QStringLiteral("Beta case"),
-					QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One")}),
-			scenario, "unexpected rows");
-		list->setFocus();
-		const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
-			QStringLiteral("Recent One")};
-		const QStringList up = {QStringLiteral("Unavailable: gone case"), QStringLiteral("Beta case"), QStringLiteral("Alpha case"),
-			QStringLiteral("Alpha case")};
-		check(currentText(list) == QLatin1String("Alpha case"), scenario, "the first case is not selected");
-		for (const QString& expected : down) {
-			sendKey(list, Qt::Key_Down);
-			check(currentText(list) == expected, scenario, "Down did not skip the headings");
-		}
-		for (const QString& expected : up) {
-			sendKey(list, Qt::Key_Up);
-			check(currentText(list) == expected, scenario, "Up did not skip the headings");
-		}
-		check(shown.dialog.openButton()->isEnabled(), scenario, "Open is disabled on a case row");
-		// Down then Enter opens the row under the cursor through the default Open button.
+// A case title of 300 characters does not widen the dialog or add a horizontal scroll bar, in the bundled group and in the
+// recent group. The row elides the middle of the name; the opened path is complete.
+void TestCaseChooserDialog::longCaseTitle() {
+	QFETCH(qreal, scale);
+	const auto font = useScaledFont(scale);
+	const QString longName = QStringLiteral("Start") + QString(291, QLatin1Char('W')) + QStringLiteral("Tail");
+	Scenarios one;
+	one.bundled(QStringLiteral("long_title"), longName);
+	const QString recent = makeScene(QDir(one.temporary.filePath(QStringLiteral("elsewhere"))), QStringLiteral("long_recent"), longName);
+	CaseChooserDialog::Options titled = layoutOptions();
+	titled.sceneRoots = QStringList{one.scenes.path()};
+	titled.recentPaths = QStringList{recent};
+	Shown shown(titled, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// The list holds two headings and two cases.
+	QCOMPARE(shown.dialog.list()->count(), 4);
+	const QString bundledProblem = longRowProblem(shown.dialog, longName, one.scenes.absoluteFilePath(QStringLiteral("long_title")), 1);
+	QVERIFY2(bundledProblem.isEmpty(), qPrintable(QStringLiteral("bundled: ") + bundledProblem));
+	const QString recentProblem = longRowProblem(shown.dialog, longName, recent, 3);
+	QVERIFY2(recentProblem.isEmpty(), qPrintable(QStringLiteral("recent: ") + recentProblem));
+	shown.dialog.list()->setCurrentRow(3);
+	shown.dialog.openButton()->click();
+	// Open returns the full path of the recent case.
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
+	QCOMPARE(shown.dialog.chosenPath(), recent);
+}
+
+// Arrow keys skip the headings, reach the unavailable row and stop at the first and last case.
+void TestCaseChooserDialog::arrowKeysSkipHeadings() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	QListWidget* list = shown.dialog.list();
+	// The rows of the bundled and the recent group.
+	QCOMPARE(rowTexts(list),
+		QStringList({QStringLiteral("Bundled cases"), QStringLiteral("Alpha case"), QStringLiteral("Beta case"),
+			QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One")}));
+	list->setFocus();
+	const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
+		QStringLiteral("Recent One")};
+	const QStringList up = {QStringLiteral("Unavailable: gone case"), QStringLiteral("Beta case"), QStringLiteral("Alpha case"),
+		QStringLiteral("Alpha case")};
+	// The first case is selected.
+	QCOMPARE(currentText(list), "Alpha case");
+	for (const QString& expected : down) {
 		sendKey(list, Qt::Key_Down);
-		sendKey(list, Qt::Key_Return);
-		check(!shown.dialog.isVisible() && shown.dialog.result() == QDialog::Accepted
-				&& shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected && shown.dialog.chosenPath() == betaPath,
-			scenario, "Down then Enter did not open the case");
+		// Down skips the headings.
+		QCOMPARE(currentText(list), expected);
 	}
+	for (const QString& expected : up) {
+		sendKey(list, Qt::Key_Up);
+		// Up skips the headings.
+		QCOMPARE(currentText(list), expected);
+	}
+	QVERIFY2(shown.dialog.openButton()->isEnabled(), "Open is disabled on a case row");
+	// Down then Enter opens the row under the cursor through the default Open button.
+	sendKey(list, Qt::Key_Down);
+	sendKey(list, Qt::Key_Return);
+	// Down then Enter opens the case.
+	QVERIFY(!shown.dialog.isVisible());
+	QCOMPARE(shown.dialog.result(), int(QDialog::Accepted));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
+	QCOMPARE(shown.dialog.chosenPath(), m_scenarios.scenes.filePath(QStringLiteral("beta")));
+}
 
-	// A selected case row and a selected unavailable row stay readable.
-	{
-		const QString scenario = QStringLiteral("selected row contrast");
-		Shown shown(scenario, options, screen);
-		QListWidget* list = shown.dialog.list();
-		shown.dialog.activateWindow();
-		for (const QString& text : {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case")}) {
-			const QList<QListWidgetItem*> found = list->findItems(text, Qt::MatchExactly);
-			check(found.size() == 1, scenario, "a row to select is missing");
-			if (found.size() == 1)
-				checkSelectedRowContrast(scenario + QLatin1Char(' ') + text, list, found.first());
+// A selected case row and a selected unavailable row stay readable.
+void TestCaseChooserDialog::selectedRowsStayReadable() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	QListWidget* list = shown.dialog.list();
+	shown.dialog.activateWindow();
+	for (const QString& text : {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case")}) {
+		const QList<QListWidgetItem*> found = list->findItems(text, Qt::MatchExactly);
+		QVERIFY2(found.size() == 1, qPrintable(text + QStringLiteral(": a row to select is missing")));
+		const double contrast = selectedRowContrast(list, found.first());
+		QVERIFY2(contrast >= 4.5,
+			qPrintable(QStringLiteral("%1: the text of the selected row has a contrast ratio of %2, below 4.5 against its highlight").arg(text).arg(contrast)));
+	}
+	const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone case"), Qt::MatchExactly);
+	// A selected unavailable row is italic.
+	QCOMPARE(unavailable.size(), 1);
+	QVERIFY(unavailable.first()->isSelected());
+	QVERIFY(unavailable.first()->font().italic());
+}
+
+// A name or path with "&", "<", ">" or an entity shows as typed in the tooltip of a case row and of an unavailable row.
+void TestCaseChooserDialog::tooltipsShowNamesAsTyped() {
+	const QString odd = QStringLiteral("A & B &lt;x&gt;");
+	Scenarios own;
+	const QString oddTitle = QStringLiteral("Odd <b>name</b> & &amp; <x>");
+	const QString path = own.bundled(odd, oddTitle);
+	const QString gone = own.temporary.filePath(QStringLiteral("moved/gone & &lt;case&gt;"));
+	CaseChooserDialog::Options marked = interactionOptions();
+	marked.sceneRoots = QStringList{own.scenes.path()};
+	marked.recentPaths = QStringList{gone};
+	Shown shown(marked, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QListWidget* list = shown.dialog.list();
+	QString caseTip, goneTip;
+	for (int row = 0; row < list->count(); ++row) {
+		const QRect rect = list->visualItemRect(list->item(row));
+		if (list->item(row)->text() == oddTitle)
+			caseTip = shownTip(list->viewport(), rect.center());
+		else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: ")))
+			goneTip = shownTip(list->viewport(), rect.center());
+	}
+	// The tooltip of a case row is its name and path as typed.
+	QCOMPARE(tipLines(caseTip), QStringList({oddTitle, display_path::format(path)}));
+	// The tooltip of an unavailable row is its name and path as typed.
+	QCOMPARE(tipLines(goneTip), QStringList({QFileInfo(gone).fileName(), display_path::format(gone)}));
+}
+
+// The tooltip shows the path with the separators of Windows, and the stored path stays as it is.
+void TestCaseChooserDialog::tooltipsShowNativeSeparators() {
+	const QChar savedSeparator = display_path::separator();
+	const auto restoreSeparator = qScopeGuard([savedSeparator] { display_path::separator() = savedSeparator; });
+	display_path::separator() = QLatin1Char('\\');
+	Scenarios own;
+	const QString path = own.bundled(QStringLiteral("native_case"), QStringLiteral("Native case"));
+	const QString gone = own.temporary.filePath(QStringLiteral("moved/gone_case"));
+	CaseChooserDialog::Options windows = interactionOptions();
+	windows.sceneRoots = QStringList{own.scenes.path()};
+	windows.recentPaths = QStringList{gone};
+	Shown shown(windows, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	const QListWidget* list = shown.dialog.list();
+	QString caseTip, goneTip;
+	const QListWidgetItem* caseItem = nullptr;
+	for (int row = 0; row < list->count(); ++row) {
+		const QRect rect = list->visualItemRect(list->item(row));
+		if (list->item(row)->text() == QLatin1String("Native case")) {
+			caseItem = list->item(row);
+			caseTip = shownTip(list->viewport(), rect.center());
+		} else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: "))) {
+			goneTip = shownTip(list->viewport(), rect.center());
 		}
-		const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone case"), Qt::MatchExactly);
-		check(unavailable.size() == 1 && unavailable.first()->isSelected() && unavailable.first()->font().italic(), scenario,
-			"a selected unavailable row is not italic");
 	}
+	const auto backslashes = [](QString text) { return text.replace(QLatin1Char('/'), QLatin1Char('\\')); };
+	// The tooltip of a case row shows its path with backslashes.
+	QCOMPARE(tipLines(caseTip), QStringList({QStringLiteral("Native case"), backslashes(path)}));
+	// The tooltip of an unavailable row shows its path with backslashes.
+	QCOMPARE(tipLines(goneTip), QStringList({QStringLiteral("gone case"), backslashes(gone)}));
+	// The stored path of a case row is unchanged.
+	if (caseItem == nullptr)
+		QFAIL("the stored path of a case row changed");
+	QCOMPARE(caseItem->data(Qt::UserRole).toString(), path);
+}
 
-	// A name or path with "&", "<", ">" or an entity shows as typed in the tooltip of a case row and of an unavailable row.
-	{
-		const QString scenario = QStringLiteral("tooltip");
-		const QString odd = QStringLiteral("A & B &lt;x&gt;");
-		Scenarios own;
-		const QString oddTitle = QStringLiteral("Odd <b>name</b> & &amp; <x>");
-		const QString path = own.bundled(odd, oddTitle);
-		const QString gone = own.temporary.filePath(QStringLiteral("moved/gone & &lt;case&gt;"));
-		CaseChooserDialog::Options marked = options;
-		marked.sceneRoots = QStringList{own.scenes.path()};
-		marked.recentPaths = QStringList{gone};
-		Shown shown(scenario, marked, screen);
-		const QListWidget* list = shown.dialog.list();
-		QString caseTip, goneTip;
-		for (int row = 0; row < list->count(); ++row) {
-			const QRect rect = list->visualItemRect(list->item(row));
-			if (list->item(row)->text() == oddTitle)
-				caseTip = shownTip(list->viewport(), rect.center());
-			else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: ")))
-				goneTip = shownTip(list->viewport(), rect.center());
-		}
-		// The rich text breaks the line and may add a space after the break, so the lines are compared on their own.
-		// The rich text breaks the line, so the name and the path are compared as the two lines of the tooltip.
-		const auto lines = [](QString tip) {
-			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
-		};
-		check(lines(caseTip) == QStringList({oddTitle, display_path::format(path)}), scenario, "the tooltip of a case row is not its name and path as typed");
-		check(lines(goneTip) == QStringList({QFileInfo(gone).fileName(), display_path::format(gone)}), scenario,
-			"the tooltip of an unavailable row is not its name and path as typed");
-	}
+// A double click opens the row.
+void TestCaseChooserDialog::doubleClickOpensRow() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	doubleClick(shown.dialog.list(), shown.dialog.list()->item(2));
+	// A double click opens the case.
+	QCOMPARE(shown.dialog.result(), int(QDialog::Accepted));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
+	QCOMPARE(shown.dialog.chosenPath(), m_scenarios.scenes.filePath(QStringLiteral("beta")));
+}
 
-	// The tooltip shows the path with the separators of Windows, and the stored path stays as it is.
-	{
-		const QString scenario = QStringLiteral("native separators");
-		const QChar savedSeparator = display_path::separator();
-		display_path::separator() = QLatin1Char('\\');
-		Scenarios own;
-		const QString path = own.bundled(QStringLiteral("native_case"), QStringLiteral("Native case"));
-		const QString gone = own.temporary.filePath(QStringLiteral("moved/gone_case"));
-		CaseChooserDialog::Options windows = options;
-		windows.sceneRoots = QStringList{own.scenes.path()};
-		windows.recentPaths = QStringList{gone};
-		Shown shown(scenario, windows, screen);
-		const QListWidget* list = shown.dialog.list();
-		QString caseTip, goneTip;
-		const QListWidgetItem* caseItem = nullptr;
-		for (int row = 0; row < list->count(); ++row) {
-			const QRect rect = list->visualItemRect(list->item(row));
-			if (list->item(row)->text() == QLatin1String("Native case")) {
-				caseItem = list->item(row);
-				caseTip = shownTip(list->viewport(), rect.center());
-			} else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: "))) {
-				goneTip = shownTip(list->viewport(), rect.center());
-			}
-		}
-		display_path::separator() = savedSeparator;
-		const auto backslashes = [](QString text) { return text.replace(QLatin1Char('/'), QLatin1Char('\\')); };
-		const auto lines = [](QString tip) {
-			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
-		};
-		check(lines(caseTip) == QStringList({QStringLiteral("Native case"), backslashes(path)}), scenario,
-			"the tooltip of a case row does not show its path with backslashes");
-		check(lines(goneTip) == QStringList({QStringLiteral("gone case"), backslashes(gone)}), scenario,
-			"the tooltip of an unavailable row does not show its path with backslashes");
-		check(caseItem && caseItem->data(Qt::UserRole).toString() == path, scenario, "the stored path of a case row changed");
-	}
+// Open opens the selected row.
+void TestCaseChooserDialog::openButtonOpensSelectedRow() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	shown.dialog.list()->setCurrentRow(2);
+	shown.dialog.openButton()->click();
+	// Open opens the selected case.
+	QCOMPARE(shown.dialog.result(), int(QDialog::Accepted));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
+	QCOMPARE(shown.dialog.chosenPath(), m_scenarios.scenes.filePath(QStringLiteral("beta")));
+}
 
-	// A double click opens the row; Open opens the selected row.
-	{
-		const QString scenario = QStringLiteral("double click");
-		Shown shown(scenario, options, screen);
-		doubleClick(shown.dialog.list(), shown.dialog.list()->item(2));
-		check(shown.dialog.result() == QDialog::Accepted && shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected
-				&& shown.dialog.chosenPath() == betaPath,
-			scenario, "a double click did not open the case");
-	}
-	{
-		const QString scenario = QStringLiteral("open button");
-		Shown shown(scenario, options, screen);
-		shown.dialog.list()->setCurrentRow(2);
-		shown.dialog.openButton()->click();
-		check(shown.dialog.result() == QDialog::Accepted && shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected
-				&& shown.dialog.chosenPath() == betaPath,
-			scenario, "Open did not open the selected case");
-	}
+// Escape leaves without a path.
+void TestCaseChooserDialog::escapeChoosesNothing() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	sendKey(&shown.dialog, Qt::Key_Escape);
+	// Escape chooses nothing.
+	QCOMPARE(shown.dialog.result(), int(QDialog::Rejected));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::Continue);
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
+}
 
-	// Escape and the left button leave without a path.
-	{
-		const QString scenario = QStringLiteral("escape");
-		Shown shown(scenario, options, screen);
-		sendKey(&shown.dialog, Qt::Key_Escape);
-		check(shown.dialog.result() == QDialog::Rejected && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
-				&& shown.dialog.chosenPath().isEmpty(),
-			scenario, "Escape chose something");
-	}
-	{
-		const QString scenario = QStringLiteral("left button");
-		Shown shown(scenario, options, screen);
-		shown.dialog.continueButton()->click();
-		check(shown.dialog.result() == QDialog::Rejected && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
-				&& shown.dialog.chosenPath().isEmpty(),
-			scenario, "Cancel chose something");
-	}
+// The left button leaves without a path.
+void TestCaseChooserDialog::leftButtonChoosesNothing() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	shown.dialog.continueButton()->click();
+	// Cancel chooses nothing.
+	QCOMPARE(shown.dialog.result(), int(QDialog::Rejected));
+	QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::Continue);
+	QVERIFY(shown.dialog.chosenPath().isEmpty());
+}
 
-	// After the list, Tab reaches the menu button and then the two footer buttons, whatever order the platform gives them.
-	{
-		const QString scenario = QStringLiteral("tab order");
-		Shown shown(scenario, options, screen);
-		QList<const QPushButton*> buttons;
-		for (const QWidget* widget = shown.dialog.list()->nextInFocusChain(); widget != shown.dialog.list(); widget = widget->nextInFocusChain()) {
-			const auto* button = qobject_cast<const QPushButton*>(widget);
-			if (button && button->isVisible() && (button->focusPolicy() & Qt::TabFocus))
-				buttons << button;
-		}
-		const auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
-		check(buttons.size() == 3 && buttons.first() == other
-				&& ((buttons[1] == shown.dialog.openButton() && buttons[2] == shown.dialog.continueButton())
-					|| (buttons[1] == shown.dialog.continueButton() && buttons[2] == shown.dialog.openButton())),
-			scenario, "Tab does not go from the list to the menu button and then to Open and the left button");
+// After the list, Tab reaches the menu button and then the two footer buttons, whatever order the platform gives them.
+void TestCaseChooserDialog::tabReachesMenuAndFooter() {
+	Shown shown(interactionOptions(), kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	QList<const QPushButton*> buttons;
+	for (const QWidget* widget = shown.dialog.list()->nextInFocusChain(); widget != shown.dialog.list(); widget = widget->nextInFocusChain()) {
+		const auto* button = qobject_cast<const QPushButton*>(widget);
+		if (button && button->isVisible() && (button->focusPolicy() & Qt::TabFocus))
+			buttons << button;
 	}
+	const auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
+	// Tab goes from the list to the menu button and then to Open and the left button.
+	QCOMPARE(buttons.size(), 3);
+	QCOMPARE(buttons.first(), other);
+	QVERIFY((buttons[1] == shown.dialog.openButton() && buttons[2] == shown.dialog.continueButton())
+		|| (buttons[1] == shown.dialog.continueButton() && buttons[2] == shown.dialog.openButton()));
+}
 
-	// With the footer of Windows and Linux, which the offscreen platform gives, a footer button is the default while it has
-	// the focus. At every other stop of Tab, the list and the menu button included, Open is the default, so Return on the
-	// menu button opens the selected case.
-	{
-		const QString scenario = QStringLiteral("default while tabbing");
-		CaseChooserDialog::Options loaded = options;
-		loaded.currentCaseName = QStringLiteral("Loaded case");
-		Shown shown(scenario, loaded, screen);
-		shown.dialog.activateWindow();
-		auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
-		shown.dialog.openButton()->setFocus();
-		bool defaults = true;
-		for (int stop = 0; stop < 4 && shown.dialog.focusWidget(); ++stop) {
-			sendKey(shown.dialog.focusWidget(), Qt::Key_Tab);
-			const bool onContinue = shown.dialog.focusWidget() == shown.dialog.continueButton();
-			defaults = defaults && shown.dialog.openButton()->isDefault() != onContinue && shown.dialog.continueButton()->isDefault() == onContinue
-				&& !other->isDefault();
-		}
-		check(defaults, scenario, "Open is not the default while the list or Other ways to open... has the focus");
-		other->setFocus();
-		// Return on a menu button that took the default would open its menu and wait.
-		if (shown.dialog.openButton()->isDefault() && !other->isDefault()) {
-			sendKey(other, Qt::Key_Return);
-			check(shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected
-					&& shown.dialog.chosenPath() == s.scenes.filePath(QStringLiteral("alpha")),
-				scenario, "Return on Other ways to open... does not open the selected case");
-		}
+// With the footer of Windows and Linux, which the offscreen platform gives, a footer button is the default while it has
+// the focus. At every other stop of Tab, the list and the menu button included, Open is the default, so Return on the
+// menu button opens the selected case.
+void TestCaseChooserDialog::openIsDefaultWhileTabbing() {
+	CaseChooserDialog::Options loaded = interactionOptions();
+	loaded.currentCaseName = QStringLiteral("Loaded case");
+	Shown shown(loaded, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	shown.dialog.activateWindow();
+	auto* other = shown.dialog.findChild<QPushButton*>(QStringLiteral("caseChooserOtherButton"));
+	shown.dialog.openButton()->setFocus();
+	bool defaults = true;
+	for (int stop = 0; stop < 4 && shown.dialog.focusWidget(); ++stop) {
+		sendKey(shown.dialog.focusWidget(), Qt::Key_Tab);
+		const bool onContinue = shown.dialog.focusWidget() == shown.dialog.continueButton();
+		defaults = defaults && shown.dialog.openButton()->isDefault() != onContinue && shown.dialog.continueButton()->isDefault() == onContinue
+			&& !other->isDefault();
+	}
+	QVERIFY2(defaults, "Open is not the default while the list or Other ways to open... has the focus");
+	other->setFocus();
+	// Return on a menu button that took the default would open its menu and wait.
+	if (shown.dialog.openButton()->isDefault() && !other->isDefault()) {
+		sendKey(other, Qt::Key_Return);
+		// Return on Other ways to open... opens the selected case.
+		QCOMPARE(shown.dialog.outcome(), CaseChooserDialog::Outcome::OpenSelected);
+		QCOMPARE(shown.dialog.chosenPath(), m_scenarios.scenes.filePath(QStringLiteral("alpha")));
 	}
 }
 
 // A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Cases
 // menu; a folder is named by its manifest.
-void exerciseBundleLabels(Scenarios& s, const QRect& screen) {
-	const QString scenario = QStringLiteral("bundle labels");
-	const QString bundle = s.temporary.filePath(QStringLiteral("elsewhere/Saved_case.EGSCENE"));
+void TestCaseChooserDialog::bundlesAreNamedWithoutExtension() {
+	const QString bundle = m_scenarios.temporary.filePath(QStringLiteral("elsewhere/Saved_case.EGSCENE"));
 	QFile file(bundle);
-	if (!file.open(QIODevice::WriteOnly)) {
-		std::cerr << "cannot write a bundle file\n";
-		std::exit(1);
-	}
+	if (!file.open(QIODevice::WriteOnly))
+		qFatal("cannot write a bundle file");
 	file.close();
-	const QString goneBundle = s.temporary.filePath(QStringLiteral("moved/Gone_bundle.egscene"));
-	check(sceneDisplayName(bundle) == QLatin1String("Saved case"), scenario, "a bundle is not named without its extension");
-	check(sceneDisplayName(goneBundle) == QLatin1String("Gone bundle"), scenario, "a missing bundle is not named without its extension");
-	check(sceneDisplayName(s.outside) == QLatin1String("Recent One"), scenario, "a folder is not named by its manifest");
+	const QString goneBundle = m_scenarios.temporary.filePath(QStringLiteral("moved/Gone_bundle.egscene"));
+	// A bundle is named without its extension.
+	QCOMPARE(sceneDisplayName(bundle), "Saved case");
+	// A missing bundle is named without its extension.
+	QCOMPARE(sceneDisplayName(goneBundle), "Gone bundle");
+	// A folder is named by its manifest.
+	QCOMPARE(sceneDisplayName(m_scenarios.outside), "Recent One");
 	CaseChooserDialog::Options options;
-	options.recentPaths = QStringList{bundle, goneBundle, s.outside};
-	options.availableGeometry = screen;
-	Shown shown(scenario, options, screen);
-	check(rowTexts(shown.dialog.list())
-			== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Saved case"), QStringLiteral("Unavailable: Gone bundle"),
-				QStringLiteral("Recent One")}),
-		scenario, "the recent rows are not named without the extension");
+	options.recentPaths = QStringList{bundle, goneBundle, m_scenarios.outside};
+	options.availableGeometry = kScreen;
+	Shown shown(options, kScreen);
+	QVERIFY2(shown.problem.isEmpty(), qPrintable(shown.problem));
+	// The recent rows are named without the extension.
+	QCOMPARE(rowTexts(shown.dialog.list()),
+		QStringList({QStringLiteral("Recent cases"), QStringLiteral("Saved case"), QStringLiteral("Unavailable: Gone bundle"),
+			QStringLiteral("Recent One")}));
 }
 
-} // namespace
-
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	QFile qss(QStringLiteral(EGTRAIN_DIALOG_QSS));
-	if (!qss.open(QIODevice::ReadOnly)) {
-		std::cerr << "cannot load application QSS\n";
-		return 1;
-	}
-	// The test binary has no Qt resources, so point the stylesheet at the icon files.
-	QString styleSheet = QString::fromUtf8(qss.readAll());
-	styleSheet.replace(QStringLiteral(":/icons/"), QFileInfo(qss).absolutePath() + QStringLiteral("/../icons/"));
-	app.setStyleSheet(styleSheet);
-
-	Scenarios scenarios;
-	scenarios.bundled(QStringLiteral("alpha"), QStringLiteral("Alpha case"));
-	scenarios.bundled(QStringLiteral("beta"), QStringLiteral("Beta case"));
-	const QRect screen(0, 0, 1280, 800);
-	const QFont original = QApplication::font();
-	for (const qreal scale : {1.0, 1.5}) {
-		QFont font = original;
-		font.setPointSizeF(12 * scale);
-		QApplication::setFont(font);
-		exerciseLayouts(scenarios, screen, scale == 1.0 ? QStringLiteral("1.0x") : QStringLiteral("1.5x"));
-	}
-	QApplication::setFont(original);
-	exerciseInteraction(scenarios, screen);
-	exerciseBundleLabels(scenarios, screen);
-	return ok ? 0 : 1;
-}
+QTEST_MAIN(TestCaseChooserDialog)
+#include "test_casechooserdialog.moc"

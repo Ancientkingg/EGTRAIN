@@ -13,6 +13,7 @@
 #include <QScreen>
 #include <QScrollBar>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QTextBlock>
 #include <QTextBrowser>
 #include <QTextObjectInterface>
@@ -21,12 +22,6 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
-
-static bool check(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << message << '\n';
-	return condition;
-}
 
 static bool writeFile(const QString& path, const QByteArray& text) {
 	QDir().mkpath(QFileInfo(path).absolutePath());
@@ -88,44 +83,74 @@ static QString buildHelpFile(const QString& folder) {
 	return helpFile;
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	QTemporaryDir folder;
-	const QString helpFile = folder.isValid() ? buildHelpFile(folder.path()) : QString();
-	if (!check(!helpFile.isEmpty(), "qhelpgenerator did not build the test help file"))
-		return 1;
+// The manual window reads a help file that qhelpgenerator builds as the build makes EGTRAIN.qch: its title, sections,
+// contents, search and pictures.
+class TestManualWindow : public QObject {
+	Q_OBJECT
 
-	bool ok = true;
+private slots:
+	void initTestCase();
+	void titleNamesVersionAndFitsScreen();
+	void sectionOpensItsPage();
+	void contentsAndSearchReadHelpFile();
+	void picturesFitPage();
+	void widgetTakesSectionOfParent();
+	void missingHelpFileOpensNothing();
+
+private:
+	QTemporaryDir m_folder;
+	QString m_helpFile;
+};
+
+void TestManualWindow::initTestCase() {
+	m_helpFile = m_folder.isValid() ? buildHelpFile(m_folder.path()) : QString();
+	QVERIFY2(!m_helpFile.isEmpty(), "qhelpgenerator did not build the test help file");
 	QCoreApplication::setApplicationVersion(QStringLiteral("1.2.3"));
-	ManualWindow window(helpFile);
-	// The title names the version, and the window opens inside the screen area.
-	ok &= check(window.windowTitle() == QStringLiteral("EGTRAIN 1.2.3 Manual"), "the title does not name the version");
-	ok &= check(window.screen()->availableGeometry().contains(window.geometry()), "the window is larger than the screen area");
-	auto* engine = window.findChild<QHelpEngine*>();
+}
+
+// The title names the version, and the window opens inside the screen area.
+void TestManualWindow::titleNamesVersionAndFitsScreen() {
+	ManualWindow window(m_helpFile);
+	// The title names the version.
+	QCOMPARE(window.windowTitle(), QStringLiteral("EGTRAIN 1.2.3 Manual"));
+	QVERIFY2(window.screen()->availableGeometry().contains(window.geometry()), "the window is larger than the screen area");
+}
+
+void TestManualWindow::sectionOpensItsPage() {
+	ManualWindow window(m_helpFile);
 	auto* browser = window.findChild<QTextBrowser*>();
+	// A section opens its page at its anchor.
+	QVERIFY2(window.showSection(QStringLiteral("case-settings")), "the help file did not open");
+	// case-settings opens its page.
+	QCOMPARE(browser->source(), QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/glossary.html#case-settings")));
+	QVERIFY2(browser->toPlainText().contains(QStringLiteral("The base time of a timetable.")), "the page text is missing");
+	// A section whose page is not in the help file opens the start page.
+	window.showSection(QStringLiteral("main-window"));
+	QCOMPARE(browser->source(), QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")));
+}
+
+// Contents and search read the help file.
+void TestManualWindow::contentsAndSearchReadHelpFile() {
+	ManualWindow window(m_helpFile);
+	auto* engine = window.findChild<QHelpEngine*>();
 	bool indexed = false;
 	int hits = -1;
 	QObject::connect(engine->searchEngine(), &QHelpSearchEngine::indexingFinished, [&indexed] { indexed = true; });
 	QObject::connect(engine->searchEngine(), &QHelpSearchEngine::searchingFinished, [&hits](int count) { hits = count; });
-
-	// A section opens its page at its anchor.
-	ok &= check(window.showSection(QStringLiteral("case-settings")), "the help file did not open");
-	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/glossary.html#case-settings")),
-		"case-settings did not open its page");
-	ok &= check(browser->toPlainText().contains(QStringLiteral("The base time of a timetable.")), "the page text is missing");
-	// A section whose page is not in the help file opens the start page.
-	window.showSection(QStringLiteral("main-window"));
-	ok &= check(browser->source() == QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/index.html")), "a missing page did not open the start page");
-
-	// Contents and search read the help file.
-	ok &= check(waitFor([engine] { return engine->contentModel()->rowCount() == 1; }), "the contents are empty");
-	ok &= check(waitFor([&indexed] { return indexed; }), "the search index was not built");
+	QVERIFY2(waitFor([engine] { return engine->contentModel()->rowCount() == 1; }), "the contents are empty");
+	QVERIFY2(waitFor([&indexed] { return indexed; }), "the search index was not built");
 	engine->searchEngine()->search(QStringLiteral("timetable"));
-	ok &= check(waitFor([&hits] { return hits >= 0; }) && hits == 1, "the search did not find the page");
+	// The search finds the page.
+	QVERIFY(waitFor([&hits] { return hits >= 0; }));
+	QCOMPARE(hits, 1);
+}
 
-	// A picture wider than its line shows at the width of the line with its aspect ratio, also at the end of a long page and
-	// after the window narrows, and a narrower picture keeps its size. The page still opens at its anchor below the pictures.
-	// The scroll bar stays, as on macOS, so the page keeps its width when it loads.
+// A picture wider than its line shows at the width of the line with its aspect ratio, also at the end of a long page and
+// after the window narrows, and a narrower picture keeps its size. The page still opens at its anchor below the pictures.
+// The scroll bar stays, as on macOS, so the page keeps its width when it loads.
+void TestManualWindow::picturesFitPage() {
+	ManualWindow window(m_helpFile);
+	auto* browser = window.findChild<QTextBrowser*>();
 	browser->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	window.show();
 	browser->setSource(QUrl(QStringLiteral("qthelp://org.egtrain.test/doc/guides/pictures.html#end")));
@@ -136,23 +161,28 @@ int main(int argc, char** argv) {
 			&& std::abs(sizes[0].height() - room * 750 / 1200) <= 1 && sizes[1].width() < room && sizes[2] == QSizeF(100, 50)
 			&& sizes[3] == sizes[0];
 	};
-	ok &= check(waitFor(fits), "a picture does not fit the page");
-	ok &= check(browser->cursorForPosition(QPoint(0, 4)).block().text() == QStringLiteral("End"), "the page did not open at its anchor");
+	QVERIFY2(waitFor(fits), "a picture does not fit the page");
+	// The page opens at its anchor.
+	QCOMPARE(browser->cursorForPosition(QPoint(0, 4)).block().text(), QStringLiteral("End"));
 	const int wideViewport = browser->viewport()->width();
 	window.resize(window.width() - 200, window.height());
-	ok &= check(waitFor([&] { return browser->viewport()->width() < wideViewport && fits(); }), "a picture does not fit the narrower page");
+	QVERIFY2(waitFor([&] { return browser->viewport()->width() < wideViewport && fits(); }), "a picture does not fit the narrower page");
+}
 
-	// A widget takes the section of its nearest parent that names one.
+// A widget takes the section of its nearest parent that names one.
+void TestManualWindow::widgetTakesSectionOfParent() {
 	QWidget dock;
 	dock.setProperty("manualSection", QStringLiteral("case-settings"));
 	auto* field = new QWidget(&dock);
-	ok &= check(ManualWindow::sectionOf(field) == QStringLiteral("case-settings"), "a child did not take the section of its parent");
-
-	// Without a help file the window shows nothing, so the application opens the published guides instead.
-	ManualWindow missing(folder.path() + QStringLiteral("/missing.qch"));
-	ok &= check(!missing.showSection(QStringLiteral("case-settings")), "a missing help file opened");
-
-	if (ok)
-		std::cout << "test_manualwindow passed\n";
-	return ok ? 0 : 1;
+	// A child takes the section of its parent.
+	QCOMPARE(ManualWindow::sectionOf(field), QStringLiteral("case-settings"));
 }
+
+// Without a help file the window shows nothing, so the application opens the published guides instead.
+void TestManualWindow::missingHelpFileOpensNothing() {
+	ManualWindow missing(m_folder.path() + QStringLiteral("/missing.qch"));
+	QVERIFY2(!missing.showSection(QStringLiteral("case-settings")), "a missing help file opened");
+}
+
+QTEST_MAIN(TestManualWindow)
+#include "test_manualwindow.moc"
