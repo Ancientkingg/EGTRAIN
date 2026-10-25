@@ -601,6 +601,27 @@ and passengers into the model. It is an explicit conversion command/UI action,
 not a fallback used when running a scene. <code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.</p>
+<p>A legacy file that cannot be opened, or that starts with the UTF-16 byte order
+mark and has an odd byte count or an unpaired surrogate, is reported instead of
+read as empty. The train, train data, traction, route, timetable and passenger
+files and the two sidecars of an export keep their own diagnostics.
+<code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code> gives the error <code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code>
+and stops the import, as a missing one does. Any other file gives the warning
+<code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code> and counts as skipped in <code class="docutils literal notranslate"><span class="pre">import_report</span></code>. An unreadable
+<code class="docutils literal notranslate"><span class="pre">trainNames.txt</span></code> is replaced by the files in <code class="docutils literal notranslate"><span class="pre">Trains</span></code>, as a missing one is, and
+an unreadable rollout adds no scenario.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SceneExporter</span></code> writes a legacy case into a staging folder next to the
+destination and publishes it only when the export is complete, so a failed
+export leaves the destination as it was. A new destination is the staging
+folder renamed. In an existing destination the publish first removes the old
+files that the importer would read as part of the new case: every
+<code class="docutils literal notranslate"><span class="pre">Routes/Route&lt;N&gt;.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Incidents.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code>, the
+area sidecar, and <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> when the scene has no
+signalling areas, each in any letter case. It then moves the staged files over
+the files of the same name. The files that the exporter writes only when they
+are missing, such as the track line files, <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">Connections.txt</span></code>,
+the GUI layout and the passenger files, stay as the destination has them, and so
+does every other file there.</p>
 <p>The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">import_report</span></code>; full
 legacy trees are not duplicated.</p>

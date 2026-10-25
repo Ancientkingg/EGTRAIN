@@ -62,6 +62,7 @@ var hierarchy =
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
     [ "DiagramKeyEntry", "struct_diagram_key_entry.html", null ],
     [ "DispatchLive", "struct_dispatch_live.html", null ],
+    [ "ExportFolders", "struct_export_folders.html", null ],
     [ "FigureColumn", "struct_figure_column.html", null ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", null ],
     [ "FollowAvailability", "struct_follow_availability.html", null ],

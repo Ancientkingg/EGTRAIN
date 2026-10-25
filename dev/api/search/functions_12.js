@@ -429,8 +429,8 @@ var searchData=
   ['swatchcolor_426',['swatchColor',['../class_color_choice_button.html#a7e06a983e7d73eec1539af24dcd7b47c',1,'ColorChoiceButton']]],
   ['symbolrect_427',['symbolRect',['../class_station_overlay_item.html#a6bd9f3174fb5d90109e7e742483f1928',1,'StationOverlayItem']]],
   ['sync_428',['sync',['../class_selection_cue_item.html#ad7d1659586bc24e053efea9e3b269c48',1,'SelectionCueItem::sync()'],['../class_console_streambuf.html#ac44be2269b38a922f9816b3f923f49e7',1,'ConsoleStreambuf::sync()']]],
-  ['synthesizecanonicalcompatibility_429',['synthesizeCanonicalCompatibility',['../_scene_exporter_8cpp.html#aee67024f2c07df159c919c3968fd3e20',1,'SceneExporter.cpp']]],
-  ['synthesizecanonicalinfrastructure_430',['synthesizeCanonicalInfrastructure',['../_scene_exporter_8cpp.html#af48cc40c3f25fa78d513a67c379a4925',1,'SceneExporter.cpp']]],
-  ['synthesizeguilayout_431',['synthesizeGuiLayout',['../_scene_exporter_8cpp.html#a4c0a3b17109f1027d495a55c53889a85',1,'SceneExporter.cpp']]],
+  ['synthesizecanonicalcompatibility_429',['synthesizeCanonicalCompatibility',['../_scene_exporter_8cpp.html#a2440ebe58c0970c3bb4735d631e68f3e',1,'SceneExporter.cpp']]],
+  ['synthesizecanonicalinfrastructure_430',['synthesizeCanonicalInfrastructure',['../_scene_exporter_8cpp.html#a1331d41d6315b1136f27af288579eb6e',1,'SceneExporter.cpp']]],
+  ['synthesizeguilayout_431',['synthesizeGuiLayout',['../_scene_exporter_8cpp.html#a3f6a40b2209c24df28e7a1237aa035e5',1,'SceneExporter.cpp']]],
   ['synthesizesignallingareas_432',['synthesizeSignallingAreas',['../_scene_exporter_8cpp.html#a9b4874707e0d44d9698942d7235c828b',1,'SceneExporter.cpp']]]
 ];

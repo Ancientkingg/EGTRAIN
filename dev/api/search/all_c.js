@@ -126,6 +126,6 @@ var searchData=
   ['longitude_123',['longitude',['../struct_scene_station_view.html#ade6032ca8cf9ebe1214f3e696fd55241',1,'SceneStationView::longitude'],['../class_node.html#af1772ed9e687d1e230f21c8fdf955ee9',1,'Node::longitude'],['../class_stations.html#a673376dec31658b8c951dcc1b1727737',1,'Stations::longitude']]],
   ['lookuphead_124',['lookupHead',['../struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071',1,'Train::BrakingArcCursor']]],
   ['loop_125',['loop',['../classtelemetry_1_1_worker.html#a81aed8eda2509c0b593919526065a182',1,'telemetry::Worker']]],
-  ['lowercopy_126',['lowerCopy',['../_scene_importer_8cpp.html#a958a60e28b09996849ec7665c6206390',1,'SceneImporter.cpp']]],
+  ['lowercopy_126',['lowerCopy',['../_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390',1,'lowerCopy(std::string value):&#160;SceneExporter.cpp'],['../_scene_importer_8cpp.html#a958a60e28b09996849ec7665c6206390',1,'lowerCopy(std::string value):&#160;SceneImporter.cpp']]],
   ['lowerkm_127',['lowerKm',['../struct_block_section_extent.html#ae3ac53b4733f8cd5abebd6ae09ea6e68',1,'BlockSectionExtent']]]
 ];

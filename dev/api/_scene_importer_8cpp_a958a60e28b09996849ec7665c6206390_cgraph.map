@@ -1,4 +1,6 @@
 <map id="lowerCopy" name="lowerCopy">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,96,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="34,30,31,21,33,12,39,5,51,3,64,6,70,15,65,18,61,11,51,8,42,10,37,14,36,20,39,28"/>
+<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="144,29,235,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,39,130,39,130,45,96,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="166,30,161,21,163,11,173,5,189,3,209,6,217,15,213,18,206,11,189,8,175,10,168,15,166,20,170,28"/>
 </map>

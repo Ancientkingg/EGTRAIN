@@ -1,0 +1,14 @@
+<map id="synthesizeCanonicalInfrastructure" name="synthesizeCanonicalInfrastructure">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,249,92"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="87,68,78,58,83,48,100,42,127,40,162,44,172,49,176,54,172,57,169,53,161,49,127,45,101,47,87,52,84,58,91,65"/>
+<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650" title="True when existing finds a file at relative." alt="" coords="297,29,456,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,64,283,53,284,59,213,69"/>
+<area shape="rect" id="Node000005" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="317,103,436,128"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="216,89,304,102,303,108,215,95"/>
+<area shape="rect" id="Node000003" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title=" " alt="" coords="504,29,675,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,39,490,39,490,45,456,45"/>
+<area shape="rect" id="Node000004" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="723,29,813,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="675,39,709,39,709,45,675,45"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="738,31,732,21,735,11,748,5,768,3,793,6,803,15,799,19,790,11,768,8,749,10,739,15,737,20,743,28"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="342,104,335,94,339,84,353,78,377,76,406,80,418,89,414,93,404,85,377,81,354,83,342,88,340,94,346,101"/>
+</map>

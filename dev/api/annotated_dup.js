@@ -105,6 +105,7 @@ var annotated_dup =
     [ "DispatchLive", "struct_dispatch_live.html", "struct_dispatch_live" ],
     [ "ElidedLabel", "class_elided_label.html", "class_elided_label" ],
     [ "EntranceDelayPanel", "class_entrance_delay_panel.html", "class_entrance_delay_panel" ],
+    [ "ExportFolders", "struct_export_folders.html", "struct_export_folders" ],
     [ "FigureColumn", "struct_figure_column.html", "struct_figure_column" ],
     [ "FindDialog", "class_find_dialog.html", "class_find_dialog" ],
     [ "FollowAvailability", "struct_follow_availability.html", "struct_follow_availability" ],

@@ -1,0 +1,7 @@
+<map id="isLegacyRouteFile" name="isLegacyRouteFile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,145,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="48,31,42,21,45,11,57,5,75,3,98,6,107,15,104,19,95,11,75,8,58,10,49,15,48,20,53,28"/>
+<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="193,29,284,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="146,39,179,39,179,45,146,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="211,31,206,21,209,11,220,5,239,3,261,6,271,15,267,19,259,11,239,8,222,10,213,15,211,20,216,28"/>
+</map>

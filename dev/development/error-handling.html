@@ -400,6 +400,10 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">scene.import.missing</span></code> with the reason; passenger files that cannot be checked count as absent</p></td>
 <td><p><strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1.</p></td>
 </tr>
+<tr class="row-even"><td><p>A legacy file that the import reads (<code class="docutils literal notranslate"><span class="pre">readLegacyFile</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/SceneImporter.cpp</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code>: “Cannot read <file>: it cannot be opened or is not valid UTF-16”</p></td>
+<td><p>For <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code> an error: <strong>Cannot Import Legacy Case</strong>, or <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">import</span></code> exits with 1. For any other file a warning, and the import goes on without it.</p></td>
+</tr>
 </tbody>
 </table>
 </div>

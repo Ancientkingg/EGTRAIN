@@ -1,0 +1,9 @@
+<map id="publishExport" name="publishExport">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,116,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="29,31,23,21,26,11,39,5,61,3,87,6,98,15,94,19,85,11,61,8,41,10,30,15,28,20,34,28"/>
+<area shape="rect" id="Node000002" href="$_staged_directory_8h.html#aa42575c31d4a05d79524be93acfe58b5" title=" " alt="" coords="164,29,339,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="116,39,150,39,150,45,116,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="220,31,213,21,217,11,230,5,251,3,277,6,288,15,285,19,275,11,251,8,231,10,221,15,219,20,224,28"/>
+<area shape="rect" id="Node000003" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it." alt="" coords="387,29,569,55"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="339,39,373,39,373,45,339,45"/>
+</map>

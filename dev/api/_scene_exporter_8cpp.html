@@ -138,10 +138,16 @@ Include dependency graph for SceneExporter.cpp:</div>
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp__incl.svg" width="2998" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:ExportFolders" id="r_ExportFolders"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_export_folders.html">ExportFolders</a></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a75925cf258bf89c8557962077084a052" id="r_a75925cf258bf89c8557962077084a052"><td class="memItemLeft">static fs::path&#160;</td><td class="memItemRight"><a class="el" href="#a75925cf258bf89c8557962077084a052">comparablePath</a> (const fs::path &amp;path)</td></tr>
 <tr class="memitem:a0d22c674dfdd3b9eb040c615c492fa74" id="r_a0d22c674dfdd3b9eb040c615c492fa74"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0d22c674dfdd3b9eb040c615c492fa74">containsPath</a> (const fs::path &amp;parent, const fs::path &amp;child)</td></tr>
+<tr class="memitem:a958a60e28b09996849ec7665c6206390" id="r_a958a60e28b09996849ec7665c6206390"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a958a60e28b09996849ec7665c6206390">lowerCopy</a> (std::string value)</td></tr>
+<tr class="memitem:a9c3144d5d9f799f08430e9081be7c26e" id="r_a9c3144d5d9f799f08430e9081be7c26e"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a9c3144d5d9f799f08430e9081be7c26e">isLegacyRouteFile</a> (const fs::path &amp;path)</td></tr>
 <tr class="memitem:a1393407e37d7aa39d0099ecf50b1cf83" id="r_a1393407e37d7aa39d0099ecf50b1cf83"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a1393407e37d7aa39d0099ecf50b1cf83">reconstructibleTrackNumber</a> (const std::string &amp;name, int &amp;number)</td></tr>
 <tr class="memitem:ae554db1417a16a13af3c86146d0f6d93" id="r_ae554db1417a16a13af3c86146d0f6d93"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae554db1417a16a13af3c86146d0f6d93">sanitizeFilename</a> (const std::string &amp;name)</td></tr>
 <tr class="memitem:ad34cbffa47fce39ac04ede0196ff570f" id="r_ad34cbffa47fce39ac04ede0196ff570f"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad34cbffa47fce39ac04ede0196ff570f">isPositionedRouteEndpoint</a> (const std::string &amp;token)</td></tr>
@@ -152,13 +158,14 @@ Functions</h2></td></tr>
 <tr class="memitem:acf3292b2f82d16d5b4a354f6399dd056" id="r_acf3292b2f82d16d5b4a354f6399dd056"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#acf3292b2f82d16d5b4a354f6399dd056">mapLegacyBlockReference</a> (const std::string &amp;reference, const std::unordered_map&lt; std::string, std::string &gt; &amp;blockIds)</td></tr>
 <tr class="memitem:a9b4874707e0d44d9698942d7235c828b" id="r_a9b4874707e0d44d9698942d7235c828b"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a9b4874707e0d44d9698942d7235c828b">synthesizeSignallingAreas</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::unordered_map&lt; std::string, std::string &gt; &amp;legacyTrackIds, const std::string &amp;outDir, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
 <tr class="memitem:a974520e4a9aae840f353f2886f664de6" id="r_a974520e4a9aae840f353f2886f664de6"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a974520e4a9aae840f353f2886f664de6">writeInitialParameters</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;outDir, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
-<tr class="memitem:af48cc40c3f25fa78d513a67c379a4925" id="r_af48cc40c3f25fa78d513a67c379a4925"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#af48cc40c3f25fa78d513a67c379a4925">synthesizeCanonicalInfrastructure</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;outDir, const std::unordered_map&lt; std::string, std::string &gt; &amp;outputTracks, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
+<tr class="memitem:a1331d41d6315b1136f27af288579eb6e" id="r_a1331d41d6315b1136f27af288579eb6e"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a1331d41d6315b1136f27af288579eb6e">synthesizeCanonicalInfrastructure</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;folders, const std::unordered_map&lt; std::string, std::string &gt; &amp;outputTracks, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
 <tr class="memitem:a884eb8f6955c729fe312754aa8e13e0b" id="r_a884eb8f6955c729fe312754aa8e13e0b"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a884eb8f6955c729fe312754aa8e13e0b">legacyStationName</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;stationId)</td></tr>
 <tr class="memitem:a852c4c61a8d9505c440d48336336808b" id="r_a852c4c61a8d9505c440d48336336808b"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a852c4c61a8d9505c440d48336336808b">legacyBoundaryToken</a> (const std::string &amp;token)</td></tr>
 <tr class="memitem:a20cdaf8bfe8f00d8efbc8e5c91b6d557" id="r_a20cdaf8bfe8f00d8efbc8e5c91b6d557"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a20cdaf8bfe8f00d8efbc8e5c91b6d557">passengerWindowToken</a> (double start, double end, std::string &amp;token)</td></tr>
-<tr class="memitem:aee67024f2c07df159c919c3968fd3e20" id="r_aee67024f2c07df159c919c3968fd3e20"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#aee67024f2c07df159c919c3968fd3e20">synthesizeCanonicalCompatibility</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;outDir, const std::unordered_map&lt; std::string, int &gt; &amp;routeIndices, const std::unordered_map&lt; std::string, std::string &gt; &amp;blockIds, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
+<tr class="memitem:a2440ebe58c0970c3bb4735d631e68f3e" id="r_a2440ebe58c0970c3bb4735d631e68f3e"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a2440ebe58c0970c3bb4735d631e68f3e">synthesizeCanonicalCompatibility</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;folders, const std::unordered_map&lt; std::string, int &gt; &amp;routeIndices, const std::unordered_map&lt; std::string, std::string &gt; &amp;blockIds, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
 <tr class="memitem:aea56aab1e162a700d87bce2e6b546c67" id="r_aea56aab1e162a700d87bce2e6b546c67"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#aea56aab1e162a700d87bce2e6b546c67">writeViewLayout</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::unordered_map&lt; std::string, std::string &gt; &amp;legacyTrackIds, const std::string &amp;outDir, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
-<tr class="memitem:a4c0a3b17109f1027d495a55c53889a85" id="r_a4c0a3b17109f1027d495a55c53889a85"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a4c0a3b17109f1027d495a55c53889a85">synthesizeGuiLayout</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::unordered_map&lt; std::string, std::string &gt; &amp;legacyTrackIds, const std::string &amp;outDir, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
+<tr class="memitem:a3f6a40b2209c24df28e7a1237aa035e5" id="r_a3f6a40b2209c24df28e7a1237aa035e5"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a3f6a40b2209c24df28e7a1237aa035e5">synthesizeGuiLayout</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::unordered_map&lt; std::string, std::string &gt; &amp;legacyTrackIds, const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;folders, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
+<tr class="memitem:ad37b94799a202382d8fb818b0c72b020" id="r_ad37b94799a202382d8fb818b0c72b020"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad37b94799a202382d8fb818b0c72b020">publishExport</a> (<a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;staging, const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;folders, bool destinationExists, <a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;result)</td></tr>
 <tr class="memitem:a3c8e917e697fb1590f70c3894717040b" id="r_a3c8e917e697fb1590f70c3894717040b"><td class="memItemLeft"><a class="el" href="struct_scene_export_result.html">SceneExportResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3c8e917e697fb1590f70c3894717040b">exportLegacyScene</a> (const std::string &amp;sceneDir, const std::string &amp;outDir)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -312,7 +319,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a3c8e917e697fb1590f70c3894717040b_cgraph.svg" width="1762" height="1920"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a3c8e917e697fb1590f70c3894717040b_cgraph.svg" width="1520" height="2104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -343,6 +350,36 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_ae8c3edf6f68db27b367866bdc45f8441_cgraph.svg" width="130" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9c3144d5d9f799f08430e9081be7c26e" name="a9c3144d5d9f799f08430e9081be7c26e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c3144d5d9f799f08430e9081be7c26e">&#9670;&#160;</a></span>isLegacyRouteFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool isLegacyRouteFile </td>
+          <td>(</td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a9c3144d5d9f799f08430e9081be7c26e_cgraph.svg" width="290" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -471,6 +508,36 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a958a60e28b09996849ec7665c6206390" name="a958a60e28b09996849ec7665c6206390"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a958a60e28b09996849ec7665c6206390">&#9670;&#160;</a></span>lowerCopy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string lowerCopy </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>value</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a958a60e28b09996849ec7665c6206390_cgraph.svg" width="102" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="acf3292b2f82d16d5b4a354f6399dd056" name="acf3292b2f82d16d5b4a354f6399dd056"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf3292b2f82d16d5b4a354f6399dd056">&#9670;&#160;</a></span>mapLegacyBlockReference()</h2>
 
@@ -544,6 +611,50 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ad37b94799a202382d8fb818b0c72b020" name="ad37b94799a202382d8fb818b0c72b020"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad37b94799a202382d8fb818b0c72b020">&#9670;&#160;</a></span>publishExport()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool publishExport </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>staging</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>folders</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>destinationExists</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_export_result.html">SceneExportResult</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>result</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_ad37b94799a202382d8fb818b0c72b020_cgraph.svg" width="575" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a1393407e37d7aa39d0099ecf50b1cf83" name="a1393407e37d7aa39d0099ecf50b1cf83"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1393407e37d7aa39d0099ecf50b1cf83">&#9670;&#160;</a></span>reconstructibleTrackNumber()</h2>
 
@@ -608,8 +719,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="aee67024f2c07df159c919c3968fd3e20" name="aee67024f2c07df159c919c3968fd3e20"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee67024f2c07df159c919c3968fd3e20">&#9670;&#160;</a></span>synthesizeCanonicalCompatibility()</h2>
+<a id="a2440ebe58c0970c3bb4735d631e68f3e" name="a2440ebe58c0970c3bb4735d631e68f3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2440ebe58c0970c3bb4735d631e68f3e">&#9670;&#160;</a></span>synthesizeCanonicalCompatibility()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -625,7 +736,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>outDir</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>folders</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -652,13 +763,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_aee67024f2c07df159c919c3968fd3e20_cgraph.svg" width="1004" height="354"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a2440ebe58c0970c3bb4735d631e68f3e_cgraph.svg" width="1004" height="354"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="af48cc40c3f25fa78d513a67c379a4925" name="af48cc40c3f25fa78d513a67c379a4925"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af48cc40c3f25fa78d513a67c379a4925">&#9670;&#160;</a></span>synthesizeCanonicalInfrastructure()</h2>
+<a id="a1331d41d6315b1136f27af288579eb6e" name="a1331d41d6315b1136f27af288579eb6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1331d41d6315b1136f27af288579eb6e">&#9670;&#160;</a></span>synthesizeCanonicalInfrastructure()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -674,7 +785,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>outDir</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>folders</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -696,13 +807,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_af48cc40c3f25fa78d513a67c379a4925_cgraph.svg" width="422" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a1331d41d6315b1136f27af288579eb6e_cgraph.svg" width="819" height="134"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a4c0a3b17109f1027d495a55c53889a85" name="a4c0a3b17109f1027d495a55c53889a85"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c0a3b17109f1027d495a55c53889a85">&#9670;&#160;</a></span>synthesizeGuiLayout()</h2>
+<a id="a3f6a40b2209c24df28e7a1237aa035e5" name="a3f6a40b2209c24df28e7a1237aa035e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f6a40b2209c24df28e7a1237aa035e5">&#9670;&#160;</a></span>synthesizeGuiLayout()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -723,7 +834,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>outDir</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>folders</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -740,7 +851,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a4c0a3b17109f1027d495a55c53889a85_cgraph.svg" width="547" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a3f6a40b2209c24df28e7a1237aa035e5_cgraph.svg" width="734" height="295"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
