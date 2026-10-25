@@ -2010,9 +2010,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const QLabel* tractionWarning = window->findChild<QLabel*>("diagramWarning");
 			// The warning above the chart says that the curve goes below 0 kN; the chart itself has no title.
+			// The window knows the unit whose curve it shows, which closes it with the unit and keeps the curves in their
+			// colours.
 			plotOk = plotOk && chart->title().isEmpty() && tractionWarning
 				&& (tractionWarning->text() == QStringLiteral("Part of the curve is below 0 kN and is not shown.")) == fixture.second
-				&& !window->findChild<QWidget*>("diagramDetailsPanel");
+				&& !window->findChild<QWidget*>("diagramDetailsPanel") && window->rollingStockSubject() == QString::fromStdString(unit.id);
 			if (axis) {
 				const double maximum = axis->max();
 				chart->zoom(2.0);

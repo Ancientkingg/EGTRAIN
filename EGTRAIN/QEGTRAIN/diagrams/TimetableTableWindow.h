@@ -30,7 +30,7 @@ public:
 		long long startOffsetSeconds,
 		std::function<std::string(const QStringList&)> csvProvider,
 		QWidget* parent = nullptr);
-	/// Writes `provenance` as a sidecar with every export and shows its case and scenario as the context.
+	/// Writes `provenance` as a sidecar with every export and shows the run in the header, as runContextText names it.
 	void setRunProvenance(RunProvenance provenance);
 	/// Sets the window title to `heading` and shows `context` in the header in one line; an empty context hides it.
 	void setPresentation(const QString& heading, const QString& context);

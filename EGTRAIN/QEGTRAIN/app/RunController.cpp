@@ -9,6 +9,7 @@
 #include "app/SceneOutputDirectory.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
+#include "diagrams/ResultFrame.h"
 #include "editors/CountText.h"
 #include "editors/ServicePanel.h"
 #include "editors/ValidationPanel.h"
@@ -43,13 +44,7 @@
 #include <exception>
 
 QString completedRunContext(const RunProvenance& provenance) {
-	QString caseName = QString::fromStdString(provenance.caseName);
-	const QString scenario = QString::fromStdString(provenance.appliedScenario);
-	if (caseName.isEmpty())
-		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
-	if (scenario.isEmpty())
-		return caseName;
-	return QStringLiteral("%1 / %2").arg(caseName, scenario);
+	return runContextText(provenance);
 }
 
 RunController::RunController(QMainWindow* window, SceneDocument* document, SceneSession* session, RunSelection& selection, Host& host)

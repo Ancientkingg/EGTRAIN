@@ -5,9 +5,11 @@
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainFilterButton.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QKeyEvent>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -17,9 +19,11 @@
 #include <QHelpEvent>
 #include <QScreen>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStyle>
@@ -36,6 +40,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <tuple>
 #include <utility>
 
 static bool expect(bool condition, const char* message) {
@@ -398,6 +403,24 @@ static bool exerciseTableImageHeaders() {
 	return ok;
 }
 
+// The header names the run as the other result windows do: the scenario alone for a case without a name, and "(none)"
+// for a run without either.
+static bool exerciseRunContext() {
+	bool ok = true;
+	for (const auto& [caseName, scenario, shown] : {std::tuple("", "S", "S"), std::tuple("Paimpol", "", "Paimpol"), std::tuple("", "", "(none)")}) {
+		TimetableTableWindow window(twoTrainRows(), 0, {});
+		RunProvenance provenance;
+		provenance.caseName = caseName;
+		provenance.appliedScenario = scenario;
+		window.setRunProvenance(provenance);
+		const auto* context = window.findChild<QLabel*>("timetableContext");
+		ok &= expect(context && context->text() == shown && !context->isHidden(),
+			qPrintable(QString("the header of a run of case \"%1\" and scenario \"%2\" reads %3: %4")
+					.arg(caseName, scenario, shown, context ? context->text() : QStringLiteral("missing"))));
+	}
+	return ok;
+}
+
 // Handles events until `done` holds, for at most about a second.
 static bool waitFor(const std::function<bool()>& done) {
 	for (int round = 0; round < 200 && !done(); ++round) {
@@ -448,6 +471,88 @@ static bool exerciseExportKeepsWindowInFront() {
 		}
 		ok &= expect(QFile::exists(saved), qPrintable(QString("the saved export of %1 is written").arg(name)));
 	}
+	return ok;
+}
+
+// What the save dialog of an export showed, and the texts of the warnings after it.
+struct ExportDialog {
+	QString title;
+	QStringList filters;
+	QString suggested;
+	QStringList warnings;
+};
+
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
+static ExportDialog answerExport(QPushButton* button, const QString& path) {
+	ExportDialog shown;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			if (box->icon() == QMessageBox::Warning)
+				shown.warnings << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				if (answered) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				shown.title = dialog->windowTitle();
+				shown.filters = dialog->nameFilters();
+				shown.suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (path.isEmpty() || !name) {
+					dialog->reject();
+					continue;
+				}
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	if (button) button->click();
+	return shown;
+}
+
+// CSV... and PNG... ask for a file of their kind under the name of the table, and add the suffix to a name without it.
+// A write that fails says so with the path as the person reads it, here in the Windows form.
+static bool exerciseExportDialogs() {
+	QTemporaryDir directory;
+	TimetableTableWindow window(twoTrainRows(), 0, [](const QStringList&) { return std::string("csv"); });
+	window.show();
+	QPushButton* csvButton = panelButton(window, "timetableExportCsv");
+	QPushButton* pngButton = panelButton(window, "timetableExportPng");
+	bool ok = expect(directory.isValid() && csvButton && pngButton, "the window has both exports");
+	if (!ok) return false;
+	const QChar separator = display_path::separator();
+	display_path::separator() = QLatin1Char('\\');
+	const QString csvPath = QDir(directory.path()).filePath("missing/table.csv");
+	const ExportDialog csv = answerExport(csvButton, csvPath);
+	ok &= expect(csv.title == "Export Data" && csv.filters == QStringList("CSV File (*.csv)") && csv.suggested == "timetable.csv",
+		qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
+	ok &= expect(csv.warnings == QStringList("Could not save the data to:\n" + display_path::format(csvPath)),
+		qPrintable("a CSV file that cannot be written is named as the person reads it: " + csv.warnings.join(" | ")));
+	const QString pngPath = QDir(directory.path()).filePath("missing/table.png");
+	const ExportDialog png = answerExport(pngButton, pngPath);
+	ok &= expect(png.title == "Export Table" && png.filters == QStringList("PNG Image (*.png)") && png.suggested == "timetable.png",
+		qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
+	ok &= expect(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath)),
+		qPrintable("an image that cannot be written is named as the person reads it: " + png.warnings.join(" | ")));
+	display_path::separator() = separator;
+	const ExportDialog cancelled = answerExport(csvButton, QString());
+	ok &= expect(cancelled.title == "Export Data" && cancelled.warnings.isEmpty() && QDir(directory.path()).isEmpty(),
+		"a cancelled export writes nothing and says nothing");
+	const QString plain = QDir(directory.path()).filePath("plain");
+	ok &= expect(answerExport(csvButton, plain).warnings.isEmpty() && QFile::exists(plain + ".csv") && !QFile::exists(plain),
+		"CSV... adds .csv to a name without it");
+	ok &= expect(answerExport(pngButton, plain).warnings.isEmpty() && !QImage(plain + ".png").isNull(), "PNG... adds .png to a name without it");
 	return ok;
 }
 
@@ -513,8 +618,10 @@ int main(int argc, char** argv) {
 	ok &= exerciseTrainColorsForRun();
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseFrame();
+	ok &= exerciseRunContext();
 	ok &= exerciseDelayColors();
 	ok &= exerciseExportKeepsWindowInFront();
+	ok &= exerciseExportDialogs();
 	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
 			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
 		window.setPresentation("Timetable", text);

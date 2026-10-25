@@ -2,12 +2,13 @@
 // The numbers of the line fixture are copied from tests/characterization/expected as in test_delayanalysis.cpp:
 // follow-level-0 and the pairs for no signalling level, levels 0 and 3 and level 5. Every expected figure was
 // worked out by hand from those rows. Times and delays are in seconds, shares in percent. kNone marks a time that
-// does not exist. The test shows no message box, and opens the file chooser only to check that the window stays in
-// front after it.
+// does not exist. The test opens the file chooser to check that the window stays in front after it and what the export
+// asks for, and closes the warning of an export that fails itself.
 
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainFilterButton.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -21,9 +22,11 @@
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -42,11 +45,13 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QValueAxis>
 
+#include <cmath>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -500,6 +505,36 @@ bool histogramShown(const DelayAnalysisWindow& window) {
 		&& !window.findChild<QLabel*>("delayHistogramNote")->isVisible();
 }
 
+// The Punctuality chart has the look of the other result charts, and the steps of the axes are 1, 2 or 5 times a power
+// of ten.
+bool exerciseChartLook() {
+	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+	window.show();
+	showTab(window, 2);
+	QChart* chart = histogramChart(window);
+	if (!expect(chart && !chart->axes().isEmpty(), "the Punctuality tab has a chart with axes"))
+		return false;
+	const QPalette palette = window.palette();
+	bool ok = expect(chart->backgroundRoundness() == 0 && chart->margins() == QMargins(12, 8, 12, 8)
+			&& chart->backgroundBrush().color() == palette.color(QPalette::Base),
+		"square corners, the margins and the background of the result charts");
+	QColor grid = palette.color(QPalette::WindowText);
+	grid.setAlpha(30);
+	QColor line = palette.color(QPalette::WindowText);
+	line.setAlpha(90);
+	for (const QAbstractAxis* axis : chart->axes())
+		ok &= expect(axis->gridLinePen().color() == grid && axis->linePen().color() == line
+				&& axis->labelsBrush().color() == palette.color(QPalette::WindowText)
+				&& axis->titleBrush().color() == palette.color(QPalette::WindowText),
+			"a quiet grid and axis line, and labels and titles in the colour of the text");
+	for (const auto& [span, steps, step] : {std::tuple(8.0, 8, 1.0), std::tuple(10.0, 8, 2.0), std::tuple(100.0, 8, 20.0),
+			 std::tuple(0.3, 8, 0.05), std::tuple(14.0, 7, 2.0), std::tuple(15.0, 7, 5.0), std::tuple(70.0, 7, 10.0),
+			 std::tuple(71.0, 7, 20.0)})
+		ok &= expect(std::abs(roundTickStep(span, steps) - step) < step * 1e-9,
+			qPrintable(QString("%1 in at most %2 steps has steps of %3: %4").arg(span).arg(steps).arg(step).arg(roundTickStep(span, steps))));
+	return ok;
+}
+
 // H1: follow-level-0. The arrivals -269, -167 and -10 are early and +157 is 1 to 3 min late; the two arrivals at A have
 // neither a plan nor a time. The departures: 0 at B (on time) and +157 at B, two not reached at A and two without a plan at C.
 bool exercisePunctuality() {
@@ -612,6 +647,12 @@ bool exerciseFilters() {
 	bool ok = expect(occurrences && stations && occurrences->text() == "Trains (2/2)" && stations->text() == "Stations (3/3)"
 			&& occurrences->visibleTrainIds() == QStringList({"F1 #1", "F2 #1"}) && stations->visibleTrainIds() == QStringList({"A", "B", "C"}),
 		"the buttons list the occurrences and the stations with their counts");
+	const auto* occurrenceSearch = occurrences ? occurrences->findChild<QLineEdit*>() : nullptr;
+	const auto* stationSearch = stations ? stations->findChild<QLineEdit*>() : nullptr;
+	ok &= expect(occurrenceSearch && occurrenceSearch->placeholderText() == "Search trains..." && stationSearch
+			&& stationSearch->placeholderText() == "Search stations..." && occurrences->toolTip() == "Choose which trains the tabs show"
+			&& stations->toolTip() == "Choose which stations the tabs show",
+		"the search boxes and the tooltips name what the buttons list");
 
 	ok &= expect(setChecked(window, "delayAnalysisOccurrences", "F1 #1", false) && occurrences->text() == "Trains (1/2)", "one occurrence is unchecked");
 	ok &= expect(rows(calls) == 3 && cell(calls, 0, 0) == "F2" && cell(calls, 2, 0) == "F2", "only F2 remains in the calls");
@@ -646,6 +687,32 @@ bool exerciseFilters() {
 DelayAnalysisWindow levelZeroWindow() {
 	return DelayAnalysisWindow(lineSnapshot("signal-failure-forward", {331, 660, 1218, 1219, 866, 1013, 1373, 1374}, {"inc.fwd"}),
 		lineSnapshot("baseline", kFollowLevel0));
+}
+
+// The columns whose cells lie at the right, which are the columns of numbers: the first row of each table of the window.
+bool exerciseNumberColumns() {
+	DelayAnalysisWindow window = levelZeroWindow();
+	window.show();
+	const auto rightColumns = [&window](const char* name) {
+		QList<int> columns;
+		const QTableWidget* shown = table(window, name);
+		for (int column = 0; shown && shown->rowCount() > 0 && column < shown->columnCount(); ++column)
+			if (shown->item(0, column)->textAlignment() & Qt::AlignRight)
+				columns << column;
+		return columns;
+	};
+	QList<int> summary;
+	for (int column = 1; column < table(window, "delaySummary")->columnCount(); ++column)
+		summary << column;
+	bool ok = expect(rightColumns("delayCalls") == QList<int>({1, 5, 6, 8, 9, 10}),
+		"the calls: the occurrence, the journey order, the call and the times");
+	ok &= expect(table(window, "delaySummary")->columnCount() > 13 && rightColumns("delaySummary") == summary,
+		"the summary: every column after the station");
+	ok &= expect(rightColumns("delayBaselineOccurrences") == QList<int>({1, 4, 8, 9, 10, 12}),
+		"the trains against the baseline: the occurrence and the delays and times");
+	ok &= expect(rightColumns("delayBaselineCalls") == QList<int>({1, 3, 4, 6, 7, 8, 10, 11, 12}),
+		"the calls against the baseline: the occurrence, the journey order, the call and the times");
+	return ok;
 }
 
 bool exerciseBaseline() {
@@ -1105,6 +1172,76 @@ bool exerciseExportKeepsWindowInFront() {
 	return ok;
 }
 
+// What the save dialog of an export showed, and the texts of the warnings after it.
+struct ExportDialog {
+	QString title;
+	QStringList filters;
+	QString suggested;
+	QStringList warnings;
+};
+
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
+ExportDialog answerExport(QPushButton* button, const QString& path) {
+	ExportDialog shown;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			if (box->icon() == QMessageBox::Warning)
+				shown.warnings << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				if (answered) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				shown.title = dialog->windowTitle();
+				shown.filters = dialog->nameFilters();
+				shown.suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (path.isEmpty() || !name) {
+					dialog->reject();
+					continue;
+				}
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	if (button) button->click();
+	return shown;
+}
+
+// The export asks for a CSV file under the name delay_analysis.csv. A write that fails says so with the path as the
+// person reads it, here in the Windows form.
+bool exerciseExportDialog() {
+	QTemporaryDir directory;
+	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+	window.show();
+	QPushButton* button = exportButton(window);
+	bool ok = expect(directory.isValid() && button && button->isEnabled(), "the window has its export");
+	if (!ok)
+		return false;
+	const QChar separator = display_path::separator();
+	display_path::separator() = QLatin1Char('\\');
+	const QString path = QDir(directory.path()).filePath("missing/delays.csv");
+	const ExportDialog shown = answerExport(button, path);
+	const QString expected = "Could not save the data to:\n" + display_path::format(path);
+	display_path::separator() = separator;
+	ok &= expect(shown.title == "Export Data" && shown.filters == QStringList("CSV File (*.csv)") && shown.suggested == "delay_analysis.csv",
+		qPrintable("the export asks for a CSV file: " + shown.title + ", " + shown.filters.join(", ") + ", " + shown.suggested));
+	ok &= expect(shown.warnings == QStringList(expected),
+		qPrintable("a file that cannot be written is named as the person reads it: " + shown.warnings.join(" | ")));
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1115,9 +1252,11 @@ int main(int argc, char** argv) {
 	ok &= exerciseSummary();
 	ok &= exerciseThresholds();
 	ok &= exercisePunctuality();
+	ok &= exerciseChartLook();
 	ok &= exercisePunctualityShares();
 	ok &= exerciseFilters();
 	ok &= exerciseBaseline();
+	ok &= exerciseNumberColumns();
 	ok &= exerciseEvidenceAndInputDelay();
 	ok &= exerciseMissingCall();
 	ok &= exerciseIncompatible();
@@ -1126,6 +1265,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseWords();
 	ok &= exerciseExport();
 	ok &= exerciseExportKeepsWindowInFront();
+	ok &= exerciseExportDialog();
 	if (ok)
 		std::cout << "all DelayAnalysisWindow tests passed\n";
 	return ok ? 0 : 1;

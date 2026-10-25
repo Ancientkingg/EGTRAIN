@@ -1,11 +1,13 @@
 // Tests of the area capacity window, its options dialog and its export. Every value is synthetic. The
 // numbers of the line F1, F2 were copied once from the made-up line of the committed test fixture, as in
 // test_areacapacity.cpp: eight blocks, F1 then F2, profile references 59 s and 199 s, authored departures
-// 120 s and 180 s. Times are in seconds and percentages in percent. The test shows no message box, and
-// opens the file chooser only to check that the window stays in front after it.
+// 120 s and 180 s. Times are in seconds and percentages in percent. The test opens the file chooser to check
+// that the window stays in front after it and what the export asks for, and closes the warning of an export that
+// fails itself.
 
 #include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/ResultFrame.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -18,8 +20,10 @@
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QPointer>
 #include <QPushButton>
 #include <QScrollArea>
@@ -812,6 +816,23 @@ bool exerciseLabels() {
 			&& compression->item(predecessorRow, 6)->toolTip().contains("B0 ") && !compression->item(predecessorRow, 6)->toolTip().contains("@"),
 		"the governing predecessor names its blocks by their short ids and its tooltip by their labels");
 	const QTableWidget* critical = table(window, "areaCapacityCritical");
+	// The tables of the chain have the columns of the Capacity window, in the words of an area.
+	QStringList pairHeaders;
+	QStringList criticalHeaders;
+	for (int column = 0; pairs && column < pairs->columnCount(); ++column)
+		pairHeaders << pairs->horizontalHeaderItem(column)->text();
+	for (int column = 0; critical && column < critical->columnCount(); ++column)
+		criticalHeaders << critical->horizontalHeaderItem(column)->text();
+	ok &= expect(pairHeaders.value(7) == "Governing resource"
+			&& criticalHeaders == QStringList({"Leader", "Follower", "Leader resource", "Follower resource", "Gap (s)"}),
+		qPrintable("the columns name resources: " + pairHeaders.value(7) + ", " + criticalHeaders.join(", ")));
+	QStringList headings;
+	for (const QLabel* label : window.findChildren<QLabel*>())
+		if (label->text().startsWith("Pairs") || label->text().startsWith("Compression") || label->text().startsWith("Critical"))
+			headings << label->text();
+	ok &= expect(headings
+			== QStringList({"Pairs (1)", "Compression (2)", QString("Critical resources (%1)").arg(critical ? critical->rowCount() : -1)}),
+		qPrintable("the headings of the chain: " + headings.join(", ")));
 	ok &= expect(critical && critical->rowCount() > 0 && cell(critical, 0, 2).endsWith("-B0") && !cell(critical, 0, 2).contains("@")
 			&& critical->item(0, 2)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 2).toStdString() + "@"))
 			&& critical->item(0, 3)->toolTip() == QString::fromStdString(data.sectionLabels.label("@" + cell(critical, 0, 3).toStdString() + "@"))
@@ -834,6 +855,77 @@ bool exerciseLabels() {
 	return ok;
 }
 
+// What the save dialog of an export showed, and the texts of the warnings after it.
+struct ExportDialog {
+	QString title;
+	QStringList filters;
+	QString suggested;
+	QStringList warnings;
+};
+
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
+ExportDialog answerExport(QPushButton* button, const QString& path) {
+	ExportDialog shown;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			if (box->icon() == QMessageBox::Warning)
+				shown.warnings << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				if (answered) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				shown.title = dialog->windowTitle();
+				shown.filters = dialog->nameFilters();
+				shown.suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (path.isEmpty() || !name) {
+					dialog->reject();
+					continue;
+				}
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	if (button) button->click();
+	return shown;
+}
+
+// The export asks for a CSV file under the name area_capacity.csv. A write that fails says so with the path as the
+// person reads it, here in the Windows form.
+bool exerciseExportDialog() {
+	QTemporaryDir directory;
+	const CompletedRunData data = lineRun();
+	AreaCapacityWindow window(analyze(data, lineScope({"F1", "F2"})), "R / main / @0-B0@ to @7-B0@", data.provenance);
+	window.show();
+	QPushButton* button = window.findChild<QPushButton*>("areaCapacityExport");
+	bool ok = expect(directory.isValid() && button && button->isEnabled(), "the window has its export");
+	if (!ok)
+		return false;
+	const QChar separator = display_path::separator();
+	display_path::separator() = QLatin1Char('\\');
+	const QString path = QDir(directory.path()).filePath("missing/area.csv");
+	const ExportDialog shown = answerExport(button, path);
+	const QString expected = "Could not save the data to:\n" + display_path::format(path);
+	display_path::separator() = separator;
+	ok &= expect(shown.title == "Export Data" && shown.filters == QStringList("CSV File (*.csv)") && shown.suggested == "area_capacity.csv",
+		qPrintable("the export asks for a CSV file: " + shown.title + ", " + shown.filters.join(", ") + ", " + shown.suggested));
+	ok &= expect(shown.warnings == QStringList(expected),
+		qPrintable("a file that cannot be written is named as the person reads it: " + shown.warnings.join(" | ")));
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -846,6 +938,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseLargeFont();
 	ok &= exerciseExport();
 	ok &= exerciseExportKeepsWindowInFront();
+	ok &= exerciseExportDialog();
 	ok &= exerciseDialog();
 	ok &= exerciseEdgeCases();
 	ok &= exerciseOpen();

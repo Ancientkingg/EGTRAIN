@@ -1,5 +1,4 @@
 #include "diagrams/DiagramWindow.h"
-#include "app/DialogFolders.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
@@ -17,7 +16,6 @@
 #include <QTextDocument>
 #include <QSet>
 #include <QFontMetricsF>
-#include <QBuffer>
 #include <QWheelEvent>
 #include <QNativeGestureEvent>
 #include <QGestureEvent>
@@ -31,7 +29,6 @@
 #include <algorithm>
 #include <QColor>
 #include <QDir>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -41,7 +38,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
-#include <QSaveFile>
 #include <QTreeWidget>
 #include <QScreen>
 #include <QVariant>
@@ -70,14 +66,6 @@ QPen mutedPen(const QPen& base, const QColor& background) {
 	QPen pen = base;
 	pen.setColor(mutedColour(base.color(), background));
 	return pen;
-}
-
-bool writeArtifact(const QString& path, const std::string& bytes) {
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly))
-		return false;
-	const QByteArray data = QByteArray::fromStdString(bytes);
-	return file.write(data) == data.size() && file.commit();
 }
 
 // Clip a stroke to the visible plot before hit-testing. The returned fractions
@@ -134,8 +122,6 @@ QImage plannedMarker(const QPen& pen, const QColor& fill = Qt::white) {
 	return image;
 }
 
-constexpr QMargins kChartMargins(12, 8, 12, 8);
-
 // Inside a box a click selects a line rather than the box only within this many pixels of the line: the half width of an
 // emphasised line of 3.5 px and room for the pointer. Further from the line the click is on the box.
 constexpr double kLineOverBox = 4;
@@ -147,10 +133,7 @@ void roundTicks(QValueAxis* axis) {
 	const double high = axis->max();
 	const double span = high - low;
 	if (!(span > 0.0) || !std::isfinite(span)) return;
-	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
-	double step = power;
-	for (const double factor : {2.0, 5.0, 10.0})
-		if (span / step > 8) step = factor * power;
+	const double step = roundTickStep(span, 8);
 	axis->setTickType(QValueAxis::TicksDynamic);
 	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
 	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
@@ -1067,8 +1050,8 @@ void DiagramWindow::setFigureFileName(const QString& fileName) {
 	m_figureFileName = fileName;
 }
 
-void DiagramWindow::setRollingStockSubject(bool on) {
-	m_rollingStockSubject = on;
+void DiagramWindow::setRollingStockSubject(const QString& unitId) {
+	m_rollingStockSubject = unitId;
 	refreshTrainsSection();
 	refreshSelected();
 	refreshKey();
@@ -1076,7 +1059,7 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 
 // The Trains section is shown while the chart has trains, and never for rolling stock input.
 void DiagramWindow::refreshTrainsSection() {
-	if (m_trainsSection) m_frame->panel()->setSectionVisible(m_trainsSection, !m_rollingStockSubject && !m_groups.isEmpty());
+	if (m_trainsSection) m_frame->panel()->setSectionVisible(m_trainsSection, m_rollingStockSubject.isEmpty() && !m_groups.isEmpty());
 }
 
 // The kinds of mark that the shown series draw, as the class comment describes them, and those of the section strip.
@@ -1088,7 +1071,7 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		return std::find_if(entries.begin(), entries.end(), [&name](const DiagramKeyEntry& entry) { return entry.name == name; });
 	};
 	const auto series = chart->series();
-	if (m_rollingStockSubject) {
+	if (!m_rollingStockSubject.isEmpty()) {
 		for (QAbstractSeries* one : series) {
 			const auto* xy = qobject_cast<QXYSeries*>(one);
 			if (xy && xy->isVisible() && !one->name().isEmpty() && entryNamed(one->name()) == entries.end())
@@ -1191,7 +1174,7 @@ void DiagramWindow::setTrainCopies(const QHash<QString, QString>& copyOf) {
 // The colour rule needs the trains that the list shows, so the list keeps its check states and takes the colours of the
 // rule in its line samples only.
 void DiagramWindow::applyColourPlan() {
-	if (m_trainList && !m_rollingStockSubject) {
+	if (m_trainList && m_rollingStockSubject.isEmpty()) {
 		QVector<TrainColourInput> trains;
 		trains.reserve(m_groups.size());
 		for (const SeriesGroup& group : m_groups)
@@ -1263,9 +1246,6 @@ void DiagramWindow::setChart(QChart* chart) {
 	// once many trains are present.
 	if (chart && chart->legend())
 		chart->legend()->hide();
-	// Existing input-traction callers tag their windows before setting the chart.
-	// Keep the explicit API for future callers and avoid a train-only filter here.
-	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
 	rebuildFilterGroups();
 	// The trains of the old chart that were hidden stay hidden, and the Key follows.
 	applyTrainVisibility();
@@ -1422,26 +1402,9 @@ void DiagramWindow::setProvenanceWriter(
 	m_provenanceWriter = std::move(writer);
 }
 
-// Shared look for every diagram: quiet grid, readable title, line weight that
-// survives PNG export.
+// Shared look for every diagram: the look of the result charts, and a line weight that survives PNG export.
 void DiagramWindow::applyChartStyle(QChart* chart) {
-	chart->setBackgroundRoundness(0);
-	chart->setBackgroundBrush(palette().brush(QPalette::Base));
-	chart->setMargins(kChartMargins);
-
-	QColor gridColor = palette().color(QPalette::WindowText);
-	gridColor.setAlpha(30);
-	const QPen gridPen(gridColor);
-	const QBrush labelBrush = palette().brush(QPalette::WindowText);
-	const auto axes = chart->axes();
-	for (QAbstractAxis* axis : axes) {
-		axis->setGridLinePen(gridPen);
-		axis->setLabelsBrush(labelBrush);
-		axis->setTitleBrush(labelBrush);
-		QColor lineColor = palette().color(QPalette::WindowText);
-		lineColor.setAlpha(90);
-		axis->setLinePen(QPen(lineColor));
-	}
+	styleResultChart(chart, palette());
 
 	const auto seriesList = chart->series();
 	for (QAbstractSeries* series : seriesList) {
@@ -1762,7 +1725,7 @@ void DiagramWindow::refreshSelected() {
 	m_pinTitle->setText(withBreakOpportunities(m_selectedLines.value(0)));
 	m_pinLabel->setText(withBreakOpportunities(m_selectedLines.mid(1).join('\n')));
 	m_pinLabel->setVisible(m_selectedLines.size() > 1);
-	m_frame->panel()->setSectionVisible(m_selectedSection, !m_rollingStockSubject && !m_selectedLines.isEmpty());
+	m_frame->panel()->setSectionVisible(m_selectedSection, m_rollingStockSubject.isEmpty() && !m_selectedLines.isEmpty());
 }
 
 // The selected train is drawn wider and the others faint. A selected blocking time has its outline instead, so the
@@ -1969,7 +1932,7 @@ constexpr double kColumnSectionGap = 14; // between the Trains and the Key of th
 // service with a shown train while the list groups them, and the Key under "Key". Rows that do not fit end in "N more".
 FigureColumn DiagramWindow::panelColumn() const {
 	QVector<DiagramKeyEntry> trains;
-	if (m_trainList && !m_rollingStockSubject)
+	if (m_trainList && m_rollingStockSubject.isEmpty())
 		for (const auto& row : m_trainList->shownRows())
 			trains.push_back({row.first, DiagramKeyEntry::Shape::Line,
 				row.second.isValid() ? QPen(row.second, 2.5, Qt::SolidLine, Qt::RoundCap) : QPen(Qt::NoPen), QBrush()});
@@ -2052,63 +2015,31 @@ void DiagramWindow::resetZoom() {
 }
 
 void DiagramWindow::exportPng() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	const QString suggested = !m_figureFileName.isEmpty() ? m_figureFileName
 		: m_csvSuggestedName.isEmpty()					  ? QString("diagram.png")
 														  : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
-	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath(suggested), "PNG Image (*.png)");
-	if (path.isEmpty())
-		return; // cancelled: no file is written
-	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
-		path += ".png";
-	const QImage figure = exportedFigure();
-	QByteArray png;
-	QBuffer buffer(&png);
-	if (!buffer.open(QIODevice::WriteOnly) || !figure.save(&buffer, "PNG")) {
-		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
-		return;
-	}
-	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
-	const bool written = m_provenanceWriter
-		? m_provenanceWriter(path, "png", bytes)
-		: writeArtifact(path, bytes);
-	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
+	const auto png = [this] { return pngBytes(exportedFigure()); };
+	saveExportInteractive(this, telemetry::ExportKind::Png, "Export Diagram", suggested, operation, png, m_provenanceWriter);
 }
 
 void DiagramWindow::exportCsv() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = csvContent();
 	if (content.empty()) {
+		// The window comes back in front once the message closes.
+		const KeepInFront front(this);
 		QMessageBox::information(this, "Nothing to export",
 			"There is no data to export for the visible trains.");
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggested), "CSV File (*.csv)");
+	const auto csv = [&content]() -> const std::string& { return content; };
+	const QString path = saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", suggested, operation, csv, m_provenanceWriter);
 	if (path.isEmpty())
-		return; // cancelled: no file is written
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = m_provenanceWriter
-		? m_provenanceWriter(path, "csv", content)
-		: writeArtifact(path, content);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written) {
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the data to:\n%1").arg(path));
 		return;
-	}
 	// The window has no status line of its own, so the main window names the saved file.
 	if (auto* mainWindow = qobject_cast<QMainWindow*>(parentWidget()))
 		mainWindow->statusBar()->showMessage(QStringLiteral("Saved %1").arg(QDir::toNativeSeparators(path)), 8000);

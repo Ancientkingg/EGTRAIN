@@ -42,6 +42,14 @@ inline constexpr const char* kCapacity = "Capacity";								 ///< The capacity a
 inline constexpr const char* kCapacityByArea = "Capacity by area";					 ///< The capacity analysis by area.
 } // namespace ResultViewName
 
+/// The charts of the trajectories of the trains.
+enum class TrajectoryChart {
+	SpeedDistance,		   ///< ResultViewName::kSpeedDistance: speed against distance.
+	SpeedTime,			   ///< ResultViewName::kSpeedTime: speed against time.
+	TimeDistance,		   ///< ResultViewName::kTimeDistance: distance against time.
+	TractiveEffortDistance ///< ResultViewName::kTractiveEffortDistance: simulated tractive effort against distance.
+};
+
 /// The windows that show the completed run: the per-train charts, the route and timetable diagrams, the delay charts, the
 /// blocking-time diagram, and the capacity analyses. Each slot opens one window over the main window and reads the run of
 /// the RunController. Without results a slot opens nothing; all but the train paths and the timetable graph say so in
@@ -71,7 +79,10 @@ public:
 	/// Opens the window of a route diagram: the train paths, or with timetable the planned and simulated stops.
 	/// referenceIndex is the runtime index of the route that gives the horizontal axis.
 	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
-	/// Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance.
+	/// Opens the chart of the trajectories of the trains that `kind` names.
+	void buildPerTrainDiagram(TrajectoryChart kind);
+	/// Opens the chart of the trajectories at `mode` in the order of TrajectoryChart, from 0 for speed against distance
+	/// to 3, as the test hook of MainWindow gives it. Another number opens nothing.
 	void buildPerTrainDiagram(int mode);
 	/// Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that
 	/// closeAll() closes. The window keeps its own place on the screen.

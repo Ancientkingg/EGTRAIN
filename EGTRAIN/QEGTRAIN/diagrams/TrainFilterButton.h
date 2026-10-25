@@ -26,6 +26,8 @@ public:
 
 	QStringList visibleTrainIds() const;
 	bool isTrainVisible(const QString& trainId) const;
+	/// Sets the grey text of the empty search box, which is "Search trains..." until it is set.
+	void setSearchPlaceholder(const QString& text);
 
 signals:
 	void selectionChanged();

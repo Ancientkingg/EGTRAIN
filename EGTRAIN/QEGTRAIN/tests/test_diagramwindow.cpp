@@ -6,6 +6,7 @@
 #include "diagrams/TrainFilterButton.h"
 #include "diagrams/TrainKeyList.h"
 #include "scene/SectionLabels.h"
+#include "widgets/DisplayPath.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QApplication>
@@ -18,6 +19,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QStatusBar>
 #include <QTemporaryDir>
 #include <QScreen>
@@ -642,7 +644,7 @@ static bool exerciseTrainColors() {
 
 	// A chart of rolling stock input keeps the colours of its curves.
 	DiagramWindow input("Rolling stock colours");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	const ColoredChart curves = makeColoredChart();
 	input.setChart(curves.chart);
 	ok &= expect(curves.solid[0]->pen() == curves.solidPen[0] && curves.solid[1]->pen() == curves.solidPen[1],
@@ -920,7 +922,7 @@ static bool exerciseButtonDefaults() {
 	clear->click();
 	ok &= expect(!clear->isVisible() && !pin->isVisible(), "Clear hides itself and the selection");
 	DiagramWindow input("Input traction");
-	input.setProperty("inputTrainUnitId", "unit-a");
+	input.setRollingStockSubject("unit-a");
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
@@ -1740,7 +1742,7 @@ static bool exerciseLegend() {
 
 	// A chart of rolling stock input lists its curves by name, in their own pens.
 	DiagramWindow input("Key of rolling stock");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	input.show();
 	QChart* curves = makeNamedChart({"Draisy, input", "Draisy, limit"});
 	const QPen curvePen(QColor(20, 120, 60), 2.5);
@@ -2340,6 +2342,83 @@ static bool exerciseCsvSavedMessage() {
 	return ok;
 }
 
+// What the save dialog of an export showed, and the texts of the warnings after it.
+struct ExportDialog {
+	QString title;
+	QStringList filters;
+	QString suggested;
+	QStringList warnings;
+};
+
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
+static ExportDialog answerExport(QPushButton* button, const QString& path) {
+	ExportDialog shown;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			if (box->icon() == QMessageBox::Warning)
+				shown.warnings << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				if (answered) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				shown.title = dialog->windowTitle();
+				shown.filters = dialog->nameFilters();
+				shown.suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (path.isEmpty() || !name) {
+					dialog->reject();
+					continue;
+				}
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	if (button) button->click();
+	return shown;
+}
+
+// CSV... and PNG... ask for a file of their kind, export.csv and diagram.png for a window without names of its own. A
+// write that fails says so with the path as the person reads it, here in the Windows form.
+static bool exerciseExportDialogs() {
+	QTemporaryDir directory;
+	DiagramWindow window("Export dialogs");
+	window.setChart(buttonTestChart());
+	window.setCsvProvider([](const QStringList&) { return std::string("Train\nA\n"); }, QString());
+	window.show();
+	QPushButton* csvButton = buttonNamed(window, "CSV...");
+	QPushButton* pngButton = buttonNamed(window, "PNG...");
+	bool ok = expect(directory.isValid() && csvButton && pngButton, "the window has both exports");
+	if (!ok) return false;
+	const QChar separator = display_path::separator();
+	display_path::separator() = QLatin1Char('\\');
+	const QString csvPath = QDir(directory.path()).filePath("missing/diagram.csv");
+	const ExportDialog csv = answerExport(csvButton, csvPath);
+	ok &= expect(csv.title == "Export Data" && csv.filters == QStringList("CSV File (*.csv)") && csv.suggested == "export.csv",
+		qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
+	ok &= expect(csv.warnings == QStringList("Could not save the data to:\n" + display_path::format(csvPath)),
+		qPrintable("a CSV file that cannot be written is named as the person reads it: " + csv.warnings.join(" | ")));
+	const QString pngPath = QDir(directory.path()).filePath("missing/diagram.png");
+	const ExportDialog png = answerExport(pngButton, pngPath);
+	ok &= expect(png.title == "Export Diagram" && png.filters == QStringList("PNG Image (*.png)") && png.suggested == "diagram.png",
+		qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
+	ok &= expect(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath)),
+		qPrintable("an image that cannot be written is named as the person reads it: " + png.warnings.join(" | ")));
+	display_path::separator() = separator;
+	return ok;
+}
+
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
 static bool exerciseLongAxisTitle() {
 	DiagramWindow window("Blocking time");
@@ -2573,7 +2652,7 @@ static bool exercisePanelSections() {
 	QApplication::processEvents();
 	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Export"}) && shownRules(window) == 1, "Clear removes the section Selected");
 	DiagramWindow input("Rolling stock panel");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
@@ -3942,7 +4021,7 @@ int main(int argc, char* argv[]) {
 	QFont scaled = input.font();
 	scaled.setPointSizeF(18);
 	input.setFont(scaled);
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	auto* inputChart = new QChart;
 	auto* inputLine = new QLineSeries;
 	inputLine->setName("Input effort");
@@ -4041,6 +4120,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseClockTicks();
 	ok &= exerciseSingleVerticalAxis();
 	ok &= exerciseCsvSavedMessage();
+	ok &= exerciseExportDialogs();
 	ok &= exerciseHeader();
 	ok &= exercisePanelSections();
 	ok &= exerciseReadout();
