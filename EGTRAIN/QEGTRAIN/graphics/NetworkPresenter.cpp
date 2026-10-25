@@ -1324,13 +1324,13 @@ void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPoin
 
 // paint train passenger info on top of train
 void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
-	// train head graphical coordinates
-	TrainBodyItem* headPolygon = trainItem->trainPolygonItemList->at(0);
-	QPointF frontUp = headPolygon->polygon().first();
-	QPointF frontDown = headPolygon->polygon().last();
+	// The train is selected also while it has no shape, and then shows no passengers.
+	trainPaxItem = trainItem;
+	QPointF front;
+	if (!trainItem || !trainFront(*trainItem, front))
+		return;
 
 	// create line from train to message, drawn from the front of the train, where the group is
-	const QPointF front = headPolygon->mapToScene((frontUp + frontDown) / 2);
 	const QPointF start;
 	qreal dx = 0;
 	qreal dy = -1 * track_separation * presentationScale();
@@ -1391,9 +1391,8 @@ void NetworkPresenter::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	// add group to scene
 	m_scene->addItem(msgGroup);
 
-	// set current items
+	// set current item
 	trainPaxInfoItem = msgGroup;
-	trainPaxItem = trainItem;
 }
 
 // paint passenger info on top of passenger icon
