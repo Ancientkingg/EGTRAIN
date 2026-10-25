@@ -2659,8 +2659,8 @@ void TestOperationsBuilder::timetablePointOfStopIgnoresLastPlace() {
 	SceneModel statisticsScene = completeScene();
 	statisticsScene.services[0].hasRepeatCount = true;
 	statisticsScene.services[0].repeatCount = 3;
-	buildInfrastructureAndSignallingFromScene(defaultRun(), statisticsScene);
-	buildOperationsFromScene(defaultRun(), statisticsScene, "scenario.base");
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), statisticsScene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), statisticsScene, "scenario.base")));
 	if (defaultRun().trains.empty())
 		QFAIL("the station statistics fixture builds a train");
 	const double stoppingPoint = 46181.0;
