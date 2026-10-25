@@ -347,9 +347,9 @@ changes the scene format. After it is published, download one of its bundles fro
 the release and copy it unchanged into <code class="docutils literal notranslate"><span class="pre">tests/fixtures/scene-versions</span></code>. Add an
 entry to <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code> with the release in <code class="docutils literal notranslate"><span class="pre">origin</span></code> and the other keys of an
 existing entry (<code class="docutils literal notranslate"><span class="pre">counts</span></code> come from the loaded model). If the bundle is meant to
-run, add a <code class="docutils literal notranslate"><span class="pre">test_scene_version_run_*</span></code> test next to the existing ones in the root
-<code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>, with the same <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code>, and add its name to the <code class="docutils literal notranslate"><span class="pre">integration</span></code>
-list of <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests</span></code>. The next raise of a number then finds a fixture of
+run, add a <code class="docutils literal notranslate"><span class="pre">test_scene_version_run_*</span></code> test next to the existing ones in
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/CMakeLists.txt</span></code>, with the same <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code> and the label
+<code class="docutils literal notranslate"><span class="pre">integration</span></code>. The next raise of a number then finds a fixture of
 the current one.</p>
 <p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> has no <code class="docutils literal notranslate"><span class="pre">migrate</span></code> command; it offers <code class="docutils literal notranslate"><span class="pre">import</span></code>, <code class="docutils literal notranslate"><span class="pre">pack</span></code>, <code class="docutils literal notranslate"><span class="pre">unpack</span></code>,
 <code class="docutils literal notranslate"><span class="pre">export</span></code> and <code class="docutils literal notranslate"><span class="pre">validate</span></code>. The
@@ -460,15 +460,16 @@ of it.</p>
 <section id="test-labels">
 <h3>Test labels<a class="headerlink" href="#test-labels" title="Link to this heading">¶</a></h3>
 <p>Every test has exactly one of <code class="docutils literal notranslate"><span class="pre">unit</span></code> or <code class="docutils literal notranslate"><span class="pre">integration</span></code>. Configuration fails
-when a test has neither or both.</p>
+when a test has neither or both, or a label that this page does not describe.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code>: runs in-process or is a static check. It starts no QEGTRAIN,
 <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, update helper, or socket server.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">integration</span></code>: starts or inspects a built program (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>,
 <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code>, or a test that starts its own executable as a child)
 or talks to a loopback server.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gui</span></code>: needs a Qt platform plugin (the tests use <code class="docutils literal notranslate"><span class="pre">offscreen</span></code>) or launches
-QEGTRAIN in GUI mode. Combine it with either of the labels above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gui</span></code>: needs a Qt platform plugin or launches QEGTRAIN in GUI mode. The label
+sets <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>, apart from <code class="docutils literal notranslate"><span class="pre">test_widgetstyle</span></code> on Windows,
+which needs the windows platform. Combine it with either of the labels above.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">slow</span></code>: takes more than 20 seconds on a development machine.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">network</span></code>: sends a request to a server on the internet. It is registered only
 with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>, so no other test run needs the internet.
@@ -660,9 +661,9 @@ the directory of the test executables as the two arguments of
 <code class="docutils literal notranslate"><span class="pre">test_incident_smoke</span></code> and <code class="docutils literal notranslate"><span class="pre">test_assignment_smoke</span></code>) are not registered in a
 build with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_ENABLE_SANITIZERS=ON</span></code>: the time limits of their scripts are set
 for an uninstrumented build.</p>
-<p>A build with sanitizers runs several times slower than the time limits in <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> allow.
-<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_TEST_TIMEOUT_SCALE=N</span></code> multiplies the limit of every test that the top-level
-<code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> registers by N; the default 1 leaves the limits as they are. The characterization
+<p>A build with sanitizers runs several times slower than the time limits in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/CMakeLists.txt</span></code> allow.
+<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_TEST_TIMEOUT_SCALE=N</span></code> multiplies the limit of every test that <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>
+registers by N; the default 1 leaves the limits as they are. The characterization
 tests that run committed scenes have a limit of their own, <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS</span></code>
 (default 300), which the scale does not change. Waits inside the tests follow the same settings:
 <code class="docutils literal notranslate"><span class="pre">startup_launch_contract.py</span></code> multiplies its 60 second launch wait by the scale, and the fresh process

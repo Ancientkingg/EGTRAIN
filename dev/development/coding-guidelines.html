@@ -449,22 +449,25 @@ target that links a library does not get them.</p>
 <ul class="simple">
 <li><p>Strict targets build without a warning: <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_scene</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_http</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update</span></code>,
 <code class="docutils literal notranslate"><span class="pre">egtrain_sceneopen</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_openrelay</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_recovery</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_graphics</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_widgets</span></code>, the <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry</span></code> libraries, <code class="docutils literal notranslate"><span class="pre">egtrain_diagrams</span></code>,
-<code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> and the tests that use only these libraries. When
+<code class="docutils literal notranslate"><span class="pre">scene_tool</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> and the test executables. When
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN_WARNINGS_AS_ERRORS</span></code> is ON they also get <code class="docutils literal notranslate"><span class="pre">-Werror</span></code> (<code class="docutils literal notranslate"><span class="pre">/WX</span></code> with MSVC), so a new
 warning fails the build.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> has the flags only. Its own sources are clean, and the warnings in its
 build log come from the simulation headers.</p></li>
 <li><p>These have no flags: the vendored <code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code>, the legacy
-<code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, and the test executables that use the
-simulation. A comment next to the calls gives the number of warnings.</p></li>
+<code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>. A comment next to the calls gives the number of warnings.</p></li>
+<li><p>A test that includes the simulation headers passes <code class="docutils literal notranslate"><span class="pre">SIMULATION_HEADERS</span></code> to <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>.
+The headers below <code class="docutils literal notranslate"><span class="pre">SRC_DIR</span></code> are then system headers for that test, so the warnings of the
+simulation headers do not count, and the test file itself still builds without a warning.
+The characterization programs build the same way.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> and
 <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsentDialog.cpp</span></code> build inside <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, so they get no flags yet.
 <code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code> is the exception in the strict <code class="docutils literal notranslate"><span class="pre">test_selfupdater</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> in the strict
 <code class="docutils literal notranslate"><span class="pre">test_updatetelemetrycontroller</span></code>, which compile them with the flags.</p></li>
 </ul>
 <p>To give a new target the flags, call <code class="docutils literal notranslate"><span class="pre">egtrain_target_warnings(&lt;target&gt;</span> <span class="pre">STRICT)</span></code> after its
-<code class="docutils literal notranslate"><span class="pre">add_library</span></code> or <code class="docutils literal notranslate"><span class="pre">add_executable</span></code>, or add a test to the list of strict tests in the test block,
-and fix its warnings first. A source in a strict target that needs <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>
+<code class="docutils literal notranslate"><span class="pre">add_library</span></code> or <code class="docutils literal notranslate"><span class="pre">add_executable</span></code>, and fix its warnings first; <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code> does this for
+a test. A source of a strict library that needs <code class="docutils literal notranslate"><span class="pre">simulation/RollingStock.h</span></code>
 or <code class="docutils literal notranslate"><span class="pre">simulation/Signalling.h</span></code> includes <code class="docutils literal notranslate"><span class="pre">diagrams/SimulationHeaders.h</span></code> instead, because those
 headers still give warnings and that header keeps them out of the build. A function that a
 platform does not use, such as the update stagers in <code class="docutils literal notranslate"><span class="pre">update/UpdatePreparation.cpp</span></code>, is marked
@@ -758,21 +761,23 @@ Do not add another logging helper.</p>
 <section id="tests">
 <h2>Tests<a class="headerlink" href="#tests" title="Link to this heading">¶</a></h2>
 <p>C++ tests live in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/</span></code> as <code class="docutils literal notranslate"><span class="pre">test_&lt;name&gt;.cpp</span></code>, one executable each, with
-shared data in <code class="docutils literal notranslate"><span class="pre">tests/fixtures/</span></code>. Register one in the <code class="docutils literal notranslate"><span class="pre">if(EGTRAIN_BUILD_TESTS)</span></code> block of the
-root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>. The executable links the library that holds the code it tests
+shared data in <code class="docutils literal notranslate"><span class="pre">tests/fixtures/</span></code>. Register one with <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code> in
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/CMakeLists.txt</span></code>. The executable links the library that holds the code it tests
 (<a class="reference internal" href="../architecture/source-layout.html#libraries"><span class="std std-ref">Libraries</span></a>), or lists the sources itself when
 they are in no library, instead of linking the application. The telemetry tests that use a test
 hook link <code class="docutils literal notranslate"><span class="pre">egtrain_telemetry_hooks</span></code>. The CTest name equals the target name:</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_executable</span><span class="p">(</span><span class="s">test_timeformat</span><span class="w"> </span><span class="o">${</span><span class="nv">SRC_DIR</span><span class="o">}</span><span class="s">/tests/test_timeformat.cpp</span><span class="p">)</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">test_timeformat</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">egtrain_util</span><span class="p">)</span>
-<span class="nb">add_test</span><span class="p">(</span><span class="s">NAME</span><span class="w"> </span><span class="s">test_timeformat</span><span class="w"> </span><span class="s">COMMAND</span><span class="w"> </span><span class="s">test_timeformat</span><span class="p">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">egtrain_add_test</span><span class="p">(</span><span class="s">test_timeformat</span>
+<span class="w">	</span><span class="s">SOURCES</span><span class="w"> </span><span class="o">${</span><span class="nv">SRC_DIR</span><span class="o">}</span><span class="s">/tests/test_timeformat.cpp</span>
+<span class="w">	</span><span class="s">LIBS</span><span class="w"> </span><span class="s">egtrain_util</span>
+<span class="w">	</span><span class="s">LABELS</span><span class="w"> </span><span class="s">unit</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Then add the name to <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(unit</span> <span class="pre">...)</span></code> or <code class="docutils literal notranslate"><span class="pre">egtrain_label_tests(integration</span> <span class="pre">...)</span></code>
-lower in that block, and to the <code class="docutils literal notranslate"><span class="pre">gui</span></code> and <code class="docutils literal notranslate"><span class="pre">slow</span></code> lists where they apply
-(<a class="reference internal" href="testing.html#test-labels"><span class="std std-ref">Test labels</span></a>). Configuration fails when a test has neither
-<code class="docutils literal notranslate"><span class="pre">unit</span></code> nor <code class="docutils literal notranslate"><span class="pre">integration</span></code>, or both. A test that needs a Qt platform plugin also sets
-<code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span> <span class="pre">&quot;QT_QPA_PLATFORM=offscreen&quot;</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LABELS</span></code> names exactly one of <code class="docutils literal notranslate"><span class="pre">unit</span></code> and <code class="docutils literal notranslate"><span class="pre">integration</span></code>, and <code class="docutils literal notranslate"><span class="pre">gui</span></code>, <code class="docutils literal notranslate"><span class="pre">slow</span></code> or a scene label
+where they apply (<a class="reference internal" href="testing.html#test-labels"><span class="std std-ref">Test labels</span></a>). Configuration fails on a test without
+exactly one of <code class="docutils literal notranslate"><span class="pre">unit</span></code> and <code class="docutils literal notranslate"><span class="pre">integration</span></code>, and on an unknown label. A <code class="docutils literal notranslate"><span class="pre">gui</span></code> test runs on the
+<code class="docutils literal notranslate"><span class="pre">offscreen</span></code> platform. The executable is a strict target (<a class="reference internal" href="#warnings">Warnings</a>). <code class="docutils literal notranslate"><span class="pre">COMMAND</span></code> sets
+the arguments or runs a script instead, and options such as <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code> and <code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span></code> set the
+test properties; the comment above the function lists them all.</p>
 <ul class="simple">
 <li><p>Tests are plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code> and no test framework. Most define a local
 <code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">const</span> <span class="pre">char*)</span></code> that prints <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">&lt;message&gt;</span></code>, combine results with

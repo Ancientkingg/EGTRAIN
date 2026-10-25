@@ -95,22 +95,25 @@ target that links a library does not get them.
 
 - Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_live`, `egtrain_http`, `egtrain_update`,
   `egtrain_sceneopen`, `egtrain_openrelay`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
-  `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
+  `scene_tool`, `egtrain_update_helper` and the test executables. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
   warning fails the build.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
 - These have no flags: the vendored `egtrain_miniz`, the legacy
-  `egtrain_sim`, `QEGTRAIN`, and the test executables that use the
-  simulation. A comment next to the calls gives the number of warnings.
+  `egtrain_sim` and `QEGTRAIN`. A comment next to the calls gives the number of warnings.
+- A test that includes the simulation headers passes `SIMULATION_HEADERS` to `egtrain_add_test`.
+  The headers below `SRC_DIR` are then system headers for that test, so the warnings of the
+  simulation headers do not count, and the test file itself still builds without a warning.
+  The characterization programs build the same way.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp`, `app/UpdateTelemetryController.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
   `update/SelfUpdater.cpp` is the exception in the strict `test_selfupdater`, and `app/UpdateTelemetryController.cpp` in the strict
   `test_updatetelemetrycontroller`, which compile them with the flags.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
-`add_library` or `add_executable`, or add a test to the list of strict tests in the test block,
-and fix its warnings first. A source in a strict target that needs `simulation/RollingStock.h`
+`add_library` or `add_executable`, and fix its warnings first; `egtrain_add_test` does this for
+a test. A source of a strict library that needs `simulation/RollingStock.h`
 or `simulation/Signalling.h` includes `diagrams/SimulationHeaders.h` instead, because those
 headers still give warnings and that header keeps them out of the build. A function that a
 platform does not use, such as the update stagers in `update/UpdatePreparation.cpp`, is marked
@@ -372,23 +375,25 @@ Do not add another logging helper.
 ## Tests
 
 C++ tests live in `EGTRAIN/QEGTRAIN/tests/` as `test_<name>.cpp`, one executable each, with
-shared data in `tests/fixtures/`. Register one in the `if(EGTRAIN_BUILD_TESTS)` block of the
-root `CMakeLists.txt`. The executable links the library that holds the code it tests
+shared data in `tests/fixtures/`. Register one with `egtrain_add_test` in
+`EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`. The executable links the library that holds the code it tests
 ([Libraries](../architecture/source-layout.md#libraries)), or lists the sources itself when
 they are in no library, instead of linking the application. The telemetry tests that use a test
 hook link `egtrain_telemetry_hooks`. The CTest name equals the target name:
 
 ```cmake
-add_executable(test_timeformat ${SRC_DIR}/tests/test_timeformat.cpp)
-target_link_libraries(test_timeformat PRIVATE egtrain_util)
-add_test(NAME test_timeformat COMMAND test_timeformat)
+egtrain_add_test(test_timeformat
+	SOURCES ${SRC_DIR}/tests/test_timeformat.cpp
+	LIBS egtrain_util
+	LABELS unit)
 ```
 
-Then add the name to `egtrain_label_tests(unit ...)` or `egtrain_label_tests(integration ...)`
-lower in that block, and to the `gui` and `slow` lists where they apply
-([Test labels](testing.md#test-labels)). Configuration fails when a test has neither
-`unit` nor `integration`, or both. A test that needs a Qt platform plugin also sets
-`ENVIRONMENT "QT_QPA_PLATFORM=offscreen"`.
+`LABELS` names exactly one of `unit` and `integration`, and `gui`, `slow` or a scene label
+where they apply ([Test labels](testing.md#test-labels)). Configuration fails on a test without
+exactly one of `unit` and `integration`, and on an unknown label. A `gui` test runs on the
+`offscreen` platform. The executable is a strict target ([Warnings](#warnings)). `COMMAND` sets
+the arguments or runs a script instead, and options such as `TIMEOUT` and `ENVIRONMENT` set the
+test properties; the comment above the function lists them all.
 
 - Tests are plain programs with a `main()` and no test framework. Most define a local
   `expect(bool, const char*)` that prints `failed: <message>`, combine results with
