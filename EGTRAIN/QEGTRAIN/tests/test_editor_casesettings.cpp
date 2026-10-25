@@ -9,17 +9,12 @@
 #include <QLineEdit>
 #include <QString>
 #include <QStringList>
+#include <QTest>
 
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneModel caseScene(const char* name, const char* baseTime) {
 	SceneModel scene;
@@ -72,25 +67,55 @@ static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::
 	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code](const SceneDiagnostic& diagnostic) { return diagnostic.code == code; });
 }
 
+// A panel on a document that shows `scene`, and the events of both.
+struct CaseFixture {
+	SceneDocument document;
+	CaseSettingsPanel panel;
+	Events events{panel, document};
+
+	explicit CaseFixture(const SceneModel& scene) {
+		panel.setDocument(&document);
+		document.replace(scene, false);
+	}
+
+	// The panel is hidden while the fixture is whole. A panel destroyed while shown loses the focus in its QWidget
+	// destructor, and a field that had the focus then calls a slot of the panel whose own part is already gone.
+	~CaseFixture() { panel.hide(); }
+};
+
+class TestCaseSettingsPanel : public QObject {
+	Q_OBJECT
+
+private slots:
+	void keepsUntouchedNumbers();
+	void namesFields();
+	void showsNothingWithoutScene();
+	void showsNewScene();
+	void leavingUnchangedFieldEditsNothing();
+	void editsFieldsAndDropsUnfinishedText();
+	void editableDuringRun();
+	void detachedPanelIgnoresDocument();
+	void forgetsDeletedDocument();
+	void longDescriptionShowsStartAfterFocus();
+};
+
 // Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
 // range reaches the saved file and the validation as it is while the user does not edit it, even when the field has the
 // focus or another field is edited, and a number that the user types is stored as typed.
-static bool keepsUntouchedNumbers() {
-	bool ok = true;
+void TestCaseSettingsPanel::keepsUntouchedNumbers() {
 	SceneModel scene = caseScene("Case F", "08:00:00");
 	scene.settings.durationSeconds = -60.0;
 	scene.settings.hasBufferTime = true;
 	scene.settings.bufferTimeSeconds = -5.0;
 	scene.settings.hasRecoveryTime = true;
 	scene.settings.recoveryTimePercent = -2.5;
-	SceneDocument document;
-	CaseSettingsPanel panel;
-	panel.setDocument(&document);
-	document.replace(scene, false);
-	Events events(panel, document);
-	ok &= expect(panel.durationSecondsEdit()->value() == 0.0 && panel.bufferSecondsEdit()->value() == 0.0
-			&& panel.recoveryPercentEdit()->value() == 0.0,
-		"a negative duration, buffer and recovery are shown at 0");
+	CaseFixture f(scene);
+	SceneDocument& document = f.document;
+	CaseSettingsPanel& panel = f.panel;
+	// A negative duration, buffer and recovery are shown at 0.
+	QCOMPARE_EQ(panel.durationSecondsEdit()->value(), 0.0);
+	QCOMPARE_EQ(panel.bufferSecondsEdit()->value(), 0.0);
+	QCOMPARE_EQ(panel.recoveryPercentEdit()->value(), 0.0);
 
 	const nlohmann::json saved = encodeSceneMetadata(document.model());
 	const quint64 revision = document.revision();
@@ -98,228 +123,287 @@ static bool keepsUntouchedNumbers() {
 	panel.show();
 	panel.activateWindow();
 	for (QDoubleSpinBox* field : {panel.durationSecondsEdit(), panel.bufferSecondsEdit(), panel.recoveryPercentEdit()}) {
-		ok &= giveFocus(field);
+		QVERIFY(giveFocus(field));
 		panel.commitPendingEditors();
 	}
-	ok &= giveFocus(panel.nameEdit());
+	QVERIFY(giveFocus(panel.nameEdit()));
 	panel.commit();
 	const SceneSimulationSettings& kept = document.model().settings;
-	ok &= expect(kept.durationSeconds == -60.0 && kept.bufferTimeSeconds == -5.0 && kept.recoveryTimePercent == -2.5
-			&& encodeSceneMetadata(document.model()) == saved,
-		"a duration of -60 s, a buffer of -5 s and a recovery of -2.5 % are saved as stored");
-	ok &= expect(events.log.empty() && document.revision() == revision && !document.isDirty(),
-		"visiting the number fields and committing them adds no Undo step");
+	// A duration of -60 s, a buffer of -5 s and a recovery of -2.5 % are saved as stored.
+	QCOMPARE_EQ(kept.durationSeconds, -60.0);
+	QCOMPARE_EQ(kept.bufferTimeSeconds, -5.0);
+	QCOMPARE_EQ(kept.recoveryTimePercent, -2.5);
+	QVERIFY(encodeSceneMetadata(document.model()) == saved);
+	// Visiting the number fields and committing them adds no Undo step.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(document.revision(), revision);
+	QVERIFY(!document.isDirty());
 	const std::vector<SceneDiagnostic> diagnostics = validateScene(document.model());
-	ok &= expect(hasCode(diagnostics, "scene.duration.invalid") && hasCode(diagnostics, "scene.buffer.invalid")
-			&& hasCode(diagnostics, "scene.recovery.invalid"),
-		"the validation still reports the stored values");
+	// The validation still reports the stored values.
+	QVERIFY(hasCode(diagnostics, "scene.duration.invalid"));
+	QVERIFY(hasCode(diagnostics, "scene.buffer.invalid"));
+	QVERIFY(hasCode(diagnostics, "scene.recovery.invalid"));
 
 	typeAndLeave(panel.nameEdit(), "Renamed");
-	ok &= expect(kept.durationSeconds == -60.0 && kept.bufferTimeSeconds == -5.0 && kept.recoveryTimePercent == -2.5
-			&& document.model().name == "Renamed" && document.revision() == revision + 1,
-		"a name edit leaves the number fields as they are stored");
-	ok &= giveFocus(panel.bufferSecondsEdit());
+	// A name edit leaves the number fields as they are stored.
+	QCOMPARE_EQ(kept.durationSeconds, -60.0);
+	QCOMPARE_EQ(kept.bufferTimeSeconds, -5.0);
+	QCOMPARE_EQ(kept.recoveryTimePercent, -2.5);
+	QCOMPARE(document.model().name, "Renamed");
+	QCOMPARE(document.revision(), revision + 1);
+	QVERIFY(giveFocus(panel.bufferSecondsEdit()));
 	spinText(panel.bufferSecondsEdit())->setText("12.5");
 	panel.commitPendingEditors();
-	ok &= expect(kept.bufferTimeSeconds == 12.5 && kept.durationSeconds == -60.0 && kept.recoveryTimePercent == -2.5
-			&& document.revision() == revision + 2,
-		"a buffer that is being typed is stored, and the other fields keep their values");
+	// A buffer that is being typed is stored, and the other fields keep their values.
+	QCOMPARE_EQ(kept.bufferTimeSeconds, 12.5);
+	QCOMPARE_EQ(kept.durationSeconds, -60.0);
+	QCOMPARE_EQ(kept.recoveryTimePercent, -2.5);
+	QCOMPARE(document.revision(), revision + 2);
 	panel.recoveryPercentEdit()->setValue(3.0);
-	ok &= expect(kept.recoveryTimePercent == 3.0 && kept.durationSeconds == -60.0 && document.revision() == revision + 3,
-		"a recovery edit is stored, and the duration keeps its value");
-	panel.hide();
-	return ok;
+	// A recovery edit is stored, and the duration keeps its value.
+	QCOMPARE_EQ(kept.recoveryTimePercent, 3.0);
+	QCOMPARE_EQ(kept.durationSeconds, -60.0);
+	QCOMPARE(document.revision(), revision + 3);
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	bool ok = true;
-	ok &= keepsUntouchedNumbers();
+void TestCaseSettingsPanel::namesFields() {
+	CaseSettingsPanel panel;
+	QStringList labels;
+	for (const QLabel* label : panel.findChildren<QLabel*>())
+		labels << label->text();
+	// The panel has no note about when changes apply, and the duration is named with its unit.
+	QVERIFY(!panel.findChild<QLabel*>("caseSettingsNote"));
+	QVERIFY(labels.contains("Duration (s)"));
+	QVERIFY(!labels.contains("Duration / horizon (s)"));
+	QVERIFY2(panel.baseTimeEdit()->placeholderText() == "HH:MM:SS", "the base time field shows the format it expects");
+}
 
+void TestCaseSettingsPanel::showsNothingWithoutScene() {
+	CaseSettingsPanel panel;
+	// A panel without a document shows empty, disabled fields.
+	QVERIFY(panel.nameEdit()->text().isEmpty());
+	QVERIFY(!panel.nameEdit()->isEnabled());
+	QVERIFY(!panel.baseTimeEdit()->isEnabled());
+	QVERIFY(!panel.durationSecondsEdit()->isEnabled());
+	SceneDocument document;
+	panel.setDocument(&document);
+	// A panel stays disabled while its document holds no scene.
+	QVERIFY(!panel.nameEdit()->isEnabled());
+	QVERIFY(!panel.recoveryPercentEdit()->isEnabled());
+	typeAndLeave(panel.nameEdit(), "typed");
+	// A field edited while the document holds no scene changes nothing.
+	QVERIFY(document.model().name.empty());
+	QCOMPARE(document.revision(), quint64(0));
+	QVERIFY(!document.isDirty());
+}
+
+void TestCaseSettingsPanel::showsNewScene() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	CaseSettingsPanel& panel = f.panel;
+	// A new scene is shown in the fields.
+	QCOMPARE(panel.nameEdit()->text(), "Case A");
+	QCOMPARE(panel.descriptionEdit()->text(), "About Case A");
+	QCOMPARE(panel.baseTimeEdit()->text(), "08:00:00");
+	QCOMPARE_EQ(panel.durationSecondsEdit()->value(), 3600.0);
+	QCOMPARE_EQ(panel.bufferSecondsEdit()->value(), 0.0);
+	QCOMPARE_EQ(panel.recoveryPercentEdit()->value(), 0.0);
+	// The name and the description show the start of their text.
+	QCOMPARE(panel.nameEdit()->cursorPosition(), 0);
+	QCOMPARE(panel.descriptionEdit()->cursorPosition(), 0);
+	// The fields are enabled once a scene is loaded.
+	QVERIFY(panel.nameEdit()->isEnabled());
+	QVERIFY(panel.baseTimeEdit()->isEnabled());
+	QVERIFY(panel.durationSecondsEdit()->isEnabled());
+	QVERIFY(panel.recoveryPercentEdit()->isEnabled());
+	// Showing a scene edits nothing.
+	QVERIFY(f.events.log.empty());
+	QVERIFY(!f.document.isDirty());
+	QCOMPARE(f.document.revision(), quint64(1));
+}
+
+void TestCaseSettingsPanel::leavingUnchangedFieldEditsNothing() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	emit f.panel.nameEdit()->editingFinished();
+	f.panel.commitPendingEditors();
+	// Leaving a field without changing it does not touch the document.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(f.document.revision(), quint64(1));
+	QVERIFY(!f.document.isDirty());
+}
+
+// The edits of the fields, then the pending edits, which see the duration that the edits left, and a refresh, which
+// sees the name.
+void TestCaseSettingsPanel::editsFieldsAndDropsUnfinishedText() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	SceneDocument& document = f.document;
+	CaseSettingsPanel& panel = f.panel;
+	Events& events = f.events;
+
+	typeAndLeave(panel.nameEdit(), "Renamed");
+	// A finished name edit is written to the document and marks it changed.
+	QCOMPARE(document.model().name, "Renamed");
+	QVERIFY(document.isDirty());
+	QCOMPARE(document.revision(), quint64(2));
+	QCOMPARE(document.lastChangeLabel(), "Edit case settings");
+	QVERIFY2(events.log == Log({"documentChanged", "panelChanged"}),
+		"a name edit reports the document change and then the panel change, without a base time change");
+	// The other fields keep their values.
+	QCOMPARE(document.model().description, "About Case A");
+	QCOMPARE(document.model().baseTime, "08:00:00");
+	// A name edit leaves the optional settings as they were.
+	QVERIFY(document.model().settings.hasDuration);
+	QVERIFY(!document.model().settings.hasBufferTime);
+	QVERIFY(!document.model().settings.hasRecoveryTime);
+
+	// The base time.
+	events.log.clear();
+	typeAndLeave(panel.baseTimeEdit(), "09:30:00");
+	// A base time edit is written to the document and reported with its text.
+	QCOMPARE(document.model().baseTime, "09:30:00");
+	QCOMPARE(events.baseTime, "09:30:00");
+	QVERIFY2(events.log == Log({"baseTimeChanged", "documentChanged", "panelChanged"}),
+		"the base time is reported before the document is marked changed");
+
+	// The flags of the optional settings.
+	events.log.clear();
+	panel.bufferSecondsEdit()->setValue(45.0);
+	// A buffer edit sets only the buffer flag.
+	QVERIFY(document.model().settings.hasBufferTime);
+	QCOMPARE_EQ(document.model().settings.bufferTimeSeconds, 45.0);
+	QVERIFY(!document.model().settings.hasRecoveryTime);
+	QVERIFY(document.model().settings.hasDuration);
+	panel.durationSecondsEdit()->setValue(7200.0);
+	// A duration edit is written to the document.
+	QCOMPARE_EQ(document.model().settings.durationSeconds, 7200.0);
+	QVERIFY(document.model().settings.hasDuration);
+	panel.recoveryPercentEdit()->setValue(5.0);
+	// A recovery edit is written to the document.
+	QVERIFY(document.model().settings.hasRecoveryTime);
+	QCOMPARE_EQ(document.model().settings.recoveryTimePercent, 5.0);
+	QVERIFY2(events.log == Log({"documentChanged", "panelChanged", "documentChanged", "panelChanged", "documentChanged", "panelChanged"}),
+		"each number edit is one document change");
+
+	// Pending edits: a number field commits the text in it only while it has the focus.
+	const quint64 revisionBeforePending = document.revision();
+	events.log.clear();
+	panel.show();
+	panel.activateWindow();
+	panel.descriptionEdit()->setText("typed, not finished");
+	spinText(panel.durationSecondsEdit())->setText("90");
+	QVERIFY(giveFocus(panel.bufferSecondsEdit()));
+	spinText(panel.bufferSecondsEdit())->setText("60");
+	// Text that is still being typed is not in the document.
+	QCOMPARE(document.model().description, "About Case A");
+	QCOMPARE(document.revision(), revisionBeforePending);
+	panel.commitPendingEditors();
+	// Committing the pending editors writes the text of text fields and of the number field with the focus.
+	QCOMPARE(document.model().description, "typed, not finished");
+	QCOMPARE_EQ(document.model().settings.bufferTimeSeconds, 60.0);
+	QVERIFY2(document.model().settings.durationSeconds == 7200.0,
+		"committing the pending editors does not take a number in a field without the focus");
+	// The pending values of all fields are one change.
+	QCOMPARE(document.revision(), revisionBeforePending + 1);
+	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
+	panel.hide();
+
+	// Cancel: text that was typed and not finished is dropped when the fields are refreshed.
+	document.markSaved();
+	const quint64 revisionBeforeCancel = document.revision();
+	events.log.clear();
+	panel.nameEdit()->setText("abandoned");
+	panel.refresh();
+	// Refreshing drops unfinished text and leaves the document as it is.
+	QCOMPARE(panel.nameEdit()->text(), "Renamed");
+	QVERIFY(!document.isDirty());
+	QCOMPARE(document.revision(), revisionBeforeCancel);
+	QVERIFY(events.log.empty());
+	panel.nameEdit()->setText("abandoned");
+	document.replace(caseScene("Case B", "10:00:00"), false);
+	// Opening another scene replaces unfinished text without an edit.
+	QCOMPARE(panel.nameEdit()->text(), "Case B");
+	QCOMPARE(panel.baseTimeEdit()->text(), "10:00:00");
+	QCOMPARE_EQ(panel.durationSecondsEdit()->value(), 3600.0);
+	QCOMPARE_EQ(panel.bufferSecondsEdit()->value(), 0.0);
+	QVERIFY(!document.isDirty());
+	QVERIFY(events.log.empty());
+}
+
+// A run does not close the case settings.
+void TestCaseSettingsPanel::editableDuringRun() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	f.document.setEditable(false);
+	// The fields stay enabled while the document is closed for edits.
+	QVERIFY(f.panel.nameEdit()->isEnabled());
+	QVERIFY(f.panel.durationSecondsEdit()->isEnabled());
+	typeAndLeave(f.panel.nameEdit(), "Edited during a run");
+	QVERIFY2(f.document.model().name == "Edited during a run", "the case settings can be edited during a run");
+}
+
+void TestCaseSettingsPanel::detachedPanelIgnoresDocument() {
+	CaseFixture f(caseScene("Case A", "08:00:00"));
+	f.panel.setDocument(nullptr);
+	// A detached panel shows nothing.
+	QVERIFY(f.panel.nameEdit()->text().isEmpty());
+	QVERIFY(!f.panel.nameEdit()->isEnabled());
+	const quint64 revisionDetached = f.document.revision();
+	typeAndLeave(f.panel.nameEdit(), "ignored");
+	f.document.replace(caseScene("Case C", "11:00:00"), false);
+	// A detached panel neither edits nor follows the document.
+	QCOMPARE(f.panel.nameEdit()->text(), "ignored");
+	QCOMPARE(f.document.model().name, "Case C");
+	QCOMPARE(f.document.revision(), revisionDetached + 1);
+}
+
+void TestCaseSettingsPanel::forgetsDeletedDocument() {
+	auto* document = new SceneDocument;
+	CaseSettingsPanel panel;
+	panel.setDocument(document);
+	document->replace(caseScene("Case D", "07:00:00"), false);
+	delete document;
+	panel.nameEdit()->setText("after the document");
+	panel.commit();
+	panel.commitPendingEditors();
+	panel.refresh();
+	// A panel whose document is gone shows nothing and edits nothing.
+	QVERIFY(panel.nameEdit()->text().isEmpty());
+	QVERIFY(!panel.nameEdit()->isEnabled());
+}
+
+// Tab selects the whole text of a field, which puts the cursor at its end. The main window watches each editor dock as
+// below, so that a field shows the start of its text again once the focus has left it.
+void TestCaseSettingsPanel::longDescriptionShowsStartAfterFocus() {
+	SceneDocument document;
+	SceneModel scene = caseScene("Case E", "08:00:00");
+	scene.description = "A description that is much longer than the field, so that the field shows only a part of it";
+	document.replace(scene, false);
 	{
 		CaseSettingsPanel panel;
-		QStringList labels;
-		for (const QLabel* label : panel.findChildren<QLabel*>())
-			labels << label->text();
-		ok &= expect(!panel.findChild<QLabel*>("caseSettingsNote") && labels.contains("Duration (s)") && !labels.contains("Duration / horizon (s)"),
-			"the panel has no note about when changes apply, and the duration is named with its unit");
-		ok &= expect(panel.baseTimeEdit()->placeholderText() == "HH:MM:SS", "the base time field shows the format it expects");
-		ok &= expect(panel.nameEdit()->text().isEmpty() && !panel.nameEdit()->isEnabled()
-				&& !panel.baseTimeEdit()->isEnabled() && !panel.durationSecondsEdit()->isEnabled(),
-			"a panel without a document shows empty, disabled fields");
-		SceneDocument document;
 		panel.setDocument(&document);
-		ok &= expect(!panel.nameEdit()->isEnabled() && !panel.recoveryPercentEdit()->isEnabled(),
-			"a panel stays disabled while its document holds no scene");
-		typeAndLeave(panel.nameEdit(), "typed");
-		ok &= expect(document.model().name.empty() && document.revision() == 0 && !document.isDirty(),
-			"a field edited while the document holds no scene changes nothing");
-	}
-
-	{
-		SceneDocument document;
-		CaseSettingsPanel panel;
-		panel.setDocument(&document);
-		Events events(panel, document);
-
-		// refresh
-		document.replace(caseScene("Case A", "08:00:00"), false);
-		ok &= expect(panel.nameEdit()->text() == "Case A" && panel.descriptionEdit()->text() == "About Case A"
-				&& panel.baseTimeEdit()->text() == "08:00:00" && panel.durationSecondsEdit()->value() == 3600.0
-				&& panel.bufferSecondsEdit()->value() == 0.0 && panel.recoveryPercentEdit()->value() == 0.0,
-			"a new scene is shown in the fields");
-		ok &= expect(panel.nameEdit()->cursorPosition() == 0 && panel.descriptionEdit()->cursorPosition() == 0,
-			"the name and the description show the start of their text");
-		ok &= expect(panel.nameEdit()->isEnabled() && panel.baseTimeEdit()->isEnabled()
-				&& panel.durationSecondsEdit()->isEnabled() && panel.recoveryPercentEdit()->isEnabled(),
-			"the fields are enabled once a scene is loaded");
-		ok &= expect(events.log.empty() && !document.isDirty() && document.revision() == 1,
-			"showing a scene edits nothing");
-
-		// commit without a change
-		emit panel.nameEdit()->editingFinished();
-		panel.commitPendingEditors();
-		ok &= expect(events.log.empty() && document.revision() == 1 && !document.isDirty(),
-			"leaving a field without changing it does not touch the document");
-
-		// edit
-		typeAndLeave(panel.nameEdit(), "Renamed");
-		ok &= expect(document.model().name == "Renamed" && document.isDirty() && document.revision() == 2
-				&& document.lastChangeLabel() == "Edit case settings",
-			"a finished name edit is written to the document and marks it changed");
-		ok &= expect(events.log == Log({"documentChanged", "panelChanged"}),
-			"a name edit reports the document change and then the panel change, without a base time change");
-		ok &= expect(document.model().description == "About Case A" && document.model().baseTime == "08:00:00",
-			"the other fields keep their values");
-		ok &= expect(document.model().settings.hasDuration && !document.model().settings.hasBufferTime
-				&& !document.model().settings.hasRecoveryTime,
-			"a name edit leaves the optional settings as they were");
-
-		// base time
-		events.log.clear();
-		typeAndLeave(panel.baseTimeEdit(), "09:30:00");
-		ok &= expect(document.model().baseTime == "09:30:00" && events.baseTime == "09:30:00",
-			"a base time edit is written to the document and reported with its text");
-		ok &= expect(events.log == Log({"baseTimeChanged", "documentChanged", "panelChanged"}),
-			"the base time is reported before the document is marked changed");
-
-		// the flags of the optional settings
-		events.log.clear();
-		panel.bufferSecondsEdit()->setValue(45.0);
-		ok &= expect(document.model().settings.hasBufferTime && document.model().settings.bufferTimeSeconds == 45.0
-				&& !document.model().settings.hasRecoveryTime && document.model().settings.hasDuration,
-			"a buffer edit sets only the buffer flag");
-		panel.durationSecondsEdit()->setValue(7200.0);
-		ok &= expect(document.model().settings.durationSeconds == 7200.0 && document.model().settings.hasDuration,
-			"a duration edit is written to the document");
-		panel.recoveryPercentEdit()->setValue(5.0);
-		ok &= expect(document.model().settings.hasRecoveryTime && document.model().settings.recoveryTimePercent == 5.0,
-			"a recovery edit is written to the document");
-		ok &= expect(events.log == Log({"documentChanged", "panelChanged", "documentChanged", "panelChanged", "documentChanged", "panelChanged"}),
-			"each number edit is one document change");
-
-		// pending edits: a number field commits the text in it only while it has the focus
-		const quint64 revisionBeforePending = document.revision();
-		events.log.clear();
+		FocusWheel::watch(&panel);
+		// The panel is destroyed while shown, without a hide first: the checks after this block are about that.
 		panel.show();
 		panel.activateWindow();
-		panel.descriptionEdit()->setText("typed, not finished");
-		spinText(panel.durationSecondsEdit())->setText("90");
-		ok &= giveFocus(panel.bufferSecondsEdit());
-		spinText(panel.bufferSecondsEdit())->setText("60");
-		ok &= expect(document.model().description == "About Case A" && document.revision() == revisionBeforePending,
-			"text that is still being typed is not in the document");
-		panel.commitPendingEditors();
-		ok &= expect(document.model().description == "typed, not finished" && document.model().settings.bufferTimeSeconds == 60.0,
-			"committing the pending editors writes the text of text fields and of the number field with the focus");
-		ok &= expect(document.model().settings.durationSeconds == 7200.0,
-			"committing the pending editors does not take a number in a field without the focus");
-		ok &= expect(document.revision() == revisionBeforePending + 1 && events.log == Log({"documentChanged", "panelChanged"}),
-			"the pending values of all fields are one change");
-		panel.hide();
-
-		// cancel: text that was typed and not finished is dropped when the fields are refreshed
-		document.markSaved();
-		const quint64 revisionBeforeCancel = document.revision();
-		events.log.clear();
-		panel.nameEdit()->setText("abandoned");
-		panel.refresh();
-		ok &= expect(panel.nameEdit()->text() == "Renamed" && !document.isDirty()
-				&& document.revision() == revisionBeforeCancel && events.log.empty(),
-			"refreshing drops unfinished text and leaves the document as it is");
-		panel.nameEdit()->setText("abandoned");
-		document.replace(caseScene("Case B", "10:00:00"), false);
-		ok &= expect(panel.nameEdit()->text() == "Case B" && panel.baseTimeEdit()->text() == "10:00:00"
-				&& panel.durationSecondsEdit()->value() == 3600.0 && panel.bufferSecondsEdit()->value() == 0.0
-				&& !document.isDirty() && events.log.empty(),
-			"opening another scene replaces unfinished text without an edit");
-
-		// a run does not close the case settings
-		document.setEditable(false);
-		ok &= expect(panel.nameEdit()->isEnabled() && panel.durationSecondsEdit()->isEnabled(),
-			"the fields stay enabled while the document is closed for edits");
-		typeAndLeave(panel.nameEdit(), "Edited during a run");
-		ok &= expect(document.model().name == "Edited during a run", "the case settings can be edited during a run");
-		document.setEditable(true);
-
-		// detach
-		panel.setDocument(nullptr);
-		ok &= expect(panel.nameEdit()->text().isEmpty() && !panel.nameEdit()->isEnabled(), "a detached panel shows nothing");
-		const quint64 revisionDetached = document.revision();
-		typeAndLeave(panel.nameEdit(), "ignored");
-		document.replace(caseScene("Case C", "11:00:00"), false);
-		ok &= expect(panel.nameEdit()->text() == "ignored" && document.model().name == "Case C"
-				&& document.revision() == revisionDetached + 1,
-			"a detached panel neither edits nor follows the document");
+		QApplication::processEvents();
+		QLineEdit* description = panel.descriptionEdit();
+		description->setFocus(Qt::TabFocusReason);
+		QApplication::processEvents();
+		// Tab into a long description puts the cursor at its end.
+		QVERIFY(description->hasFocus());
+		QCOMPARE(qsizetype(description->cursorPosition()), description->text().size());
+		QCOMPARE_GT(description->fontMetrics().horizontalAdvance(description->text()), description->width());
+		panel.baseTimeEdit()->setFocus(Qt::TabFocusReason);
+		QApplication::processEvents();
+		// A long description shows its start again once the focus has left it.
+		QVERIFY(!description->hasFocus());
+		QCOMPARE(description->cursorPosition(), 0);
+		QCOMPARE(description->text(), QString::fromStdString(scene.description));
+		panel.baseTimeEdit()->setText("09:00:00");
 	}
-
-	{
-		auto* document = new SceneDocument;
-		CaseSettingsPanel panel;
-		panel.setDocument(document);
-		document->replace(caseScene("Case D", "07:00:00"), false);
-		delete document;
-		panel.nameEdit()->setText("after the document");
-		panel.commit();
-		panel.commitPendingEditors();
-		panel.refresh();
-		ok &= expect(panel.nameEdit()->text().isEmpty() && !panel.nameEdit()->isEnabled(),
-			"a panel whose document is gone shows nothing and edits nothing");
-	}
-
-	{
-		// Tab selects the whole text of a field, which puts the cursor at its end. The main window watches each editor dock
-		// as below, so that a field shows the start of its text again once the focus has left it.
-		SceneDocument document;
-		SceneModel scene = caseScene("Case E", "08:00:00");
-		scene.description = "A description that is much longer than the field, so that the field shows only a part of it";
-		document.replace(scene, false);
-		{
-			CaseSettingsPanel panel;
-			panel.setDocument(&document);
-			FocusWheel::watch(&panel);
-			panel.show();
-			panel.activateWindow();
-			QApplication::processEvents();
-			QLineEdit* description = panel.descriptionEdit();
-			description->setFocus(Qt::TabFocusReason);
-			QApplication::processEvents();
-			ok &= expect(description->hasFocus() && description->cursorPosition() == description->text().size()
-					&& description->fontMetrics().horizontalAdvance(description->text()) > description->width(),
-				"Tab into a long description puts the cursor at its end");
-			panel.baseTimeEdit()->setFocus(Qt::TabFocusReason);
-			QApplication::processEvents();
-			ok &= expect(!description->hasFocus() && description->cursorPosition() == 0
-					&& description->text() == QString::fromStdString(scene.description),
-				"a long description shows its start again once the focus has left it");
-			panel.baseTimeEdit()->setText("09:00:00");
-		}
-		ok &= expect(document.model().baseTime == "08:00:00" && !document.isDirty() && document.revision() == 1,
-			"a panel window that is closed with the focus in a field leaves the document as it is");
-	}
-
-	if (!ok)
-		return 1;
-	std::cout << "all case settings panel tests passed\n";
-	return 0;
+	// A panel window that is closed with the focus in a field leaves the document as it is.
+	QCOMPARE(document.model().baseTime, "08:00:00");
+	QVERIFY(!document.isDirty());
+	QCOMPARE(document.revision(), quint64(1));
 }
+
+QTEST_MAIN(TestCaseSettingsPanel)
+#include "test_editor_casesettings.moc"

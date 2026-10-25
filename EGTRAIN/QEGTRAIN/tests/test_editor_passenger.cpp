@@ -1,6 +1,7 @@
 #include "editors/PassengerPanel.h"
 
 #include "scene/SceneDiagnostic.h"
+#include "support/FakePrompts.h"
 #include "widgets/ChoiceComboBox.h"
 
 #include <QApplication>
@@ -13,22 +14,17 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSpinBox>
 #include <QStringList>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QTest>
 
 #include <algorithm>
-#include <iostream>
 #include <string>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneStop stopAt(const char* stationId) {
 	SceneStop stop;
@@ -104,21 +100,6 @@ static SceneModel passengerScene() {
 	scene.passengers = {p1, p2};
 	return scene;
 }
-
-// Answers the questions of the panel and keeps what it was asked and told, without a dialog.
-struct RecordingPrompts : UserPrompts {
-	bool answer = true;
-	std::vector<std::string> questions;
-	std::vector<std::string> errors;
-
-	void showError(QWidget*, const QString& title, const QString& message, bool) override {
-		errors.push_back(title.toStdString() + ": " + message.toStdString());
-	}
-	bool confirm(QWidget*, const QString& title, const QString&) override {
-		questions.push_back(title.toStdString());
-		return answer;
-	}
-};
 
 using Log = std::vector<std::string>;
 
@@ -196,628 +177,829 @@ static bool writePassengerFolder(const QTemporaryDir& root, const char* dasRows,
 			(std::string("person_id,destination,nb_transfers,r_service_lines_id_1\n") + routeRows).c_str());
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	bool ok = true;
+// A panel with prompts of its own, which answer Yes, on a document that shows passengerScene(), and the events of both.
+struct PassengerFixture {
+	SceneDocument document;
+	PassengerPanel panel;
+	FakePrompts prompts;
+	Events events{panel, document};
 
-	{
-		PassengerPanel panel;
-		ok &= expect(panel.passengerList()->count() == 0 && !panel.passengerList()->isEnabled()
-				&& !panel.addPassengerButton()->isEnabled() && !panel.importButton()->isEnabled()
-				&& panel.tabs()->isHidden(),
-			"a panel without a document shows no passengers and offers no action");
-		ok &= expect(panel.diagnosticLabel()->text()
-					== "Select a passenger or add one."
-				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden()
-				&& panel.journeyOriginCombo()->itemText(0) == "Select a journey or leg"
-				&& panel.legServiceCombo()->itemText(0) == "Select a leg",
-			"a panel without a selection says what to select");
-		ok &= expect(panel.importResultHeading()->isHidden() && panel.importResultTable()->isHidden(),
-			"a panel without an import result shows neither its heading nor its table");
-		for (const QComboBox* combo : {panel.journeyOriginCombo(), panel.journeyDestinationCombo(), panel.legOriginCombo(),
-				 panel.legDestinationCombo(), panel.legServiceCombo()})
-			ok &= expect(dynamic_cast<const ChoiceComboBox*>(combo) != nullptr, "the station and service choices are choice combo boxes");
-		SceneDocument document;
-		panel.setDocument(&document);
-		panel.addPassengerButton()->click();
-		ok &= expect(document.model().passengers.empty() && document.revision() == 0 && !document.isDirty(),
-			"Add while the document holds no scene changes nothing");
-	}
-
-	{
-		SceneDocument document;
-		PassengerPanel panel;
-		RecordingPrompts prompts;
+	PassengerFixture() {
+		prompts.confirmAnswer = true;
 		panel.setPrompts(&prompts);
 		panel.setDocument(&document);
-		Events events(panel, document);
-
-		// refresh
 		document.replace(passengerScene(), false);
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2"})
-				&& panel.passengerList()->currentRow() == 0 && panel.passengerList()->isEnabled()
-				&& panel.addPassengerButton()->isEnabled() && panel.importButton()->isEnabled()
-				&& !panel.tabs()->isHidden(),
-			"a new scene is shown in the passenger list with the first passenger selected");
-		ok &= expect(items(panel.journeyList()) == std::vector<std::string>({"J1 (commute)", "J2"})
-				&& items(panel.legList()) == std::vector<std::string>({"L1", "L2"})
-				&& panel.journeyList()->currentRow() == 0 && panel.legList()->currentRow() == 0,
-			"the journeys of the passenger and the legs of its first journey are listed with the first of each selected");
-		ok &= expect(panel.passengerIdEdit()->text() == "P1" && panel.journeyIdEdit()->text() == "J1"
-				&& panel.journeyActivityEdit()->text() == "commute" && panel.legIdEdit()->text() == "L1",
-			"the id and activity fields show the selection");
-		ok &= expect(panel.journeyOriginCombo()->currentText() == "Station A (A)"
-				&& panel.journeyOriginCombo()->currentData().toString() == "A"
-				&& panel.journeyDestinationCombo()->currentData().toString() == "C",
-			"the journey stations are shown with their names");
-		const auto& windows = panel.journeyWindowEdits();
-		ok &= expect(windows[0]->value() == 100.0 && windows[1]->value() == 200.0 && windows[2]->value() == 300.0
-				&& windows[3]->value() == 400.0,
-			"the four time windows of the journey are shown");
-		ok &= expect(panel.legServiceCombo()->currentData().toString() == "S1"
-				&& comboData(panel.legServiceCombo()) == std::vector<std::string>({"S1", "S2", "S3"})
-				&& panel.legOriginCombo()->currentData().toString() == "A"
-				&& panel.legDestinationCombo()->currentData().toString() == "B"
-				&& comboData(panel.legOriginCombo()) == std::vector<std::string>({"A", "B", "C"}),
-			"the leg shows its service and stations, and offers the stops of the service");
-		ok &= expect(panel.legOccurrenceEdit()->value() == 1 && panel.legOccurrenceEdit()->minimum() == 0
-				&& panel.legOccurrenceEdit()->maximum() == 1,
-			"a service that runs once allows the occurrences 0 and 1");
-		ok &= expect(!panel.moveLegUpButton()->isEnabled() && panel.moveLegDownButton()->isEnabled()
-				&& panel.addLegButton()->isEnabled() && panel.deleteLegButton()->isEnabled(),
-			"the first leg cannot move up");
-		ok &= expect(events.log.empty() && !document.isDirty() && document.revision() == 1,
-			"showing a scene edits nothing");
-
-		// selection
-		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(items(panel.journeyList()) == std::vector<std::string>({"J3"})
-				&& items(panel.legList()) == std::vector<std::string>({"L3"})
-				&& panel.legServiceCombo()->currentData().toString() == "S2"
-				&& comboData(panel.legOriginCombo()) == std::vector<std::string>({"A", "C"})
-				&& panel.legOccurrenceEdit()->value() == 2 && panel.legOccurrenceEdit()->maximum() == 3,
-			"selecting another passenger shows its journey and leg, and counts the occurrences of its service");
-		ok &= expect(events.log.empty() && document.revision() == 1, "selecting edits nothing");
-		// Ctrl+click on the selected passenger clears the selection and keeps the current row
-		panel.passengerList()->clearSelection();
-		ok &= expect(panel.passengerList()->currentRow() == 1 && panel.passengerList()->selectedItems().isEmpty()
-				&& panel.tabs()->isHidden() && panel.passengerIdEdit()->text().isEmpty() && !panel.passengerIdEdit()->isEnabled()
-				&& !panel.deletePassengerButton()->isEnabled() && panel.journeyList()->count() == 0,
-			"a passenger list without a selection shows an empty passenger form");
-		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger or add one."
-				&& role(panel.diagnosticLabel()) == "help",
-			"a passenger list without a selection says what to select");
-		panel.commitPendingEditors();
-		ok &= expect(prompts.errors.empty() && panel.passengerIdEdit()->text().isEmpty(),
-			"committing pending edits without a selected passenger shows no error and keeps the form empty");
-		ok &= expect(events.log.empty() && document.revision() == 1 && !document.isDirty(), "clearing the selection edits nothing");
-		panel.refresh();
-		ok &= expect(panel.passengerList()->selectedItems().isEmpty() && panel.tabs()->isHidden() && panel.passengerIdEdit()->text().isEmpty(),
-			"refreshing keeps the passenger list without a selection");
-		panel.passengerList()->setCurrentRow(0);
-		panel.journeyList()->setCurrentRow(1);
-		ok &= expect(panel.legList()->count() == 0 && !panel.legIdEdit()->isEnabled() && panel.addLegButton()->isEnabled()
-				&& panel.legServiceCombo()->itemText(0) == "Select a leg"
-				&& panel.legOriginCombo()->itemText(0) == "Select a journey or leg",
-			"a journey without legs shows an empty leg editor that still allows Add");
-		panel.refresh();
-		ok &= expect(panel.journeyList()->currentRow() == 1, "refreshing keeps the selected journey");
-		panel.journeyList()->setCurrentRow(0);
-
-		// passenger edits
-		typeAndLeave(panel.passengerIdEdit(), "  P9 ");
-		ok &= expect(document.model().passengers[0].id == "P9" && panel.passengerList()->item(0)->text() == "P9"
-				&& document.isDirty() && document.revision() == 2 && document.lastChangeLabel() == "Rename passenger",
-			"a finished passenger id is trimmed, written to the document and shown in the list");
-		ok &= expect(events.log == oneChange, "a rename is one change of the document and then of the panel");
-		events.log.clear();
-		typeAndLeave(panel.passengerIdEdit(), "P2");
-		ok &= expect(prompts.errors == std::vector<std::string>({"Duplicate Passenger ID: Choose a unique passenger ID."})
-				&& panel.passengerIdEdit()->text() == "P9" && document.model().passengers[0].id == "P9"
-				&& document.revision() == 2 && events.log.empty(),
-			"a passenger id that exists is refused with the old text restored");
-		typeAndLeave(panel.passengerIdEdit(), "");
-		ok &= expect(prompts.errors.size() == 2
-				&& prompts.errors[1] == "Invalid Passenger ID: Passenger IDs must not be empty."
-				&& panel.passengerIdEdit()->text() == "P9" && document.revision() == 2 && events.log.empty(),
-			"an empty passenger id is refused with the old text restored");
-		typeAndLeave(panel.passengerIdEdit(), "P9");
-		ok &= expect(document.revision() == 2 && events.log.empty() && prompts.errors.size() == 2,
-			"leaving the id unchanged does not touch the document");
-
-		// pending text and cancel
-		panel.passengerIdEdit()->setText("typed, not finished");
-		panel.refresh();
-		ok &= expect(panel.passengerIdEdit()->text() == "P9" && document.model().passengers[0].id == "P9"
-				&& document.revision() == 2 && events.log.empty(),
-			"refreshing drops text that was not finished and leaves the document as it is");
-		panel.passengerIdEdit()->setText("P1");
-		panel.commitPendingEditors();
-		ok &= expect(document.model().passengers[0].id == "P1" && document.revision() == 3 && events.log == oneChange,
-			"committing the pending editors writes the text of the id field");
-		events.log.clear();
-		panel.commitPendingEditors();
-		ok &= expect(document.revision() == 3 && events.log.empty(), "committing with nothing pending changes nothing");
-
-		// add and delete a passenger
-		panel.addPassengerButton()->click();
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "new_passenger"})
-				&& panel.passengerList()->currentRow() == 2 && panel.passengerIdEdit()->text() == "new_passenger"
-				&& panel.journeyList()->count() == 0 && panel.addJourneyButton()->isEnabled(),
-			"Add appends a passenger with a free id and selects it");
-		ok &= expect(document.lastChangeLabel() == "Add passenger" && events.log == oneChange && document.revision() == 4,
-			"Add is one change");
-		prompts.answer = false;
-		events.log.clear();
-		panel.deletePassengerButton()->click();
-		ok &= expect(prompts.questions == std::vector<std::string>({"Delete Passenger"})
-				&& document.model().passengers.size() == 3 && events.log.empty() && document.revision() == 4,
-			"a declined delete keeps the passenger");
-		prompts.answer = true;
-		panel.deletePassengerButton()->click();
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2"})
-				&& panel.passengerList()->currentRow() == 1 && events.log == oneChange && document.revision() == 5
-				&& document.lastChangeLabel() == "Delete passenger",
-			"a confirmed delete removes the passenger and selects the last one that is left");
-		panel.passengerList()->setCurrentRow(0);
-
-		// journeys
-		events.log.clear();
-		panel.addJourneyButton()->click();
-		const ScenePassenger& firstPassenger = document.model().passengers[0];
-		ok &= expect(firstPassenger.journeys.size() == 3 && firstPassenger.journeys[2].id == "P1.journey"
-				&& firstPassenger.journeys[2].originStationId == "A" && firstPassenger.journeys[2].destinationStationId == "A"
-				&& panel.journeyList()->currentRow() == 2 && events.log == oneChange,
-			"Add appends a journey between the first station and itself and selects it");
-		typeAndLeave(panel.journeyActivityEdit(), "shopping");
-		ok &= expect(firstPassenger.journeys[2].activity == "shopping"
-				&& panel.journeyList()->item(2)->text() == "P1.journey (shopping)",
-			"the activity is written to the journey and shown in the list");
-		choose(panel.journeyOriginCombo(), "B");
-		choose(panel.journeyDestinationCombo(), "C");
-		ok &= expect(firstPassenger.journeys[2].originStationId == "B" && firstPassenger.journeys[2].destinationStationId == "C",
-			"choosing a station writes it to the journey");
-		panel.journeyWindowEdits()[2]->setValue(1234.5);
-		ok &= expect(firstPassenger.journeys[2].plannedArrivalStartSeconds == 1234.5,
-			"a time window is written to the journey");
-		events.log.clear();
-		typeAndLeave(panel.journeyIdEdit(), "J1");
-		ok &= expect(prompts.errors.back() == "Duplicate Journey ID: Choose a unique journey ID."
-				&& panel.journeyIdEdit()->text() == "P1.journey" && events.log.empty(),
-			"a journey id used by another journey, even of another passenger, is refused");
-		typeAndLeave(panel.journeyIdEdit(), "J3");
-		ok &= expect(prompts.errors.back() == "Duplicate Journey ID: Choose a unique journey ID.",
-			"a journey id of another passenger is refused");
-		typeAndLeave(panel.journeyIdEdit(), "J4");
-		ok &= expect(firstPassenger.journeys[2].id == "J4" && panel.journeyList()->item(2)->text() == "J4 (shopping)"
-				&& events.log == oneChange,
-			"a free journey id is written to the journey and shown in the list");
-		prompts.answer = false;
-		panel.deleteJourneyButton()->click();
-		ok &= expect(prompts.questions.back() == "Delete Journey" && firstPassenger.journeys.size() == 3,
-			"a declined delete keeps the journey");
-		prompts.answer = true;
-		panel.deleteJourneyButton()->click();
-		ok &= expect(firstPassenger.journeys.size() == 2 && panel.journeyList()->currentRow() == 1,
-			"a confirmed delete removes the journey");
-		panel.journeyList()->setCurrentRow(0);
-
-		// legs: order
-		const ScenePassengerJourney& firstJourney = document.model().passengers[0].journeys[0];
-		events.log.clear();
-		panel.moveLegDownButton()->click();
-		ok &= expect(legIds(firstJourney) == std::vector<std::string>({"L2", "L1"}) && panel.legList()->currentRow() == 1
-				&& items(panel.legList()) == std::vector<std::string>({"L2", "L1"}) && events.log == oneChange
-				&& document.lastChangeLabel() == "Move leg",
-			"Move Down swaps the leg with the next one and keeps it selected");
-		ok &= expect(panel.moveLegUpButton()->isEnabled() && !panel.moveLegDownButton()->isEnabled(),
-			"the last leg cannot move down");
-		panel.moveLegDownButton()->click();
-		ok &= expect(legIds(firstJourney) == std::vector<std::string>({"L2", "L1"}), "a disabled Move Down does nothing");
-		panel.moveLegUpButton()->click();
-		ok &= expect(legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}) && panel.legList()->currentRow() == 0,
-			"Move Up restores the order");
-
-		// legs: add, edit, delete
-		events.log.clear();
-		panel.addLegButton()->click();
-		ok &= expect(legIds(firstJourney) == std::vector<std::string>({"L1", "L2", "J1.leg"})
-				&& panel.legList()->currentRow() == 2 && panel.tabs()->currentIndex() == 1 && events.log == oneChange,
-			"Add appends a leg and selects it on the Legs tab");
-		const ScenePassengerLeg& added = firstJourney.legs[2];
-		ok &= expect(added.serviceId == "S1" && added.originStationId == "A" && added.destinationStationId == "B"
-				&& added.occurrence == 1,
-			"a new leg runs on the first service between its first two stops");
-		choose(panel.legServiceCombo(), "S3");
-		ok &= expect(added.serviceId == "S3" && comboData(panel.legOriginCombo()) == std::vector<std::string>({"A", "B"})
-				&& panel.legOccurrenceEdit()->maximum() == 2,
-			"a leg on another service offers the stops of that service and counts its occurrences over the scene duration");
-		panel.setOccurrenceDuration([] { return 7200.0; });
-		panel.refresh();
-		ok &= expect(panel.legOccurrenceEdit()->maximum() == 4, "the occurrences are counted over the duration the window gives");
-		choose(panel.legServiceCombo(), "S2");
-		ok &= expect(added.serviceId == "S2" && panel.legDestinationCombo()->currentData().toString() == "B"
-				&& panel.legDestinationCombo()->currentText() == "B (not a stop)" && comboData(panel.legDestinationCombo()).back() == "B",
-			"a station that the new service does not stop at stays selected and is marked invalid");
-		ok &= expect(panel.legDestinationCombo()->itemData(panel.legDestinationCombo()->currentIndex(), Qt::ToolTipRole).toString()
-				== "Station B is not a stop of the service of this leg.",
-			"the invalid station says why in its tooltip");
-		choose(panel.legDestinationCombo(), "C");
-		choose(panel.legOriginCombo(), "A");
-		panel.legOccurrenceEdit()->setValue(3);
-		ok &= expect(added.destinationStationId == "C" && added.occurrence == 3 && panel.legOccurrenceEdit()->maximum() == 3,
-			"choosing a stop and an occurrence writes them to the leg");
-		events.log.clear();
-		typeAndLeave(panel.legIdEdit(), "L1");
-		ok &= expect(prompts.errors.back() == "Duplicate Leg ID: Choose a unique leg ID." && panel.legIdEdit()->text() == "J1.leg"
-				&& events.log.empty(),
-			"a leg id that exists is refused");
-		typeAndLeave(panel.legIdEdit(), "L9");
-		ok &= expect(added.id == "L9" && items(panel.legList()) == std::vector<std::string>({"L1", "L2", "L9"})
-				&& events.log == oneChange,
-			"a free leg id is written to the leg and shown in the list");
-		prompts.answer = false;
-		panel.deleteLegButton()->click();
-		ok &= expect(prompts.questions.back() == "Delete Leg" && firstJourney.legs.size() == 3, "a declined delete keeps the leg");
-		prompts.answer = true;
-		panel.deleteLegButton()->click();
-		ok &= expect(legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}), "a confirmed delete removes the leg");
-
-		// diagnostics
-		SceneDiagnostic legError;
-		legError.severity = SceneSeverity::Error;
-		legError.message = "Leg service is unknown";
-		legError.path = "passengers[0].journeys[0].legs[1].service";
-		SceneDiagnostic journeyWarning;
-		journeyWarning.severity = SceneSeverity::Warning;
-		journeyWarning.message = "Journey is odd";
-		journeyWarning.itemType = "journey";
-		journeyWarning.itemId = "J1";
-		SceneDiagnostic otherPassenger;
-		otherPassenger.severity = SceneSeverity::Info;
-		otherPassenger.message = "Elsewhere";
-		otherPassenger.path = "passengers[1].journeys[0]";
-		std::vector<SceneDiagnostic> diagnostics = {legError, journeyWarning, otherPassenger};
-		panel.setDiagnostics(&diagnostics);
-		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
-				&& !panel.diagnosticLabel()->isHidden(),
-			"an error goes in the error callout");
-		ok &= expect(panel.warningLabel()->text() == "Warning: Journey is odd" && role(panel.warningLabel()) == "warning"
-				&& !panel.warningLabel()->isHidden(),
-			"a warning goes in the warning callout, apart from the error");
-		diagnostics = {legError, otherPassenger};
-		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
-				&& panel.warningLabel()->isHidden(),
-			"an error alone leaves the warning callout hidden");
-		diagnostics = {journeyWarning, otherPassenger};
-		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->isHidden() && panel.warningLabel()->text() == "Warning: Journey is odd"
-				&& role(panel.warningLabel()) == "warning" && !panel.warningLabel()->isHidden(),
-			"a warning alone leaves the error callout hidden");
-		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(panel.warningLabel()->text() == "Note: Elsewhere" && role(panel.warningLabel()) == "neutral"
-				&& panel.diagnosticLabel()->isHidden(),
-			"another passenger shows its own messages, a note as a neutral callout");
-		panel.passengerList()->setCurrentRow(0);
-		panel.setDiagnostics(nullptr);
-		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text().isEmpty() && panel.diagnosticLabel()->isHidden() && panel.warningLabel()->isHidden(),
-			"a panel without diagnostics shows no callout");
-
-		// a run closes the document
-		const quint64 revisionBeforeRun = document.revision();
-		const std::size_t passengerCount = document.model().passengers.size();
-		events.log.clear();
-		panel.legList()->setCurrentRow(0);
-		document.setEditable(false);
-		panel.addPassengerButton()->click();
-		panel.moveLegDownButton()->click();
-		typeAndLeave(panel.passengerIdEdit(), "edited during a run");
-		ok &= expect(document.model().passengers.size() == passengerCount && document.model().passengers[0].id == "P1"
-				&& legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}) && document.revision() == revisionBeforeRun
-				&& events.log.empty(),
-			"a document that is closed for edits is not edited");
-		panel.refresh();
-		ok &= expect(!panel.passengerList()->isEnabled() && !panel.addPassengerButton()->isEnabled()
-				&& !panel.importButton()->isEnabled() && !panel.passengerIdEdit()->isEnabled() && !panel.legList()->isEnabled(),
-			"a refresh disables the controls while the document is closed for edits");
-		document.setEditable(true);
-		panel.refresh();
-		ok &= expect(panel.passengerList()->isEnabled() && panel.addPassengerButton()->isEnabled() && panel.legIdEdit()->isEnabled(),
-			"a refresh enables the controls when the document is open again");
-
-		// another scene
-		document.replace(passengerScene(), false);
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2"}) && panel.passengerList()->currentRow() == 0
-				&& items(panel.journeyList()) == std::vector<std::string>({"J1 (commute)", "J2"}),
-			"opening another scene shows it");
-
-		// detach
-		panel.setDocument(nullptr);
-		ok &= expect(panel.passengerList()->count() == 0 && !panel.addPassengerButton()->isEnabled(), "a detached panel shows nothing");
-		const quint64 detachedRevision = document.revision();
-		panel.addPassengerButton()->click();
-		document.replace(passengerScene(), false);
-		ok &= expect(panel.passengerList()->count() == 0 && document.revision() == detachedRevision + 1,
-			"a detached panel neither edits nor follows the document");
 	}
+};
 
-	{
-		// opening a scene that lists the selected passenger at another row keeps it selected
-		SceneDocument document;
-		PassengerPanel panel;
-		panel.setDocument(&document);
-		document.replace(passengerScene(), false);
-		panel.passengerList()->setCurrentRow(1);
-		SceneModel reordered = passengerScene();
-		std::reverse(reordered.passengers.begin(), reordered.passengers.end());
-		document.replace(reordered, false);
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P2", "P1"}) && panel.passengerList()->currentRow() == 0
-				&& panel.passengerIdEdit()->text() == "P2",
-			"opening a scene that lists the selected passenger at another row keeps it selected");
-	}
+class TestPassengerPanel : public QObject {
+	Q_OBJECT
 
-	{
-		auto* document = new SceneDocument;
-		PassengerPanel panel;
-		RecordingPrompts prompts;
-		panel.setPrompts(&prompts);
-		panel.setDocument(document);
-		document->replace(passengerScene(), false);
-		delete document;
-		panel.addPassengerButton()->click();
-		panel.passengerIdEdit()->setText("after the document");
-		panel.commitPendingEditors();
-		panel.refresh();
-		ok &= expect(panel.passengerList()->count() == 0 && !panel.addPassengerButton()->isEnabled() && prompts.errors.empty(),
-			"a panel whose document is gone shows nothing and edits nothing");
-	}
+private slots:
+	void showsNothingWithoutScene();
+	void showsNewScene();
+	void selectsPassengersAndJourneys();
+	void editsAddsAndDeletesPassengers();
+	void editsJourneys();
+	void movesLegs();
+	void editsLegs();
+	void showsDiagnosticCallouts();
+	void ignoresEditsWhileRunUsesScene();
+	void showsAnotherScene();
+	void detachedPanelIgnoresDocument();
+	void keepsSelectionOfReorderedScene();
+	void forgetsDeletedDocument();
+	void importsPassengers();
+	void calloutsShowSelectedPassenger();
+	void showsInvalidValues();
+};
 
-	{
-		SceneDocument document;
-		PassengerPanel panel;
-		RecordingPrompts prompts;
-		panel.setPrompts(&prompts);
-		panel.setDocument(&document);
-		Events events(panel, document);
-		document.replace(passengerScene(), false);
-
-		// import
-		QTemporaryDir fixture;
-		ok &= expect(fixture.isValid()
-				&& writePassengerFolder(fixture,
-					"x,imp1,x,x,1,import,C,x,x,x,8.25,x,A,x,7.25\n"
-					"x,P2,x,x,1,collision,C,x,x,x,8.25,x,A,x,7.25\n"
-					"x,imp_unresolved,x,x,1,unresolved,C,x,x,x,8.25,x,missing-origin,x,7.25\n"
-					"malformed,row\n",
-					"imp1,C,0,S1-1\n"
-					"P2,C,0,S1-1\n"
-					"imp_unresolved,C,0,missing-service-1\n"
-					"bad\n"),
-			"the legacy passenger fixture can be written");
-		QString chosenFolder = fixture.path();
-		int asked = 0;
-		panel.setImportFolderChooser([&] {
-			++asked;
-			return chosenFolder;
-		});
-		const std::size_t reportsBefore = document.model().importReport.size();
-		panel.importButton()->click();
-		const auto statusOf = [&](int row) { return panel.importResultTable()->item(row, 3)->text(); };
-		std::vector<std::string> rows;
-		for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
-			std::string text;
-			for (int column = 0; column < panel.importResultTable()->columnCount(); ++column)
-				text += (column == 0 ? "" : " | ") + panel.importResultTable()->item(row, column)->text().toStdString();
-			rows.push_back(text);
-		}
-		const std::vector<std::string> fileRows = {
-			"DAS_FrenchCaseStudy.csv | 1 | imp1 | Accepted | Accepted",
-			"DAS_FrenchCaseStudy.csv | 2 | P2 | Rejected | Passenger ID already exists",
-			"DAS_FrenchCaseStudy.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved station reference",
-			"DAS_FrenchCaseStudy.csv | 4 | - | Rejected | Malformed passenger DAS row",
-			"RouteChoiceFC_EQ1.csv | 1 | imp1 | Accepted | Accepted",
-			"RouteChoiceFC_EQ1.csv | 2 | P2 | Rejected | Passenger ID already exists",
-			"RouteChoiceFC_EQ1.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved service or station reference",
-			"RouteChoiceFC_EQ1.csv | 4 | - | Rejected | Malformed passenger route-choice row"};
-		ok &= expect(asked == 1 && rows.size() == fileRows.size() + 1
-				&& rows[0].find(" (batch) | - | P2 | Rejected | Passenger, journey or leg ID already exists") != std::string::npos
-				&& std::vector<std::string>(rows.begin() + 1, rows.end()) == fileRows,
-			"the result table lists the rows of both files with their accepted, rejected and unresolved status, after the passenger that collides");
-		ok &= expect(!panel.importResultTable()->isHidden() && !panel.importResultHeading()->isHidden()
-				&& panel.importResultHeading()->text() == "Import results",
-			"the result table appears with the first row, under its heading");
-		bool cellsExplained = true;
-		for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
-			for (int column = 0; column < panel.importResultTable()->columnCount(); ++column) {
-				const QTableWidgetItem* item = panel.importResultTable()->item(row, column);
-				cellsExplained = cellsExplained && (column == 0 ? item->toolTip().contains(item->text().section(' ', 0, 0)) && item->toolTip().size() > item->text().section(' ', 0, 0).size() : item->toolTip() == item->text());
-			}
-		}
-		ok &= expect(cellsExplained, "every cell of the result table has its text as tooltip, and the source its path");
-		panel.resize(1000, 1800);
-		panel.show();
-		QApplication::processEvents();
-		QTableWidget* resultTable = panel.importResultTable();
-		ok &= expect(resultTable->viewport()->height() >= 8 * resultTable->verticalHeader()->defaultSectionSize(),
-			"the result table shows at least eight rows");
-		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "imp1", "imp_unresolved"}),
-			"the accepted and the unresolved passengers are appended, and the one that collides is not");
-		ok &= expect(document.model().importReport.size() > reportsBefore && document.isDirty()
-				&& document.lastChangeLabel() == "Import passengers" && events.log == oneChange,
-			"the import is recorded in the report and is one change");
-		ok &= expect(events.status == std::vector<std::string>({"Imported 2 passengers, 1 rejected"}),
-			"the status message counts the accepted and rejected passengers");
-		ok &= expect(prompts.errors.empty(), "an import that read its files reports no error");
-
-		// a rejected import
-		const ScenePassenger lastBefore = document.model().passengers.back();
-		const std::size_t passengersBefore = document.model().passengers.size();
-		const quint64 revisionBefore = document.revision();
-		events.log.clear();
-		QTemporaryDir partial;
-		ok &= expect(partial.isValid() && writePassengerFolder(partial, "", ""), "the partial fixture can be written");
-		QFile::remove(QDir(partial.path()).filePath("Passengers/RouteChoiceFC_EQ1.csv"));
-		chosenFolder = partial.path();
-		panel.importButton()->click();
-		ok &= expect(document.model().passengers.size() == passengersBefore && document.model().passengers.back().id == lastBefore.id
-				&& document.revision() == revisionBefore && events.log.empty(),
-			"an import that fails leaves the scene alone");
-		ok &= expect(panel.importResultTable()->rowCount() == 1 && statusOf(0) == "Rejected" && prompts.errors.size() == 1
-				&& prompts.errors[0].rfind("Passenger Import Failed: ", 0) == 0
-				&& events.status.back() == "Passenger import failed. Nothing was changed",
-			"an import that fails shows one rejected row and tells the user why");
-
-		// no folder
-		chosenFolder.clear();
-		panel.importButton()->click();
-		ok &= expect(asked == 3 && panel.importResultTable()->rowCount() == 1 && prompts.errors.size() == 1
-				&& events.log.empty(),
-			"an import without a folder does nothing");
-
-		// the table is cleared with the scene
-		panel.clearImportResult();
-		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden()
-				&& panel.importResultHeading()->isHidden(),
-			"clearing the import result empties and hides the table and its heading");
-		chosenFolder = fixture.path();
-		panel.importButton()->click();
-		ok &= expect(panel.importResultTable()->rowCount() > 0, "the table fills again with the next import");
-		panel.setDocument(nullptr);
-		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden()
-				&& panel.importResultHeading()->isHidden(),
-			"a panel without a scene shows no import result");
-
-		// an import needs a document open for edits
-		panel.setDocument(&document);
-		const int askedBefore = asked;
-		document.setEditable(false);
-		panel.importButton()->click();
-		ok &= expect(asked == askedBefore, "Import does not ask for a folder while the document is closed for edits");
-	}
-
-	{
-		// the callouts list the messages of the selected passenger only, and at most five lines each
-		SceneDocument document;
-		PassengerPanel panel;
-		panel.setDocument(&document);
-		SceneModel scene = passengerScene();
-		scene.passengers.clear();
-		ScenePassenger first;
-		first.id = "X1";
-		for (int index = 0; index < 8; ++index) {
-			ScenePassengerJourney journey;
-			journey.id = "XJ" + std::to_string(index);
-			journey.originStationId = "A";
-			journey.destinationStationId = "B";
-			first.journeys.push_back(journey);
-		}
-		ScenePassenger second;
-		second.id = "X2";
-		ScenePassengerJourney otherJourney;
-		otherJourney.id = "OJ";
-		otherJourney.originStationId = "A";
-		otherJourney.destinationStationId = "B";
-		second.journeys.push_back(otherJourney);
-		scene.passengers = {first, second};
-		document.replace(scene, false);
-
-		const auto diagnostic = [](SceneSeverity severity, const char* message, const char* type, const char* id, const std::string& path) {
-			SceneDiagnostic value;
-			value.severity = severity;
-			value.message = message;
-			value.itemType = type;
-			value.itemId = id;
-			value.path = path;
-			return value;
-		};
-		std::vector<SceneDiagnostic> diagnostics;
-		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Scene has no duration", "scene", "", ""));
-		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Scene note", "", "", "settings"));
-		for (int index = 0; index < 8; ++index) {
-			diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Journey has no route-choice legs", "journey",
-				("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].legs"));
-		}
-		for (int index = 0; index < 7; ++index)
-			diagnostics.push_back(diagnostic(SceneSeverity::Error, "Journey window is wrong", "", "", "passengers[0].journeys[0].window"));
-		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Other passenger error", "journey", "OJ", "passengers[1].journeys[0]"));
-		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Other leg note", "leg", "OL", ""));
-		panel.setDiagnostics(&diagnostics);
-		panel.refresh();
-		panel.passengerList()->setCurrentRow(0);
-		ok &= expect(panel.legList()->count() == 0 && panel.journeyList()->currentRow() == 0,
-			"the first journey of the passenger is selected and has no leg");
-		const QStringList errorLines = panel.diagnosticLabel()->text().split('\n');
-		ok &= expect(errorLines.size() == 6 && errorLines.front() == "Journey window is wrong" && errorLines.back() == "and 2 more"
-				&& !panel.diagnosticLabel()->text().contains("Scene") && !panel.diagnosticLabel()->text().contains("Other"),
-			"the errors are those of the passenger, five lines and the count of the rest");
-		ok &= expect(panel.diagnosticLabel()->toolTip().split('\n').size() == 7 && !panel.diagnosticLabel()->toolTip().contains("and 2 more"),
-			"the tooltip of the error callout lists all of them");
-		const QStringList noteLines = panel.warningLabel()->text().split('\n');
-		ok &= expect(noteLines.size() == 6 && noteLines.front() == "Warning: Journey has no route-choice legs" && noteLines.back() == "and 3 more"
-				&& !panel.warningLabel()->text().contains("Scene") && !panel.warningLabel()->text().contains("Other"),
-			"the warnings are those of the passenger, five lines and the count of the rest");
-		ok &= expect(panel.warningLabel()->toolTip().split('\n').size() == 8,
-			"the tooltip of the warning callout lists all of them");
-
-		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(panel.diagnosticLabel()->text() == "Other passenger error" && panel.diagnosticLabel()->toolTip().isEmpty()
-				&& panel.warningLabel()->isHidden() && panel.warningLabel()->toolTip().isEmpty(),
-			"another passenger shows only its own message, without a tooltip when all of it is shown");
-
-		// the Legs tab of a journey without a leg offers Add and nothing else
-		ok &= expect(panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled() && !panel.legIdEdit()->isEnabled()
-				&& !panel.legOriginCombo()->isEnabled() && !panel.legServiceCombo()->isEnabled() && !panel.deleteLegButton()->isEnabled(),
-			"a journey without a leg enables Add only");
-		panel.journeyList()->setCurrentRow(-1);
-		ok &= expect(!panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled(),
-			"Add and Occurrence are off while no journey is selected");
-		panel.passengerList()->setCurrentRow(0);
-		ok &= expect(panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled(),
-			"a passenger with journeys selects one, and Add is on");
-	}
-
-	{
-		// values that the scene does not allow stay selected as invalid entries, say why, and are not written back
-		SceneDocument document;
-		PassengerPanel panel;
-		panel.setDocument(&document);
-		SceneModel scene = passengerScene();
-		ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
-		journey.originStationId = "ZZ";
-		journey.destinationStationId = "";
-		journey.legs[0].serviceId = "S9";
-		journey.legs[0].originStationId = "C";
-		journey.legs[0].destinationStationId = "";
-		document.replace(scene, false);
-		const auto tip = [](const QComboBox* combo) {
-			return combo->itemData(combo->currentIndex(), Qt::ToolTipRole).toString().toStdString();
-		};
-		ok &= expect(panel.journeyOriginCombo()->currentText() == "ZZ (missing)"
-				&& tip(panel.journeyOriginCombo()) == "Station ZZ is not in this case."
-				&& panel.journeyDestinationCombo()->currentText() == "(none)"
-				&& tip(panel.journeyDestinationCombo()) == "No station is set.",
-			"a journey station that is unknown or empty is shown as invalid with its reason");
-		ok &= expect(panel.legServiceCombo()->currentText() == "S9 (missing)"
-				&& tip(panel.legServiceCombo()) == "Service S9 is not in this case."
-				&& panel.legOriginCombo()->currentText() == "C (not a stop)"
-				&& tip(panel.legOriginCombo()) == "Station C is not a stop of the service of this leg."
-				&& panel.legDestinationCombo()->currentText() == "(none)"
-				&& tip(panel.legDestinationCombo()) == "No station is set.",
-			"a leg service or station that is unknown, not served or empty is shown as invalid with its reason");
-		ok &= expect(panel.journeyOriginCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty()
-				&& panel.legServiceCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty(),
-			"the choices that are valid have no tooltip");
-		ok &= expect(document.model().passengers[0].journeys[0].originStationId == "ZZ"
-				&& document.model().passengers[0].journeys[0].legs[0].serviceId == "S9" && document.revision() == 1
-				&& !document.isDirty(),
-			"showing invalid values does not write them back");
-	}
-
-	if (!ok)
-		return 1;
-	std::cout << "all passenger panel tests passed\n";
-	return 0;
+void TestPassengerPanel::showsNothingWithoutScene() {
+	PassengerPanel panel;
+	// A panel without a document shows no passengers and offers no action.
+	QCOMPARE(panel.passengerList()->count(), 0);
+	QVERIFY(!panel.passengerList()->isEnabled());
+	QVERIFY(!panel.addPassengerButton()->isEnabled());
+	QVERIFY(!panel.importButton()->isEnabled());
+	QVERIFY(panel.tabs()->isHidden());
+	// A panel without a selection says what to select.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Select a passenger or add one.");
+	QCOMPARE(role(panel.diagnosticLabel()), "help");
+	QVERIFY(!panel.diagnosticLabel()->isHidden());
+	QCOMPARE(panel.journeyOriginCombo()->itemText(0), "Select a journey or leg");
+	QCOMPARE(panel.legServiceCombo()->itemText(0), "Select a leg");
+	// A panel without an import result shows neither its heading nor its table.
+	QVERIFY(panel.importResultHeading()->isHidden());
+	QVERIFY(panel.importResultTable()->isHidden());
+	for (const QComboBox* combo : {panel.journeyOriginCombo(), panel.journeyDestinationCombo(), panel.legOriginCombo(),
+			 panel.legDestinationCombo(), panel.legServiceCombo()})
+		QVERIFY2(dynamic_cast<const ChoiceComboBox*>(combo) != nullptr, "the station and service choices are choice combo boxes");
+	SceneDocument document;
+	panel.setDocument(&document);
+	panel.addPassengerButton()->click();
+	// Add while the document holds no scene changes nothing.
+	QVERIFY(document.model().passengers.empty());
+	QCOMPARE(document.revision(), quint64(0));
+	QVERIFY(!document.isDirty());
 }
+
+void TestPassengerPanel::showsNewScene() {
+	PassengerFixture f;
+	PassengerPanel& panel = f.panel;
+	// A new scene is shown in the passenger list with the first passenger selected.
+	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P1", "P2"}));
+	QCOMPARE(panel.passengerList()->currentRow(), 0);
+	QVERIFY(panel.passengerList()->isEnabled());
+	QVERIFY(panel.addPassengerButton()->isEnabled());
+	QVERIFY(panel.importButton()->isEnabled());
+	QVERIFY(!panel.tabs()->isHidden());
+	// The journeys of the passenger and the legs of its first journey are listed with the first of each selected.
+	QCOMPARE(items(panel.journeyList()), std::vector<std::string>({"J1 (commute)", "J2"}));
+	QCOMPARE(items(panel.legList()), std::vector<std::string>({"L1", "L2"}));
+	QCOMPARE(panel.journeyList()->currentRow(), 0);
+	QCOMPARE(panel.legList()->currentRow(), 0);
+	// The id and activity fields show the selection.
+	QCOMPARE(panel.passengerIdEdit()->text(), "P1");
+	QCOMPARE(panel.journeyIdEdit()->text(), "J1");
+	QCOMPARE(panel.journeyActivityEdit()->text(), "commute");
+	QCOMPARE(panel.legIdEdit()->text(), "L1");
+	// The journey stations are shown with their names.
+	QCOMPARE(panel.journeyOriginCombo()->currentText(), "Station A (A)");
+	QCOMPARE(panel.journeyOriginCombo()->currentData().toString(), "A");
+	QCOMPARE(panel.journeyDestinationCombo()->currentData().toString(), "C");
+	const auto& windows = panel.journeyWindowEdits();
+	// The four time windows of the journey are shown.
+	QCOMPARE_EQ(windows[0]->value(), 100.0);
+	QCOMPARE_EQ(windows[1]->value(), 200.0);
+	QCOMPARE_EQ(windows[2]->value(), 300.0);
+	QCOMPARE_EQ(windows[3]->value(), 400.0);
+	// The leg shows its service and stations, and offers the stops of the service.
+	QCOMPARE(panel.legServiceCombo()->currentData().toString(), "S1");
+	QCOMPARE(comboData(panel.legServiceCombo()), std::vector<std::string>({"S1", "S2", "S3"}));
+	QCOMPARE(panel.legOriginCombo()->currentData().toString(), "A");
+	QCOMPARE(panel.legDestinationCombo()->currentData().toString(), "B");
+	QCOMPARE(comboData(panel.legOriginCombo()), std::vector<std::string>({"A", "B", "C"}));
+	// A service that runs once allows the occurrences 0 and 1.
+	QCOMPARE(panel.legOccurrenceEdit()->value(), 1);
+	QCOMPARE(panel.legOccurrenceEdit()->minimum(), 0);
+	QCOMPARE(panel.legOccurrenceEdit()->maximum(), 1);
+	// The first leg cannot move up.
+	QVERIFY(!panel.moveLegUpButton()->isEnabled());
+	QVERIFY(panel.moveLegDownButton()->isEnabled());
+	QVERIFY(panel.addLegButton()->isEnabled());
+	QVERIFY(panel.deleteLegButton()->isEnabled());
+	// Showing a scene edits nothing.
+	QVERIFY(f.events.log.empty());
+	QVERIFY(!f.document.isDirty());
+	QCOMPARE(f.document.revision(), quint64(1));
+}
+
+void TestPassengerPanel::selectsPassengersAndJourneys() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	panel.passengerList()->setCurrentRow(1);
+	// Selecting another passenger shows its journey and leg, and counts the occurrences of its service.
+	QCOMPARE(items(panel.journeyList()), std::vector<std::string>({"J3"}));
+	QCOMPARE(items(panel.legList()), std::vector<std::string>({"L3"}));
+	QCOMPARE(panel.legServiceCombo()->currentData().toString(), "S2");
+	QCOMPARE(comboData(panel.legOriginCombo()), std::vector<std::string>({"A", "C"}));
+	QCOMPARE(panel.legOccurrenceEdit()->value(), 2);
+	QCOMPARE(panel.legOccurrenceEdit()->maximum(), 3);
+	// Selecting edits nothing.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(document.revision(), quint64(1));
+	// Ctrl+click on the selected passenger clears the selection and keeps the current row.
+	panel.passengerList()->clearSelection();
+	// A passenger list without a selection shows an empty passenger form.
+	QCOMPARE(panel.passengerList()->currentRow(), 1);
+	QVERIFY(panel.passengerList()->selectedItems().isEmpty());
+	QVERIFY(panel.tabs()->isHidden());
+	QVERIFY(panel.passengerIdEdit()->text().isEmpty());
+	QVERIFY(!panel.passengerIdEdit()->isEnabled());
+	QVERIFY(!panel.deletePassengerButton()->isEnabled());
+	QCOMPARE(panel.journeyList()->count(), 0);
+	// A passenger list without a selection says what to select.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Select a passenger or add one.");
+	QCOMPARE(role(panel.diagnosticLabel()), "help");
+	panel.commitPendingEditors();
+	// Committing pending edits without a selected passenger shows no error and keeps the form empty.
+	QCOMPARE(f.prompts.errorCount, 0);
+	QVERIFY(panel.passengerIdEdit()->text().isEmpty());
+	// Clearing the selection edits nothing.
+	QVERIFY(f.events.log.empty());
+	QCOMPARE(document.revision(), quint64(1));
+	QVERIFY(!document.isDirty());
+	panel.refresh();
+	// Refreshing keeps the passenger list without a selection.
+	QVERIFY(panel.passengerList()->selectedItems().isEmpty());
+	QVERIFY(panel.tabs()->isHidden());
+	QVERIFY(panel.passengerIdEdit()->text().isEmpty());
+	panel.passengerList()->setCurrentRow(0);
+	panel.journeyList()->setCurrentRow(1);
+	// A journey without legs shows an empty leg editor that still allows Add.
+	QCOMPARE(panel.legList()->count(), 0);
+	QVERIFY(!panel.legIdEdit()->isEnabled());
+	QVERIFY(panel.addLegButton()->isEnabled());
+	QCOMPARE(panel.legServiceCombo()->itemText(0), "Select a leg");
+	QCOMPARE(panel.legOriginCombo()->itemText(0), "Select a journey or leg");
+	panel.refresh();
+	QVERIFY2(panel.journeyList()->currentRow() == 1, "refreshing keeps the selected journey");
+}
+
+// The edits of a passenger, then pending text, Add and Delete, which see the id and the revision that the edits left.
+void TestPassengerPanel::editsAddsAndDeletesPassengers() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	FakePrompts& prompts = f.prompts;
+	Events& events = f.events;
+
+	// Passenger edits.
+	typeAndLeave(panel.passengerIdEdit(), "  P9 ");
+	// A finished passenger id is trimmed, written to the document and shown in the list.
+	QCOMPARE(document.model().passengers[0].id, "P9");
+	QCOMPARE(panel.passengerList()->item(0)->text(), "P9");
+	QVERIFY(document.isDirty());
+	QCOMPARE(document.revision(), quint64(2));
+	QCOMPARE(document.lastChangeLabel(), "Rename passenger");
+	QVERIFY2(events.log == oneChange, "a rename is one change of the document and then of the panel");
+	events.log.clear();
+	typeAndLeave(panel.passengerIdEdit(), "P2");
+	// A passenger id that exists is refused with the old text restored.
+	QCOMPARE(prompts.errorCount, 1);
+	QCOMPARE(prompts.errorTitle, "Duplicate Passenger ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique passenger ID.");
+	QCOMPARE(panel.passengerIdEdit()->text(), "P9");
+	QCOMPARE(document.model().passengers[0].id, "P9");
+	QCOMPARE(document.revision(), quint64(2));
+	QVERIFY(events.log.empty());
+	typeAndLeave(panel.passengerIdEdit(), "");
+	// An empty passenger id is refused with the old text restored.
+	QCOMPARE(prompts.errorCount, 2);
+	QCOMPARE(prompts.errorTitle, "Invalid Passenger ID");
+	QCOMPARE(prompts.errorMessage, "Passenger IDs must not be empty.");
+	QCOMPARE(panel.passengerIdEdit()->text(), "P9");
+	QCOMPARE(document.revision(), quint64(2));
+	QVERIFY(events.log.empty());
+	typeAndLeave(panel.passengerIdEdit(), "P9");
+	// Leaving the id unchanged does not touch the document.
+	QCOMPARE(document.revision(), quint64(2));
+	QVERIFY(events.log.empty());
+	QCOMPARE(prompts.errorCount, 2);
+
+	// Pending text and cancel.
+	panel.passengerIdEdit()->setText("typed, not finished");
+	panel.refresh();
+	// Refreshing drops text that was not finished and leaves the document as it is.
+	QCOMPARE(panel.passengerIdEdit()->text(), "P9");
+	QCOMPARE(document.model().passengers[0].id, "P9");
+	QCOMPARE(document.revision(), quint64(2));
+	QVERIFY(events.log.empty());
+	panel.passengerIdEdit()->setText("P1");
+	panel.commitPendingEditors();
+	// Committing the pending editors writes the text of the id field.
+	QCOMPARE(document.model().passengers[0].id, "P1");
+	QCOMPARE(document.revision(), quint64(3));
+	QCOMPARE(events.log, oneChange);
+	events.log.clear();
+	panel.commitPendingEditors();
+	// Committing with nothing pending changes nothing.
+	QCOMPARE(document.revision(), quint64(3));
+	QVERIFY(events.log.empty());
+
+	// Add and delete a passenger.
+	panel.addPassengerButton()->click();
+	// Add appends a passenger with a free id and selects it.
+	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P1", "P2", "new_passenger"}));
+	QCOMPARE(panel.passengerList()->currentRow(), 2);
+	QCOMPARE(panel.passengerIdEdit()->text(), "new_passenger");
+	QCOMPARE(panel.journeyList()->count(), 0);
+	QVERIFY(panel.addJourneyButton()->isEnabled());
+	// Add is one change.
+	QCOMPARE(document.lastChangeLabel(), "Add passenger");
+	QCOMPARE(events.log, oneChange);
+	QCOMPARE(document.revision(), quint64(4));
+	prompts.confirmAnswer = false;
+	events.log.clear();
+	panel.deletePassengerButton()->click();
+	// A declined delete keeps the passenger.
+	QCOMPARE(prompts.confirmCount, 1);
+	QCOMPARE(prompts.confirmTitle, "Delete Passenger");
+	QCOMPARE(document.model().passengers.size(), std::size_t(3));
+	QVERIFY(events.log.empty());
+	QCOMPARE(document.revision(), quint64(4));
+	prompts.confirmAnswer = true;
+	panel.deletePassengerButton()->click();
+	// A confirmed delete removes the passenger and selects the last one that is left.
+	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P1", "P2"}));
+	QCOMPARE(panel.passengerList()->currentRow(), 1);
+	QCOMPARE(events.log, oneChange);
+	QCOMPARE(document.revision(), quint64(5));
+	QCOMPARE(document.lastChangeLabel(), "Delete passenger");
+}
+
+void TestPassengerPanel::editsJourneys() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	FakePrompts& prompts = f.prompts;
+	Events& events = f.events;
+	panel.addJourneyButton()->click();
+	const ScenePassenger& firstPassenger = document.model().passengers[0];
+	// Add appends a journey between the first station and itself and selects it.
+	QCOMPARE(firstPassenger.journeys.size(), std::size_t(3));
+	QCOMPARE(firstPassenger.journeys[2].id, "P1.journey");
+	QCOMPARE(firstPassenger.journeys[2].originStationId, "A");
+	QCOMPARE(firstPassenger.journeys[2].destinationStationId, "A");
+	QCOMPARE(panel.journeyList()->currentRow(), 2);
+	QCOMPARE(events.log, oneChange);
+	typeAndLeave(panel.journeyActivityEdit(), "shopping");
+	// The activity is written to the journey and shown in the list.
+	QCOMPARE(firstPassenger.journeys[2].activity, "shopping");
+	QCOMPARE(panel.journeyList()->item(2)->text(), "P1.journey (shopping)");
+	choose(panel.journeyOriginCombo(), "B");
+	choose(panel.journeyDestinationCombo(), "C");
+	// Choosing a station writes it to the journey.
+	QCOMPARE(firstPassenger.journeys[2].originStationId, "B");
+	QCOMPARE(firstPassenger.journeys[2].destinationStationId, "C");
+	panel.journeyWindowEdits()[2]->setValue(1234.5);
+	QVERIFY2(firstPassenger.journeys[2].plannedArrivalStartSeconds == 1234.5, "a time window is written to the journey");
+	events.log.clear();
+	typeAndLeave(panel.journeyIdEdit(), "J1");
+	// A journey id used by another journey, even of another passenger, is refused.
+	QCOMPARE(prompts.errorTitle, "Duplicate Journey ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique journey ID.");
+	QCOMPARE(panel.journeyIdEdit()->text(), "P1.journey");
+	QVERIFY(events.log.empty());
+	typeAndLeave(panel.journeyIdEdit(), "J3");
+	// A journey id of another passenger is refused.
+	QCOMPARE(prompts.errorTitle, "Duplicate Journey ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique journey ID.");
+	typeAndLeave(panel.journeyIdEdit(), "J4");
+	// A free journey id is written to the journey and shown in the list.
+	QCOMPARE(firstPassenger.journeys[2].id, "J4");
+	QCOMPARE(panel.journeyList()->item(2)->text(), "J4 (shopping)");
+	QCOMPARE(events.log, oneChange);
+	prompts.confirmAnswer = false;
+	panel.deleteJourneyButton()->click();
+	// A declined delete keeps the journey.
+	QCOMPARE(prompts.confirmTitle, "Delete Journey");
+	QCOMPARE(firstPassenger.journeys.size(), std::size_t(3));
+	prompts.confirmAnswer = true;
+	panel.deleteJourneyButton()->click();
+	// A confirmed delete removes the journey.
+	QCOMPARE(firstPassenger.journeys.size(), std::size_t(2));
+	QCOMPARE(panel.journeyList()->currentRow(), 1);
+}
+
+// The order of the legs.
+void TestPassengerPanel::movesLegs() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	const ScenePassengerJourney& firstJourney = document.model().passengers[0].journeys[0];
+	panel.moveLegDownButton()->click();
+	// Move Down swaps the leg with the next one and keeps it selected.
+	QCOMPARE(legIds(firstJourney), std::vector<std::string>({"L2", "L1"}));
+	QCOMPARE(panel.legList()->currentRow(), 1);
+	QCOMPARE(items(panel.legList()), std::vector<std::string>({"L2", "L1"}));
+	QCOMPARE(f.events.log, oneChange);
+	QCOMPARE(document.lastChangeLabel(), "Move leg");
+	// The last leg cannot move down.
+	QVERIFY(panel.moveLegUpButton()->isEnabled());
+	QVERIFY(!panel.moveLegDownButton()->isEnabled());
+	panel.moveLegDownButton()->click();
+	QVERIFY2(legIds(firstJourney) == std::vector<std::string>({"L2", "L1"}), "a disabled Move Down does nothing");
+	panel.moveLegUpButton()->click();
+	// Move Up restores the order.
+	QCOMPARE(legIds(firstJourney), std::vector<std::string>({"L1", "L2"}));
+	QCOMPARE(panel.legList()->currentRow(), 0);
+}
+
+// Add, edit and delete a leg.
+void TestPassengerPanel::editsLegs() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	FakePrompts& prompts = f.prompts;
+	Events& events = f.events;
+	const ScenePassengerJourney& firstJourney = document.model().passengers[0].journeys[0];
+	panel.addLegButton()->click();
+	// Add appends a leg and selects it on the Legs tab.
+	QCOMPARE(legIds(firstJourney), std::vector<std::string>({"L1", "L2", "J1.leg"}));
+	QCOMPARE(panel.legList()->currentRow(), 2);
+	QCOMPARE(panel.tabs()->currentIndex(), 1);
+	QCOMPARE(events.log, oneChange);
+	const ScenePassengerLeg& added = firstJourney.legs[2];
+	// A new leg runs on the first service between its first two stops.
+	QCOMPARE(added.serviceId, "S1");
+	QCOMPARE(added.originStationId, "A");
+	QCOMPARE(added.destinationStationId, "B");
+	QCOMPARE(added.occurrence, 1);
+	choose(panel.legServiceCombo(), "S3");
+	// A leg on another service offers the stops of that service and counts its occurrences over the scene duration.
+	QCOMPARE(added.serviceId, "S3");
+	QCOMPARE(comboData(panel.legOriginCombo()), std::vector<std::string>({"A", "B"}));
+	QCOMPARE(panel.legOccurrenceEdit()->maximum(), 2);
+	panel.setOccurrenceDuration([] { return 7200.0; });
+	panel.refresh();
+	QVERIFY2(panel.legOccurrenceEdit()->maximum() == 4, "the occurrences are counted over the duration the window gives");
+	choose(panel.legServiceCombo(), "S2");
+	// A station that the new service does not stop at stays selected and is marked invalid.
+	QCOMPARE(added.serviceId, "S2");
+	QCOMPARE(panel.legDestinationCombo()->currentData().toString(), "B");
+	QCOMPARE(panel.legDestinationCombo()->currentText(), "B (not a stop)");
+	QCOMPARE(comboData(panel.legDestinationCombo()).back(), "B");
+	QVERIFY2(panel.legDestinationCombo()->itemData(panel.legDestinationCombo()->currentIndex(), Qt::ToolTipRole).toString()
+			== "Station B is not a stop of the service of this leg.",
+		"the invalid station says why in its tooltip");
+	choose(panel.legDestinationCombo(), "C");
+	choose(panel.legOriginCombo(), "A");
+	panel.legOccurrenceEdit()->setValue(3);
+	// Choosing a stop and an occurrence writes them to the leg.
+	QCOMPARE(added.destinationStationId, "C");
+	QCOMPARE(added.occurrence, 3);
+	QCOMPARE(panel.legOccurrenceEdit()->maximum(), 3);
+	events.log.clear();
+	typeAndLeave(panel.legIdEdit(), "L1");
+	// A leg id that exists is refused.
+	QCOMPARE(prompts.errorTitle, "Duplicate Leg ID");
+	QCOMPARE(prompts.errorMessage, "Choose a unique leg ID.");
+	QCOMPARE(panel.legIdEdit()->text(), "J1.leg");
+	QVERIFY(events.log.empty());
+	typeAndLeave(panel.legIdEdit(), "L9");
+	// A free leg id is written to the leg and shown in the list.
+	QCOMPARE(added.id, "L9");
+	QCOMPARE(items(panel.legList()), std::vector<std::string>({"L1", "L2", "L9"}));
+	QCOMPARE(events.log, oneChange);
+	prompts.confirmAnswer = false;
+	panel.deleteLegButton()->click();
+	// A declined delete keeps the leg.
+	QCOMPARE(prompts.confirmTitle, "Delete Leg");
+	QCOMPARE(firstJourney.legs.size(), std::size_t(3));
+	prompts.confirmAnswer = true;
+	panel.deleteLegButton()->click();
+	QVERIFY2(legIds(firstJourney) == std::vector<std::string>({"L1", "L2"}), "a confirmed delete removes the leg");
+}
+
+// The callouts of the diagnostics.
+void TestPassengerPanel::showsDiagnosticCallouts() {
+	PassengerFixture f;
+	PassengerPanel& panel = f.panel;
+	SceneDiagnostic legError;
+	legError.severity = SceneSeverity::Error;
+	legError.message = "Leg service is unknown";
+	legError.path = "passengers[0].journeys[0].legs[1].service";
+	SceneDiagnostic journeyWarning;
+	journeyWarning.severity = SceneSeverity::Warning;
+	journeyWarning.message = "Journey is odd";
+	journeyWarning.itemType = "journey";
+	journeyWarning.itemId = "J1";
+	SceneDiagnostic otherPassenger;
+	otherPassenger.severity = SceneSeverity::Info;
+	otherPassenger.message = "Elsewhere";
+	otherPassenger.path = "passengers[1].journeys[0]";
+	std::vector<SceneDiagnostic> diagnostics = {legError, journeyWarning, otherPassenger};
+	panel.setDiagnostics(&diagnostics);
+	panel.refresh();
+	// An error goes in the error callout.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Leg service is unknown");
+	QCOMPARE(role(panel.diagnosticLabel()), "error");
+	QVERIFY(!panel.diagnosticLabel()->isHidden());
+	// A warning goes in the warning callout, apart from the error.
+	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd");
+	QCOMPARE(role(panel.warningLabel()), "warning");
+	QVERIFY(!panel.warningLabel()->isHidden());
+	diagnostics = {legError, otherPassenger};
+	panel.refresh();
+	// An error alone leaves the warning callout hidden.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Leg service is unknown");
+	QCOMPARE(role(panel.diagnosticLabel()), "error");
+	QVERIFY(panel.warningLabel()->isHidden());
+	diagnostics = {journeyWarning, otherPassenger};
+	panel.refresh();
+	// A warning alone leaves the error callout hidden.
+	QVERIFY(panel.diagnosticLabel()->isHidden());
+	QCOMPARE(panel.warningLabel()->text(), "Warning: Journey is odd");
+	QCOMPARE(role(panel.warningLabel()), "warning");
+	QVERIFY(!panel.warningLabel()->isHidden());
+	panel.passengerList()->setCurrentRow(1);
+	// Another passenger shows its own messages, a note as a neutral callout.
+	QCOMPARE(panel.warningLabel()->text(), "Note: Elsewhere");
+	QCOMPARE(role(panel.warningLabel()), "neutral");
+	QVERIFY(panel.diagnosticLabel()->isHidden());
+	panel.passengerList()->setCurrentRow(0);
+	panel.setDiagnostics(nullptr);
+	panel.refresh();
+	// A panel without diagnostics shows no callout.
+	QVERIFY(panel.diagnosticLabel()->text().isEmpty());
+	QVERIFY(panel.diagnosticLabel()->isHidden());
+	QVERIFY(panel.warningLabel()->isHidden());
+}
+
+// A run closes the document.
+void TestPassengerPanel::ignoresEditsWhileRunUsesScene() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	const ScenePassengerJourney& firstJourney = document.model().passengers[0].journeys[0];
+	const quint64 revisionBeforeRun = document.revision();
+	const std::size_t passengerCount = document.model().passengers.size();
+	panel.legList()->setCurrentRow(0);
+	document.setEditable(false);
+	panel.addPassengerButton()->click();
+	panel.moveLegDownButton()->click();
+	typeAndLeave(panel.passengerIdEdit(), "edited during a run");
+	// A document that is closed for edits is not edited.
+	QCOMPARE(document.model().passengers.size(), passengerCount);
+	QCOMPARE(document.model().passengers[0].id, "P1");
+	QCOMPARE(legIds(firstJourney), std::vector<std::string>({"L1", "L2"}));
+	QCOMPARE(document.revision(), revisionBeforeRun);
+	QVERIFY(f.events.log.empty());
+	panel.refresh();
+	// A refresh disables the controls while the document is closed for edits.
+	QVERIFY(!panel.passengerList()->isEnabled());
+	QVERIFY(!panel.addPassengerButton()->isEnabled());
+	QVERIFY(!panel.importButton()->isEnabled());
+	QVERIFY(!panel.passengerIdEdit()->isEnabled());
+	QVERIFY(!panel.legList()->isEnabled());
+	document.setEditable(true);
+	panel.refresh();
+	// A refresh enables the controls when the document is open again.
+	QVERIFY(panel.passengerList()->isEnabled());
+	QVERIFY(panel.addPassengerButton()->isEnabled());
+	QVERIFY(panel.legIdEdit()->isEnabled());
+}
+
+void TestPassengerPanel::showsAnotherScene() {
+	PassengerFixture f;
+	f.document.replace(passengerScene(), false);
+	// Opening another scene shows it.
+	QCOMPARE(items(f.panel.passengerList()), std::vector<std::string>({"P1", "P2"}));
+	QCOMPARE(f.panel.passengerList()->currentRow(), 0);
+	QCOMPARE(items(f.panel.journeyList()), std::vector<std::string>({"J1 (commute)", "J2"}));
+}
+
+void TestPassengerPanel::detachedPanelIgnoresDocument() {
+	PassengerFixture f;
+	f.panel.setDocument(nullptr);
+	// A detached panel shows nothing.
+	QCOMPARE(f.panel.passengerList()->count(), 0);
+	QVERIFY(!f.panel.addPassengerButton()->isEnabled());
+	const quint64 detachedRevision = f.document.revision();
+	f.panel.addPassengerButton()->click();
+	f.document.replace(passengerScene(), false);
+	// A detached panel neither edits nor follows the document.
+	QCOMPARE(f.panel.passengerList()->count(), 0);
+	QCOMPARE(f.document.revision(), detachedRevision + 1);
+}
+
+// Opening a scene that lists the selected passenger at another row keeps it selected.
+void TestPassengerPanel::keepsSelectionOfReorderedScene() {
+	SceneDocument document;
+	PassengerPanel panel;
+	panel.setDocument(&document);
+	document.replace(passengerScene(), false);
+	panel.passengerList()->setCurrentRow(1);
+	SceneModel reordered = passengerScene();
+	std::reverse(reordered.passengers.begin(), reordered.passengers.end());
+	document.replace(reordered, false);
+	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P2", "P1"}));
+	QCOMPARE(panel.passengerList()->currentRow(), 0);
+	QCOMPARE(panel.passengerIdEdit()->text(), "P2");
+}
+
+void TestPassengerPanel::forgetsDeletedDocument() {
+	auto* document = new SceneDocument;
+	PassengerPanel panel;
+	FakePrompts prompts;
+	prompts.confirmAnswer = true;
+	panel.setPrompts(&prompts);
+	panel.setDocument(document);
+	document->replace(passengerScene(), false);
+	delete document;
+	panel.addPassengerButton()->click();
+	panel.passengerIdEdit()->setText("after the document");
+	panel.commitPendingEditors();
+	panel.refresh();
+	// A panel whose document is gone shows nothing and edits nothing.
+	QCOMPARE(panel.passengerList()->count(), 0);
+	QVERIFY(!panel.addPassengerButton()->isEnabled());
+	QCOMPARE(prompts.errorCount, 0);
+}
+
+// An import, an import that fails, one without a folder, and the result table that the imports leave.
+void TestPassengerPanel::importsPassengers() {
+	PassengerFixture f;
+	SceneDocument& document = f.document;
+	PassengerPanel& panel = f.panel;
+	FakePrompts& prompts = f.prompts;
+	Events& events = f.events;
+
+	QTemporaryDir fixture;
+	// The legacy passenger fixture can be written.
+	QVERIFY(fixture.isValid());
+	QVERIFY(writePassengerFolder(fixture,
+		"x,imp1,x,x,1,import,C,x,x,x,8.25,x,A,x,7.25\n"
+		"x,P2,x,x,1,collision,C,x,x,x,8.25,x,A,x,7.25\n"
+		"x,imp_unresolved,x,x,1,unresolved,C,x,x,x,8.25,x,missing-origin,x,7.25\n"
+		"malformed,row\n",
+		"imp1,C,0,S1-1\n"
+		"P2,C,0,S1-1\n"
+		"imp_unresolved,C,0,missing-service-1\n"
+		"bad\n"));
+	QString chosenFolder = fixture.path();
+	int asked = 0;
+	panel.setImportFolderChooser([&] {
+		++asked;
+		return chosenFolder;
+	});
+	const std::size_t reportsBefore = document.model().importReport.size();
+	panel.importButton()->click();
+	const auto statusOf = [&](int row) { return panel.importResultTable()->item(row, 3)->text(); };
+	std::vector<std::string> rows;
+	for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
+		std::string text;
+		for (int column = 0; column < panel.importResultTable()->columnCount(); ++column)
+			text += (column == 0 ? "" : " | ") + panel.importResultTable()->item(row, column)->text().toStdString();
+		rows.push_back(text);
+	}
+	const std::vector<std::string> fileRows = {
+		"DAS_FrenchCaseStudy.csv | 1 | imp1 | Accepted | Accepted",
+		"DAS_FrenchCaseStudy.csv | 2 | P2 | Rejected | Passenger ID already exists",
+		"DAS_FrenchCaseStudy.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved station reference",
+		"DAS_FrenchCaseStudy.csv | 4 | - | Rejected | Malformed passenger DAS row",
+		"RouteChoiceFC_EQ1.csv | 1 | imp1 | Accepted | Accepted",
+		"RouteChoiceFC_EQ1.csv | 2 | P2 | Rejected | Passenger ID already exists",
+		"RouteChoiceFC_EQ1.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved service or station reference",
+		"RouteChoiceFC_EQ1.csv | 4 | - | Rejected | Malformed passenger route-choice row"};
+	// The result table lists the rows of both files with their accepted, rejected and unresolved status, after the passenger
+	// that collides.
+	QCOMPARE(asked, 1);
+	QCOMPARE(rows.size(), fileRows.size() + 1);
+	QVERIFY(rows[0].find(" (batch) | - | P2 | Rejected | Passenger, journey or leg ID already exists") != std::string::npos);
+	QCOMPARE(std::vector<std::string>(rows.begin() + 1, rows.end()), fileRows);
+	// The result table appears with the first row, under its heading.
+	QVERIFY(!panel.importResultTable()->isHidden());
+	QVERIFY(!panel.importResultHeading()->isHidden());
+	QCOMPARE(panel.importResultHeading()->text(), "Import results");
+	bool cellsExplained = true;
+	for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
+		for (int column = 0; column < panel.importResultTable()->columnCount(); ++column) {
+			const QTableWidgetItem* item = panel.importResultTable()->item(row, column);
+			cellsExplained = cellsExplained && (column == 0 ? item->toolTip().contains(item->text().section(' ', 0, 0)) && item->toolTip().size() > item->text().section(' ', 0, 0).size() : item->toolTip() == item->text());
+		}
+	}
+	QVERIFY2(cellsExplained, "every cell of the result table has its text as tooltip, and the source its path");
+	panel.resize(1000, 1800);
+	panel.show();
+	// The panel is hidden before the fixture destroys it, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	QApplication::processEvents();
+	QTableWidget* resultTable = panel.importResultTable();
+	QVERIFY2(resultTable->viewport()->height() >= 8 * resultTable->verticalHeader()->defaultSectionSize(),
+		"the result table shows at least eight rows");
+	QVERIFY2(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "imp1", "imp_unresolved"}),
+		"the accepted and the unresolved passengers are appended, and the one that collides is not");
+	// The import is recorded in the report and is one change.
+	QCOMPARE_GT(document.model().importReport.size(), reportsBefore);
+	QVERIFY(document.isDirty());
+	QCOMPARE(document.lastChangeLabel(), "Import passengers");
+	QCOMPARE(events.log, oneChange);
+	QVERIFY2(events.status == std::vector<std::string>({"Imported 2 passengers, 1 rejected"}),
+		"the status message counts the accepted and rejected passengers");
+	QVERIFY2(prompts.errorCount == 0, "an import that read its files reports no error");
+
+	// A rejected import.
+	const ScenePassenger lastBefore = document.model().passengers.back();
+	const std::size_t passengersBefore = document.model().passengers.size();
+	const quint64 revisionBefore = document.revision();
+	events.log.clear();
+	QTemporaryDir partial;
+	// The partial fixture can be written.
+	QVERIFY(partial.isValid());
+	QVERIFY(writePassengerFolder(partial, "", ""));
+	QFile::remove(QDir(partial.path()).filePath("Passengers/RouteChoiceFC_EQ1.csv"));
+	chosenFolder = partial.path();
+	panel.importButton()->click();
+	// An import that fails leaves the scene alone.
+	QCOMPARE(document.model().passengers.size(), passengersBefore);
+	QCOMPARE(document.model().passengers.back().id, lastBefore.id);
+	QCOMPARE(document.revision(), revisionBefore);
+	QVERIFY(events.log.empty());
+	// An import that fails shows one rejected row and tells the user why.
+	QCOMPARE(panel.importResultTable()->rowCount(), 1);
+	QCOMPARE(statusOf(0), "Rejected");
+	QCOMPARE(prompts.errorCount, 1);
+	QCOMPARE(prompts.errorTitle, "Passenger Import Failed");
+	QCOMPARE(events.status.back(), "Passenger import failed. Nothing was changed");
+
+	// No folder.
+	chosenFolder.clear();
+	panel.importButton()->click();
+	// An import without a folder does nothing.
+	QCOMPARE(asked, 3);
+	QCOMPARE(panel.importResultTable()->rowCount(), 1);
+	QCOMPARE(prompts.errorCount, 1);
+	QVERIFY(events.log.empty());
+
+	// The table is cleared with the scene.
+	panel.clearImportResult();
+	// Clearing the import result empties and hides the table and its heading.
+	QCOMPARE(panel.importResultTable()->rowCount(), 0);
+	QVERIFY(panel.importResultTable()->isHidden());
+	QVERIFY(panel.importResultHeading()->isHidden());
+	chosenFolder = fixture.path();
+	panel.importButton()->click();
+	QVERIFY2(panel.importResultTable()->rowCount() > 0, "the table fills again with the next import");
+	panel.setDocument(nullptr);
+	// A panel without a scene shows no import result.
+	QCOMPARE(panel.importResultTable()->rowCount(), 0);
+	QVERIFY(panel.importResultTable()->isHidden());
+	QVERIFY(panel.importResultHeading()->isHidden());
+
+	// An import needs a document open for edits.
+	panel.setDocument(&document);
+	const int askedBefore = asked;
+	document.setEditable(false);
+	panel.importButton()->click();
+	QVERIFY2(asked == askedBefore, "Import does not ask for a folder while the document is closed for edits");
+}
+
+// The callouts list the messages of the selected passenger only, and at most five lines each.
+void TestPassengerPanel::calloutsShowSelectedPassenger() {
+	SceneDocument document;
+	PassengerPanel panel;
+	panel.setDocument(&document);
+	SceneModel scene = passengerScene();
+	scene.passengers.clear();
+	ScenePassenger first;
+	first.id = "X1";
+	for (int index = 0; index < 8; ++index) {
+		ScenePassengerJourney journey;
+		journey.id = "XJ" + std::to_string(index);
+		journey.originStationId = "A";
+		journey.destinationStationId = "B";
+		first.journeys.push_back(journey);
+	}
+	ScenePassenger second;
+	second.id = "X2";
+	ScenePassengerJourney otherJourney;
+	otherJourney.id = "OJ";
+	otherJourney.originStationId = "A";
+	otherJourney.destinationStationId = "B";
+	second.journeys.push_back(otherJourney);
+	scene.passengers = {first, second};
+	document.replace(scene, false);
+
+	const auto diagnostic = [](SceneSeverity severity, const char* message, const char* type, const char* id, const std::string& path) {
+		SceneDiagnostic value;
+		value.severity = severity;
+		value.message = message;
+		value.itemType = type;
+		value.itemId = id;
+		value.path = path;
+		return value;
+	};
+	std::vector<SceneDiagnostic> diagnostics;
+	diagnostics.push_back(diagnostic(SceneSeverity::Error, "Scene has no duration", "scene", "", ""));
+	diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Scene note", "", "", "settings"));
+	for (int index = 0; index < 8; ++index) {
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Journey has no route-choice legs", "journey",
+			("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].legs"));
+	}
+	for (int index = 0; index < 7; ++index)
+		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Journey window is wrong", "", "", "passengers[0].journeys[0].window"));
+	diagnostics.push_back(diagnostic(SceneSeverity::Error, "Other passenger error", "journey", "OJ", "passengers[1].journeys[0]"));
+	diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Other leg note", "leg", "OL", ""));
+	panel.setDiagnostics(&diagnostics);
+	panel.refresh();
+	panel.passengerList()->setCurrentRow(0);
+	// The first journey of the passenger is selected and has no leg.
+	QCOMPARE(panel.legList()->count(), 0);
+	QCOMPARE(panel.journeyList()->currentRow(), 0);
+	const QStringList errorLines = panel.diagnosticLabel()->text().split('\n');
+	// The errors are those of the passenger, five lines and the count of the rest.
+	QCOMPARE(errorLines.size(), qsizetype(6));
+	QCOMPARE(errorLines.front(), "Journey window is wrong");
+	QCOMPARE(errorLines.back(), "and 2 more");
+	QVERIFY(!panel.diagnosticLabel()->text().contains("Scene"));
+	QVERIFY(!panel.diagnosticLabel()->text().contains("Other"));
+	// The tooltip of the error callout lists all of them.
+	QCOMPARE(panel.diagnosticLabel()->toolTip().split('\n').size(), qsizetype(7));
+	QVERIFY(!panel.diagnosticLabel()->toolTip().contains("and 2 more"));
+	const QStringList noteLines = panel.warningLabel()->text().split('\n');
+	// The warnings are those of the passenger, five lines and the count of the rest.
+	QCOMPARE(noteLines.size(), qsizetype(6));
+	QCOMPARE(noteLines.front(), "Warning: Journey has no route-choice legs");
+	QCOMPARE(noteLines.back(), "and 3 more");
+	QVERIFY(!panel.warningLabel()->text().contains("Scene"));
+	QVERIFY(!panel.warningLabel()->text().contains("Other"));
+	QVERIFY2(panel.warningLabel()->toolTip().split('\n').size() == 8, "the tooltip of the warning callout lists all of them");
+
+	panel.passengerList()->setCurrentRow(1);
+	// Another passenger shows only its own message, without a tooltip when all of it is shown.
+	QCOMPARE(panel.diagnosticLabel()->text(), "Other passenger error");
+	QVERIFY(panel.diagnosticLabel()->toolTip().isEmpty());
+	QVERIFY(panel.warningLabel()->isHidden());
+	QVERIFY(panel.warningLabel()->toolTip().isEmpty());
+
+	// The Legs tab of a journey without a leg offers Add and nothing else.
+	// A journey without a leg enables Add only.
+	QVERIFY(panel.addLegButton()->isEnabled());
+	QVERIFY(!panel.legOccurrenceEdit()->isEnabled());
+	QVERIFY(!panel.legIdEdit()->isEnabled());
+	QVERIFY(!panel.legOriginCombo()->isEnabled());
+	QVERIFY(!panel.legServiceCombo()->isEnabled());
+	QVERIFY(!panel.deleteLegButton()->isEnabled());
+	panel.journeyList()->setCurrentRow(-1);
+	// Add and Occurrence are off while no journey is selected.
+	QVERIFY(!panel.addLegButton()->isEnabled());
+	QVERIFY(!panel.legOccurrenceEdit()->isEnabled());
+	panel.passengerList()->setCurrentRow(0);
+	// A passenger with journeys selects one, and Add is on.
+	QVERIFY(panel.addLegButton()->isEnabled());
+	QVERIFY(!panel.legOccurrenceEdit()->isEnabled());
+}
+
+// Values that the scene does not allow stay selected as invalid entries, say why, and are not written back.
+void TestPassengerPanel::showsInvalidValues() {
+	SceneDocument document;
+	PassengerPanel panel;
+	panel.setDocument(&document);
+	SceneModel scene = passengerScene();
+	ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	journey.originStationId = "ZZ";
+	journey.destinationStationId = "";
+	journey.legs[0].serviceId = "S9";
+	journey.legs[0].originStationId = "C";
+	journey.legs[0].destinationStationId = "";
+	document.replace(scene, false);
+	const auto tip = [](const QComboBox* combo) {
+		return combo->itemData(combo->currentIndex(), Qt::ToolTipRole).toString().toStdString();
+	};
+	// A journey station that is unknown or empty is shown as invalid with its reason.
+	QCOMPARE(panel.journeyOriginCombo()->currentText(), "ZZ (missing)");
+	QCOMPARE(tip(panel.journeyOriginCombo()), "Station ZZ is not in this case.");
+	QCOMPARE(panel.journeyDestinationCombo()->currentText(), "(none)");
+	QCOMPARE(tip(panel.journeyDestinationCombo()), "No station is set.");
+	// A leg service or station that is unknown, not served or empty is shown as invalid with its reason.
+	QCOMPARE(panel.legServiceCombo()->currentText(), "S9 (missing)");
+	QCOMPARE(tip(panel.legServiceCombo()), "Service S9 is not in this case.");
+	QCOMPARE(panel.legOriginCombo()->currentText(), "C (not a stop)");
+	QCOMPARE(tip(panel.legOriginCombo()), "Station C is not a stop of the service of this leg.");
+	QCOMPARE(panel.legDestinationCombo()->currentText(), "(none)");
+	QCOMPARE(tip(panel.legDestinationCombo()), "No station is set.");
+	// The choices that are valid have no tooltip.
+	QVERIFY(panel.journeyOriginCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty());
+	QVERIFY(panel.legServiceCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty());
+	// Showing invalid values does not write them back.
+	QCOMPARE(document.model().passengers[0].journeys[0].originStationId, "ZZ");
+	QCOMPARE(document.model().passengers[0].journeys[0].legs[0].serviceId, "S9");
+	QCOMPARE(document.revision(), quint64(1));
+	QVERIFY(!document.isDirty());
+}
+
+QTEST_MAIN(TestPassengerPanel)
+#include "test_editor_passenger.moc"
