@@ -15,8 +15,6 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPalette>
-#include <QPen>
 #include <QPushButton>
 #include <QSet>
 #include <QStringList>
@@ -32,6 +30,7 @@
 #include <QtCharts/QValueAxis>
 
 #include <algorithm>
+#include <cmath>
 #include <initializer_list>
 #include <iterator>
 #include <utility>
@@ -272,35 +271,10 @@ QString histogramCountsText(const DelayHistogram& histogram, int trains, DelayEv
 		+ QString(". No more than 3 min late: %1; no more than 5 min late: %2.").arg(noMoreThanText(histogram, 180.0), noMoreThanText(histogram, 300.0));
 }
 
-// The look of the charts of DiagramWindow: square corners, the base colour behind the plot, a quiet grid and axes, and the
-// text colour for the labels and titles.
-void styleChart(QChart* chart, const QPalette& palette) {
-	chart->setBackgroundRoundness(0);
-	chart->setBackgroundBrush(palette.brush(QPalette::Base));
-	chart->setMargins(QMargins(12, 8, 12, 8));
-	QColor gridColor = palette.color(QPalette::WindowText);
-	gridColor.setAlpha(30);
-	QColor lineColor = palette.color(QPalette::WindowText);
-	lineColor.setAlpha(90);
-	for (QAbstractAxis* axis : chart->axes()) {
-		axis->setGridLinePen(QPen(gridColor));
-		axis->setLabelsBrush(palette.brush(QPalette::WindowText));
-		axis->setTitleBrush(palette.brush(QPalette::WindowText));
-		axis->setLinePen(QPen(lineColor));
-	}
-}
-
 // Whole-number ticks from 0 in steps of 1, 2 or 5 times a power of ten, at most eight steps, with a step of room above the
 // highest bar for its label.
 void setCountRange(QValueAxis* axis, int highest) {
-	int step = 1;
-	for (int power = 1; highest > 7 * step; power *= 10) {
-		for (const int factor : {1, 2, 5}) {
-			step = factor * power;
-			if (highest <= 7 * step)
-				break;
-		}
-	}
+	const int step = highest > 7 ? static_cast<int>(std::lround(roundTickStep(highest, 7))) : 1;
 	const int top = (highest / step + 1) * step;
 	axis->setRange(0, top);
 	axis->setTickType(QValueAxis::TicksDynamic);
@@ -629,7 +603,7 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_histogramAxis->setLabelFormat(QStringLiteral("%.0f"));
 	chart->addAxis(m_histogramAxis, Qt::AlignLeft);
 	bars->attachAxis(m_histogramAxis);
-	styleChart(chart, palette());
+	styleResultChart(chart, palette());
 	classAxis->setGridLineVisible(false);
 	m_histogramView = new QChartView(chart, punctualityPage);
 	m_histogramView->setObjectName("delayHistogram");

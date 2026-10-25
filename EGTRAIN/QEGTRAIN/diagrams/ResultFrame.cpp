@@ -11,6 +11,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QColor>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QEvent>
@@ -24,12 +25,18 @@
 #include <QImage>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPalette>
+#include <QPen>
 #include <QSaveFile>
 #include <QSplitter>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QtCharts/QAbstractAxis>
+#include <QtCharts/QChart>
 
 #include <algorithm>
+#include <cmath>
+#include <initializer_list>
 #include <utility>
 
 namespace {
@@ -39,6 +46,7 @@ constexpr int kNarrowPanelWidth = 200;
 constexpr int kNarrowWindow = 1000;
 // The value of a key figure is this much larger than the text of the panel.
 constexpr qreal kFigureScale = 1.45;
+constexpr QMargins kChartMargins(12, 8, 12, 8);
 
 bool writeAtomically(const QString& path, const std::string& bytes) {
 	QSaveFile file(path);
@@ -315,6 +323,30 @@ KeepInFront::~KeepInFront() {
 	QWidget* window = m_widget->window();
 	window->raise();
 	window->activateWindow();
+}
+
+void styleResultChart(QChart* chart, const QPalette& palette) {
+	chart->setBackgroundRoundness(0);
+	chart->setBackgroundBrush(palette.brush(QPalette::Base));
+	chart->setMargins(kChartMargins);
+	QColor gridColor = palette.color(QPalette::WindowText);
+	gridColor.setAlpha(30);
+	QColor lineColor = palette.color(QPalette::WindowText);
+	lineColor.setAlpha(90);
+	for (QAbstractAxis* axis : chart->axes()) {
+		axis->setGridLinePen(QPen(gridColor));
+		axis->setLabelsBrush(palette.brush(QPalette::WindowText));
+		axis->setTitleBrush(palette.brush(QPalette::WindowText));
+		axis->setLinePen(QPen(lineColor));
+	}
+}
+
+double roundTickStep(double span, int steps) {
+	const double power = std::pow(10.0, std::floor(std::log10(span / steps)));
+	double step = power;
+	for (const double factor : {2.0, 5.0, 10.0})
+		if (span / step > steps) step = factor * power;
+	return step;
 }
 
 QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,

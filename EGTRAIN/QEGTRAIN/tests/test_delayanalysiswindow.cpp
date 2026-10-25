@@ -45,11 +45,13 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QValueAxis>
 
+#include <cmath>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -501,6 +503,36 @@ bool histogramShown(const DelayAnalysisWindow& window) {
 	const auto* view = window.findChild<QChartView*>("delayHistogram");
 	return view && view->isVisible() && window.findChild<QLabel*>("delayHistogramCounts")->isVisible()
 		&& !window.findChild<QLabel*>("delayHistogramNote")->isVisible();
+}
+
+// The Punctuality chart has the look of the other result charts, and the steps of the axes are 1, 2 or 5 times a power
+// of ten.
+bool exerciseChartLook() {
+	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+	window.show();
+	showTab(window, 2);
+	QChart* chart = histogramChart(window);
+	if (!expect(chart && !chart->axes().isEmpty(), "the Punctuality tab has a chart with axes"))
+		return false;
+	const QPalette palette = window.palette();
+	bool ok = expect(chart->backgroundRoundness() == 0 && chart->margins() == QMargins(12, 8, 12, 8)
+			&& chart->backgroundBrush().color() == palette.color(QPalette::Base),
+		"square corners, the margins and the background of the result charts");
+	QColor grid = palette.color(QPalette::WindowText);
+	grid.setAlpha(30);
+	QColor line = palette.color(QPalette::WindowText);
+	line.setAlpha(90);
+	for (const QAbstractAxis* axis : chart->axes())
+		ok &= expect(axis->gridLinePen().color() == grid && axis->linePen().color() == line
+				&& axis->labelsBrush().color() == palette.color(QPalette::WindowText)
+				&& axis->titleBrush().color() == palette.color(QPalette::WindowText),
+			"a quiet grid and axis line, and labels and titles in the colour of the text");
+	for (const auto& [span, steps, step] : {std::tuple(8.0, 8, 1.0), std::tuple(10.0, 8, 2.0), std::tuple(100.0, 8, 20.0),
+			 std::tuple(0.3, 8, 0.05), std::tuple(14.0, 7, 2.0), std::tuple(15.0, 7, 5.0), std::tuple(70.0, 7, 10.0),
+			 std::tuple(71.0, 7, 20.0)})
+		ok &= expect(std::abs(roundTickStep(span, steps) - step) < step * 1e-9,
+			qPrintable(QString("%1 in at most %2 steps has steps of %3: %4").arg(span).arg(steps).arg(step).arg(roundTickStep(span, steps))));
+	return ok;
 }
 
 // H1: follow-level-0. The arrivals -269, -167 and -10 are early and +157 is 1 to 3 min late; the two arrivals at A have
@@ -1188,6 +1220,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseSummary();
 	ok &= exerciseThresholds();
 	ok &= exercisePunctuality();
+	ok &= exerciseChartLook();
 	ok &= exercisePunctualityShares();
 	ok &= exerciseFilters();
 	ok &= exerciseBaseline();

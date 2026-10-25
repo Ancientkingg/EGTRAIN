@@ -11,6 +11,7 @@
 #include <optional>
 #include <string>
 
+class QChart;
 class QDialog;
 class QDialogButtonBox;
 class QEvent;
@@ -18,6 +19,7 @@ class QFrame;
 class QHBoxLayout;
 class QImage;
 class QLabel;
+class QPalette;
 class QResizeEvent;
 class QShowEvent;
 class QSplitter;
@@ -161,6 +163,15 @@ public:
 private:
 	QPointer<QWidget> m_widget;
 };
+
+/// The look of the charts of the result windows: square corners, the base colour of `palette` behind the plot, margins of
+/// 12 px at the sides and 8 px above and below, a quiet grid and axis lines, and the text colour for the labels and the
+/// titles of the axes.
+void styleResultChart(QChart* chart, const QPalette& palette);
+
+/// The step of the ticks of an axis over `span`: the smallest of 1, 2 or 5 times a power of ten that divides `span` into
+/// no more than `steps` steps. `span` and `steps` are greater than 0.
+double roundTickStep(double span, int steps);
 
 /// Writes the content of an export to `path` as a file of the kind `suffix` names, "csv" or "png", and returns whether
 /// it did, such as writeRunArtifactWithProvenance.

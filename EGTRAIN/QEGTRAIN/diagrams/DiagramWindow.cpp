@@ -122,8 +122,6 @@ QImage plannedMarker(const QPen& pen, const QColor& fill = Qt::white) {
 	return image;
 }
 
-constexpr QMargins kChartMargins(12, 8, 12, 8);
-
 // Inside a box a click selects a line rather than the box only within this many pixels of the line: the half width of an
 // emphasised line of 3.5 px and room for the pointer. Further from the line the click is on the box.
 constexpr double kLineOverBox = 4;
@@ -135,10 +133,7 @@ void roundTicks(QValueAxis* axis) {
 	const double high = axis->max();
 	const double span = high - low;
 	if (!(span > 0.0) || !std::isfinite(span)) return;
-	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
-	double step = power;
-	for (const double factor : {2.0, 5.0, 10.0})
-		if (span / step > 8) step = factor * power;
+	const double step = roundTickStep(span, 8);
 	axis->setTickType(QValueAxis::TicksDynamic);
 	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
 	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
@@ -1410,26 +1405,9 @@ void DiagramWindow::setProvenanceWriter(
 	m_provenanceWriter = std::move(writer);
 }
 
-// Shared look for every diagram: quiet grid, readable title, line weight that
-// survives PNG export.
+// Shared look for every diagram: the look of the result charts, and a line weight that survives PNG export.
 void DiagramWindow::applyChartStyle(QChart* chart) {
-	chart->setBackgroundRoundness(0);
-	chart->setBackgroundBrush(palette().brush(QPalette::Base));
-	chart->setMargins(kChartMargins);
-
-	QColor gridColor = palette().color(QPalette::WindowText);
-	gridColor.setAlpha(30);
-	const QPen gridPen(gridColor);
-	const QBrush labelBrush = palette().brush(QPalette::WindowText);
-	const auto axes = chart->axes();
-	for (QAbstractAxis* axis : axes) {
-		axis->setGridLinePen(gridPen);
-		axis->setLabelsBrush(labelBrush);
-		axis->setTitleBrush(labelBrush);
-		QColor lineColor = palette().color(QPalette::WindowText);
-		lineColor.setAlpha(90);
-		axis->setLinePen(QPen(lineColor));
-	}
+	styleResultChart(chart, palette());
 
 	const auto seriesList = chart->series();
 	for (QAbstractSeries* series : seriesList) {
