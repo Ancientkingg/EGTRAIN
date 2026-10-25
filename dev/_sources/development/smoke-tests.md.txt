@@ -180,7 +180,9 @@ ctest --test-dir build -R '^test_live' --output-on-failure
 - A command that is accepted before the run is turned down with `no_active_run` and does not reach the run, and one that is accepted after the last step is turned down with `run_ended`.
 - A command is turned down with `queue_full` when the control of the run holds 16 commands already.
 
-To add a case, add a line to a file in `tests/live/commands` and the events it should give to `testReplay` in `tests/test_livereplay.cpp`.
+To add a case, add a line to a file in `tests/live/commands` and the events it should give to the slot that plays that
+file in `tests/test_livereplay.cpp` (`pauseResumeAndDelay` for `pause-resume-delay.jsonl`, `stopEndsRun` for
+`stop.jsonl`).
 
 ### ThreadSanitizer
 
