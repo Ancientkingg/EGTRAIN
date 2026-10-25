@@ -5,6 +5,7 @@
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/PathMessages.h"
+#include "app/RunOutcome.h"
 #include "app/RunResultsDock.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/UpdateTelemetryController.h"
@@ -628,15 +629,18 @@ void RunController::onSimulationFinished() {
 		QCoreApplication::exit(0);
 		return;
 	}
-	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
-	m_sceneChangedDuringRun = false;
 	// Why an exception ended the run, or empty.
 	const QString failure = QString::fromStdString(simulation.lastRunError());
-	// A stop that arrives after the last stage leaves a completed run.
-	const bool stopped = failure.isEmpty() && m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
-	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
-	const bool kept = failure.isEmpty() && !sceneChangedDuringRun && !stopped && hasRawRunResults();
-	if (kept)
+	RunEnd end;
+	end.failed = !failure.isEmpty();
+	end.stopRequested = m_worker && m_worker->isStopRequested();
+	end.lastStageCompleted = simulation.lastRunCompleted();
+	end.sceneChangedDuringRun = m_sceneChangedDuringRun;
+	end.hasTrajectories = hasRawRunResults();
+	m_sceneChangedDuringRun = false;
+	const RunOutcome outcome = classifyRunOutcome(end);
+	const bool stoppedByUser = outcome.discard == RunDiscard::Stopped;
+	if (outcome.resultsKept())
 		setState(RunState::Completed);
 	else
 		setState(stoppedByUser ? RunState::Stopped : RunState::Failed);
@@ -648,7 +652,7 @@ void RunController::onSimulationFinished() {
 	} else {
 		m_pendingRunProvenance = RunProvenance();
 		m_completedRun.reset();
-		emit resultsDiscarded(stoppedByUser, sceneChangedDuringRun);
+		emit resultsDiscarded(stoppedByUser, outcome.discard == RunDiscard::SceneChanged);
 	}
 	m_pendingRunProvenance = RunProvenance();
 	emit loadedDataChanged();
@@ -657,22 +661,22 @@ void RunController::onSimulationFinished() {
 		return;
 
 	// print last services
-	if (!stopped && failure.isEmpty())
+	if (!outcome.stopped && !end.failed)
 		simulation.printLastTrainServicePathDiagram();
 
 	emit runProgressEnded();
-	const QString status = sceneChangedDuringRun
+	const QString status = outcome.discard == RunDiscard::SceneChanged
 		? QStringLiteral("Results discarded: the case changed during the run")
-		: !failure.isEmpty()  ? QStringLiteral("Simulation failed")
-		: stopped			  ? QStringLiteral("Simulation stopped")
-		: !resultsAvailable() ? QStringLiteral("Simulation ended without results")
-							  : QStringLiteral("Simulation complete");
+		: outcome.discard == RunDiscard::Failed	 ? QStringLiteral("Simulation failed")
+		: outcome.discard == RunDiscard::Stopped ? QStringLiteral("Simulation stopped")
+		: !resultsAvailable()					 ? QStringLiteral("Simulation ended without results")
+												 : QStringLiteral("Simulation complete");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
-	if (resultsAvailable() && !stopped)
+	if (resultsAvailable() && !outcome.stopped)
 		m_host.replayReady(simulation.takeReplayCandidate());
 	else
 		simulation.resetReplayCandidate();
