@@ -103,6 +103,16 @@ static bool finishReply(const FakeTransport& transport, int index, const Answer&
 	return true;
 }
 
+// Hands the checker the next part of the body of the given request.
+static bool sendChunk(const FakeTransport& transport, int index, const QByteArray& chunk) {
+	FakeReply* reply = replyAt(transport, index);
+	if (!reply)
+		return false;
+	reply->body += chunk;
+	emit reply->readyRead();
+	return true;
+}
+
 // Collects the results of a checker.
 struct Results {
 	explicit Results(UpdateChecker& checker) {
@@ -236,6 +246,54 @@ static bool testCheckWhilePending() {
 	spin(50);
 	ok &= expect(results.list.size() == 1 && results.list.first().success, "two checks in a row give one successful result");
 	ok &= expect(transport.calls.back().aborts == 0, "the answered request is not aborted");
+	return ok;
+}
+
+static bool testReleaseListLimit() {
+	const int limit = 8 * 1024 * 1024;
+	const QString tooLarge = QStringLiteral("The release list from GitHub is too large.");
+
+	// A list that grows beyond the limit while it arrives is refused at once, and its request is cancelled.
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 5000);
+	Results results(checker);
+	checker.check();
+	const QByteArray half(limit / 2, ' ');
+	bool ok = expect(sendChunk(transport, 0, half) && sendChunk(transport, 0, half) && results.list.isEmpty()
+			&& checker.isChecking(),
+		"a release list as large as the limit is still read");
+	ok &= expect(sendChunk(transport, 0, " ") && results.wait(), "a release list beyond the limit ends the check");
+	spin(50);
+	ok &= expect(results.list.size() == 1 && !results.list.first().success && !results.list.first().release
+			&& results.list.first().error == tooLarge,
+		"a release list beyond the limit gives one failure that says it is too large");
+	ok &= expect(transport.calls.size() == 1u && transport.calls.front().aborts == 1 && !checker.isChecking(),
+		"a release list beyond the limit cancels its request once");
+
+	// The limit holds also for a list that arrives with the end of the reply.
+	UpdateCheckResult result;
+	Answer response;
+	response.status = 200;
+	response.body = QByteArray(limit + 1, ' ');
+	ok &= expect(runCheck(response, &result) && !result.success && result.error == tooLarge,
+		"a release list beyond the limit at the end of the reply is refused");
+
+	// A list of exactly the limit, partly read before the end, is parsed whole.
+	FakeTransport exact;
+	UpdateChecker exactChecker(&exact, 5000);
+	Results exactResults(exactChecker);
+	exactChecker.check();
+	const QByteArray list = releaseJson("v1.10.0");
+	FakeReply* reply = replyAt(exact, 0);
+	ok &= expect(reply && sendChunk(exact, 0, list), "the start of the release list arrives");
+	if (reply) {
+		reply->status = 200;
+		reply->body += QByteArray(limit - static_cast<int>(list.size()), ' ');
+		emit reply->finished();
+	}
+	ok &= expect(exactResults.wait() && exactResults.list.size() == 1 && exactResults.list.first().success
+			&& exactResults.list.first().release && exactResults.list.first().release->tag == QStringLiteral("v1.10.0"),
+		"a release list as large as the limit gives its latest stable release");
 	return ok;
 }
 
@@ -532,6 +590,7 @@ int main(int argc, char** argv) {
 	ok &= testCheckFailureTexts();
 	ok &= testCheckTimeout();
 	ok &= testCheckWhilePending();
+	ok &= testReleaseListLimit();
 
 	return ok ? 0 : 1;
 }
