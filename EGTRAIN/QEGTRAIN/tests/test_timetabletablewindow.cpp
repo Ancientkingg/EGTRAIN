@@ -25,6 +25,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionHeader>
@@ -612,6 +613,7 @@ void TestTimetableTableWindow::exportAsksForFileOfItsKind() {
 		QFAIL("the window has a PNG export");
 	const QChar separator = display_path::separator();
 	display_path::separator() = QLatin1Char('\\');
+	const auto restoreSeparator = qScopeGuard([separator] { display_path::separator() = separator; });
 	const QString csvPath = QDir(directory.path()).filePath("missing/table.csv");
 	const ExportDialog csv = answerExport(csvButton, csvPath);
 	// CSV... asks for a CSV file

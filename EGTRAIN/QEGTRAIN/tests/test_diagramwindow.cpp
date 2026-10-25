@@ -52,6 +52,7 @@
 #include <QRegularExpression>
 #include <QRubberBand>
 #include <QPointer>
+#include <QScopeGuard>
 #include <QScrollBar>
 #include <QSplitter>
 #include <QThread>
@@ -231,6 +232,7 @@ private slots:
 	void cleanupTestCase();
 
 private:
+	bool m_ran = false;
 	bool m_failed = false;
 };
 
@@ -1667,6 +1669,8 @@ static QChart* routeChartWithStations(const QStringList& names, QCategoryAxis** 
 // The tick labels of the timetable graph stay whole at the normal font and at one and a half times its size.
 void TestDiagramWindow::keepsStationLabelsWhole() {
 	const QFont original = QApplication::font();
+	// A failed check leaves the slot early; the later slots still measure at the original font.
+	const auto restoreFont = qScopeGuard([&original] { QApplication::setFont(original); });
 	const QStringList names = {"Amsterdam Centraal", "Utrecht Centraal", "Den Bosch", "Eindhoven Centraal", "Venlo", "Roermond",
 		"Maastricht", "Sittard", "Heerlen", "G&d<g"};
 	struct Case {
@@ -2731,6 +2735,7 @@ void TestDiagramWindow::asksForFileOfItsKind() {
 		QFAIL("the window has both exports");
 	const QChar separator = display_path::separator();
 	display_path::separator() = QLatin1Char('\\');
+	const auto restoreSeparator = qScopeGuard([separator] { display_path::separator() = separator; });
 	const QString csvPath = QDir(directory.path()).filePath("missing/diagram.csv");
 	const ExportDialog csv = answerExport(csvButton, csvPath);
 	QVERIFY2(csv.title == "Export Data", qPrintable("CSV... asks for a CSV file: " + csv.title + ", " + csv.filters.join(", ") + ", " + csv.suggested));
@@ -2743,7 +2748,6 @@ void TestDiagramWindow::asksForFileOfItsKind() {
 	QVERIFY2(png.filters == QStringList("PNG Image (*.png)"), qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.suggested == "diagram.png", qPrintable("PNG... asks for a PNG image: " + png.title + ", " + png.filters.join(", ") + ", " + png.suggested));
 	QVERIFY2(png.warnings == QStringList("Could not save the image to:\n" + display_path::format(pngPath)), qPrintable("an image that cannot be written is named as the person reads it: " + png.warnings.join(" | ")));
-	display_path::separator() = separator;
 }
 
 // A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
@@ -4640,12 +4644,14 @@ void TestDiagramWindow::presentsInputCurve() {
 }
 
 void TestDiagramWindow::cleanup() {
+	m_ran = true;
 	m_failed = m_failed || QTest::currentTestFailed();
 }
 
-// tools/e2e/route_diagram_smoke.py looks for this line.
+// tools/e2e/route_diagram_smoke.py looks for this line. Qt Test also gets here when initTestCase fails, and then no
+// slot ran.
 void TestDiagramWindow::cleanupTestCase() {
-	if (!m_failed)
+	if (m_ran && !m_failed)
 		std::cout << "all DiagramWindow tests passed\n";
 }
 
