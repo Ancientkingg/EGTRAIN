@@ -1295,380 +1295,176 @@ Route::Route() {
 	diffRegionsJumpX = {0, 0};
 }
 
+namespace {
+
+// The infrastructure element of section BS at node, at the position of node and of its track detection section border, and
+// at its station.
+InfraElement infraElementAtNode(const Section& BS, const Node& node) {
+	InfraElement element;
+	element.ID = node.tdsbId;
+	element.SectionID = BS.ID;
+	element.XCoordinate = node.X * 1000;
+	element.YCoordinate = node.Y * 1000;
+	element.GeoXCoord = node.tdsbGeoCoordX;
+	element.GeoYCoord = node.tdsbGeoCoordY;
+	if (node.stationName.empty() != 1) {
+		element.isStation = true;
+		element.stationName = node.stationName;
+	}
+	return element;
+}
+
+// Marks element, at node of BS with connections, as a switch. Its name is its ID, or at an edge of the diverging switch of BS
+// "@<edge>@Point" with the edge that the tdsbId of node names. False when such a tdsbId does not have the four parts of the
+// name of a diverging switch edge.
+bool setSwitchOfInfraElement(const Section& BS, const Node& node, InfraElement& element) {
+	element.IsSwitch = true;
+	if (BS.withSwitchDiv == 1) {
+		if ((node.X == BS.XStartSwitch) || (node.X == BS.XEndSwitch)) {
+			element.withSwitchDiv = true;
+
+			// Setting the name of the Switch
+			istringstream Line(node.tdsbId);
+			list<string> TokenA;
+			string tok;
+			// Splitting its name in tokens separated by the charachter "@"
+			while (getline(Line, tok, '@')) {
+				if (tok.size() > 0) {
+					TokenA.push_back(tok);
+				}
+			}
+			if (TokenA.size() == 4) { // if the name of the deviating switch has at least for characters divided by the symbol @
+				list<string>::iterator FirstSwitchName, SecondSwitchName, SwitchPosition;
+				SwitchPosition = TokenA.end();
+				SwitchPosition--; // SwitchPosition identifies if the edge of the diverging switch is a Point-Start or a Poiunt-End
+				SecondSwitchName = TokenA.end();
+				advance(SecondSwitchName, -2);	  // This one represents the name of the second edge of the diverging switch
+				FirstSwitchName = TokenA.begin(); // This is the name of the first edge of the diverging switch
+				if (*SwitchPosition == "Point-End") {
+					string SWName;
+					SWName = SWName + "@" + *SecondSwitchName + "@Point";
+					element.SwitchName = SWName;
+				} else if (*SwitchPosition == "Point-Start") {
+					string SWName;
+					SWName = SWName + "@" + *FirstSwitchName + "@Point";
+					element.SwitchName = SWName;
+				}
+			} else {
+				return false;
+			}
+		} else {
+			element.SwitchName = element.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
+		}
+	} else {
+		element.SwitchName = element.ID; // if the switch is not diverging its ID coincides with the SwitchName
+	}
+	return true;
+}
+
+// Appends element to elements unless one with the same ID or at the same position is there.
+void addInfraElementOnce(list<InfraElement>& elements, const InfraElement& element) {
+	for (const InfraElement& other : elements)
+		if ((element.ID == other.ID) || (element.GeoXCoord == other.GeoXCoord)) // if they have the same ID or the same position
+			return;
+	elements.push_back(element);
+}
+
+// Connects the two edges of the diverging switch among elements to each other.
+void connectDivergingSwitchEdges(list<InfraElement>& elements) {
+	for (list<InfraElement>::iterator t = elements.begin(); t != elements.end(); t++) {
+		if (t->withSwitchDiv == 1) { // if this is an edge of a diverging switch find the other one and connect their name reciprocally
+			for (list<InfraElement>::iterator u = elements.begin(); u != elements.end(); u++) {
+				if ((u->withSwitchDiv == 1) && (u->ID != t->ID)) { // if u is the edge of a diverging switch and it is different from the other edge t, then assign the connect point of t to u and of u to t
+					t->ConnectedPoint = u->ID;
+					t->XConnectedPoint = u->XCoordinate;
+				}
+			}
+		}
+	}
+}
+
+} // namespace
+
 //  Here I need to define the function to initialise the list of InfraElements the function will be called Set_ListOFInfrastructureElements(Section signalling_block_sections)
 // It is important that in such a function any infrastructure element has also the name of the block section ID the element belongs to, this is useful then when computing train blocking times block by block
 void Route::setListInfrastructureElementsForRoute(const Section& BS) {
 	list<InfraElement> TEMP_ElementList; // TEMP_ElementList is a temporary List where we collect all the infrastructure elements within a given block section
-	int N_TEMP_ElementList = 0;
 
 	if (BS.start_node.tdsbId.empty() != 1) { // if the TDSB of the starting Node of signalling_block_sections is not empty then use it as infra element
-		InfraElement TEMP_Elem;				 // Temporary infrastructure element to be intialised
-
-		TEMP_Elem.ID = BS.start_node.tdsbId;
-		TEMP_Elem.SectionID = BS.ID;
+		InfraElement TEMP_Elem = infraElementAtNode(BS, BS.start_node);
 		TEMP_Elem.IsTrackDetSecBorder = true;
-		TEMP_Elem.XCoordinate = BS.start_node.X * 1000;
-		TEMP_Elem.YCoordinate = BS.start_node.Y * 1000;
-		TEMP_Elem.GeoXCoord = BS.start_node.tdsbGeoCoordX;
-		TEMP_Elem.GeoYCoord = BS.start_node.tdsbGeoCoordY;
-		// Is the location a station or a switch?
-		if (BS.start_node.stationName.empty() != 1) {
-			TEMP_Elem.isStation = true;
-			TEMP_Elem.stationName = BS.start_node.stationName;
-		}
 		if (BS.start_node.numConnections > 0) {
-			TEMP_Elem.IsSwitch = true;
 			TEMP_Elem.SwitchName = BS.start_node.tdsbId;
-			if (BS.withSwitchDiv == 1) {
-				if ((BS.start_node.X == BS.XStartSwitch) || (BS.start_node.X == BS.XEndSwitch)) {
-					TEMP_Elem.withSwitchDiv = true;
-
-					// Setting the name of the Switch
-					istringstream Line(BS.start_node.tdsbId);
-					list<string> TokenA;
-					string tok;
-					// Splitting its name in tokens separated by the charachter "@"
-					int N_validTokInA = 0; // Number of valid tok in TokenA
-					while (getline(Line, tok, '@')) {
-						if (tok.size() > 0) {
-							TokenA.push_back(tok);
-							N_validTokInA++; // Block Sections with A diverging Switch should have two elements in the list tok in A
-						}
-					}
-					if (TokenA.size() == 4) { // if the name of the deviating switch has at least for characters divided by the symbol @
-						list<string>::iterator FirstSwitchName, SecondSwitchName, SwitchPosition;
-						SwitchPosition = TokenA.end();
-						SwitchPosition--; // SwitchPosition identifies if the edge of the diverging switch is a Point-Start or a Poiunt-End
-						SecondSwitchName = TokenA.end();
-						advance(SecondSwitchName, -2);	  // This one represents the name of the second edge of the diverging switch
-						FirstSwitchName = TokenA.begin(); // This is the name of the first edge of the diverging switch
-						if (*SwitchPosition == "Point-End") {
-							string SWName;
-							SWName = SWName + "@" + *SecondSwitchName + "@Point";
-							TEMP_Elem.SwitchName = SWName;
-						} else if (*SwitchPosition == "Point-Start") {
-							string SWName;
-							SWName = SWName + "@" + *FirstSwitchName + "@Point";
-							TEMP_Elem.SwitchName = SWName;
-						}
-					} else {
-						EG_LOG(SimSetup, Warning) << "Warning: Switch at starting Node: " << BS.start_node.tdsbId << " on Block Section " << BS.ID << "for Route " << this->ID << " that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
-					}
-				} else {
-					TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
-				}
-			} else {
-				TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is not diverging its ID coincides with the SwitchName
+			if (!setSwitchOfInfraElement(BS, BS.start_node, TEMP_Elem)) {
+				EG_LOG(SimSetup, Warning) << "Warning: Switch at starting Node: " << BS.start_node.tdsbId << " on Block Section " << BS.ID << "for Route " << this->ID << " that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 			}
 		}
 
 		// Increase the locations of 1 element if it is not already in the list
-		if (N_TEMP_ElementList == 0) {
-			N_TEMP_ElementList++;
-			TEMP_ElementList.push_back(TEMP_Elem);
-			list<InfraElement>::iterator it = TEMP_ElementList.begin();
-
-		} else {
-			bool IsAlreadyThere = false;
-			for (list<InfraElement>::iterator l = TEMP_ElementList.begin(); l != TEMP_ElementList.end(); l++) {
-				if ((TEMP_Elem.ID == l->ID) || (TEMP_Elem.GeoXCoord == l->GeoXCoord)) { // if they have the same ID or the same position
-					IsAlreadyThere = true;
-					break;
-				}
-			}
-			if (IsAlreadyThere == 0) {
-				N_TEMP_ElementList++;
-				TEMP_ElementList.push_back(TEMP_Elem);
-			}
-		}
+		addInfraElementOnce(TEMP_ElementList, TEMP_Elem);
 	}
 
 	// Now Add other TDSB at station platforms and switches
 	for (int m = 0; m < BS.total_arcs; m++) {
+		const Arc& arc = BS.arcs_in_signalling_block_section[m];
 		if (this->reversed_direction == 0) {
 			// The arcs of block sections belonging to Routes that are not reversed have the stationName and points in the end_node of some of their Arc
-			if ((BS.arcs_in_signalling_block_section[m].endNode.tdsbId.empty() != 1) && (BS.arcs_in_signalling_block_section[m].endNode.tdsbGeoCoordX != -1)) {
-
-				InfraElement TEMP_Elem;
-				TEMP_Elem.ID = BS.arcs_in_signalling_block_section[m].endNode.tdsbId;
-
-				TEMP_Elem.SectionID = BS.ID;
-				TEMP_Elem.XCoordinate = BS.arcs_in_signalling_block_section[m].endNode.X * 1000;
-				TEMP_Elem.YCoordinate = BS.arcs_in_signalling_block_section[m].endNode.Y * 1000;
-				TEMP_Elem.GeoXCoord = BS.arcs_in_signalling_block_section[m].endNode.tdsbGeoCoordX;
-				TEMP_Elem.GeoYCoord = BS.arcs_in_signalling_block_section[m].endNode.tdsbGeoCoordY;
+			if ((arc.endNode.tdsbId.empty() != 1) && (arc.endNode.tdsbGeoCoordX != -1)) {
+				InfraElement TEMP_Elem = infraElementAtNode(BS, arc.endNode);
 
 				// Setting the infra Element as a Track Detection Section Border is this if the last Node of the Block Section
-				if (BS.arcs_in_signalling_block_section[m].endNode.X == BS.end_node.X) {
+				if (arc.endNode.X == BS.end_node.X) {
 					TEMP_Elem.IsTrackDetSecBorder = true;
 				}
 
-				if (BS.arcs_in_signalling_block_section[m].endNode.stationName.empty() != 1) {
-					TEMP_Elem.isStation = true;
-					TEMP_Elem.stationName = BS.arcs_in_signalling_block_section[m].endNode.stationName;
-				}
-
-				if (BS.arcs_in_signalling_block_section[m].endNode.numConnections > 0) {
-					TEMP_Elem.IsSwitch = true;
-					if (BS.withSwitchDiv == 1) {
-						if ((BS.arcs_in_signalling_block_section[m].endNode.X == BS.XStartSwitch) || (BS.arcs_in_signalling_block_section[m].endNode.X == BS.XEndSwitch)) {
-							TEMP_Elem.withSwitchDiv = true;
-							// Setting the name of the Switch
-							istringstream Line(BS.arcs_in_signalling_block_section[m].endNode.tdsbId);
-							list<string> TokenA;
-							string tok;
-							// Splitting its name in tokens separated by the charachter "@"
-							int N_validTokInA = 0; // Number of valid tok in TokenA
-							while (getline(Line, tok, '@')) {
-								if (tok.size() > 0) {
-									TokenA.push_back(tok);
-									N_validTokInA++; // Block Sections with A diverging Switch should have two elements in the list tok in A
-								}
-							}
-							if (TokenA.size() == 4) { // if the name of the deviating switch has at least for characters divided by the symbol @
-								list<string>::iterator FirstSwitchName, SecondSwitchName, SwitchPosition;
-								SwitchPosition = TokenA.end();
-								SwitchPosition--; // SwitchPosition identifies if the edge of the diverging switch is a Point-Start or a Poiunt-End
-								SecondSwitchName = TokenA.end();
-								advance(SecondSwitchName, -2);	  // This one represents the name of the second edge of the diverging switch
-								FirstSwitchName = TokenA.begin(); // This is the name of the first edge of the diverging switch
-								if (*SwitchPosition == "Point-End") {
-									string SWName;
-									SWName = SWName + "@" + *SecondSwitchName + "@Point";
-									TEMP_Elem.SwitchName = SWName;
-								} else if (*SwitchPosition == "Point-Start") {
-									string SWName;
-									SWName = SWName + "@" + *FirstSwitchName + "@Point";
-									TEMP_Elem.SwitchName = SWName;
-								}
-							} else {
-								EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << BS.arcs_in_signalling_block_section[m].endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																						 " is a diverging switch with less than 4 characters in its name. Please check why...\n";
-							}
-
-						} else {
-							TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
-						}
-
-					} else {
-						TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is not diverging its ID coincides with the SwitchName
-					}
+				if ((arc.endNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.endNode, TEMP_Elem)) {
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << arc.endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																										  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
-				if (N_TEMP_ElementList == 0) {
-					N_TEMP_ElementList++;
-					TEMP_ElementList.push_back(TEMP_Elem);
-				} else {
-					bool IsAlreadyThere = false;
-					for (list<InfraElement>::iterator l = TEMP_ElementList.begin(); l != TEMP_ElementList.end(); l++) {
-						if ((TEMP_Elem.ID == l->ID) || (TEMP_Elem.GeoXCoord == l->GeoXCoord)) {
-							IsAlreadyThere = true;
-							break;
-						}
-					}
-					if (IsAlreadyThere == 0) {
-						N_TEMP_ElementList++;
-						TEMP_ElementList.push_back(TEMP_Elem);
-					}
-				}
+				addInfraElementOnce(TEMP_ElementList, TEMP_Elem);
 			}
 		}
 
 		if (this->reversed_direction == 1) {
 			// The arcs of block sections belonging to Routes that are reversed have the stationName in the start_node of some of their Arc
-			if ((BS.arcs_in_signalling_block_section[m].startNode.tdsbId.empty() != 1) && (BS.arcs_in_signalling_block_section[m].startNode.tdsbGeoCoordX != -1)) {
-
-				InfraElement TEMP_Elem;
-
-				TEMP_Elem.ID = BS.arcs_in_signalling_block_section[m].startNode.tdsbId;
-
-				TEMP_Elem.SectionID = BS.ID;
-				TEMP_Elem.XCoordinate = BS.arcs_in_signalling_block_section[m].startNode.X * 1000;
-				TEMP_Elem.YCoordinate = BS.arcs_in_signalling_block_section[m].startNode.Y * 1000;
-				TEMP_Elem.GeoXCoord = BS.arcs_in_signalling_block_section[m].startNode.tdsbGeoCoordX;
-				TEMP_Elem.GeoYCoord = BS.arcs_in_signalling_block_section[m].startNode.tdsbGeoCoordY;
+			if ((arc.startNode.tdsbId.empty() != 1) && (arc.startNode.tdsbGeoCoordX != -1)) {
+				InfraElement TEMP_Elem = infraElementAtNode(BS, arc.startNode);
 
 				// Setting the infra Element as a Track Detection Section Border is this if the last Node of the Block Section
-				if (BS.arcs_in_signalling_block_section[m].startNode.X == BS.start_node.X) {
+				if (arc.startNode.X == BS.start_node.X) {
 					TEMP_Elem.IsTrackDetSecBorder = true;
 				}
 
-				if (BS.arcs_in_signalling_block_section[m].startNode.stationName.empty() != 1) {
-					TEMP_Elem.isStation = true;
-					TEMP_Elem.stationName = BS.arcs_in_signalling_block_section[m].startNode.stationName;
-				}
-
-				if (BS.arcs_in_signalling_block_section[m].startNode.numConnections > 0) {
-					TEMP_Elem.IsSwitch = true;
-					if (BS.withSwitchDiv == 1) {
-						if ((BS.arcs_in_signalling_block_section[m].startNode.X == BS.XStartSwitch) || (BS.arcs_in_signalling_block_section[m].startNode.X == BS.XEndSwitch)) {
-							TEMP_Elem.withSwitchDiv = true;
-							// Setting the name of the Switch
-							istringstream Line(BS.arcs_in_signalling_block_section[m].startNode.tdsbId);
-							list<string> TokenA;
-							string tok;
-							// Splitting its name in tokens separated by the charachter "@"
-							int N_validTokInA = 0; // Number of valid tok in TokenA
-							while (getline(Line, tok, '@')) {
-								if (tok.size() > 0) {
-									TokenA.push_back(tok);
-									N_validTokInA++; // Block Sections with A diverging Switch should have two elements in the list tok in A
-								}
-							}
-							if (TokenA.size() == 4) { // if the name of the deviating switch has at least for characters divided by the symbol @
-								list<string>::iterator FirstSwitchName, SecondSwitchName, SwitchPosition;
-								SwitchPosition = TokenA.end();
-								SwitchPosition--; // SwitchPosition identifies if the edge of the diverging switch is a Point-Start or a Poiunt-End
-								SecondSwitchName = TokenA.end();
-								advance(SecondSwitchName, -2);	  // This one represents the name of the second edge of the diverging switch
-								FirstSwitchName = TokenA.begin(); // This is the name of the first edge of the diverging switch
-								if (*SwitchPosition == "Point-End") {
-									string SWName;
-									SWName = SWName + "@" + *SecondSwitchName + "@Point";
-									TEMP_Elem.SwitchName = SWName;
-								} else if (*SwitchPosition == "Point-Start") {
-									string SWName;
-									SWName = SWName + "@" + *FirstSwitchName + "@Point";
-									TEMP_Elem.SwitchName = SWName;
-								}
-							} else {
-								EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << BS.arcs_in_signalling_block_section[m].startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																							   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
-							}
-						}
-
-						else {
-							TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
-						}
-
-					} else {
-						TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is not diverging its ID coincides with the SwitchName
-					}
+				if ((arc.startNode.numConnections > 0) && !setSwitchOfInfraElement(BS, arc.startNode, TEMP_Elem)) {
+					EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << arc.startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																												" is a diverging switch with less than 4 characters in its name. Please check why...\n";
 				}
 
 				// Increase the locations of 1 element if it is not already in the list
-				if (N_TEMP_ElementList == 0) {
-					N_TEMP_ElementList++;
-					TEMP_ElementList.push_back(TEMP_Elem);
-				} else {
-					bool IsAlreadyThere = false;
-					for (list<InfraElement>::iterator l = TEMP_ElementList.begin(); l != TEMP_ElementList.end(); l++) {
-						if ((TEMP_Elem.ID == l->ID) || (TEMP_Elem.GeoXCoord == l->GeoXCoord)) {
-							IsAlreadyThere = true;
-							break;
-						}
-					}
-					if (IsAlreadyThere == 0) {
-						N_TEMP_ElementList++;
-						TEMP_ElementList.push_back(TEMP_Elem);
-					}
-				}
+				addInfraElementOnce(TEMP_ElementList, TEMP_Elem);
 			}
 		}
 	}
 
 	// Do the same thing for the end TDSB
 	if (BS.end_node.tdsbId.empty() != 1) {
-		InfraElement TEMP_Elem;
-
-		TEMP_Elem.ID = BS.end_node.tdsbId;
-		TEMP_Elem.SectionID = BS.ID;
+		InfraElement TEMP_Elem = infraElementAtNode(BS, BS.end_node);
 		TEMP_Elem.IsTrackDetSecBorder = true;
-		TEMP_Elem.XCoordinate = BS.end_node.X * 1000;
-		TEMP_Elem.YCoordinate = BS.end_node.Y * 1000;
-		TEMP_Elem.GeoXCoord = BS.end_node.tdsbGeoCoordX;
-		TEMP_Elem.GeoYCoord = BS.end_node.tdsbGeoCoordY;
-
-		// Is the location a station or a switch?
-		if (BS.end_node.stationName.empty() != 1) {
-			TEMP_Elem.isStation = true;
-			TEMP_Elem.stationName = BS.end_node.stationName;
-		}
-		if (BS.end_node.numConnections > 0) {
-			TEMP_Elem.IsSwitch = true;
-			if (BS.withSwitchDiv == 1) {
-				if ((BS.end_node.X == BS.XStartSwitch) || (BS.end_node.X == BS.XEndSwitch)) {
-					TEMP_Elem.withSwitchDiv = true;
-					// Setting the name of the Switch
-					istringstream Line(BS.end_node.tdsbId);
-					list<string> TokenA;
-					string tok;
-					// Splitting its name in tokens separated by the charachter "@"
-					int N_validTokInA = 0; // Number of valid tok in TokenA
-					while (getline(Line, tok, '@')) {
-						if (tok.size() > 0) {
-							TokenA.push_back(tok);
-							N_validTokInA++; // Block Sections with A diverging Switch should have two elements in the list tok in A
-						}
-					}
-					if (TokenA.size() == 4) { // if the name of the deviating switch has at least for characters divided by the symbol @
-						list<string>::iterator FirstSwitchName, SecondSwitchName, SwitchPosition;
-						SwitchPosition = TokenA.end();
-						SwitchPosition--; // SwitchPosition identifies if the edge of the diverging switch is a Point-Start or a Poiunt-End
-						SecondSwitchName = TokenA.end();
-						advance(SecondSwitchName, -2);
-						;								  // This one represents the name of the second edge of the diverging switch
-						FirstSwitchName = TokenA.begin(); // This is the name of the first edge of the diverging switch
-						if (*SwitchPosition == "Point-End") {
-							string SWName;
-							SWName = SWName + "@" + *SecondSwitchName + "@Point";
-							TEMP_Elem.SwitchName = SWName;
-						} else if (*SwitchPosition == "Point-Start") {
-							string SWName;
-							SWName = SWName + "@" + *FirstSwitchName + "@Point";
-							TEMP_Elem.SwitchName = SWName;
-						}
-					} else {
-						EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																								   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
-					}
-
-				}
-
-				else {
-					TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
-				}
-			} else {
-				TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is not diverging its ID coincides with the SwitchName
-			}
+		if ((BS.end_node.numConnections > 0) && !setSwitchOfInfraElement(BS, BS.end_node, TEMP_Elem)) {
+			EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																					   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 		}
 
 		// Increase the locations of 1 element if it is not already in the list
-		if (N_TEMP_ElementList == 0) {
-			N_TEMP_ElementList++;
-			TEMP_ElementList.push_back(TEMP_Elem);
-		} else {
-			bool IsAlreadyThere = false;
-			for (list<InfraElement>::iterator l = TEMP_ElementList.begin(); l != TEMP_ElementList.end(); l++) {
-				if ((TEMP_Elem.ID == l->ID) || (TEMP_Elem.GeoXCoord == l->GeoXCoord)) {
-					IsAlreadyThere = true;
-					break;
-				}
-			}
-			if (IsAlreadyThere == 0) {
-				N_TEMP_ElementList++;
-				TEMP_ElementList.push_back(TEMP_Elem);
-			}
-		}
+		addInfraElementOnce(TEMP_ElementList, TEMP_Elem);
 	}
 
 	// Defining connected points to InfraElement which are the start and End Point of the same diverging switch
-	if (BS.withSwitchDiv == 1) {		   // if block Section signalling_block_sections has a diverging switch
-		if (TEMP_ElementList.size() > 0) { // If the temporary list of infra Element of Block Section signalling_block_sections has at least one element then look for the two edges of the same diverging switch to assign the connectpoint variable
-			for (list<InfraElement>::iterator t = TEMP_ElementList.begin(); t != TEMP_ElementList.end(); t++) {
-				if (t->withSwitchDiv == 1) { // if this is an edge of a diverging switch find the other one and connect their name reciprocally
-					for (list<InfraElement>::iterator u = TEMP_ElementList.begin(); u != TEMP_ElementList.end(); u++) {
-						if ((u->withSwitchDiv == 1) && (u->ID != t->ID)) { // if u is the edge of a diverging switch and it is different from the other edge t, then assign the connect point of t to u and of u to t
-							t->ConnectedPoint = u->ID;
-							t->XConnectedPoint = u->XCoordinate;
-						}
-					}
-				}
-			}
-		}
+	if (BS.withSwitchDiv == 1) { // if block Section signalling_block_sections has a diverging switch
+		connectDivergingSwitchEdges(TEMP_ElementList);
 	}
-
 	// Defining the FinalLocationList
 	for (list<InfraElement>::iterator y = TEMP_ElementList.begin(); y != TEMP_ElementList.end(); y++) {
 		bool IsAlreadyInRouteInfaElem = false;
