@@ -3,15 +3,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QScopeGuard>
 #include <QTemporaryDir>
-
-#include <iostream>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
+#include <QTest>
 
 static bool writeFile(const QString& path, const QByteArray& contents) {
 	QFile file(path);
@@ -22,113 +16,176 @@ static bool exactlyOne(const SceneOpenChoice& choice) {
 	return choice.path.isEmpty() != choice.rejection.isEmpty();
 }
 
-static bool accepted(const QString& path, const char* message) {
-	const SceneOpenChoice choice = classifyOpenPaths({path});
-	return expect(exactlyOne(choice) && choice.path == QFileInfo(path).absoluteFilePath(), message);
+// The name has two characters outside the Western Windows code page.
+static QString unicodeName() {
+	return QString::fromUtf16(u"é東京");
 }
 
-static bool rejected(const QStringList& paths, const QString& rejection, const char* message) {
+class TestSceneOpenRequest : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void rejectsPaths_data();
+	void rejectsPaths();
+	void acceptsPaths_data();
+	void acceptsPaths();
+	void keepsNonAsciiCharacters();
+	void makesRelativePathAbsolute();
+	void returnsPositionalArguments_data();
+	void returnsPositionalArguments();
+	void returnsOptionValue_data();
+	void returnsOptionValue();
+
+private:
+	// The path of name in the temporary directory.
+	QString path(const QString& name) const;
+
+	QTemporaryDir m_temp;
+};
+
+QString TestSceneOpenRequest::path(const QString& name) const {
+	return QDir(m_temp.path()).filePath(name);
+}
+
+void TestSceneOpenRequest::initTestCase() {
+	QVERIFY2(m_temp.isValid(), "temporary directory creation");
+	// Classification fixtures are writable.
+	QVERIFY(writeFile(path("case.egscene"), "a"));
+	QVERIFY(writeFile(path("my case study.egscene"), "a"));
+	QVERIFY(writeFile(path("CASE.EGSCENE"), "a"));
+	QVERIFY(writeFile(path("x.tar.egscene"), "a"));
+	QVERIFY(writeFile(path("x.egscene.txt"), "a"));
+	QVERIFY(writeFile(path("notes.txt"), "a"));
+	QVERIFY(writeFile(path(unicodeName() + ".egscene"), "a"));
+	QVERIFY(QDir().mkpath(path("x.egscene")));
+	QVERIFY(QDir().mkpath(path("folder.txt")));
+	QVERIFY2(QFileInfo::exists(path(unicodeName() + ".egscene")), "the file with the non-ASCII name exists");
+}
+
+void TestSceneOpenRequest::rejectsPaths_data() {
+	QTest::addColumn<QStringList>("paths");
+	QTest::addColumn<QString>("rejection");
+	const QString plain = path("case.egscene");
+	const QString missing = path("missing.egscene");
+	QTest::newRow("an empty list is rejected") << QStringList() << "no file was given";
+	QTest::newRow("two valid files are rejected") << QStringList({plain, path("my case study.egscene")})
+												  << "more than one file was given";
+	QTest::newRow("the count is checked before the files") << QStringList({plain, missing}) << "more than one file was given";
+	QTest::newRow("a missing file is rejected") << QStringList({missing}) << "the file does not exist";
+	QTest::newRow("existence is checked before the extension") << QStringList({path("missing.txt")})
+															   << "the file does not exist";
+	QTest::newRow("an empty path is rejected as missing") << QStringList({QString()}) << "the file does not exist";
+	QTest::newRow("a directory called x.egscene is rejected") << QStringList({path("x.egscene")})
+															  << "it is a folder, not an .egscene file";
+	QTest::newRow("the kind is checked before the extension") << QStringList({path("folder.txt")})
+															  << "it is a folder, not an .egscene file";
+	QTest::newRow("a .txt file is rejected") << QStringList({path("notes.txt")}) << "it is not an .egscene file";
+	QTest::newRow("x.egscene.txt is rejected") << QStringList({path("x.egscene.txt")}) << "it is not an .egscene file";
+}
+
+void TestSceneOpenRequest::rejectsPaths() {
+	QFETCH(QStringList, paths);
+	QFETCH(QString, rejection);
 	const SceneOpenChoice choice = classifyOpenPaths(paths);
-	return expect(exactlyOne(choice) && choice.path.isEmpty() && choice.rejection == rejection, message);
+	QVERIFY(exactlyOne(choice));
+	QVERIFY(choice.path.isEmpty());
+	QCOMPARE(choice.rejection, rejection);
 }
 
-static bool testClassify(const QString& base) {
-	const QDir dir(base);
-	// The name has two characters outside the Western Windows code page.
-	const QString unicodeName = QString::fromUtf16(u"\u00e9\u6771\u4eac");
-	const QString plain = dir.filePath("case.egscene");
-	const QString spaces = dir.filePath("my case study.egscene");
-	const QString upper = dir.filePath("CASE.EGSCENE");
-	const QString doubleOk = dir.filePath("x.tar.egscene");
-	const QString doubleBad = dir.filePath("x.egscene.txt");
-	const QString text = dir.filePath("notes.txt");
-	const QString unicode = dir.filePath(unicodeName + ".egscene");
-	const QString directory = dir.filePath("x.egscene");
-	const QString textDirectory = dir.filePath("folder.txt");
-	const QString missing = dir.filePath("missing.egscene");
-	const QString missingText = dir.filePath("missing.txt");
-	bool ok = expect(writeFile(plain, "a") && writeFile(spaces, "a") && writeFile(upper, "a") && writeFile(doubleOk, "a")
-			&& writeFile(doubleBad, "a") && writeFile(text, "a") && writeFile(unicode, "a")
-			&& QDir().mkpath(directory) && QDir().mkpath(textDirectory),
-		"classification fixtures are writable");
-	ok &= expect(QFileInfo::exists(unicode), "the file with the non-ASCII name exists");
+void TestSceneOpenRequest::acceptsPaths_data() {
+	QTest::addColumn<QString>("file");
+	QTest::newRow("a plain name is accepted") << path("case.egscene");
+	QTest::newRow("a name with spaces is accepted") << path("my case study.egscene");
+	QTest::newRow("the extension is compared without regard to case") << path("CASE.EGSCENE");
+	QTest::newRow("x.tar.egscene is accepted") << path("x.tar.egscene");
+	QTest::newRow("a name with non-ASCII characters is accepted") << path(unicodeName() + ".egscene");
+}
 
-	ok &= rejected({}, "no file was given", "an empty list is rejected");
-	ok &= rejected({plain, spaces}, "more than one file was given", "two valid files are rejected");
-	ok &= rejected({plain, missing}, "more than one file was given", "the count is checked before the files");
-	ok &= rejected({missing}, "the file does not exist", "a missing file is rejected");
-	ok &= rejected({missingText}, "the file does not exist", "existence is checked before the extension");
-	ok &= rejected({QString()}, "the file does not exist", "an empty path is rejected as missing");
-	ok &= rejected({directory}, "it is a folder, not an .egscene file", "a directory called x.egscene is rejected");
-	ok &= rejected({textDirectory}, "it is a folder, not an .egscene file", "the kind is checked before the extension");
-	ok &= rejected({text}, "it is not an .egscene file", "a .txt file is rejected");
-	ok &= rejected({doubleBad}, "it is not an .egscene file", "x.egscene.txt is rejected");
+void TestSceneOpenRequest::acceptsPaths() {
+	QFETCH(QString, file);
+	const SceneOpenChoice choice = classifyOpenPaths({file});
+	QVERIFY(exactlyOne(choice));
+	QCOMPARE(choice.path, QFileInfo(file).absoluteFilePath());
+}
 
-	ok &= accepted(plain, "a plain name is accepted");
-	ok &= accepted(spaces, "a name with spaces is accepted");
-	ok &= accepted(upper, "the extension is compared without regard to case");
-	ok &= accepted(doubleOk, "x.tar.egscene is accepted");
-	ok &= accepted(unicode, "a name with non-ASCII characters is accepted");
-	ok &= expect(classifyOpenPaths({unicode}).path == QFileInfo(unicode).absoluteFilePath()
-			&& classifyOpenPaths({unicode}).path.contains(unicodeName),
-		"the accepted path keeps the non-ASCII characters");
+// The accepted path keeps the non-ASCII characters.
+void TestSceneOpenRequest::keepsNonAsciiCharacters() {
+	const QString unicode = path(unicodeName() + ".egscene");
+	QCOMPARE(classifyOpenPaths({unicode}).path, QFileInfo(unicode).absoluteFilePath());
+	QVERIFY(classifyOpenPaths({unicode}).path.contains(unicodeName()));
+}
 
+void TestSceneOpenRequest::makesRelativePathAbsolute() {
 	const QString previous = QDir::currentPath();
-	ok &= expect(QDir::setCurrent(base), "the current directory can be changed");
+	// Windows cannot delete the current directory.
+	const auto restore = qScopeGuard([&previous] { QDir::setCurrent(previous); });
+	QVERIFY2(QDir::setCurrent(m_temp.path()), "the current directory can be changed");
 	const QString relative = QStringLiteral("case.egscene");
 	const SceneOpenChoice relativeChoice = classifyOpenPaths({relative});
-	ok &= expect(exactlyOne(relativeChoice) && relativeChoice.path == QFileInfo(relative).absoluteFilePath()
-			&& QFileInfo(relativeChoice.path).isAbsolute() && relativeChoice.path != relative,
-		"a relative path is made absolute");
-	// Windows cannot delete the current directory.
-	ok &= expect(QDir::setCurrent(previous), "the current directory is restored");
-	return ok;
+	// A relative path is made absolute.
+	QVERIFY(exactlyOne(relativeChoice));
+	QCOMPARE(relativeChoice.path, QFileInfo(relative).absoluteFilePath());
+	QVERIFY(QFileInfo(relativeChoice.path).isAbsolute());
+	QVERIFY(relativeChoice.path != relative);
+	QVERIFY2(QDir::setCurrent(previous), "the current directory is restored");
 }
 
-static bool testPositional() {
+void TestSceneOpenRequest::returnsPositionalArguments_data() {
 	const QStringList withValue = {"-n", "-h", "-g", "--seed", "--scene"};
-	bool ok = expect(positionalArguments({}, withValue).isEmpty(), "no arguments give no positional argument");
-	ok &= expect(positionalArguments({"QEGTRAIN"}, withValue).isEmpty(), "the program name alone gives none");
-	ok &= expect(positionalArguments({"case.egscene"}, withValue).isEmpty(), "the first entry is the program and is never returned");
-	ok &= expect(positionalArguments({"QEGTRAIN", "case.egscene"}, withValue) == QStringList({"case.egscene"}),
-		"one positional argument is returned");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-g", "0", "-n", "2", "case.egscene"}, withValue) == QStringList({"case.egscene"}),
-		"a positional argument after options is returned");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-h", "1"}, withValue).isEmpty(), "the value of an option is skipped");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-h", "1"}, {}) == QStringList({"1"}),
-		"a value is positional when its option is not in the list");
-	ok &= expect(positionalArguments({"QEGTRAIN", "--scene", "a.egscene", "b.egscene"}, withValue) == QStringList({"b.egscene"}),
-		"the value of --scene is not positional");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-h", "-5", "x"}, withValue) == QStringList({"x"}),
-		"a value that starts with a dash is skipped as a value");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-g"}, withValue).isEmpty(), "an option without a value at the end gives none");
-	ok &= expect(positionalArguments({"QEGTRAIN", "--interactive", "--detailed-trajectories", "x"}, withValue) == QStringList({"x"}),
-		"flags without a value skip nothing after them");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-unknown", "word", "x"}, withValue) == QStringList({"word", "x"}),
-		"an unknown option is skipped without its value");
-	ok &= expect(positionalArguments({"QEGTRAIN", "-x.egscene"}, withValue).isEmpty(), "a name that starts with a dash is never positional");
-	ok &= expect(positionalArguments({"QEGTRAIN", "a.egscene", "-g", "0", "b.egscene"}, withValue) == QStringList({"a.egscene", "b.egscene"}),
-		"positional arguments keep their order");
-	return ok;
+	QTest::addColumn<QStringList>("arguments");
+	QTest::addColumn<QStringList>("optionsWithValue");
+	QTest::addColumn<QStringList>("expected");
+	QTest::newRow("no arguments give no positional argument") << QStringList() << withValue << QStringList();
+	QTest::newRow("the program name alone gives none") << QStringList({"QEGTRAIN"}) << withValue << QStringList();
+	QTest::newRow("the first entry is the program and is never returned") << QStringList({"case.egscene"}) << withValue
+																		  << QStringList();
+	QTest::newRow("one positional argument is returned") << QStringList({"QEGTRAIN", "case.egscene"}) << withValue
+														 << QStringList({"case.egscene"});
+	QTest::newRow("a positional argument after options is returned")
+		<< QStringList({"QEGTRAIN", "-g", "0", "-n", "2", "case.egscene"}) << withValue << QStringList({"case.egscene"});
+	QTest::newRow("the value of an option is skipped") << QStringList({"QEGTRAIN", "-h", "1"}) << withValue << QStringList();
+	QTest::newRow("a value is positional when its option is not in the list") << QStringList({"QEGTRAIN", "-h", "1"})
+																			  << QStringList() << QStringList({"1"});
+	QTest::newRow("the value of --scene is not positional") << QStringList({"QEGTRAIN", "--scene", "a.egscene", "b.egscene"})
+															<< withValue << QStringList({"b.egscene"});
+	QTest::newRow("a value that starts with a dash is skipped as a value") << QStringList({"QEGTRAIN", "-h", "-5", "x"})
+																		   << withValue << QStringList({"x"});
+	QTest::newRow("an option without a value at the end gives none") << QStringList({"QEGTRAIN", "-g"}) << withValue
+																	 << QStringList();
+	QTest::newRow("flags without a value skip nothing after them")
+		<< QStringList({"QEGTRAIN", "--interactive", "--detailed-trajectories", "x"}) << withValue << QStringList({"x"});
+	QTest::newRow("an unknown option is skipped without its value") << QStringList({"QEGTRAIN", "-unknown", "word", "x"})
+																	<< withValue << QStringList({"word", "x"});
+	QTest::newRow("a name that starts with a dash is never positional") << QStringList({"QEGTRAIN", "-x.egscene"})
+																		<< withValue << QStringList();
+	QTest::newRow("positional arguments keep their order") << QStringList({"QEGTRAIN", "a.egscene", "-g", "0", "b.egscene"})
+														   << withValue << QStringList({"a.egscene", "b.egscene"});
 }
 
-static bool testOptionValue() {
-	bool ok = expect(optionValue({"QEGTRAIN", "--scene", "a.egscene"}, "--scene") == "a.egscene", "the value of a present option is returned");
-	ok &= expect(optionValue({"QEGTRAIN", "-g", "0"}, "--scene").isEmpty(), "an absent option gives an empty string");
-	ok &= expect(optionValue({"QEGTRAIN", "--scene"}, "--scene").isEmpty(), "an option in the last entry gives an empty string");
-	ok &= expect(optionValue({"QEGTRAIN", "--scene", "a", "--scene", "b"}, "--scene") == "a", "the first occurrence counts");
-	ok &= expect(optionValue({}, "--scene").isEmpty(), "an empty list gives an empty string");
-	return ok;
+void TestSceneOpenRequest::returnsPositionalArguments() {
+	QFETCH(QStringList, arguments);
+	QFETCH(QStringList, optionsWithValue);
+	QFETCH(QStringList, expected);
+	QCOMPARE(positionalArguments(arguments, optionsWithValue), expected);
 }
 
-int main() {
-	QTemporaryDir temp;
-	if (!temp.isValid()) {
-		std::cerr << "failed: temporary directory creation\n";
-		return 1;
-	}
-	bool ok = testClassify(temp.path());
-	ok &= testPositional();
-	ok &= testOptionValue();
-	return ok ? 0 : 1;
+void TestSceneOpenRequest::returnsOptionValue_data() {
+	QTest::addColumn<QStringList>("arguments");
+	QTest::addColumn<QString>("expected");
+	QTest::newRow("the value of a present option is returned") << QStringList({"QEGTRAIN", "--scene", "a.egscene"})
+															   << "a.egscene";
+	QTest::newRow("an absent option gives an empty string") << QStringList({"QEGTRAIN", "-g", "0"}) << QString();
+	QTest::newRow("an option in the last entry gives an empty string") << QStringList({"QEGTRAIN", "--scene"}) << QString();
+	QTest::newRow("the first occurrence counts") << QStringList({"QEGTRAIN", "--scene", "a", "--scene", "b"}) << "a";
+	QTest::newRow("an empty list gives an empty string") << QStringList() << QString();
 }
+
+void TestSceneOpenRequest::returnsOptionValue() {
+	QFETCH(QStringList, arguments);
+	QFETCH(QString, expected);
+	QCOMPARE(optionValue(arguments, "--scene"), expected);
+}
+
+QTEST_APPLESS_MAIN(TestSceneOpenRequest)
+#include "test_sceneopenrequest.moc"
