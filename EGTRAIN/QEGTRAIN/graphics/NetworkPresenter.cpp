@@ -1631,6 +1631,7 @@ void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, 
 			plate->sectionAheadLabel = labels.label(plate->sectionAheadId);
 		if (!plate->sectionBehindId.empty())
 			plate->sectionBehindLabel = labels.label(plate->sectionBehindId);
+		plate->updateToolTip();
 	}
 
 	const auto addSignalDecoration = [this, track](QGraphicsItem* item) {

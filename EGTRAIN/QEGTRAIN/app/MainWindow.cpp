@@ -4190,8 +4190,9 @@ bool MainWindow::trainAdded(int trainIndex, bool firstLiveTrain) {
 	return true;
 }
 
+// A head keeps its tooltip with its aspect, and an update does not move or hide it, so only the inspector follows.
 void MainWindow::signalsApplied() {
-	updateSignalCues();
+	m_inspector->refreshInspectedSignal();
 }
 
 void MainWindow::trainsApplied(bool anyAdded, bool cameraMoved) {
@@ -4517,8 +4518,6 @@ void MainWindow::updateSignalCues() {
 			signal->setGroupedSignals({});
 			if (item->data(kSignalAnchorRole).isValid())
 				signal->setPos(item->data(kSignalAnchorRole).toPointF());
-			signal->setToolTip(QStringLiteral("%1, facing %2\n%3")
-					.arg(signalAspectLabel(signal), signal->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), signal->inspectionIdentity()));
 		}
 		item->setVisible(visible);
 	}

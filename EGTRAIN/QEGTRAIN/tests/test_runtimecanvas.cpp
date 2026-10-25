@@ -733,6 +733,30 @@ int main(int argc, char* argv[]) {
 		presenter.clear();
 	}
 
+	// The tooltip of a head follows its aspect, and a step that keeps the aspect leaves the tooltip as it is.
+	{
+		presenter.showRuntime(model);
+		SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+		const auto tip = [head](const QString& state) {
+			return QStringLiteral("%1, facing %2\n%3")
+				.arg(state, head->reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), head->inspectionIdentity());
+		};
+		ok &= expect(head->toolTip() == tip("Proceed"), "a head of a run has its tooltip before the first step");
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.signalStates = {GuiSignalState{"s0", 0, head->reversedDirection, 3, false}};
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(head->toolTip() == tip("Stop"), "the tooltip of a head follows its aspect");
+		head->setToolTip(QStringLiteral("kept"));
+		snapshot.timestep = 11;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(head->toolTip() == "kept", "a step that keeps the aspect of a head does not set its tooltip again");
+		snapshot.signalStates[0].failed = true;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(head->toolTip() == tip("Failed"), "the tooltip of a failed head says so");
+		presenter.clear();
+	}
+
 	// A step that changes nothing leaves the canvas as it is, and a step that changes a little touches only what it changes.
 	{
 		source->passengers = true;
