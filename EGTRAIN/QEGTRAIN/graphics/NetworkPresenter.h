@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SectionLabels.h"

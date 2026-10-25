@@ -3,7 +3,7 @@
 
 #include "graphics/NetworkPresenter.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"

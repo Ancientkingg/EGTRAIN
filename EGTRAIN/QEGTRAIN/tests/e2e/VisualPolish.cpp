@@ -1,7 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/DispatchController.h"
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "editors/InfrastructurePanel.h"
 #include "graphics/items/PlatformItem.h"

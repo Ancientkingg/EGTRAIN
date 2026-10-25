@@ -1,7 +1,7 @@
 #ifndef DISPATCHCONTROLLER_H
 #define DISPATCHCONTROLLER_H
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 #include "simulation/Optimisation.h"
 #include "simulation/RunControl.h"
@@ -27,6 +27,10 @@
 
 struct DispatchLive;
 struct SimulationRun;
+
+/// The snapshot of a run at a step. It reads the run and changes nothing. The thread that steps the run builds it, and the
+/// window and the live stream see the run through it.
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
 
 /// Prepares a scene into the run of the process and runs it.
 ///

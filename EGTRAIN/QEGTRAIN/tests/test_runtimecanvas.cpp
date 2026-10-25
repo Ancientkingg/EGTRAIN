@@ -3,7 +3,7 @@
 
 #include "graphics/NetworkPresenter.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/FollowCamera.h"
 #include "graphics/NetworkView.h"
 #include "graphics/RuntimeGeometrySource.h"

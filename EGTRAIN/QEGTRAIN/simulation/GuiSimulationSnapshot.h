@@ -235,12 +235,6 @@ struct GuiSimulationSnapshot {
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages; ///< The messages of the last 40 seconds.
 };
 
-struct SimulationRun;
-
-/// The snapshot of a run at a step. It reads the run and changes nothing, and it is defined in app/DispatchController.cpp. The
-/// thread that steps the run builds it, and the window and the live stream see the run through it.
-GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
-
 /// Hands the latest snapshot from the thread that steps the run to the window. It holds one snapshot: a newer one
 /// replaces an older one that was not taken. Both functions may be called from any thread.
 class GuiSimulationSnapshotMailbox {

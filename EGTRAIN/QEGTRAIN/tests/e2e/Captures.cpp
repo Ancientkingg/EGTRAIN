@@ -1,6 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/MainWindowTestHooks.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainKeyList.h"

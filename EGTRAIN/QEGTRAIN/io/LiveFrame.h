@@ -1,7 +1,7 @@
 #ifndef LIVEFRAME_H
 #define LIVEFRAME_H
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "io/LiveCommand.h"
 
 #include <nlohmann/json.hpp>
@@ -19,13 +19,17 @@
 /// Train::trainXPosition gives for a head in no block section becomes null, and so does a number that
 /// is not finite. No Qt.
 ///
-/// The functions only build JSON and keep no state. DispatchController calls them on the thread that
+/// The frame functions only build JSON and keep no state. DispatchController calls them on the thread that
 /// runs the steps. Every frame carries seq, the position of the frame in the run, counted from 0
 /// across all frames; the caller assigns it.
 
 /// Version of the contract, in the member "v" of every frame. A change that removes or
 /// reinterprets a member raises it; a new member does not.
 constexpr int kLiveContractVersion = 1;
+
+/// Random lowercase hexadecimal digits: 8 for each of `words` 32-bit words from std::random_device, the high digit first.
+/// The live server makes its token with it and DispatchController the id of a run.
+std::string randomHex(int words);
 
 /// What identifies a run and sets the time axis of its frames.
 struct LiveRunInfo {
