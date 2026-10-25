@@ -483,6 +483,7 @@ static ColoredChart makeColoredChart() {
 		auto* dashed = new QLineSeries;
 		dashed->setName("Train " + id + " (planned)");
 		dashed->setProperty("trainId", id);
+		dashed->setProperty("planned", true);
 		dashed->setPen(built.dashedPen[train]);
 		dashed->append(10, 25 + offset);
 		dashed->append(60, 30 + offset);
@@ -824,6 +825,13 @@ static QChart* makeNamedChart(const QStringList& names) {
 		chart->addSeries(line);
 	}
 	chart->createDefaultAxes();
+	return chart;
+}
+
+// The chart of makeNamedChart with the series at plannedIndex marked planned.
+static QChart* makePlannedChart(const QStringList& names, int plannedIndex) {
+	QChart* chart = makeNamedChart(names);
+	chart->series()[plannedIndex]->setProperty("planned", true);
 	return chart;
 }
 
@@ -1600,14 +1608,18 @@ static bool exerciseLegend() {
 
 	DiagramWindow window("Key");
 	window.show();
-	window.setChart(makeNamedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}));
+	window.setChart(makePlannedChart({"Train A (planned arrival)", "Train A (simulated arrival)"}, 0));
 	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "planned and simulated lines are named in the Key");
 	window.setChart(makeNamedChart({"Train A", "Train B", "Train A"}));
 	auto* key = window.findChild<DiagramKey*>("diagramKey");
 	ok &= expect(key && key->property("kinds").toStringList().isEmpty() && key->parentWidget()->isHidden(),
 		"a chart with only simulated lines has an empty Key, and the Key section hides");
-	window.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)", "Train B"}));
-	ok &= expect(legendKinds(window) == QStringList({"Planned", "Simulated"}), "the planned name test ignores letter case");
+	// The name of a series is the id of a train, which the user chose, so a word in it makes no line planned.
+	QChart* namedPlanned = makeNamedChart({"planned-1", "Train B (PLANNED)"});
+	window.setChart(namedPlanned);
+	ok &= expect(legendKinds(window).isEmpty() && qobject_cast<QXYSeries*>(namedPlanned->series()[0])->pen().style() == Qt::SolidLine
+			&& qobject_cast<QXYSeries*>(namedPlanned->series()[1])->pen().style() == Qt::SolidLine,
+		"a train named planned-1 is drawn as a simulated train, solid and without a Planned row in the Key");
 	QChart* plannedByProperty = makeNamedChart({"Train A", "Train A"});
 	plannedByProperty->series()[0]->setProperty("planned", true);
 	window.setChart(plannedByProperty);
@@ -1618,7 +1630,7 @@ static bool exerciseLegend() {
 	ok &= expect(planned.size() == 2 && planned[0].shape == DiagramKeyEntry::Shape::Line && planned[0].pen.style() == Qt::DashLine
 			&& planned[0].pen.color() == window.palette().color(QPalette::WindowText) && planned[1].pen.style() == Qt::SolidLine,
 		"a line sample takes the dash pattern of its series in the text colour");
-	QChart* layered = makeNamedChart({"A", "A (planned reference)", "A again"});
+	QChart* layered = makePlannedChart({"A", "A (planned reference)", "A again"}, 1);
 	layered->series()[0]->setProperty("layer", "blocking time");
 	layered->series()[2]->setProperty("layer", "simulated");
 	window.setChart(layered);
@@ -1700,6 +1712,7 @@ static bool exerciseLegend() {
 	auto* plannedEvents = new QLineSeries;
 	plannedEvents->setName("A (planned arrival)");
 	plannedEvents->setProperty("trainId", "A");
+	plannedEvents->setProperty("planned", true);
 	plannedEvents->setProperty("keyMarker", "Stop");
 	plannedEvents->setPointsVisible(true);
 	plannedEvents->append(1, 12);
@@ -1740,7 +1753,7 @@ static bool exerciseLegend() {
 	// At the size of the window on a 1280 by 800 screen the Key lies in the panel, below the Trains.
 	window.setMaximumSize(1152, 640);
 	window.resize(1152, 640);
-	window.setChart(makeNamedChart({"A", "A (planned reference)"}));
+	window.setChart(makePlannedChart({"A", "A (planned reference)"}, 1));
 	QApplication::processEvents();
 	const QWidget* panel = window.findChild<QWidget*>("resultPanel");
 	const QWidget* trains = trainListOf(window);
@@ -2119,7 +2132,7 @@ static bool exerciseSelection() {
 static bool exerciseExportColumn() {
 	bool ok = true;
 	DiagramWindow window("Export column");
-	auto* chart = makeNamedChart({"A", "B", "C", "A (planned)"});
+	auto* chart = makePlannedChart({"A", "B", "C", "A (planned)"}, 3);
 	for (int i = 0; i < 4; ++i) chart->series()[i]->setProperty("trainId", QString(QChar('A' + (i % 3))));
 	window.setChart(chart);
 	window.setTrainColors({{"A", QColor(200, 0, 0)}, {"B", QColor(0, 160, 0)}, {"C", QColor(0, 0, 220)}});
@@ -3366,6 +3379,7 @@ static bool exerciseMutedPlannedMarkers() {
 	auto* planned = new QLineSeries;
 	planned->setName("A (planned)");
 	planned->setProperty("trainId", "A");
+	planned->setProperty("planned", true);
 	planned->setPointsVisible(true);
 	planned->append(0, 10);
 	planned->append(100, 20);
@@ -3528,6 +3542,7 @@ int main(int argc, char* argv[]) {
 	auto* series = new QLineSeries;
 	series->setName("Train A (planned arrival)");
 	series->setProperty("trainId", "A");
+	series->setProperty("planned", true);
 	series->setProperty("inspectionPoints", QStringList{"Station: Delft | Call: 1 | Simulated arrival", "Station: Leiden | Call: 2 | Simulated arrival"});
 	series->append(20, 30);
 	series->append(40, 50);

@@ -1983,18 +1983,25 @@ SceneLoadResult MainWindow::readScene(const QString& path, bool& identityOk) {
 }
 
 void MainWindow::sceneWillBeReplaced() {
+	// The result windows and the traction curves show the case that is going.
+	m_resultViews->closeAll();
 	teardownGUI();
 	simulation.resetState();
 	m_runSelection.includeAll();
 	m_runController->sceneWillBeReplaced();
 }
 
-void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) {
-	m_history->reset(m_document->model());
-	recoverySceneReplaced(RecoverySource());
+void MainWindow::resetForNewScene(const QString& baselineNote, bool saved, const RecoverySource& recovery,
+	bool resetInfrastructureSelection) {
 	m_runController->selectSceneOutputFolder(m_document->model().name);
-	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: a new case was created"));
+	m_runController->clearDelayBaseline(baselineNote);
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
+	if (m_runSelection.scenarioId().empty() && !m_document->model().scenarios.empty()) {
+		m_runSelection.selectScenario(m_document->model().scenarios.front().id);
+		m_document->mutableModel().defaultScenarioId = m_runSelection.scenarioId();
+	}
+	m_history->reset(m_document->model(), saved);
+	recoverySceneReplaced(recovery);
 	m_runSelection.clearModifiedScenarios();
 	m_passengerPanel->clearImportResult();
 	m_runController->setStartOffsetSeconds(baseTimeToSeconds(m_document->model().baseTime));
@@ -2003,37 +2010,23 @@ void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) 
 	updateCaseLayersPanel();
 	updateSceneActions();
 	refreshIncidentPanel();
-	refreshInfrastructurePanel();
+	refreshInfrastructurePanel(resetInfrastructureSelection);
 	refreshValidationPanel();
 	renderTrackPreview(m_document->model());
+}
+
+void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) {
+	resetForNewScene(QStringLiteral("Baseline cleared: a new case was created"), false, RecoverySource(), false);
 	statusBar()->showMessage("New case created");
 	telemetry::revealEditor(m_caseSettingsDock, operation);
 	telemetry::revealEditor(m_infrastructureDock, operation);
 }
 
 bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
-	m_runController->selectSceneOutputFolder(m_document->model().name);
-	m_runController->clearDelayBaseline(QStringLiteral("Baseline cleared: another case was opened"));
-	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
-	if (m_runSelection.scenarioId().empty() && !m_document->model().scenarios.empty()) {
-		m_runSelection.selectScenario(m_document->model().scenarios.front().id);
-		m_document->mutableModel().defaultScenarioId = m_runSelection.scenarioId();
-	}
-	m_history->reset(m_document->model(), !opened.recovered);
-	recoverySceneReplaced(opened.recovered ? RecoverySource() : recoverySourceOf(opened.path, opened.bundle));
-	m_runSelection.clearModifiedScenarios();
-	m_passengerPanel->clearImportResult();
-	invalidateRunResults();
-	m_runController->setStartOffsetSeconds(baseTimeToSeconds(m_document->model().baseTime));
-	m_session->updateSceneWindowTitle();
-	updateCaseLayersPanel();
-	updateSceneActions();
+	resetForNewScene(QStringLiteral("Baseline cleared: another case was opened"), !opened.recovered,
+		opened.recovered ? RecoverySource() : recoverySourceOf(opened.path, opened.bundle), !opened.reloadingSameScene);
 	if (!opened.recovered)
 		m_session->addRecentScene(opened.path);
-	refreshIncidentPanel();
-	refreshInfrastructurePanel(!opened.reloadingSameScene);
-	refreshValidationPanel();
-	renderTrackPreview(m_document->model());
 	statusBar()->showMessage((opened.reloadingSameScene ? QString("Reloaded %1") : QString("Opened %1"))
 			.arg(QString::fromStdString(m_document->model().name)));
 	if (startupTimingEnabled()) {
@@ -2781,6 +2774,7 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	win->setChart(chart);
 	win->setPresentation("Traction Curve", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
+	m_resultViews->addCaseWindow(win);
 	win->show();
 }
 

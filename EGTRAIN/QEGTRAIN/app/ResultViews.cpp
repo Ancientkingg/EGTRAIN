@@ -23,6 +23,7 @@
 #include "diagrams/TrainColors.h"
 #include "util/TimeFormat.h"
 #include "util/TrajectoryUtil.h"
+#include "widgets/UserPrompts.h"
 #include <QDialog>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -290,6 +291,19 @@ void ResultViews::showWindow(QWidget* window) {
 	m_windows.append(window);
 }
 
+void ResultViews::addCaseWindow(QWidget* window) {
+	m_caseWindows.removeAll(QPointer<QWidget>());
+	m_caseWindows.append(window);
+}
+
+void ResultViews::closeAll() {
+	for (const QPointer<QWidget>& window : m_windows + m_caseWindows)
+		if (window)
+			window->close();
+	m_windows.clear();
+	m_caseWindows.clear();
+}
+
 // Choose a reference from routes that were actually used in this run.
 int ResultViews::chooseRouteDiagramReference(const CompletedRunData& run, const QString& purpose) const {
 	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(m_host.sceneModel(), usedRouteReferencesFrom(run));
@@ -504,6 +518,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 			const QString event = QString::fromStdString(source.event);
 			series->setName(name + " (" + event + ")");
 			// The window paints the stops and dwells in the colour of the train; planned ones are dashed.
+			series->setProperty("planned", source.planned);
 			series->setPen(QPen(QColor(20, 35, 45), 1.0, source.planned ? Qt::DashLine : Qt::SolidLine));
 			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
 			series->setPointsVisible(!dwell);
@@ -703,28 +718,30 @@ void ResultViews::showCapacityAnalysis() {
 		return;
 	}
 
+	// A scripted run has nobody to close the message, so it shows none.
+	const auto showCapacityMessage = [this](const QString& message) {
+		UserPrompts([this] { return m_host.dialogsSuppressed(); }).showInfo(m_window, ResultViewName::kCapacity, message);
+	};
 	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"No route has complete blocking times for two or more trains. Run a case with signalling data.");
+		showCapacityMessage("No route has complete blocking times for two or more trains. Run a case with signalling data.");
 		return;
 	}
 	if ((!m_host.dialogsSuppressed() || mainWindowTestHooks().askCapacityScope)
 		&& !chooseCapacityAnalysisScope(m_window, *run, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity, "The chosen route has no blocks. Choose another route.");
+		showCapacityMessage("The chosen route has no blocks. Choose another route.");
 		return;
 	}
 	const std::string scopeIssue = capacityScopeIssueFrom(*run, scope);
 	if (!scopeIssue.empty()) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity, QString::fromStdString(scopeIssue));
+		showCapacityMessage(QString::fromStdString(scopeIssue));
 		return;
 	}
 	if (capacityInputsFrom(*run, scope).size() < 2) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"Fewer than two trains use the chosen blocks. Choose other blocks or trains.");
+		showCapacityMessage("Fewer than two trains use the chosen blocks. Choose other blocks or trains.");
 		return;
 	}
 	// The export names the blocks by their ids, the window by their labels.
@@ -732,17 +749,15 @@ void ResultViews::showCapacityAnalysis() {
 	const QString sectionText = capacityScopeTextFrom(*run, scope);
 	const CapacityAnalysisResult result = capacityAnalysisFrom(*run, scope);
 	if (!result.analyzable) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"These trains still overlap after compression. Choose other trains or another order.");
+		showCapacityMessage("These trains still overlap after compression. Choose other trains or another order.");
 		return;
 	}
 	if (result.cycleEndIdentity.empty()) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
-			"The cycle-closing train must be a checked row below the first.");
+		showCapacityMessage("The cycle-closing train must be a checked row below the first.");
 		return;
 	}
 	if (result.cycleTime < 0.0) {
-		QMessageBox::information(m_window, ResultViewName::kCapacity,
+		showCapacityMessage(
 			QString("%1 shares no block with an earlier train, so it closes no cycle. Choose another cycle-closing train.")
 				.arg(QString::fromStdString(result.cycleEndIdentity)));
 		return;

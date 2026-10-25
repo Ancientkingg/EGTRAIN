@@ -364,6 +364,39 @@ def assert_help_and_unknown_option(app: Path) -> None:
         print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
 
 
+def assert_invalid_numbers_stop_the_start(app: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-numbers-") as root_name:
+        root = Path(root_name)
+        # The first value of an option is the one that counts, so the value that is not a number comes first. -pax is read
+        # only with the window, and the start stops before the window opens.
+        cases = [
+            (["-n", "2x"], "ERROR: Unknown bundled case id"),
+            (["-h", "abc"], "ERROR: -h requires a whole number of seconds."),
+            (["-h", "1.5"], "ERROR: -h requires a whole number of seconds."),
+            (["-b", "abc"], "ERROR: -b requires a number of seconds."),
+            (["-c", "5%"], "ERROR: -c requires a percentage."),
+            (["-g", "yes"], "ERROR: -g requires 0 or 1."),
+            (["-pax", "on", "-g", "1"], "ERROR: -pax requires 0 or 1."),
+        ]
+        for index, (args, message) in enumerate(cases):
+            label = f"{' '.join(args)} launch"
+            returncode, output = run_app(app, [*args, *HEADLESS_OPTIONS], root / f"run-{index}", label,
+                                         extra_env={"QEGTRAIN_AUTOSTART": "1"})
+            if returncode != 1 or message not in output:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1 and {message!r}\n{tail(output)}")
+        # A case that does not load in a scripted window launch is reported on standard error, without a message box that
+        # nobody would close.
+        damaged = root / "damaged"
+        damaged.mkdir()
+        (damaged / "scene.json").write_text("{", encoding="utf-8")
+        label = "window launch of a damaged case"
+        returncode, output = run_app(app, ["--scene", str(damaged), "-g", "1", "-pax", "0"], root / "run-damaged", label,
+                                     extra_env={"QEGTRAIN_AUTOSTART": "1"})
+        if returncode != 1 or "scene.json.parse" not in output:
+            raise SystemExit(f"{label} exited with {returncode}, expected 1 and the parse error\n{tail(output)}")
+        print("a value that is not a number stops the start with exit code 1 and names its option; a scripted window launch of a damaged case shows no box")
+
+
 def assert_interactive_questions(app: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-interactive-") as root_name:
         root = Path(root_name)
@@ -755,6 +788,7 @@ def main() -> None:
             raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_option_list_matches_reads()
     assert_help_and_unknown_option(app)
+    assert_invalid_numbers_stop_the_start(app)
     assert_startup_timing_contract(app)
     assert_no_argument_chooser_continuation(app)
     assert_open_argument_contract(app, scene_tool)

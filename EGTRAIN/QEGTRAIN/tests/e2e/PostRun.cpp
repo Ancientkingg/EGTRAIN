@@ -53,6 +53,7 @@
 #include <QLineF>
 #include <QList>
 #include <QMenu>
+#include <QMessageBox>
 #include <QMetaObject>
 #include <QMetaType>
 #include <QMouseEvent>
@@ -62,6 +63,7 @@
 #include <QPoint>
 #include <QPointF>
 #include <QPolygonF>
+#include <QPointer>
 #include <QPushButton>
 #include <QRectF>
 #include <QScrollArea>
@@ -106,6 +108,10 @@ bool sceneEditedDuringRun = false;
 // How many runs the operational completion check has seen, and the frame on which the first one ended.
 int operationalCompletions = 0;
 std::shared_ptr<const GuiSimulationSnapshot> operationalFirstFrame;
+// The result window and the traction curve that the first completion opens, which stay open through the rerun.
+QList<QPointer<QWidget>> operationalCaseWindows;
+// Whether a message box opened while the window refused a delay baseline in a run without a user.
+bool baselineBoxShown = false;
 
 // True when every head shows what the snapshot holds for it: the display code
 // and failed flag of its state, or unavailable when the snapshot has none.
@@ -447,6 +453,19 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 						auto* line = qobject_cast<QLineSeries*>(abstractSeries);
 						if (line && ((window->windowTitle().startsWith("Timetable") && !line->name().contains("dwell")) || line->count() == 1))
 							ok &= line->pointsVisible();
+					}
+					// A line is planned as its data says, not by the name of its train.
+					const bool timetable = window->windowTitle().startsWith("Timetable");
+					const auto shown = routeDiagramData(*w.m_runController->m_completedRun, timetable, reference);
+					long long plannedLines = 0, plannedSeries = 0;
+					for (const QAbstractSeries* series : view->chart()->series())
+						plannedLines += series->property("planned").toBool() ? 1 : 0;
+					for (const RouteDiagramSeries& series : shown ? shown->series : std::vector<RouteDiagramSeries>())
+						plannedSeries += series.planned ? 1 : 0;
+					if (plannedLines != plannedSeries || (timetable && plannedSeries == 0)) {
+						std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_PLANNED %s: %lld planned lines for %lld planned series\n",
+							window->windowTitle().toStdString().c_str(), plannedLines, plannedSeries);
+						ok = false;
 					}
 					const QString file = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/"
 						+ (window->windowTitle().startsWith("Timetable") ? "timetable_graph" : "train_path_graph") + ".png";
@@ -1242,6 +1261,23 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		}
 		if (operationalCompletions == 1) {
 			operationalFirstFrame = selectedFrame;
+			w.m_resultViews->showSpeedDistanceDiagram();
+			const auto& units = w.m_document->model().trainUnits;
+			const auto unit = std::find_if(units.begin(), units.end(), [](const SceneTrainUnit& each) { return !each.tractionCurve.empty(); });
+			if (unit != units.end())
+				w.plotTrainUnitTraction(*unit);
+			for (DiagramWindow* window : w.findChildren<DiagramWindow*>())
+				if (window->isVisible())
+					operationalCaseWindows.append(window);
+			// The checks of the next completion use the keyboard focus of the main window.
+			w.activateWindow();
+			QApplication::processEvents();
+			if (operationalCaseWindows.size() != 2) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: %lld windows for a chart and a traction curve\n",
+					static_cast<long long>(operationalCaseWindows.size()));
+				QCoreApplication::exit(2);
+				return;
+			}
 			w.m_replayTimer->start();
 			w.m_runController->runCurrent();
 			if (!w.m_runController->m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
@@ -1251,6 +1287,12 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
+		for (const QPointer<QWidget>& window : operationalCaseWindows)
+			if (!window || !window->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: the rerun closed a result window\n");
+				QCoreApplication::exit(2);
+				return;
+			}
 		if (w.m_document->mutableModel().scenarios.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no scenario fixture\n");
 			QCoreApplication::exit(2);
@@ -1290,6 +1332,27 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		if (!w.openSceneDirectory(scenePath) || w.m_snapshot || w.m_runController->m_worker || !w.m_presenter->allArcs.isEmpty()
 			|| w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
+			QCoreApplication::exit(2);
+			return;
+		}
+		// The windows showed the case that was replaced.
+		for (const QPointer<QWidget>& window : operationalCaseWindows)
+			if (window && window->isVisible()) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: %s is still open after the case was opened again\n",
+					qPrintable(window->windowTitle()));
+				QCoreApplication::exit(2);
+				return;
+			}
+		// Without a completed run the baseline is refused, and with nobody to answer, the message goes to standard error.
+		QTimer::singleShot(0, &w, [] {
+			if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+				baselineBoxShown = true;
+				box->accept();
+			}
+		});
+		w.m_runController->setDelayBaseline();
+		if (baselineBoxShown) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: a refused delay baseline opened a message box\n");
 			QCoreApplication::exit(2);
 			return;
 		}

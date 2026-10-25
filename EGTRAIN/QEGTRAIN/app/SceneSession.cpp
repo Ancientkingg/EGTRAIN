@@ -473,12 +473,8 @@ bool SceneSession::saveSceneAsToDirectory() {
 		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
 		bool hasSceneJson = QFileInfo(targetDir.filePath("scene.json")).exists();
 		if (isNonEmpty && !hasSceneJson) {
-			auto response = QMessageBox::question(m_window,
-				"Save Case As Folder",
-				"The folder is not empty. Save the case there anyway?",
-				QMessageBox::Yes | QMessageBox::No,
-				QMessageBox::No);
-			if (response != QMessageBox::Yes)
+			if (!UserPrompts([this] { return m_host.dialogsSuppressed(); })
+					.confirm(m_window, "Save Case As Folder", "The folder is not empty. Save the case there anyway?"))
 				return false;
 		}
 	}
@@ -507,7 +503,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 	QDir target(targetPath);
 	if (!target.exists() && !QDir().mkpath(targetPath)) {
 		operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-		QMessageBox::critical(m_window, "Cannot Save Case", QString("Could not create the folder %1.").arg(display_path::format(targetPath)));
+		showError("Cannot Save Case", QString("Could not create the folder %1.").arg(display_path::format(targetPath)));
 		return false;
 	}
 
@@ -516,7 +512,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 	if (!sourceCanonical.isEmpty() && sourceCanonical == targetCanonical)
 		return true;
 	if (!sourceCanonical.isEmpty() && targetCanonical.startsWith(sourceCanonical + "/")) {
-		QMessageBox::critical(m_window, "Cannot Save Case", "Choose a folder outside the current case folder.");
+		showError("Cannot Save Case", "Choose a folder outside the current case folder.");
 		return false;
 	}
 
@@ -528,7 +524,7 @@ bool SceneSession::copyScenePassthroughFiles(const QString& targetDir, const tel
 		QFile::remove(targetViews);
 		if (!QFile::copy(sourceViews, targetViews)) {
 			operation.failure(telemetry::Operation::Export, telemetry::Error::IoFailure);
-			QMessageBox::critical(m_window, "Cannot Save Case", "Cannot copy views.json.");
+			showError("Cannot Save Case", "Cannot copy views.json.");
 			return false;
 		}
 	}

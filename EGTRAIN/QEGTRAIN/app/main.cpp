@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <chrono>
 #include <climits>
+#include <cmath>
 #include <exception>
 #include <iomanip>
 #include <iterator>
@@ -180,7 +181,42 @@ static bool onlyKnownOptions(int argc, char* argv[]) {
 	return true;
 }
 
-void parseCmdOptions(int argc, char* argv[]) {
+// Reads a whole number from low to high from the text of an option. Returns false when the text is none.
+static bool readWholeNumber(const char* text, int low, int high, int& value) {
+	bool valid = false;
+	const int number = text ? QString::fromLocal8Bit(text).toInt(&valid) : 0;
+	if (!valid || number < low || number > high)
+		return false;
+	value = number;
+	return true;
+}
+
+// Reads the text of option as readWholeNumber does. When the text is none, it prints on standard error that option
+// requires `requirement` and returns false.
+static bool readWholeNumberOf(const char* option, const char* text, int low, int high, int& value, const char* requirement) {
+	if (readWholeNumber(text, low, high, value))
+		return true;
+	std::cerr << "ERROR: " << option << " requires " << requirement << ".\n";
+	return false;
+}
+
+// Reads a finite decimal number from the text of option. When the text is none, it prints on standard error that option
+// requires `requirement` and returns false.
+static bool readDecimalNumberOf(const char* option, const char* text, double& value, const char* requirement) {
+	bool valid = false;
+	const double number = text ? QString::fromLocal8Bit(text).toDouble(&valid) : 0.0;
+	if (valid && std::isfinite(number)) {
+		value = number;
+		return true;
+	}
+	std::cerr << "ERROR: " << option << " requires " << requirement << ".\n";
+	return false;
+}
+
+// Reads the options of the case and of the run, and asks with --interactive for those that are left out. Prints the reason
+// on standard error and returns false when the value of an option is not a number. A value of -n that is not a whole
+// number selects no case, which main reports as an unknown case id.
+bool parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
 	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
 	const bool creatorAcceptance = creatorAcceptanceRun();
@@ -189,11 +225,10 @@ void parseCmdOptions(int argc, char* argv[]) {
 	if (creatorAcceptance) {
 		initial_variables.name.clear();
 	} else if (cmdOptionEntered(argv, argv + argc, "-n")) {
-		char* argument = getCmdOption(argv, argv + argc, "-n");
-		if (argument) {
-			initial_variables.set_case(std::atoi(argument));
-			initial_variables.nArgProvided = true;
-		}
+		int caseStudy = 0;
+		readWholeNumber(getCmdOption(argv, argv + argc, "-n"), INT_MIN, INT_MAX, caseStudy);
+		initial_variables.set_case(caseStudy);
+		initial_variables.nArgProvided = true;
 	} else if (promptForMissingOptions) {
 		int case_study;
 		std::cout << "Bundled case (1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut): ";
@@ -205,37 +240,33 @@ void parseCmdOptions(int argc, char* argv[]) {
 
 	// simulation horizon
 	if (cmdOptionEntered(argv, argv + argc, "-h")) {
-		char* argument = getCmdOption(argv, argv + argc, "-h");
-		if (argument) {
-			initial_variables.times = std::atoi(argument);
-			initial_variables.durationOverride = true;
-		}
+		int seconds = 0;
+		if (!readWholeNumberOf("-h", getCmdOption(argv, argv + argc, "-h"), INT_MIN, INT_MAX, seconds, "a whole number of seconds"))
+			return false;
+		initial_variables.times = seconds;
+		initial_variables.durationOverride = true;
 	}
 
 	// buffer time
 	if (cmdOptionEntered(argv, argv + argc, "-b")) {
-		char* argument = getCmdOption(argv, argv + argc, "-b");
-		if (argument) {
-			initial_variables.bufferTime = std::atof(argument);
-			initial_variables.bufferTimeOverride = true;
-		}
+		if (!readDecimalNumberOf("-b", getCmdOption(argv, argv + argc, "-b"), initial_variables.bufferTime, "a number of seconds"))
+			return false;
+		initial_variables.bufferTimeOverride = true;
 	}
 
 	// recovery time
 	if (cmdOptionEntered(argv, argv + argc, "-c")) {
-		char* argument = getCmdOption(argv, argv + argc, "-c");
-		if (argument) {
-			initial_variables.recoveryTimePercentage = std::atof(argument);
-			initial_variables.recoveryTimeOverride = true;
-		}
+		if (!readDecimalNumberOf("-c", getCmdOption(argv, argv + argc, "-c"), initial_variables.recoveryTimePercentage, "a percentage"))
+			return false;
+		initial_variables.recoveryTimeOverride = true;
 	}
 
 	// utilization of GUI
 	if (cmdOptionEntered(argv, argv + argc, "-g")) {
-		char* argument = getCmdOption(argv, argv + argc, "-g");
-		if (argument) {
-			initial_variables.GUI = std::atoi(argument);
-		}
+		int window = 0;
+		if (!readWholeNumberOf("-g", getCmdOption(argv, argv + argc, "-g"), INT_MIN, INT_MAX, window, "0 or 1"))
+			return false;
+		initial_variables.GUI = window != 0;
 	} else if (promptForMissingOptions) {
 		std::cout << "Open the window? (1 yes, 0 no): ";
 		std::cin >> initial_variables.GUI;
@@ -246,10 +277,10 @@ void parseCmdOptions(int argc, char* argv[]) {
 	// utilization of passenger GUI
 	if (initial_variables.GUI) {
 		if (cmdOptionEntered(argv, argv + argc, "-pax")) {
-			char* argument = getCmdOption(argv, argv + argc, "-pax");
-			if (argument) {
-				initial_variables.PAX_GUI = std::atoi(argument);
-			}
+			int passengers = 0;
+			if (!readWholeNumberOf("-pax", getCmdOption(argv, argv + argc, "-pax"), INT_MIN, INT_MAX, passengers, "0 or 1"))
+				return false;
+			initial_variables.PAX_GUI = passengers != 0;
 		} else if (promptForMissingOptions) {
 			std::cout << "Show passengers? (1 yes, 0 no): ";
 			std::cin >> initial_variables.PAX_GUI;
@@ -259,15 +290,6 @@ void parseCmdOptions(int argc, char* argv[]) {
 	}
 
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
-}
-
-// Reads a whole number from low to high from the text of an option. Returns false when the text is none.
-static bool readWholeNumber(const char* text, int low, int high, int& value) {
-	bool valid = false;
-	const int number = text ? QString::fromLocal8Bit(text).toInt(&valid) : 0;
-	if (!valid || number < low || number > high)
-		return false;
-	value = number;
 	return true;
 }
 
@@ -283,14 +305,13 @@ static bool readLiveOptions(int argc, char* argv[]) {
 		}
 		return true;
 	}
-	if (!readWholeNumber(getCmdOption(argv, argv + argc, "--live"), 0, 65535, initial_variables.livePort)) {
-		std::cerr << "ERROR: --live requires a port from 0 to 65535; 0 takes a free port.\n";
+	if (!readWholeNumberOf("--live", getCmdOption(argv, argv + argc, "--live"), 0, 65535, initial_variables.livePort,
+			"a port from 0 to 65535; 0 takes a free port"))
 		return false;
-	}
-	if (everyEntered && !readWholeNumber(getCmdOption(argv, argv + argc, "--live-every"), 1, INT_MAX, initial_variables.liveEvery)) {
-		std::cerr << "ERROR: --live-every requires a whole number of 1 or more.\n";
+	if (everyEntered
+		&& !readWholeNumberOf("--live-every", getCmdOption(argv, argv + argc, "--live-every"), 1, INT_MAX, initial_variables.liveEvery,
+			"a whole number of 1 or more"))
 		return false;
-	}
 	initial_variables.liveCommands = commands;
 	return true;
 }
@@ -413,7 +434,8 @@ static int runMain(int argc, char* argv[]) {
 	if (!e2e::configureProcess())
 		return 1;
 #endif
-	parseCmdOptions(argc, argv);
+	if (!parseCmdOptions(argc, argv))
+		return 1;
 
 	if (cmdOptionEntered(argv, argv + argc, "--seed")) {
 		const char* seedArgument = getCmdOption(argv, argv + argc, "--seed");
@@ -534,8 +556,10 @@ static int runMain(int argc, char* argv[]) {
 		}
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
-			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
-				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
+			// A script that started the launch has no user to close the box.
+			if (!updatesSuppressedByEnvironment())
+				QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
+					QString::fromStdString(toDialogText(loaded.diagnostics.front())));
 			return 1;
 		}
 		// An opened file counts as an explicit scene, so the chooser stays closed.

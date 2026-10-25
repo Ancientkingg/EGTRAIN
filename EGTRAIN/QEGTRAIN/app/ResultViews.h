@@ -73,6 +73,12 @@ public:
 	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
 	/// Opens the chart of the trajectories: 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance.
 	void buildPerTrainDiagram(int mode);
+	/// Adds a window that shows data of the case, such as the traction curve of a rolling stock unit, to the windows that
+	/// closeAll() closes. The window keeps its own place on the screen.
+	void addCaseWindow(QWidget* window);
+	/// Closes every result window and every window of addCaseWindow() that is still open, because they show another
+	/// case than the one that replaces it. The windows stay open from one run of a case to the next.
+	void closeAll();
 
 public slots:
 	/// Opens ResultViewName::kSpeedDistance.
@@ -128,6 +134,8 @@ private:
 	Host& m_host;
 	// The result windows that showWindow() opened, oldest first; a closed window is deleted and leaves a null entry.
 	QList<QPointer<QWidget>> m_windows;
+	// The windows of addCaseWindow(), which showWindow() does not place.
+	QList<QPointer<QWidget>> m_caseWindows;
 };
 
 #endif // RESULTVIEWS_H

@@ -109,9 +109,9 @@ QPen emphasisedPen(const QPen& base) {
 }
 
 // Planned series are drawn dashed and have their own Key entry; both rules use this one test: the "planned" property of
-// the series, or its name.
+// the series. The name does not count, because it holds the id of a train, which the user chose.
 bool isPlannedSeries(const QAbstractSeries* series) {
-	return series->property("planned").toBool() || series->name().contains("planned", Qt::CaseInsensitive);
+	return series->property("planned").toBool();
 }
 
 // The planned points of a series are open circles, as wide as this, in the colour of its pen on white.
