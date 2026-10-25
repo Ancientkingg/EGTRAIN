@@ -400,8 +400,8 @@ test properties; the comment above the function lists them all.
   is not converted yet is a plain program with a `main()`; most define a local
   `expect(bool, const char*)` that prints `failed: <message>`, combine results with
   `ok &= expect(...)` and return a non-zero exit code on failure.
-- Assertions must still run in a Release build, the default. The telemetry tests put
-  `#undef NDEBUG` before `#include <cassert>` (`tests/test_telemetryqueue.cpp`).
+- Checks must still run in a Release build, the default, so a test does not use `assert`, which
+  `NDEBUG` removes there.
 - A logic change comes with the smallest test that fails without it. For a validation rule,
   build a model that breaks the rule and assert the diagnostic code, plus severity or path
   where they matter (`hasCodeAndSeverity` in `tests/test_scenevalidator.cpp`).

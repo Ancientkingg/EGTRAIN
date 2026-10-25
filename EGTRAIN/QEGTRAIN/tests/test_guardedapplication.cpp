@@ -19,13 +19,9 @@ int main() {
 	return 77;
 }
 #else
-namespace {
+#include <QTest>
 
-bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
+namespace {
 
 // Throws from the handler of a user event.
 class ThrowingObject : public QObject {
@@ -39,8 +35,21 @@ public:
 
 } // namespace
 
-int main(int argc, char** argv) {
-	GuardedApplication application(argc, argv);
+class TestGuardedApplication : public QObject {
+	Q_OBJECT
+
+private slots:
+	void cleanup();
+	void reportsExceptions();
+};
+
+// The sink and the reporter capture locals of the slot, which a failed check leaves early.
+void TestGuardedApplication::cleanup() {
+	eglog::setSink({});
+	GuardedApplication::setReporter({});
+}
+
+void TestGuardedApplication::reportsExceptions() {
 	QStringList errors;
 	eglog::setSink([&errors](eglog::Category, eglog::Level level, const std::string& text) {
 		if (level == eglog::Level::Error)
@@ -52,18 +61,21 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < 100 && reports.size() < count; ++i)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
 	};
-	bool ok = true;
 
 	ThrowingObject thrower;
 	QEvent first(QEvent::User);
-	ok &= expect(!QCoreApplication::sendEvent(&thrower, &first), "an event whose handler throws is not accepted");
-	ok &= expect(errors.size() == 1 && errors.front().contains("injected"), "the exception is logged once at error level");
+	QVERIFY2(!QCoreApplication::sendEvent(&thrower, &first), "an event whose handler throws is not accepted");
+	// the exception is logged once at error level
+	QCOMPARE(errors.size(), 1);
+	QVERIFY(errors.front().contains("injected"));
 	QEvent second(QEvent::User);
 	QCoreApplication::sendEvent(&thrower, &second);
-	ok &= expect(errors.size() == 2 && reports.isEmpty(), "a second exception is logged and nothing is reported yet");
+	// a second exception is logged and nothing is reported yet
+	QCOMPARE(errors.size(), 2);
+	QVERIFY(reports.isEmpty());
 	settle(1);
 	QCoreApplication::processEvents();
-	ok &= expect(reports == QStringList{"injected"}, "one report for the exceptions that came while it waited");
+	QVERIFY2(reports == QStringList{"injected"}, "one report for the exceptions that came while it waited");
 
 	QTimer timer;
 	timer.setSingleShot(true);
@@ -75,13 +87,16 @@ int main(int argc, char** argv) {
 	});
 	timer.start(0);
 	settle(2);
-	ok &= expect(reports.size() == 2 && reports.back() == "from a timer", "an exception in a timer slot is reported");
-
-	eglog::setSink({});
-	GuardedApplication::setReporter({});
-	if (!ok)
-		return 1;
-	std::cout << "all guarded application tests passed\n";
-	return 0;
+	// an exception in a timer slot is reported
+	QCOMPARE(reports.size(), 2);
+	QCOMPARE(reports.back(), QStringLiteral("from a timer"));
 }
+
+int main(int argc, char** argv) {
+	GuardedApplication application(argc, argv);
+	TestGuardedApplication test;
+	return QTest::qExec(&test, argc, argv);
+}
+
+#include "test_guardedapplication.moc"
 #endif

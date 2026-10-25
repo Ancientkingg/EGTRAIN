@@ -11,118 +11,167 @@
 #include <QProcess>
 #include <QSettings>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QUrl>
-#include <iostream>
+#include <memory>
 
-static bool check(bool ok, const char* text) {
-	if (!ok) std::cerr << "failed: " << text << '\n';
-	return ok;
+class TestTelemetryConsent : public QObject {
+	Q_OBJECT
+
+private slots:
+	void init();
+	void savesEveryCombination_data();
+	void savesEveryCombination();
+	void dismissalPersistsDisabled_data();
+	void dismissalPersistsDisabled();
+	void revocationClearsSinks();
+	void concurrentChangesClearOldReports();
+	void overlappingWriterAndLock();
+	void upgradeReceiverAndTerms();
+	void unavailableContexts_data();
+	void unavailableContexts();
+	void interactiveEnvironmentBaseline();
+	void automationMarkersSuppress_data();
+	void automationMarkersSuppress();
+	void offscreenIsSuppressed();
+	void coreApplicationIsSuppressed();
+	void observations();
+	void receiverMigration();
+	void damagedRecords();
+	void generationOverflow();
+	void updatePreferencesIndependent();
+	void settingsFailureFailsClosed();
+
+private:
+	QString consentFile() const { return m_dir->filePath(QStringLiteral("consent.ini")); }
+
+	std::unique_ptr<QTemporaryDir> m_dir;
+	const TelemetryContext m_context{true, true, true, QStringLiteral("https://example.org/collect"), QStringLiteral("1")};
+};
+
+// Every slot starts from an empty settings file in a directory of its own.
+void TestTelemetryConsent::init() {
+	m_dir = std::make_unique<QTemporaryDir>();
+	QVERIFY(m_dir->isValid());
 }
 
-int main(int argc, char** argv) {
-	if (argc > 1 && QString::fromLocal8Bit(argv[1]) == QStringLiteral("--core-only")) {
-		QCoreApplication core(argc, argv);
-		return applicationTelemetryContext().interactive ? 1 : 0;
+void TestTelemetryConsent::savesEveryCombination_data() {
+	QTest::addColumn<bool>("usage");
+	QTest::addColumn<bool>("diagnostics");
+	QTest::newRow("neither") << false << false;
+	QTest::newRow("usage") << true << false;
+	QTest::newRow("diagnostics") << false << true;
+	QTest::newRow("both") << true << true;
+}
+
+void TestTelemetryConsent::savesEveryCombination() {
+	QFETCH(bool, usage);
+	QFETCH(bool, diagnostics);
+	QSettings settings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	// unsaved prechecked controls cannot grant consent or an ID
+	QVERIFY(consent.promptRequired());
+	QVERIFY(!consent.usageEnabled());
+	QVERIFY(!consent.diagnosticsEnabled());
+	QVERIFY(consent.usageInstallationId().isEmpty());
+	TelemetryConsentDialog dialog(consent, m_context.domain(), true);
+	// initial options are prechecked
+	QVERIFY(dialog.usageCheckBox()->isChecked());
+	QVERIFY(dialog.diagnosticsCheckBox()->isChecked());
+	dialog.usageCheckBox()->setChecked(usage);
+	dialog.diagnosticsCheckBox()->setChecked(diagnostics);
+	// changing prechecked controls does not grant consent
+	QVERIFY(!consent.usageEnabled());
+	QVERIFY(!consent.diagnosticsEnabled());
+	QVERIFY(consent.usageInstallationId().isEmpty());
+	dialog.findChild<QPushButton*>(QStringLiteral("saveTelemetryChoices"))->click();
+	QSettings reopened(consentFile(), QSettings::IniFormat);
+	TelemetryConsent restart(reopened, m_context);
+	// all four combinations survive restart independently
+	QVERIFY(!restart.promptRequired());
+	QCOMPARE(restart.usageEnabled(), usage);
+	QCOMPARE(restart.diagnosticsEnabled(), diagnostics);
+	QCOMPARE(restart.usageInstallationId().isEmpty(), !usage);
+	TelemetryConsentDialog later(restart, m_context.domain(), false);
+	// settings reopen shows saved choices
+	QCOMPARE(later.usageCheckBox()->isChecked(), usage);
+	QCOMPARE(later.diagnosticsCheckBox()->isChecked(), diagnostics);
+	QVERIFY2(later.findChild<QLabel*>(QStringLiteral("dialogContext"))->text().contains(QStringLiteral("saved choices remain active")),
+		"settings reopening describes saved choices as active until saved changes");
+	static_cast<QDialog&>(later).reject();
+}
+
+void TestTelemetryConsent::dismissalPersistsDisabled_data() {
+	QTest::addColumn<int>("dismissal");
+	QTest::newRow("not now") << 0;
+	QTest::newRow("escape") << 1;
+	QTest::newRow("window close") << 2;
+}
+
+void TestTelemetryConsent::dismissalPersistsDisabled() {
+	QFETCH(int, dismissal);
+	QSettings settings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	TelemetryConsentDialog dialog(consent, m_context.domain(), true);
+	if (dismissal == 0)
+		dialog.findChild<QPushButton*>(QStringLiteral("dismissTelemetryChoices"))->click();
+	else if (dismissal == 1)
+		static_cast<QDialog&>(dialog).reject(); // Escape
+	else {
+		dialog.show();
+		QCoreApplication::processEvents();
+		dialog.close();
 	}
-	if (argc == 3 && QString::fromLocal8Bit(argv[1]) == QStringLiteral("--toggle-diagnostics")) {
-		QCoreApplication core(argc, argv);
-		QSettings helperSettings(QString::fromLocal8Bit(argv[2]), QSettings::IniFormat);
-		TelemetryContext helperContext{true, true, true, QStringLiteral("https://example.org/collect"), QStringLiteral("1")};
-		TelemetryConsent helper(helperSettings, helperContext);
-		return helper.save(false, false) && helper.save(false, true) ? 0 : 1;
-	}
-	QApplication app(argc, argv);
-	QTemporaryDir dir;
-	if (!dir.isValid()) return 1;
-	QSettings settings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryContext context{true, true, true, QStringLiteral("https://example.org/collect"), QStringLiteral("1")};
-	bool ok = true;
-	for (int mask = 0; mask < 4; ++mask) {
-		settings.clear();
-		settings.sync();
-		TelemetryConsent consent(settings, context);
-		const bool usage = (mask & 1) != 0, diagnostics = (mask & 2) != 0;
-		ok &= check(consent.promptRequired() && !consent.usageEnabled()
-				&& !consent.diagnosticsEnabled() && consent.usageInstallationId().isEmpty(),
-			"unsaved prechecked controls cannot grant consent or an ID");
-		TelemetryConsentDialog dialog(consent, context.domain(), true);
-		ok &= check(dialog.usageCheckBox()->isChecked() && dialog.diagnosticsCheckBox()->isChecked(),
-			"initial options are prechecked");
-		dialog.usageCheckBox()->setChecked(usage);
-		dialog.diagnosticsCheckBox()->setChecked(diagnostics);
-		ok &= check(!consent.usageEnabled() && !consent.diagnosticsEnabled()
-				&& consent.usageInstallationId().isEmpty(),
-			"changing prechecked controls does not grant consent");
-		dialog.findChild<QPushButton*>(QStringLiteral("saveTelemetryChoices"))->click();
-		QSettings reopened(dir.filePath("consent.ini"), QSettings::IniFormat);
-		TelemetryConsent restart(reopened, context);
-		ok &= check(!restart.promptRequired() && restart.usageEnabled() == usage
-				&& restart.diagnosticsEnabled() == diagnostics
-				&& restart.usageInstallationId().isEmpty() == !usage,
-			"all four combinations survive restart independently");
-		TelemetryConsentDialog later(restart, context.domain(), false);
-		ok &= check(later.usageCheckBox()->isChecked() == usage
-				&& later.diagnosticsCheckBox()->isChecked() == diagnostics,
-			"settings reopen shows saved choices");
-		ok &= check(later.findChild<QLabel*>(QStringLiteral("dialogContext"))->text().contains(QStringLiteral("saved choices remain active")),
-			"settings reopening describes saved choices as active until saved changes");
-		static_cast<QDialog&>(later).reject();
-	}
-	for (int dismissal = 0; dismissal < 3; ++dismissal) {
-		settings.clear();
-		settings.sync();
-		TelemetryConsent consent(settings, context);
-		TelemetryConsentDialog dialog(consent, context.domain(), true);
-		if (dismissal == 0)
-			dialog.findChild<QPushButton*>(QStringLiteral("dismissTelemetryChoices"))->click();
-		else if (dismissal == 1)
-			static_cast<QDialog&>(dialog).reject(); // Escape
-		else {
-			dialog.show();
-			app.processEvents();
-			dialog.close();
-		}
-		ok &= check(!consent.promptRequired() && !consent.usageEnabled()
-				&& !consent.diagnosticsEnabled() && consent.usageInstallationId().isEmpty(),
-			"Not now, Escape and window close persist disabled and handled");
-	}
-	settings.clear();
-	settings.sync();
-	TelemetryConsent consent(settings, context);
+	// Not now, Escape and window close persist disabled and handled
+	QVERIFY(!consent.promptRequired());
+	QVERIFY(!consent.usageEnabled());
+	QVERIFY(!consent.diagnosticsEnabled());
+	QVERIFY(consent.usageInstallationId().isEmpty());
+}
+
+void TestTelemetryConsent::revocationClearsSinks() {
+	QSettings settings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
 	struct FakeSink {
 		bool usageQueued = true, diagnosticsQueued = true, usageActive = true, diagnosticsActive = true;
-		bool oldEndpointQueued = true;
 	} sink;
 	QObject::connect(&consent, &TelemetryConsent::revoked, &consent, [&](bool usage, bool diagnostics) {
         if (usage) sink.usageQueued = sink.usageActive = false;
         if (diagnostics) sink.diagnosticsQueued = sink.diagnosticsActive = false; }, Qt::DirectConnection);
-	QObject::connect(&consent, &TelemetryConsent::receiverChanged, &consent, [&] { sink.oldEndpointQueued = false; }, Qt::DirectConnection);
 	consent.save(true, true);
 	const QString firstId = consent.usageInstallationId();
 	consent.save(false, true);
-	ok &= check(!sink.usageQueued && !sink.usageActive && sink.diagnosticsQueued
-			&& sink.diagnosticsActive && consent.usageInstallationId().isEmpty(),
-		"usage revocation synchronously clears its fake queue and active upload");
+	// usage revocation synchronously clears its fake queue and active upload
+	QVERIFY(!sink.usageQueued);
+	QVERIFY(!sink.usageActive);
+	QVERIFY(sink.diagnosticsQueued);
+	QVERIFY(sink.diagnosticsActive);
+	QVERIFY(consent.usageInstallationId().isEmpty());
 	consent.save(true, false);
-	ok &= check(!sink.diagnosticsQueued && !sink.diagnosticsActive
-			&& !consent.usageInstallationId().isEmpty() && consent.usageInstallationId() != firstId,
-		"diagnostics revocation is independent and re-enabling usage makes a new ID");
-	QSettings concurrentSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent concurrent(concurrentSettings, context);
+	// diagnostics revocation is independent and re-enabling usage makes a new ID
+	QVERIFY(!sink.diagnosticsQueued);
+	QVERIFY(!sink.diagnosticsActive);
+	QVERIFY(!consent.usageInstallationId().isEmpty());
+	QVERIFY(consent.usageInstallationId() != firstId);
+	QSettings concurrentSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent concurrent(concurrentSettings, m_context);
 	const QString currentId = concurrent.usageInstallationId();
 	consent.save(false, false);
-	ok &= check(!concurrent.usageEnabled() && concurrent.usageInstallationId().isEmpty()
-			&& !currentId.isEmpty(),
-		"second instance detects revocation at collection boundary");
-	consent.save(true, false);
-	settings.clear();
-	settings.sync();
-	QSettings writerSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent writer(writerSettings, context);
+	// second instance detects revocation at collection boundary
+	QVERIFY(!concurrent.usageEnabled());
+	QVERIFY(concurrent.usageInstallationId().isEmpty());
+	QVERIFY(!currentId.isEmpty());
+}
+
+void TestTelemetryConsent::concurrentChangesClearOldReports() {
+	QSettings writerSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent writer(writerSettings, m_context);
 	writer.save(false, true);
-	QSettings listenerSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent listener(listenerSettings, context);
-	struct DiagnosticsSink { bool queued = true, active = true; } diagnosticsSink;
+	QSettings listenerSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent listener(listenerSettings, m_context);
+	struct DiagnosticsSink {
+		bool queued = true, active = true;
+	} diagnosticsSink;
 	bool checkingReentry = false;
 	int nestedRevocations = 0;
 	QObject::connect(&listener, &TelemetryConsent::revoked, &listener, [&](bool, bool diagnostics) {
@@ -137,43 +186,50 @@ int main(int argc, char** argv) {
             } }, Qt::DirectConnection);
 	writer.save(false, false);
 	writer.save(false, true);
-	ok &= check(listener.diagnosticsEnabled() && !diagnosticsSink.queued && !diagnosticsSink.active,
-		"concurrent disable/re-enable clears old diagnostics reports");
+	// concurrent disable/re-enable clears old diagnostics reports
+	QVERIFY(listener.diagnosticsEnabled());
+	QVERIFY(!diagnosticsSink.queued);
+	QVERIFY(!diagnosticsSink.active);
 	diagnosticsSink = {};
-	TelemetryContext intermediate = context;
+	TelemetryContext intermediate = m_context;
 	intermediate.endpoint = QStringLiteral("https://other.example/collect");
-	QSettings intermediateSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
+	QSettings intermediateSettings(consentFile(), QSettings::IniFormat);
 	TelemetryConsent intermediateConsent(intermediateSettings, intermediate);
 	intermediateConsent.promptRequired();
 	intermediateConsent.save(false, true);
-	QSettings backSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent back(backSettings, context);
+	QSettings backSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent back(backSettings, m_context);
 	back.promptRequired();
 	back.save(false, true);
-	ok &= check(listener.diagnosticsEnabled() && !diagnosticsSink.queued && !diagnosticsSink.active,
-		"receiver A-B-A clears old diagnostics reports");
+	// receiver A-B-A clears old diagnostics reports
+	QVERIFY(listener.diagnosticsEnabled());
+	QVERIFY(!diagnosticsSink.queued);
+	QVERIFY(!diagnosticsSink.active);
 	diagnosticsSink = {};
-	TelemetryContext otherTerms = context;
+	TelemetryContext otherTerms = m_context;
 	otherTerms.termsVersion = QStringLiteral("2");
-	QSettings otherTermsSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
+	QSettings otherTermsSettings(consentFile(), QSettings::IniFormat);
 	TelemetryConsent otherTermsConsent(otherTermsSettings, otherTerms);
 	otherTermsConsent.promptRequired();
 	otherTermsConsent.save(false, true);
-	QSettings backTermsSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent backTerms(backTermsSettings, context);
+	QSettings backTermsSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent backTerms(backTermsSettings, m_context);
 	backTerms.promptRequired();
 	backTerms.save(false, true);
-	ok &= check(listener.diagnosticsEnabled() && !diagnosticsSink.queued && !diagnosticsSink.active,
-		"terms 1-2-1 clears old diagnostics reports");
-	ok &= check(nestedRevocations == 0, "direct-slot accessor does not recursively revoke");
-	QTemporaryDir raceDir;
-	if (!raceDir.isValid()) return 1;
-	const QString raceFile = raceDir.filePath(QStringLiteral("consent.ini"));
+	// terms 1-2-1 clears old diagnostics reports
+	QVERIFY(listener.diagnosticsEnabled());
+	QVERIFY(!diagnosticsSink.queued);
+	QVERIFY(!diagnosticsSink.active);
+	QVERIFY2(nestedRevocations == 0, "direct-slot accessor does not recursively revoke");
+}
+
+void TestTelemetryConsent::overlappingWriterAndLock() {
+	const QString raceFile = consentFile();
 	QSettings raceSettings(raceFile, QSettings::IniFormat);
-	TelemetryConsent raceWriter(raceSettings, context);
+	TelemetryConsent raceWriter(raceSettings, m_context);
 	raceWriter.save(false, true);
 	QSettings raceListenerSettings(raceFile, QSettings::IniFormat);
-	TelemetryConsent raceListener(raceListenerSettings, context);
+	TelemetryConsent raceListener(raceListenerSettings, m_context);
 	bool oldReportsQueued = true;
 	QObject::connect(
 		&raceListener, &TelemetryConsent::revoked, &raceListener,
@@ -187,72 +243,116 @@ int main(int argc, char** argv) {
 			&& helper.exitCode() == 0;
 	});
 	const bool overlappingSave = raceWriter.save(false, true);
-	ok &= check(helperCompleted && overlappingSave && raceListener.diagnosticsEnabled()
-			&& !oldReportsQueued,
-		"overlapping writer must not restore revoked diagnostics generation");
+	// overlapping writer must not restore revoked diagnostics generation
+	QVERIFY(helperCompleted);
+	QVERIFY(overlappingSave);
+	QVERIFY(raceListener.diagnosticsEnabled());
+	QVERIFY(!oldReportsQueued);
 	QLockFile busyLock(raceFile + QStringLiteral(".telemetry-consent.lock"));
-	ok &= check(busyLock.tryLock(0), "test can hold isolated consent lock");
+	QVERIFY2(busyLock.tryLock(0), "test can hold isolated consent lock");
 	QSettings busySettings(raceFile, QSettings::IniFormat);
-	TelemetryConsent blocked(busySettings, context);
-	ok &= check(!blocked.diagnosticsEnabled() && !blocked.save(false, true),
-		"lock contention fails closed without granting consent");
+	TelemetryConsent blocked(busySettings, m_context);
+	// lock contention fails closed without granting consent
+	QVERIFY(!blocked.diagnosticsEnabled());
+	QVERIFY(!blocked.save(false, true));
 	busyLock.unlock();
+}
+
+void TestTelemetryConsent::upgradeReceiverAndTerms() {
+	QSettings writerSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent writer(writerSettings, m_context);
 	writer.save(false, true);
+	bool revokedSlotSawEnabled = false;
 	QObject::connect(&writer, &TelemetryConsent::revoked, &writer, [&](bool, bool diagnostics) {
-            if (diagnostics) ok &= check(!writer.diagnosticsEnabled(),
-                "same-instance revoked slot sees disabled state"); }, Qt::DirectConnection);
+            if (diagnostics && writer.diagnosticsEnabled()) revokedSlotSawEnabled = true; }, Qt::DirectConnection);
 	writer.save(false, false);
-	ok &= check(writer.save(true, false), "usage enabled before upgrade");
+	QVERIFY2(!revokedSlotSawEnabled, "same-instance revoked slot sees disabled state");
+	QVERIFY2(writer.save(true, false), "usage enabled before upgrade");
 	const QString upgradeId = writer.usageInstallationId();
-	ok &= check(!upgradeId.isEmpty(), "upgrade test captures an enabled usage ID");
-	TelemetryContext upgraded = context;
-	QSettings upgradedSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
+	QVERIFY2(!upgradeId.isEmpty(), "upgrade test captures an enabled usage ID");
+	TelemetryContext upgraded = m_context;
+	QSettings upgradedSettings(consentFile(), QSettings::IniFormat);
 	TelemetryConsent sameReceiver(upgradedSettings, upgraded);
-	ok &= check(!sameReceiver.promptRequired() && sameReceiver.usageEnabled()
-			&& !sameReceiver.diagnosticsEnabled() && sameReceiver.usageInstallationId() == upgradeId,
-		"same receiver and terms retain enabled usage and its ID on application upgrade");
-	TelemetryContext changed = context;
+	// same receiver and terms retain enabled usage and its ID on application upgrade
+	QVERIFY(!sameReceiver.promptRequired());
+	QVERIFY(sameReceiver.usageEnabled());
+	QVERIFY(!sameReceiver.diagnosticsEnabled());
+	QCOMPARE(sameReceiver.usageInstallationId(), upgradeId);
+	TelemetryContext changed = m_context;
 	changed.endpoint = QStringLiteral("https://other.example/collect");
-	QSettings otherSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
+	QSettings otherSettings(consentFile(), QSettings::IniFormat);
 	TelemetryConsent other(otherSettings, changed);
-	QObject::connect(&other, &TelemetryConsent::receiverChanged, &other, [&] { sink.oldEndpointQueued = false; }, Qt::DirectConnection);
-	ok &= check(other.promptRequired() && !other.usageEnabled() && other.usageInstallationId().isEmpty()
-			&& !sink.oldEndpointQueued,
-		"receiver change resets choices and signals old queue discard");
+	bool oldEndpointQueued = true;
+	QObject::connect(&other, &TelemetryConsent::receiverChanged, &other, [&] { oldEndpointQueued = false; }, Qt::DirectConnection);
+	// receiver change resets choices and signals old queue discard
+	QVERIFY(other.promptRequired());
+	QVERIFY(!other.usageEnabled());
+	QVERIFY(other.usageInstallationId().isEmpty());
+	QVERIFY(!oldEndpointQueued);
 	other.save(true, false);
 	changed.termsVersion = QStringLiteral("2");
-	QSettings termsSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
+	QSettings termsSettings(consentFile(), QSettings::IniFormat);
 	TelemetryConsent terms(termsSettings, changed);
-	ok &= check(terms.promptRequired() && terms.usageInstallationId().isEmpty(),
-		"changed collection terms require confirmation");
-	TelemetryContext unavailable = context;
-	for (int mode = 0; mode < 5; ++mode) {
-		unavailable = context;
-		if (mode == 0) unavailable.packaged = false;
-		if (mode == 1) unavailable.enabled = false;
-		if (mode == 2) unavailable.interactive = false;
-		if (mode == 3) unavailable.endpoint.clear();
-		if (mode == 4) unavailable.endpoint = QStringLiteral("http://example.org/collect");
-		QSettings restricted(dir.filePath("consent.ini"), QSettings::IniFormat);
-		TelemetryConsent denied(restricted, unavailable);
-		denied.save(true, true);
-		ok &= check(!denied.available() && !denied.promptRequired() && !denied.usageEnabled()
-				&& !denied.diagnosticsEnabled() && denied.usageInstallationId().isEmpty(),
-			"suppressed or invalid context never grants consent or ID");
-	}
+	// changed collection terms require confirmation
+	QVERIFY(terms.promptRequired());
+	QVERIFY(terms.usageInstallationId().isEmpty());
+}
+
+void TestTelemetryConsent::unavailableContexts_data() {
+	QTest::addColumn<int>("mode");
+	QTest::newRow("not packaged") << 0;
+	QTest::newRow("disabled") << 1;
+	QTest::newRow("not interactive") << 2;
+	QTest::newRow("no endpoint") << 3;
+	QTest::newRow("http endpoint") << 4;
+}
+
+void TestTelemetryConsent::unavailableContexts() {
+	QFETCH(int, mode);
+	TelemetryContext unavailable = m_context;
+	if (mode == 0) unavailable.packaged = false;
+	if (mode == 1) unavailable.enabled = false;
+	if (mode == 2) unavailable.interactive = false;
+	if (mode == 3) unavailable.endpoint.clear();
+	if (mode == 4) unavailable.endpoint = QStringLiteral("http://example.org/collect");
+	QSettings restricted(consentFile(), QSettings::IniFormat);
+	TelemetryConsent denied(restricted, unavailable);
+	denied.save(true, true);
+	// suppressed or invalid context never grants consent or ID
+	QVERIFY(!denied.available());
+	QVERIFY(!denied.promptRequired());
+	QVERIFY(!denied.usageEnabled());
+	QVERIFY(!denied.diagnosticsEnabled());
+	QVERIFY(denied.usageInstallationId().isEmpty());
+}
+
+void TestTelemetryConsent::interactiveEnvironmentBaseline() {
 	QProcessEnvironment clean;
-	ok &= check(telemetryInteractiveEnvironment(clean, QStringLiteral("cocoa")),
-		"interactive environment has an unsuppressed baseline");
-	for (const QString& key : {QStringLiteral("CI"), QStringLiteral("GITHUB_ACTIONS"),
-			 QStringLiteral("QEGTRAIN_AUTOSTART"), QStringLiteral("QEGTRAIN_E2E_SETTINGS_DIR")}) {
-		QProcessEnvironment suppressed = clean;
-		suppressed.insert(key, QStringLiteral("1"));
-		ok &= check(!telemetryInteractiveEnvironment(suppressed, QStringLiteral("cocoa")),
-			"automation marker suppresses interactive context independent of offscreen");
-	}
-	ok &= check(!telemetryInteractiveEnvironment(clean, QStringLiteral("offscreen"))
-			&& !applicationTelemetryContext().interactive,
-		"offscreen application is suppressed");
+	QVERIFY2(telemetryInteractiveEnvironment(clean, QStringLiteral("cocoa")), "interactive environment has an unsuppressed baseline");
+}
+
+void TestTelemetryConsent::automationMarkersSuppress_data() {
+	QTest::addColumn<QString>("key");
+	for (const char* key : {"CI", "GITHUB_ACTIONS", "QEGTRAIN_AUTOSTART", "QEGTRAIN_E2E_SETTINGS_DIR"})
+		QTest::newRow(key) << QString::fromLatin1(key);
+}
+
+void TestTelemetryConsent::automationMarkersSuppress() {
+	QFETCH(QString, key);
+	QProcessEnvironment suppressed;
+	suppressed.insert(key, QStringLiteral("1"));
+	QVERIFY2(!telemetryInteractiveEnvironment(suppressed, QStringLiteral("cocoa")),
+		"automation marker suppresses interactive context independent of offscreen");
+}
+
+void TestTelemetryConsent::offscreenIsSuppressed() {
+	QProcessEnvironment clean;
+	// offscreen application is suppressed
+	QVERIFY(!telemetryInteractiveEnvironment(clean, QStringLiteral("offscreen")));
+	QVERIFY(!applicationTelemetryContext().interactive);
+}
+
+void TestTelemetryConsent::coreApplicationIsSuppressed() {
 	QProcess coreProcess;
 	QProcessEnvironment coreEnvironment = QProcessEnvironment::systemEnvironment();
 	for (const QString& key : coreEnvironment.keys())
@@ -263,89 +363,138 @@ int main(int argc, char** argv) {
 		coreEnvironment.remove(key);
 	coreProcess.setProcessEnvironment(coreEnvironment);
 	coreProcess.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--core-only")});
-	ok &= check(coreProcess.waitForFinished(10000) && coreProcess.exitStatus() == QProcess::NormalExit
-			&& coreProcess.exitCode() == 0,
-		"QCoreApplication without GUI is suppressed even with clean environment");
-	// Observations do not migrate another receiver's saved state.
-	QTemporaryDir observationDir;
-	QSettings observationSettings(observationDir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent observationWriter(observationSettings, context);
-	ok &= check(observationWriter.save(false, true), "diagnostics setup for observations");
+	// QCoreApplication without GUI is suppressed even with clean environment
+	QVERIFY(coreProcess.waitForFinished(10000));
+	QCOMPARE(coreProcess.exitStatus(), QProcess::NormalExit);
+	QCOMPARE(coreProcess.exitCode(), 0);
+}
+
+// Observations do not migrate another receiver's saved state.
+void TestTelemetryConsent::observations() {
+	QSettings observationSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent observationWriter(observationSettings, m_context);
+	QVERIFY2(observationWriter.save(false, true), "diagnostics setup for observations");
 	const int initialGeneration = observationWriter.observeDiagnostics().generation;
-	QSettings observationReaderSettings(observationDir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryContext otherReceiver = context;
+	QSettings observationReaderSettings(consentFile(), QSettings::IniFormat);
+	TelemetryContext otherReceiver = m_context;
 	otherReceiver.endpoint = QStringLiteral("https://other.example/collect");
 	TelemetryConsent observationReader(observationReaderSettings, otherReceiver);
 	const QByteArray beforeObservation = observationReaderSettings.value(QStringLiteral("telemetry/consentV1")).toByteArray();
-	ok &= check(observationReader.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Mismatch
-			&& observationReader.observeUsage().status == TelemetryConsent::ObservationStatus::Mismatch
-			&& observationReaderSettings.value(QStringLiteral("telemetry/consentV1")).toByteArray() == beforeObservation,
-		"receiver mismatch observation does not migrate saved state");
-	ok &= check(observationWriter.save(true, true)
-			&& observationWriter.observeDiagnostics().generation > initialGeneration,
-		"usage ID staging advances diagnostics generation even if diagnostics remains enabled");
-	QTemporaryDir migrationDir;
-	QSettings oldSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent oldReceiver(oldSettings, context);
-	ok &= check(oldReceiver.save(true, false), "old receiver consent setup");
-	QSettings newSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent newReceiver(newSettings, otherReceiver);
-	ok &= check(newReceiver.promptRequired() && newReceiver.save(true, false),
-		"initial dialog migrates receiver and saves renewed consent before sender startup");
-	QSettings workerSettings(migrationDir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent workerObservation(workerSettings, otherReceiver);
-	ok &= check(workerObservation.observeUsage().status == TelemetryConsent::ObservationStatus::Enabled
-			&& oldReceiver.observeUsage().status == TelemetryConsent::ObservationStatus::Mismatch,
-		"new receiver is eligible immediately while old receiver cannot rewrite migration");
+	// receiver mismatch observation does not migrate saved state
+	QCOMPARE(observationReader.observeDiagnostics().status, TelemetryConsent::ObservationStatus::Mismatch);
+	QCOMPARE(observationReader.observeUsage().status, TelemetryConsent::ObservationStatus::Mismatch);
+	QCOMPARE(observationReaderSettings.value(QStringLiteral("telemetry/consentV1")).toByteArray(), beforeObservation);
+	// usage ID staging advances diagnostics generation even if diagnostics remains enabled
+	QVERIFY(observationWriter.save(true, true));
+	QCOMPARE_GT(observationWriter.observeDiagnostics().generation, initialGeneration);
 	observationSettings.setValue(QStringLiteral("telemetry/consentV1"),
 		QByteArray(
 			"{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":\"0\",\"id\":\"\"}"));
 	observationSettings.sync();
-	ok &= check(observationWriter.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Error,
+	QVERIFY2(observationWriter.observeDiagnostics().status == TelemetryConsent::ObservationStatus::Error,
 		"malformed generation cannot be coerced to a reusable stamp");
+}
+
+void TestTelemetryConsent::receiverMigration() {
+	TelemetryContext otherReceiver = m_context;
+	otherReceiver.endpoint = QStringLiteral("https://other.example/collect");
+	QSettings oldSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent oldReceiver(oldSettings, m_context);
+	QVERIFY2(oldReceiver.save(true, false), "old receiver consent setup");
+	QSettings newSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent newReceiver(newSettings, otherReceiver);
+	// initial dialog migrates receiver and saves renewed consent before sender startup
+	QVERIFY(newReceiver.promptRequired());
+	QVERIFY(newReceiver.save(true, false));
+	QSettings workerSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent workerObservation(workerSettings, otherReceiver);
+	// new receiver is eligible immediately while old receiver cannot rewrite migration
+	QCOMPARE(workerObservation.observeUsage().status, TelemetryConsent::ObservationStatus::Enabled);
+	QCOMPARE(oldReceiver.observeUsage().status, TelemetryConsent::ObservationStatus::Mismatch);
+}
+
+void TestTelemetryConsent::damagedRecords() {
+	QSettings settings(consentFile(), QSettings::IniFormat);
 	settings.setValue(QStringLiteral("telemetry/consentV1"),
 		QByteArray(
 			"{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"\"}"));
 	settings.sync();
-	TelemetryConsent incomplete(settings, context);
-	ok &= check(incomplete.promptRequired() && !incomplete.usageEnabled(),
-		"interrupted ID write stays disabled and asks again");
+	TelemetryConsent incomplete(settings, m_context);
+	// interrupted ID write stays disabled and asks again
+	QVERIFY(incomplete.promptRequired());
+	QVERIFY(!incomplete.usageEnabled());
 	settings.setValue(QStringLiteral("telemetry/consentV1"),
 		QByteArray(
 			"{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":true,\"id\":\"/private/path\"}"));
 	settings.sync();
-	TelemetryConsent invalidId(settings, context);
-	ok &= check(invalidId.promptRequired() && !invalidId.usageEnabled()
-			&& !invalidId.diagnosticsEnabled() && invalidId.usageInstallationId().isEmpty(),
-		"corrupt usage ID invalidates the record and prompts again");
+	TelemetryConsent invalidId(settings, m_context);
+	// corrupt usage ID invalidates the record and prompts again
+	QVERIFY(invalidId.promptRequired());
+	QVERIFY(!invalidId.usageEnabled());
+	QVERIFY(!invalidId.diagnosticsEnabled());
+	QVERIFY(invalidId.usageInstallationId().isEmpty());
 	settings.setValue(QStringLiteral("telemetry/consentV1"),
 		QByteArray(
 			"{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":true,\"diagnostics\":false,\"id\":\"12345678-1234-4234-8234-123456789abc\\n\"}"));
 	settings.sync();
-	TelemetryConsent newlineId(settings, context);
-	ok &= check(newlineId.promptRequired() && newlineId.usageInstallationId().isEmpty(),
-		"UUIDv4 plus trailing LF must not be exposed");
+	TelemetryConsent newlineId(settings, m_context);
+	// UUIDv4 plus trailing LF must not be exposed
+	QVERIFY(newlineId.promptRequired());
+	QVERIFY(newlineId.usageInstallationId().isEmpty());
+}
+
+void TestTelemetryConsent::generationOverflow() {
+	QSettings settings(consentFile(), QSettings::IniFormat);
 	settings.setValue(QStringLiteral("telemetry/consentV1"),
 		QByteArray(
 			"{\"endpoint\":\"https://example.org/collect\",\"terms\":\"1\",\"handled\":true,\"usage\":false,\"diagnostics\":true,\"diagnosticsGeneration\":2147483646,\"id\":\"\"}"));
 	settings.sync();
-	TelemetryConsent overflow(settings, context);
-	ok &= check(!overflow.save(false, false) && !overflow.diagnosticsEnabled(),
-		"diagnostics generation overflow revokes and fails closed");
-	QSettings overflowSettings(dir.filePath("consent.ini"), QSettings::IniFormat);
-	TelemetryConsent overflowRestart(overflowSettings, context);
-	ok &= check(!overflowRestart.diagnosticsEnabled() && !overflowRestart.save(false, true),
-		"generation overflow stays disabled after restart");
+	TelemetryConsent overflow(settings, m_context);
+	// diagnostics generation overflow revokes and fails closed
+	QVERIFY(!overflow.save(false, false));
+	QVERIFY(!overflow.diagnosticsEnabled());
+	QSettings overflowSettings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent overflowRestart(overflowSettings, m_context);
+	// generation overflow stays disabled after restart
+	QVERIFY(!overflowRestart.diagnosticsEnabled());
+	QVERIFY(!overflowRestart.save(false, true));
+}
+
+void TestTelemetryConsent::updatePreferencesIndependent() {
+	QSettings settings(consentFile(), QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
 	settings.setValue(QStringLiteral("updates/automaticCheck"), true);
 	consent.dismiss();
-	ok &= check(readUpdateCheckState(settings) == UpdateCheckState::Enabled,
-		"update preferences stay independent");
-	// A directory cannot be written as a settings file.
-	QSettings broken(dir.path(), QSettings::IniFormat);
-	TelemetryConsent failed(broken, context);
-	failed.save(true, true);
-	ok &= check(!failed.usageEnabled() && !failed.diagnosticsEnabled()
-			&& failed.usageInstallationId().isEmpty(),
-		"settings I/O failure fails closed");
-	return ok ? 0 : 1;
+	QVERIFY2(readUpdateCheckState(settings) == UpdateCheckState::Enabled, "update preferences stay independent");
 }
+
+void TestTelemetryConsent::settingsFailureFailsClosed() {
+	// A directory cannot be written as a settings file.
+	QSettings broken(m_dir->path(), QSettings::IniFormat);
+	TelemetryConsent failed(broken, m_context);
+	failed.save(true, true);
+	// settings I/O failure fails closed
+	QVERIFY(!failed.usageEnabled());
+	QVERIFY(!failed.diagnosticsEnabled());
+	QVERIFY(failed.usageInstallationId().isEmpty());
+}
+
+int main(int argc, char** argv) {
+	// The two child modes run without Qt Test: the race check starts the second, the core check the first.
+	if (argc > 1 && QString::fromLocal8Bit(argv[1]) == QStringLiteral("--core-only")) {
+		QCoreApplication core(argc, argv);
+		return applicationTelemetryContext().interactive ? 1 : 0;
+	}
+	if (argc == 3 && QString::fromLocal8Bit(argv[1]) == QStringLiteral("--toggle-diagnostics")) {
+		QCoreApplication core(argc, argv);
+		QSettings helperSettings(QString::fromLocal8Bit(argv[2]), QSettings::IniFormat);
+		TelemetryContext helperContext{true, true, true, QStringLiteral("https://example.org/collect"), QStringLiteral("1")};
+		TelemetryConsent helper(helperSettings, helperContext);
+		return helper.save(false, false) && helper.save(false, true) ? 0 : 1;
+	}
+	QApplication app(argc, argv);
+	TestTelemetryConsent test;
+	return QTest::qExec(&test, argc, argv);
+}
+
+#include "test_telemetryconsent.moc"

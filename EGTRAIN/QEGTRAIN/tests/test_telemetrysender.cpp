@@ -6,22 +6,41 @@
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QSettings>
-#include <QSemaphore>
 #include <QSet>
 #include <QFile>
 #include <QDir>
 #include <QFileInfo>
 #include <QElapsedTimer>
+#include <QStringList>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QThread>
 #include <QTimer>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 #include <new>
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-#include <cassert>
+
+namespace {
+// QVERIFY reports to the thread of the test and returns from the function that calls it. A check in a callback on the
+// thread of a sender, or in a helper that returns a value, records its failure with RECORD_VERIFY instead, and cleanup()
+// fails the slot that recorded one.
+std::mutex recordedMutex;
+QStringList recordedFailures;
+
+void recordFailure(const QString& failure) {
+	const std::lock_guard<std::mutex> lock(recordedMutex);
+	recordedFailures.append(failure);
+}
+} // namespace
+
+#define RECORD_VERIFY(condition)                                                                       \
+	do {                                                                                               \
+		if (!(condition))                                                                              \
+			recordFailure(QStringLiteral("line %1: %2").arg(__LINE__).arg(QLatin1String(#condition))); \
+	} while (false)
 
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 class ScriptedReply : public QNetworkReply {
@@ -69,11 +88,34 @@ private:
 	}
 };
 
+// A counting semaphore with the calls of QSemaphore that these tests use. QSemaphore waits inside the Qt library, which
+// ThreadSanitizer does not instrument, so it would not see that a value a callback of the sender writes before release()
+// is read by the test after tryAcquire(). It does see std::mutex and std::condition_variable.
+class Semaphore {
+public:
+	void release() {
+		const std::lock_guard<std::mutex> lock(m_mutex);
+		++m_count;
+		m_changed.notify_all();
+	}
+	bool tryAcquire(int n, int timeoutMs) {
+		std::unique_lock<std::mutex> lock(m_mutex);
+		if (!m_changed.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this, n] { return m_count >= n; })) return false;
+		m_count -= n;
+		return true;
+	}
+private:
+	std::mutex m_mutex;
+	std::condition_variable m_changed;
+	int m_count = 0;
+};
+
 static QJsonObject readObject(const QString& path) {
 	QFile file(path);
-	assert(file.open(QIODevice::ReadOnly));
+	const bool opened = file.open(QIODevice::ReadOnly);
+	RECORD_VERIFY(opened);
 	const auto doc = QJsonDocument::fromJson(file.readAll());
-	assert(doc.isObject());
+	RECORD_VERIFY(doc.isObject());
 	return doc.object();
 }
 
@@ -81,149 +123,264 @@ static QJsonArray readDurableEvents(const QString& path) {
 	return QFile::exists(path) ? readObject(path).value(QStringLiteral("events")).toArray() : QJsonArray();
 }
 
-// Number of polls, 10 or 20 ms apart, that wait for the sender thread. A busy machine that runs other tests at the
-// same time can take seconds to schedule that thread, so the limit is at least the 3 s of the semaphore waits below.
-constexpr int kPollsPerWait = 300;
+// The time in milliseconds that a test waits for the sender thread without a semaphore. A busy machine that runs other
+// tests at the same time can take seconds to schedule that thread, so the limit is the 3 s of the semaphore waits below.
+constexpr int kWaitMs = 3000;
 
 // tryEnqueue never waits, so it also refuses an event while the worker briefly holds the ingress lock. An event that
-// must be accepted while the worker runs is retried here; one sent while a hook holds the worker needs no retry.
-static bool waitForGate(telemetry::TelemetrySender& sender, const telemetry::TelemetryEventInput& input) {
-	for (int i = 0; i < kPollsPerWait; ++i) {
-		if (sender.tryEnqueue(input)) return true;
-		QThread::msleep(10); // Interleaving tests use semaphores.
-	}
-	return false;
+// must be accepted while the worker runs is retried here until it is taken; one sent while a hook holds the worker needs
+// no retry. qWaitFor stops calling the predicate once it returned true, so the event is taken once.
+static bool waitForGate(telemetry::TelemetrySender& sender, const telemetry::TelemetryEventInput& input, int timeoutMs = kWaitMs) {
+	return QTest::qWaitFor([&] { return sender.tryEnqueue(input); }, timeoutMs);
 }
 
-static void testOperationTokens(const telemetry::Application& metadata, TelemetryContext context) {
+// The receiver of every sender in these tests. A test transport is accepted only for a numeric loopback address.
+static TelemetryContext loopbackContext() {
+	TelemetryContext context;
+	context.packaged = true;
+	context.interactive = true;
+	context.enabled = true;
+	context.endpoint = QStringLiteral("https://127.0.0.1:1/collect");
+	return context;
+}
+#endif
+
+class TestTelemetrySender : public QObject {
+	Q_OBJECT
+
+private slots:
+	void cleanup();
+	void incapableSenderRefusesEverything();
+	void refusesEndpointsThatAreNotHttps();
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+	void refusesTestTransportForPublicReceiver();
+	void operationTokens();
+	void tokenLifetimeAndContention();
+	void interactiveSessions_data();
+	void interactiveSessions();
+	void sessionAttemptLoss_data();
+	void sessionAttemptLoss();
+	void disabledWorkerExits_data();
+	void disabledWorkerExits();
+	void pathIsolation_data();
+	void pathIsolation();
+	void pathIsolationResolvesSettingsParent();
+	void backoffSaturation_data();
+	void backoffSaturation();
+	void outcomes_data();
+	void outcomes();
+	void startupIngress();
+	void stopKeepsStoredEvents();
+	void preparationBarrier_data();
+	void preparationBarrier();
+	void interruptedBackoff();
+	void timeoutAndExceptions_data();
+	void timeoutAndExceptions();
+	void expiryAndActiveRevocation_data();
+	void expiryAndActiveRevocation();
+	void constructionAndWorkerExceptions();
+	void followerTakeover();
+	void retirementWithQueuedWork();
+	void splitRetainsIds();
+	void retryAfterAndRetirement();
+#endif
+
+private:
+	const telemetry::Application m_metadata{QStringLiteral("1.2.3"), QString(), QString()};
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+	const TelemetryContext m_context = loopbackContext();
+#endif
+};
+
+void TestTelemetrySender::cleanup() {
+	QStringList failures;
+	{
+		const std::lock_guard<std::mutex> lock(recordedMutex);
+		failures.swap(recordedFailures);
+	}
+	QVERIFY2(failures.isEmpty(), qPrintable(failures.join(QStringLiteral("; "))));
+}
+
+void TestTelemetrySender::incapableSenderRefusesEverything() {
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	TelemetryContext context;
+	context.packaged = true;
+	context.interactive = true;
+	context.enabled = false;
+	context.endpoint = QStringLiteral("https://127.0.0.1:1/collect");
+	const telemetry::TelemetryEventInput input;
+	telemetry::TelemetrySender sender(context, m_metadata, directory.path());
+	for (int i = 0; i < 1000; ++i) QVERIFY(!sender.tryEnqueue(input));
+	sender.invalidateConsent(true, true);
+	sender.requestConsentRefresh();
+	sender.invalidateReceiver();
+	sender.stop();
+	QVERIFY(!sender.tryEnqueue(input));
+}
+
+void TestTelemetrySender::refusesEndpointsThatAreNotHttps() {
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	TelemetryContext context;
+	context.packaged = true;
+	context.interactive = true;
+	context.enabled = true;
+	const telemetry::TelemetryEventInput input;
+	telemetry::TelemetrySender emptyEndpoint(context, m_metadata, directory.path());
+	QVERIFY(!emptyEndpoint.tryEnqueue(input));
+	context.endpoint = QStringLiteral("http://127.0.0.1:1/collect");
+	telemetry::TelemetrySender insecureEndpoint(context, m_metadata, directory.path());
+	QVERIFY(!insecureEndpoint.tryEnqueue(input));
+}
+
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+void TestTelemetrySender::refusesTestTransportForPublicReceiver() {
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	TelemetryContext context = m_context;
+	context.endpoint = QStringLiteral("https://example.org/collect");
+	telemetry::TelemetrySender::TestOptions rejected;
+	rejected.settingsFactory = [] { return std::unique_ptr<QSettings>(new QSettings); };
+	rejected.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
+		recordFailure(QStringLiteral("non-loopback test transport must not run"));
+		return nullptr;
+	};
+	telemetry::TelemetrySender publicOverride(context, m_metadata, directory.path(), rejected);
+	QVERIFY(!publicOverride.tryEnqueue(telemetry::TelemetryEventInput()));
+}
+
+void TestTelemetrySender::operationTokens() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	const QString storage = directory.filePath(QStringLiteral("queue"));
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(false, false));
-	QSemaphore polled, proceed, settled, exited;
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(false, false));
+	Semaphore polled, proceed, settled, exited;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
 	options.afterPoll = [&] {
 		polled.release();
-		assert(proceed.tryAcquire(1, 3000));
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
 	options.onWorkerExit = [&] { exited.release(); };
-	telemetry::TelemetrySender sender(context, metadata, storage, options);
-	assert(polled.tryAcquire(1, 3000));
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	// Lets the worker finish its poll, asks for the next one and waits until the worker holds in it.
 	const auto cycle = [&] {
 		proceed.release();
-		assert(settled.tryAcquire(1, 3000));
+		if (!settled.tryAcquire(1, 3000)) return false;
 		sender.requestConsentRefresh();
-		assert(polled.tryAcquire(1, 3000));
+		return polled.tryAcquire(1, 3000);
 	};
 	telemetry::TelemetryEventInput usage, diagnostic;
 	usage.name = telemetry::Name::SceneOpened;
 	diagnostic.name = telemetry::Name::OperationFailed;
 	const auto disabled = sender.captureOperation();
-	assert(consent.save(true, true));
-	cycle();
-	assert(!sender.tryEnqueue(usage, {}));
-	assert(!sender.tryEnqueue(diagnostic, {}));
-	assert(!sender.tryEnqueue(usage, disabled));
-	assert(!sender.tryEnqueue(diagnostic, disabled));
+	QVERIFY(consent.save(true, true));
+	QVERIFY(cycle());
+	QVERIFY(!sender.tryEnqueue(usage, {}));
+	QVERIFY(!sender.tryEnqueue(diagnostic, {}));
+	QVERIFY(!sender.tryEnqueue(usage, disabled));
+	QVERIFY(!sender.tryEnqueue(diagnostic, disabled));
 	auto token = sender.captureOperation();
-	assert(sender.tryEnqueue(usage, token));
-	assert(sender.tryEnqueue(diagnostic, token));
-	cycle();
-	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).size() == 1);
-	assert(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).size() == 1);
+	QVERIFY(sender.tryEnqueue(usage, token));
+	QVERIFY(sender.tryEnqueue(diagnostic, token));
+	QVERIFY(cycle());
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	QCOMPARE(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).size(), 1);
 	for (int n = 0; n < 2; ++n) {
 		// Diagnostics revocation must not invalidate a still-authorized usage operation.
 		token = sender.captureOperation();
-		assert(consent.save(true, false));
+		QVERIFY(consent.save(true, false));
 		sender.invalidateConsent(false, true);
-		cycle();
-		assert(!sender.tryEnqueue(diagnostic, token));
-		assert(sender.tryEnqueue(usage, token));
-		cycle();
-		assert(consent.save(true, true));
-		cycle();
-		assert(!sender.tryEnqueue(diagnostic, token));
-		assert(sender.tryEnqueue(usage, token));
-		cycle();
-		assert(readDurableEvents(storage + QStringLiteral("/usage.json")).size() == 3 + 2 * n);
+		QVERIFY(cycle());
+		QVERIFY(!sender.tryEnqueue(diagnostic, token));
+		QVERIFY(sender.tryEnqueue(usage, token));
+		QVERIFY(cycle());
+		QVERIFY(consent.save(true, true));
+		QVERIFY(cycle());
+		QVERIFY(!sender.tryEnqueue(diagnostic, token));
+		QVERIFY(sender.tryEnqueue(usage, token));
+		QVERIFY(cycle());
+		QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 3 + 2 * n);
 		// Usage revoke alone preserves diagnostics; creating a new usage ID genuinely
 		// advances the persistent diagnostics stamp and then rejects that token too.
 		token = sender.captureOperation();
-		assert(consent.save(false, true));
+		QVERIFY(consent.save(false, true));
 		sender.invalidateConsent(true, false);
-		cycle();
-		assert(!sender.tryEnqueue(usage, token));
-		assert(sender.tryEnqueue(diagnostic, token));
-		cycle();
-		assert(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).size() == 1);
-		assert(consent.save(true, true));
-		cycle();
-		assert(!sender.tryEnqueue(usage, token));
-		assert(!sender.tryEnqueue(diagnostic, token));
+		QVERIFY(cycle());
+		QVERIFY(!sender.tryEnqueue(usage, token));
+		QVERIFY(sender.tryEnqueue(diagnostic, token));
+		QVERIFY(cycle());
+		QCOMPARE(readDurableEvents(storage + QStringLiteral("/diagnostics.json")).size(), 1);
+		QVERIFY(consent.save(true, true));
+		QVERIFY(cycle());
+		QVERIFY(!sender.tryEnqueue(usage, token));
+		QVERIFY(!sender.tryEnqueue(diagnostic, token));
 		// Start the next iteration's usage count from the new installation stamp.
 		if (n == 0) {
 			const auto fresh = sender.captureOperation();
-			for (int i = 0; i < 3; ++i) assert(sender.tryEnqueue(usage, fresh));
-			cycle();
+			for (int i = 0; i < 3; ++i) QVERIFY(sender.tryEnqueue(usage, fresh));
+			QVERIFY(cycle());
 		}
 	}
 	token = sender.captureOperation();
-	assert(sender.tryEnqueue(usage, token));
-	cycle();
+	QVERIFY(sender.tryEnqueue(usage, token));
+	QVERIFY(cycle());
 	const auto records = readDurableEvents(storage + QStringLiteral("/usage.json"));
-	assert(records.size() == 1);
-	assert(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString() == QStringLiteral("scene.opened"));
+	QCOMPARE(records.size(), 1);
+	QCOMPARE(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString(), QStringLiteral("scene.opened"));
 	sender.invalidateReceiver();
-	assert(!sender.tryEnqueue(usage, token) && !sender.tryEnqueue(diagnostic, token));
+	QVERIFY(!sender.tryEnqueue(usage, token));
+	QVERIFY(!sender.tryEnqueue(diagnostic, token));
 	proceed.release();
-	assert(settled.tryAcquire(1, 3000));
+	QVERIFY(settled.tryAcquire(1, 3000));
 	// The next pump purges the queue and the worker exits without a stop. Reading usage.json while the worker replaces
 	// it makes the replacement fail on Windows, so the file is read once the worker has exited.
-	assert(exited.tryAcquire(1, 3000));
-	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 	sender.stop();
 }
 
-static void testTokenLifetimeAndContention(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::tokenLifetimeAndContention() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, true));
-	QSemaphore polled, proceed, settled, exited, captured, unlock;
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, true));
+	Semaphore polled, proceed, settled, exited, captured, unlock;
 	std::atomic<bool> holdCapture{false}, throwCapture{false};
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; };
 	options.afterPoll = [&] {
 		polled.release();
-		assert(proceed.tryAcquire(1, 3000));
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
 	options.afterOperationCaptureLocked = [&] {
 		if (throwCapture) throw std::bad_alloc();
 		if (holdCapture) {
 			captured.release();
-			assert(unlock.tryAcquire(1, 3000));
+			RECORD_VERIFY(unlock.tryAcquire(1, 3000));
 		}
 	};
 	options.onWorkerExit = [&] { exited.release(); };
 	// Placement reuse also exercises the sender identity without relying on allocator luck.
 	alignas(telemetry::TelemetrySender) unsigned char facade[sizeof(telemetry::TelemetrySender)];
-	auto* sender = new (facade) telemetry::TelemetrySender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
-	assert(polled.tryAcquire(1, 3000));
+	auto* sender = new (facade) telemetry::TelemetrySender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
 	telemetry::TelemetryEventInput usage;
 	usage.name = telemetry::Name::SceneOpened;
 	const auto original = sender->captureOperation();
 	telemetry::TelemetrySender::OperationToken contended;
 	holdCapture = true;
 	std::thread producer([&] { contended = sender->captureOperation(); });
-	assert(captured.tryAcquire(1, 3000));
+	QVERIFY(captured.tryAcquire(1, 3000));
 	QElapsedTimer timer;
 	timer.start();
 	const auto dropped = sender->captureOperation();
@@ -234,355 +391,345 @@ static void testTokenLifetimeAndContention(const telemetry::Application& metadat
 	unlock.release();
 	producer.join();
 	holdCapture = false;
-	assert(delay < 100 && !admitted);
-	assert(!sender->tryEnqueue(usage, dropped));
-	assert(!sender->tryEnqueue(usage, contended));
+	QCOMPARE_LT(delay, qint64(100));
+	QVERIFY(!admitted);
+	QVERIFY(!sender->tryEnqueue(usage, dropped));
+	QVERIFY(!sender->tryEnqueue(usage, contended));
 	throwCapture = true;
 	const auto failed = sender->captureOperation();
 	throwCapture = false;
-	assert(!sender->tryEnqueue(usage, failed));
+	QVERIFY(!sender->tryEnqueue(usage, failed));
 	proceed.release();
-	assert(settled.tryAcquire(1, 3000));
+	QVERIFY(settled.tryAcquire(1, 3000));
 	sender->requestConsentRefresh();
-	assert(polled.tryAcquire(1, 3000));
-	assert(!sender->tryEnqueue(usage, original));
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(!sender->tryEnqueue(usage, original));
 	const auto fresh = sender->captureOperation();
-	assert(sender->tryEnqueue(usage, fresh));
+	QVERIFY(sender->tryEnqueue(usage, fresh));
 	proceed.release();
-	assert(settled.tryAcquire(1, 3000));
+	QVERIFY(settled.tryAcquire(1, 3000));
 	sender->stop();
-	assert(exited.tryAcquire(1, 3000));
+	QVERIFY(exited.tryAcquire(1, 3000));
 	sender->~TelemetrySender();
-	assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
-	sender = new (facade) telemetry::TelemetrySender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
-	assert(polled.tryAcquire(1, 3000));
-	assert(!sender->tryEnqueue(usage, original));
-	assert(!sender->tryEnqueue(usage, fresh));
+	QCOMPARE(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size(), 1);
+	sender = new (facade) telemetry::TelemetrySender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(!sender->tryEnqueue(usage, original));
+	QVERIFY(!sender->tryEnqueue(usage, fresh));
 	const auto replacement = sender->captureOperation();
 	// A different live capable sender also cannot accept the replacement's token.
-	QSemaphore foreignPolled, foreignProceed, foreignSettled, foreignExited;
+	Semaphore foreignPolled, foreignProceed, foreignSettled, foreignExited;
 	auto foreignOptions = options;
 	foreignOptions.afterPoll = [&] {
 		foreignPolled.release();
-		assert(foreignProceed.tryAcquire(1, 3000));
+		RECORD_VERIFY(foreignProceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { foreignSettled.release(); });
 	};
 	foreignOptions.onWorkerExit = [&] { foreignExited.release(); };
-	telemetry::TelemetrySender foreign(context, metadata, directory.filePath(QStringLiteral("foreign")), foreignOptions);
-	assert(foreignPolled.tryAcquire(1, 3000));
-	assert(!foreign.tryEnqueue(usage, replacement));
-	assert(!sender->tryEnqueue(usage, foreign.captureOperation()));
+	telemetry::TelemetrySender foreign(m_context, m_metadata, directory.filePath(QStringLiteral("foreign")), foreignOptions);
+	QVERIFY(foreignPolled.tryAcquire(1, 3000));
+	QVERIFY(!foreign.tryEnqueue(usage, replacement));
+	QVERIFY(!sender->tryEnqueue(usage, foreign.captureOperation()));
 	foreignProceed.release();
-	assert(foreignSettled.tryAcquire(1, 3000));
+	QVERIFY(foreignSettled.tryAcquire(1, 3000));
 	foreign.stop();
-	assert(foreignExited.tryAcquire(1, 3000));
-	assert(readDurableEvents(directory.filePath(QStringLiteral("foreign/usage.json"))).isEmpty());
-	assert(sender->tryEnqueue(usage, replacement));
+	QVERIFY(foreignExited.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(directory.filePath(QStringLiteral("foreign/usage.json"))).isEmpty());
+	QVERIFY(sender->tryEnqueue(usage, replacement));
 	proceed.release();
-	assert(settled.tryAcquire(1, 3000));
+	QVERIFY(settled.tryAcquire(1, 3000));
 	sender->stop();
-	assert(exited.tryAcquire(1, 3000));
-	assert(!sender->tryEnqueue(usage, replacement));
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(!sender->tryEnqueue(usage, replacement));
 	sender->~TelemetrySender();
-	assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 2);
+	QCOMPARE(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size(), 2);
 }
 
-static void testInteractiveSessions(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::interactiveSessions_data() {
+	QTest::addColumn<int>("scenario");
 	// Saved usage, late usage, diagnostics-only and ordinary standalone senders.
-	for (int scenario = 0; scenario < 4; ++scenario) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
-		const QString storage = directory.filePath(QStringLiteral("queue"));
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(scenario == 0 || scenario == 3, true));
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-		QSemaphore polled, proceed, settled, exited, posted, completed, opened, allowObservations;
-		int sessionAttempts = 0;
-		QString expectedInstallationId = consent.observeUsage().installationId;
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
-		options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.afterPoll = [&] {
-			polled.release();
-			assert(proceed.tryAcquire(1, 3000));
-			QTimer::singleShot(0, [&] { settled.release(); });
-		};
-		options.afterOwnershipAttempt = [&](bool owner) {
-			assert(owner);
-			opened.release();
-			assert(allowObservations.tryAcquire(1, 3000));
-		};
-		options.beforeSessionAttempt = [&] { ++sessionAttempts; };
-		options.onWorkerExit = [&] { exited.release(); };
-		options.afterCompletion = [&] { completed.release(); };
-		options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
-			const auto wire = QJsonDocument::fromJson(bytes).object();
-			const auto events = wire.value(QStringLiteral("events")).toArray();
-			assert(events.size() == 1);
-			assert(events.first().toObject().value(QStringLiteral("name")).toString() == QStringLiteral("session.started"));
-			assert(events.first().toObject().value(QStringLiteral("occurred_at")).toString() == base.addMSecs(scenario == 1 ? 1234 : 0).toString(Qt::ISODateWithMs));
-			assert(wire.value(QStringLiteral("installation_id")).toString() == expectedInstallationId);
-			posted.release();
-			return new ScriptedReply(request, 202, &manager);
-		};
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		assert(opened.tryAcquire(1, 3000));
-		assert(sessionAttempts == 0);
-		const auto beforeObservation = sender.captureOperation();
-		assert(!sender.tryEnqueue({}, beforeObservation));
-		if (scenario == 0) {
-			sender.requestInteractiveSession();
-			sender.requestInteractiveSession();
-		}
-		// A startup request precedes BOTH initial observations. Initial diagnostics
-		// ring clearing must finish before the worker attempts the session.
-		allowObservations.release();
-		assert(polled.tryAcquire(1, 3000));
-		assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-		if (scenario != 3) {
-			sender.requestInteractiveSession();
-			sender.requestInteractiveSession();
-		}
-		const auto cycle = [&] {
-			proceed.release();
-			assert(settled.tryAcquire(1, 3000));
-			sender.requestConsentRefresh();
-			assert(polled.tryAcquire(1, 3000));
-		};
-		cycle();
-		assert(sessionAttempts == (scenario == 0 ? 1 : 0));
-		if (scenario == 1) {
-			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-			assert(consent.save(true, true));
-			expectedInstallationId = consent.observeUsage().installationId;
-			*clock = 1234;
-			cycle();
-			cycle();
-			assert(sessionAttempts == 1);
-		}
-		auto records = readDurableEvents(storage + QStringLiteral("/usage.json"));
-		assert(records.size() == (scenario < 2 ? 1 : 0));
-		if (scenario < 2) {
-			assert(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString() == QStringLiteral("session.started"));
-			*clock = 60001;
-			cycle();
-			cycle();
-			assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
-			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-			assert(consent.save(false, true));
-			sender.invalidateConsent(true, false);
-			cycle();
-			assert(consent.save(true, true));
-			sender.requestInteractiveSession();
-			cycle();
-			cycle();
-			assert(sessionAttempts == 1);
-			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-		} else {
-			assert(sessionAttempts == 0);
-			assert(!posted.tryAcquire(1, 0));
-		}
-		proceed.release();
-		assert(settled.tryAcquire(1, 3000));
-		sender.stop();
-		assert(exited.tryAcquire(1, 3000));
-	}
+	QTest::newRow("saved usage") << 0;
+	QTest::newRow("late usage") << 1;
+	QTest::newRow("diagnostics only") << 2;
+	QTest::newRow("standalone") << 3;
 }
 
-static void testSessionAttemptLoss(const telemetry::Application& metadata, TelemetryContext context) {
-	for (int failure = 0; failure < 3; ++failure) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
-		const QString storage = directory.filePath(QStringLiteral("queue"));
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		QSemaphore polled, proceed, settled, attempted, resume, exited;
-		int attempts = 0;
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
-		options.monotonicMs = [] { return 0; };
-		options.afterPoll = [&] {
-			polled.release();
-			assert(proceed.tryAcquire(1, 3000));
-			QTimer::singleShot(0, [&] { settled.release(); });
-		};
-		options.beforeSessionAttempt = [&] {
-			++attempts;
-			attempted.release();
-			assert(resume.tryAcquire(1, 3000));
-			if (failure == 1) throw std::bad_alloc();
-		};
-		options.onWorkerExit = [&] { exited.release(); };
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		assert(polled.tryAcquire(1, 3000));
+void TestTelemetrySender::interactiveSessions() {
+	QFETCH(int, scenario);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(scenario == 0 || scenario == 3, true));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore polled, proceed, settled, exited, posted, completed, opened, allowObservations;
+	int sessionAttempts = 0;
+	QString expectedInstallationId = consent.observeUsage().installationId;
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+	options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.afterPoll = [&] {
+		polled.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+		QTimer::singleShot(0, [&] { settled.release(); });
+	};
+	options.afterOwnershipAttempt = [&](bool owner) {
+		RECORD_VERIFY(owner);
+		opened.release();
+		RECORD_VERIFY(allowObservations.tryAcquire(1, 3000));
+	};
+	options.beforeSessionAttempt = [&] { ++sessionAttempts; };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.afterCompletion = [&] { completed.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
+		const auto wire = QJsonDocument::fromJson(bytes).object();
+		const auto events = wire.value(QStringLiteral("events")).toArray();
+		RECORD_VERIFY(events.size() == 1);
+		RECORD_VERIFY(events.first().toObject().value(QStringLiteral("name")).toString() == QStringLiteral("session.started"));
+		RECORD_VERIFY(events.first().toObject().value(QStringLiteral("occurred_at")).toString() == base.addMSecs(scenario == 1 ? 1234 : 0).toString(Qt::ISODateWithMs));
+		RECORD_VERIFY(wire.value(QStringLiteral("installation_id")).toString() == expectedInstallationId);
+		posted.release();
+		return new ScriptedReply(request, 202, &manager);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(opened.tryAcquire(1, 3000));
+	QCOMPARE(sessionAttempts, 0);
+	const auto beforeObservation = sender.captureOperation();
+	QVERIFY(!sender.tryEnqueue({}, beforeObservation));
+	if (scenario == 0) {
 		sender.requestInteractiveSession();
-		proceed.release();
-		assert(attempted.tryAcquire(1, 3000));
-		if (failure == 0) {
-			// Lose authorization after the latch and before storing. Re-enable is
-			// not a reason to replay that session or any prior operation.
-			assert(consent.save(false, false));
-			sender.invalidateConsent(true, false);
-		} else if (failure == 2) {
-			// Force the atomic usage-store replacement to fail.
-			if (QFile::exists(storage + QStringLiteral("/usage.json")))
-				assert(QFile::remove(storage + QStringLiteral("/usage.json")));
-			assert(QDir().mkdir(storage + QStringLiteral("/usage.json")));
-		}
-		resume.release();
-		if (failure == 0) {
-			assert(settled.tryAcquire(1, 3000));
-			sender.requestConsentRefresh();
-			assert(polled.tryAcquire(1, 3000));
-			proceed.release();
-			assert(settled.tryAcquire(1, 3000));
-			assert(consent.save(true, false));
-			sender.requestInteractiveSession();
-			sender.requestConsentRefresh();
-			assert(polled.tryAcquire(1, 3000));
-			proceed.release();
-			assert(settled.tryAcquire(1, 3000));
-			sender.requestConsentRefresh();
-			assert(polled.tryAcquire(1, 3000));
-			assert(attempts == 1);
-			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
-			proceed.release();
-			assert(settled.tryAcquire(1, 3000));
-			sender.stop();
-			assert(exited.tryAcquire(1, 3000));
-		} else {
-			// The exception and the storage failure end this worker without a stop, so it cannot attempt again.
-			assert(exited.tryAcquire(1, 3000));
-			sender.requestInteractiveSession();
-			sender.requestConsentRefresh();
-			sender.stop();
-		}
-		assert(attempts == 1 && !sender.tryEnqueue({}, sender.captureOperation()));
-		if (failure == 1)
-			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+		sender.requestInteractiveSession();
 	}
+	// A startup request precedes BOTH initial observations. Initial diagnostics
+	// ring clearing must finish before the worker attempts the session.
+	allowObservations.release();
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	if (scenario != 3) {
+		sender.requestInteractiveSession();
+		sender.requestInteractiveSession();
+	}
+	// Lets the worker finish its poll, asks for the next one and waits until the worker holds in it.
+	const auto cycle = [&] {
+		proceed.release();
+		if (!settled.tryAcquire(1, 3000)) return false;
+		sender.requestConsentRefresh();
+		return polled.tryAcquire(1, 3000);
+	};
+	QVERIFY(cycle());
+	QCOMPARE(sessionAttempts, scenario == 0 ? 1 : 0);
+	if (scenario == 1) {
+		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+		QVERIFY(consent.save(true, true));
+		expectedInstallationId = consent.observeUsage().installationId;
+		*clock = 1234;
+		QVERIFY(cycle());
+		QVERIFY(cycle());
+		QCOMPARE(sessionAttempts, 1);
+	}
+	auto records = readDurableEvents(storage + QStringLiteral("/usage.json"));
+	QCOMPARE(records.size(), scenario < 2 ? 1 : 0);
+	if (scenario < 2) {
+		QCOMPARE(records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("name")).toString(), QStringLiteral("session.started"));
+		*clock = 60001;
+		QVERIFY(cycle());
+		QVERIFY(cycle());
+		QVERIFY(posted.tryAcquire(1, 3000));
+		QVERIFY(completed.tryAcquire(1, 3000));
+		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+		QVERIFY(consent.save(false, true));
+		sender.invalidateConsent(true, false);
+		QVERIFY(cycle());
+		QVERIFY(consent.save(true, true));
+		sender.requestInteractiveSession();
+		QVERIFY(cycle());
+		QVERIFY(cycle());
+		QCOMPARE(sessionAttempts, 1);
+		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	} else {
+		QCOMPARE(sessionAttempts, 0);
+		QVERIFY(!posted.tryAcquire(1, 0));
+	}
+	proceed.release();
+	QVERIFY(settled.tryAcquire(1, 3000));
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
-static void testDisabledWorkerExits(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::sessionAttemptLoss_data() {
+	QTest::addColumn<int>("failure");
+	QTest::newRow("consent lost") << 0;
+	QTest::newRow("exception") << 1;
+	QTest::newRow("storage failure") << 2;
+}
+
+void TestTelemetrySender::sessionAttemptLoss() {
+	QFETCH(int, failure);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	Semaphore polled, proceed, settled, attempted, resume, exited;
+	int attempts = 0;
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+	options.monotonicMs = [] { return 0; };
+	options.afterPoll = [&] {
+		polled.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+		QTimer::singleShot(0, [&] { settled.release(); });
+	};
+	options.beforeSessionAttempt = [&] {
+		++attempts;
+		attempted.release();
+		RECORD_VERIFY(resume.tryAcquire(1, 3000));
+		if (failure == 1) throw std::bad_alloc();
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	sender.requestInteractiveSession();
+	proceed.release();
+	QVERIFY(attempted.tryAcquire(1, 3000));
+	if (failure == 0) {
+		// Lose authorization after the latch and before storing. Re-enable is
+		// not a reason to replay that session or any prior operation.
+		QVERIFY(consent.save(false, false));
+		sender.invalidateConsent(true, false);
+	} else if (failure == 2) {
+		// Force the atomic usage-store replacement to fail.
+		if (QFile::exists(storage + QStringLiteral("/usage.json")))
+			QVERIFY(QFile::remove(storage + QStringLiteral("/usage.json")));
+		QVERIFY(QDir().mkdir(storage + QStringLiteral("/usage.json")));
+	}
+	resume.release();
+	if (failure == 0) {
+		QVERIFY(settled.tryAcquire(1, 3000));
+		sender.requestConsentRefresh();
+		QVERIFY(polled.tryAcquire(1, 3000));
+		proceed.release();
+		QVERIFY(settled.tryAcquire(1, 3000));
+		QVERIFY(consent.save(true, false));
+		sender.requestInteractiveSession();
+		sender.requestConsentRefresh();
+		QVERIFY(polled.tryAcquire(1, 3000));
+		proceed.release();
+		QVERIFY(settled.tryAcquire(1, 3000));
+		sender.requestConsentRefresh();
+		QVERIFY(polled.tryAcquire(1, 3000));
+		QCOMPARE(attempts, 1);
+		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+		proceed.release();
+		QVERIFY(settled.tryAcquire(1, 3000));
+		sender.stop();
+		QVERIFY(exited.tryAcquire(1, 3000));
+	} else {
+		// The exception and the storage failure end this worker without a stop, so it cannot attempt again.
+		QVERIFY(exited.tryAcquire(1, 3000));
+		sender.requestInteractiveSession();
+		sender.requestConsentRefresh();
+		sender.stop();
+	}
+	QCOMPARE(attempts, 1);
+	QVERIFY(!sender.tryEnqueue({}, sender.captureOperation()));
+	if (failure == 1)
+		QVERIFY(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+}
+
+void TestTelemetrySender::disabledWorkerExits_data() {
 	// A worker that can send nothing more in this run leaves its loop without a stop: when its first pump finds the
 	// queue disabled, when a pump takes a receiver change, and after a 410 response. No pump follows.
-	for (int cause = 0; cause < 3; ++cause) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
-		const QString storage = directory.filePath(QStringLiteral("queue"));
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		if (cause == 0) {
-			assert(QDir().mkpath(storage));
-			QFile marker(storage + QStringLiteral("/disabled"));
-			assert(marker.open(QIODevice::WriteOnly) && marker.write("disabled\n") == 9);
-		}
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-		QSemaphore polled, atPump, resume, exited;
-		std::atomic<int> pumps{0}, lastPump{1};
-		std::atomic<bool> hold{false};
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
-		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.afterPoll = [&] { polled.release(); };
-		options.beforeFlagsRead = [&] {
-			++pumps;
-			if (!hold.exchange(false)) return;
-			atPump.release();
-			assert(resume.tryAcquire(1, 3000));
-		};
-		options.afterCompletion = [&] { lastPump = pumps.load(); };
-		options.onWorkerExit = [&] { exited.release(); };
-		options.post = [](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
-			return new ScriptedReply(request, 410, &manager);
-		};
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		if (cause == 1) {
-			assert(polled.tryAcquire(1, 3000));
-			hold = true;
-			assert(atPump.tryAcquire(1, 3000));
-			sender.invalidateReceiver();
-			lastPump = pumps.load();
-			resume.release();
-		} else if (cause == 2) {
-			assert(waitForGate(sender, {}));
-			*clock = 60001;
-		}
-		assert(exited.tryAcquire(1, 3000));
-		assert(pumps == lastPump);
-		assert(!sender.tryEnqueue({}));
-		sender.stop();
-	}
+	QTest::addColumn<int>("cause");
+	QTest::newRow("disabled queue") << 0;
+	QTest::newRow("receiver change") << 1;
+	QTest::newRow("410 response") << 2;
 }
 
-static void testBackoffSaturation(const telemetry::Application& metadata, TelemetryContext context) {
-	for (int attempt : {12, 13, 31})
-		for (int jitter : {50, 100, 150}) {
-			QTemporaryDir directory;
-			const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
-			const QString storage = directory.filePath(QStringLiteral("queue"));
-			QSettings settings(settingsFile, QSettings::IniFormat);
-			TelemetryConsent consent(settings, context);
-			assert(consent.save(true, false));
-			const auto base = QDateTime::currentDateTimeUtc().addSecs(10);
-			{
-				telemetry::TelemetryQueue seed;
-				assert(seed.open(storage, context.endpoint, context.termsVersion, base) == telemetry::TelemetryQueue::OpenResult::Owner);
-				assert(seed.enqueueUsage({telemetry::createEvent({}, base), consent.observeUsage().installationId}, base));
-				telemetry::RetryState retry;
-				retry.failures = attempt - 1;
-				assert(seed.commitRetry(retry, base));
-			}
-			auto clock = std::make_shared<std::atomic<qint64>>(0);
-			QSemaphore ready, completed, exited;
-			telemetry::TelemetrySender::TestOptions options;
-			options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
-			options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
-			options.monotonicMs = [clock] { return clock->load(); };
-			options.jitterPercent = [jitter] { return jitter; };
-			options.afterOwnershipAttempt = [&](bool owner) { assert(owner); ready.release(); };
-			options.afterReservation = [&] {
-				const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
-				assert(retry.value(QStringLiteral("failures")).toInt() == attempt);
-				const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
-				assert(base.addMSecs(clock->load()).msecsTo(next) == 86400000);
-			};
-			options.afterCompletion = [&] { completed.release(); };
-			options.onWorkerExit = [&] { exited.release(); };
-			options.post = [](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
-				return new ScriptedReply(request, 503, &manager);
-			};
-			telemetry::TelemetrySender sender(context, metadata, storage, options);
-			assert(ready.tryAcquire(1, 3000));
-			*clock = 60001;
-			assert(completed.tryAcquire(1, 3000));
-			const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
-			const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
-			assert(base.addMSecs(clock->load()).msecsTo(next) == qMin(86400000LL, 86400000LL * jitter / 100));
-			sender.stop();
-			assert(exited.tryAcquire(1, 3000));
-		}
-}
-
-static void testPathIsolation(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::disabledWorkerExits() {
+	QFETCH(int, cause);
 	QTemporaryDir directory;
-	assert(directory.isValid());
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	if (cause == 0) {
+		QVERIFY(QDir().mkpath(storage));
+		QFile marker(storage + QStringLiteral("/disabled"));
+		QVERIFY(marker.open(QIODevice::WriteOnly));
+		QCOMPARE(marker.write("disabled\n"), qint64(9));
+	}
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore polled, atPump, resume, exited;
+	std::atomic<int> pumps{0}, lastPump{1};
+	std::atomic<bool> hold{false};
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] {
+		++pumps;
+		if (!hold.exchange(false)) return;
+		atPump.release();
+		RECORD_VERIFY(resume.tryAcquire(1, 3000));
+	};
+	options.afterCompletion = [&] { lastPump = pumps.load(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		return new ScriptedReply(request, 410, &manager);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	if (cause == 1) {
+		QVERIFY(polled.tryAcquire(1, 3000));
+		hold = true;
+		QVERIFY(atPump.tryAcquire(1, 3000));
+		sender.invalidateReceiver();
+		lastPump = pumps.load();
+		resume.release();
+	} else if (cause == 2) {
+		QVERIFY(waitForGate(sender, {}));
+		*clock = 60001;
+	}
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(pumps.load(), lastPump.load());
+	QVERIFY(!sender.tryEnqueue({}));
+	sender.stop();
+}
+
+void TestTelemetrySender::pathIsolation_data() {
+	// The index of a pair of paths in the table of pathIsolation().
+	QTest::addColumn<int>("index");
+	QTest::newRow("queue in the home folder through ..") << 0;
+	QTest::newRow("queue in a linked folder") << 1;
+	QTest::newRow("queue through a link and ..") << 2;
+	QTest::newRow("queue below a dangling link") << 3;
+	QTest::newRow("settings are the queue") << 4;
+	QTest::newRow("settings in a linked folder") << 5;
+	QTest::newRow("settings in the home folder through ..") << 6;
+	QTest::newRow("settings in the queue through a link") << 7;
+	QTest::newRow("settings in the queue through ..") << 8;
+}
+
+void TestTelemetrySender::pathIsolation() {
+	QFETCH(int, index);
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
 	const QString outside = QDir::homePath() + QStringLiteral("/egtrain-must-not-create-") + QFileInfo(directory.path()).fileName();
-	assert(!QFile::exists(outside));
+	QVERIFY(!QFile::exists(outside));
 	const QString link = directory.filePath(QStringLiteral("outside-link"));
-	assert(QFile::link(QDir::homePath(), link));
+	QVERIFY(QFile::link(QDir::homePath(), link));
 	const QString dangling = directory.filePath(QStringLiteral("dangling-link"));
-	assert(QFile::link(outside, dangling));
+	QVERIFY(QFile::link(outside, dangling));
 	const QString queue = directory.filePath(QStringLiteral("queue"));
 	const QString queueAlias = directory.filePath(QStringLiteral("queue-alias"));
-	assert(QFile::link(queue, queueAlias));
+	QVERIFY(QFile::link(queue, queueAlias));
 	const QString traversed = QDir::tempPath() + QLatin1Char('/') + QDir(QDir::tempPath()).relativeFilePath(outside);
 	const QString redirected = link + QLatin1Char('/') + QFileInfo(outside).fileName();
 	const QString symlinkTraversal = link + QStringLiteral("/../") + QFileInfo(QDir::homePath()).fileName() + QLatin1Char('/') + QFileInfo(outside).fileName();
@@ -601,123 +748,207 @@ static void testPathIsolation(const telemetry::Application& metadata, TelemetryC
 		{queue, traversed + QStringLiteral(".ini"), true},
 		{queue, queueAlias + QStringLiteral("/consent.ini"), true},
 		{queue, queue + QStringLiteral("/../queue/consent.ini"), true}};
-	for (const auto& paths : cases) {
-		QSemaphore exited;
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [paths] { return std::unique_ptr<QSettings>(new QSettings(paths.settings, QSettings::IniFormat)); };
-		options.onWorkerExit = [&] { exited.release(); };
-		options.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
-			assert(false && "invalid isolation must not dispatch");
-			return nullptr;
-		};
-		telemetry::TelemetrySender sender(context, metadata, paths.queue, options);
-		if (paths.worker) assert(exited.tryAcquire(1, 3000));
-		else QThread::msleep(100);
-		assert(!sender.tryEnqueue({}));
-		assert(!QFile::exists(queue) && !QFile::exists(outside) && !QFile::exists(outside + QStringLiteral(".ini")));
-		sender.stop();
-	}
+	const Paths& paths = cases[index];
+	Semaphore exited;
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [paths] { return std::unique_ptr<QSettings>(new QSettings(paths.settings, QSettings::IniFormat)); };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
+		recordFailure(QStringLiteral("invalid isolation must not dispatch"));
+		return nullptr;
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, paths.queue, options);
+	if (paths.worker) QVERIFY(exited.tryAcquire(1, 3000));
+	else QThread::msleep(100); // No worker starts; the checks below see that nothing is created in this time.
+	QVERIFY(!sender.tryEnqueue({}));
+	QVERIFY(!QFile::exists(queue));
+	QVERIFY(!QFile::exists(outside));
+	QVERIFY(!QFile::exists(outside + QStringLiteral(".ini")));
+	sender.stop();
+}
+
+void TestTelemetrySender::pathIsolationResolvesSettingsParent() {
 	// An existing symlinked settings parent must resolve before separation is checked.
-	assert(QDir().mkpath(queue));
-	QSemaphore exited;
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString queue = directory.filePath(QStringLiteral("queue"));
+	const QString queueAlias = directory.filePath(QStringLiteral("queue-alias"));
+	QVERIFY(QFile::link(queue, queueAlias));
+	QVERIFY(QDir().mkpath(queue));
+	Semaphore exited;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [queueAlias] {
 		return std::unique_ptr<QSettings>(new QSettings(queueAlias + QStringLiteral("/consent.ini"), QSettings::IniFormat));
 	};
 	options.onWorkerExit = [&] { exited.release(); };
-	telemetry::TelemetrySender sender(context, metadata, queue, options);
-	assert(exited.tryAcquire(1, 3000));
-	assert(QDir(queue).entryList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot).isEmpty());
+	telemetry::TelemetrySender sender(m_context, m_metadata, queue, options);
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(QDir(queue).entryList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot).isEmpty());
 }
 
-static void testOutcomes(const telemetry::Application& metadata, TelemetryContext context) {
-	struct Case {
-		int status;
-		QNetworkReply::NetworkError error;
-		QByteArray retry;
-		qint64 delay;
-		bool retained;
-		int failures;
-		int events;
-		int limit;
-	};
-	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-	const QByteArray future = base.addMSecs(60001 + 300000).toUTC().toString(Qt::RFC2822Date).toLatin1();
-	const Case cases[] = {
-		{202, QNetworkReply::NoError, {}, 60000, false, 0, 1, 50},
-		{400, QNetworkReply::ContentAccessDenied, {}, 60000, false, 0, 1, 50},
-		{422, QNetworkReply::ContentAccessDenied, {}, 60000, false, 0, 1, 50},
-		{413, QNetworkReply::ContentAccessDenied, {}, 30000, false, 0, 1, 1},
-		{413, QNetworkReply::ContentAccessDenied, {}, 30000, true, 0, 2, 1},
-		{429, QNetworkReply::ContentAccessDenied, "120", 120000, true, 1, 1, 50},
-		{429, QNetworkReply::ContentAccessDenied, future, 300000, true, 1, 1, 50},
-		{429, QNetworkReply::ContentAccessDenied, "invalid", 60000, true, 1, 1, 50},
-		{429, QNetworkReply::ContentAccessDenied, "99999999999999999999999", 86400000, true, 1, 1, 50},
-		{503, QNetworkReply::ServiceUnavailableError, {}, 60000, true, 1, 1, 50},
-		{302, QNetworkReply::NoError, {}, 86400000, true, 0, 1, 50},
-		{401, QNetworkReply::AuthenticationRequiredError, {}, 86400000, true, 0, 1, 50},
-		{403, QNetworkReply::ContentAccessDenied, {}, 86400000, true, 0, 1, 50},
-		{404, QNetworkReply::ContentNotFoundError, {}, 86400000, true, 0, 1, 50},
-		{0, QNetworkReply::HostNotFoundError, {}, 60000, true, 1, 1, 50},
-		{0, QNetworkReply::ConnectionRefusedError, {}, 60000, true, 1, 1, 50},
-		{0, QNetworkReply::SslHandshakeFailedError, {}, 60000, true, 1, 1, 50}};
-	for (const auto& scenario : cases) {
-		QTemporaryDir directory;
-		assert(directory.isValid());
-		const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		QSemaphore posted, completed, exited;
-		int calls = 0;
-		const QString storage = directory.path() + QStringLiteral("/queue");
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
-		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.jitterPercent = [] { return 100; };
-		options.afterCompletion = [&completed] { completed.release(); };
-		options.onWorkerExit = [&exited] { exited.release(); };
-		options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
-			assert(++calls == 1 && bytes.size() <= 65536);
-			assert(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
-			assert(request.attribute(QNetworkRequest::CookieLoadControlAttribute).toInt() == QNetworkRequest::Manual);
-			assert(request.attribute(QNetworkRequest::CookieSaveControlAttribute).toInt() == QNetworkRequest::Manual);
-			posted.release();
-			return new ScriptedReply(request, scenario.status, &manager, scenario.retry, scenario.error);
-		};
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		telemetry::TelemetryEventInput input;
-		for (int i = 0; i < scenario.events; ++i) assert(waitForGate(sender, input));
-		*clock = 60001;
-		assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
-		const auto control = readObject(storage + QStringLiteral("/control.json"));
-		const auto retry = control.value(QStringLiteral("retry")).toObject();
-		assert(retry.value(QStringLiteral("failures")).toInt() == scenario.failures);
-		assert(retry.value(QStringLiteral("usage_limit")).toInt() == scenario.limit);
-		const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
-		const qint64 observedDelay = base.addMSecs(60001).msecsTo(next);
-		assert(scenario.retry == future ? observedDelay > scenario.delay - 1000 && observedDelay <= scenario.delay : observedDelay == scenario.delay);
-		const auto usage = readObject(storage + QStringLiteral("/usage.json"));
-		assert(usage.value(QStringLiteral("events")).toArray().size() == (scenario.retained ? scenario.events : 0));
-		sender.stop();
-		assert(exited.tryAcquire(1, 3000));
+void TestTelemetrySender::backoffSaturation_data() {
+	QTest::addColumn<int>("attempt");
+	QTest::addColumn<int>("jitter");
+	for (int attempt : {12, 13, 31})
+		for (int jitter : {50, 100, 150})
+			QTest::addRow("attempt %d, jitter %d", attempt, jitter) << attempt << jitter;
+}
+
+void TestTelemetrySender::backoffSaturation() {
+	QFETCH(int, attempt);
+	QFETCH(int, jitter);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	const QString storage = directory.filePath(QStringLiteral("queue"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	const auto base = QDateTime::currentDateTimeUtc().addSecs(10);
+	{
+		telemetry::TelemetryQueue seed;
+		QCOMPARE(seed.open(storage, m_context.endpoint, m_context.termsVersion, base), telemetry::TelemetryQueue::OpenResult::Owner);
+		QVERIFY(seed.enqueueUsage({telemetry::createEvent({}, base), consent.observeUsage().installationId}, base));
+		telemetry::RetryState retry;
+		retry.failures = attempt - 1;
+		QVERIFY(seed.commitRetry(retry, base));
 	}
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	Semaphore ready, completed, exited;
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.jitterPercent = [jitter] { return jitter; };
+	options.afterOwnershipAttempt = [&](bool owner) {
+		RECORD_VERIFY(owner);
+		ready.release();
+	};
+	options.afterReservation = [&] {
+		const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
+		RECORD_VERIFY(retry.value(QStringLiteral("failures")).toInt() == attempt);
+		const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
+		RECORD_VERIFY(base.addMSecs(clock->load()).msecsTo(next) == 86400000);
+	};
+	options.afterCompletion = [&] { completed.release(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		return new ScriptedReply(request, 503, &manager);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(ready.tryAcquire(1, 3000));
+	*clock = 60001;
+	QVERIFY(completed.tryAcquire(1, 3000));
+	const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
+	const auto next = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
+	QCOMPARE(base.addMSecs(clock->load()).msecsTo(next), qMin(86400000LL, 86400000LL * jitter / 100));
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
-static void testStartupIngress(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::outcomes_data() {
+	QTest::addColumn<int>("status");
+	QTest::addColumn<QNetworkReply::NetworkError>("error");
+	QTest::addColumn<QByteArray>("retry");
+	// The Retry-After header is the date 300 s after the moment of the request instead of retry.
+	QTest::addColumn<bool>("retryDate");
+	QTest::addColumn<qint64>("delay");
+	QTest::addColumn<bool>("retained");
+	QTest::addColumn<int>("failures");
+	QTest::addColumn<int>("events");
+	QTest::addColumn<int>("limit");
+	QTest::newRow("202") << 202 << QNetworkReply::NoError << QByteArray() << false << qint64(60000) << false << 0 << 1 << 50;
+	QTest::newRow("400") << 400 << QNetworkReply::ContentAccessDenied << QByteArray() << false << qint64(60000) << false << 0 << 1 << 50;
+	QTest::newRow("422") << 422 << QNetworkReply::ContentAccessDenied << QByteArray() << false << qint64(60000) << false << 0 << 1 << 50;
+	QTest::newRow("413 one event") << 413 << QNetworkReply::ContentAccessDenied << QByteArray() << false << qint64(30000) << false << 0 << 1 << 1;
+	QTest::newRow("413 two events") << 413 << QNetworkReply::ContentAccessDenied << QByteArray() << false << qint64(30000) << true << 0 << 2 << 1;
+	QTest::newRow("429 seconds") << 429 << QNetworkReply::ContentAccessDenied << QByteArray("120") << false << qint64(120000) << true << 1 << 1 << 50;
+	QTest::newRow("429 date") << 429 << QNetworkReply::ContentAccessDenied << QByteArray() << true << qint64(300000) << true << 1 << 1 << 50;
+	QTest::newRow("429 invalid") << 429 << QNetworkReply::ContentAccessDenied << QByteArray("invalid") << false << qint64(60000) << true << 1 << 1 << 50;
+	QTest::newRow("429 too long") << 429 << QNetworkReply::ContentAccessDenied << QByteArray("99999999999999999999999") << false << qint64(86400000) << true << 1 << 1 << 50;
+	QTest::newRow("503") << 503 << QNetworkReply::ServiceUnavailableError << QByteArray() << false << qint64(60000) << true << 1 << 1 << 50;
+	QTest::newRow("302") << 302 << QNetworkReply::NoError << QByteArray() << false << qint64(86400000) << true << 0 << 1 << 50;
+	QTest::newRow("401") << 401 << QNetworkReply::AuthenticationRequiredError << QByteArray() << false << qint64(86400000) << true << 0 << 1 << 50;
+	QTest::newRow("403") << 403 << QNetworkReply::ContentAccessDenied << QByteArray() << false << qint64(86400000) << true << 0 << 1 << 50;
+	QTest::newRow("404") << 404 << QNetworkReply::ContentNotFoundError << QByteArray() << false << qint64(86400000) << true << 0 << 1 << 50;
+	QTest::newRow("host not found") << 0 << QNetworkReply::HostNotFoundError << QByteArray() << false << qint64(60000) << true << 1 << 1 << 50;
+	QTest::newRow("connection refused") << 0 << QNetworkReply::ConnectionRefusedError << QByteArray() << false << qint64(60000) << true << 1 << 1 << 50;
+	QTest::newRow("TLS handshake failed") << 0 << QNetworkReply::SslHandshakeFailedError << QByteArray() << false << qint64(60000) << true << 1 << 1 << 50;
+}
+
+void TestTelemetrySender::outcomes() {
+	QFETCH(int, status);
+	QFETCH(QNetworkReply::NetworkError, error);
+	QFETCH(QByteArray, retry);
+	QFETCH(bool, retryDate);
+	QFETCH(qint64, delay);
+	QFETCH(bool, retained);
+	QFETCH(int, failures);
+	QFETCH(int, events);
+	QFETCH(int, limit);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	if (retryDate) retry = base.addMSecs(60001 + 300000).toUTC().toString(Qt::RFC2822Date).toLatin1();
+	QTemporaryDir directory;
+	QVERIFY(directory.isValid());
+	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	Semaphore posted, completed, exited;
+	int calls = 0;
+	const QString storage = directory.path() + QStringLiteral("/queue");
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.jitterPercent = [] { return 100; };
+	options.afterCompletion = [&completed] { completed.release(); };
+	options.onWorkerExit = [&exited] { exited.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
+		RECORD_VERIFY(++calls == 1);
+		RECORD_VERIFY(bytes.size() <= 65536);
+		RECORD_VERIFY(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
+		RECORD_VERIFY(request.attribute(QNetworkRequest::CookieLoadControlAttribute).toInt() == QNetworkRequest::Manual);
+		RECORD_VERIFY(request.attribute(QNetworkRequest::CookieSaveControlAttribute).toInt() == QNetworkRequest::Manual);
+		posted.release();
+		return new ScriptedReply(request, status, &manager, retry, error);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	telemetry::TelemetryEventInput input;
+	for (int i = 0; i < events; ++i) QVERIFY(waitForGate(sender, input));
+	*clock = 60001;
+	QVERIFY(posted.tryAcquire(1, 3000));
+	QVERIFY(completed.tryAcquire(1, 3000));
+	const auto control = readObject(storage + QStringLiteral("/control.json"));
+	const auto retryState = control.value(QStringLiteral("retry")).toObject();
+	QCOMPARE(retryState.value(QStringLiteral("failures")).toInt(), failures);
+	QCOMPARE(retryState.value(QStringLiteral("usage_limit")).toInt(), limit);
+	const auto next = QDateTime::fromString(retryState.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
+	const qint64 observedDelay = base.addMSecs(60001).msecsTo(next);
+	if (retryDate) {
+		QCOMPARE_GT(observedDelay, delay - 1000);
+		QCOMPARE_LE(observedDelay, delay);
+	} else {
+		QCOMPARE(observedDelay, delay);
+	}
+	const auto usage = readObject(storage + QStringLiteral("/usage.json"));
+	QCOMPARE(usage.value(QStringLiteral("events")).toArray().size(), retained ? events : 0);
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::startupIngress() {
 	// The usage gate opens before the first diagnostics observation. An event
 	// accepted in between is still sent.
 	QTemporaryDir directory;
-	assert(directory.isValid());
+	QVERIFY(directory.isValid());
 	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-	QSemaphore opened, proceed, posted, completed, exited;
+	Semaphore opened, proceed, posted, completed, exited;
 	std::atomic<bool> first{true};
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
@@ -726,7 +957,7 @@ static void testStartupIngress(const telemetry::Application& metadata, Telemetry
 	options.betweenObservations = [&] {
 		if (!first.exchange(false)) return;
 		opened.release();
-		assert(proceed.tryAcquire(1, 3000));
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
 	};
 	options.afterCompletion = [&completed] { completed.release(); };
 	options.onWorkerExit = [&exited] { exited.release(); };
@@ -734,110 +965,117 @@ static void testStartupIngress(const telemetry::Application& metadata, Telemetry
 		posted.release();
 		return new ScriptedReply(request, 202, &manager);
 	};
-	telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), options);
-	assert(opened.tryAcquire(1, 3000));
-	assert(sender.tryEnqueue({}));
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.path() + QStringLiteral("/queue"), options);
+	QVERIFY(opened.tryAcquire(1, 3000));
+	QVERIFY(sender.tryEnqueue({}));
 	proceed.release();
 	*clock = 60001;
-	assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+	QVERIFY(posted.tryAcquire(1, 3000));
+	QVERIFY(completed.tryAcquire(1, 3000));
 	sender.stop();
-	assert(exited.tryAcquire(1, 3000));
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
-static void testStopKeepsStoredEvents(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::stopKeepsStoredEvents() {
 	// stop() raises the same flag as a receiver change. A stop that arrives while
 	// a pump starts must not purge the stored events.
 	QTemporaryDir directory;
-	assert(directory.isValid());
+	QVERIFY(directory.isValid());
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
-	QSemaphore polled, proceed, settled, atPump, resume, exited;
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	Semaphore polled, proceed, settled, atPump, resume, exited;
 	std::atomic<bool> hold{false};
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
 	options.afterPoll = [&] {
 		polled.release();
-		assert(proceed.tryAcquire(1, 3000));
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
 	options.beforeFlagsRead = [&] {
 		if (!hold.exchange(false)) return;
 		atPump.release();
-		assert(resume.tryAcquire(1, 3000));
+		RECORD_VERIFY(resume.tryAcquire(1, 3000));
 	};
 	options.onWorkerExit = [&] { exited.release(); };
-	telemetry::TelemetrySender sender(context, metadata, directory.filePath(QStringLiteral("queue")), options);
-	assert(polled.tryAcquire(1, 3000));
-	assert(sender.tryEnqueue({}));
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(sender.tryEnqueue({}));
 	proceed.release();
-	assert(settled.tryAcquire(1, 3000));
-	assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
+	QVERIFY(settled.tryAcquire(1, 3000));
+	QCOMPARE(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size(), 1);
 	hold = true;
-	assert(atPump.tryAcquire(1, 3000));
+	QVERIFY(atPump.tryAcquire(1, 3000));
 	sender.stop();
 	resume.release();
-	assert(exited.tryAcquire(1, 3000));
-	assert(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size() == 1);
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(readDurableEvents(directory.filePath(QStringLiteral("queue/usage.json"))).size(), 1);
 }
 
-static void testPreparationBarrier(const telemetry::Application& metadata, TelemetryContext context) {
-	for (int action = 0; action < 3; ++action) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-		QSemaphore reserved, proceed, settled, exited;
-		std::atomic<int> posts{0};
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
-		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.afterReservation = [&] {
-			QTimer::singleShot(0, [&] { settled.release(); });
-			reserved.release();
-			assert(proceed.tryAcquire(1, 3000));
-		};
-		options.onWorkerExit = [&] { exited.release(); };
-		options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
-			++posts;
-			return new ScriptedReply(request, 202, &manager);
-		};
-		telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), options);
-		assert(waitForGate(sender, {}));
-		*clock = 60001;
-		assert(reserved.tryAcquire(1, 3000));
-		if (action == 0) sender.invalidateConsent(true, false);
-		if (action == 1) sender.invalidateReceiver();
-		if (action == 2) {
-			QElapsedTimer timer;
-			timer.start();
-			sender.stop();
-			assert(timer.elapsed() < 100);
-		}
-		proceed.release();
-		if (action != 2) {
-			assert(settled.tryAcquire(1, 3000)); // Dispatch boundary ran without stop masking invalidation.
-			assert(posts == 0);
-			sender.stop();
-		}
-		assert(exited.tryAcquire(1, 3000));
-		assert(posts == 0);
+void TestTelemetrySender::preparationBarrier_data() {
+	QTest::addColumn<int>("action");
+	QTest::newRow("consent revoked") << 0;
+	QTest::newRow("receiver changed") << 1;
+	QTest::newRow("stopped") << 2;
+}
+
+void TestTelemetrySender::preparationBarrier() {
+	QFETCH(int, action);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore reserved, proceed, settled, exited;
+	std::atomic<int> posts{0};
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.afterReservation = [&] {
+		QTimer::singleShot(0, [&] { settled.release(); });
+		reserved.release();
+		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		++posts;
+		return new ScriptedReply(request, 202, &manager);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.path() + QStringLiteral("/queue"), options);
+	QVERIFY(waitForGate(sender, {}));
+	*clock = 60001;
+	QVERIFY(reserved.tryAcquire(1, 3000));
+	if (action == 0) sender.invalidateConsent(true, false);
+	if (action == 1) sender.invalidateReceiver();
+	if (action == 2) {
+		QElapsedTimer timer;
+		timer.start();
+		sender.stop();
+		QCOMPARE_LT(timer.elapsed(), qint64(100));
 	}
+	proceed.release();
+	if (action != 2) {
+		QVERIFY(settled.tryAcquire(1, 3000)); // Dispatch boundary ran without stop masking invalidation.
+		QCOMPARE(posts.load(), 0);
+		sender.stop();
+	}
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(posts.load(), 0);
 }
 
-static void testInterruptedBackoff(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::interruptedBackoff() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
 	const QString storage = directory.path() + QStringLiteral("/queue");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
 	const auto optionsBase = [&] {
@@ -849,241 +1087,264 @@ static void testInterruptedBackoff(const telemetry::Application& metadata, Telem
 	};
 	QString originalId;
 	for (int attempt = 1; attempt <= 3; ++attempt) {
-		QSemaphore reserved, proceed, exited, posted, completed;
+		Semaphore reserved, proceed, exited, posted, completed;
 		auto options = optionsBase();
 		if (attempt < 3) {
-			options.afterReservation = [&] { reserved.release(); assert(proceed.tryAcquire(1, 3000)); };
+			options.afterReservation = [&] {
+				reserved.release();
+				RECORD_VERIFY(proceed.tryAcquire(1, 3000));
+			};
 			options.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
-				assert(false && "interrupted preparation must not transmit");
+				recordFailure(QStringLiteral("interrupted preparation must not transmit"));
 				return nullptr;
 			};
 		} else {
 			options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
 				const QString id = QJsonDocument::fromJson(bytes).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
-				assert(id == originalId);
+				RECORD_VERIFY(id == originalId);
 				posted.release();
 				return new ScriptedReply(request, 202, &manager);
 			};
 			options.afterCompletion = [&] { completed.release(); };
 		}
 		options.onWorkerExit = [&] { exited.release(); };
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		if (attempt == 1) assert(waitForGate(sender, {}));
+		telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+		if (attempt == 1) QVERIFY(waitForGate(sender, {}));
 		*clock = attempt == 1 ? 60001 : attempt == 2 ? 120002
 													 : 300003;
 		if (attempt < 3) {
-			assert(reserved.tryAcquire(1, 3000));
+			QVERIFY(reserved.tryAcquire(1, 3000));
 			const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
-			assert(retry.value(QStringLiteral("failures")).toInt() == attempt);
+			QCOMPARE(retry.value(QStringLiteral("failures")).toInt(), attempt);
 			const auto deadline = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
-			assert(base.addMSecs(clock->load()).msecsTo(deadline) == (attempt == 1 ? 60000 : 120000));
+			QCOMPARE(base.addMSecs(clock->load()).msecsTo(deadline), attempt == 1 ? 60000 : 120000);
 			const auto records = readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray();
-			assert(records.size() == 1);
+			QCOMPARE(records.size(), 1);
 			const QString id = records.first().toObject().value(QStringLiteral("event")).toObject().value(QStringLiteral("event_id")).toString();
 			if (attempt == 1) originalId = id;
-			else assert(id == originalId);
+			else QCOMPARE(id, originalId);
 			sender.stop();
 			proceed.release();
 		} else {
-			assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
-			assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+			QVERIFY(posted.tryAcquire(1, 3000));
+			QVERIFY(completed.tryAcquire(1, 3000));
+			QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
 			sender.stop();
 		}
-		assert(exited.tryAcquire(1, 3000));
+		QVERIFY(exited.tryAcquire(1, 3000));
 	}
 }
 
-static void testTimeoutAndExceptions(const telemetry::Application& metadata, TelemetryContext context) {
-	for (int scenario = 0; scenario < 5; ++scenario) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
-		const QString storage = directory.path() + QStringLiteral("/queue");
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-		QSemaphore posted, completed, exited;
-		int requests = 0;
-		QString firstId;
-		ScriptedReply* delayed = nullptr;
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
-		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.onWorkerExit = [&] { exited.release(); };
-		options.afterCompletion = [&] { completed.release(); };
-		options.jitterPercent = [] { return 100; };
-		if (scenario == 0) options.requestTimeoutMs = 30;
-		if (scenario == 3) options.afterReservation = [] { throw std::bad_alloc(); };
-		options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
-			const QString id = QJsonDocument::fromJson(bytes).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
-			++requests;
-			if (scenario == 0) {
-				if (requests == 1) firstId = id;
-				else assert(id == firstId);
-			}
-			auto* scripted = new ScriptedReply(request, 202, &manager, {}, QNetworkReply::NoError,
-				scenario == 1 ? QByteArray(8192, 'x') : scenario == 2 ? QByteArray(8193, 'x')
-																	  : QByteArray(),
-				scenario == 4 || (scenario == 0 && requests == 1));
-			if (scenario == 4) delayed = scripted;
-			posted.release();
-			return scripted;
-		};
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		assert(waitForGate(sender, {}));
-		*clock = 60001;
-		if (scenario == 3) {
-			assert(exited.tryAcquire(1, 3000));
-			assert(!posted.tryAcquire(1, 0));
-			assert(!sender.tryEnqueue({}));
-			continue;
+void TestTelemetrySender::timeoutAndExceptions_data() {
+	QTest::addColumn<int>("scenario");
+	QTest::newRow("timeout") << 0;
+	QTest::newRow("body of 8192 bytes") << 1;
+	QTest::newRow("body of 8193 bytes") << 2;
+	QTest::newRow("exception after the reservation") << 3;
+	QTest::newRow("late reply") << 4;
+}
+
+void TestTelemetrySender::timeoutAndExceptions() {
+	QFETCH(int, scenario);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+	const QString storage = directory.path() + QStringLiteral("/queue");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore posted, completed, exited;
+	int requests = 0;
+	QString firstId;
+	ScriptedReply* delayed = nullptr;
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.afterCompletion = [&] { completed.release(); };
+	options.jitterPercent = [] { return 100; };
+	if (scenario == 0) options.requestTimeoutMs = 30;
+	if (scenario == 3) options.afterReservation = [] { throw std::bad_alloc(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& bytes) {
+		const QString id = QJsonDocument::fromJson(bytes).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
+		++requests;
+		if (scenario == 0) {
+			if (requests == 1) firstId = id;
+			else RECORD_VERIFY(id == firstId);
 		}
-		assert(posted.tryAcquire(1, 3000));
-		if (scenario == 4) {
-			assert(delayed && !completed.tryAcquire(1, 0));
-			*clock = 60501;
-			QMetaObject::invokeMethod(delayed, [delayed] { delayed->complete(); }, Qt::QueuedConnection);
-		}
-		assert(completed.tryAcquire(1, 3000));
-		const auto records = readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray();
-		assert(records.size() == (scenario == 0 ? 1 : 0));
+		auto* scripted = new ScriptedReply(request, 202, &manager, {}, QNetworkReply::NoError,
+			scenario == 1 ? QByteArray(8192, 'x') : scenario == 2 ? QByteArray(8193, 'x')
+																  : QByteArray(),
+			scenario == 4 || (scenario == 0 && requests == 1));
+		if (scenario == 4) delayed = scripted;
+		posted.release();
+		return scripted;
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(waitForGate(sender, {}));
+	*clock = 60001;
+	if (scenario == 3) {
+		QVERIFY(exited.tryAcquire(1, 3000));
+		QVERIFY(!posted.tryAcquire(1, 0));
+		QVERIFY(!sender.tryEnqueue({}));
+		return;
+	}
+	QVERIFY(posted.tryAcquire(1, 3000));
+	if (scenario == 4) {
+		QVERIFY(delayed);
+		QVERIFY(!completed.tryAcquire(1, 0));
+		*clock = 60501;
+		QMetaObject::invokeMethod(delayed, [delayed] { delayed->complete(); }, Qt::QueuedConnection);
+	}
+	QVERIFY(completed.tryAcquire(1, 3000));
+	const auto records = readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray();
+	QCOMPARE(records.size(), scenario == 0 ? 1 : 0);
+	const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
+	QCOMPARE(retry.value(QStringLiteral("failures")).toInt(), scenario == 0 ? 1 : 0);
+	if (scenario == 0) {
+		*clock = 120002;
+		QVERIFY(posted.tryAcquire(1, 3000));
+		QVERIFY(completed.tryAcquire(1, 3000));
+		QCOMPARE(requests, 2);
+		QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+		QCOMPARE(
+			readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject().value(QStringLiteral("failures")).toInt(), 0);
+	}
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
+}
+
+void TestTelemetrySender::expiryAndActiveRevocation_data() {
+	QTest::addColumn<int>("scenario");
+	QTest::newRow("expiry while the upload waits") << 0;
+	QTest::newRow("consent revoked") << 1;
+	QTest::newRow("consent disabled and enabled in another instance") << 2;
+}
+
+void TestTelemetrySender::expiryAndActiveRevocation() {
+	QFETCH(int, scenario);
+	QTemporaryDir directory;
+	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
+	const QString storage = directory.path() + QStringLiteral("/queue");
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	auto utcClock = std::make_shared<std::atomic<qint64>>(0);
+	if (scenario == 0) {
+		telemetry::TelemetryQueue seed;
+		QCOMPARE(seed.open(storage, m_context.endpoint, m_context.termsVersion, base), telemetry::TelemetryQueue::OpenResult::Owner);
+		QVERIFY(seed.enqueueUsage({telemetry::createEvent({}, base.addSecs(-6 * 86400 - 23 * 3600)),
+									  consent.observeUsage().installationId},
+			base));
+	}
+	Semaphore posted, completed, polled, exited;
+	std::atomic<int> calls{0};
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
+	options.utcNow = [utcClock, base] { return base.addMSecs(utcClock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.onWorkerExit = [&] { exited.release(); };
+	options.afterCompletion = [&] { completed.release(); };
+	options.afterPoll = [&] { polled.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		++calls;
+		posted.release();
+		return new ScriptedReply(request, scenario == 0 ? 403 : 202, &manager, {},
+			QNetworkReply::NoError, {}, scenario != 0);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	if (scenario != 0) QVERIFY(waitForGate(sender, {}));
+	else QVERIFY(polled.tryAcquire(1, 3000));
+	*utcClock = 60001;
+	*clock = 60001;
+	QVERIFY(posted.tryAcquire(1, 3000));
+	if (scenario == 0) {
+		QVERIFY(completed.tryAcquire(1, 3000));
 		const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
-		assert(retry.value(QStringLiteral("failures")).toInt() == (scenario == 0 ? 1 : 0));
-		if (scenario == 0) {
-			*clock = 120002;
-			assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
-			assert(requests == 2);
-			assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
-			assert(
-				readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject().value(QStringLiteral("failures")).toInt() == 0);
+		QCOMPARE(retry.value(QStringLiteral("failures")).toInt(), 0);
+		const auto uploadDeadline = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
+		QCOMPARE(base.addMSecs(60001).msecsTo(uploadDeadline), 86400000);
+		QCOMPARE(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().size(), 1);
+		*utcClock = 3600001; // Old row crosses seven days, but neither upload deadline has elapsed.
+		*clock = 61002;
+		QVERIFY(base.addMSecs(utcClock->load()) < uploadDeadline);
+		QCOMPARE_LT(clock->load(), 60001 + 86400000);
+		sender.requestConsentRefresh();
+		QVERIFY(polled.tryAcquire(1, 3000));
+		// Poll notification can include the startup poll; drain and observe the actual file condition.
+		for (int i = 0; i < 100 && !readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty(); ++i) {
+			QVERIFY(polled.tryAcquire(1, 3000));
+			*clock += 1001;
 		}
-		sender.stop();
-		assert(exited.tryAcquire(1, 3000));
+		QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+		QCOMPARE(calls.load(), 1);
+		QVERIFY(base.addMSecs(utcClock->load()) < uploadDeadline);
+		QCOMPARE_LT(clock->load(), 60001 + 86400000);
+	} else {
+		if (scenario == 1) sender.invalidateConsent(true, false);
+		else {
+			// Worker misses the disabled interval; the new stamp still removes the old row.
+			QSettings other(settingsFile, QSettings::IniFormat);
+			TelemetryConsent otherConsent(other, m_context);
+			QVERIFY(otherConsent.save(false, false));
+			QVERIFY(otherConsent.save(true, false));
+			sender.requestConsentRefresh();
+		}
+		QVERIFY(completed.tryAcquire(1, 3000));
+		sender.requestConsentRefresh();
+		*clock = 61002;
+		bool removed = false;
+		for (int i = 0; i < 100; ++i) {
+			QVERIFY(polled.tryAcquire(1, 3000));
+			removed = readObject(storage + QStringLiteral("/usage.json"))
+						  .value(QStringLiteral("events"))
+						  .toArray()
+						  .isEmpty();
+			if (removed) break;
+			*clock += 1001;
+		}
+		QVERIFY(removed);
+		QCOMPARE(calls.load(), 1);
 	}
+	sender.stop();
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
-static void testExpiryAndActiveRevocation(const telemetry::Application& metadata, TelemetryContext context) {
-	for (int scenario = 0; scenario < 3; ++scenario) {
-		QTemporaryDir directory;
-		const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
-		const QString storage = directory.path() + QStringLiteral("/queue");
-		QSettings settings(settingsFile, QSettings::IniFormat);
-		TelemetryConsent consent(settings, context);
-		assert(consent.save(true, false));
-		auto clock = std::make_shared<std::atomic<qint64>>(0);
-		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-		auto utcClock = std::make_shared<std::atomic<qint64>>(0);
-		if (scenario == 0) {
-			telemetry::TelemetryQueue seed;
-			assert(seed.open(storage, context.endpoint, context.termsVersion, base) == telemetry::TelemetryQueue::OpenResult::Owner);
-			assert(seed.enqueueUsage({telemetry::createEvent({}, base.addSecs(-6 * 86400 - 23 * 3600)),
-										 consent.observeUsage().installationId},
-				base));
-		}
-		QSemaphore posted, completed, polled, exited;
-		std::atomic<int> calls{0};
-		telemetry::TelemetrySender::TestOptions options;
-		options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
-		options.utcNow = [utcClock, base] { return base.addMSecs(utcClock->load()); };
-		options.monotonicMs = [clock] { return clock->load(); };
-		options.onWorkerExit = [&] { exited.release(); };
-		options.afterCompletion = [&] { completed.release(); };
-		options.afterPoll = [&] { polled.release(); };
-		options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
-			++calls;
-			posted.release();
-			return new ScriptedReply(request, scenario == 0 ? 403 : 202, &manager, {},
-				QNetworkReply::NoError, {}, scenario != 0);
-		};
-		telemetry::TelemetrySender sender(context, metadata, storage, options);
-		if (scenario != 0) assert(waitForGate(sender, {}));
-		else assert(polled.tryAcquire(1, 3000));
-		*utcClock = 60001;
-		*clock = 60001;
-		assert(posted.tryAcquire(1, 3000));
-		if (scenario == 0) {
-			assert(completed.tryAcquire(1, 3000));
-			const auto retry = readObject(storage + QStringLiteral("/control.json")).value(QStringLiteral("retry")).toObject();
-			assert(retry.value(QStringLiteral("failures")).toInt() == 0);
-			const auto uploadDeadline = QDateTime::fromString(retry.value(QStringLiteral("next")).toString(), Qt::ISODateWithMs);
-			assert(base.addMSecs(60001).msecsTo(uploadDeadline) == 86400000);
-			assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().size() == 1);
-			*utcClock = 3600001; // Old row crosses seven days, but neither upload deadline has elapsed.
-			*clock = 61002;
-			assert(base.addMSecs(utcClock->load()) < uploadDeadline);
-			assert(clock->load() < 60001 + 86400000);
-			sender.requestConsentRefresh();
-			assert(polled.tryAcquire(1, 3000));
-			// Poll notification can include the startup poll; drain and observe the actual file condition.
-			for (int i = 0; i < 100 && !readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty(); ++i) {
-				assert(polled.tryAcquire(1, 3000));
-				*clock += 1001;
-			}
-			assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
-			assert(calls == 1 && base.addMSecs(utcClock->load()) < uploadDeadline);
-			assert(clock->load() < 60001 + 86400000);
-		} else {
-			if (scenario == 1) sender.invalidateConsent(true, false);
-			else {
-				// Worker misses the disabled interval; the new stamp still removes the old row.
-				QSettings other(settingsFile, QSettings::IniFormat);
-				TelemetryConsent otherConsent(other, context);
-				assert(otherConsent.save(false, false));
-				assert(otherConsent.save(true, false));
-				sender.requestConsentRefresh();
-			}
-			assert(completed.tryAcquire(1, 3000));
-			sender.requestConsentRefresh();
-			*clock = 61002;
-			bool removed = false;
-			for (int i = 0; i < 100; ++i) {
-				assert(polled.tryAcquire(1, 3000));
-				removed = readObject(storage + QStringLiteral("/usage.json"))
-							  .value(QStringLiteral("events"))
-							  .toArray()
-							  .isEmpty();
-				if (removed) break;
-				*clock += 1001;
-			}
-			assert(removed && calls == 1);
-		}
-		sender.stop();
-		assert(exited.tryAcquire(1, 3000));
-	}
-}
-
-static void testConstructionAndWorkerExceptions(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::constructionAndWorkerExceptions() {
 	QTemporaryDir directory;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [] { return std::unique_ptr<QSettings>(new QSettings); };
 	options.failConstruction = true;
-	telemetry::TelemetrySender failed(context, metadata, directory.path() + QStringLiteral("/construction"), options);
-	assert(!failed.tryEnqueue({}));
+	telemetry::TelemetrySender failed(m_context, m_metadata, directory.path() + QStringLiteral("/construction"), options);
+	QVERIFY(!failed.tryEnqueue({}));
 	options.failConstruction = false;
-	QSemaphore invoked, exited;
+	Semaphore invoked, exited;
 	options.settingsFactory = [&]() -> std::unique_ptr<QSettings> {
 		invoked.release();
 		throw std::bad_alloc();
 	};
 	options.onWorkerExit = [&] { exited.release(); };
-	telemetry::TelemetrySender worker(context, metadata, directory.path() + QStringLiteral("/worker"), options);
-	assert(invoked.tryAcquire(1, 3000) && exited.tryAcquire(1, 3000));
-	assert(!worker.tryEnqueue({}));
+	telemetry::TelemetrySender worker(m_context, m_metadata, directory.path() + QStringLiteral("/worker"), options);
+	QVERIFY(invoked.tryAcquire(1, 3000));
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(!worker.tryEnqueue({}));
 	worker.stop();
 }
 
-static void testFollowerTakeover(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::followerTakeover() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
 	const QString storage = directory.path() + QStringLiteral("/queue");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-	QSemaphore firstPosted, secondPosted, secondCompleted, firstExited, secondExited, followerAttempt;
+	Semaphore firstPosted, secondPosted, secondCompleted, firstExited, secondExited, followerAttempt;
 	QString id;
 	const auto optionsBase = [&] {
 		telemetry::TelemetrySender::TestOptions options;
@@ -1099,43 +1360,47 @@ static void testFollowerTakeover(const telemetry::Application& metadata, Telemet
 		firstPosted.release();
 		return new ScriptedReply(request, 202, &manager, {}, QNetworkReply::NoError, {}, true);
 	};
-	telemetry::TelemetrySender first(context, metadata, storage, firstOptions);
-	assert(waitForGate(first, {}));
+	telemetry::TelemetrySender first(m_context, m_metadata, storage, firstOptions);
+	QVERIFY(waitForGate(first, {}));
 	*clock = 60001;
-	assert(firstPosted.tryAcquire(1, 3000) && !id.isEmpty());
+	QVERIFY(firstPosted.tryAcquire(1, 3000));
+	QVERIFY(!id.isEmpty());
 	auto secondOptions = optionsBase();
 	secondOptions.onWorkerExit = [&] { secondExited.release(); };
-	secondOptions.afterOwnershipAttempt = [&](bool owner) { if (!owner) followerAttempt.release(); };
+	secondOptions.afterOwnershipAttempt = [&](bool owner) {
+		if (!owner) followerAttempt.release();
+	};
 	secondOptions.afterCompletion = [&] { secondCompleted.release(); };
 	secondOptions.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& body) {
 		const auto reused =
 			QJsonDocument::fromJson(body).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
-		assert(reused == id);
+		RECORD_VERIFY(reused == id);
 		secondPosted.release();
 		return new ScriptedReply(request, 202, &manager);
 	};
-	telemetry::TelemetrySender second(context, metadata, storage, secondOptions);
-	assert(followerAttempt.tryAcquire(1, 3000));
-	assert(!second.tryEnqueue({})); // The follower does not buffer producer intents.
+	telemetry::TelemetrySender second(m_context, m_metadata, storage, secondOptions);
+	QVERIFY(followerAttempt.tryAcquire(1, 3000));
+	QVERIFY(!second.tryEnqueue({})); // The follower does not buffer producer intents.
 	first.stop();
-	assert(firstExited.tryAcquire(1, 3000));
+	QVERIFY(firstExited.tryAcquire(1, 3000));
 	*clock = 120002;
-	assert(secondPosted.tryAcquire(1, 3000) && secondCompleted.tryAcquire(1, 3000));
-	assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+	QVERIFY(secondPosted.tryAcquire(1, 3000));
+	QVERIFY(secondCompleted.tryAcquire(1, 3000));
+	QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
 	second.stop();
-	assert(secondExited.tryAcquire(1, 3000));
+	QVERIFY(secondExited.tryAcquire(1, 3000));
 }
 
-static void testRetirementWithQueuedWork(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::retirementWithQueuedWork() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
 	const QString storage = directory.path() + QStringLiteral("/queue");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-	QSemaphore posted, completed, exited;
+	Semaphore posted, completed, exited;
 	ScriptedReply* pending = nullptr;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat)); };
@@ -1148,31 +1413,32 @@ static void testRetirementWithQueuedWork(const telemetry::Application& metadata,
 		posted.release();
 		return pending;
 	};
-	telemetry::TelemetrySender sender(context, metadata, storage, options);
-	assert(waitForGate(sender, {}));
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	QVERIFY(waitForGate(sender, {}));
 	*clock = 60001;
-	assert(posted.tryAcquire(1, 3000) && pending);
-	assert(waitForGate(sender, {})); // A second event arrives while the first request is outstanding.
+	QVERIFY(posted.tryAcquire(1, 3000));
+	QVERIFY(pending);
+	QVERIFY(waitForGate(sender, {})); // A second event arrives while the first request is outstanding.
 	QMetaObject::invokeMethod(pending, [pending] { pending->complete(); }, Qt::QueuedConnection);
-	assert(completed.tryAcquire(1, 3000));
+	QVERIFY(completed.tryAcquire(1, 3000));
 	sender.stop();
-	assert(exited.tryAcquire(1, 3000));
-	assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
 	telemetry::TelemetryQueue reopened;
-	assert(reopened.open(storage, context.endpoint, context.termsVersion, base.addMSecs(60001)) == telemetry::TelemetryQueue::OpenResult::Retired);
+	QCOMPARE(reopened.open(storage, m_context.endpoint, m_context.termsVersion, base.addMSecs(60001)), telemetry::TelemetryQueue::OpenResult::Retired);
 	reopened.close();
 }
 
-static void testSplitRetainsIds(const telemetry::Application& metadata, TelemetryContext context) {
+void TestTelemetrySender::splitRetainsIds() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.path() + QStringLiteral("/consent.ini");
 	const QString storage = directory.path() + QStringLiteral("/queue");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
-	QSemaphore posted, completed, exited;
+	Semaphore posted, completed, exited;
 	int attempts = 0;
 	QSet<QString> ids, acknowledged;
 	telemetry::TelemetrySender::TestOptions options;
@@ -1185,116 +1451,50 @@ static void testSplitRetainsIds(const telemetry::Application& metadata, Telemetr
 		const auto events = QJsonDocument::fromJson(bytes).object().value(QStringLiteral("events")).toArray();
 		++attempts;
 		if (attempts == 1) {
-			assert(events.size() == 2);
+			RECORD_VERIFY(events.size() == 2);
 			for (const auto& event : events) ids.insert(event.toObject().value(QStringLiteral("event_id")).toString());
-			assert(ids.size() == 2);
+			RECORD_VERIFY(ids.size() == 2);
 		} else {
-			assert(events.size() == 1);
+			RECORD_VERIFY(events.size() == 1);
 			const QString id = events.first().toObject().value(QStringLiteral("event_id")).toString();
-			assert(ids.contains(id) && !acknowledged.contains(id));
+			RECORD_VERIFY(ids.contains(id));
+			RECORD_VERIFY(!acknowledged.contains(id));
 			acknowledged.insert(id);
 		}
 		posted.release();
 		return new ScriptedReply(request, attempts == 1 ? 413 : 202, &manager);
 	};
-	telemetry::TelemetrySender sender(context, metadata, storage, options);
-	for (int i = 0; i < 2; ++i) assert(waitForGate(sender, {}));
+	telemetry::TelemetrySender sender(m_context, m_metadata, storage, options);
+	for (int i = 0; i < 2; ++i) QVERIFY(waitForGate(sender, {}));
 	for (qint64 moment : {60001LL, 90002LL, 150003LL}) {
 		*clock = moment;
-		assert(posted.tryAcquire(1, 3000) && completed.tryAcquire(1, 3000));
+		QVERIFY(posted.tryAcquire(1, 3000));
+		QVERIFY(completed.tryAcquire(1, 3000));
 	}
-	assert(attempts == 3 && acknowledged == ids);
-	assert(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
+	QCOMPARE(attempts, 3);
+	QVERIFY(acknowledged == ids);
+	QVERIFY(readObject(storage + QStringLiteral("/usage.json")).value(QStringLiteral("events")).toArray().isEmpty());
 	sender.stop();
-	assert(exited.tryAcquire(1, 3000));
+	QVERIFY(exited.tryAcquire(1, 3000));
 }
-#endif
 
-int main(int argc, char** argv) {
-	QCoreApplication app(argc, argv);
+void TestTelemetrySender::retryAfterAndRetirement() {
 	QTemporaryDir directory;
-	assert(directory.isValid());
-	telemetry::Application metadata{QStringLiteral("1.2.3"), QString(), QString()};
-	TelemetryContext context;
-	context.packaged = true;
-	context.interactive = true;
-	context.enabled = false;
-	context.endpoint = QStringLiteral("https://127.0.0.1:1/collect");
-	telemetry::TelemetryEventInput input;
-	{
-		telemetry::TelemetrySender sender(context, metadata, directory.path());
-		for (int i = 0; i < 1000; ++i) assert(!sender.tryEnqueue(input));
-		sender.invalidateConsent(true, true);
-		sender.requestConsentRefresh();
-		sender.invalidateReceiver();
-		sender.stop();
-		assert(!sender.tryEnqueue(input));
-	}
-	context.enabled = true;
-	context.endpoint.clear();
-	telemetry::TelemetrySender emptyEndpoint(context, metadata, directory.path());
-	assert(!emptyEndpoint.tryEnqueue(input));
-	context.endpoint = QStringLiteral("http://127.0.0.1:1/collect");
-	telemetry::TelemetrySender insecureEndpoint(context, metadata, directory.path());
-	assert(!insecureEndpoint.tryEnqueue(input));
-#ifdef EGTRAIN_SENDER_TEST_HOOK
-	context.endpoint = QStringLiteral("https://example.org/collect");
-	telemetry::TelemetrySender::TestOptions rejected;
-	rejected.settingsFactory = [] { return std::unique_ptr<QSettings>(new QSettings); };
-	rejected.post = [](QNetworkAccessManager&, const QNetworkRequest&, const QByteArray&) -> QNetworkReply* {
-		assert(false && "non-loopback test transport must not run");
-		return nullptr;
-	};
-	telemetry::TelemetrySender publicOverride(context, metadata, directory.path(), rejected);
-	assert(!publicOverride.tryEnqueue(input));
-
-	context.endpoint = QStringLiteral("https://127.0.0.1:1/collect");
-	if (argc == 2) {
-		const QByteArray selected(argv[1]);
-		if (selected == "tokens") {
-			testOperationTokens(metadata, context);
-			testTokenLifetimeAndContention(metadata, context);
-		} else if (selected == "sessions") {
-			testInteractiveSessions(metadata, context);
-			testSessionAttemptLoss(metadata, context);
-		} else if (selected == "disabled") testDisabledWorkerExits(metadata, context);
-		else if (selected == "isolation") testPathIsolation(metadata, context);
-		else if (selected == "backoff") testBackoffSaturation(metadata, context);
-		else if (selected == "barrier") testPreparationBarrier(metadata, context);
-		else if (selected == "expiry") testExpiryAndActiveRevocation(metadata, context);
-		else {
-			assert(selected == "factory");
-			testConstructionAndWorkerExceptions(metadata, context);
-		}
-		return 0;
-	}
-	testOperationTokens(metadata, context);
-	testTokenLifetimeAndContention(metadata, context);
-	testInteractiveSessions(metadata, context);
-	testSessionAttemptLoss(metadata, context);
-	testDisabledWorkerExits(metadata, context);
-	testPathIsolation(metadata, context);
-	testBackoffSaturation(metadata, context);
-	testOutcomes(metadata, context);
-	testStartupIngress(metadata, context);
-	testStopKeepsStoredEvents(metadata, context);
-	testPreparationBarrier(metadata, context);
-	testInterruptedBackoff(metadata, context);
-	testTimeoutAndExceptions(metadata, context);
-	testExpiryAndActiveRevocation(metadata, context);
-	testConstructionAndWorkerExceptions(metadata, context);
-	testFollowerTakeover(metadata, context);
-	testRetirementWithQueuedWork(metadata, context);
-	testSplitRetainsIds(metadata, context);
+	QVERIFY(directory.isValid());
 	const QString settingsFile = directory.path() + QStringLiteral("/settings.ini");
 	QSettings settings(settingsFile, QSettings::IniFormat);
-	TelemetryConsent consent(settings, context);
-	assert(consent.save(true, false));
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	const telemetry::TelemetryEventInput input;
 	auto clock = std::make_shared<std::atomic<qint64>>(0);
 	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(2);
 	auto posts = std::make_shared<std::atomic<int>>(0);
 	auto stableId = std::make_shared<std::atomic<bool>>(false);
 	auto firstId = std::make_shared<QString>();
+	// The pumps that began, the responses handled and the workers that exited.
+	auto pumps = std::make_shared<std::atomic<int>>(0);
+	auto completions = std::make_shared<std::atomic<int>>(0);
+	auto exits = std::make_shared<std::atomic<int>>(0);
 	telemetry::TelemetrySender::TestOptions tests;
 	tests.settingsFactory = [settingsFile] {
 		return std::unique_ptr<QSettings>(new QSettings(settingsFile, QSettings::IniFormat));
@@ -1302,11 +1502,15 @@ int main(int argc, char** argv) {
 	tests.monotonicMs = [clock] { return clock->load(); };
 	tests.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
 	tests.jitterPercent = [] { return 100; };
+	tests.beforeFlagsRead = [pumps] { ++*pumps; };
+	tests.afterCompletion = [completions] { ++*completions; };
+	tests.onWorkerExit = [exits] { ++*exits; };
 	tests.post = [posts, stableId, firstId](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray& body) {
-		assert(request.url().host() == QStringLiteral("127.0.0.1"));
-		assert(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
-		assert(request.attribute(QNetworkRequest::AuthenticationReuseAttribute).toInt() == QNetworkRequest::Manual);
-		assert(body.size() <= 65536 && QJsonDocument::fromJson(body).isObject());
+		RECORD_VERIFY(request.url().host() == QStringLiteral("127.0.0.1"));
+		RECORD_VERIFY(request.attribute(QNetworkRequest::RedirectPolicyAttribute).toInt() == QNetworkRequest::ManualRedirectPolicy);
+		RECORD_VERIFY(request.attribute(QNetworkRequest::AuthenticationReuseAttribute).toInt() == QNetworkRequest::Manual);
+		RECORD_VERIFY(body.size() <= 65536);
+		RECORD_VERIFY(QJsonDocument::fromJson(body).isObject());
 		const QString id =
 			QJsonDocument::fromJson(body).object().value(QStringLiteral("events")).toArray().first().toObject().value(QStringLiteral("event_id")).toString();
 		const int attempt = ++*posts;
@@ -1317,48 +1521,45 @@ int main(int argc, char** argv) {
 			&manager,
 			attempt == 1 ? QByteArray("120") : QByteArray());
 	};
-	telemetry::TelemetrySender sender(context, metadata, directory.path() + QStringLiteral("/queue"), tests);
-	bool accepted = false;
-	for (int i = 0; i < kPollsPerWait && !accepted; ++i) {
-		QThread::msleep(20);
-		accepted = sender.tryEnqueue(input);
-	}
-	assert(accepted);
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.path() + QStringLiteral("/queue"), tests);
+	QVERIFY(waitForGate(sender, input, 2 * kWaitMs));
 	sender.invalidateConsent(true, false);
-	assert(!sender.tryEnqueue(input));
-	QThread::msleep(100);
+	QVERIFY(!sender.tryEnqueue(input));
+	// The next whole pump takes the revocation before the refresh is asked for.
+	const int revokedAt = pumps->load();
+	QTRY_VERIFY_WITH_TIMEOUT(pumps->load() >= revokedAt + 2, kWaitMs);
 	sender.requestConsentRefresh();
-	accepted = false;
-	for (int i = 0; i < kPollsPerWait && !accepted; ++i) {
-		QThread::msleep(20);
-		accepted = sender.tryEnqueue(input);
-	}
-	assert(accepted);
+	QVERIFY(waitForGate(sender, input, 2 * kWaitMs));
 	*clock = 60001;
-	for (int i = 0; i < kPollsPerWait && *posts < 1; ++i) QThread::msleep(20);
-	assert(*posts == 1);
-	QThread::msleep(100);
+	QTRY_COMPARE_WITH_TIMEOUT(posts->load(), 1, 2 * kWaitMs);
+	// The 429 response is handled at this time, so its Retry-After counts from it.
+	QTRY_COMPARE_WITH_TIMEOUT(completions->load(), 1, kWaitMs);
 	*clock = 120002;
-	QThread::msleep(100);
-	assert(*posts == 1); // Retry-After wins over one-minute backoff.
+	QThread::msleep(100);		// Checks that no request follows in this time.
+	QCOMPARE(posts->load(), 1); // Retry-After wins over one-minute backoff.
 	*clock = 180003;
-	for (int i = 0; i < kPollsPerWait && *posts < 2; ++i) QThread::msleep(20);
-	assert(*posts == 2 && *stableId);
-	QThread::msleep(100);
-	assert(waitForGate(sender, input));
+	QTRY_COMPARE_WITH_TIMEOUT(posts->load(), 2, 2 * kWaitMs);
+	QTRY_COMPARE_WITH_TIMEOUT(completions->load(), 2, kWaitMs);
+	// The post callback has returned once its reply completed, so it has written stableId.
+	QVERIFY(stableId->load());
+	QVERIFY(waitForGate(sender, input));
 	*clock = 240004;
-	for (int i = 0; i < kPollsPerWait && *posts < 3; ++i) QThread::msleep(20);
-	assert(*posts == 3);
-	QThread::msleep(100);
+	QTRY_COMPARE_WITH_TIMEOUT(posts->load(), 3, 2 * kWaitMs);
+	// The 410 response retires the receiver before the stop.
+	QTRY_COMPARE_WITH_TIMEOUT(completions->load(), 3, kWaitMs);
 	sender.stop();
-	assert(!sender.tryEnqueue(input));
-	QThread::msleep(100);
-	telemetry::TelemetrySender restarted(context, metadata, directory.path() + QStringLiteral("/queue"), tests);
+	QVERIFY(!sender.tryEnqueue(input));
+	QTRY_COMPARE_WITH_TIMEOUT(exits->load(), 1, kWaitMs);
+	telemetry::TelemetrySender restarted(m_context, m_metadata, directory.path() + QStringLiteral("/queue"), tests);
+	// Checks for a second that the retired queue takes nothing.
 	for (int i = 0; i < 50; ++i) {
 		QThread::msleep(20);
-		assert(!restarted.tryEnqueue(input));
+		QVERIFY(!restarted.tryEnqueue(input));
 	}
 	restarted.stop();
-	assert(*posts == 3);
-#endif
+	QCOMPARE(posts->load(), 3);
 }
+#endif
+
+QTEST_GUILESS_MAIN(TestTelemetrySender)
+#include "test_telemetrysender.moc"

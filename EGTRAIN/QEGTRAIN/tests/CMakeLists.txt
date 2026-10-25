@@ -191,7 +191,7 @@ egtrain_add_test(test_telemetryoperations
 	LABELS unit gui)
 
 add_executable(test_telemetrynetwork ${SRC_DIR}/tests/test_telemetrynetwork.cpp)
-target_link_libraries(test_telemetrynetwork PRIVATE egtrain_telemetry_hooks Qt::Core Qt::Gui Qt::Network)
+target_link_libraries(test_telemetrynetwork PRIVATE Qt::Test egtrain_telemetry_hooks Qt::Core Qt::Gui Qt::Network)
 egtrain_target_warnings(test_telemetrynetwork STRICT)
 # The sender sends through the HTTP transport, which is WinHTTP on Windows, so the tests need no Qt TLS library there.
 foreach(mode reject trusted)

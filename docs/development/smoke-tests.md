@@ -109,7 +109,10 @@ UndefinedBehaviorSanitizer, each with its cause and the change that removes it. 
 server, and `test_simulationworker` for the simulation worker. Qt, libzmq and the C library are not
 instrumented, so `TSAN_OPTIONS` ignores the accesses they make themselves
 (`ignore_noninstrumented_modules=1`), and `tools/e2e/tsan_suppressions.txt` lists the known reports,
-each with its cause. A race in the code of the application is fixed, not listed.
+each with its cause (none at present). A race in the code of the application is fixed, not listed.
+`QSemaphore` waits inside Qt, so the sanitizer does not see that a value written before `release()` is
+read after the wait; a test hands values between threads through a `std::mutex`
+(`tests/test_telemetrysender.cpp`).
 
 To run the thread sanitizer tests yourself, in a build directory of its own:
 
