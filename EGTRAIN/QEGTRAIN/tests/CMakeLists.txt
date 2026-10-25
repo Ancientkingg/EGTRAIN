@@ -728,7 +728,7 @@ egtrain_add_test(test_routereferencechoice
 egtrain_add_test(test_scenevalidator
 	SOURCES ${SRC_DIR}/tests/test_scenevalidator.cpp
 	LIBS egtrain_scene
-	COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v1 unit)
 
 egtrain_add_test(test_stopinsertion

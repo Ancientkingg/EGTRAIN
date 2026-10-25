@@ -3,32 +3,17 @@
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
 
-#include <iostream>
+// The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
+#include <QTest>
+#ifdef signals
+#undef signals
+#endif
+
 #include <string>
 #include <utility>
 #include <vector>
 
 using Names = std::vector<std::string>;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
-
-static std::string join(const Names& values) {
-	std::string text;
-	for (const std::string& value : values)
-		text += (text.empty() ? "" : " | ") + value;
-	return "[" + text + "]";
-}
-
-static bool expectNames(const Names& actual, const Names& expected, const char* message) {
-	const bool same = actual == expected;
-	if (!same)
-		std::cerr << "failed: " << message << ": expected " << join(expected) << " got " << join(actual) << "\n";
-	return same;
-}
 
 static SceneNode node(const std::string& id, const std::string& trackId, double xKm) {
 	SceneNode result;
@@ -208,260 +193,327 @@ static Names consumers(const SceneModel& scene, const std::string& facet, const 
 	return sceneDirectDeleteConsumers(scene, facet, id, scope);
 }
 
-static bool testBlockReferences() {
-	bool ok = true;
-	ok &= expectNames(sceneBlockReferenceComponents("block-a1"), {"block-a1"}, "a plain reference has one component");
-	ok &= expectNames(sceneBlockReferenceComponents("block-a2/block-b1"), {"block-a2", "block-b1"},
-		"a joined reference lists each component");
-	ok &= expectNames(sceneBlockReferenceComponents("@block-a2@-1.000000/@block-b2@-2.000000"),
-		{"block-a2", "block-b2"}, "a wrapped component is read without its wrapper");
-	ok &= expectNames(sceneBlockReferenceComponents(""), {}, "an empty reference has no component");
+class TestSceneReferences : public QObject {
+	Q_OBJECT
 
-	ok &= expect(sceneRewriteBlockReference("block-a1", "block-a1", "renamed") == "renamed",
-		"a plain reference to the block is replaced");
-	ok &= expect(sceneRewriteBlockReference("block-a1", "block-a2", "renamed") == "block-a1",
-		"a reference to another block is kept");
-	ok &= expect(sceneRewriteBlockReference("block-a2/block-b1", "block-b1", "renamed") == "block-a2/renamed",
-		"one component of a joined reference is replaced");
-	ok &= expect(sceneRewriteBlockReference("@block-a2@-1.000000/@block-b2@-2.000000", "block-b2", "renamed")
-			== "@block-a2@-1.000000/@renamed@-2.000000",
-		"a wrapped component keeps its wrapper and coordinate");
-	ok &= expect(sceneRewriteBlockReference("block-a1x", "block-a1", "renamed") == "block-a1x",
-		"a longer id that starts with the old id is kept");
-	return ok;
+private slots:
+	void listsBlockReferenceComponents();
+	void rewritesBlockReference();
+	void renamesTrack();
+	void renamesNode();
+	void renamesBlock();
+	void renamesStation();
+	void renamesAndMovesPlatform();
+	void renamesSignalAndRoute();
+	void renamesTrainUnit();
+	void renamesComposition();
+	void renamesService();
+	void renamesScenario();
+	void incidentHasNoConsumers();
+	void listsDeleteConsumers();
+	void listsBlockConsumers();
+	void listsConnectionConsumers();
+	void makesUniqueOperationIds();
+	void makesUniquePassengerIds();
+	void makesUniqueInfrastructureIds();
+	void findsSignalFailureTargets();
+	void passesOverSignalNamedLikeSection();
+	void findsTrainUnitById();
+};
+
+void TestSceneReferences::listsBlockReferenceComponents() {
+	// A plain reference has one component.
+	QCOMPARE(sceneBlockReferenceComponents("block-a1"), Names({"block-a1"}));
+	// A joined reference lists each component.
+	QCOMPARE(sceneBlockReferenceComponents("block-a2/block-b1"), Names({"block-a2", "block-b1"}));
+	// A wrapped component is read without its wrapper.
+	QCOMPARE(sceneBlockReferenceComponents("@block-a2@-1.000000/@block-b2@-2.000000"), Names({"block-a2", "block-b2"}));
+	// An empty reference has no component.
+	QCOMPARE(sceneBlockReferenceComponents(""), Names());
 }
 
-static bool testInfrastructureRenames() {
-	bool ok = true;
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteTrackReferences(scene, "track-a", "track-x");
-		ok &= expect(scene.nodes[0].trackId == "track-x" && scene.nodes[2].trackId == "track-x"
-				&& scene.nodes[3].trackId == "track-b",
-			"a track rename reaches the nodes of that track only");
-		ok &= expect(scene.arcs[0].trackId == "track-x" && scene.arcs[2].trackId == "track-b",
-			"a track rename reaches the arcs of that track only");
-		ok &= expect(scene.blocks[0].trackId == "track-x" && scene.blocks[1].trackId == "track-x"
-				&& scene.blocks[2].trackId == "track-b",
-			"a track rename reaches the blocks of that track only");
-		ok &= expect(scene.signallingAreas[0].trackId == "track-x", "a track rename reaches the signalling areas");
-		ok &= expect(scene.tracks[0].id == "track-a", "a reference rewrite leaves the track itself to the caller");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteNodeReferences(scene, "node-a1", "node-x");
-		ok &= expect(scene.arcs[0].toNodeId == "node-x" && scene.arcs[1].fromNodeId == "node-x"
-				&& scene.arcs[0].fromNodeId == "node-a0",
-			"a node rename reaches both ends of the arcs");
-		ok &= expect(scene.connections[0].fromNodeId == "node-x" && scene.connections[0].toNodeId == "node-b2",
-			"a node rename reaches the connection end");
-		ok &= expect(scene.stations[0].platforms[0].nodeIds == Names({"node-x"})
-				&& scene.stations[0].platforms[1].nodeIds == Names({"node-a2"}),
-			"a node rename reaches the nodes of the platforms");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteBlockReferences(scene, "block-a2", "block-x");
-		ok &= expect(scene.routes[0].blocks == Names({"block-a1", "block-x/block-b1", "@block-b2@-2.000000"}),
-			"a block rename reaches the sections of routes");
-		ok &= expect(scene.blockDependencies[0].block == "block-x" && scene.blockDependencies[0].dependsOn == "block-b1",
-			"a block rename reaches block dependencies");
-		ok &= expect(scene.singleTrackRestrictions[0].endBlock == "block-x"
-				&& scene.singleTrackRestrictions[0].startBlock == "block-a1",
-			"a block rename reaches single-track restrictions");
-		ok &= expect(scene.stationBoundaries[0].exitBlock == "block-x", "a block rename reaches the exit block");
-		ok &= expect(scene.scenarios[1].incidents[0].target == "block-x",
-			"a block rename reaches the target of a signal failure");
-		ok &= expect(scene.scenarios[0].incidents[1].target == "service-1",
-			"a block rename leaves breakdown targets alone");
-		SceneModel protectedScene = referenceScene();
-		sceneRewriteBlockReferences(protectedScene, "block-a1", "block-y");
-		ok &= expect(protectedScene.signals[0].protectedSection == "block-y"
-				&& protectedScene.routes[0].blocks[0] == "block-y",
-			"a block rename reaches the protected section of signals");
-		SceneModel noExit = referenceScene();
-		noExit.stationBoundaries[0].hasExitBlock = false;
-		sceneRewriteBlockReferences(noExit, "block-a2", "block-x");
-		ok &= expect(noExit.stationBoundaries[0].exitBlock == "block-a2",
-			"a boundary without an exit block keeps the text of the unused exit");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteStationReferences(scene, "station-1", "station-x");
-		ok &= expect(scene.services[0].stops[0].stationId == "station-x"
-				&& scene.services[0].stops[1].stationId == "station-x"
-				&& scene.services[0].stops[2].stationId == "station-2",
-			"a station rename reaches the stops at that station only");
-		ok &= expect(scene.scenarios[0].entranceDelays[0].stationId == "station-x",
-			"a station rename reaches entrance delays");
-		const ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
-		ok &= expect(journey.originStationId == "station-x" && journey.destinationStationId == "station-2"
-				&& journey.legs[0].originStationId == "station-x" && journey.legs[0].destinationStationId == "station-2",
-			"a station rename reaches passenger journeys and legs");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewritePlatformReferences(scene, "station-1", "platform-1", "platform-x");
-		ok &= expect(scene.services[0].stops[0].platformId == "platform-x"
-				&& scene.services[0].stops[1].platformId == "platform-2"
-				&& scene.services[0].stops[2].platformId == "platform-1",
-			"a platform rename reaches the stops at that platform of that station only");
-		SceneModel moved = referenceScene();
-		sceneMovePlatformReferences(moved, "platform-1", "station-1", "station-2");
-		ok &= expect(moved.services[0].stops[0].stationId == "station-2" && moved.services[0].stops[1].stationId == "station-1"
-				&& moved.services[1].stops[0].stationId == "station-2",
-			"moving a platform moves the stops at that platform to the new station");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteSignalReferences(scene, "signal-1", "signal-x");
-		ok &= expect(scene.scenarios[0].incidents[0].target == "signal-x" && scene.scenarios[1].incidents[0].target == "block-a2",
-			"a signal rename reaches signal failures only");
-		sceneRewriteRouteReferences(scene, "route-1", "route-x");
-		ok &= expect(scene.services[0].route == "route-x" && scene.services[1].route == "route-x",
-			"a route rename reaches the services on it");
-	}
-	return ok;
+void TestSceneReferences::rewritesBlockReference() {
+	// A plain reference to the block is replaced.
+	QCOMPARE(sceneRewriteBlockReference("block-a1", "block-a1", "renamed"), "renamed");
+	// A reference to another block is kept.
+	QCOMPARE(sceneRewriteBlockReference("block-a1", "block-a2", "renamed"), "block-a1");
+	// One component of a joined reference is replaced.
+	QCOMPARE(sceneRewriteBlockReference("block-a2/block-b1", "block-b1", "renamed"), "block-a2/renamed");
+	// A wrapped component keeps its wrapper and coordinate.
+	QCOMPARE(sceneRewriteBlockReference("@block-a2@-1.000000/@block-b2@-2.000000", "block-b2", "renamed"),
+		"@block-a2@-1.000000/@renamed@-2.000000");
+	// A longer id that starts with the old id is kept.
+	QCOMPARE(sceneRewriteBlockReference("block-a1x", "block-a1", "renamed"), "block-a1x");
 }
 
-static bool testOperationRenames() {
-	bool ok = true;
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteTrainUnitReferences(scene, "unit-1", "unit-x");
-		ok &= expect(scene.compositions[0].units == Names({"unit-x", "unit-2", "unit-x"})
-				&& scene.compositions[1].units == Names({"unit-2"}),
-			"a train unit rename reaches every place of the unit in compositions");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteCompositionReferences(scene, "composition-1", "composition-x");
-		ok &= expect(scene.services[0].composition == "composition-x" && scene.services[1].composition == "composition-2",
-			"a composition rename reaches the services that run it");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteServiceReferences(scene, "service-1", "service-x");
-		ok &= expect(scene.scenarios[0].entranceDelays[0].serviceId == "service-x",
-			"a service rename reaches entrance delays");
-		ok &= expect(scene.scenarios[0].incidents[1].target == "service-x",
-			"a service rename reaches the target of a breakdown");
-		ok &= expect(scene.passengers[0].journeys[0].legs[0].serviceId == "service-x",
-			"a service rename reaches passenger legs");
-		SceneModel signalTarget = referenceScene();
-		signalTarget.scenarios[1].incidents[0].target = "service-1";
-		sceneRewriteServiceReferences(signalTarget, "service-1", "service-x");
-		ok &= expect(signalTarget.scenarios[1].incidents[0].target == "service-1",
-			"a service rename leaves a signal failure with the same text alone");
-		ok &= expect(signalTarget.services[0].id == "service-1", "a reference rewrite leaves the service itself to the caller");
-	}
-	{
-		SceneModel scene = referenceScene();
-		sceneRewriteScenarioReferences(scene, "scenario-2", "scenario-x");
-		ok &= expect(scene.defaultScenarioId == "scenario-1", "a rename of another scenario keeps the default");
-		sceneRewriteScenarioReferences(scene, "scenario-1", "scenario-x");
-		ok &= expect(scene.defaultScenarioId == "scenario-x", "a scenario rename reaches the default scenario");
-	}
-	{
-		// No entity refers to an incident, so its rename has nothing to rewrite.
-		const SceneModel scene = referenceScene();
-		ok &= expect(consumers(scene, "incident", "incident-1").empty(), "an incident has no consumers");
-	}
-	return ok;
+void TestSceneReferences::renamesTrack() {
+	SceneModel scene = referenceScene();
+	sceneRewriteTrackReferences(scene, "track-a", "track-x");
+	// A track rename reaches the nodes of that track only.
+	QCOMPARE(scene.nodes[0].trackId, "track-x");
+	QCOMPARE(scene.nodes[2].trackId, "track-x");
+	QCOMPARE(scene.nodes[3].trackId, "track-b");
+	// A track rename reaches the arcs of that track only.
+	QCOMPARE(scene.arcs[0].trackId, "track-x");
+	QCOMPARE(scene.arcs[2].trackId, "track-b");
+	// A track rename reaches the blocks of that track only.
+	QCOMPARE(scene.blocks[0].trackId, "track-x");
+	QCOMPARE(scene.blocks[1].trackId, "track-x");
+	QCOMPARE(scene.blocks[2].trackId, "track-b");
+	// A track rename reaches the signalling areas.
+	QCOMPARE(scene.signallingAreas[0].trackId, "track-x");
+	// A reference rewrite leaves the track itself to the caller.
+	QCOMPARE(scene.tracks[0].id, "track-a");
 }
 
-static bool testDeleteConsumers() {
-	bool ok = true;
+void TestSceneReferences::renamesNode() {
+	SceneModel scene = referenceScene();
+	sceneRewriteNodeReferences(scene, "node-a1", "node-x");
+	// A node rename reaches both ends of the arcs.
+	QCOMPARE(scene.arcs[0].toNodeId, "node-x");
+	QCOMPARE(scene.arcs[1].fromNodeId, "node-x");
+	QCOMPARE(scene.arcs[0].fromNodeId, "node-a0");
+	// A node rename reaches the connection end.
+	QCOMPARE(scene.connections[0].fromNodeId, "node-x");
+	QCOMPARE(scene.connections[0].toNodeId, "node-b2");
+	// A node rename reaches the nodes of the platforms.
+	QCOMPARE(scene.stations[0].platforms[0].nodeIds, Names({"node-x"}));
+	QCOMPARE(scene.stations[0].platforms[1].nodeIds, Names({"node-a2"}));
+}
+
+void TestSceneReferences::renamesBlock() {
+	SceneModel scene = referenceScene();
+	sceneRewriteBlockReferences(scene, "block-a2", "block-x");
+	// A block rename reaches the sections of routes.
+	QCOMPARE(scene.routes[0].blocks, Names({"block-a1", "block-x/block-b1", "@block-b2@-2.000000"}));
+	// A block rename reaches block dependencies.
+	QCOMPARE(scene.blockDependencies[0].block, "block-x");
+	QCOMPARE(scene.blockDependencies[0].dependsOn, "block-b1");
+	// A block rename reaches single-track restrictions.
+	QCOMPARE(scene.singleTrackRestrictions[0].endBlock, "block-x");
+	QCOMPARE(scene.singleTrackRestrictions[0].startBlock, "block-a1");
+	// A block rename reaches the exit block.
+	QCOMPARE(scene.stationBoundaries[0].exitBlock, "block-x");
+	// A block rename reaches the target of a signal failure.
+	QCOMPARE(scene.scenarios[1].incidents[0].target, "block-x");
+	// A block rename leaves breakdown targets alone.
+	QCOMPARE(scene.scenarios[0].incidents[1].target, "service-1");
+	SceneModel protectedScene = referenceScene();
+	sceneRewriteBlockReferences(protectedScene, "block-a1", "block-y");
+	// A block rename reaches the protected section of signals.
+	QCOMPARE(protectedScene.signals[0].protectedSection, "block-y");
+	QCOMPARE(protectedScene.routes[0].blocks[0], "block-y");
+	SceneModel noExit = referenceScene();
+	noExit.stationBoundaries[0].hasExitBlock = false;
+	sceneRewriteBlockReferences(noExit, "block-a2", "block-x");
+	// A boundary without an exit block keeps the text of the unused exit.
+	QCOMPARE(noExit.stationBoundaries[0].exitBlock, "block-a2");
+}
+
+void TestSceneReferences::renamesStation() {
+	SceneModel scene = referenceScene();
+	sceneRewriteStationReferences(scene, "station-1", "station-x");
+	// A station rename reaches the stops at that station only.
+	QCOMPARE(scene.services[0].stops[0].stationId, "station-x");
+	QCOMPARE(scene.services[0].stops[1].stationId, "station-x");
+	QCOMPARE(scene.services[0].stops[2].stationId, "station-2");
+	// A station rename reaches entrance delays.
+	QCOMPARE(scene.scenarios[0].entranceDelays[0].stationId, "station-x");
+	const ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+	// A station rename reaches passenger journeys and legs.
+	QCOMPARE(journey.originStationId, "station-x");
+	QCOMPARE(journey.destinationStationId, "station-2");
+	QCOMPARE(journey.legs[0].originStationId, "station-x");
+	QCOMPARE(journey.legs[0].destinationStationId, "station-2");
+}
+
+void TestSceneReferences::renamesAndMovesPlatform() {
+	SceneModel scene = referenceScene();
+	sceneRewritePlatformReferences(scene, "station-1", "platform-1", "platform-x");
+	// A platform rename reaches the stops at that platform of that station only.
+	QCOMPARE(scene.services[0].stops[0].platformId, "platform-x");
+	QCOMPARE(scene.services[0].stops[1].platformId, "platform-2");
+	QCOMPARE(scene.services[0].stops[2].platformId, "platform-1");
+	SceneModel moved = referenceScene();
+	sceneMovePlatformReferences(moved, "platform-1", "station-1", "station-2");
+	// Moving a platform moves the stops at that platform to the new station.
+	QCOMPARE(moved.services[0].stops[0].stationId, "station-2");
+	QCOMPARE(moved.services[0].stops[1].stationId, "station-1");
+	QCOMPARE(moved.services[1].stops[0].stationId, "station-2");
+}
+
+void TestSceneReferences::renamesSignalAndRoute() {
+	SceneModel scene = referenceScene();
+	sceneRewriteSignalReferences(scene, "signal-1", "signal-x");
+	// A signal rename reaches signal failures only.
+	QCOMPARE(scene.scenarios[0].incidents[0].target, "signal-x");
+	QCOMPARE(scene.scenarios[1].incidents[0].target, "block-a2");
+	sceneRewriteRouteReferences(scene, "route-1", "route-x");
+	// A route rename reaches the services on it.
+	QCOMPARE(scene.services[0].route, "route-x");
+	QCOMPARE(scene.services[1].route, "route-x");
+}
+
+void TestSceneReferences::renamesTrainUnit() {
+	SceneModel scene = referenceScene();
+	sceneRewriteTrainUnitReferences(scene, "unit-1", "unit-x");
+	// A train unit rename reaches every place of the unit in compositions.
+	QCOMPARE(scene.compositions[0].units, Names({"unit-x", "unit-2", "unit-x"}));
+	QCOMPARE(scene.compositions[1].units, Names({"unit-2"}));
+}
+
+void TestSceneReferences::renamesComposition() {
+	SceneModel scene = referenceScene();
+	sceneRewriteCompositionReferences(scene, "composition-1", "composition-x");
+	// A composition rename reaches the services that run it.
+	QCOMPARE(scene.services[0].composition, "composition-x");
+	QCOMPARE(scene.services[1].composition, "composition-2");
+}
+
+void TestSceneReferences::renamesService() {
+	SceneModel scene = referenceScene();
+	sceneRewriteServiceReferences(scene, "service-1", "service-x");
+	// A service rename reaches entrance delays.
+	QCOMPARE(scene.scenarios[0].entranceDelays[0].serviceId, "service-x");
+	// A service rename reaches the target of a breakdown.
+	QCOMPARE(scene.scenarios[0].incidents[1].target, "service-x");
+	// A service rename reaches passenger legs.
+	QCOMPARE(scene.passengers[0].journeys[0].legs[0].serviceId, "service-x");
+	SceneModel signalTarget = referenceScene();
+	signalTarget.scenarios[1].incidents[0].target = "service-1";
+	sceneRewriteServiceReferences(signalTarget, "service-1", "service-x");
+	// A service rename leaves a signal failure with the same text alone.
+	QCOMPARE(signalTarget.scenarios[1].incidents[0].target, "service-1");
+	// A reference rewrite leaves the service itself to the caller.
+	QCOMPARE(signalTarget.services[0].id, "service-1");
+}
+
+void TestSceneReferences::renamesScenario() {
+	SceneModel scene = referenceScene();
+	sceneRewriteScenarioReferences(scene, "scenario-2", "scenario-x");
+	// A rename of another scenario keeps the default.
+	QCOMPARE(scene.defaultScenarioId, "scenario-1");
+	sceneRewriteScenarioReferences(scene, "scenario-1", "scenario-x");
+	// A scenario rename reaches the default scenario.
+	QCOMPARE(scene.defaultScenarioId, "scenario-x");
+}
+
+// No entity refers to an incident, so its rename has nothing to rewrite.
+void TestSceneReferences::incidentHasNoConsumers() {
 	const SceneModel scene = referenceScene();
-	ok &= expectNames(consumers(scene, "tracks", "track-a"),
-		{"node 'node-a0'", "node 'node-a1'", "node 'node-a2'", "arc 'arc-a1'", "arc 'arc-a2'", "block 'block-a1'",
-			"block 'block-a2'", "signalling area 'area-1'"},
-		"a track is used by its nodes, arcs, blocks and signalling areas");
-	ok &= expectNames(consumers(scene, "nodes", "node-a1"),
-		{"arc 'arc-a1' endpoint", "arc 'arc-a2' endpoint", "connection 'connection-1' endpoint",
-			"platform 'platform-1' at station 'station-1'"},
-		"a node is used by arc and connection ends and by platforms");
-	ok &= expectNames(consumers(scene, "stations", "station-1"),
-		{"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'",
-			"passenger 'passenger-1' journey 'journey-1'", "passenger 'passenger-1' leg 'leg-1'"},
-		"a station is used by stops, entrance delays and passenger journeys and legs, one line for each");
-	ok &= expectNames(consumers(scene, "platforms", "platform-1", "station-1"),
-		{"service 'service-1' stop at station 'station-1'"},
-		"a platform is used by the stops at that platform of its own station");
-	ok &= expectNames(consumers(scene, "platforms", "platform-1", "station-2"),
-		{"service 'service-1' stop at station 'station-2'", "service 'service-2' stop at station 'station-2'"},
-		"a platform id used in two stations is told apart by the station");
-	ok &= expectNames(consumers(scene, "signals", "signal-1"),
-		{"signal-failure incident 'incident-1' in scenario 'scenario-1'"},
-		"a signal is used by the signal failures that target it");
-	ok &= expectNames(consumers(scene, "routes", "route-1"), {"service 'service-1'", "service 'service-2'"},
-		"a route is used by its services");
-	ok &= expectNames(consumers(scene, "train_unit", "unit-1"), {"composition 'composition-1'"},
-		"a train unit used twice by one composition is named once");
-	ok &= expectNames(consumers(scene, "train_unit", "unit-2"), {"composition 'composition-1'", "composition 'composition-2'"},
-		"a train unit is used by every composition that holds it");
-	ok &= expectNames(consumers(scene, "composition", "composition-2"), {"service 'service-2'"},
-		"a composition is used by the services that run it");
-	ok &= expectNames(consumers(scene, "service", "service-1"),
-		{"breakdown incident 'incident-2' in scenario 'scenario-1'", "entrance delay in scenario 'scenario-1'",
-			"passenger 'passenger-1' leg 'leg-1'"},
-		"a service is used by breakdowns, entrance delays and passenger legs");
-	ok &= expect(consumers(scene, "service", "service-2").empty(), "a service that nothing refers to has no consumers");
-	ok &= expect(consumers(scene, "arcs", "arc-a1").empty(), "an arc has no consumers");
-	ok &= expect(consumers(scene, "tracks", "track-unknown").empty(), "an unknown id has no consumers");
+	QVERIFY2(consumers(scene, "incident", "incident-1").empty(), "an incident has no consumers");
+}
 
-	// Blocks are used through route sections, whether the section names the block or a section built from it.
-	ok &= expectNames(consumers(scene, "blocks", "block-a2"),
-		{"route 'route-1' section 'block-a2/block-b1'", "signal-failure incident 'incident-3' in scenario 'scenario-2'",
+void TestSceneReferences::listsDeleteConsumers() {
+	const SceneModel scene = referenceScene();
+	// A track is used by its nodes, arcs, blocks and signalling areas.
+	QCOMPARE(consumers(scene, "tracks", "track-a"),
+		Names({"node 'node-a0'", "node 'node-a1'", "node 'node-a2'", "arc 'arc-a1'", "arc 'arc-a2'", "block 'block-a1'",
+			"block 'block-a2'", "signalling area 'area-1'"}));
+	// A node is used by arc and connection ends and by platforms.
+	QCOMPARE(consumers(scene, "nodes", "node-a1"),
+		Names({"arc 'arc-a1' endpoint", "arc 'arc-a2' endpoint", "connection 'connection-1' endpoint",
+			"platform 'platform-1' at station 'station-1'"}));
+	// A station is used by stops, entrance delays and passenger journeys and legs, one line for each.
+	QCOMPARE(consumers(scene, "stations", "station-1"),
+		Names({"service 'service-1' stop", "entrance delay for service 'service-1' in scenario 'scenario-1'",
+			"passenger 'passenger-1' journey 'journey-1'", "passenger 'passenger-1' leg 'leg-1'"}));
+	// A platform is used by the stops at that platform of its own station.
+	QCOMPARE(consumers(scene, "platforms", "platform-1", "station-1"), Names({"service 'service-1' stop at station 'station-1'"}));
+	// A platform id used in two stations is told apart by the station.
+	QCOMPARE(consumers(scene, "platforms", "platform-1", "station-2"),
+		Names({"service 'service-1' stop at station 'station-2'", "service 'service-2' stop at station 'station-2'"}));
+	// A signal is used by the signal failures that target it.
+	QCOMPARE(consumers(scene, "signals", "signal-1"), Names({"signal-failure incident 'incident-1' in scenario 'scenario-1'"}));
+	// A route is used by its services.
+	QCOMPARE(consumers(scene, "routes", "route-1"), Names({"service 'service-1'", "service 'service-2'"}));
+	// A train unit used twice by one composition is named once.
+	QCOMPARE(consumers(scene, "train_unit", "unit-1"), Names({"composition 'composition-1'"}));
+	// A train unit is used by every composition that holds it.
+	QCOMPARE(consumers(scene, "train_unit", "unit-2"), Names({"composition 'composition-1'", "composition 'composition-2'"}));
+	// A composition is used by the services that run it.
+	QCOMPARE(consumers(scene, "composition", "composition-2"), Names({"service 'service-2'"}));
+	// A service is used by breakdowns, entrance delays and passenger legs.
+	QCOMPARE(consumers(scene, "service", "service-1"),
+		Names({"breakdown incident 'incident-2' in scenario 'scenario-1'", "entrance delay in scenario 'scenario-1'",
+			"passenger 'passenger-1' leg 'leg-1'"}));
+	QVERIFY2(consumers(scene, "service", "service-2").empty(), "a service that nothing refers to has no consumers");
+	QVERIFY2(consumers(scene, "arcs", "arc-a1").empty(), "an arc has no consumers");
+	QVERIFY2(consumers(scene, "tracks", "track-unknown").empty(), "an unknown id has no consumers");
+}
+
+// Blocks are used through route sections, whether the section names the block or a section built from it.
+void TestSceneReferences::listsBlockConsumers() {
+	const SceneModel scene = referenceScene();
+	// A block is used by routes, signal failures, dependencies, restrictions and station boundaries.
+	QCOMPARE(consumers(scene, "blocks", "block-a2"),
+		Names({"route 'route-1' section 'block-a2/block-b1'", "signal-failure incident 'incident-3' in scenario 'scenario-2'",
 			"block dependency 'block-a2' -> 'block-b1'", "single-track restriction 'block-a1' -> 'block-a2'",
-			"station boundary 'block-a1' -> 'block-a2'"},
-		"a block is used by routes, signal failures, dependencies, restrictions and station boundaries");
-	ok &= expectNames(consumers(scene, "blocks", "block-a1"),
-		{"route 'route-1' section 'block-a1'", "signal 'signal-1' protected section 'block-a1'",
-			"single-track restriction 'block-a1' -> 'block-a2'", "station boundary 'block-a1' -> 'block-a2'"},
-		"a block is used by the protected section of a signal");
+			"station boundary 'block-a1' -> 'block-a2'"}));
+	// A block is used by the protected section of a signal.
+	QCOMPARE(consumers(scene, "blocks", "block-a1"),
+		Names({"route 'route-1' section 'block-a1'", "signal 'signal-1' protected section 'block-a1'",
+			"single-track restriction 'block-a1' -> 'block-a2'", "station boundary 'block-a1' -> 'block-a2'"}));
 	SceneModel withoutExit = scene;
 	withoutExit.stationBoundaries[0].hasExitBlock = false;
-	ok &= expect(consumers(withoutExit, "blocks", "block-a2").size() == 4,
-		"an exit block that a boundary does not use is not a consumer");
+	// An exit block that a boundary does not use is not a consumer.
+	QCOMPARE(consumers(withoutExit, "blocks", "block-a2").size(), std::size_t(4));
+}
 
+void TestSceneReferences::listsConnectionConsumers() {
+	const SceneModel scene = referenceScene();
 	std::string derived;
 	for (const SceneSectionDescriptor& section : buildSceneSectionInventory(scene).sections)
 		if (section.sourceConnectionId == "connection-1")
 			derived = section.id;
-	ok &= expect(!derived.empty(), "the connection yields a section");
+	QVERIFY2(!derived.empty(), "the connection yields a section");
 	SceneModel connected = scene;
 	connected.routes[0].blocks.push_back(derived);
-	ok &= expectNames(consumers(connected, "connections", "connection-1"), {"route 'route-1' section '" + derived + "'"},
-		"a connection is used by the routes that contain a section built from it");
-	ok &= expect(consumers(scene, "connections", "connection-1").empty(), "an unused connection has no consumers");
-	return ok;
+	// A connection is used by the routes that contain a section built from it.
+	QCOMPARE(consumers(connected, "connections", "connection-1"), Names({"route 'route-1' section '" + derived + "'"}));
+	QVERIFY2(consumers(scene, "connections", "connection-1").empty(), "an unused connection has no consumers");
 }
 
-static bool testUniqueIds() {
-	bool ok = true;
+void TestSceneReferences::makesUniqueOperationIds() {
 	const SceneModel scene = referenceScene();
-	ok &= expect(sceneUniqueTrainUnitId(scene, "unit-new") == "unit-new", "a free id is kept");
-	ok &= expect(sceneUniqueTrainUnitId(scene, "unit-1") == "unit-1_2", "a taken id gets the suffix _2");
+	// A free id is kept.
+	QCOMPARE(sceneUniqueTrainUnitId(scene, "unit-new"), "unit-new");
+	// A taken id gets the suffix _2.
+	QCOMPARE(sceneUniqueTrainUnitId(scene, "unit-1"), "unit-1_2");
 	SceneModel crowded = scene;
 	SceneTrainUnit third;
 	third.id = "unit-1_2";
 	crowded.trainUnits.push_back(third);
-	ok &= expect(sceneUniqueTrainUnitId(crowded, "unit-1") == "unit-1_3", "the suffix counts up to the first free one");
-	ok &= expect(sceneUniqueCompositionId(scene, "composition-1") == "composition-1_2", "compositions are unique");
-	ok &= expect(sceneUniqueServiceId(scene, "service-2") == "service-2_2", "services are unique");
-	ok &= expect(sceneUniqueScenarioId(scene, "scenario-1") == "scenario-1_2", "scenarios are unique");
-	ok &= expect(sceneUniqueScenarioId(scene, "") == "scenario", "an empty scenario id becomes scenario");
-	ok &= expect(sceneUniqueIncidentId(scene, "incident-3") == "incident-3_2",
-		"incident ids are unique across the scenarios");
-	ok &= expect(sceneUniqueIncidentId(scene, "incident-4") == "incident-4", "a free incident id is kept");
+	// The suffix counts up to the first free one.
+	QCOMPARE(sceneUniqueTrainUnitId(crowded, "unit-1"), "unit-1_3");
+	// Compositions are unique.
+	QCOMPARE(sceneUniqueCompositionId(scene, "composition-1"), "composition-1_2");
+	// Services are unique.
+	QCOMPARE(sceneUniqueServiceId(scene, "service-2"), "service-2_2");
+	// Scenarios are unique.
+	QCOMPARE(sceneUniqueScenarioId(scene, "scenario-1"), "scenario-1_2");
+	// An empty scenario id becomes scenario.
+	QCOMPARE(sceneUniqueScenarioId(scene, ""), "scenario");
+	// Incident ids are unique across the scenarios.
+	QCOMPARE(sceneUniqueIncidentId(scene, "incident-3"), "incident-3_2");
+	// A free incident id is kept.
+	QCOMPARE(sceneUniqueIncidentId(scene, "incident-4"), "incident-4");
+}
 
-	ok &= expect(sceneUniquePassengerId(scene, "passenger-1") == "passenger-1_2", "passengers are unique");
-	ok &= expect(sceneUniquePassengerId(scene, "") == "new_passenger", "an empty passenger id becomes new_passenger");
-	ok &= expect(sceneUniquePassengerJourneyId(scene, "journey-1") == "journey-1_2", "journeys are unique");
-	ok &= expect(sceneUniquePassengerJourneyId(scene, "") == "new_journey", "an empty journey id becomes new_journey");
-	ok &= expect(sceneUniquePassengerLegId(scene, "leg-1") == "leg-1_2", "legs are unique");
-	ok &= expect(sceneUniquePassengerLegId(scene, "") == "new_leg", "an empty leg id becomes new_leg");
+void TestSceneReferences::makesUniquePassengerIds() {
+	const SceneModel scene = referenceScene();
+	// Passengers are unique.
+	QCOMPARE(sceneUniquePassengerId(scene, "passenger-1"), "passenger-1_2");
+	// An empty passenger id becomes new_passenger.
+	QCOMPARE(sceneUniquePassengerId(scene, ""), "new_passenger");
+	// Journeys are unique.
+	QCOMPARE(sceneUniquePassengerJourneyId(scene, "journey-1"), "journey-1_2");
+	// An empty journey id becomes new_journey.
+	QCOMPARE(sceneUniquePassengerJourneyId(scene, ""), "new_journey");
+	// Legs are unique.
+	QCOMPARE(sceneUniquePassengerLegId(scene, "leg-1"), "leg-1_2");
+	// An empty leg id becomes new_leg.
+	QCOMPARE(sceneUniquePassengerLegId(scene, ""), "new_leg");
 	SceneModel twoPassengers = scene;
 	ScenePassenger second;
 	second.id = "passenger-2";
@@ -470,51 +522,62 @@ static bool testUniqueIds() {
 	journey.legs = {leg("leg-2", "", "", "")};
 	second.journeys = {journey};
 	twoPassengers.passengers.push_back(second);
-	ok &= expect(sceneUniquePassengerJourneyId(twoPassengers, "journey-2") == "journey-2_2"
-			&& sceneUniquePassengerLegId(twoPassengers, "leg-2") == "leg-2_2",
-		"journey and leg ids are unique across all passengers");
-
-	ok &= expect(sceneUniqueInfrastructureId(scene, "track-a", "tracks") == "track-a_2", "track ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "node-a0", "nodes") == "node-a0_2", "node ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "arc-a1", "arcs") == "arc-a1_2", "arc ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "block-a1", "blocks") == "block-a1_2", "block ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "connection-1", "connections") == "connection-1_2",
-		"connection ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "station-1", "stations") == "station-1_2", "station ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "signal-1", "signals") == "signal-1_2", "signal ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "area-1", "signalling_areas") == "area-1_2",
-		"signalling area ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "route-1", "routes") == "route-1_2", "route ids are unique");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "platform-1", "platforms") == "platform-1_2",
-		"platform ids are unique within the first station");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "platform-2", "platforms") == "platform-2_2",
-		"platform ids are checked in the first station");
-	SceneModel otherFirst = scene;
-	std::swap(otherFirst.stations[0], otherFirst.stations[1]);
-	ok &= expect(sceneUniqueInfrastructureId(otherFirst, "platform-2", "platforms") == "platform-2",
-		"platform ids of a later station are not taken into account");
-	ok &= expect(sceneUniqueInfrastructureId(scene, "track-a", "nodes") == "track-a",
-		"an id is only compared within its own table");
-	return ok;
+	// Journey and leg ids are unique across all passengers.
+	QCOMPARE(sceneUniquePassengerJourneyId(twoPassengers, "journey-2"), "journey-2_2");
+	QCOMPARE(sceneUniquePassengerLegId(twoPassengers, "leg-2"), "leg-2_2");
 }
 
-static bool testSignalFailureTargets() {
-	bool ok = true;
+void TestSceneReferences::makesUniqueInfrastructureIds() {
+	const SceneModel scene = referenceScene();
+	// Track ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "track-a", "tracks"), "track-a_2");
+	// Node ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "node-a0", "nodes"), "node-a0_2");
+	// Arc ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "arc-a1", "arcs"), "arc-a1_2");
+	// Block ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "block-a1", "blocks"), "block-a1_2");
+	// Connection ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "connection-1", "connections"), "connection-1_2");
+	// Station ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "station-1", "stations"), "station-1_2");
+	// Signal ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "signal-1", "signals"), "signal-1_2");
+	// Signalling area ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "area-1", "signalling_areas"), "area-1_2");
+	// Route ids are unique.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "route-1", "routes"), "route-1_2");
+	// Platform ids are unique within the first station.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "platform-1", "platforms"), "platform-1_2");
+	// Platform ids are checked in the first station.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "platform-2", "platforms"), "platform-2_2");
+	SceneModel otherFirst = scene;
+	std::swap(otherFirst.stations[0], otherFirst.stations[1]);
+	// Platform ids of a later station are not taken into account.
+	QCOMPARE(sceneUniqueInfrastructureId(otherFirst, "platform-2", "platforms"), "platform-2");
+	// An id is only compared within its own table.
+	QCOMPARE(sceneUniqueInfrastructureId(scene, "track-a", "nodes"), "track-a");
+}
+
+void TestSceneReferences::findsSignalFailureTargets() {
 	SceneModel scene = referenceScene();
 	SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 	std::string switchSection;
 	for (const SceneSectionDescriptor& section : inventory.sections)
 		if (section.connectionDerived && switchSection.empty())
 			switchSection = section.id;
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a1@") == "signal-1",
-		"a section that one signal protects gives that signal");
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "block-a1") == "signal-1", "the block id names the same section");
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a2@") == "block-a2",
-		"a section that no signal protects gives its block");
-	ok &= expect(!switchSection.empty() && sceneSignalFailureTarget(scene, inventory, switchSection).empty(),
-		"a switch section that no signal protects gives no target");
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-x@").empty() && sceneSignalFailureTarget(scene, inventory, "").empty(),
-		"an id that names no section gives no target");
+	// A section that one signal protects gives that signal.
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, "@block-a1@"), "signal-1");
+	// The block id names the same section.
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, "block-a1"), "signal-1");
+	// A section that no signal protects gives its block.
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, "@block-a2@"), "block-a2");
+	// A switch section that no signal protects gives no target.
+	QVERIFY(!switchSection.empty());
+	QVERIFY(sceneSignalFailureTarget(scene, inventory, switchSection).empty());
+	// An id that names no section gives no target.
+	QVERIFY(sceneSignalFailureTarget(scene, inventory, "@block-x@").empty());
+	QVERIFY(sceneSignalFailureTarget(scene, inventory, "").empty());
 
 	SceneSignal second;
 	second.id = "signal-2";
@@ -525,43 +588,33 @@ static bool testSignalFailureTargets() {
 	atSwitch.protectedSection = switchSection;
 	scene.signals.push_back(atSwitch);
 	inventory = buildSceneSectionInventory(scene);
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-a1@") == "block-a1",
-		"a section that two signals protect gives its block");
-	ok &= expect(!switchSection.empty() && sceneSignalFailureTarget(scene, inventory, switchSection) == "signal-3",
-		"a switch section that one signal protects gives that signal");
+	// A section that two signals protect gives its block.
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, "@block-a1@"), "block-a1");
+	// A switch section that one signal protects gives that signal.
+	QVERIFY(!switchSection.empty());
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, switchSection), "signal-3");
+}
 
-	scene = referenceScene();
+void TestSceneReferences::passesOverSignalNamedLikeSection() {
+	SceneModel scene = referenceScene();
 	SceneSignal named;
 	named.id = "block-b2";
 	named.protectedSection = "block-b1";
 	scene.signals.push_back(named);
-	inventory = buildSceneSectionInventory(scene);
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-b1@") == "block-b1",
-		"a signal whose id also names a section is passed over for the block");
-	ok &= expect(sceneSignalFailureTarget(scene, inventory, "@block-b2@").empty(),
+	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+	// A signal whose id also names a section is passed over for the block.
+	QCOMPARE(sceneSignalFailureTarget(scene, inventory, "@block-b1@"), "block-b1");
+	QVERIFY2(sceneSignalFailureTarget(scene, inventory, "@block-b2@").empty(),
 		"a block whose id is also the id of a signal gives no target");
-	return ok;
 }
 
-static bool testTrainUnitLookup() {
+void TestSceneReferences::findsTrainUnitById() {
 	const SceneModel scene = referenceScene();
-	bool ok = true;
-	ok &= expect(sceneTrainUnitById(scene, "unit-2") == &scene.trainUnits[1], "a train unit is found by id");
-	ok &= expect(sceneTrainUnitById(scene, "unit-9") == nullptr, "an unknown train unit is not found");
-	return ok;
+	// A train unit is found by id.
+	QCOMPARE(sceneTrainUnitById(scene, "unit-2"), &scene.trainUnits[1]);
+	// An unknown train unit is not found.
+	QCOMPARE(sceneTrainUnitById(scene, "unit-9"), nullptr);
 }
 
-int main() {
-	bool ok = true;
-	ok &= testBlockReferences();
-	ok &= testInfrastructureRenames();
-	ok &= testOperationRenames();
-	ok &= testDeleteConsumers();
-	ok &= testUniqueIds();
-	ok &= testSignalFailureTargets();
-	ok &= testTrainUnitLookup();
-	if (!ok)
-		return 1;
-	std::cout << "all scene reference tests passed\n";
-	return 0;
-}
+QTEST_APPLESS_MAIN(TestSceneReferences)
+#include "test_scenereferences.moc"
