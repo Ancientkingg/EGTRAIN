@@ -604,10 +604,10 @@ sources, and <code class="docutils literal notranslate"><span class="pre">python
 <p>This changes no product behavior. It shows the build, test and failure loop on <code class="docutils literal notranslate"><span class="pre">util/TimeFormat</span></code>,
 which has no Qt dependency and builds quickly. It starts from the finished build above.</p>
 <ol class="arabic">
-<li><p>Open <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp</span></code>. Tests here are plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code> and a
-local <code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">message)</span></code>. After the line <code class="docutils literal notranslate"><span class="pre">formatSimTime</span> <span class="pre">negative</span> <span class="pre">clamp</span></code>, add an assertion that
-is wrong on purpose:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">ok</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="n">expect</span><span class="p">(</span><span class="n">formatSimTime</span><span class="p">(</span><span class="mi">7200</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">"02:00:01"</span><span class="p">,</span><span class="w"> </span><span class="s">"formatSimTime two hours"</span><span class="p">);</span>
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp</span></code>. It is a Qt Test class
+(<a class="reference internal" href="testing.html#writing-a-test"><span class="std std-ref">Writing a test</span></a>). In <code class="docutils literal notranslate"><span class="pre">formatsSimTime_data()</span></code>, after the row
+<code class="docutils literal notranslate"><span class="pre">negative</span> <span class="pre">clamp</span></code>, add a row that is wrong on purpose:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">QTest</span><span class="o">::</span><span class="n">newRow</span><span class="p">(</span><span class="s">"two hours"</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mf">7200L</span><span class="n">L</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mf">0L</span><span class="n">L</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"02:00:01"</span><span class="p">;</span>
 </pre></div>
 </div>
 </li>
@@ -617,7 +617,9 @@ is wrong on purpose:</p>
 ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_timeformat$'</span><span class="w"> </span>--output-on-failure
 </pre></div>
 </div>
-<p>CTest reports the test as failed and the output has the line <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">formatSimTime</span> <span class="pre">two</span> <span class="pre">hours</span></code>.</p>
+<p>CTest reports the test as failed, and the output has the line
+<code class="docutils literal notranslate"><span class="pre">FAIL!</span>&#160; <span class="pre">:</span> <span class="pre">TestTimeFormat::formatsSimTime(two</span> <span class="pre">hours)</span> <span class="pre">Compared</span> <span class="pre">values</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">the</span> <span class="pre">same</span></code>, followed by
+the actual and the expected text.</p>
 </li>
 <li><p>Correct the expected text to <code class="docutils literal notranslate"><span class="pre">&quot;02:00:00&quot;</span></code> and run the two commands again. The test passes.</p></li>
 <li><p>Run the unit tests that finish quickly. <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">4</span></code> runs four tests at a time. The set took about four

@@ -779,9 +779,11 @@ exactly one of <code class="docutils literal notranslate"><span class="pre">unit
 the arguments or runs a script instead, and options such as <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code> and <code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span></code> set the
 test properties; the comment above the function lists them all.</p>
 <ul class="simple">
-<li><p>Tests are plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code> and no test framework. Most define a local
+<li><p>The tests are moving to Qt Test. A converted file is one test class, as
+<a class="reference internal" href="testing.html#writing-a-test"><span class="std std-ref">Writing a test</span></a> describes (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>). A file that
+is not converted yet is a plain program with a <code class="docutils literal notranslate"><span class="pre">main()</span></code>; most define a local
 <code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">const</span> <span class="pre">char*)</span></code> that prints <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">&lt;message&gt;</span></code>, combine results with
-<code class="docutils literal notranslate"><span class="pre">ok</span> <span class="pre">&amp;=</span> <span class="pre">expect(...)</span></code> and return a non-zero exit code on failure (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>).</p></li>
+<code class="docutils literal notranslate"><span class="pre">ok</span> <span class="pre">&amp;=</span> <span class="pre">expect(...)</span></code> and return a non-zero exit code on failure.</p></li>
 <li><p>Assertions must still run in a Release build, the default. The telemetry tests put
 <code class="docutils literal notranslate"><span class="pre">#undef</span> <span class="pre">NDEBUG</span></code> before <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;cassert&gt;</span></code> (<code class="docutils literal notranslate"><span class="pre">tests/test_telemetryqueue.cpp</span></code>).</p></li>
 <li><p>A logic change comes with the smallest test that fails without it. For a validation rule,

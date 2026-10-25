@@ -307,8 +307,8 @@
         <article role="main" id="furo-main-content">
           <section id="testing">
 <h1>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h1>
-<p>This page covers the CTest suite: how to run it, its labels, the tests each platform registers and the
-package checks. It ends with the checks to run for each kind of change and the documentation site.</p>
+<p>This page covers the CTest suite: how to run it, how to write a test, its labels, the tests each platform
+registers and the package checks. It ends with the checks to run for each kind of change and the documentation site.</p>
 <section id="unit-tests">
 <h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build<span class="w"> </span>--output-on-failure
@@ -457,6 +457,47 @@ the recent cases. On macOS the startup callback waits 300 ms before it opens
 the chooser, so that the event of a launch from Finder is seen first; the <code class="docutils literal notranslate"><span class="pre">startup</span></code>
 moment checks that no chooser opens then. A real double-click in Finder is not part
 of it.</p>
+<section id="writing-a-test">
+<h3>Writing a test<a class="headerlink" href="#writing-a-test" title="Link to this heading">¶</a></h3>
+<p>The C++ tests are moving to Qt Test. A converted file is one test class (<code class="docutils literal notranslate"><span class="pre">tests/test_speedformat.cpp</span></code>):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TestSpeedFormat</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">QObject</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="n">Q_OBJECT</span>
+
+<span class="k">private</span><span class="w"> </span><span class="n">slots</span><span class="o">:</span>
+<span class="w">	</span><span class="kt">void</span><span class="w"> </span><span class="n">roundsToWholeKilometresPerHour</span><span class="p">();</span><span class="w"> </span><span class="c1">// QCOMPARE(formatSpeedLabel(82.6), "83 km/h");</span>
+<span class="p">};</span>
+
+<span class="n">QTEST_APPLESS_MAIN</span><span class="p">(</span><span class="n">TestSpeedFormat</span><span class="p">)</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"test_speedformat.moc"</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code> links Qt Test into every test that it builds. The file ends with <code class="docutils literal notranslate"><span class="pre">QTEST_APPLESS_MAIN</span></code> when it
+needs no Qt application, <code class="docutils literal notranslate"><span class="pre">QTEST_GUILESS_MAIN</span></code> for a <code class="docutils literal notranslate"><span class="pre">QCoreApplication</span></code> and <code class="docutils literal notranslate"><span class="pre">QTEST_MAIN</span></code> for widgets, which also
+sets <code class="docutils literal notranslate"><span class="pre">Qt::AA_Use96Dpi</span></code>.</p></li>
+<li><p>One slot per behaviour. A failed check ends its slot, so checks that must run after a failure go in a slot of
+their own. Setup goes into <code class="docutils literal notranslate"><span class="pre">initTestCase()</span></code> (once) or <code class="docutils literal notranslate"><span class="pre">init()</span></code> (before each slot), shared state into members, and
+every slot passes when it runs alone. Checks that build on what an earlier group left stay in its slot.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QCOMPARE(actual,</span> <span class="pre">expected)</span></code> shows both values on failure; use it where both sides print, such as numbers, <code class="docutils literal notranslate"><span class="pre">QString</span></code>
+and <code class="docutils literal notranslate"><span class="pre">std::string</span></code> (Qt 6.4 prints no value for it). A check that joined comparisons with <code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code> becomes one line per
+comparison, in the same order. Anything else, a <code class="docutils literal notranslate"><span class="pre">nlohmann::json</span></code> comparison for example, is
+<code class="docutils literal notranslate"><span class="pre">QVERIFY2(condition,</span> <span class="pre">message)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QCOMPARE</span></code> treats floating-point values as equal within a relative 1e-12, and anything within 1e-12 of zero as zero.
+<code class="docutils literal notranslate"><span class="pre">QCOMPARE_EQ</span></code> compares exactly. Keep it to numbers: with a string literal, Qt 6.8.3 crashes when the comparison fails.</p></li>
+<li><p>A check over a table becomes a <code class="docutils literal notranslate"><span class="pre">_data()</span></code> slot with <code class="docutils literal notranslate"><span class="pre">QTest::addColumn</span></code> and <code class="docutils literal notranslate"><span class="pre">QTest::newRow</span></code>; each row reports on its
+own (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QTRY_VERIFY_WITH_TIMEOUT(condition,</span> <span class="pre">milliseconds)</span></code> waits for a condition instead of a sleep. An exception that leaves
+a slot fails it and ends the program.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build/test_timeformat</span> <span class="pre">formatsSimTime</span></code> runs one slot, <code class="docutils literal notranslate"><span class="pre">formatsSimTime:offset</span></code> one row of it, and <code class="docutils literal notranslate"><span class="pre">-functions</span></code> lists
+the slots. A <code class="docutils literal notranslate"><span class="pre">gui</span></code> test outside CTest needs <code class="docutils literal notranslate"><span class="pre">QT_QPA_PLATFORM=offscreen</span></code>.</p></li>
+<li><p>Qt Test rejects arguments that it does not know. A test reads its paths from compile definitions of its
+registration, such as <code class="docutils literal notranslate"><span class="pre">EGTRAIN_TEST_SOURCE_DIR</span></code>, and a mode such as <code class="docutils literal notranslate"><span class="pre">EGTRAIN_UPDATE_EXPECTATIONS=1</span></code> from the
+environment (<code class="docutils literal notranslate"><span class="pre">tests/test_liveframe.cpp</span></code>).</p></li>
+<li><p>A Qt Test program that skips (<code class="docutils literal notranslate"><span class="pre">QSKIP</span></code>) exits with 0, so a test with <code class="docutils literal notranslate"><span class="pre">SKIP_RETURN_CODE</span></code> keeps a <code class="docutils literal notranslate"><span class="pre">main</span></code> of its own
+that returns the skip code before it calls <code class="docutils literal notranslate"><span class="pre">QTest::qExec</span></code>.</p></li>
+<li><p>Files that are not converted yet keep their local <code class="docutils literal notranslate"><span class="pre">expect</span></code> or <code class="docutils literal notranslate"><span class="pre">check</span></code> helper (<a class="reference internal" href="coding-guidelines.html#tests"><span class="std std-ref">Tests</span></a>).</p></li>
+</ul>
+</section>
 <section id="test-labels">
 <h3>Test labels<a class="headerlink" href="#test-labels" title="Link to this heading">¶</a></h3>
 <p>Every test has exactly one of <code class="docutils literal notranslate"><span class="pre">unit</span></code> or <code class="docutils literal notranslate"><span class="pre">integration</span></code>. Configuration fails
@@ -1034,6 +1075,7 @@ in the web browser. The package jobs build the manual and fail when a package la
             <ul>
 <li><a class="reference internal" href="#">Testing</a><ul>
 <li><a class="reference internal" href="#unit-tests">Unit Tests</a><ul>
+<li><a class="reference internal" href="#writing-a-test">Writing a test</a></li>
 <li><a class="reference internal" href="#test-labels">Test labels</a></li>
 <li><a class="reference internal" href="#platform-coverage">Platform coverage</a></li>
 <li><a class="reference internal" href="#https-update-check">HTTPS update check</a></li>

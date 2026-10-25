@@ -395,9 +395,11 @@ exactly one of `unit` and `integration`, and on an unknown label. A `gui` test r
 the arguments or runs a script instead, and options such as `TIMEOUT` and `ENVIRONMENT` set the
 test properties; the comment above the function lists them all.
 
-- Tests are plain programs with a `main()` and no test framework. Most define a local
+- The tests are moving to Qt Test. A converted file is one test class, as
+  [Writing a test](testing.md#writing-a-test) describes (`tests/test_timeformat.cpp`). A file that
+  is not converted yet is a plain program with a `main()`; most define a local
   `expect(bool, const char*)` that prints `failed: <message>`, combine results with
-  `ok &= expect(...)` and return a non-zero exit code on failure (`tests/test_timeformat.cpp`).
+  `ok &= expect(...)` and return a non-zero exit code on failure.
 - Assertions must still run in a Release build, the default. The telemetry tests put
   `#undef NDEBUG` before `#include <cassert>` (`tests/test_telemetryqueue.cpp`).
 - A logic change comes with the smallest test that fails without it. For a validation rule,
