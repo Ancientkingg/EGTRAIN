@@ -1,7 +1,6 @@
 var class_infra_element =
 [
     [ "InfraElement", "class_infra_element.html#ac86970977f3cfb7700ef2451ec7868f1", null ],
-    [ "operator=", "class_infra_element.html#afbbc21179af518d9da8b35f5899086f5", null ],
     [ "ConnectedPoint", "class_infra_element.html#a3aa5f6a6d172bf443dffd39d8594e385", null ],
     [ "GeoXCoord", "class_infra_element.html#a0fb54d2e38585884aeee35d630a57506", null ],
     [ "GeoYCoord", "class_infra_element.html#a8d3e6426e8e151ec758fea7993c5ec71", null ],

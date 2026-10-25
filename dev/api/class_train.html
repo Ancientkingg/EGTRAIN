@@ -115,14 +115,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_train.ht
 
 <p><code>#include &lt;<a class="el" href="_rolling_stock_8h_source.html">simulation/RollingStock.h</a>&gt;</code></p>
 <div class="dynheader">
-Inheritance diagram for Train:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train__inherit__graph.svg" width="90" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
 Collaboration diagram for Train:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train__coll__graph.svg" width="974" height="660"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train__coll__graph.svg" width="974" height="634"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -135,19 +130,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa05ce5a8ff68dea76d457f4ff2d0d1ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.  <br /></td></tr>
 <tr class="memitem:aab13668e235554b116f7a32d2ea894db" id="r_aab13668e235554b116f7a32d2ea894db"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab13668e235554b116f7a32d2ea894db">cacheStationPositions</a> ()</td></tr>
 <tr class="memitem:a7e2990e6f543460759cde3d36dd6adc3" id="r_a7e2990e6f543460759cde3d36dd6adc3"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7e2990e6f543460759cde3d36dd6adc3">isStopArc</a> (int section, int arc) const</td></tr>
-<tr class="memitem:a0d15f6d3dc453d6aba319e852f21714e" id="r_a0d15f6d3dc453d6aba319e852f21714e"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a0d15f6d3dc453d6aba319e852f21714e">tractiveEffort</a> (double V)</td></tr>
-<tr class="memitem:a82de975c4acc0c503964ccce89396d74" id="r_a82de975c4acc0c503964ccce89396d74"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a82de975c4acc0c503964ccce89396d74">brakingEffort</a> (double T)</td></tr>
+<tr class="memitem:a0d15f6d3dc453d6aba319e852f21714e" id="r_a0d15f6d3dc453d6aba319e852f21714e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0d15f6d3dc453d6aba319e852f21714e">tractiveEffort</a> (double V)</td></tr>
+<tr class="memitem:a82de975c4acc0c503964ccce89396d74" id="r_a82de975c4acc0c503964ccce89396d74"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a82de975c4acc0c503964ccce89396d74">brakingEffort</a> (double T)</td></tr>
 <tr class="memdesc:a82de975c4acc0c503964ccce89396d74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.  <br /></td></tr>
-<tr class="memitem:ab101610ad7c3a484b47d1b921a06748c" id="r_ab101610ad7c3a484b47d1b921a06748c"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#ab101610ad7c3a484b47d1b921a06748c">traction_unit_resistences</a> (double V)</td></tr>
-<tr class="memitem:adc2f8f8003ca203b515b9e1e497464b8" id="r_adc2f8f8003ca203b515b9e1e497464b8"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#adc2f8f8003ca203b515b9e1e497464b8">wagons_resistances</a> (double V)</td></tr>
+<tr class="memitem:ab101610ad7c3a484b47d1b921a06748c" id="r_ab101610ad7c3a484b47d1b921a06748c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab101610ad7c3a484b47d1b921a06748c">traction_unit_resistences</a> (double V)</td></tr>
+<tr class="memitem:adc2f8f8003ca203b515b9e1e497464b8" id="r_adc2f8f8003ca203b515b9e1e497464b8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adc2f8f8003ca203b515b9e1e497464b8">wagons_resistances</a> (double V)</td></tr>
 <tr class="memdesc:adc2f8f8003ca203b515b9e1e497464b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.  <br /></td></tr>
-<tr class="memitem:adbe28d64621aaaba05c0c29d9617bfd9" id="r_adbe28d64621aaaba05c0c29d9617bfd9"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#adbe28d64621aaaba05c0c29d9617bfd9">gradient_resistances</a> (double G)</td></tr>
+<tr class="memitem:adbe28d64621aaaba05c0c29d9617bfd9" id="r_adbe28d64621aaaba05c0c29d9617bfd9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adbe28d64621aaaba05c0c29d9617bfd9">gradient_resistances</a> (double G)</td></tr>
 <tr class="memdesc:adbe28d64621aaaba05c0c29d9617bfd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resistance in N of the gradient G, as rise per length (<a class="el" href="class_arc.html#a49a70cc9f9cec941b854c7ee67001872">Arc::gradient</a>).  <br /></td></tr>
-<tr class="memitem:aaaf0df103f25cbe3d3289775c570d18e" id="r_aaaf0df103f25cbe3d3289775c570d18e"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#aaaf0df103f25cbe3d3289775c570d18e">curvature_resistances</a> (double R)</td></tr>
+<tr class="memitem:aaaf0df103f25cbe3d3289775c570d18e" id="r_aaaf0df103f25cbe3d3289775c570d18e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aaaf0df103f25cbe3d3289775c570d18e">curvature_resistances</a> (double R)</td></tr>
 <tr class="memdesc:aaaf0df103f25cbe3d3289775c570d18e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).  <br /></td></tr>
 <tr class="memitem:a8e62345b2e57ad32280b8c1953ece34c" id="r_a8e62345b2e57ad32280b8c1953ece34c"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a8e62345b2e57ad32280b8c1953ece34c">total_train_resistances</a> (double V, double G, double R)</td></tr>
-<tr class="memdesc:a8e62345b2e57ad32280b8c1953ece34c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.  <br /></td></tr>
-<tr class="memitem:a46531a8208482388ffc89a5d56a72e10" id="r_a46531a8208482388ffc89a5d56a72e10"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a46531a8208482388ffc89a5d56a72e10">Initialise_Gibson_Dwell_Time_Parameters</a> (float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7)</td></tr>
+<tr class="memitem:a46531a8208482388ffc89a5d56a72e10" id="r_a46531a8208482388ffc89a5d56a72e10"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a46531a8208482388ffc89a5d56a72e10">Initialise_Gibson_Dwell_Time_Parameters</a> (float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7)</td></tr>
 <tr class="memdesc:a46531a8208482388ffc89a5d56a72e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the eight parameters of the passenger dwell model in GibsonDwellTimeParameters.  <br /></td></tr>
 <tr class="memitem:a94dccc7e1bd2b58dde2acd5b75f2895d" id="r_a94dccc7e1bd2b58dde2acd5b75f2895d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a94dccc7e1bd2b58dde2acd5b75f2895d">train_energy_consumption</a> (int t)</td></tr>
 <tr class="memdesc:a94dccc7e1bd2b58dde2acd5b75f2895d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the energy of step t to instant_train_energy_consumption and returns the total in MJ.  <br /></td></tr>
@@ -166,8 +160,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af7934345348548b70111ecbb47dd58c7" id="r_af7934345348548b70111ecbb47dd58c7"><td class="memItemLeft">const <a class="el" href="class_movement_authority.html">MovementAuthority</a> *&#160;</td><td class="memItemRight"><a class="el" href="#af7934345348548b70111ecbb47dd58c7">currentFollowingAuthority</a> (double head, double &amp;leaderHead) const</td></tr>
 <tr class="memitem:a56bc8158e3c8ee2b4cc8f0cfaab6f9a3" id="r_a56bc8158e3c8ee2b4cc8f0cfaab6f9a3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a56bc8158e3c8ee2b4cc8f0cfaab6f9a3">checkIfMovementAuthorityStillValid</a> (double speed, double head, const <a class="el" href="class_section.html">Section</a> &amp;section)</td></tr>
 <tr class="memitem:a53e9517a26b451c8ebd49e4895bb8921" id="r_a53e9517a26b451c8ebd49e4895bb8921"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a53e9517a26b451c8ebd49e4895bb8921">leaveFollowingModeWhenLeaderIsGone</a> (int time_seconds)</td></tr>
-<tr class="memitem:ae67e8c5e364a38ec05fe9fd268b1a064" id="r_ae67e8c5e364a38ec05fe9fd268b1a064"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#ae67e8c5e364a38ec05fe9fd268b1a064">BrakingDistanceFastComputation</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
-<tr class="memitem:a9919b5df2c04fa5c9be99f738d5471f3" id="r_a9919b5df2c04fa5c9be99f738d5471f3"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a9919b5df2c04fa5c9be99f738d5471f3">AccelerationTimeFollowingMode</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
+<tr class="memitem:ae67e8c5e364a38ec05fe9fd268b1a064" id="r_ae67e8c5e364a38ec05fe9fd268b1a064"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae67e8c5e364a38ec05fe9fd268b1a064">BrakingDistanceFastComputation</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
+<tr class="memitem:a9919b5df2c04fa5c9be99f738d5471f3" id="r_a9919b5df2c04fa5c9be99f738d5471f3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9919b5df2c04fa5c9be99f738d5471f3">AccelerationTimeFollowingMode</a> (double V1, double V2, double X1, double X2, <a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
 <tr class="memitem:a57f7e9d2d2b854fa1214fda170635bbc" id="r_a57f7e9d2d2b854fa1214fda170635bbc"><td class="memItemLeft">const <a class="el" href="class_arc.html">Arc</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a57f7e9d2d2b854fa1214fda170635bbc">brakingArc</a> (double head, <a class="el" href="class_section.html">Section</a> *sections, int count, double *safeUpper=nullptr) const</td></tr>
 <tr class="memdesc:a57f7e9d2d2b854fa1214fda170635bbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc under head in metres on the given sections, or null; a fresh <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> lookup.  <br /></td></tr>
 <tr class="memitem:ab5547152846ad249a7121a1678375531" id="r_ab5547152846ad249a7121a1678375531"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab5547152846ad249a7121a1678375531">brakingCurveSpeed</a> (double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc)</td></tr>
@@ -182,15 +176,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a54fc076df66c661dccd1a701273efd19" id="r_a54fc076df66c661dccd1a701273efd19"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a54fc076df66c661dccd1a701273efd19">needsSingleTrackReservation</a> (double head, double speed, double entry, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a384f38f04a720e0a4f01338d6465ac84" id="r_a384f38f04a720e0a4f01338d6465ac84"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a384f38f04a720e0a4f01338d6465ac84">cachedBrakingSuccessor</a> (int previousInstant, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, double target, double targetSpeed)</td></tr>
 <tr class="memitem:ad8b349c94f8a0f31bdff97899672573d" id="r_ad8b349c94f8a0f31bdff97899672573d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad8b349c94f8a0f31bdff97899672573d">europeanVitalComputerWithListsImproved</a> (double S, double V, int PreviousInstant, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, bool &amp;continueCached)</td></tr>
-<tr class="memitem:adda58a2a6872fa9512e72cbec2abb7e0" id="r_adda58a2a6872fa9512e72cbec2abb7e0"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#adda58a2a6872fa9512e72cbec2abb7e0">DrawBrakingCurve</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
+<tr class="memitem:adda58a2a6872fa9512e72cbec2abb7e0" id="r_adda58a2a6872fa9512e72cbec2abb7e0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adda58a2a6872fa9512e72cbec2abb7e0">DrawBrakingCurve</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a632ba10791abd58a3febb922e8d60ae6" id="r_a632ba10791abd58a3febb922e8d60ae6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a632ba10791abd58a3febb922e8d60ae6">planBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count)</td></tr>
 <tr class="memitem:a1af634b7447d29cd8696899f0d900f03" id="r_a1af634b7447d29cd8696899f0d900f03"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1af634b7447d29cd8696899f0d900f03">brakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memdesc:a1af634b7447d29cd8696899f0d900f03"><td class="mdescLeft">&#160;</td><td class="mdescRight">One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.  <br /></td></tr>
 <tr class="memitem:a9ed1da2ac786a644ff5e8fd001c8d4e1" id="r_a9ed1da2ac786a644ff5e8fd001c8d4e1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ed1da2ac786a644ff5e8fd001c8d4e1">fullBrakingStep</a> (int time_seconds, const <a class="el" href="class_arc.html">Arc</a> &amp;As)</td></tr>
-<tr class="memitem:a2daf71d16057b5847a8640522272a793" id="r_a2daf71d16057b5847a8640522272a793"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2daf71d16057b5847a8640522272a793">PrintTrajectory</a> ()</td></tr>
+<tr class="memitem:a2daf71d16057b5847a8640522272a793" id="r_a2daf71d16057b5847a8640522272a793"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2daf71d16057b5847a8640522272a793">PrintTrajectory</a> ()</td></tr>
 <tr class="memitem:aa6129d2e460d7abdfb98939484357f09" id="r_aa6129d2e460d7abdfb98939484357f09"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="#aa6129d2e460d7abdfb98939484357f09">~Train</a> ()</td></tr>
 <tr class="memdesc:aa6129d2e460d7abdfb98939484357f09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does nothing.  <br /></td></tr>
-<tr class="memitem:a7fb86eca790a418b0ef476f89e77e36b" id="r_a7fb86eca790a418b0ef476f89e77e36b"><td class="memItemLeft">virtual std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7fb86eca790a418b0ef476f89e77e36b">DetermineOccupiedTDS</a> (int timeinstant, bool IsRouteReversed)</td></tr>
+<tr class="memitem:a7fb86eca790a418b0ef476f89e77e36b" id="r_a7fb86eca790a418b0ef476f89e77e36b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7fb86eca790a418b0ef476f89e77e36b">DetermineOccupiedTDS</a> (int timeinstant, bool IsRouteReversed)</td></tr>
 <tr class="memdesc:a7fb86eca790a418b0ef476f89e77e36b"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.  <br /></td></tr>
 <tr class="memitem:aae86e0228dcc9da75848221be573a189" id="r_aae86e0228dcc9da75848221be573a189"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aae86e0228dcc9da75848221be573a189">recordDirectIncidentId</a> (const std::string &amp;incidentId, double timeSeconds, double locationMeters)</td></tr>
 <tr class="memdesc:aae86e0228dcc9da75848221be573a189"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is the first.  <br /></td></tr>
@@ -199,10 +193,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af83706fc0c810785c1570b044d91a7d7" id="r_af83706fc0c810785c1570b044d91a7d7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af83706fc0c810785c1570b044d91a7d7">recordDirectSignalFailure</a> (const <a class="el" href="class_movement_authority.html">MovementAuthority</a> &amp;authority, double timeSeconds)</td></tr>
 <tr class="memdesc:af83706fc0c810785c1570b044d91a7d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Records the incident behind a signal failure authority.  <br /></td></tr>
 <tr class="memitem:a301604736506a528db15b8e4a1bd32e4" id="r_a301604736506a528db15b8e4a1bd32e4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a301604736506a528db15b8e4a1bd32e4">effectiveIncidentSpeedLimit</a> (double candidate, int timestepIndex)</td></tr>
-<tr class="memitem:a09e55bf615f21184e4a57367932d4a61" id="r_a09e55bf615f21184e4a57367932d4a61"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a09e55bf615f21184e4a57367932d4a61">trajectoryComputationIncludingMovingBlock</a> (int time_seconds, double signalCode1, double signalCode2, double signalCode3)</td></tr>
+<tr class="memitem:a09e55bf615f21184e4a57367932d4a61" id="r_a09e55bf615f21184e4a57367932d4a61"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a09e55bf615f21184e4a57367932d4a61">trajectoryComputationIncludingMovingBlock</a> (int time_seconds, double signalCode1, double signalCode2, double signalCode3)</td></tr>
 <tr class="memitem:a4b084c4974815396a1675e0ebab3350e" id="r_a4b084c4974815396a1675e0ebab3350e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b084c4974815396a1675e0ebab3350e">computeArrivalAndDepartureAtLocation</a> (double LocationPosition, <a class="el" href="class_train_event.html">TrainEvent</a> &amp;PassingPoint)</td></tr>
 <tr class="memitem:a0f2a4c491a15ae2c8f1e4401f58dd5b0" id="r_a0f2a4c491a15ae2c8f1e4401f58dd5b0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0f2a4c491a15ae2c8f1e4401f58dd5b0">ComputeTimetablingPoints</a> ()</td></tr>
-<tr class="memitem:a788c9e9175a97051d8b5cf0322a9b756" id="r_a788c9e9175a97051d8b5cf0322a9b756"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a788c9e9175a97051d8b5cf0322a9b756">Det_Section_Occupied_By_Train</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
+<tr class="memitem:a788c9e9175a97051d8b5cf0322a9b756" id="r_a788c9e9175a97051d8b5cf0322a9b756"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a788c9e9175a97051d8b5cf0322a9b756">Det_Section_Occupied_By_Train</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int Blocks)</td></tr>
 <tr class="memitem:a5f35386ac7d65c9b6ed1dc85932f1cdf" id="r_a5f35386ac7d65c9b6ed1dc85932f1cdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5f35386ac7d65c9b6ed1dc85932f1cdf">ReportPositionToRBC</a> (int i, <a class="el" href="class_section.html">Section</a> *BS, int N_BS, double ETCS3SafetyMargin)</td></tr>
 <tr class="memitem:a875f0eaa5ed019bfe9e9ec44486874e8" id="r_a875f0eaa5ed019bfe9e9ec44486874e8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a875f0eaa5ed019bfe9e9ec44486874e8">ComputeBlockingTimeForSingleLocation</a> (int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement)</td></tr>
 <tr class="memitem:a20daa1ddd39245f4bca371639115a2ce" id="r_a20daa1ddd39245f4bca371639115a2ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a20daa1ddd39245f4bca371639115a2ce">ComputeBlockTime_ETCSLevel_3_ForSection</a> (int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement)</td></tr>
@@ -286,8 +280,6 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a64848b60a78f18f42eadc06d6ae1743d" id="r_a64848b60a78f18f42eadc06d6ae1743d"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64848b60a78f18f42eadc06d6ae1743d">TotalEnergySubstRequestWithRegBrak</a></td></tr>
 <tr class="memitem:acaf9ea9d7ef495ef529cd3b3b49dbfbf" id="r_acaf9ea9d7ef495ef529cd3b3b49dbfbf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#acaf9ea9d7ef495ef529cd3b3b49dbfbf">EnergyForAuxiliaries</a> = 0.0</td></tr>
 <tr class="memitem:aa6124e479707b630cf57f85cf43a85e0" id="r_aa6124e479707b630cf57f85cf43a85e0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa6124e479707b630cf57f85cf43a85e0">departure_time</a> = 0.0</td></tr>
-<tr class="memitem:ab8c0040bc083be28fedcd2399eed67e4" id="r_ab8c0040bc083be28fedcd2399eed67e4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab8c0040bc083be28fedcd2399eed67e4">brakingPoint</a></td></tr>
-<tr class="memdesc:ab8c0040bc083be28fedcd2399eed67e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index in Sbrak and Vbrak used by the last braking step. Nothing reads it.  <br /></td></tr>
 <tr class="memitem:adcbc6c37377e3367888f54f959092ef7" id="r_adcbc6c37377e3367888f54f959092ef7"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adcbc6c37377e3367888f54f959092ef7">scheduled_departure_time</a> = 0.0</td></tr>
 <tr class="memitem:a7a645c0416337b21b0212cf2a994f2f4" id="r_a7a645c0416337b21b0212cf2a994f2f4"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7a645c0416337b21b0212cf2a994f2f4">temp</a></td></tr>
 <tr class="memitem:add33181aceefcc5f3dc329c526899545" id="r_add33181aceefcc5f3dc329c526899545"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#add33181aceefcc5f3dc329c526899545">stop</a></td></tr>
@@ -322,8 +314,6 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a04243153043d7d2665696f8d85975be5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a breakdown asks to mark the train terminated at the end of its route.  <br /></td></tr>
 <tr class="memitem:a741058ae08dbdb942b0006dbcc37efe1" id="r_a741058ae08dbdb942b0006dbcc37efe1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a741058ae08dbdb942b0006dbcc37efe1">destinationTerminated</a> = false</td></tr>
 <tr class="memdesc:a741058ae08dbdb942b0006dbcc37efe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once such a train has reached the end of its route.  <br /></td></tr>
-<tr class="memitem:a3751c20a313214c76bb5a89fb567a87f" id="r_a3751c20a313214c76bb5a89fb567a87f"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3751c20a313214c76bb5a89fb567a87f">As</a></td></tr>
-<tr class="memdesc:a3751c20a313214c76bb5a89fb567a87f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used: the step and the braking routines keep their own arc.  <br /></td></tr>
 <tr class="memitem:a0e36c50be567928ddce0ef03c752a832" id="r_a0e36c50be567928ddce0ef03c752a832"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0e36c50be567928ddce0ef03c752a832">Bs</a></td></tr>
 <tr class="memdesc:a0e36c50be567928ddce0ef03c752a832"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy of the section of the head in the current step.  <br /></td></tr>
 <tr class="memitem:a16d9fbb942200efe5fd346dd6a35bea3" id="r_a16d9fbb942200efe5fd346dd6a35bea3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a16d9fbb942200efe5fd346dd6a35bea3">Start_Node_X</a> = 0.0</td></tr>
@@ -333,8 +323,6 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:afd00d4462904e66082c5b27f1e29027e" id="r_afd00d4462904e66082c5b27f1e29027e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afd00d4462904e66082c5b27f1e29027e">indexOfRoute</a></td></tr>
 <tr class="memdesc:afd00d4462904e66082c5b27f1e29027e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index of the route in <a class="el" href="struct_run_infrastructure.html#a0cb8232a9dcda2b336d6e4d630db2d2a" title="The routes of the scene, in the order of the scene.">RunInfrastructure::routes</a>, from 0.  <br /></td></tr>
 <tr class="memitem:a1f72586d9b8a67f86aa2127673e46d06" id="r_a1f72586d9b8a67f86aa2127673e46d06"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1f72586d9b8a67f86aa2127673e46d06">trainDescription</a></td></tr>
-<tr class="memdesc:a1f72586d9b8a67f86aa2127673e46d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Service ID and occurrence joined by "-", which names the train everywhere.  <br /></td></tr>
-<tr class="memitem:a3949404fc370fcd4a8de850d54ea4590" id="r_a3949404fc370fcd4a8de850d54ea4590"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3949404fc370fcd4a8de850d54ea4590">direction</a></td></tr>
 <tr class="memitem:a7df4fcc91f29f6761248c5fb8b96f321" id="r_a7df4fcc91f29f6761248c5fb8b96f321"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7df4fcc91f29f6761248c5fb8b96f321">GradientExceptionInBraking</a></td></tr>
 <tr class="memdesc:a7df4fcc91f29f6761248c5fb8b96f321"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the stored braking plan is below its target speed before its last point.  <br /></td></tr>
 <tr class="memitem:ab712deff66d745756fde4a32be9318e5" id="r_ab712deff66d745756fde4a32be9318e5"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab712deff66d745756fde4a32be9318e5">BX</a></td></tr>
@@ -356,12 +344,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab0d9f7942f8624e556430f34c39b8118" id="r_ab0d9f7942f8624e556430f34c39b8118"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab0d9f7942f8624e556430f34c39b8118">StationConsecDelay</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memitem:ae46c67dc9f9756139a4c4ebedccb41eb" id="r_ae46c67dc9f9756139a4c4ebedccb41eb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae46c67dc9f9756139a4c4ebedccb41eb">StationDisturbance</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>]</td></tr>
 <tr class="memdesc:ae46c67dc9f9756139a4c4ebedccb41eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disturbance of the dwell at each stop in seconds; 0, since nothing sets it.  <br /></td></tr>
-<tr class="memitem:a926c3ae78be224bf9c09d048796a7875" id="r_a926c3ae78be224bf9c09d048796a7875"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a926c3ae78be224bf9c09d048796a7875">N_Station_Stopped</a></td></tr>
-<tr class="memdesc:a926c3ae78be224bf9c09d048796a7875"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 and never changed.  <br /></td></tr>
 <tr class="memitem:ac7e422051ab76ac6dee9ec2bdf52695b" id="r_ac7e422051ab76ac6dee9ec2bdf52695b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac7e422051ab76ac6dee9ec2bdf52695b">ScheduledArrivals</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
 <tr class="memitem:abe5cf10a3a2fcc62b35ce0d35505d2cb" id="r_abe5cf10a3a2fcc62b35ce0d35505d2cb"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abe5cf10a3a2fcc62b35ce0d35505d2cb">ScheduledDepartures</a> [<a class="el" href="#ad3413c2c368aec1a5ee480ba98158ca5">kMaxTimetableStations</a>] = {}</td></tr>
-<tr class="memitem:af24648dc7cc348b9802e7c3686451708" id="r_af24648dc7cc348b9802e7c3686451708"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af24648dc7cc348b9802e7c3686451708">delayed</a></td></tr>
-<tr class="memdesc:af24648dc7cc348b9802e7c3686451708"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 and never changed.  <br /></td></tr>
 <tr class="memitem:a6d0eca68bf9bd529189b6327e379ddfe" id="r_a6d0eca68bf9bd529189b6327e379ddfe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6d0eca68bf9bd529189b6327e379ddfe">TotalInputDelays</a> = 0.0</td></tr>
 <tr class="memdesc:a6d0eca68bf9bd529189b6327e379ddfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sum of the Entrance Delays +stochastic disturbances to dwell times, in seconds.  <br /></td></tr>
 <tr class="memitem:a825cd3cc07e160b05483bfd36d697131" id="r_a825cd3cc07e160b05483bfd36d697131"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a825cd3cc07e160b05483bfd36d697131">EntranceDelay</a></td></tr>
@@ -409,28 +393,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a05aa6fd519005ecf7c4c0b642684f101" id="r_a05aa6fd519005ecf7c4c0b642684f101"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a05aa6fd519005ecf7c4c0b642684f101">N_BlockSections</a></td></tr>
 <tr class="memdesc:a05aa6fd519005ecf7c4c0b642684f101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries of BlockTime.  <br /></td></tr>
 <tr class="memitem:a4dc39039e2b4d547b759f513e42fc67f" id="r_a4dc39039e2b4d547b759f513e42fc67f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4dc39039e2b4d547b759f513e42fc67f">N_BlockTimeComplete</a></td></tr>
-<tr class="memdesc:a4dc39039e2b4d547b759f513e42fc67f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries of BlockTime that are complete.  <br /></td></tr>
-<tr class="memitem:a3dcf330de8186343d9afeddcf7a42b9a" id="r_a3dcf330de8186343d9afeddcf7a42b9a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3dcf330de8186343d9afeddcf7a42b9a">numOverlaps</a></td></tr>
-<tr class="memdesc:a3dcf330de8186343d9afeddcf7a42b9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 and never changed.  <br /></td></tr>
-<tr class="memitem:a0c85eb3c5cd065add892a324d6de80b3" id="r_a0c85eb3c5cd065add892a324d6de80b3"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0c85eb3c5cd065add892a324d6de80b3">Final_Delay</a></td></tr>
 <tr class="memitem:a6ccb40620b3c8ac7776ca81eca9c804d" id="r_a6ccb40620b3c8ac7776ca81eca9c804d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6ccb40620b3c8ac7776ca81eca9c804d">End_Time</a></td></tr>
 <tr class="memitem:a679d291204949b90f53122f164704ddb" id="r_a679d291204949b90f53122f164704ddb"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a679d291204949b90f53122f164704ddb">earliestActiveTrajectoryIndex</a> = -1</td></tr>
 <tr class="memdesc:a679d291204949b90f53122f164704ddb"><td class="mdescLeft">&#160;</td><td class="mdescRight">First simulation sample in the active run; -1 until the train enters.  <br /></td></tr>
-<tr class="memitem:a61e091b9d5ad3d8c70cec2b29ea50533" id="r_a61e091b9d5ad3d8c70cec2b29ea50533"><td class="memItemLeft">std::list&lt; <a class="el" href="class_location.html">Location</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a61e091b9d5ad3d8c70cec2b29ea50533">LocationNames</a></td></tr>
-<tr class="memdesc:a61e091b9d5ad3d8c70cec2b29ea50533"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not filled by the simulation, so empty.  <br /></td></tr>
-<tr class="memitem:ac9a79f06033a423a0f97e3f09ee81517" id="r_ac9a79f06033a423a0f97e3f09ee81517"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac9a79f06033a423a0f97e3f09ee81517">ConflictingTrains</a></td></tr>
-<tr class="memdesc:ac9a79f06033a423a0f97e3f09ee81517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not filled by the simulation, so empty.  <br /></td></tr>
-<tr class="memitem:a31919d06a735ab55ae4e95ffba6cddbf" id="r_a31919d06a735ab55ae4e95ffba6cddbf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a31919d06a735ab55ae4e95ffba6cddbf">N_ConflictingTrains</a></td></tr>
-<tr class="memdesc:a31919d06a735ab55ae4e95ffba6cddbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to 0 and never changed.  <br /></td></tr>
-<tr class="memitem:ad0002743b9f6e6e558ac1fe14c315148" id="r_ad0002743b9f6e6e558ac1fe14c315148"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad0002743b9f6e6e558ac1fe14c315148">ETCS3StoppingPoint</a></td></tr>
-<tr class="memdesc:ad0002743b9f6e6e558ac1fe14c315148"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to -1 and never changed.  <br /></td></tr>
 <tr class="memitem:a97808864d0b344d7e720a9c58fbf210b" id="r_a97808864d0b344d7e720a9c58fbf210b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a97808864d0b344d7e720a9c58fbf210b">IsTrainStoppedForEoA</a></td></tr>
 <tr class="memitem:acc2df842d01c43aa0a3bd6d7bb5b2a04" id="r_acc2df842d01c43aa0a3bd6d7bb5b2a04"><td class="memItemLeft">std::list&lt; <a class="el" href="class_train_event.html">TrainEvent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acc2df842d01c43aa0a3bd6d7bb5b2a04">TimetablePoints</a></td></tr>
 <tr class="memdesc:acc2df842d01c43aa0a3bd6d7bb5b2a04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arrival and departure at each station node on the route, where the train stops or not (ComputeTimetablingPoints).  <br /></td></tr>
-<tr class="memitem:ac1ee6773eb12a8f4a6c988dca4fbadc9" id="r_ac1ee6773eb12a8f4a6c988dca4fbadc9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac1ee6773eb12a8f4a6c988dca4fbadc9">prevIntendedDepTime</a></td></tr>
-<tr class="memdesc:ac1ee6773eb12a8f4a6c988dca4fbadc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First step that printTrainServicePathDiagram may print; set to 0 and never changed.  <br /></td></tr>
-<tr class="memitem:ab33effe4ea0276e764d194be2b3597f5" id="r_ab33effe4ea0276e764d194be2b3597f5"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab33effe4ea0276e764d194be2b3597f5">dispLineID</a> = -1</td></tr>
-<tr class="memdesc:ab33effe4ea0276e764d194be2b3597f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1.  <br /></td></tr>
 <tr class="memitem:a5a4bc47327bbcb9d3eb98c5a600338bc" id="r_a5a4bc47327bbcb9d3eb98c5a600338bc"><td class="memItemLeft">float&#160;</td><td class="memItemRight"><a class="el" href="#a5a4bc47327bbcb9d3eb98c5a600338bc">GibsonDwellTimeParameters</a> [8]</td></tr>
 <tr class="memitem:a62cafe5bc37059c476c5571e52eedc8b" id="r_a62cafe5bc37059c476c5571e52eedc8b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a62cafe5bc37059c476c5571e52eedc8b">MAX_OnBoard_Passengers</a></td></tr>
 <tr class="memdesc:a62cafe5bc37059c476c5571e52eedc8b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_passenger.html">Passenger</a> capacity of the train (trainPassengerCapacity).  <br /></td></tr>
@@ -502,9 +470,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::AccelerationTimeFollowingMode </td>
@@ -537,11 +502,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>N_BS</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it cannot accelerate on that either the result is -99999. </p>
 <div class="dynheader">
@@ -629,7 +589,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m). X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead. </p>
+<p>The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m). X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found. Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow. When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead. Virtual so that a test can make the lookup fail. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -716,9 +676,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::BrakingDistanceFastComputation </td>
@@ -751,11 +708,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>N_BS</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m). </p>
 <div class="dynheader">
@@ -771,9 +723,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::brakingEffort </td>
@@ -782,11 +731,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration. </p>
@@ -1526,9 +1470,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::curvature_resistances </td>
@@ -1537,11 +1478,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0). </p>
@@ -1571,9 +1507,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Train::Det_Section_Occupied_By_Train </td>
@@ -1591,11 +1524,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Adds the sections that the train covers from tail to head in step i to run.blocksOccupied, with its double switches and diverging switches, and releases its last section when it has left the route. BS holds the Blocks sections of its route. </p>
 <div class="dynheader">
@@ -1634,9 +1562,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">string Train::DetermineOccupiedTDS </td>
@@ -1649,11 +1574,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>IsRouteReversed</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>ID of the track detection section of Bs under the head at step timeinstant; empty when there is none. </p>
@@ -1665,9 +1585,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool Train::DrawBrakingCurve </td>
@@ -1695,11 +1612,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>Blocks</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps. </p>
 <div class="dynheader">
@@ -1843,9 +1755,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::gradient_resistances </td>
@@ -1854,11 +1763,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Resistance in N of the gradient G, as rise per length (<a class="el" href="class_arc.html#a49a70cc9f9cec941b854c7ee67001872">Arc::gradient</a>). </p>
@@ -1870,9 +1774,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Train::Initialise_Gibson_Dwell_Time_Parameters </td>
@@ -1915,11 +1816,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>beta7</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Stores the eight parameters of the passenger dwell model in GibsonDwellTimeParameters. </p>
@@ -2391,7 +2287,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1. </p>
+<p>Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets), direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2405,9 +2301,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Train::PrintTrajectory </td>
@@ -2416,11 +2309,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Writes Traj_Train_&lt;trainDescription&gt;.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates. </p>
 <div class="dynheader">
@@ -2814,8 +2702,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres. </p>
+<p>Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres. Virtual so that a test can replace the resistances. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2856,9 +2743,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::traction_unit_resistences </td>
@@ -2867,11 +2751,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Resistance in N of the traction unit at speed V in m/s (Modified Strahl Formulae_Italian FS Formulation) </p>
 
@@ -2882,9 +2761,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::tractiveEffort </td>
@@ -2893,11 +2769,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Tractive effort in N at speed V in m/s, from the band of the traction curve that holds V, scaled by servicePerformancePercent. 0 outside every band. </p>
 
@@ -2954,9 +2825,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void Train::trajectoryComputationIncludingMovingBlock </td>
@@ -2979,11 +2847,6 @@ Here is the call graph for this function:</div>
           <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>signalCode3</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1, signalCode2 and signalCode3 are not read. </p>
 <div class="dynheader">
@@ -3026,9 +2889,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">double Train::wagons_resistances </td>
@@ -3037,11 +2897,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula. </p>
@@ -3081,22 +2936,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a3751c20a313214c76bb5a89fb567a87f" name="a3751c20a313214c76bb5a89fb567a87f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3751c20a313214c76bb5a89fb567a87f">&#9670;&#160;</a></span>As</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_arc.html">Arc</a> Train::As</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Not used: the step and the braking routines keep their own arc. </p>
-
-</div>
-</div>
 <a id="a207882ffae8d66449972414dea9b4112" name="a207882ffae8d66449972414dea9b4112"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a207882ffae8d66449972414dea9b4112">&#9670;&#160;</a></span>BlockTime</h2>
 
@@ -3126,22 +2965,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>True while the train brakes for an ETCS end of authority on the route. </p>
-
-</div>
-</div>
-<a id="ab8c0040bc083be28fedcd2399eed67e4" name="ab8c0040bc083be28fedcd2399eed67e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab8c0040bc083be28fedcd2399eed67e4">&#9670;&#160;</a></span>brakingPoint</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::brakingPoint</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Index in Sbrak and Vbrak used by the last braking step. Nothing reads it. </p>
 
 </div>
 </div>
@@ -3285,22 +3108,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac9a79f06033a423a0f97e3f09ee81517" name="ac9a79f06033a423a0f97e3f09ee81517"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9a79f06033a423a0f97e3f09ee81517">&#9670;&#160;</a></span>ConflictingTrains</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::list&lt;std::string&gt; Train::ConflictingTrains</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Not filled by the simulation, so empty. </p>
-
-</div>
-</div>
 <a id="afaa3d7513ca2f21af3652b3353bd85ec" name="afaa3d7513ca2f21af3652b3353bd85ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afaa3d7513ca2f21af3652b3353bd85ec">&#9670;&#160;</a></span>counter</h2>
 
@@ -3394,22 +3201,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="af24648dc7cc348b9802e7c3686451708" name="af24648dc7cc348b9802e7c3686451708"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af24648dc7cc348b9802e7c3686451708">&#9670;&#160;</a></span>delayed</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::delayed</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to 0 and never changed. </p>
-
-</div>
-</div>
 <a id="aa6124e479707b630cf57f85cf43a85e0" name="aa6124e479707b630cf57f85cf43a85e0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa6124e479707b630cf57f85cf43a85e0">&#9670;&#160;</a></span>departure_time</h2>
 
@@ -3421,7 +3212,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Step from which the train may enter, in seconds from the start of the run. The builder sets it to scheduled_departure_time and then spreads the trains over one hour per direction (changeTrainDepartureTimesForHourlyTimetabling); runSimulation sets it back to scheduled_departure_time before the first step. </p>
+<p>Step from which the train may enter, in seconds from the start of the run. The builder sets it to scheduled_departure_time. </p>
 
 </div>
 </div>
@@ -3470,37 +3261,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>IDs of the incidents that acted on this train directly, in order of first effect. </p>
-
-</div>
-</div>
-<a id="a3949404fc370fcd4a8de850d54ea4590" name="a3949404fc370fcd4a8de850d54ea4590"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3949404fc370fcd4a8de850d54ea4590">&#9670;&#160;</a></span>direction</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool Train::direction</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Copy of <a class="el" href="class_route.html#ad90f04173639f6ff6cf1a15a3edb562e">Route::reversed_direction</a> of the route of the train. Nothing reads it. </p>
-
-</div>
-</div>
-<a id="ab33effe4ea0276e764d194be2b3597f5" name="ab33effe4ea0276e764d194be2b3597f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab33effe4ea0276e764d194be2b3597f5">&#9670;&#160;</a></span>dispLineID</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::dispLineID = -1</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1. </p>
 
 </div>
 </div>
@@ -3592,37 +3352,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Label of the branch of the step that produced each sample: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell, 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader; 0 on other steps before entry and from End_Time + 2 on. </p>
-
-</div>
-</div>
-<a id="ad0002743b9f6e6e558ac1fe14c315148" name="ad0002743b9f6e6e558ac1fe14c315148"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad0002743b9f6e6e558ac1fe14c315148">&#9670;&#160;</a></span>ETCS3StoppingPoint</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Train::ETCS3StoppingPoint</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to -1 and never changed. </p>
-
-</div>
-</div>
-<a id="a0c85eb3c5cd065add892a324d6de80b3" name="a0c85eb3c5cd065add892a324d6de80b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c85eb3c5cd065add892a324d6de80b3">&#9670;&#160;</a></span>Final_Delay</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Train::Final_Delay</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set to 0 and never changed. </p>
 
 </div>
 </div>
@@ -4023,22 +3752,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a61e091b9d5ad3d8c70cec2b29ea50533" name="a61e091b9d5ad3d8c70cec2b29ea50533"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61e091b9d5ad3d8c70cec2b29ea50533">&#9670;&#160;</a></span>LocationNames</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::list&lt;<a class="el" href="class_location.html">Location</a>&gt; Train::LocationNames</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Not filled by the simulation, so empty. </p>
-
-</div>
-</div>
 <a id="ac2b84614e9b8c27effdbdf7a77e328c9" name="ac2b84614e9b8c27effdbdf7a77e328c9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac2b84614e9b8c27effdbdf7a77e328c9">&#9670;&#160;</a></span>mass_of_a_wagon</h2>
 
@@ -4173,40 +3886,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
 <p>Number of entries of BlockTime that are complete. </p>
-
-</div>
-</div>
-<a id="a31919d06a735ab55ae4e95ffba6cddbf" name="a31919d06a735ab55ae4e95ffba6cddbf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31919d06a735ab55ae4e95ffba6cddbf">&#9670;&#160;</a></span>N_ConflictingTrains</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::N_ConflictingTrains</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to 0 and never changed. </p>
-
-</div>
-</div>
-<a id="a926c3ae78be224bf9c09d048796a7875" name="a926c3ae78be224bf9c09d048796a7875"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a926c3ae78be224bf9c09d048796a7875">&#9670;&#160;</a></span>N_Station_Stopped</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::N_Station_Stopped</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to 0 and never changed. </p>
 
 </div>
 </div>
@@ -4223,22 +3903,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Number of wagons, without the traction unit. </p>
-
-</div>
-</div>
-<a id="a3dcf330de8186343d9afeddcf7a42b9a" name="a3dcf330de8186343d9afeddcf7a42b9a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3dcf330de8186343d9afeddcf7a42b9a">&#9670;&#160;</a></span>numOverlaps</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::numOverlaps</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set to 0 and never changed. </p>
 
 </div>
 </div>
@@ -4318,22 +3982,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Authority where the train is predicted to decouple from the train ahead. </p>
-
-</div>
-</div>
-<a id="ac1ee6773eb12a8f4a6c988dca4fbadc9" name="ac1ee6773eb12a8f4a6c988dca4fbadc9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1ee6773eb12a8f4a6c988dca4fbadc9">&#9670;&#160;</a></span>prevIntendedDepTime</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int Train::prevIntendedDepTime</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>First step that printTrainServicePathDiagram may print; set to 0 and never changed. </p>
 
 </div>
 </div>
@@ -4812,7 +4460,6 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
 <p>Service ID and occurrence joined by "-", which names the train everywhere. </p>
 
 </div>

@@ -1,6 +1,6 @@
 <map id="Train::fullBrakingStep" name="Train::fullBrakingStep">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,84,167,109"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="215,77,343,117"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="215,77,343,117"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,94,201,94,201,99,167,99"/>
 <area shape="rect" id="Node000003" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="391,5,595,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="314,74,390,40,414,32,416,37,392,44,317,79"/>

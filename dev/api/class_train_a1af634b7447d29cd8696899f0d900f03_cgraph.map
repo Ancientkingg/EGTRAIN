@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="One braking step at time_seconds on arc As: follows the stored plan, makes a new one,..." alt="" coords="5,232,144,257"/>
 <area shape="rect" id="Node000002" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="433,181,655,207"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,230,192,223,418,201,419,206,192,229,145,236"/>
-<area shape="rect" id="Node000004" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="965,325,1093,365"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="965,325,1093,365"/>
 <area shape="poly" id="edge41_Node000001_Node000004" title=" " alt="" coords="104,229,191,194,309,150,361,135,430,122,494,115,544,114,657,122,726,124,781,123,834,132,863,143,895,160,936,193,970,233,996,274,1015,310,1011,313,992,277,965,236,932,196,892,164,860,147,832,137,781,129,726,129,657,127,544,119,494,120,431,127,362,140,310,155,193,199,106,234"/>
 <area shape="rect" id="Node000009" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="726,281,873,307"/>
 <area shape="poly" id="edge42_Node000001_Node000009" title=" " alt="" coords="145,247,712,286,712,291,144,252"/>

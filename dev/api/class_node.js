@@ -1,12 +1,10 @@
 var class_node =
 [
     [ "Node", "class_node.html#ad7a34779cad45d997bfd6d3d8043c75f", null ],
-    [ "initialiseIdConnectedBlocks", "class_node.html#a8ef1e7ccc0a087be2e724ccfddf18f90", null ],
-    [ "operator=", "class_node.html#a9c444d5f947a38d1d182f333a4999a02", null ],
-    [ "operator==", "class_node.html#aad5536ec693dc1a89b6a0d4df7582ad5", null ],
+    [ "operator==", "class_node.html#a463650b3247374cf35ef9fcb3e213d27", null ],
     [ "arcSpeedLimit", "class_node.html#aaa9a61fcade634b182e5a58e66795bb1", null ],
-    [ "connectIdBlockSet", "class_node.html#a08ff43eb9d46bbd049ecc4b47b50413a", null ],
-    [ "connectXNode", "class_node.html#ac6e111c352d94530be0315807836102b", null ],
+    [ "connectIdBlockSet", "class_node.html#afd1ec961dd28c228e8f7451e863d08df", null ],
+    [ "connectXNode", "class_node.html#a9702bb41d5489f9403e1ae0bb253a9ec", null ],
     [ "dwellTime", "class_node.html#adfac506c25da76917b30fb9783c86b1d", null ],
     [ "graphX", "class_node.html#a17af8258d372ab0d2c0a63022f12c7df", null ],
     [ "graphY", "class_node.html#abca80823d69b672821840baa596bb53a", null ],

@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
+<g id="a_Node000002"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="278,-88.5 182,-88.5 182,-58.5 278,-58.5 278,-88.5"/>
 <text text-anchor="start" x="190" y="-76.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="230" y="-65.5" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>

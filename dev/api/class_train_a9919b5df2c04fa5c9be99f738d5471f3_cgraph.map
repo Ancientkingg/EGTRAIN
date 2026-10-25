@@ -1,6 +1,6 @@
 <map id="Train::AccelerationTimeFollowingMode" name="Train::AccelerationTimeFollowingMode">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,113,279,139"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="336,77,464,117"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="336,77,464,117"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,111,322,103,322,108,254,116"/>
 <area shape="rect" id="Node000007" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="327,141,473,167"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="259,136,313,142,313,147,259,141"/>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.18.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>EGTRAIN: app/GuiSimulationSnapshot.h File Reference</title>
+<title>EGTRAIN: simulation/GuiSimulationSnapshot.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
 <script type="text/javascript" src="clipboard.js"></script>
@@ -124,12 +124,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_gui_simulatio
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for GuiSimulationSnapshot.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_simulation_snapshot_8h__incl.svg" width="1004" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_simulation_snapshot_8h__incl.svg" width="1004" height="124"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_simulation_snapshot_8h__dep__incl.svg" width="2502" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_simulation_snapshot_8h__dep__incl.svg" width="2502" height="344"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_gui_simulation_snapshot_8h_source.html">Go to the source code of this file.</a></p>
@@ -167,7 +167,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a4e5054d0bf4f163d0ab6bef2f25fff13" id="r_a4e5054d0bf4f163d0ab6bef2f25fff13"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4e5054d0bf4f163d0ab6bef2f25fff13">guiSignalDisplayCode</a> (const <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &amp;state)</td></tr>
 <tr class="memitem:af060009e2c033c17dfc8996f308a6c69" id="r_af060009e2c033c17dfc8996f308a6c69"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#af060009e2c033c17dfc8996f308a6c69">guiSignalRestriction</a> (int code)</td></tr>
 <tr class="memitem:a7c6d85d3d1c8db2484cb1e0612a25c00" id="r_a7c6d85d3d1c8db2484cb1e0612a25c00"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7c6d85d3d1c8db2484cb1e0612a25c00">guiSectionReportsPermissiveSignalling</a> (double signalCode)</td></tr>
-<tr class="memitem:ad061adfde0ecf72b801d3da8313221d6" id="r_ad061adfde0ecf72b801d3da8313221d6"><td class="memItemLeft"><a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad061adfde0ecf72b801d3da8313221d6">buildGuiSimulationSnapshot</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int timestep)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -177,33 +176,6 @@ Variables</h2></td></tr>
 <tr class="memdesc:a32b9b3beb186e85095c713881a4ed2c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display code of a head that has no signalling data to show.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="ad061adfde0ecf72b801d3da8313221d6" name="ad061adfde0ecf72b801d3da8313221d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad061adfde0ecf72b801d3da8313221d6">&#9670;&#160;</a></span>buildGuiSimulationSnapshot()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> buildGuiSimulationSnapshot </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timestep</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The snapshot of a run at a step. It reads the run and changes nothing, and it is defined in <a class="el" href="_dispatch_controller_8cpp.html">app/DispatchController.cpp</a>. The thread that steps the run builds it, and the window and the live stream see the run through it. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_gui_simulation_snapshot_8h_ad061adfde0ecf72b801d3da8313221d6_cgraph.svg" width="1039" height="467"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="a9d3587a1b79afd5c277b880adabbf418" name="a9d3587a1b79afd5c277b880adabbf418"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9d3587a1b79afd5c277b880adabbf418">&#9670;&#160;</a></span>followTrainName()</h2>
 
@@ -525,7 +497,7 @@ Here is the call graph for this function:</div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="dir_49a7eaa2701c360ed524cdf435aea28f.html">app</a></li><li class="navelem"><a href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
+    <li class="navelem"><a href="dir_952d7654fb542fa1f2952f4833ffff1d.html">simulation</a></li><li class="navelem"><a href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.18.0 </li>
   </ul>
 </div>

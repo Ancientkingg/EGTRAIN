@@ -1,6 +1,7 @@
 var dir_952d7654fb542fa1f2952f4833ffff1d =
 [
     [ "builders", "dir_cd8c29e74983919e763c6811db91a463.html", "dir_cd8c29e74983919e763c6811db91a463" ],
+    [ "GuiSimulationSnapshot.h", "_gui_simulation_snapshot_8h.html", "_gui_simulation_snapshot_8h" ],
     [ "Infrastructure.cpp", "_infrastructure_8cpp.html", "_infrastructure_8cpp" ],
     [ "Infrastructure.h", "_infrastructure_8h.html", "_infrastructure_8h" ],
     [ "InitialParameters.cpp", "_initial_parameters_8cpp.html", null ],

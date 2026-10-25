@@ -2,8 +2,7 @@ var class_arc =
 [
     [ "Arc", "class_arc.html#a83dc91c16778d7fd8664b1e2cd2444c7", null ],
     [ "arcLength", "class_arc.html#a9ce1cb241d051d98c9baf5430cdc6449", null ],
-    [ "operator=", "class_arc.html#afaa76dba2fde43d48923c59153aeaf2d", null ],
-    [ "operator==", "class_arc.html#a6ea01f7cba3faa673141f76ccb0c8b11", null ],
+    [ "operator==", "class_arc.html#a71876658216a7ca47c6b1c739a8d7c5d", null ],
     [ "brakingDistance", "class_arc.html#a53792eedabac4445cc3b2787507a98f1", null ],
     [ "curvature", "class_arc.html#aee2dfaf5d286bc771fbaf167865bf933", null ],
     [ "endNode", "class_arc.html#a17c93c499f678bea0debfd124f6fe9fb", null ],

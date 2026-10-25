@@ -7,7 +7,6 @@ var _infrastructure_8h =
     [ "Connections", "class_connections.html", "class_connections" ],
     [ "StationPlatform", "class_station_platform.html", "class_station_platform" ],
     [ "Stations", "class_stations.html", "class_stations" ],
-    [ "Location", "class_location.html", "class_location" ],
     [ "orderPassengerListOnPlatform", "_infrastructure_8h.html#ad132837730a71e818c60f574c8b7c44f", null ],
     [ "Print_Station_Delay_Stats", "_infrastructure_8h.html#a93d63bbe9df8ff841dcffa7e96d89af4", null ],
     [ "kMaxConnections", "_infrastructure_8h.html#a5f3d96dcde4e6535720ee603ca6b452f", null ],

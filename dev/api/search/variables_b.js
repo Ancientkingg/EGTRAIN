@@ -24,7 +24,7 @@ var searchData=
   ['length_5fm_21',['length_m',['../struct_scene_train_physical.html#ad5d88ab033c191f8918e38a2b255ec63',1,'SceneTrainPhysical']]],
   ['lengthkm_22',['lengthKm',['../struct_scene_block.html#ae66b305cf95256a4a2584dd0e0393cf2',1,'SceneBlock']]],
   ['lengthm_23',['lengthM',['../struct_scene_platform.html#a41f7162103acc669fd2f5234e0082714',1,'ScenePlatform']]],
-  ['level_24',['level',['../struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed',1,'GuiSignalState::level'],['../struct_scene_track_view.html#a4c260d0acc43d11faf4fb126b887b52f',1,'SceneTrackView::level'],['../struct_scene_signalling_area.html#ab70a763f02f27f65152576f70adce10b',1,'SceneSignallingArea::level'],['../struct_scene_section_signalling.html#ae362a18748784196a3a9ff8b5c000e3c',1,'SceneSectionSignalling::level']]],
+  ['level_24',['level',['../struct_scene_track_view.html#a4c260d0acc43d11faf4fb126b887b52f',1,'SceneTrackView::level'],['../struct_scene_signalling_area.html#ab70a763f02f27f65152576f70adce10b',1,'SceneSignallingArea::level'],['../struct_scene_section_signalling.html#ae362a18748784196a3a9ff8b5c000e3c',1,'SceneSectionSignalling::level'],['../struct_gui_signal_state.html#a275f7955d23196ae6989b668a4e49fed',1,'GuiSignalState::level']]],
   ['levelspacing_25',['levelSpacing',['../struct_track_preview_line.html#a28d2331737ae7f8d6f4e5181d2aa4b8f',1,'TrackPreviewLine']]],
   ['line_5fwidth_26',['line_width',['../class_network_presenter.html#a44e0e898ec940e3fc2da8aed24507ca3',1,'NetworkPresenter']]],
   ['lines_27',['lines',['../struct_track_preview_result.html#a59e7876cb379102399bbb8497897ebae',1,'TrackPreviewResult']]],
@@ -35,10 +35,9 @@ var searchData=
   ['liveport_32',['livePort',['../class_initial_parameters.html#a88721b77d60c322559c322330300953a',1,'InitialParameters']]],
   ['loaded_33',['loaded',['../struct_infrastructure_guidance_state.html#a8b2b927ecbb38e41040b7a24c9b9c0e9',1,'InfrastructureGuidanceState']]],
   ['loadeddata_34',['loadedData',['../struct_scene_model.html#acd60dd12f6f936cc7c28a077c4fa83fe',1,'SceneModel']]],
-  ['locationnames_35',['LocationNames',['../class_train.html#a61e091b9d5ad3d8c70cec2b29ea50533',1,'Train']]],
-  ['locationwithswitch_36',['LocationWithSwitch',['../class_blocking_times.html#acd81c651d9a3cd076d4e8fd2cb057e2b',1,'BlockingTimes']]],
-  ['log_5fto_5ffile_37',['log_to_file',['../class_initial_parameters.html#afd15290251b922120c8ea21e182ec909',1,'InitialParameters']]],
-  ['longitude_38',['longitude',['../struct_scene_station_view.html#ade6032ca8cf9ebe1214f3e696fd55241',1,'SceneStationView::longitude'],['../class_node.html#af1772ed9e687d1e230f21c8fdf955ee9',1,'Node::longitude'],['../class_stations.html#a673376dec31658b8c951dcc1b1727737',1,'Stations::longitude']]],
-  ['lookuphead_39',['lookupHead',['../struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071',1,'Train::BrakingArcCursor']]],
-  ['loop_40',['loop',['../classtelemetry_1_1_worker.html#a81aed8eda2509c0b593919526065a182',1,'telemetry::Worker']]]
+  ['locationwithswitch_35',['LocationWithSwitch',['../class_blocking_times.html#acd81c651d9a3cd076d4e8fd2cb057e2b',1,'BlockingTimes']]],
+  ['log_5fto_5ffile_36',['log_to_file',['../class_initial_parameters.html#afd15290251b922120c8ea21e182ec909',1,'InitialParameters']]],
+  ['longitude_37',['longitude',['../struct_scene_station_view.html#ade6032ca8cf9ebe1214f3e696fd55241',1,'SceneStationView::longitude'],['../class_node.html#af1772ed9e687d1e230f21c8fdf955ee9',1,'Node::longitude'],['../class_stations.html#a673376dec31658b8c951dcc1b1727737',1,'Stations::longitude']]],
+  ['lookuphead_38',['lookupHead',['../struct_train_1_1_braking_arc_cursor.html#ac86d934bcd47cb1f9a030a7c790bb071',1,'Train::BrakingArcCursor']]],
+  ['loop_39',['loop',['../classtelemetry_1_1_worker.html#a81aed8eda2509c0b593919526065a182',1,'telemetry::Worker']]]
 ];

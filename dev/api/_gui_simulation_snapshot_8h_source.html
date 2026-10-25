@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.18.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>EGTRAIN: app/GuiSimulationSnapshot.h Source File</title>
+<title>EGTRAIN: simulation/GuiSimulationSnapshot.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
 <script type="text/javascript" src="clipboard.js"></script>
@@ -332,43 +332,38 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_gui_simulatio
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno"><a class="line" href="struct_gui_simulation_snapshot.html#a712f9b19dc62f48a30f05f5f38118864">  235</a></span>    std::vector&lt;GuiVirtualCouplingState&gt; <a class="code hl_variable" href="struct_gui_simulation_snapshot.html#a712f9b19dc62f48a30f05f5f38118864">virtualCouplingMessages</a>; </div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>};</div>
 </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span><span class="keyword">struct </span><a class="code hl_struct" href="struct_simulation_run.html">SimulationRun</a>;</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span></div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span><a class="code hl_struct" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> <a class="code hl_function" href="_dispatch_controller_8cpp.html#ad061adfde0ecf72b801d3da8313221d6">buildGuiSimulationSnapshot</a>(<span class="keyword">const</span> <a class="code hl_struct" href="struct_simulation_run.html">SimulationRun</a>&amp; run, <span class="keywordtype">int</span> <a class="code hl_variable" href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa">timestep</a>);</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span></div>
-<div class="foldopen" id="foldopen00246" data-start="{" data-end="};">
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html">  246</a></span><span class="keyword">class </span><a class="code hl_class" href="class_gui_simulation_snapshot_mailbox.html">GuiSimulationSnapshotMailbox</a> {</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span><span class="keyword">public</span>:</div>
-<div class="foldopen" id="foldopen00250" data-start="{" data-end="}">
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">  250</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">publish</a>(std::shared_ptr&lt;const GuiSimulationSnapshot&gt; snapshot) {</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        std::lock_guard&lt;std::mutex&gt; lock(mutex_);</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        snapshot_ = std::move(snapshot);</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        <span class="keywordflow">if</span> (notificationPending_)</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        notificationPending_ = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    }</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span></div>
+<div class="foldopen" id="foldopen00240" data-start="{" data-end="};">
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html">  240</a></span><span class="keyword">class </span><a class="code hl_class" href="class_gui_simulation_snapshot_mailbox.html">GuiSimulationSnapshotMailbox</a> {</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00244" data-start="{" data-end="}">
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">  244</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">publish</a>(std::shared_ptr&lt;const GuiSimulationSnapshot&gt; snapshot) {</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        std::lock_guard&lt;std::mutex&gt; lock(mutex_);</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        snapshot_ = std::move(snapshot);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        <span class="keywordflow">if</span> (notificationPending_)</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>        notificationPending_ = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    }</div>
 </div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span></div>
-<div class="foldopen" id="foldopen00260" data-start="{" data-end="}">
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">  260</a></span>    std::shared_ptr&lt;const GuiSimulationSnapshot&gt; <a class="code hl_function" href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">take</a>() {</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        std::lock_guard&lt;std::mutex&gt; lock(mutex_);</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        <span class="keyword">auto</span> snapshot = std::move(snapshot_);</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        notificationPending_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>        <span class="keywordflow">return</span> snapshot;</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span></div>
+<div class="foldopen" id="foldopen00254" data-start="{" data-end="}">
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno"><a class="line" href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">  254</a></span>    std::shared_ptr&lt;const GuiSimulationSnapshot&gt; <a class="code hl_function" href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">take</a>() {</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        std::lock_guard&lt;std::mutex&gt; lock(mutex_);</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        <span class="keyword">auto</span> snapshot = std::move(snapshot_);</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        notificationPending_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <span class="keywordflow">return</span> snapshot;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    }</div>
+</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    std::mutex mutex_;</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    std::shared_ptr&lt;const GuiSimulationSnapshot&gt; snapshot_;</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keywordtype">bool</span> notificationPending_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>};</div>
 </div>
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    std::mutex mutex_;</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    std::shared_ptr&lt;const GuiSimulationSnapshot&gt; snapshot_;</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="keywordtype">bool</span> notificationPending_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>};</div>
-</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="a_dispatch_controller_8cpp_html_ad061adfde0ecf72b801d3da8313221d6"><div class="ttname"><a href="_dispatch_controller_8cpp.html#ad061adfde0ecf72b801d3da8313221d6">buildGuiSimulationSnapshot</a></div><div class="ttdeci">GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun &amp;run, int timestep)</div><div class="ttdef"><b>Definition</b> DispatchController.cpp:72</div></div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_a32b9b3beb186e85095c713881a4ed2c9"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#a32b9b3beb186e85095c713881a4ed2c9">kGuiSignalUnavailable</a></div><div class="ttdeci">constexpr int kGuiSignalUnavailable</div><div class="ttdoc">Display code of a head that has no signalling data to show.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:104</div></div>
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_a4e5054d0bf4f163d0ab6bef2f25fff13"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#a4e5054d0bf4f163d0ab6bef2f25fff13">guiSignalDisplayCode</a></div><div class="ttdeci">int guiSignalDisplayCode(const GuiSignalState &amp;state)</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:109</div></div>
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_a708a4d8239fea6f5efa7a59bf662d59a"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#a708a4d8239fea6f5efa7a59bf662d59a">guiSignalHasLevel</a></div><div class="ttdeci">bool guiSignalHasLevel(int level)</div><div class="ttdoc">level is a signalling level from 0 to 5.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:99</div></div>
@@ -379,16 +374,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_gui_simulatio
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_ac87cb9b6b7601619357fef0c62866feb"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#ac87cb9b6b7601619357fef0c62866feb">kGuiSignalNoLevel</a></div><div class="ttdeci">constexpr int kGuiSignalNoLevel</div><div class="ttdoc">Value of GuiSignalState::level for a section without a signalling level.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:82</div></div>
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_adbc7d0bbe4ca909664f6723c1413dc0a"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a">guiTrainDisplayIdentifier</a></div><div class="ttdeci">const std::string &amp; guiTrainDisplayIdentifier(const GuiTrainState &amp;train)</div><div class="ttdoc">The name of a train in lists and messages: its operating code, or its description when it has none.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:58</div></div>
 <div class="ttc" id="a_gui_simulation_snapshot_8h_html_af060009e2c033c17dfc8996f308a6c69"><div class="ttname"><a href="_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69">guiSignalRestriction</a></div><div class="ttdeci">int guiSignalRestriction(int code)</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:116</div></div>
-<div class="ttc" id="a_infrastructure_8h_html_adeb4332ce106902917303ad004eae2fa"><div class="ttname"><a href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa">timestep</a></div><div class="ttdeci">constexpr double timestep</div><div class="ttdoc">The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...</div><div class="ttdef"><b>Definition</b> Infrastructure.h:25</div></div>
+<div class="ttc" id="a_infrastructure_8h_html_adeb4332ce106902917303ad004eae2fa"><div class="ttname"><a href="_infrastructure_8h.html#adeb4332ce106902917303ad004eae2fa">timestep</a></div><div class="ttdeci">constexpr double timestep</div><div class="ttdoc">The length of a simulation step in seconds. A step index t is the time in seconds from the start of t...</div><div class="ttdef"><b>Definition</b> Infrastructure.h:26</div></div>
 <div class="ttc" id="a_signalling_level_8h_html"><div class="ttname"><a href="_signalling_level_8h.html">SignallingLevel.h</a></div></div>
 <div class="ttc" id="a_signalling_level_8h_html_a5b63c8badbe1faee2151f54cffa1d4fe"><div class="ttname"><a href="_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe">isValidSignallingLevel</a></div><div class="ttdeci">constexpr bool isValidSignallingLevel(int level)</div><div class="ttdoc">Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level.</div><div class="ttdef"><b>Definition</b> SignallingLevel.h:24</div></div>
 <div class="ttc" id="aclass_gui_signal_state_list_html"><div class="ttname"><a href="class_gui_signal_state_list.html">GuiSignalStateList</a></div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:132</div></div>
 <div class="ttc" id="aclass_gui_signal_state_list_html_a0795d26a31606d478d08663f16add619"><div class="ttname"><a href="class_gui_signal_state_list.html#a0795d26a31606d478d08663f16add619">GuiSignalStateList::merge</a></div><div class="ttdeci">void merge(std::string_view id, bool reversed, int code, int level)</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:136</div></div>
 <div class="ttc" id="aclass_gui_signal_state_list_html_a084b6026f322fc993dddce0b2adde0e0"><div class="ttname"><a href="class_gui_signal_state_list.html#a084b6026f322fc993dddce0b2adde0e0">GuiSignalStateList::fail</a></div><div class="ttdeci">void fail(std::string_view id)</div><div class="ttdoc">Marks the section as failed in both directions where it has an entry.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:163</div></div>
 <div class="ttc" id="aclass_gui_signal_state_list_html_adebe1681fb55ca4be54f561d2ca1210f"><div class="ttname"><a href="class_gui_signal_state_list.html#adebe1681fb55ca4be54f561d2ca1210f">GuiSignalStateList::take</a></div><div class="ttdeci">std::vector&lt; GuiSignalState &gt; take()</div><div class="ttdoc">The entries in the order of their first copy. The list is empty afterwards.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:173</div></div>
-<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html">GuiSimulationSnapshotMailbox</a></div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:246</div></div>
-<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html_a5ce88a8283dc58030aa1326142951732"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">GuiSimulationSnapshotMailbox::publish</a></div><div class="ttdeci">bool publish(std::shared_ptr&lt; const GuiSimulationSnapshot &gt; snapshot)</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:250</div></div>
-<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html_a919f0ffcfb5b2b6257864063eac7b0fc"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">GuiSimulationSnapshotMailbox::take</a></div><div class="ttdeci">std::shared_ptr&lt; const GuiSimulationSnapshot &gt; take()</div><div class="ttdoc">Takes the snapshot out of the mailbox. Null when none was published since the last take.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:260</div></div>
+<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html">GuiSimulationSnapshotMailbox</a></div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:240</div></div>
+<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html_a5ce88a8283dc58030aa1326142951732"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html#a5ce88a8283dc58030aa1326142951732">GuiSimulationSnapshotMailbox::publish</a></div><div class="ttdeci">bool publish(std::shared_ptr&lt; const GuiSimulationSnapshot &gt; snapshot)</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:244</div></div>
+<div class="ttc" id="aclass_gui_simulation_snapshot_mailbox_html_a919f0ffcfb5b2b6257864063eac7b0fc"><div class="ttname"><a href="class_gui_simulation_snapshot_mailbox.html#a919f0ffcfb5b2b6257864063eac7b0fc">GuiSimulationSnapshotMailbox::take</a></div><div class="ttdeci">std::shared_ptr&lt; const GuiSimulationSnapshot &gt; take()</div><div class="ttdoc">Takes the snapshot out of the mailbox. Null when none was published since the last take.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:254</div></div>
 <div class="ttc" id="astruct_gui_occupied_arc_html"><div class="ttname"><a href="struct_gui_occupied_arc.html">GuiOccupiedArc</a></div><div class="ttdoc">An arc of the block section that a train occupies.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:16</div></div>
 <div class="ttc" id="astruct_gui_occupied_arc_html_af031185be582c8ea6d28305b30e4923f"><div class="ttname"><a href="struct_gui_occupied_arc.html#af031185be582c8ea6d28305b30e4923f">GuiOccupiedArc::startX</a></div><div class="ttdeci">double startX</div><div class="ttdoc">The X coordinate of the start node of the arc, in kilometres.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:18</div></div>
 <div class="ttc" id="astruct_gui_occupied_arc_html_af7564985d1482e81eb4da5987e7b77df"><div class="ttname"><a href="struct_gui_occupied_arc.html#af7564985d1482e81eb4da5987e7b77df">GuiOccupiedArc::trackId</a></div><div class="ttdeci">int trackId</div><div class="ttdoc">The track line of the section, or -1.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:17</div></div>
@@ -446,14 +441,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_gui_simulatio
 <div class="ttc" id="astruct_gui_virtual_coupling_state_html_ad437ef3ff943a8e1f4b7b74cda140d25"><div class="ttname"><a href="struct_gui_virtual_coupling_state.html#ad437ef3ff943a8e1f4b7b74cda140d25">GuiVirtualCouplingState::timestep</a></div><div class="ttdeci">int timestep</div><div class="ttdoc">The step of the message, in seconds from the start of the run.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:221</div></div>
 <div class="ttc" id="astruct_gui_virtual_coupling_state_html_ae444202b9bbc898d119009214282ff48"><div class="ttname"><a href="struct_gui_virtual_coupling_state.html#ae444202b9bbc898d119009214282ff48">GuiVirtualCouplingState::trainDescription</a></div><div class="ttdeci">std::string trainDescription</div><div class="ttdoc">The train that the message concerns.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:222</div></div>
 <div class="ttc" id="astruct_gui_virtual_coupling_state_html_afc6e86e66d45bb73ac84e673bc09ee49"><div class="ttname"><a href="struct_gui_virtual_coupling_state.html#afc6e86e66d45bb73ac84e673bc09ee49">GuiVirtualCouplingState::message</a></div><div class="ttdeci">std::string message</div><div class="ttdoc">The text of the message.</div><div class="ttdef"><b>Definition</b> GuiSimulationSnapshot.h:223</div></div>
-<div class="ttc" id="astruct_simulation_run_html"><div class="ttname"><a href="struct_simulation_run.html">SimulationRun</a></div><div class="ttdef"><b>Definition</b> SimulationRun.h:94</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="dir_49a7eaa2701c360ed524cdf435aea28f.html">app</a></li><li class="navelem"><a href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
+    <li class="navelem"><a href="dir_952d7654fb542fa1f2952f4833ffff1d.html">simulation</a></li><li class="navelem"><a href="_gui_simulation_snapshot_8h.html">GuiSimulationSnapshot.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.18.0 </li>
   </ul>
 </div>

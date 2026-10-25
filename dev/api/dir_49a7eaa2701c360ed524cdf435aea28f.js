@@ -11,7 +11,6 @@ var dir_49a7eaa2701c360ed524cdf435aea28f =
     [ "GuardedApplication.h", "_guarded_application_8h.html", "_guarded_application_8h" ],
     [ "GuiReplayHistory.cpp", "_gui_replay_history_8cpp.html", null ],
     [ "GuiReplayHistory.h", "_gui_replay_history_8h.html", "_gui_replay_history_8h" ],
-    [ "GuiSimulationSnapshot.h", "_gui_simulation_snapshot_8h.html", "_gui_simulation_snapshot_8h" ],
     [ "main.cpp", "main_8cpp.html", "main_8cpp" ],
     [ "MainWindow.cpp", "_main_window_8cpp.html", "_main_window_8cpp" ],
     [ "MainWindow.h", "_main_window_8h.html", "_main_window_8h" ],

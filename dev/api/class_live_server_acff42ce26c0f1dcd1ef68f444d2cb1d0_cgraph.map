@@ -12,16 +12,19 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="150,249,253,228,254,233,151,255"/>
 <area shape="rect" id="Node000007" href="$class_live_server.html#ac7f0cca626530eaaba8963fda08552cc" title=" " alt="" coords="247,252,411,277"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="171,262,234,262,234,267,171,267"/>
-<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="488,329,636,355"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="156,275,219,286,475,327,474,332,218,291,155,280"/>
+<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="488,281,636,307"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="147,275,219,286,353,294,474,294,474,299,353,299,218,291,146,280"/>
 <area shape="rect" id="Node000009" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="265,353,394,379"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="112,275,160,303,220,332,265,347,263,352,218,336,158,308,109,280"/>
-<area shape="rect" id="Node000010" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="499,379,625,404"/>
-<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="100,276,118,302,145,334,179,365,220,389,253,400,289,408,361,414,430,411,490,404,491,409,431,417,361,419,288,413,252,405,218,394,176,370,141,338,114,305,95,279"/>
-<area shape="rect" id="Node000011" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running." alt="" coords="235,455,424,480"/>
-<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="98,276,115,308,142,351,177,395,220,433,248,448,246,452,217,438,173,399,137,354,110,311,93,279"/>
-<area shape="rect" id="Node000012" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it." alt="" coords="225,504,433,529"/>
-<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="95,277,108,319,133,377,170,439,193,467,220,491,228,496,225,500,217,495,189,470,166,442,128,379,103,320,90,278"/>
-<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="394,357,474,348,475,354,394,362"/>
-<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="394,370,485,380,485,386,394,376"/>
+<area shape="rect" id="Node000011" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="499,404,625,429"/>
+<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="100,276,146,333,180,364,220,389,287,411,357,422,425,425,485,423,485,428,425,430,356,427,285,416,218,394,177,369,142,337,96,279"/>
+<area shape="rect" id="Node000012" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running." alt="" coords="235,455,424,480"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="98,276,115,308,142,351,177,395,220,433,248,448,246,452,217,438,173,399,137,354,110,311,93,279"/>
+<area shape="rect" id="Node000013" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it." alt="" coords="225,504,433,529"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="95,277,108,319,133,377,170,439,193,467,220,491,228,496,225,500,217,495,189,470,166,442,128,379,103,320,90,278"/>
+<area shape="poly" id="edge11_Node000009_Node000008" title=" " alt="" coords="375,351,439,331,487,315,509,308,510,313,489,321,441,337,376,356"/>
+<area shape="rect" id="Node000010" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="513,355,611,380"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="394,364,499,364,499,370,394,369"/>
+<area shape="poly" id="edge12_Node000009_Node000011" title=" " alt="" coords="389,376,491,398,489,404,388,381"/>
+<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="524,356,516,346,520,336,536,330,562,328,595,332,607,341,604,346,593,337,562,333,537,335,524,340,521,346,528,353"/>
 </map>

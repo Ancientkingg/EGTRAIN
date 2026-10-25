@@ -24,7 +24,7 @@ var struct_simulation_run =
     [ "settings", "struct_simulation_run.html#af6d9f8972b6a63879e8ce3febf96b073", null ],
     [ "signallingDelay", "struct_simulation_run.html#aae989c4bf3721dd9cd29c8bd5ee0d3a1", null ],
     [ "totalInputDelays", "struct_simulation_run.html#aa9bd82c26794f01ee2366f25d8736c09", null ],
-    [ "trains", "struct_simulation_run.html#a772713a34d28bc07f0b65d151fde5432", null ],
+    [ "trains", "struct_simulation_run.html#aede4e9f69b1371af053e529f6cf1018a", null ],
     [ "vcMsgText", "struct_simulation_run.html#a9f1cf2a12811221fcdae1aec6e3b537e", null ],
     [ "vcMsgTimestep", "struct_simulation_run.html#a6900247ff1d449ed1827f74ff557a9a3", null ],
     [ "vcMsgTrain", "struct_simulation_run.html#a8cb8eab8f4f33c54ec38b3fba8d20ecc", null ]

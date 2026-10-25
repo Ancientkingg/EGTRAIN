@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['wagoncount_0',['wagonCount',['../struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a',1,'GuiTrainState::wagonCount'],['../class_train_item_group.html#ad324b398b90c278f36297ab2ae7806aa',1,'TrainItemGroup::wagonCount']]],
+  ['wagoncount_0',['wagonCount',['../class_train_item_group.html#ad324b398b90c278f36297ab2ae7806aa',1,'TrainItemGroup::wagonCount'],['../struct_gui_train_state.html#a5ee1afb9e0d5bd0bc90f1c0e5caa240a',1,'GuiTrainState::wagonCount']]],
   ['wagonheadpositions_1',['wagonHeadPositions',['../struct_gui_train_state.html#aecd7fbec18cd663621cdad2247ddcea3',1,'GuiTrainState']]],
   ['wagontailpositions_2',['wagonTailPositions',['../struct_gui_train_state.html#a55c9942802ef1becb2a8f05e9d96bdf2',1,'GuiTrainState']]],
   ['waitingplatform_3',['waitingPlatform',['../struct_gui_passenger_state.html#aaebb2840e3e3ba17db1a80e49ea26b68',1,'GuiPassengerState']]],

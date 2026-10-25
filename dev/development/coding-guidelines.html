@@ -631,7 +631,7 @@ stay until then, so <code class="docutils literal notranslate"><span class="pre"
 earlier infrastructure back as it was. The canvas keeps <code class="docutils literal notranslate"><span class="pre">Node*</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc*</span></code> and <code class="docutils literal notranslate"><span class="pre">Connections*</span></code> into
 the arrays, so <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> removes its items before a reset or a build. A new member of the
 infrastructure needs a line in <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::reset()</span></code>.
-<code class="docutils literal notranslate"><span class="pre">SimulationRun::trains</span></code> is the <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Regional&gt;</span></code> of the run, created with the
+<code class="docutils literal notranslate"><span class="pre">SimulationRun::trains</span></code> is the <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Train&gt;</span></code> of the run, created with the
 number of trains of the scene; <code class="docutils literal notranslate"><span class="pre">Max_N_Reg</span></code> is
 only the limit that validation and the editor enforce on that number. A <code class="docutils literal notranslate"><span class="pre">Train</span></code> keeps
 the stops of its service in a <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Node&gt;</span></code>, and <code class="docutils literal notranslate"><span class="pre">trains</span></code> is created once

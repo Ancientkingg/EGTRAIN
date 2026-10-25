@@ -9,12 +9,12 @@ var _simulation_8h =
     [ "calculatePosAndNegDelayStatsForAllStations", "_simulation_8h.html#a1bd6d9c667729e1683b9f5d5cf9de1f9", null ],
     [ "checkJourneyStartForAllPassengers", "_simulation_8h.html#a48c3bfa1f47a7ab120c90d52a59d391b", null ],
     [ "Compute_Input_Delays", "_simulation_8h.html#a049cdf2f7b762611e3384fa27a309cc7", null ],
-    [ "Compute_TimetablingPoints_For_All_Trains", "_simulation_8h.html#a484d0b0359abbfe59d1530b7859678f3", null ],
+    [ "Compute_TimetablingPoints_For_All_Trains", "_simulation_8h.html#a22e444bc74566ae4eb1503e16ce04480", null ],
     [ "ComputeEnergyConsumptionForAllTrains", "_simulation_8h.html#ad326ac2cac03ef2e25b605f47184572c", null ],
-    [ "ComputeTimetableEnergyConsumption", "_simulation_8h.html#a14eeec510124d16f8bd908222ee8c5c2", null ],
+    [ "ComputeTimetableEnergyConsumption", "_simulation_8h.html#a6cbdf9a2919a034c72e61894020b4013", null ],
     [ "passengersWaitingAtPlatform", "_simulation_8h.html#a45dfaee208572f4ff9811d233a99e36d", null ],
     [ "Print_Computing_Times", "_simulation_8h.html#a039ec093c9a75c91ec01450e0fa945aa", null ],
-    [ "PrintTrainPathDiagram", "_simulation_8h.html#aa784da17f95950f7cf2608fe79d6087d", null ],
+    [ "PrintTrainPathDiagram", "_simulation_8h.html#a317b30e94608a53979ab08725343dba1", null ],
     [ "Simulate_Train_Passenger_Interactions", "_simulation_8h.html#aa48f0d1207dcbdc3be10ffdcd196c32c", null ],
     [ "Update_List_Passengers_Waiting_At_ALL_Platforms", "_simulation_8h.html#ab5bb7fca0dc9fe41b724f27d88e65ec6", null ]
 ];

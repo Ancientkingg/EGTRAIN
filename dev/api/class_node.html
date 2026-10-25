@@ -124,11 +124,8 @@ Inheritance diagram for Node:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad7a34779cad45d997bfd6d3d8043c75f" id="r_ad7a34779cad45d997bfd6d3d8043c75f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad7a34779cad45d997bfd6d3d8043c75f">Node</a> ()</td></tr>
 <tr class="memdesc:ad7a34779cad45d997bfd6d3d8043c75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.  <br /></td></tr>
-<tr class="memitem:a9c444d5f947a38d1d182f333a4999a02" id="r_a9c444d5f947a38d1d182f333a4999a02"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a9c444d5f947a38d1d182f333a4999a02">operator=</a> (const <a class="el" href="class_node.html">Node</a> &amp;ob2)</td></tr>
-<tr class="memdesc:a9c444d5f947a38d1d182f333a4999a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
-<tr class="memitem:aad5536ec693dc1a89b6a0d4df7582ad5" id="r_aad5536ec693dc1a89b6a0d4df7582ad5"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aad5536ec693dc1a89b6a0d4df7582ad5">operator==</a> (const <a class="el" href="class_node.html">Node</a> &amp;ob2)</td></tr>
-<tr class="memdesc:aad5536ec693dc1a89b6a0d4df7582ad5"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when ID, X, Y, isSignalled, station and dwellTime are equal.  <br /></td></tr>
-<tr class="memitem:a8ef1e7ccc0a087be2e724ccfddf18f90" id="r_a8ef1e7ccc0a087be2e724ccfddf18f90"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ef1e7ccc0a087be2e724ccfddf18f90">initialiseIdConnectedBlocks</a> (std::string *IDConnectedBSofBlock, int N_IDConnectedBSofBlock)</td></tr>
+<tr class="memitem:a463650b3247374cf35ef9fcb3e213d27" id="r_a463650b3247374cf35ef9fcb3e213d27"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a463650b3247374cf35ef9fcb3e213d27">operator==</a> (const <a class="el" href="class_node.html">Node</a> &amp;ob2) const</td></tr>
+<tr class="memdesc:a463650b3247374cf35ef9fcb3e213d27"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when ID, X, Y, isSignalled, station and dwellTime are equal.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -147,10 +144,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a217021694295c69bee6a38a0013dd556" id="r_a217021694295c69bee6a38a0013dd556"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a217021694295c69bee6a38a0013dd556">virtualCouplingNode</a></td></tr>
 <tr class="memdesc:a217021694295c69bee6a38a0013dd556"><td class="mdescLeft">&#160;</td><td class="mdescRight">True on a braking target node where the train can couple virtually to the train ahead.  <br /></td></tr>
 <tr class="memitem:ad44c73b04d836c889a5bb8ffa56c0af6" id="r_ad44c73b04d836c889a5bb8ffa56c0af6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad44c73b04d836c889a5bb8ffa56c0af6">indexOrderList</a></td></tr>
-<tr class="memitem:a08ff43eb9d46bbd049ecc4b47b50413a" id="r_a08ff43eb9d46bbd049ecc4b47b50413a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a08ff43eb9d46bbd049ecc4b47b50413a">connectIdBlockSet</a> [6]</td></tr>
-<tr class="memdesc:a08ff43eb9d46bbd049ecc4b47b50413a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track slot of the track at the other end of each connection at this node. Up to 6 (<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86" title="Connection ends at one node.">RuntimeLimits::kNativeMaxNodeConnections</a>).  <br /></td></tr>
-<tr class="memitem:ac6e111c352d94530be0315807836102b" id="r_ac6e111c352d94530be0315807836102b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac6e111c352d94530be0315807836102b">connectXNode</a> [6]</td></tr>
-<tr class="memdesc:ac6e111c352d94530be0315807836102b"><td class="mdescLeft">&#160;</td><td class="mdescRight">X in kilometres of the node at the other end of each connection.  <br /></td></tr>
+<tr class="memitem:afd1ec961dd28c228e8f7451e863d08df" id="r_afd1ec961dd28c228e8f7451e863d08df"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afd1ec961dd28c228e8f7451e863d08df">connectIdBlockSet</a> [<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86">RuntimeLimits::kNativeMaxNodeConnections</a>]</td></tr>
+<tr class="memdesc:afd1ec961dd28c228e8f7451e863d08df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track slot of the track at the other end of each connection at this node.  <br /></td></tr>
+<tr class="memitem:a9702bb41d5489f9403e1ae0bb253a9ec" id="r_a9702bb41d5489f9403e1ae0bb253a9ec"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9702bb41d5489f9403e1ae0bb253a9ec">connectXNode</a> [<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86">RuntimeLimits::kNativeMaxNodeConnections</a>]</td></tr>
+<tr class="memdesc:a9702bb41d5489f9403e1ae0bb253a9ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">X in kilometres of the node at the other end of each connection.  <br /></td></tr>
 <tr class="memitem:acf6037d69ad2cc2f60cb3121e246660d" id="r_acf6037d69ad2cc2f60cb3121e246660d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#acf6037d69ad2cc2f60cb3121e246660d">numConnections</a></td></tr>
 <tr class="memdesc:acf6037d69ad2cc2f60cb3121e246660d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of connections at this node, the used entries of the two arrays above.  <br /></td></tr>
 <tr class="memitem:a633cd9429e74119f27c859ef2fe93b36" id="r_a633cd9429e74119f27c859ef2fe93b36"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a633cd9429e74119f27c859ef2fe93b36">IDConnectedBlocks</a></td></tr>
@@ -198,67 +195,8 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a8ef1e7ccc0a087be2e724ccfddf18f90" name="a8ef1e7ccc0a087be2e724ccfddf18f90"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ef1e7ccc0a087be2e724ccfddf18f90">&#9670;&#160;</a></span>initialiseIdConnectedBlocks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Node::initialiseIdConnectedBlocks </td>
-          <td>(</td>
-          <td class="paramtype">std::string *</td>          <td class="paramname"><span class="paramname"><em>IDConnectedBSofBlock</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>N_IDConnectedBSofBlock</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Fills IDConnectedBlocks from the given block section IDs, choosing for each connection the ID that names its track and node position. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_a8ef1e7ccc0a087be2e724ccfddf18f90_cgraph.svg" width="484" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a9c444d5f947a38d1d182f333a4999a02" name="a9c444d5f947a38d1d182f333a4999a02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c444d5f947a38d1d182f333a4999a02">&#9670;&#160;</a></span>operator=()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_node.html">Node</a> &amp; Node::operator= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_node.html">Node</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>ob2</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Copies every member. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_a9c444d5f947a38d1d182f333a4999a02_cgraph.svg" width="288" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aad5536ec693dc1a89b6a0d4df7582ad5" name="aad5536ec693dc1a89b6a0d4df7582ad5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad5536ec693dc1a89b6a0d4df7582ad5">&#9670;&#160;</a></span>operator==()</h2>
+<a id="a463650b3247374cf35ef9fcb3e213d27" name="a463650b3247374cf35ef9fcb3e213d27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a463650b3247374cf35ef9fcb3e213d27">&#9670;&#160;</a></span>operator==()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -270,7 +208,7 @@ Here is the call graph for this function:</div>
           <td class="memname">bool Node::operator== </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_node.html">Node</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>ob2</em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -284,7 +222,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_aad5536ec693dc1a89b6a0d4df7582ad5_cgraph.svg" width="299" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_node_a463650b3247374cf35ef9fcb3e213d27_cgraph.svg" width="299" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -306,30 +244,30 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a08ff43eb9d46bbd049ecc4b47b50413a" name="a08ff43eb9d46bbd049ecc4b47b50413a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08ff43eb9d46bbd049ecc4b47b50413a">&#9670;&#160;</a></span>connectIdBlockSet</h2>
+<a id="afd1ec961dd28c228e8f7451e863d08df" name="afd1ec961dd28c228e8f7451e863d08df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd1ec961dd28c228e8f7451e863d08df">&#9670;&#160;</a></span>connectIdBlockSet</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int Node::connectIdBlockSet[6]</td>
+          <td class="memname">int Node::connectIdBlockSet[<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86">RuntimeLimits::kNativeMaxNodeConnections</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Track slot of the track at the other end of each connection at this node. Up to 6 (<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86" title="Connection ends at one node.">RuntimeLimits::kNativeMaxNodeConnections</a>). </p>
+<p>Track slot of the track at the other end of each connection at this node. </p>
 
 </div>
 </div>
-<a id="ac6e111c352d94530be0315807836102b" name="ac6e111c352d94530be0315807836102b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac6e111c352d94530be0315807836102b">&#9670;&#160;</a></span>connectXNode</h2>
+<a id="a9702bb41d5489f9403e1ae0bb253a9ec" name="a9702bb41d5489f9403e1ae0bb253a9ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9702bb41d5489f9403e1ae0bb253a9ec">&#9670;&#160;</a></span>connectXNode</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">double Node::connectXNode[6]</td>
+          <td class="memname">double Node::connectXNode[<a class="el" href="namespace_runtime_limits.html#ac759707d25263e14f8680473fa336a86">RuntimeLimits::kNativeMaxNodeConnections</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">

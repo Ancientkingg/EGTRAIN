@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_operations_bu
 <div class="textblock"><code>#include &quot;<a class="el" href="_rolling_stock_8h_source.html">simulation/RollingStock.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_optimisation_8h_source.html">simulation/Optimisation.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_passengers_8h_source.html">simulation/Passengers.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_simulation_run_8h_source.html">simulation/SimulationRun.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
@@ -134,7 +133,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_operations_bu
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for OperationsBuilder.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_operations_builder_8cpp__incl.svg" width="3415" height="564"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_operations_builder_8cpp__incl.svg" width="3662" height="564"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -173,11 +172,11 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a>. The run's random generator is seeded from initial_variables.randomSeed first. When the diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene. </p>
+<p>Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a>. The scene must pass validateRunnableScene: the builder does not repeat its checks of the platforms. The run's random generator is seeded from initial_variables.randomSeed first. When the diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_operations_builder_8cpp_a6ee30ce529afc9fd68c0019668c8083e_cgraph.svg" width="1058" height="1080"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_operations_builder_8cpp_a6ee30ce529afc9fd68c0019668c8083e_cgraph.svg" width="1058" height="1066"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

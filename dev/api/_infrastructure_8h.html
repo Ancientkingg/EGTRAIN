@@ -124,6 +124,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_infrastructur
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &quot;<a class="el" href="_runtime_limits_8h_source.html">scene/RuntimeLimits.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_number_generator_8h_source.html">simulation/NumberGenerator.h</a>&quot;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="portability_8h_source.html">util/portability.h</a>&quot;</code><br />
@@ -131,12 +132,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_infrastructur
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Infrastructure.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__incl.svg" width="1864" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__incl.svg" width="2059" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__dep__incl.svg" width="6459" height="447"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_infrastructure_8h__dep__incl.svg" width="6410" height="447"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_infrastructure_8h_source.html">Go to the source code of this file.</a></p>
@@ -153,8 +154,6 @@ Classes</h2></td></tr>
 <tr class="memitem:StationPlatform" id="r_StationPlatform"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_station_platform.html">StationPlatform</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station platform: its size, capacity and waiting passengers.  <a href="class_station_platform.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Stations" id="r_Stations"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_stations.html">Stations</a></td></tr>
-<tr class="memitem:Location" id="r_Location"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_location.html">Location</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A block section or station on the route of a train. <a class="el" href="class_train.html#a61e091b9d5ad3d8c70cec2b29ea50533" title="Not filled by the simulation, so empty.">Train::LocationNames</a> holds these, and nothing fills it.  <a href="class_location.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -168,11 +167,10 @@ Variables</h2></td></tr>
 <tr class="memitem:a7cb1b5af562128a8229985d3786cd6b5" id="r_a7cb1b5af562128a8229985d3786cd6b5"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a7cb1b5af562128a8229985d3786cd6b5">signalCode1</a> = 11.111</td></tr>
 <tr class="memitem:a175de7291ab561dc2f5c719769aff959" id="r_a175de7291ab561dc2f5c719769aff959"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a175de7291ab561dc2f5c719769aff959">signalCode2</a> = 0</td></tr>
 <tr class="memitem:a1d84084196b3d6e8403535d31d92809b" id="r_a1d84084196b3d6e8403535d31d92809b"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1d84084196b3d6e8403535d31d92809b">signalCode3</a> = 0</td></tr>
-<tr class="memitem:af2442dde680e9478090dd86a2d57744a" id="r_af2442dde680e9478090dd86a2d57744a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a> = 268</td></tr>
-<tr class="memdesc:af2442dde680e9478090dd86a2d57744a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.  <br /></td></tr>
-<tr class="memitem:a5f3d96dcde4e6535720ee603ca6b452f" id="r_a5f3d96dcde4e6535720ee603ca6b452f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a> = 708</td></tr>
+<tr class="memitem:af2442dde680e9478090dd86a2d57744a" id="r_af2442dde680e9478090dd86a2d57744a"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a> = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#aca92641f8d049e4350fd1055f6b9be5b">RuntimeLimits::kNativeMaxTracks</a>)</td></tr>
+<tr class="memitem:a5f3d96dcde4e6535720ee603ca6b452f" id="r_a5f3d96dcde4e6535720ee603ca6b452f"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a> = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#a8f41359436d72209c69a3e58e16a73b8">RuntimeLimits::kNativeMaxConnections</a>)</td></tr>
 <tr class="memdesc:a5f3d96dcde4e6535720ee603ca6b452f"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
-<tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a> = 95</td></tr>
+<tr class="memitem:a52eed63d46d1afcb96c62cd5085e34f8" id="r_a52eed63d46d1afcb96c62cd5085e34f8"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a> = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#a0304a10581d6a40196185bdc8263e4ea">RuntimeLimits::kNativeMaxStations</a>)</td></tr>
 <tr class="memdesc:a52eed63d46d1afcb96c62cd5085e34f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">See kMaxTrackLines.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -244,7 +242,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxConnections = 708</td>
+          <td class="memname">int kMaxConnections = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#a8f41359436d72209c69a3e58e16a73b8">RuntimeLimits::kNativeMaxConnections</a>)</td>
         </tr>
       </table>
   </td>
@@ -268,7 +266,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxStations = 95</td>
+          <td class="memname">int kMaxStations = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#a0304a10581d6a40196185bdc8263e4ea">RuntimeLimits::kNativeMaxStations</a>)</td>
         </tr>
       </table>
   </td>
@@ -292,7 +290,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int kMaxTrackLines = 268</td>
+          <td class="memname">int kMaxTrackLines = static_cast&lt;int&gt;(<a class="el" href="namespace_runtime_limits.html#aca92641f8d049e4350fd1055f6b9be5b">RuntimeLimits::kNativeMaxTracks</a>)</td>
         </tr>
       </table>
   </td>
@@ -301,8 +299,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more. </p>
+<p>The number of elements of the arrays of tracks, connections and stations, from <a class="el" href="namespace_runtime_limits.html" title="What a scene must fit into: the scene validator and the builders check against the same values.">RuntimeLimits</a>. The builder rejects a scene that needs more. </p>
 
 </div>
 </div>

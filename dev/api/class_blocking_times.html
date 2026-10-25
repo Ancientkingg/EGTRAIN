@@ -119,9 +119,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_blocking
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a60fe3a47d566e07429d8760119e5f6d6" id="r_a60fe3a47d566e07429d8760119e5f6d6"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a60fe3a47d566e07429d8760119e5f6d6">BlockingTimes</a> ()</td></tr>
 <tr class="memdesc:a60fe3a47d566e07429d8760119e5f6d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the times, durations and positions to -1, the IDs to "None" and IsComplete to true.  <br /></td></tr>
-<tr class="memitem:a43da3e55d6fbeebacaaa7cf06de70f32" id="r_a43da3e55d6fbeebacaaa7cf06de70f32"><td class="memItemLeft"><a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a43da3e55d6fbeebacaaa7cf06de70f32">operator=</a> (const <a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp;obj2)</td></tr>
-<tr class="memdesc:a43da3e55d6fbeebacaaa7cf06de70f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member of obj2.  <br /></td></tr>
-<tr class="memitem:a65dcbd103eb1f25b1edcbb17c345a519" id="r_a65dcbd103eb1f25b1edcbb17c345a519"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a65dcbd103eb1f25b1edcbb17c345a519">checkIfLastInfraElementStatusIsInLineWithTrainNeeds</a> (std::string TrainName, std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt; ListAllInfraEvents)</td></tr>
+<tr class="memitem:a010028f117123821a25dd11d5692a558" id="r_a010028f117123821a25dd11d5692a558"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a010028f117123821a25dd11d5692a558">checkIfLastInfraElementStatusIsInLineWithTrainNeeds</a> (const std::string &amp;TrainName, const std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt; &amp;ListAllInfraEvents)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -211,8 +209,8 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a65dcbd103eb1f25b1edcbb17c345a519" name="a65dcbd103eb1f25b1edcbb17c345a519"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a65dcbd103eb1f25b1edcbb17c345a519">&#9670;&#160;</a></span>checkIfLastInfraElementStatusIsInLineWithTrainNeeds()</h2>
+<a id="a010028f117123821a25dd11d5692a558" name="a010028f117123821a25dd11d5692a558"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a010028f117123821a25dd11d5692a558">&#9670;&#160;</a></span>checkIfLastInfraElementStatusIsInLineWithTrainNeeds()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -220,40 +218,16 @@ Public Attributes</h2></td></tr>
         <tr>
           <td class="memname">void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds </td>
           <td>(</td>
-          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>TrainName</em></span>, </td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>TrainName</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>ListAllInfraEvents</em></span>&#160;)</td>
+          <td class="paramtype">const std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>ListAllInfraEvents</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets InfraElementInPositionForTrain and the data of the previous train. </p>
-
-</div>
-</div>
-<a id="a43da3e55d6fbeebacaaa7cf06de70f32" name="a43da3e55d6fbeebacaaa7cf06de70f32"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43da3e55d6fbeebacaaa7cf06de70f32">&#9670;&#160;</a></span>operator=()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp; BlockingTimes::operator= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_blocking_times.html">BlockingTimes</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>obj2</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Copies every member of obj2. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_blocking_times_a43da3e55d6fbeebacaaa7cf06de70f32_cgraph.svg" width="474" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>

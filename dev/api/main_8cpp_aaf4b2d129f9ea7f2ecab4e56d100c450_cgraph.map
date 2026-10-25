@@ -1,17 +1,20 @@
 <map id="startLiveStream" name="startLiveStream">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,132,102"/>
-<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="31,78,22,68,27,58,42,52,69,50,102,54,114,63,111,68,100,59,69,55,44,57,30,62,27,68,34,75"/>
-<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#afbac0de33112f6ead2aee19517b3f959" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the state socket, or empty while the stream is off." alt="" coords="233,5,376,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,74,179,55,219,44,220,49,181,60,113,79"/>
-<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#af6a545f83572bb21a333266cfc00be7b" title=" " alt="" coords="233,69,376,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,87,220,87,220,92,133,92"/>
-<area shape="rect" id="Node000007" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="180,158,429,183"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="107,100,255,151,253,156,106,105"/>
-<area shape="rect" id="Node000004" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="477,77,607,102"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="376,87,464,87,464,92,376,92"/>
-<area shape="rect" id="Node000005" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="655,51,803,77"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="607,78,641,73,641,79,608,83"/>
-<area shape="rect" id="Node000006" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="665,101,792,126"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="608,95,652,101,651,106,607,100"/>
-<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="267,160,258,150,263,140,278,134,305,131,338,135,350,145,347,149,336,140,305,137,280,139,266,144,263,149,270,156"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,132,104"/>
+<area shape="poly" id="edge8_Node000001_Node000001" title=" " alt="" coords="31,80,22,70,27,60,42,54,69,52,102,56,114,65,111,70,100,61,69,57,44,59,30,64,27,70,34,77"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#afbac0de33112f6ead2aee19517b3f959" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the state socket, or empty while the stream is off." alt="" coords="233,7,376,47"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,76,179,57,219,46,220,51,181,62,113,81"/>
+<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#af6a545f83572bb21a333266cfc00be7b" title=" " alt="" coords="233,71,376,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,89,220,89,220,94,133,94"/>
+<area shape="rect" id="Node000008" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="180,160,429,185"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="107,102,255,153,253,158,106,107"/>
+<area shape="rect" id="Node000004" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="477,79,607,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="376,89,464,89,464,94,376,94"/>
+<area shape="rect" id="Node000005" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="679,29,778,55"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="590,76,666,56,667,61,591,81"/>
+<area shape="rect" id="Node000006" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="655,79,803,104"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="607,89,641,89,641,94,607,94"/>
+<area shape="rect" id="Node000007" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="665,128,792,153"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="591,101,667,122,666,127,590,107"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="698,31,691,21,695,11,707,5,729,3,754,6,765,15,762,19,752,11,729,8,709,10,699,15,696,20,702,28"/>
+<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="267,162,258,152,263,142,278,136,305,133,338,137,350,147,347,151,336,142,305,139,280,141,266,146,263,151,270,158"/>
 </map>

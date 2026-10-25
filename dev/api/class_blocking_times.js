@@ -1,8 +1,7 @@
 var class_blocking_times =
 [
     [ "BlockingTimes", "class_blocking_times.html#a60fe3a47d566e07429d8760119e5f6d6", null ],
-    [ "checkIfLastInfraElementStatusIsInLineWithTrainNeeds", "class_blocking_times.html#a65dcbd103eb1f25b1edcbb17c345a519", null ],
-    [ "operator=", "class_blocking_times.html#a43da3e55d6fbeebacaaa7cf06de70f32", null ],
+    [ "checkIfLastInfraElementStatusIsInLineWithTrainNeeds", "class_blocking_times.html#a010028f117123821a25dd11d5692a558", null ],
     [ "ApproachTime", "class_blocking_times.html#a65d9401f8f83d887626055ccbeee8466", null ],
     [ "BlockID", "class_blocking_times.html#adc27b3109ee24d2d9da4d3acf658c52f", null ],
     [ "clearingTime", "class_blocking_times.html#a841faaa6cc0c902db919ef16a7122e45", null ],

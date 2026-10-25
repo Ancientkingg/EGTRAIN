@@ -129,10 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a83dc91c16778d7fd8664b1e2cd2444c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0 and signalSpeedLimit to 999.  <br /></td></tr>
 <tr class="memitem:a9ce1cb241d051d98c9baf5430cdc6449" id="r_a9ce1cb241d051d98c9baf5430cdc6449"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ce1cb241d051d98c9baf5430cdc6449">arcLength</a> ()</td></tr>
 <tr class="memdesc:a9ce1cb241d051d98c9baf5430cdc6449"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets length in metres from the X and Y of the two nodes.  <br /></td></tr>
-<tr class="memitem:a6ea01f7cba3faa673141f76ccb0c8b11" id="r_a6ea01f7cba3faa673141f76ccb0c8b11"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6ea01f7cba3faa673141f76ccb0c8b11">operator==</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;ob2)</td></tr>
-<tr class="memdesc:a6ea01f7cba3faa673141f76ccb0c8b11"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when every member but the nodes is equal and the nodes have the same IDs.  <br /></td></tr>
-<tr class="memitem:afaa76dba2fde43d48923c59153aeaf2d" id="r_afaa76dba2fde43d48923c59153aeaf2d"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#afaa76dba2fde43d48923c59153aeaf2d">operator=</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;ob2)</td></tr>
-<tr class="memdesc:afaa76dba2fde43d48923c59153aeaf2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member.  <br /></td></tr>
+<tr class="memitem:a71876658216a7ca47c6b1c739a8d7c5d" id="r_a71876658216a7ca47c6b1c739a8d7c5d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a71876658216a7ca47c6b1c739a8d7c5d">operator==</a> (const <a class="el" href="class_arc.html">Arc</a> &amp;ob2) const</td></tr>
+<tr class="memdesc:a71876658216a7ca47c6b1c739a8d7c5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when every member but the nodes is equal and the nodes have the same IDs.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -193,40 +191,8 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="afaa76dba2fde43d48923c59153aeaf2d" name="afaa76dba2fde43d48923c59153aeaf2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afaa76dba2fde43d48923c59153aeaf2d">&#9670;&#160;</a></span>operator=()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_arc.html">Arc</a> &amp; Arc::operator= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>ob2</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Copies every member. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_arc_afaa76dba2fde43d48923c59153aeaf2d_cgraph.svg" width="248" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a6ea01f7cba3faa673141f76ccb0c8b11" name="a6ea01f7cba3faa673141f76ccb0c8b11"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ea01f7cba3faa673141f76ccb0c8b11">&#9670;&#160;</a></span>operator==()</h2>
+<a id="a71876658216a7ca47c6b1c739a8d7c5d" name="a71876658216a7ca47c6b1c739a8d7c5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71876658216a7ca47c6b1c739a8d7c5d">&#9670;&#160;</a></span>operator==()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -238,7 +204,7 @@ Here is the call graph for this function:</div>
           <td class="memname">bool Arc::operator== </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_arc.html">Arc</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>ob2</em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -252,7 +218,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_arc_a6ea01f7cba3faa673141f76ccb0c8b11_cgraph.svg" width="259" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_arc_a71876658216a7ca47c6b1c739a8d7c5d_cgraph.svg" width="259" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

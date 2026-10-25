@@ -11,10 +11,10 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classtelemetry_1_1_telemetry_sender_1_1_operation_token.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="structtelemetry_1_1_telemetry_sender_1_1_shared.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="152,-30 0,-30 0,0 152,0 152,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetrySender</text>
-<text text-anchor="middle" x="76" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::OperationToken</text>
+<text text-anchor="middle" x="76" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::Shared</text>
 </a>
 </g>
 </g>

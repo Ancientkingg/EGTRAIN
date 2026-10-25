@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_dispatch_cont
   <div class="headertitle"><div class="title">DispatchController.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">simulation/GuiSimulationSnapshot.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_gui_replay_history_8h_source.html">app/GuiReplayHistory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_optimisation_8h_source.html">simulation/Optimisation.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_run_control_8h_source.html">simulation/RunControl.h</a>&quot;</code><br />
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_dispatch_cont
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for DispatchController.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_dispatch_controller_8h__incl.svg" width="3042" height="476"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_dispatch_controller_8h__incl.svg" width="3351" height="491"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -140,11 +140,43 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:DispatchController" id="r_DispatchController"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_dispatch_controller.html">DispatchController</a></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad061adfde0ecf72b801d3da8313221d6" id="r_ad061adfde0ecf72b801d3da8313221d6"><td class="memItemLeft"><a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad061adfde0ecf72b801d3da8313221d6">buildGuiSimulationSnapshot</a> (const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, int timestep)</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:ab5a73897d68e014911ec849ff5222366" id="r_ab5a73897d68e014911ec849ff5222366"><td class="memItemLeft"><a class="el" href="class_dispatch_controller.html">DispatchController</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab5a73897d68e014911ec849ff5222366">simulation</a></td></tr>
 <tr class="memdesc:ab5a73897d68e014911ec849ff5222366"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controller of the process. <a class="el" href="class_simulation_worker.html">SimulationWorker(QObject*)</a> runs it, and main and the window prepare and read their runs with it.  <br /></td></tr>
 </table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="ad061adfde0ecf72b801d3da8313221d6" name="ad061adfde0ecf72b801d3da8313221d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad061adfde0ecf72b801d3da8313221d6">&#9670;&#160;</a></span>buildGuiSimulationSnapshot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> buildGuiSimulationSnapshot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>timestep</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The snapshot of a run at a step. It reads the run and changes nothing. The thread that steps the run builds it, and the window and the live stream see the run through it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_dispatch_controller_8h_ad061adfde0ecf72b801d3da8313221d6_cgraph.svg" width="1039" height="467"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
 <a id="ab5a73897d68e014911ec849ff5222366" name="ab5a73897d68e014911ec849ff5222366"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab5a73897d68e014911ec849ff5222366">&#9670;&#160;</a></span>simulation</h2>

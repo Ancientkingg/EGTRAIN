@@ -126,7 +126,6 @@ var hierarchy =
     [ "LiveServerState", "struct_live_server_state.html", null ],
     [ "LiveStreamGuard", "struct_live_stream_guard.html", null ],
     [ "ValidationPanel::LoadedDataContext", "struct_validation_panel_1_1_loaded_data_context.html", null ],
-    [ "Location", "class_location.html", null ],
     [ "MainWindowTestHooks", "struct_main_window_test_hooks.html", null ],
     [ "MovementAuthority", "class_movement_authority.html", null ],
     [ "NetworkLegendContent", "struct_network_legend_content.html", null ],
@@ -438,9 +437,7 @@ var hierarchy =
     [ "TrackPreviewStation", "struct_track_preview_station.html", null ],
     [ "TrackStateVisual", "struct_track_state_visual.html", null ],
     [ "TrackVisual", "struct_track_visual.html", null ],
-    [ "Train", "class_train.html", [
-      [ "Regional", "class_regional.html", null ]
-    ] ],
+    [ "Train", "class_train.html", null ],
     [ "TrainKeyList::Train", "struct_train_key_list_1_1_train.html", null ],
     [ "TrainColourInput", "struct_train_colour_input.html", null ],
     [ "TrainColourPlan", "struct_train_colour_plan.html", null ],

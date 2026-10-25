@@ -115,11 +115,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_signalling_8c
 <div class="textblock"><code>#include &quot;<a class="el" href="_signalling_8h_source.html">simulation/Signalling.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_signalling_level_8h_source.html">scene/SignallingLevel.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_infrastructure_builder_internal_8h_source.html">simulation/builders/InfrastructureBuilderInternal.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_simulation_run_8h_source.html">simulation/SimulationRun.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_log_8h_source.html">util/Log.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_playback_profiler_8h_source.html">util/PlaybackProfiler.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cassert&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_signalling_8c
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Signalling.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp__incl.svg" width="3474" height="564"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp__incl.svg" width="3215" height="550"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -139,16 +139,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a83551e4431b445f64b467e1beaeaa11b" id="r_a83551e4431b445f64b467e1beaeaa11b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a83551e4431b445f64b467e1beaeaa11b">orderListOfTrainEvents</a> (list&lt; <a class="el" href="class_train_event.html">TrainEvent</a> &gt; &amp;OutputList)</td></tr>
 <tr class="memitem:a1114fc9d5c5791a7104bd35425f5b98b" id="r_a1114fc9d5c5791a7104bd35425f5b98b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1114fc9d5c5791a7104bd35425f5b98b">UpdateInfrastructureElementStatus</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const list&lt; <a class="el" href="class_infra_element.html">InfraElement</a> &gt; &amp;RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const string &amp;TrainName)</td></tr>
 <tr class="memitem:a3bfce1c13c0402a88b9253e677105b9a" id="r_a3bfce1c13c0402a88b9253e677105b9a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3bfce1c13c0402a88b9253e677105b9a">SortRecordedEventsForAllInfrastructureElements</a> (list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt; &amp;ListOfAllInfraEvents)</td></tr>
-<tr class="memitem:ac4a294eef644fcf6b45b6ab8f60da05b" id="r_ac4a294eef644fcf6b45b6ab8f60da05b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac4a294eef644fcf6b45b6ab8f60da05b">generateConnectBlock</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_section.html">Section</a> BS1, <a class="el" href="class_section.html">Section</a> BS2, <a class="el" href="class_node.html">Node</a> N1, <a class="el" href="class_node.html">Node</a> N2, <a class="el" href="class_section.html">Section</a> &amp;BS3)</td></tr>
-<tr class="memitem:a88c103a7841f76b8af033572043608a4" id="r_a88c103a7841f76b8af033572043608a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a88c103a7841f76b8af033572043608a4">createBlockConn</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, <a class="el" href="class_node.html">Node</a> Nb, <a class="el" href="class_section.html">Section</a> BS1, int Temp_Blocks, int n_conn)</td></tr>
+<tr class="memitem:a1b589d15a801ea6a9c8b9d7a05cce711" id="r_a1b589d15a801ea6a9c8b9d7a05cce711"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1b589d15a801ea6a9c8b9d7a05cce711">generateConnectBlock</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="class_section.html">Section</a> &amp;BS1, const <a class="el" href="class_section.html">Section</a> &amp;BS2, const <a class="el" href="class_node.html">Node</a> &amp;N1, <a class="el" href="class_node.html">Node</a> N2, <a class="el" href="class_section.html">Section</a> &amp;BS3)</td></tr>
+<tr class="memitem:afa46fc94a5b65b072b44a2a3df563f35" id="r_afa46fc94a5b65b072b44a2a3df563f35"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afa46fc94a5b65b072b44a2a3df563f35">createBlockConn</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="class_node.html">Node</a> &amp;Nb, const <a class="el" href="class_section.html">Section</a> &amp;BS1, int Temp_Blocks, int n_conn)</td></tr>
 <tr class="memitem:a3f6686c44b0ba10303b6b49a54520644" id="r_a3f6686c44b0ba10303b6b49a54520644"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3f6686c44b0ba10303b6b49a54520644">setAllConnections</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memdesc:a3f6686c44b0ba10303b6b49a54520644"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn).  <br /></td></tr>
 <tr class="memitem:a1f673e60c0474724e6f12226951ab30c" id="r_a1f673e60c0474724e6f12226951ab30c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1f673e60c0474724e6f12226951ab30c">setList</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, string input, list&lt; <a class="el" href="class_section.html">Section</a> &gt; &amp;BSConnected)</td></tr>
-<tr class="memitem:a66c765219f164e41a935ff59fb3368f9" id="r_a66c765219f164e41a935ff59fb3368f9"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a66c765219f164e41a935ff59fb3368f9">setLegacyConnectedBlockIdsOnNodes</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:a4386e78bc457a96e80cdc76c3843df3f" id="r_a4386e78bc457a96e80cdc76c3843df3f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4386e78bc457a96e80cdc76c3843df3f">setDependenciesBetweenBlocks</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
-<tr class="memitem:aa2ab998deb02213032b69e65e6db2684" id="r_aa2ab998deb02213032b69e65e6db2684"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa2ab998deb02213032b69e65e6db2684">setDependenciesBetweenBlocksInternal</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, bool includeCopenhagenDependency)</td></tr>
-<tr class="memitem:a5df0ad753af013105eddf479f21d5982" id="r_a5df0ad753af013105eddf479f21d5982"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5df0ad753af013105eddf479f21d5982">areBlocksConnected</a> (<a class="el" href="class_section.html">Section</a> A, <a class="el" href="class_section.html">Section</a> blockSets)</td></tr>
-<tr class="memdesc:a5df0ad753af013105eddf479f21d5982"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.  <br /></td></tr>
+<tr class="memitem:a877234fbf966932bc196a407a5393311" id="r_a877234fbf966932bc196a407a5393311"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a877234fbf966932bc196a407a5393311">areBlocksConnected</a> (const <a class="el" href="class_section.html">Section</a> &amp;A, const <a class="el" href="class_section.html">Section</a> &amp;blockSets)</td></tr>
+<tr class="memdesc:a877234fbf966932bc196a407a5393311"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.  <br /></td></tr>
 <tr class="memitem:a40869713165ffc728f60b07ba8757291" id="r_a40869713165ffc728f60b07ba8757291"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a40869713165ffc728f60b07ba8757291">setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations</a> (<a class="el" href="class_section.html">Section</a> *BS, int N_BlockSections)</td></tr>
 <tr class="memitem:a04818c8be349c6a7777854bd27a62185" id="r_a04818c8be349c6a7777854bd27a62185"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a04818c8be349c6a7777854bd27a62185">createTds</a> (<a class="el" href="class_section.html">Section</a> *Blocks, int N_Blocks, int N_TDS_On_Straight_Blocks, list&lt; <a class="el" href="class_t_d_s.html">TDS</a> &gt; &amp;ALL_TDS)</td></tr>
 <tr class="memitem:a092bc81125d4d1fc837addf3b4f3d69a" id="r_a092bc81125d4d1fc837addf3b4f3d69a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a092bc81125d4d1fc837addf3b4f3d69a">setGeoCoordinates</a> (<a class="el" href="class_section.html">Section</a> *BS, int N_BS)</td></tr>
@@ -445,8 +443,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a5df0ad753af013105eddf479f21d5982" name="a5df0ad753af013105eddf479f21d5982"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5df0ad753af013105eddf479f21d5982">&#9670;&#160;</a></span>areBlocksConnected()</h2>
+<a id="a877234fbf966932bc196a407a5393311" name="a877234fbf966932bc196a407a5393311"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a877234fbf966932bc196a407a5393311">&#9670;&#160;</a></span>areBlocksConnected()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -454,12 +452,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">bool areBlocksConnected </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>A</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>A</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>blockSets</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>blockSets</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -468,13 +466,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a5df0ad753af013105eddf479f21d5982_cgraph.svg" width="380" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a877234fbf966932bc196a407a5393311_cgraph.svg" width="380" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a88c103a7841f76b8af033572043608a4" name="a88c103a7841f76b8af033572043608a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a88c103a7841f76b8af033572043608a4">&#9670;&#160;</a></span>createBlockConn()</h2>
+<a id="afa46fc94a5b65b072b44a2a3df563f35" name="afa46fc94a5b65b072b44a2a3df563f35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa46fc94a5b65b072b44a2a3df563f35">&#9670;&#160;</a></span>createBlockConn()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -487,12 +485,12 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_node.html">Node</a></td>          <td class="paramname"><span class="paramname"><em>Nb</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_node.html">Node</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>Nb</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>BS1</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>BS1</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -510,7 +508,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a88c103a7841f76b8af033572043608a4_cgraph.svg" width="632" height="98"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_afa46fc94a5b65b072b44a2a3df563f35_cgraph.svg" width="632" height="98"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -683,8 +681,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac4a294eef644fcf6b45b6ab8f60da05b" name="ac4a294eef644fcf6b45b6ab8f60da05b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac4a294eef644fcf6b45b6ab8f60da05b">&#9670;&#160;</a></span>generateConnectBlock()</h2>
+<a id="a1b589d15a801ea6a9c8b9d7a05cce711" name="a1b589d15a801ea6a9c8b9d7a05cce711"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b589d15a801ea6a9c8b9d7a05cce711">&#9670;&#160;</a></span>generateConnectBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -697,17 +695,17 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>BS1</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>BS1</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>BS2</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>BS2</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_node.html">Node</a></td>          <td class="paramname"><span class="paramname"><em>N1</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_node.html">Node</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>N1</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -725,7 +723,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_ac4a294eef644fcf6b45b6ab8f60da05b_cgraph.svg" width="452" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a1b589d15a801ea6a9c8b9d7a05cce711_cgraph.svg" width="452" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1297,38 +1295,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10). This entry point also adds the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (<a class="el" href="class_node.html#a633cd9429e74119f27c859ef2fe93b36">Node::IDConnectedBlocks</a>). </p>
+<p>Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most <a class="el" href="namespace_runtime_limits.html#a34582c35d3eb1e7cb9579ba6b12224fd" title="Switch sections and block dependencies of one section.">RuntimeLimits::kNativeMaxDependencies</a>). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a4386e78bc457a96e80cdc76c3843df3f_cgraph.svg" width="1310" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aa2ab998deb02213032b69e65e6db2684" name="aa2ab998deb02213032b69e65e6db2684"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2ab998deb02213032b69e65e6db2684">&#9670;&#160;</a></span>setDependenciesBetweenBlocksInternal()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void setDependenciesBetweenBlocksInternal </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>includeCopenhagenDependency</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Fills the connected block IDs of every section of run.infra. With includeCopenhagenDependency it also adds the legacy Copenhagen connection of section @5-B6@ and sets the legacy connected block IDs of the nodes; the scene builder passes false. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_aa2ab998deb02213032b69e65e6db2684_cgraph.svg" width="1027" height="150"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a4386e78bc457a96e80cdc76c3843df3f_cgraph.svg" width="363" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1384,36 +1355,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a7caf9e075db8201e60a60261421b618d_cgraph.svg" width="163" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a66c765219f164e41a935ff59fb3368f9" name="a66c765219f164e41a935ff59fb3368f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66c765219f164e41a935ff59fb3368f9">&#9670;&#160;</a></span>setLegacyConnectedBlockIdsOnNodes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void setLegacyConnectedBlockIdsOnNodes </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>run</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_signalling_8cpp_a66c765219f164e41a935ff59fb3368f9_cgraph.svg" width="744" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

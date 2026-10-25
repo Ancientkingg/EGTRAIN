@@ -12,7 +12,7 @@
 <area shape="poly" id="edge23_Node000001_Node000015" title=" " alt="" coords="106,210,153,241,214,272,237,280,235,285,212,277,151,246,103,215"/>
 <area shape="rect" id="Node000003" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="517,136,647,162"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,85,525,130,524,135,371,90"/>
-<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres." alt="" coords="747,129,875,169"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="747,129,875,169"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="353,59,413,35,494,12,540,5,586,3,633,7,677,20,712,39,743,64,790,116,786,120,739,68,709,43,675,25,632,13,586,8,540,10,496,17,415,40,355,64"/>
 <area shape="rect" id="Node000010" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="509,35,655,60"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="429,61,495,54,495,59,430,66"/>

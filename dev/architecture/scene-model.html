@@ -485,9 +485,8 @@ decimal base (for example <code class="docutils literal notranslate"><span class
 the total occurrence count, including the base, and overrides the duration
 horizon; without it, the count is <code class="docutils literal notranslate"><span class="pre">ceil(duration</span> <span class="pre">/</span> <span class="pre">headway)</span></code>. Entry and stop
 offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">*</span> <span class="pre">headway</span></code>. The canonical service ID never
-advances. Repetition keeps the canonical entry in <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code>;
-the compatibility hourly-retiming algorithm may derive <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> while
-leaving that canonical value unchanged. Arrival and departure timetable values
+advances. Repetition keeps the canonical entry in <code class="docutils literal notranslate"><span class="pre">scheduled_departure_time</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> starts equal to it. Arrival and departure timetable values
 remain independently optional and are staged as runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code> when absent,
 including repeated occurrences.</p>
 <p>Route descriptions, stop validation and native stop preparation share an ordered

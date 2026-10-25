@@ -15,6 +15,5 @@ var searchData=
   ['liveserver_12',['LiveServer',['../class_live_server.html',1,'']]],
   ['liveserverstate_13',['LiveServerState',['../struct_live_server_state.html',1,'']]],
   ['livestreamguard_14',['LiveStreamGuard',['../struct_live_stream_guard.html',1,'']]],
-  ['loadeddatacontext_15',['LoadedDataContext',['../struct_validation_panel_1_1_loaded_data_context.html',1,'ValidationPanel']]],
-  ['location_16',['Location',['../class_location.html',1,'']]]
+  ['loadeddatacontext_15',['LoadedDataContext',['../struct_validation_panel_1_1_loaded_data_context.html',1,'ValidationPanel']]]
 ];

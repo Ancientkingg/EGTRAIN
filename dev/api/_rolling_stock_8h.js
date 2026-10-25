@@ -4,7 +4,7 @@ var _rolling_stock_8h =
     [ "BlockingTimeList", "class_blocking_time_list.html", "class_blocking_time_list" ],
     [ "Train", "class_train.html", "class_train" ],
     [ "Train::BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", "struct_train_1_1_braking_arc_cursor" ],
-    [ "Regional", "class_regional.html", "class_regional" ],
+    [ "Regional", "_rolling_stock_8h.html#ad3908848dc3f7bfe83edaa7a99358aae", null ],
     [ "buildOperationsFromScene", "_rolling_stock_8h.html#aecaefd86ea2ed1c4c1fd7f0e0777dfbf", null ],
     [ "ComputeBlockingTimesInMixedSignallingForAllTrains", "_rolling_stock_8h.html#ad9c39d7c6f43673001b963dd20746e1d", null ],
     [ "isPastStopHoldback", "_rolling_stock_8h.html#a2c8aeb5be2d71d06848277209c39a470", null ],

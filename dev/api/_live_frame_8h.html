@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_live_frame_8h
   <div class="headertitle"><div class="title">LiveFrame.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">app/GuiSimulationSnapshot.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_gui_simulation_snapshot_8h_source.html">simulation/GuiSimulationSnapshot.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_live_command_8h_source.html">io/LiveCommand.h</a>&quot;</code><br />
 <code>#include &lt;nlohmann/json.hpp&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_live_frame_8h
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for LiveFrame.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8h__incl.svg" width="1310" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8h__incl.svg" width="1310" height="198"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -146,6 +146,7 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:adbba254b1a4954c529d0489c8186eed1" id="r_adbba254b1a4954c529d0489c8186eed1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#adbba254b1a4954c529d0489c8186eed1">randomHex</a> (int words)</td></tr>
 <tr class="memitem:af5e6c634a5f117dad0ac13428c9ea2f6" id="r_af5e6c634a5f117dad0ac13428c9ea2f6"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#af5e6c634a5f117dad0ac13428c9ea2f6">makeHelloFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot)</td></tr>
 <tr class="memitem:ac51ef6820acefcf6d6540bd32b294aa2" id="r_ac51ef6820acefcf6d6540bd32b294aa2"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac51ef6820acefcf6d6540bd32b294aa2">makeStateFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot, bool includeSignals)</td></tr>
 <tr class="memitem:aa15fa4f8941f8f8f4174fc3bc144a8f1" id="r_aa15fa4f8941f8f8f4174fc3bc144a8f1"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa15fa4f8941f8f8f4174fc3bc144a8f1">makeEventFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, <a class="el" href="#a76abc5d45797d7b6e6b2ab4f6cba4103">LiveEvent</a> event, int step)</td></tr>
@@ -160,7 +161,7 @@ Variables</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Frames of the live contract, built from the immutable snapshot of a step. The members of each frame and their units are described in docs/live/frame-v1.schema.json, and the contract in docs/architecture/external-sharing.md. Times are in seconds, positions in metres, the x coordinate in kilometres and speeds in m/s. A value that the snapshot does not hold, such as the position of a train that has not entered, is null in the frame and never a sentinel: the -1 that <a class="el" href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67">Train::trainXPosition</a> gives for a head in no block section becomes null, and so does a number that is not finite. No Qt.</p>
-<p>The functions only build JSON and keep no state. <a class="el" href="class_dispatch_controller.html">DispatchController</a> calls them on the thread that runs the steps. Every frame carries seq, the position of the frame in the run, counted from 0 across all frames; the caller assigns it. </p>
+<p>The frame functions only build JSON and keep no state. <a class="el" href="class_dispatch_controller.html">DispatchController</a> calls them on the thread that runs the steps. Every frame carries seq, the position of the frame in the run, counted from 0 across all frames; the caller assigns it. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a76abc5d45797d7b6e6b2ab4f6cba4103" name="a76abc5d45797d7b6e6b2ab4f6cba4103"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a76abc5d45797d7b6e6b2ab4f6cba4103">&#9670;&#160;</a></span>LiveEvent</h2>
@@ -368,6 +369,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8h_ac51ef6820acefcf6d6540bd32b294aa2_cgraph.svg" width="316" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adbba254b1a4954c529d0489c8186eed1" name="adbba254b1a4954c529d0489c8186eed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbba254b1a4954c529d0489c8186eed1">&#9670;&#160;</a></span>randomHex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string randomHex </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>words</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Random lowercase hexadecimal digits: 8 for each of <span class="tt">words</span> 32-bit words from std::random_device, the high digit first. The live server makes its token with it and <a class="el" href="class_dispatch_controller.html">DispatchController</a> the id of a run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8h_adbba254b1a4954c529d0489c8186eed1_cgraph.svg" width="110" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

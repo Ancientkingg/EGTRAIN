@@ -124,12 +124,11 @@ Collaboration diagram for Section:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a77b88e06692841ba49559d22a25a09f9" id="r_a77b88e06692841ba49559d22a25a09f9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a77b88e06692841ba49559d22a25a09f9">Section</a> ()</td></tr>
 <tr class="memitem:a19c7ad148d4216503ad2749e7e752622" id="r_a19c7ad148d4216503ad2749e7e752622"><td class="memItemLeft"><a class="el" href="class_section.html">Section</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a19c7ad148d4216503ad2749e7e752622">operator=</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2)</td></tr>
-<tr class="memdesc:a19c7ad148d4216503ad2749e7e752622"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies every member; the node list stays shared.  <br /></td></tr>
-<tr class="memitem:ae025e5d6be6a85e7536f004929a12963" id="r_ae025e5d6be6a85e7536f004929a12963"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae025e5d6be6a85e7536f004929a12963">operator==</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2)</td></tr>
-<tr class="memdesc:ae025e5d6be6a85e7536f004929a12963"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.  <br /></td></tr>
+<tr class="memitem:a96ed8ec0e3d0c39d615fd392a6313063" id="r_a96ed8ec0e3d0c39d615fd392a6313063"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a96ed8ec0e3d0c39d615fd392a6313063">operator==</a> (const <a class="el" href="class_section.html">Section</a> &amp;ob2) const</td></tr>
+<tr class="memdesc:a96ed8ec0e3d0c39d615fd392a6313063"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.  <br /></td></tr>
 <tr class="memitem:a9d107275a33abfcfbcc2f9bf310f10bc" id="r_a9d107275a33abfcfbcc2f9bf310f10bc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9d107275a33abfcfbcc2f9bf310f10bc">CutBlockSection</a> (std::string CutPart, double CuttingAbscissa)</td></tr>
-<tr class="memitem:a651681e3131f69ab2d4b91b0127137a4" id="r_a651681e3131f69ab2d4b91b0127137a4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a651681e3131f69ab2d4b91b0127137a4">reverseBlockSection</a> (<a class="el" href="class_section.html">Section</a> blockSets, double RouteLength)</td></tr>
-<tr class="memdesc:a651681e3131f69ab2d4b91b0127137a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.  <br /></td></tr>
+<tr class="memitem:ad2d52f861799b6b459e5c4295c88c53f" id="r_ad2d52f861799b6b459e5c4295c88c53f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad2d52f861799b6b459e5c4295c88c53f">reverseBlockSection</a> (const <a class="el" href="class_section.html">Section</a> &amp;blockSets, double RouteLength)</td></tr>
+<tr class="memdesc:ad2d52f861799b6b459e5c4295c88c53f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -140,8 +139,8 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a36c6365c3e4a3d934234d4543a5d42c9" id="r_a36c6365c3e4a3d934234d4543a5d42c9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a36c6365c3e4a3d934234d4543a5d42c9">FirstConnectedTrackLineID</a></td></tr>
 <tr class="memdesc:a36c6365c3e4a3d934234d4543a5d42c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.  <br /></td></tr>
 <tr class="memitem:a3196e7535e753f4ae17c079752fd85f9" id="r_a3196e7535e753f4ae17c079752fd85f9"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a3196e7535e753f4ae17c079752fd85f9">SecondConnectedTrackLineID</a></td></tr>
-<tr class="memdesc:a3196e7535e753f4ae17c079752fd85f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.  <br /></td></tr>
-<tr class="memitem:a0b47458d4a3ceb0f7107e698520e001c" id="r_a0b47458d4a3ceb0f7107e698520e001c"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0b47458d4a3ceb0f7107e698520e001c">arcs_in_signalling_block_section</a> [20]</td></tr>
+<tr class="memitem:a13b8bae99d5d7b7148e9f54b2aa7eb6e" id="r_a13b8bae99d5d7b7148e9f54b2aa7eb6e"><td class="memItemLeft"><a class="el" href="class_arc.html">Arc</a>&#160;</td><td class="memItemRight"><a class="el" href="#a13b8bae99d5d7b7148e9f54b2aa7eb6e">arcs_in_signalling_block_section</a> [<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>]</td></tr>
+<tr class="memdesc:a13b8bae99d5d7b7148e9f54b2aa7eb6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arcs of the section, total_arcs of them.  <br /></td></tr>
 <tr class="memitem:a18141433af72aed8b416dc5e10c8c481" id="r_a18141433af72aed8b416dc5e10c8c481"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a18141433af72aed8b416dc5e10c8c481">start_node</a></td></tr>
 <tr class="memdesc:a18141433af72aed8b416dc5e10c8c481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start node.  <br /></td></tr>
 <tr class="memitem:a565e1de59d3e57b5489f7b1c6ff556dc" id="r_a565e1de59d3e57b5489f7b1c6ff556dc"><td class="memItemLeft"><a class="el" href="class_node.html">Node</a>&#160;</td><td class="memItemRight"><a class="el" href="#a565e1de59d3e57b5489f7b1c6ff556dc">end_node</a></td></tr>
@@ -177,16 +176,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a5440182a1de2a86465a5b5e5ea3d703e" id="r_a5440182a1de2a86465a5b5e5ea3d703e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5440182a1de2a86465a5b5e5ea3d703e">Occup_By_Train</a></td></tr>
 <tr class="memdesc:a5440182a1de2a86465a5b5e5ea3d703e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to false by the constructor and never given another value.  <br /></td></tr>
 <tr class="memitem:a37ca1b3b87fd03fea98becdab4c74ace" id="r_a37ca1b3b87fd03fea98becdab4c74ace"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a37ca1b3b87fd03fea98becdab4c74ace">withSwitchDiv</a></td></tr>
-<tr class="memitem:ac54e567b6d2ad813886d6856d9ad4b47" id="r_ac54e567b6d2ad813886d6856d9ad4b47"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac54e567b6d2ad813886d6856d9ad4b47">IDConnectedBS</a> [10]</td></tr>
+<tr class="memitem:ac5af06ce7028845edfdf9826e4f02b40" id="r_ac5af06ce7028845edfdf9826e4f02b40"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac5af06ce7028845edfdf9826e4f02b40">IDConnectedBS</a> [<a class="el" href="namespace_runtime_limits.html#a34582c35d3eb1e7cb9579ba6b12224fd">RuntimeLimits::kNativeMaxDependencies</a>]</td></tr>
+<tr class="memdesc:ac5af06ce7028845edfdf9826e4f02b40"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the sections that depend on this one, which are occupied and released with it.  <br /></td></tr>
 <tr class="memitem:a74127a65cb4551837bfd8922a9e46111" id="r_a74127a65cb4551837bfd8922a9e46111"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a74127a65cb4551837bfd8922a9e46111">N_ConnectedBS</a></td></tr>
 <tr class="memdesc:a74127a65cb4551837bfd8922a9e46111"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of used entries of IDConnectedBS.  <br /></td></tr>
 <tr class="memitem:a72a2b9fd2907d90c94fa7b9506bf9656" id="r_a72a2b9fd2907d90c94fa7b9506bf9656"><td class="memItemLeft">std::list&lt; <a class="el" href="class_t_d_s.html">TDS</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72a2b9fd2907d90c94fa7b9506bf9656">TDS_in_block</a></td></tr>
 <tr class="memdesc:a72a2b9fd2907d90c94fa7b9506bf9656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Track detection sections of the section; they point into <a class="el" href="struct_run_infrastructure.html#a2c629868c25cd1060430eaff9cb94832" title="The track detection sections. The block sections point into this list.">RunInfrastructure::detectionSections</a>.  <br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a483902af146fba7721f9db93165283c8" id="r_a483902af146fba7721f9db93165283c8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a483902af146fba7721f9db93165283c8">SetBlockSpeed</a> ()</td></tr>
-<tr class="memdesc:a483902af146fba7721f9db93165283c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Names a function that does not exist.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A block section. <a class="el" href="struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd" title="The block sections of the network, sized once per scene by the builder.">RunInfrastructure::sections</a> holds the sections of the scene and the sections derived at switches, and a <a class="el" href="class_route.html">Route</a> holds copies of them, reversed for a reversed route. X values are kilometres. </p>
@@ -259,8 +254,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Copies every member; the node list stays shared. </p>
+<p>Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints): the entries after those keep their values. The copy constructor copies every entry. The node list stays shared. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -269,8 +263,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ae025e5d6be6a85e7536f004929a12963" name="ae025e5d6be6a85e7536f004929a12963"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae025e5d6be6a85e7536f004929a12963">&#9670;&#160;</a></span>operator==()</h2>
+<a id="a96ed8ec0e3d0c39d615fd392a6313063" name="a96ed8ec0e3d0c39d615fd392a6313063"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96ed8ec0e3d0c39d615fd392a6313063">&#9670;&#160;</a></span>operator==()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -282,7 +276,7 @@ Here is the call graph for this function:</div>
           <td class="memname">bool Section::operator== </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>ob2</em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -296,13 +290,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_ae025e5d6be6a85e7536f004929a12963_cgraph.svg" width="340" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_a96ed8ec0e3d0c39d615fd392a6313063_cgraph.svg" width="340" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a651681e3131f69ab2d4b91b0127137a4" name="a651681e3131f69ab2d4b91b0127137a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a651681e3131f69ab2d4b91b0127137a4">&#9670;&#160;</a></span>reverseBlockSection()</h2>
+<a id="ad2d52f861799b6b459e5c4295c88c53f" name="ad2d52f861799b6b459e5c4295c88c53f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2d52f861799b6b459e5c4295c88c53f">&#9670;&#160;</a></span>reverseBlockSection()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -310,7 +304,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void Section::reverseBlockSection </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_section.html">Section</a></td>          <td class="paramname"><span class="paramname"><em>blockSets</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_section.html">Section</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>blockSets</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -324,52 +318,25 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_a651681e3131f69ab2d4b91b0127137a4_cgraph.svg" width="396" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_section_ad2d52f861799b6b459e5c4295c88c53f_cgraph.svg" width="396" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a name="doc-related-members" id="doc-related-members"></a><h2 id="header-doc-related-members" class="groupheader">Friends And Related Symbol Documentation</h2>
-<a id="a483902af146fba7721f9db93165283c8" name="a483902af146fba7721f9db93165283c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a483902af146fba7721f9db93165283c8">&#9670;&#160;</a></span>SetBlockSpeed</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void SetBlockSpeed </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel friend">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Names a function that does not exist. </p>
 
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a0b47458d4a3ceb0f7107e698520e001c" name="a0b47458d4a3ceb0f7107e698520e001c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b47458d4a3ceb0f7107e698520e001c">&#9670;&#160;</a></span>arcs_in_signalling_block_section</h2>
+<a id="a13b8bae99d5d7b7148e9f54b2aa7eb6e" name="a13b8bae99d5d7b7148e9f54b2aa7eb6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13b8bae99d5d7b7148e9f54b2aa7eb6e">&#9670;&#160;</a></span>arcs_in_signalling_block_section</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_arc.html">Arc</a> Section::arcs_in_signalling_block_section[20]</td>
+          <td class="memname"><a class="el" href="class_arc.html">Arc</a> Section::arcs_in_signalling_block_section[<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Arcs of the section, total_arcs of them; at most 20 (<a class="el" href="namespace_runtime_limits.html#a432a9ed44b097ac42198d2d36f2c0987">RuntimeLimits::kNativeMaxSectionArcs</a>). </p>
+
+<p>Arcs of the section, total_arcs of them. </p>
 
 </div>
 </div>
@@ -514,18 +481,19 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ac54e567b6d2ad813886d6856d9ad4b47" name="ac54e567b6d2ad813886d6856d9ad4b47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac54e567b6d2ad813886d6856d9ad4b47">&#9670;&#160;</a></span>IDConnectedBS</h2>
+<a id="ac5af06ce7028845edfdf9826e4f02b40" name="ac5af06ce7028845edfdf9826e4f02b40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5af06ce7028845edfdf9826e4f02b40">&#9670;&#160;</a></span>IDConnectedBS</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string Section::IDConnectedBS[10]</td>
+          <td class="memname">std::string Section::IDConnectedBS[<a class="el" href="namespace_runtime_limits.html#a34582c35d3eb1e7cb9579ba6b12224fd">RuntimeLimits::kNativeMaxDependencies</a>]</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>IDs of the sections that depend on this one, which are occupied and released with it: at most 10 (<a class="el" href="namespace_runtime_limits.html#a34582c35d3eb1e7cb9579ba6b12224fd" title="Switch sections and block dependencies of one section.">RuntimeLimits::kNativeMaxDependencies</a>). </p>
+
+<p>IDs of the sections that depend on this one, which are occupied and released with it. </p>
 
 </div>
 </div>
@@ -636,7 +604,6 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
 <p>Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise. </p>
 
 </div>

@@ -10,7 +10,6 @@ var _gui_simulation_snapshot_8h =
     [ "GuiVirtualCouplingState", "struct_gui_virtual_coupling_state.html", "struct_gui_virtual_coupling_state" ],
     [ "GuiSimulationSnapshot", "struct_gui_simulation_snapshot.html", "struct_gui_simulation_snapshot" ],
     [ "GuiSimulationSnapshotMailbox", "class_gui_simulation_snapshot_mailbox.html", "class_gui_simulation_snapshot_mailbox" ],
-    [ "buildGuiSimulationSnapshot", "_gui_simulation_snapshot_8h.html#ad061adfde0ecf72b801d3da8313221d6", null ],
     [ "followTrainName", "_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418", null ],
     [ "guiReplayTrainHasPosition", "_gui_simulation_snapshot_8h.html#ab4397b256aacd088b6767e677794ce57", null ],
     [ "guiSectionReportsPermissiveSignalling", "_gui_simulation_snapshot_8h.html#a7c6d85d3d1c8db2484cb1e0612a25c00", null ],

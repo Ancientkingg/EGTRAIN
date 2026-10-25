@@ -75,7 +75,7 @@ var searchData=
   ['areacapacitytext_72',['areaCapacityText',['../_area_capacity_window_8cpp.html#a319b62cae345e5b3d3fcd3ee14321f28',1,'areaCapacityText(const CompletedRunData &amp;data, const AreaCapacityScope &amp;scope):&#160;AreaCapacityWindow.cpp'],['../_area_capacity_window_8h.html#a319b62cae345e5b3d3fcd3ee14321f28',1,'areaCapacityText(const CompletedRunData &amp;data, const AreaCapacityScope &amp;scope):&#160;AreaCapacityWindow.cpp']]],
   ['areacapacitywindow_73',['AreaCapacityWindow',['../class_area_capacity_window.html#a7d1a200175ee456cee0c882875190a4a',1,'AreaCapacityWindow']]],
   ['areaitem_74',['areaItem',['../class_station_overlay_item.html#a528fa6d6f38d8a92f0544d1fd040c870',1,'StationOverlayItem']]],
-  ['areblocksconnected_75',['areBlocksConnected',['../_signalling_8cpp.html#a5df0ad753af013105eddf479f21d5982',1,'areBlocksConnected(Section A, Section blockSets):&#160;Signalling.cpp'],['../_signalling_8h.html#a5df0ad753af013105eddf479f21d5982',1,'areBlocksConnected(Section A, Section blockSets):&#160;Signalling.cpp']]],
+  ['areblocksconnected_75',['areBlocksConnected',['../_signalling_8cpp.html#a877234fbf966932bc196a407a5393311',1,'areBlocksConnected(const Section &amp;A, const Section &amp;blockSets):&#160;Signalling.cpp'],['../_signalling_8h.html#a877234fbf966932bc196a407a5393311',1,'areBlocksConnected(const Section &amp;A, const Section &amp;blockSets):&#160;Signalling.cpp']]],
   ['arm_76',['arm',['../class_playback_profiler.html#afed8f868778eccff3de3bd1e3ae23087',1,'PlaybackProfiler']]],
   ['armed_77',['armed',['../class_playback_profiler.html#a6c312830a58e1ba8573832d6762ea863',1,'PlaybackProfiler']]],
   ['armtimingpaint_78',['armTimingPaint',['../class_network_view.html#aae84faaa3bcf8d62a6422a798e4dd96c',1,'NetworkView']]],

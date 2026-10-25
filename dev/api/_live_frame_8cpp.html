@@ -115,14 +115,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_live_frame_8c
 <div class="textblock"><code>#include &quot;<a class="el" href="_live_frame_8h_source.html">io/LiveFrame.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;random&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for LiveFrame.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8cpp__incl.svg" width="1202" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8cpp__incl.svg" width="1242" height="271"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:adbba254b1a4954c529d0489c8186eed1" id="r_adbba254b1a4954c529d0489c8186eed1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#adbba254b1a4954c529d0489c8186eed1">randomHex</a> (int words)</td></tr>
 <tr class="memitem:a5a605f48026d3bb76307ba4510fb745c" id="r_a5a605f48026d3bb76307ba4510fb745c"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5a605f48026d3bb76307ba4510fb745c">makeHelloFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot)</td></tr>
 <tr class="memitem:a781cfae9c064ce1092d656a5149e850d" id="r_a781cfae9c064ce1092d656a5149e850d"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a781cfae9c064ce1092d656a5149e850d">makeStateFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot, bool includeSignals)</td></tr>
 <tr class="memitem:a882ac0911415cc6b3eeed75659f7ad0c" id="r_a882ac0911415cc6b3eeed75659f7ad0c"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a882ac0911415cc6b3eeed75659f7ad0c">makeEventFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, <a class="el" href="_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103">LiveEvent</a> event, int step)</td></tr>
@@ -305,6 +307,29 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8cpp_a781cfae9c064ce1092d656a5149e850d_cgraph.svg" width="316" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adbba254b1a4954c529d0489c8186eed1" name="adbba254b1a4954c529d0489c8186eed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbba254b1a4954c529d0489c8186eed1">&#9670;&#160;</a></span>randomHex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string randomHex </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>words</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Random lowercase hexadecimal digits: 8 for each of <span class="tt">words</span> 32-bit words from std::random_device, the high digit first. The live server makes its token with it and <a class="el" href="class_dispatch_controller.html">DispatchController</a> the id of a run. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_live_frame_8cpp_adbba254b1a4954c529d0489c8186eed1_cgraph.svg" width="110" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

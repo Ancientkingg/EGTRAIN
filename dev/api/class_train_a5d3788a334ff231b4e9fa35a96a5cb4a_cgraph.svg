@@ -59,7 +59,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_blocking_times.html#a65dcbd103eb1f25b1edcbb17c345a519" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_blocking_times.html#a010028f117123821a25dd11d5692a558" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="365.5,-41 195.5,-41 195.5,0 365.5,0 365.5,-41"/>
 <text text-anchor="start" x="203.5" y="-29" font-family="Helvetica,sans-Serif" font-size="10.00">BlockingTimes::checkIfLast</text>
 <text text-anchor="start" x="203.5" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">InfraElementStatusIsInLineWith</text>
@@ -79,7 +79,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title="Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.">
+<g id="a_Node000003"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="522,-126.5 426,-126.5 426,-96.5 522,-96.5 522,-126.5"/>
 <text text-anchor="start" x="434" y="-114.5" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text text-anchor="middle" x="474" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['generateconnectblock_0',['generateConnectBlock',['../_signalling_8cpp.html#ac4a294eef644fcf6b45b6ab8f60da05b',1,'generateConnectBlock(SimulationRun &amp;run, Section BS1, Section BS2, Node N1, Node N2, Section &amp;BS3):&#160;Signalling.cpp'],['../_signalling_8h.html#ac4a294eef644fcf6b45b6ab8f60da05b',1,'generateConnectBlock(SimulationRun &amp;run, Section BS1, Section BS2, Node N1, Node N2, Section &amp;BS3):&#160;Signalling.cpp']]],
+  ['generateconnectblock_0',['generateConnectBlock',['../_signalling_8cpp.html#a1b589d15a801ea6a9c8b9d7a05cce711',1,'generateConnectBlock(SimulationRun &amp;run, const Section &amp;BS1, const Section &amp;BS2, const Node &amp;N1, Node N2, Section &amp;BS3):&#160;Signalling.cpp'],['../_signalling_8h.html#a1b589d15a801ea6a9c8b9d7a05cce711',1,'generateConnectBlock(SimulationRun &amp;run, const Section &amp;BS1, const Section &amp;BS2, const Node &amp;N1, Node N2, Section &amp;BS3):&#160;Signalling.cpp']]],
   ['generatedservicelabel_1',['generatedServiceLabel',['../class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a',1,'ServicePanel']]],
   ['geoat_2',['geoAt',['../class_position_scale.html#a0558f4ef1d947362349b17f1ec26871c',1,'PositionScale::geoAt(double routeKm) const'],['../class_position_scale.html#af2f127feb6adeaab9e7f76d58832bae1',1,'PositionScale::geoAt(double routeKm, double towardKm) const']]],
   ['get_3',['get',['../class_http_transport.html#a90ffd50bc02c6f42f5512b245d37e376',1,'HttpTransport']]],
