@@ -3,11 +3,11 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <cctype>
-#include <chrono>
 #include <filesystem>
 #include <system_error>
 
@@ -106,28 +106,6 @@ bool copyDirectoryTree(const fs::path& source, const fs::path& destination,
 		}
 	}
 	return true;
-}
-
-bool createPrivateDirectory(const fs::path& parent, const std::string& prefix, fs::path& result) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		if (fs::create_directory(candidate, ec)) {
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code cleanup;
-				fs::remove_all(candidate, cleanup);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-		ec.clear();
-	}
-	return false;
 }
 
 bool validDestination(const fs::path& destination, const fs::path& source,
@@ -281,21 +259,13 @@ SceneMigrationResult migrateSceneCopy(const std::string& sourcePath,
 			"Cannot locate a temporary directory for migration");
 		return result;
 	}
-	fs::path staging;
-	if (!createPrivateDirectory(tempParent, "egscene-migrate-", staging)) {
+	StagedDirectory stagingDirectory;
+	if (createStagedDirectory(tempParent, "egscene-migrate-", true, stagingDirectory)) {
 		addDiagnostic(result.diagnostics, "scene.migration.staging",
 			"Cannot create a private migration staging directory");
 		return result;
 	}
-	struct Cleanup {
-		fs::path path;
-		~Cleanup() {
-			if (!path.empty()) {
-				std::error_code ec;
-				fs::remove_all(path, ec);
-			}
-		}
-	} cleanup{staging};
+	const fs::path staging = stagingDirectory.path;
 
 	bool staged = false;
 	if (probe.sourceKind == SceneSourceKind::Bundle) {

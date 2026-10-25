@@ -2,10 +2,10 @@
 
 #include "io/third_party/miniz/miniz.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
-#include <chrono>
 #include <cctype>
 #include <climits>
 #include <cstdint>
@@ -35,19 +35,6 @@ constexpr mz_uint64 kMaxEntrySize = 16ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxTotalSize = 64ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxCompressionRatio = 1000;
 constexpr mz_uint kMaxEntries = 16;
-
-struct TempDirectory {
-	fs::path path;
-
-	~TempDirectory() {
-		if (path.empty())
-			return;
-		std::error_code error;
-		fs::remove_all(path, error);
-	}
-
-	void release() { path.clear(); }
-};
 
 struct ZipReader {
 	mz_zip_archive zip{};
@@ -139,36 +126,16 @@ static bool specialArchiveFile(const mz_zip_archive_file_stat& stat) {
 	return (stat.m_external_attr & (0x008U | 0x010U | 0x040U | 0x400U)) != 0;
 }
 
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix, fs::path& result,
-	bool* writeAttempted = nullptr) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		ec.clear();
-		if (writeAttempted) *writeAttempted = true;
-		if (fs::create_directory(candidate, ec)) {
-			ec.clear();
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code removeError;
-				fs::remove_all(candidate, removeError);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-	}
-	return false;
-}
-
-static bool makeTempDirectory(TempDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
+static bool makeTempDirectory(StagedDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
 	bool* writeAttempted = nullptr) {
 	std::error_code ec;
 	const fs::path root = fs::temp_directory_path(ec);
-	if (ec || root.empty() || !createUniqueDirectory(root, "egscene-", temp.path, writeAttempted)) {
+	if (!ec && !root.empty()) {
+		if (writeAttempted)
+			*writeAttempted = true;
+		ec = createStagedDirectory(root, "egscene-", true, temp);
+	}
+	if (ec || root.empty()) {
 		addDiagnostic(diagnostics, "scene.bundle.temp", "Cannot create a private temporary directory");
 		return false;
 	}
@@ -577,7 +544,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics))
 		return result;
 	if (!extractEntries(reader, entries, temp.path, result.diagnostics))
@@ -612,7 +579,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
 	SceneSaveResult directoryResult = saveScene(scene, temp.path.u8string());
@@ -688,8 +655,8 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		totalSize += size;
 	}
 
-	TempDirectory stagingContainer;
-	if (!createUniqueDirectory(parent, target.filename().u8string() + ".staging-", stagingContainer.path)) {
+	StagedDirectory stagingContainer;
+	if (createStagedDirectory(parent, target.filename().u8string() + ".staging-", true, stagingContainer)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create a private bundle staging directory",
 			target.u8string());
 		return result;
@@ -780,8 +747,8 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 		return result;
 	}
 
-	TempDirectory staging;
-	if (!createUniqueDirectory(parent, destination.filename().u8string() + ".staging-", staging.path)) {
+	StagedDirectory staging;
+	if (createStagedDirectory(parent, destination.filename().u8string() + ".staging-", true, staging)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Cannot create extraction staging directory",
 			destinationDirectory);
 		return result;

@@ -1,13 +1,13 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneFieldReader.h"
 #include "scene/SceneFields.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <cctype>
 #include <climits>
 #include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 #include <cmath>
 #include <limits>
@@ -19,14 +19,6 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 
 namespace {
-
-bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream input(path, std::ios::binary);
-	if (!input)
-		return false;
-	content.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-	return true;
-}
 
 SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile,
 	int parsedCount, const std::string& status) {
@@ -100,7 +92,7 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 			return false;
 		}
 		std::string content;
-		if (!readFile(path, content)) {
+		if (!readFileBytes(path, content)) {
 			result.reason = std::string("scene input is missing or unreadable: ") + name;
 			return false;
 		}
@@ -797,7 +789,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	std::vector<std::pair<std::string, std::string>> inputFiles;
 	auto parseObject = [&](const std::string& file, json& value, bool required, bool parseValue = true) {
 		std::string content;
-		if (!readFile(directory / file, content)) {
+		if (!readFileBytes(directory / file, content)) {
 			if (required)
 				addError("scene.file.missing", file, "Required file is missing");
 			return false;

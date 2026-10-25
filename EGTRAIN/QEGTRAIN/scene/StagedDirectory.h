@@ -4,11 +4,45 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <string>
 #include <system_error>
 
-// A scene directory is filled in a private directory next to its destination and then renamed into place, so that a
-// failure leaves the previous scene as it was. The functions here are shared by the scene writer and the legacy exporter.
+// File helpers of the scene code. A scene directory is filled in a private directory next to its destination and then
+// renamed into place, so that a failure leaves the previous scene as it was. A bundle and a migration are unpacked into a
+// private temporary directory.
+
+/// Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opened.
+inline bool readFileBytes(const std::filesystem::path& path, std::string& content) {
+	std::ifstream input(path, std::ios::binary);
+	if (!input)
+		return false;
+	content.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+	return true;
+}
+
+/// The absolute, normalised form of path, with symlinks resolved as far as the path exists, so that two spellings of one
+/// location compare equal. A path that cannot be resolved is returned normalised.
+inline std::filesystem::path comparablePath(const std::filesystem::path& path) {
+	std::error_code ec;
+	std::filesystem::path resolved = std::filesystem::weakly_canonical(path, ec);
+	if (!ec)
+		return resolved;
+	resolved = std::filesystem::absolute(path, ec);
+	return ec ? path.lexically_normal() : resolved.lexically_normal();
+}
+
+/// True when child is parent or lies inside it, compared element by element. Pass both through comparablePath first.
+inline bool containsPath(const std::filesystem::path& parent, const std::filesystem::path& child) {
+	auto parentIt = parent.begin();
+	auto childIt = child.begin();
+	for (; parentIt != parent.end() && childIt != child.end(); ++parentIt, ++childIt) {
+		if (*parentIt != *childIt)
+			return false;
+	}
+	return parentIt == parent.end();
+}
 
 /// A directory that is removed when the object goes out of scope. release() keeps it, for a caller that has renamed it.
 struct StagedDirectory {

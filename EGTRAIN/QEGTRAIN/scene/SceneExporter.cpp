@@ -25,23 +25,6 @@ bool SceneExportResult::success() const {
 	return wroteAll && !hasErrors(diagnostics);
 }
 
-// Match the importer's path-containment checks, including missing destination leaves.
-static fs::path comparablePath(const fs::path& path) {
-	std::error_code ec;
-	fs::path resolved = fs::weakly_canonical(path, ec);
-	if (!ec) return resolved;
-	resolved = fs::absolute(path, ec);
-	return ec ? path.lexically_normal() : resolved.lexically_normal();
-}
-
-static bool containsPath(const fs::path& parent, const fs::path& child) {
-	auto parentIt = parent.begin();
-	auto childIt = child.begin();
-	for (; parentIt != parent.end() && childIt != child.end(); ++parentIt, ++childIt)
-		if (*parentIt != *childIt) return false;
-	return parentIt == parent.end();
-}
-
 static std::string lowerCopy(std::string value) {
 	std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
 	return value;

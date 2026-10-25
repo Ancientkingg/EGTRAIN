@@ -4,9 +4,9 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 #include <filesystem>
-#include <fstream>
 #include <locale>
 #include <sstream>
 #include <unordered_set>
@@ -173,10 +173,8 @@ static bool utf16ToUtf8(const std::u16string& in, std::string& out) {
 // Reads a file as UTF-8. A file that starts with the UTF-16 LE byte order mark is converted; an odd byte count or an
 // unpaired surrogate fails the read and leaves content empty.
 static bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream f(path, std::ios::binary);
-	if (!f.good())
+	if (!readFileBytes(path, content))
 		return false;
-	content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 	if (content.size() >= 2
 		&& static_cast<unsigned char>(content[0]) == 0xff
 		&& static_cast<unsigned char>(content[1]) == 0xfe) {
@@ -212,27 +210,6 @@ static std::string trim(const std::string& s) {
 		start++;
 	std::string res = s.substr(start);
 	return trimRight(res);
-}
-
-static fs::path comparablePath(const fs::path& path) {
-	std::error_code ec;
-	fs::path resolved = fs::weakly_canonical(path, ec);
-	if (!ec)
-		return resolved;
-	resolved = fs::absolute(path, ec);
-	return ec ? path.lexically_normal() : resolved.lexically_normal();
-}
-
-static bool containsPath(const fs::path& parent, const fs::path& child) {
-	if (parent == child)
-		return true;
-	auto parentIt = parent.begin();
-	auto childIt = child.begin();
-	for (; parentIt != parent.end() && childIt != child.end(); ++parentIt, ++childIt) {
-		if (*parentIt != *childIt)
-			return false;
-	}
-	return parentIt == parent.end();
 }
 
 struct ReportBuilder {
