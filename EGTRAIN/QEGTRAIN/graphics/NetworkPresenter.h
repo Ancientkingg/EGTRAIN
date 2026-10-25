@@ -193,11 +193,13 @@ public:
 	/// place of its last update at the next step.
 	void setClock(Clock clock);
 
-	/// Draws the passenger information of the selected train again, or hides it while the passenger layer is hidden.
+	/// Brings the passenger information of the selected train up to date, or hides it while the passenger layer is
+	/// hidden.
 	void updateTrainPaxInfo();
-	/// Draws the passenger information of the selected passenger icon again, or hides it while the passenger layer is
-	/// hidden. The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after
-	/// steps were applied while it was hidden, the snapshot also brings the platforms up to date.
+	/// Brings the passenger information of the selected passenger icon up to date, or hides it while the passenger layer
+	/// is hidden; it goes when the icon has gone. The snapshot gives the details of the passenger and can be null. When
+	/// the passenger layer is shown after steps were applied while it was hidden, the snapshot also brings the platforms
+	/// up to date.
 	void updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback);
 	/// Deletes the passenger information of the selected train. The train stays selected.
 	void removeTrainPaxInfoIcon();
@@ -247,11 +249,13 @@ public:
 	/// is known.
 	void paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd);
 
-	/// Shows the passengers on board above a train.
+	/// Shows the passengers on board above a train and selects it. A train without a shape shows none, and the
+	/// passenger information is deleted. The group of the information is made once and then reused.
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	/// Shows the details of a passenger above its icon; a replay adds that the journey details are unavailable.
+	/// Shows the details of a passenger above its icon and selects the icon; a replay adds that the journey details are
+	/// unavailable. The group of the details is made once and then reused.
 	void paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive);
-	/// Shows the message of a virtual coupling above a train.
+	/// Shows the message of a virtual coupling above a train, in a group that is made once for the train.
 	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 	/// Draws the track lines, the connections, the nodes, the station overlays and the signals of the
@@ -378,26 +382,28 @@ public:
 
 	// scene item sizes
 	/// The factor of the sizes below.
-	int global_scale = 10;
-	/// The diameter of a node and of a signal head in scene units. The cast truncates 2.8 to 2, so it is 20.
-	int node_size = (int)2.8 * global_scale;
-	/// The side of the square of a station node in scene units. The cast truncates 2.5 to 2, so it is 40.
-	int station_node_size = (int)2.5 * node_size;
+	static constexpr int global_scale = 10;
+	/// The diameter of a node and of a signal head in scene units: 20. It was once written as 2.8 times
+	/// global_scale with a cast that truncated 2.8 to 2.
+	static constexpr int node_size = 2 * global_scale;
+	/// The side of the square of a station node in scene units: 40. It was once written as 2.5 times node_size
+	/// with a cast that truncated 2.5 to 2.
+	static constexpr int station_node_size = 2 * node_size;
 	/// The multiple of track_separation by which a run without the preview moves the picture and the name of a
 	/// station along the shift of its region; negative puts them on the side opposite the shifted track lines.
-	int station_name_graphID = -8;
+	static constexpr int station_name_graphID = -8;
 	/// The width in pixels of the cosmetic pens of connections, signal posts and callout lines, and the smallest
 	/// width of a track line.
-	int line_width = 2;
+	static constexpr int line_width = 2;
 	/// The distance in scene units between two display levels of track lines. Signal posts, train bodies and
 	/// callout lines are sized from it.
-	int track_separation = 15 * global_scale;
+	static constexpr int track_separation = 15 * global_scale;
 	/// The height of a station picture in scene units. A station name uses a font of a fifth of it in pixels,
 	/// the labels of platforms and the passenger information a fifteenth.
-	int station_size = 30 * global_scale;
+	static constexpr int station_size = 30 * global_scale;
 	/// The factor of the Mercator projection that places a station with a latitude and longitude in a run
 	/// without the preview. The projection also uses the width and height of the view in pixels.
-	int geo_scale = 80000 * global_scale;
+	static constexpr int geo_scale = 80000 * global_scale;
 
 	/// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
 	/// application resource is missing.
@@ -476,6 +482,33 @@ private:
 	QElapsedTimer m_elapsed;
 	// The index of each section of the source by its id. buildTrackIndexes() fills it for the run.
 	std::unordered_map<std::string, int> m_sectionIndexById;
+	// The ends that switchSectionEnds() read from the id of a section derived at a switch, by that id: the indexes in
+	// m_sectionIndexById of the sections of the two tracks, -1 for one that the source lacks, and the X in kilometres of
+	// the connection on each. parsed is false for an id of another form. Emptied with m_sectionIndexById.
+	struct SwitchEnds {
+		bool parsed = false;
+		int first = -1;
+		int second = -1;
+		double firstX = 0.0;
+		double secondX = 0.0;
+	};
+	mutable std::unordered_map<std::string, SwitchEnds> m_switchEnds;
+	// The lines of m_cachedTrackPreview by their track id, the first line of each id. showPreview() fills both.
+	std::unordered_map<std::string, const TrackPreviewLine*> m_previewLinesById;
+	// The points and the sections that getTrainPolygon() works with for one wagon, and the shapes of the wagons of one
+	// train in getTrainPolygonItemList(), kept from wagon to wagon and from frame to frame so that their memory is reused.
+	struct WagonScratch {
+		QVector<QPointF> up;
+		QVector<QPointF> down;
+		QVector<int> stationIndex;
+		QVector<int> stationRegion;
+		QVector<int> graphId;
+		std::vector<int> occupiedSections;
+		std::vector<double> posX;
+		std::vector<double> routeX;
+	};
+	WagonScratch m_wagonScratch;
+	std::vector<QPolygonF> m_wagonPolygons;
 
 	qint64 nowMs() const;
 	void noteLiveUpdate();

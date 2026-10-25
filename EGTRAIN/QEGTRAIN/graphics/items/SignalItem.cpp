@@ -32,6 +32,7 @@ void SignalItem::setAspectCode(int code) {
 	m_aspectCode = code;
 	m_lampColor = classifySignalAspect(code).lamp;
 	update();
+	updateToolTip();
 }
 
 int SignalItem::aspectCode() const {
@@ -43,6 +44,7 @@ void SignalItem::setFailed(bool failed) {
 		return;
 	m_failed = failed;
 	update();
+	updateToolTip();
 }
 
 void SignalItem::setReversedDirection(bool reversed) {
@@ -50,6 +52,7 @@ void SignalItem::setReversedDirection(bool reversed) {
 		return;
 	reversedDirection = reversed;
 	update();
+	updateToolTip();
 }
 
 void SignalItem::setGroupedSignals(const QVector<QPair<int, bool>>& aspects) {
@@ -65,6 +68,11 @@ QString SignalItem::inspectionIdentity() const {
 	return QStringLiteral("Track %1 at %2 km")
 		.arg(sceneTrackId.empty() ? QString::number(trackID) : QString::fromStdString(sceneTrackId))
 		.arg(X, 0, 'g', 10);
+}
+
+void SignalItem::updateToolTip() {
+	setToolTip(QStringLiteral("%1, facing %2\n%3")
+			.arg(signalAspectLabel(this), reversedDirection ? QStringLiteral("left") : QStringLiteral("right"), inspectionIdentity()));
 }
 
 QRectF SignalItem::boundingRect() const {

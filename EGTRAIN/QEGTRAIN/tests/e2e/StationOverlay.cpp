@@ -409,7 +409,6 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		// An obsolete displaced slot has no shape and cannot override context.
 		auto* ghost = new StationOverlayItem("Ghost", w.networkView->mapToScene(w.networkView->viewport()->rect().center()), classifyStation());
 		ghost->setSceneDecoration(true);
-		ghost->setFitCollisionOffset(QPointF(60.0, 0.0));
 		Node ghostSource;
 		ghostSource.ID = -987.0;
 		ghostSource.station = true;
