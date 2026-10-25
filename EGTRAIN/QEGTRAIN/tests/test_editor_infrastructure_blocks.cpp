@@ -3,6 +3,8 @@
 
 #include "scene/SectionInventory.h"
 
+#include "support/FakePrompts.h"
+
 #include <QApplication>
 #include <QComboBox>
 #include <QListWidget>
@@ -10,19 +12,13 @@
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
+#include <QTest>
 
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static SceneNode node(const char* id, const char* trackId, double xKm) {
 	SceneNode result;
@@ -97,26 +93,6 @@ static SceneModel blockScene() {
 	scene.stationBoundaries.push_back(boundary);
 	return scene;
 }
-
-// Answers the questions of the panel and records the messages, without a dialog.
-class FakePrompts : public UserPrompts {
-public:
-	int errorCount = 0;
-	QString errorMessage;
-	int confirmCount = 0;
-	QString confirmQuestion;
-	bool confirmAnswer = false;
-
-	void showError(QWidget*, const QString&, const QString& message, bool = false) override {
-		++errorCount;
-		errorMessage = message;
-	}
-	bool confirm(QWidget*, const QString&, const QString& question) override {
-		++confirmCount;
-		confirmQuestion = question;
-		return confirmAnswer;
-	}
-};
 
 using Log = std::vector<std::string>;
 
@@ -221,19 +197,38 @@ static QString blocked(const char* kind, const char* id, const QStringList& cons
 		.arg(QString(kind), QString(id), consumers.join("\n\xE2\x80\xA2 "));
 }
 
-static bool testFacets() {
-	bool ok = true;
+class TestBlockRouteFacets : public QObject {
+	Q_OBJECT
+
+private slots:
+	void offersBlockAndRouteFacets();
+	void listsBlocks();
+	void editsBlocks();
+	void addsBlocks();
+	void insertsAndMovesBlocks();
+	void deletesBlocks();
+	void editsRoutes();
+	void editsRouteSections();
+	void editsDependencies();
+	void editsRestrictions();
+};
+
+void TestBlockRouteFacets::offersBlockAndRouteFacets() {
 	const std::vector<std::unique_ptr<InfrastructureFacet>> facets = makeBlockRouteFacets();
 	QStringList keys;
 	for (const std::unique_ptr<InfrastructureFacet>& facet : facets)
 		keys << facet->key();
-	ok &= expect(keys == QStringList({"blocks", "routes", "block_dependencies", "single_track_restrictions"}),
-		"the blocks and routes have four facets");
+	// The blocks and routes have four facets.
+	QCOMPARE(keys, QStringList({"blocks", "routes", "block_dependencies", "single_track_restrictions"}));
 
 	Fixture f;
-	ok &= expect(f.panel.facet("blocks") && f.panel.facet("routes") && f.panel.facet("block_dependencies")
-			&& f.panel.facet("single_track_restrictions") && !f.panel.facet("tracks") && !f.panel.facet("stations"),
-		"the panel has the facets of the blocks and routes and no others");
+	// The panel has the facets of the blocks and routes and no others.
+	QVERIFY(f.panel.facet("blocks"));
+	QVERIFY(f.panel.facet("routes"));
+	QVERIFY(f.panel.facet("block_dependencies"));
+	QVERIFY(f.panel.facet("single_track_restrictions"));
+	QVERIFY(!f.panel.facet("tracks"));
+	QVERIFY(!f.panel.facet("stations"));
 	f.choose("blocks");
 	f.document.setEditable(false);
 	f.panel.refresh();
@@ -245,245 +240,339 @@ static bool testFacets() {
 	f.panel.removeSection();
 	f.panel.moveSection(1);
 	f.type(0, 2, "5");
-	ok &= expect(f.untouched() && f.model().blocks.size() == 4 && f.model().blocks[0].lengthKm == 1.0,
-		"nothing is edited, added or moved while a run uses the scene");
-	return ok;
+	// Nothing is edited, added or moved while a run uses the scene.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().blocks.size(), std::size_t(4));
+	QCOMPARE_EQ(f.model().blocks[0].lengthKm, 1.0);
 }
 
-static bool testBlockList() {
-	bool ok = true;
+void TestBlockRouteFacets::listsBlocks() {
 	Fixture f;
 	f.choose("blocks");
-	ok &= expect(f.headers() == QStringList({"ID", "Track ID", "Length (km)", "Order", "Start km", "End km", "Coverage"}),
-		"blocks are listed with their extent");
-	ok &= expect(f.table()->rowCount() == 2 && f.rowTexts(0) == QStringList({"block-a1", "track-a", "1", "1", "0", "1", "complete"})
-			&& f.rowTexts(1) == QStringList({"block-a2", "track-a", "1", "2", "1", "2", "complete"}),
-		"the blocks of the first track are listed in the order of the model");
-	ok &= expect(!f.table()->item(0, 3)->flags().testFlag(Qt::ItemIsEditable) && !f.table()->item(0, 4)->flags().testFlag(Qt::ItemIsEditable)
-			&& f.table()->item(0, 2)->flags().testFlag(Qt::ItemIsEditable),
-		"the order and the extent follow from the model, and cannot be edited");
-	ok &= expect(f.untouched() && !f.document.isDirty(), "listing blocks edits nothing");
+	// Blocks are listed with their extent.
+	QCOMPARE(f.headers(), QStringList({"ID", "Track ID", "Length (km)", "Order", "Start km", "End km", "Coverage"}));
+	// The blocks of the first track are listed in the order of the model.
+	QCOMPARE(f.table()->rowCount(), 2);
+	QCOMPARE(f.rowTexts(0), QStringList({"block-a1", "track-a", "1", "1", "0", "1", "complete"}));
+	QCOMPARE(f.rowTexts(1), QStringList({"block-a2", "track-a", "1", "2", "1", "2", "complete"}));
+	// The order and the extent follow from the model, and cannot be edited.
+	QVERIFY(!f.table()->item(0, 3)->flags().testFlag(Qt::ItemIsEditable));
+	QVERIFY(!f.table()->item(0, 4)->flags().testFlag(Qt::ItemIsEditable));
+	QVERIFY(f.table()->item(0, 2)->flags().testFlag(Qt::ItemIsEditable));
+	// Listing blocks edits nothing.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 	f.chooseTrack("track-b");
-	ok &= expect(f.firstColumn() == QStringList({"block-b1", "block-b2"}), "the filter lists the blocks of another track");
+	// The filter lists the blocks of another track.
+	QCOMPARE(f.firstColumn(), QStringList({"block-b1", "block-b2"}));
 
 	// a block without a section has no extent
 	f.edit().blocks.push_back(block("block-lost", "track-b"));
 	f.edit().nodes.erase(f.edit().nodes.begin() + 3, f.edit().nodes.end());
 	f.panel.refresh();
-	ok &= expect(f.rowTexts(0).mid(4) == QStringList({"unavailable", "unavailable", "unavailable"}),
-		"a block that has no section shows no extent");
-	return ok;
+	// A block that has no section shows no extent.
+	QCOMPARE(f.rowTexts(0).mid(4), QStringList({"unavailable", "unavailable", "unavailable"}));
 }
 
-static bool testBlockEdit() {
-	bool ok = true;
+void TestBlockRouteFacets::editsBlocks() {
 	Fixture f;
 	f.choose("blocks");
 	f.type(0, 2, "2.5");
-	ok &= expect(f.model().blocks[0].lengthKm == 2.5 && f.cell(0, 2) == "2.5" && f.changedOnce("Edit block", "blocks"),
-		"the length of a block is edited");
+	// The length of a block is edited.
+	QCOMPARE_EQ(f.model().blocks[0].lengthKm, 2.5);
+	QCOMPARE(f.cell(0, 2), "2.5");
+	QVERIFY(f.changedOnce("Edit block", "blocks"));
 	for (const char* refused : {"abc", "", "inf", "nan"}) {
 		f.type(0, 2, refused);
-		ok &= expect(f.untouched() && f.model().blocks[0].lengthKm == 2.5 && f.cell(0, 2) == "2.5" && f.messages.empty(),
-			"a length that is no finite number is refused, without a message, and the table shows the model again");
+		// A length that is no finite number is refused, without a message, and the table shows the model again.
+		QVERIFY2(f.untouched(), refused);
+		QCOMPARE_EQ(f.model().blocks[0].lengthKm, 2.5);
+		QCOMPARE(f.cell(0, 2), "2.5");
+		QVERIFY2(f.messages.empty(), refused);
 	}
 	f.type(0, 2, " 2.5 ");
-	ok &= expect(f.untouched(), "a length that is the same number changes nothing");
+	QVERIFY2(f.untouched(), "a length that is the same number changes nothing");
 
 	// the track
 	f.type(1, 1, "track-b");
-	ok &= expect(f.model().blocks[1].trackId == "track-b" && f.changedOnce("Edit block", "blocks"), "the track of a block is edited");
-	ok &= expect(f.panel.blockTrackFilterCombo()->currentData().toString() == "track-b" && f.firstColumn() == QStringList({"block-a2", "block-b1", "block-b2"})
-			&& f.table()->rowCount() == 3,
-		"the filter follows the block to its track");
+	// The track of a block is edited.
+	QCOMPARE(f.model().blocks[1].trackId, "track-b");
+	QVERIFY(f.changedOnce("Edit block", "blocks"));
+	// The filter follows the block to its track.
+	QCOMPARE(f.panel.blockTrackFilterCombo()->currentData().toString(), "track-b");
+	QCOMPARE(f.firstColumn(), QStringList({"block-a2", "block-b1", "block-b2"}));
+	QCOMPARE(f.table()->rowCount(), 3);
 	f.chooseTrack("track-a");
 	f.untouched();
-	ok &= expect(f.firstColumn() == QStringList({"block-a1"}), "the block has left the first track");
+	// The block has left the first track.
+	QCOMPARE(f.firstColumn(), QStringList({"block-a1"}));
 	f.type(0, 3, "9");
-	ok &= expect(f.untouched(), "the order cannot be edited");
+	QVERIFY2(f.untouched(), "the order cannot be edited");
 
 	// rename
 	f.type(0, 0, " block-x ");
 	const SceneModel& model = f.model();
 	const std::string renamed = sectionOf(model, "block-x");
-	ok &= expect(model.blocks[0].id == "block-x" && !renamed.empty(), "the block is renamed");
-	ok &= expect(model.routes[0].blocks[0] == "@block-x@" && model.routes[0].blocks[1] == sectionOf(model, "block-a2")
-			&& model.blockDependencies[0].block == "@block-x@" && model.singleTrackRestrictions[0].startBlock == "@block-x@"
-			&& model.stationBoundaries[0].entranceBlock == "@block-x@" && sceneSignals(f.edit())[0].protectedSection == "@block-x@",
-		"a renamed block keeps its routes, dependencies, restrictions, boundaries and signals");
-	ok &= expect(model.blockDependencies[0].dependsOn == sectionOf(model, "block-a2") && model.singleTrackRestrictions[0].endBlock == sectionOf(model, "block-a2")
-			&& model.singleTrackRestrictions[0].protectedStartBlock == sectionOf(model, "block-b1")
-			&& model.stationBoundaries[0].exitBlock == sectionOf(model, "block-a2"),
-		"a rename leaves the other blocks as they are");
-	ok &= expect(f.changedOnce("Rename block", "blocks") && f.panel.selectionId() == "block-x" && f.table()->currentRow() == 0,
-		"a rename marks the document once, and the renamed block stays selected");
+	// The block is renamed.
+	QCOMPARE(model.blocks[0].id, "block-x");
+	QVERIFY(!renamed.empty());
+	// A renamed block keeps its routes, dependencies, restrictions, boundaries and signals.
+	QCOMPARE(model.routes[0].blocks[0], "@block-x@");
+	QCOMPARE(model.routes[0].blocks[1], sectionOf(model, "block-a2"));
+	QCOMPARE(model.blockDependencies[0].block, "@block-x@");
+	QCOMPARE(model.singleTrackRestrictions[0].startBlock, "@block-x@");
+	QCOMPARE(model.stationBoundaries[0].entranceBlock, "@block-x@");
+	QCOMPARE(sceneSignals(f.edit())[0].protectedSection, "@block-x@");
+	// A rename leaves the other blocks as they are.
+	QCOMPARE(model.blockDependencies[0].dependsOn, sectionOf(model, "block-a2"));
+	QCOMPARE(model.singleTrackRestrictions[0].endBlock, sectionOf(model, "block-a2"));
+	QCOMPARE(model.singleTrackRestrictions[0].protectedStartBlock, sectionOf(model, "block-b1"));
+	QCOMPARE(model.stationBoundaries[0].exitBlock, sectionOf(model, "block-a2"));
+	// A rename marks the document once, and the renamed block stays selected.
+	QVERIFY(f.changedOnce("Rename block", "blocks"));
+	QCOMPARE(f.panel.selectionId(), "block-x");
+	QCOMPARE(f.table()->currentRow(), 0);
 
 	// ids that a block cannot have
 	f.type(0, 0, "block-b1");
-	ok &= expect(f.untouched() && f.model().blocks[0].id == "block-x" && f.cell(0, 0) == "block-x"
-			&& f.messages == QStringList({"IDs must be unique and not empty"}),
-		"an id that another block has is refused, with a message, and the table shows the model again");
+	// An id that another block has is refused, with a message, and the table shows the model again.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().blocks[0].id, "block-x");
+	QCOMPARE(f.cell(0, 0), "block-x");
+	QCOMPARE(f.messages, QStringList({"IDs must be unique and not empty"}));
 	f.type(0, 0, "  ");
-	ok &= expect(f.untouched() && f.model().blocks[0].id == "block-x" && f.messages.size() == 2, "an empty id is refused");
-	return ok;
+	// An empty id is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().blocks[0].id, "block-x");
+	QCOMPARE(f.messages.size(), qsizetype(2));
 }
 
-static bool testBlockAdd() {
-	bool ok = true;
+void TestBlockRouteFacets::addsBlocks() {
 	Fixture f;
 	f.choose("blocks");
 	f.panel.addButton()->click();
 	const SceneBlock& added = f.model().blocks.back();
-	ok &= expect(f.model().blocks.size() == 5 && added.id == "block" && added.trackId == "track-a" && added.lengthKm == 1.0
-			&& f.changedOnce("Add block", "blocks") && f.panel.selectionId() == "block" && f.table()->currentRow() == 2
-			&& f.firstColumn() == QStringList({"block-a1", "block-a2", "block"}),
-		"a block is added to the track of the filter, with a new id, and selected");
+	// A block is added to the track of the filter, with a new id, and selected.
+	QCOMPARE(f.model().blocks.size(), std::size_t(5));
+	QCOMPARE(added.id, "block");
+	QCOMPARE(added.trackId, "track-a");
+	QCOMPARE_EQ(added.lengthKm, 1.0);
+	QVERIFY(f.changedOnce("Add block", "blocks"));
+	QCOMPARE(f.panel.selectionId(), "block");
+	QCOMPARE(f.table()->currentRow(), 2);
+	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block-a2", "block"}));
 	f.panel.addButton()->click();
-	ok &= expect(f.model().blocks.size() == 6 && f.model().blocks.back().id == "block_2" && f.changedOnce("Add block", "blocks"),
-		"the id of the next block is new too");
+	// The id of the next block is new too.
+	QCOMPARE(f.model().blocks.size(), std::size_t(6));
+	QCOMPARE(f.model().blocks.back().id, "block_2");
+	QVERIFY(f.changedOnce("Add block", "blocks"));
 
 	// a track that the scene does not have
 	f.edit().blocks.push_back(block("block-ghost", "ghost"));
 	f.panel.refresh();
 	f.chooseTrack("ghost");
 	f.untouched();
-	ok &= expect(f.firstColumn() == QStringList({"block-ghost"}) && !f.panel.addButton()->isEnabled(), "a track that the scene lacks has its blocks, but no Add");
+	// A track that the scene lacks has its blocks, but no Add.
+	QCOMPARE(f.firstColumn(), QStringList({"block-ghost"}));
+	QVERIFY(!f.panel.addButton()->isEnabled());
 	f.panel.addEntity();
-	ok &= expect(f.untouched() && f.model().blocks.size() == 7 && f.messages == QStringList({"Select a valid track before adding a block"}),
-		"a block is not added to a track that the scene does not have, and the user is told");
-	return ok;
+	// A block is not added to a track that the scene does not have, and the user is told.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().blocks.size(), std::size_t(7));
+	QCOMPARE(f.messages, QStringList({"Select a valid track before adding a block"}));
 }
 
-static bool testBlockInsertAndMove() {
-	bool ok = true;
+void TestBlockRouteFacets::insertsAndMovesBlocks() {
 	Fixture f;
 	f.choose("blocks");
-	ok &= expect(!f.panel.insertBlockButton()->isEnabled() && !f.panel.moveBlockUpButton()->isEnabled() && !f.panel.moveBlockDownButton()->isEnabled(),
-		"the buttons wait for a selected block");
+	// The buttons wait for a selected block.
+	QVERIFY(!f.panel.insertBlockButton()->isEnabled());
+	QVERIFY(!f.panel.moveBlockUpButton()->isEnabled());
+	QVERIFY(!f.panel.moveBlockDownButton()->isEnabled());
 	f.panel.insertEntity();
 	f.panel.moveEntity(1);
-	ok &= expect(f.untouched() && f.model().blocks.size() == 4, "nothing is inserted or moved without a selected block");
+	// Nothing is inserted or moved without a selected block.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().blocks.size(), std::size_t(4));
 
 	// insert
 	f.select(1);
 	f.panel.insertBlockButton()->click();
 	const std::vector<SceneBlock>& blocks = f.model().blocks;
-	ok &= expect(blocks.size() == 5 && blocks[1].id == "block" && blocks[1].trackId == "track-a" && blocks[1].lengthKm == 1.0 && blocks[2].id == "block-a2",
-		"a block is inserted before the selected one, on its track");
-	ok &= expect(f.changedOnce("Insert block", "blocks") && f.panel.selectionId() == "block" && f.table()->currentRow() == 1
-			&& f.firstColumn() == QStringList({"block-a1", "block", "block-a2"}),
-		"an insert marks the document once, and the new block is selected");
+	// A block is inserted before the selected one, on its track.
+	QCOMPARE(blocks.size(), std::size_t(5));
+	QCOMPARE(blocks[1].id, "block");
+	QCOMPARE(blocks[1].trackId, "track-a");
+	QCOMPARE_EQ(blocks[1].lengthKm, 1.0);
+	QCOMPARE(blocks[2].id, "block-a2");
+	// An insert marks the document once, and the new block is selected.
+	QVERIFY(f.changedOnce("Insert block", "blocks"));
+	QCOMPARE(f.panel.selectionId(), "block");
+	QCOMPARE(f.table()->currentRow(), 1);
+	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block", "block-a2"}));
 
 	// move: the inserted block is second
-	ok &= expect(f.panel.moveBlockUpButton()->isEnabled() && f.panel.moveBlockDownButton()->isEnabled(), "a block in the middle can move both ways");
+	// A block in the middle can move both ways.
+	QVERIFY(f.panel.moveBlockUpButton()->isEnabled());
+	QVERIFY(f.panel.moveBlockDownButton()->isEnabled());
 	f.panel.moveBlockDownButton()->click();
-	ok &= expect(blocks[1].id == "block-a2" && blocks[2].id == "block" && f.changedOnce("Move block", "blocks") && f.panel.selectionId() == "block"
-			&& f.table()->currentRow() == 2 && f.firstColumn() == QStringList({"block-a1", "block-a2", "block"}),
-		"a block moves down, and stays selected");
-	ok &= expect(!f.panel.moveBlockDownButton()->isEnabled(), "the last block cannot move down");
+	// A block moves down, and stays selected.
+	QCOMPARE(blocks[1].id, "block-a2");
+	QCOMPARE(blocks[2].id, "block");
+	QVERIFY(f.changedOnce("Move block", "blocks"));
+	QCOMPARE(f.panel.selectionId(), "block");
+	QCOMPARE(f.table()->currentRow(), 2);
+	QCOMPARE(f.firstColumn(), QStringList({"block-a1", "block-a2", "block"}));
+	QVERIFY2(!f.panel.moveBlockDownButton()->isEnabled(), "the last block cannot move down");
 	f.panel.moveEntity(1);
-	ok &= expect(f.untouched() && blocks[2].id == "block", "a move past the end changes nothing");
+	// A move past the end changes nothing.
+	QVERIFY(f.untouched());
+	QCOMPARE(blocks[2].id, "block");
 	f.panel.moveBlockUpButton()->click();
 	f.panel.moveBlockUpButton()->click();
-	ok &= expect(blocks[0].id == "block" && blocks[1].id == "block-a1" && blocks[2].id == "block-a2" && f.document.lastChangeLabel() == "Move block"
-			&& f.table()->currentRow() == 0,
-		"a block moves up");
+	// A block moves up.
+	QCOMPARE(blocks[0].id, "block");
+	QCOMPARE(blocks[1].id, "block-a1");
+	QCOMPARE(blocks[2].id, "block-a2");
+	QCOMPARE(f.document.lastChangeLabel(), "Move block");
+	QCOMPARE(f.table()->currentRow(), 0);
 	f.log.clear();
 	f.entities.clear();
-	ok &= expect(!f.panel.moveBlockUpButton()->isEnabled(), "the first block cannot move up");
+	QVERIFY2(!f.panel.moveBlockUpButton()->isEnabled(), "the first block cannot move up");
 	f.panel.moveEntity(-1);
-	ok &= expect(f.untouched() && blocks[0].id == "block", "a move past the start changes nothing");
+	// A move past the start changes nothing.
+	QVERIFY(f.untouched());
+	QCOMPARE(blocks[0].id, "block");
 
 	// the other track is not touched
-	ok &= expect(blocks[3].id == "block-b1" && blocks[4].id == "block-b2", "the blocks of the other track keep their places");
-	return ok;
+	// The blocks of the other track keep their places.
+	QCOMPARE(blocks[3].id, "block-b1");
+	QCOMPARE(blocks[4].id, "block-b2");
 }
 
-static bool testBlockDelete() {
-	bool ok = true;
+void TestBlockRouteFacets::deletesBlocks() {
 	Fixture f;
 	f.choose("blocks");
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().blocks.size() == 4 && f.untouched(),
-		"a block that others use cannot be deleted");
+	// A block that others use cannot be deleted.
+	QCOMPARE(f.prompts.errorCount, 1);
+	QCOMPARE(f.prompts.confirmCount, 0);
+	QCOMPARE(f.model().blocks.size(), std::size_t(4));
+	QVERIFY(f.untouched());
 	const std::string a1 = sectionOf(f.model(), "block-a1");
-	ok &= expect(f.prompts.errorMessage
-			== blocked("Block", "block-a1",
-				{QString::fromStdString("route 'route-1' section '" + a1 + "'"),
-					QString::fromStdString("signal 'signal-1' protected section '" + a1 + "'"),
-					QString::fromStdString("block dependency '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'"),
-					QString::fromStdString("single-track restriction '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'"),
-					QString::fromStdString("station boundary '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'")}),
-		"the message names the routes, signals, dependencies, restrictions and boundaries that use the block");
+	// The message names the routes, signals, dependencies, restrictions and boundaries that use the block.
+	QCOMPARE(f.prompts.errorMessage,
+		blocked("Block", "block-a1",
+			{QString::fromStdString("route 'route-1' section '" + a1 + "'"),
+				QString::fromStdString("signal 'signal-1' protected section '" + a1 + "'"),
+				QString::fromStdString("block dependency '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'"),
+				QString::fromStdString("single-track restriction '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'"),
+				QString::fromStdString("station boundary '" + a1 + "' -> '" + sectionOf(f.model(), "block-a2") + "'")}));
 
 	// a block that nothing uses
 	f.panel.addButton()->click();
 	f.log.clear();
 	f.entities.clear();
-	ok &= expect(f.panel.selectionId() == "block", "the new block is selected");
+	// The new block is selected.
+	QCOMPARE(f.panel.selectionId(), "block");
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 1 && f.prompts.confirmQuestion == "Delete block 'block'?" && f.model().blocks.size() == 5 && f.untouched(),
-		"nothing is deleted when the user answers no");
+	// Nothing is deleted when the user answers no.
+	QCOMPARE(f.prompts.confirmCount, 1);
+	QCOMPARE(f.prompts.confirmQuestion, "Delete block 'block'?");
+	QCOMPARE(f.model().blocks.size(), std::size_t(5));
+	QVERIFY(f.untouched());
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmCount == 2 && f.model().blocks.size() == 4 && f.changedOnce("Delete block", "blocks") && f.panel.selectionId() == "block-a2",
-		"a block that nothing uses is deleted when the user answers yes");
-	return ok;
+	// A block that nothing uses is deleted when the user answers yes.
+	QCOMPARE(f.prompts.confirmCount, 2);
+	QCOMPARE(f.model().blocks.size(), std::size_t(4));
+	QVERIFY(f.changedOnce("Delete block", "blocks"));
+	QCOMPARE(f.panel.selectionId(), "block-a2");
 }
 
-static bool testRoutes() {
-	bool ok = true;
+void TestBlockRouteFacets::editsRoutes() {
 	Fixture f;
 	f.choose("routes");
-	ok &= expect(f.headers() == QStringList({"ID", "Sections", "Has corridor", "Corridor", "Reversed"}) && f.table()->rowCount() == 2
-			&& f.rowTexts(0) == QStringList({"route-1", "2 sections", "false", "", "false"}),
-		"routes are listed with the number of their sections");
-	ok &= expect(!f.table()->item(0, 1)->flags().testFlag(Qt::ItemIsEditable), "the number of sections cannot be edited");
-	ok &= expect(f.untouched() && !f.document.isDirty(), "listing routes edits nothing");
+	// Routes are listed with the number of their sections.
+	QCOMPARE(f.headers(), QStringList({"ID", "Sections", "Has corridor", "Corridor", "Reversed"}));
+	QCOMPARE(f.table()->rowCount(), 2);
+	QCOMPARE(f.rowTexts(0), QStringList({"route-1", "2 sections", "false", "", "false"}));
+	QVERIFY2(!f.table()->item(0, 1)->flags().testFlag(Qt::ItemIsEditable), "the number of sections cannot be edited");
+	// Listing routes edits nothing.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 
 	// edit
 	f.type(0, 2, "True");
-	ok &= expect(f.model().routes[0].hasCorridor && f.cell(0, 2) == "true" && f.changedOnce("Edit route", "routes"), "the flag of a route is edited");
+	// The flag of a route is edited.
+	QVERIFY(f.model().routes[0].hasCorridor);
+	QCOMPARE(f.cell(0, 2), "true");
+	QVERIFY(f.changedOnce("Edit route", "routes"));
 	f.type(0, 3, "north");
-	ok &= expect(f.model().routes[0].corridor == "north" && f.changedOnce("Edit route", "routes"), "the corridor of a route is edited");
+	// The corridor of a route is edited.
+	QCOMPARE(f.model().routes[0].corridor, "north");
+	QVERIFY(f.changedOnce("Edit route", "routes"));
 	f.type(0, 4, "true");
-	ok &= expect(f.model().routes[0].reversed && f.changedOnce("Edit route", "routes"), "the direction of a route is edited");
+	// The direction of a route is edited.
+	QVERIFY(f.model().routes[0].reversed);
+	QVERIFY(f.changedOnce("Edit route", "routes"));
 	f.type(0, 4, "maybe");
-	ok &= expect(f.untouched() && f.model().routes[0].reversed && f.cell(0, 4) == "true" && f.messages.empty(),
-		"a flag that is neither true nor false is refused and the table shows the model again");
+	// A flag that is neither true nor false is refused and the table shows the model again.
+	QVERIFY(f.untouched());
+	QVERIFY(f.model().routes[0].reversed);
+	QCOMPARE(f.cell(0, 4), "true");
+	QVERIFY(f.messages.empty());
 	f.type(0, 1, "7 sections");
-	ok &= expect(f.untouched() && f.model().routes[0].blocks.size() == 2, "the number of sections is no value of the route");
+	// The number of sections is no value of the route.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().routes[0].blocks.size(), std::size_t(2));
 
 	// rename: services refer to a route by its id
 	f.type(0, 0, " route-x ");
-	ok &= expect(f.model().routes[0].id == "route-x" && f.model().services[0].route == "route-x" && f.model().routes[1].id == "route-2"
-			&& f.changedOnce("Rename route", "routes") && f.panel.selectionId() == "route-x" && f.table()->currentRow() == 0,
-		"a renamed route keeps its services, and stays selected");
+	// A renamed route keeps its services, and stays selected.
+	QCOMPARE(f.model().routes[0].id, "route-x");
+	QCOMPARE(f.model().services[0].route, "route-x");
+	QCOMPARE(f.model().routes[1].id, "route-2");
+	QVERIFY(f.changedOnce("Rename route", "routes"));
+	QCOMPARE(f.panel.selectionId(), "route-x");
+	QCOMPARE(f.table()->currentRow(), 0);
 	f.type(0, 0, "route-2");
-	ok &= expect(f.untouched() && f.model().routes[0].id == "route-x" && f.messages == QStringList({"IDs must be unique and not empty"}),
-		"an id that another route has is refused");
+	// An id that another route has is refused.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().routes[0].id, "route-x");
+	QCOMPARE(f.messages, QStringList({"IDs must be unique and not empty"}));
 
 	// add
 	f.panel.addButton()->click();
 	const SceneRoute& added = f.model().routes.back();
-	ok &= expect(f.model().routes.size() == 3 && added.id == "route" && added.blocks.empty() && !added.hasCorridor && added.corridor.empty()
-			&& !added.reversed && f.changedOnce("Add route", "routes") && f.panel.selectionId() == "route" && f.table()->currentRow() == 2
-			&& f.cell(2, 1) == "-",
-		"a route is added with a new id and no sections, and selected");
+	// A route is added with a new id and no sections, and selected.
+	QCOMPARE(f.model().routes.size(), std::size_t(3));
+	QCOMPARE(added.id, "route");
+	QVERIFY(added.blocks.empty());
+	QVERIFY(!added.hasCorridor);
+	QVERIFY(added.corridor.empty());
+	QVERIFY(!added.reversed);
+	QVERIFY(f.changedOnce("Add route", "routes"));
+	QCOMPARE(f.panel.selectionId(), "route");
+	QCOMPARE(f.table()->currentRow(), 2);
+	QCOMPARE(f.cell(2, 1), "-");
 
 	// delete
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 1 && f.model().routes.size() == 3 && f.untouched()
-			&& f.prompts.errorMessage == blocked("Route", "route-x", {"service 'service-1'"}),
-		"a route that a service uses cannot be deleted");
+	// A route that a service uses cannot be deleted.
+	QCOMPARE(f.prompts.errorCount, 1);
+	QCOMPARE(f.model().routes.size(), std::size_t(3));
+	QVERIFY(f.untouched());
+	QCOMPARE(f.prompts.errorMessage, blocked("Route", "route-x", {"service 'service-1'"}));
 	f.select(2);
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == "Delete route 'route'?" && f.model().routes.size() == 2 && f.changedOnce("Delete route", "routes"),
-		"a route that nothing uses is deleted when the user answers yes");
-	return ok;
+	// A route that nothing uses is deleted when the user answers yes.
+	QCOMPARE(f.prompts.confirmQuestion, "Delete route 'route'?");
+	QCOMPARE(f.model().routes.size(), std::size_t(2));
+	QVERIFY(f.changedOnce("Delete route", "routes"));
 }
 
 // The texts of the sections in the list of the panel.
@@ -494,8 +583,7 @@ static QStringList sectionTexts(Fixture& f) {
 	return result;
 }
 
-static bool testRouteSections() {
-	bool ok = true;
+void TestBlockRouteFacets::editsRouteSections() {
 	Fixture f;
 	f.choose("routes");
 	f.select(0);
@@ -504,166 +592,217 @@ static bool testRouteSections() {
 	const std::string a1 = sectionOf(f.model(), "block-a1");
 	const std::string a2 = sectionOf(f.model(), "block-a2");
 	const std::string b1 = sectionOf(f.model(), "block-b1");
-	ok &= expect(!f.panel.routeSectionDetailWidget()->isHidden() && list->count() == 2 && catalog->count() == 4 && f.panel.addRouteSectionButton()->isEnabled(),
-		"the sections of the selected route and the catalog are shown");
+	// The sections of the selected route and the catalog are shown.
+	QVERIFY(!f.panel.routeSectionDetailWidget()->isHidden());
+	QCOMPARE(list->count(), 2);
+	QCOMPARE(catalog->count(), 4);
+	QVERIFY(f.panel.addRouteSectionButton()->isEnabled());
 
 	// add the section that the catalog shows, at the end
 	catalog->setCurrentIndex(catalog->findData(QString::fromStdString(b1)));
 	f.panel.addRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a1, a2, b1}) && list->count() == 3 && list->currentRow() == 2
-			&& f.cell(0, 1) == "3 sections",
-		"a section is added at the end of the route, and selected");
-	ok &= expect(f.log == Log({"documentChanged", "panelChanged"}) && f.entities.isEmpty() && f.kinds == SceneDocument::Infrastructure
-			&& f.document.lastChangeLabel() == "Add route section" && f.panel.selectionId() == "route-1" && f.table()->currentRow() == 0,
-		"a section marks the document once, and tells no more than that the route has changed");
+	// A section is added at the end of the route, and selected.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a1, a2, b1}));
+	QCOMPARE(list->count(), 3);
+	QCOMPARE(list->currentRow(), 2);
+	QCOMPARE(f.cell(0, 1), "3 sections");
+	// A section marks the document once, and tells no more than that the route has changed.
+	QCOMPARE(f.log, Log({"documentChanged", "panelChanged"}));
+	QVERIFY(f.entities.isEmpty());
+	QCOMPARE(f.kinds, SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
+	QCOMPARE(f.document.lastChangeLabel(), "Add route section");
+	QCOMPARE(f.panel.selectionId(), "route-1");
+	QCOMPARE(f.table()->currentRow(), 0);
 	f.log.clear();
 
 	// move
-	ok &= expect(f.panel.moveRouteSectionUpButton()->isEnabled() && !f.panel.moveRouteSectionDownButton()->isEnabled(), "the last section can move up only");
+	// The last section can move up only.
+	QVERIFY(f.panel.moveRouteSectionUpButton()->isEnabled());
+	QVERIFY(!f.panel.moveRouteSectionDownButton()->isEnabled());
 	f.panel.moveRouteSectionUpButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a1, b1, a2}) && list->currentRow() == 1
-			&& f.document.lastChangeLabel() == "Move route section" && f.log.size() == 2,
-		"a section moves up, and stays selected");
+	// A section moves up, and stays selected.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a1, b1, a2}));
+	QCOMPARE(list->currentRow(), 1);
+	QCOMPARE(f.document.lastChangeLabel(), "Move route section");
+	QCOMPARE(f.log.size(), std::size_t(2));
 	f.log.clear();
 	f.panel.moveRouteSectionDownButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a1, a2, b1}) && list->currentRow() == 2 && f.log.size() == 2,
-		"a section moves down, and stays selected");
+	// A section moves down, and stays selected.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a1, a2, b1}));
+	QCOMPARE(list->currentRow(), 2);
+	QCOMPARE(f.log.size(), std::size_t(2));
 	f.log.clear();
 	f.panel.moveSection(1);
 	list->setCurrentRow(0);
 	f.panel.moveSection(-1);
-	ok &= expect(f.untouched() && f.model().routes[0].blocks == std::vector<std::string>({a1, a2, b1}), "a move past either end changes nothing");
+	// A move past either end changes nothing.
+	QVERIFY(f.untouched());
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a1, a2, b1}));
 
 	// remove: the section at the start
 	f.panel.removeRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a2, b1}) && list->count() == 2 && list->currentRow() == 0
-			&& f.document.lastChangeLabel() == "Remove route section" && f.cell(0, 1) == "2 sections",
-		"a section is removed, and the one at its place is selected");
+	// A section is removed, and the one at its place is selected.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a2, b1}));
+	QCOMPARE(list->count(), 2);
+	QCOMPARE(list->currentRow(), 0);
+	QCOMPARE(f.document.lastChangeLabel(), "Remove route section");
+	QCOMPARE(f.cell(0, 1), "2 sections");
 	list->setCurrentRow(1);
 	f.panel.removeRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({a2}) && list->currentRow() == 0, "the last section is removed, and the one before it is selected");
+	// The last section is removed, and the one before it is selected.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({a2}));
+	QCOMPARE(list->currentRow(), 0);
 	f.panel.removeRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks.empty() && list->count() == 0 && !f.panel.removeRouteSectionButton()->isEnabled() && f.cell(0, 1) == "-",
-		"a route without sections lists none");
+	// A route without sections lists none.
+	QVERIFY(f.model().routes[0].blocks.empty());
+	QCOMPARE(list->count(), 0);
+	QVERIFY(!f.panel.removeRouteSectionButton()->isEnabled());
+	QCOMPARE(f.cell(0, 1), "-");
 	f.log.clear();
 	f.panel.removeSection();
-	ok &= expect(f.untouched(), "there is nothing to remove from a route without sections");
+	QVERIFY2(f.untouched(), "there is nothing to remove from a route without sections");
 
 	// the catalog keeps the section that was chosen
 	f.panel.addRouteSectionButton()->click();
-	ok &= expect(f.model().routes[0].blocks == std::vector<std::string>({b1}) && sectionTexts(f) == QStringList({"track-b 0.000 to 1.000 km"}),
-		"the catalog keeps the section that was chosen, and the list names it by its label");
+	// The catalog keeps the section that was chosen, and the list names it by its label.
+	QCOMPARE(f.model().routes[0].blocks, std::vector<std::string>({b1}));
+	QCOMPARE(sectionTexts(f), QStringList({"track-b 0.000 to 1.000 km"}));
 
 	// the buttons wait for a route
 	f.edit().routes.clear();
 	f.panel.refresh();
 	f.log.clear();
 	f.panel.addSection();
-	ok &= expect(f.untouched() && !f.panel.addRouteSectionButton()->isEnabled() && !f.panel.removeRouteSectionButton()->isEnabled(), "sections cannot be added without a route");
-	return ok;
+	// Sections cannot be added without a route.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.panel.addRouteSectionButton()->isEnabled());
+	QVERIFY(!f.panel.removeRouteSectionButton()->isEnabled());
 }
 
-static bool testDependencies() {
-	bool ok = true;
+void TestBlockRouteFacets::editsDependencies() {
 	Fixture f;
 	f.choose("block_dependencies");
 	const std::string a1 = sectionOf(f.model(), "block-a1");
 	const std::string a2 = sectionOf(f.model(), "block-a2");
-	ok &= expect(f.headers() == QStringList({"Block", "Depends on"}) && f.table()->rowCount() == 1, "dependencies are listed with their two blocks");
-	ok &= expect(f.combo(0, 0) && f.combo(0, 1) && f.combo(0, 0)->objectName() == "dependencyBlockCombo" && f.combo(0, 1)->objectName() == "dependencyDependsOnCombo"
-			&& f.chosen(0, 0).toStdString() == a1 && f.chosen(0, 1).toStdString() == a2,
-		"the blocks of a dependency are chosen in combos of the sections");
-	ok &= expect(f.untouched() && !f.document.isDirty(), "listing dependencies edits nothing");
+	// Dependencies are listed with their two blocks.
+	QCOMPARE(f.headers(), QStringList({"Block", "Depends on"}));
+	QCOMPARE(f.table()->rowCount(), 1);
+	// The blocks of a dependency are chosen in combos of the sections.
+	QVERIFY(f.combo(0, 0));
+	QVERIFY(f.combo(0, 1));
+	QCOMPARE(f.combo(0, 0)->objectName(), "dependencyBlockCombo");
+	QCOMPARE(f.combo(0, 1)->objectName(), "dependencyDependsOnCombo");
+	QCOMPARE(f.chosen(0, 0).toStdString(), a1);
+	QCOMPARE(f.chosen(0, 1).toStdString(), a2);
+	// Listing dependencies edits nothing.
+	QVERIFY(f.untouched());
+	QVERIFY(!f.document.isDirty());
 
 	// edit: the combo is the widget that is edited, so the table keeps it
 	QComboBox* first = f.combo(0, 0);
 	f.choose(0, 0, "block-b1");
-	ok &= expect(f.model().blockDependencies[0].block == sectionOf(f.model(), "block-b1") && f.model().blockDependencies[0].dependsOn == a2
-			&& f.editedOnce("Edit block dependency") && f.combo(0, 0) == first,
-		"another block is chosen, which marks the document once and leaves the combo in the table");
+	// Another block is chosen, which marks the document once and leaves the combo in the table.
+	QCOMPARE(f.model().blockDependencies[0].block, sectionOf(f.model(), "block-b1"));
+	QCOMPARE(f.model().blockDependencies[0].dependsOn, a2);
+	QVERIFY(f.editedOnce("Edit block dependency"));
+	QCOMPARE(f.combo(0, 0), first);
 	f.choose(0, 1, "block-a1");
-	ok &= expect(f.model().blockDependencies[0].dependsOn == a1 && f.editedOnce("Edit block dependency"), "the block it depends on is chosen");
+	// The block it depends on is chosen.
+	QCOMPARE(f.model().blockDependencies[0].dependsOn, a1);
+	QVERIFY(f.editedOnce("Edit block dependency"));
 	f.choose(0, 1, "block-a1");
-	ok &= expect(f.untouched(), "choosing the block that is chosen changes nothing");
+	QVERIFY2(f.untouched(), "choosing the block that is chosen changes nothing");
 
 	// add
 	f.panel.addButton()->click();
-	ok &= expect(f.model().blockDependencies.size() == 2 && f.model().blockDependencies[1].block.empty() && f.model().blockDependencies[1].dependsOn.empty()
-			&& f.changedOnce("Add block dependency", "block_dependencies") && f.table()->currentRow() == 1 && f.panel.selectionId().isEmpty(),
-		"a dependency is added empty, and its row is selected");
-	ok &= expect(f.combo(1, 0)->currentText() == "(none)" && f.chosen(1, 0).isEmpty(), "an empty block shows as none");
+	// A dependency is added empty, and its row is selected.
+	QCOMPARE(f.model().blockDependencies.size(), std::size_t(2));
+	QVERIFY(f.model().blockDependencies[1].block.empty());
+	QVERIFY(f.model().blockDependencies[1].dependsOn.empty());
+	QVERIFY(f.changedOnce("Add block dependency", "block_dependencies"));
+	QCOMPARE(f.table()->currentRow(), 1);
+	QVERIFY(f.panel.selectionId().isEmpty());
+	// An empty block shows as none.
+	QCOMPARE(f.combo(1, 0)->currentText(), "(none)");
+	QVERIFY(f.chosen(1, 0).isEmpty());
 
 	// delete: nothing refers to a dependency
 	f.prompts.confirmAnswer = false;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.errorCount == 0 && f.prompts.confirmQuestion == "Delete block dependency 'incomplete row'?" && f.model().blockDependencies.size() == 2 && f.untouched(),
-		"a dependency that has no block yet is named an incomplete row, and stays when the user answers no");
+	// A dependency that has no block yet is named an incomplete row, and stays when the user answers no.
+	QCOMPARE(f.prompts.errorCount, 0);
+	QCOMPARE(f.prompts.confirmQuestion, "Delete block dependency 'incomplete row'?");
+	QCOMPARE(f.model().blockDependencies.size(), std::size_t(2));
+	QVERIFY(f.untouched());
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.model().blockDependencies.size() == 1 && f.changedOnce("Delete block dependency", "block_dependencies"), "a dependency is deleted when the user answers yes");
+	// A dependency is deleted when the user answers yes.
+	QCOMPARE(f.model().blockDependencies.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Delete block dependency", "block_dependencies"));
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete block dependency '" + sectionOf(f.model(), "block-b1") + "'?")
-			&& f.model().blockDependencies.empty(),
-		"a dependency is named by its block");
-	return ok;
+	// A dependency is named by its block.
+	QCOMPARE(f.prompts.confirmQuestion, QString::fromStdString("Delete block dependency '" + sectionOf(f.model(), "block-b1") + "'?"));
+	QVERIFY(f.model().blockDependencies.empty());
 }
 
-static bool testRestrictions() {
-	bool ok = true;
+void TestBlockRouteFacets::editsRestrictions() {
 	Fixture f;
 	f.choose("single_track_restrictions");
-	ok &= expect(f.headers() == QStringList({"Start", "End", "Protected start", "Protected end"}) && f.table()->rowCount() == 1, "restrictions are listed with their four blocks");
+	// Restrictions are listed with their four blocks.
+	QCOMPARE(f.headers(), QStringList({"Start", "End", "Protected start", "Protected end"}));
+	QCOMPARE(f.table()->rowCount(), 1);
 	const char* names[] = {"restrictionStartCombo", "restrictionEndCombo", "restrictionProtectedStartCombo", "restrictionProtectedEndCombo"};
 	const char* blocks[] = {"block-a1", "block-a2", "block-b1", "block-b2"};
-	for (int column = 0; column < 4; ++column)
-		ok &= expect(f.combo(0, column) && f.combo(0, column)->objectName() == names[column]
-				&& f.chosen(0, column).toStdString() == sectionOf(f.model(), blocks[column]),
-			"each block of a restriction is chosen in a combo of the sections");
-	ok &= expect(f.untouched(), "listing restrictions edits nothing");
+	for (int column = 0; column < 4; ++column) {
+		// Each block of a restriction is chosen in a combo of the sections.
+		QVERIFY(f.combo(0, column));
+		QCOMPARE(f.combo(0, column)->objectName(), names[column]);
+		QCOMPARE(f.chosen(0, column).toStdString(), sectionOf(f.model(), blocks[column]));
+	}
+	QVERIFY2(f.untouched(), "listing restrictions edits nothing");
 
 	// edit each of the four
 	const SceneSingleTrackRestriction& restriction = f.model().singleTrackRestrictions[0];
 	f.choose(0, 0, "block-b2");
-	ok &= expect(restriction.startBlock == sectionOf(f.model(), "block-b2") && f.editedOnce("Edit single-track restriction"), "the start is chosen");
+	// The start is chosen.
+	QCOMPARE(restriction.startBlock, sectionOf(f.model(), "block-b2"));
+	QVERIFY(f.editedOnce("Edit single-track restriction"));
 	f.choose(0, 1, "block-b1");
-	ok &= expect(restriction.endBlock == sectionOf(f.model(), "block-b1") && f.editedOnce("Edit single-track restriction"), "the end is chosen");
+	// The end is chosen.
+	QCOMPARE(restriction.endBlock, sectionOf(f.model(), "block-b1"));
+	QVERIFY(f.editedOnce("Edit single-track restriction"));
 	f.choose(0, 2, "block-a2");
-	ok &= expect(restriction.protectedStartBlock == sectionOf(f.model(), "block-a2") && f.editedOnce("Edit single-track restriction"), "the protected start is chosen");
+	// The protected start is chosen.
+	QCOMPARE(restriction.protectedStartBlock, sectionOf(f.model(), "block-a2"));
+	QVERIFY(f.editedOnce("Edit single-track restriction"));
 	f.choose(0, 3, "block-a1");
-	ok &= expect(restriction.protectedEndBlock == sectionOf(f.model(), "block-a1") && f.editedOnce("Edit single-track restriction"), "the protected end is chosen");
-	ok &= expect(restriction.startBlock == sectionOf(f.model(), "block-b2") && restriction.endBlock == sectionOf(f.model(), "block-b1"), "each combo writes its own block");
+	// The protected end is chosen.
+	QCOMPARE(restriction.protectedEndBlock, sectionOf(f.model(), "block-a1"));
+	QVERIFY(f.editedOnce("Edit single-track restriction"));
+	// Each combo writes its own block.
+	QCOMPARE(restriction.startBlock, sectionOf(f.model(), "block-b2"));
+	QCOMPARE(restriction.endBlock, sectionOf(f.model(), "block-b1"));
 
 	// add and delete
 	f.panel.addButton()->click();
-	ok &= expect(f.model().singleTrackRestrictions.size() == 2 && f.model().singleTrackRestrictions[1].startBlock.empty()
-			&& f.changedOnce("Add single-track restriction", "single_track_restrictions") && f.table()->currentRow() == 1,
-		"a restriction is added empty, and its row is selected");
+	// A restriction is added empty, and its row is selected.
+	QCOMPARE(f.model().singleTrackRestrictions.size(), std::size_t(2));
+	QVERIFY(f.model().singleTrackRestrictions[1].startBlock.empty());
+	QVERIFY(f.changedOnce("Add single-track restriction", "single_track_restrictions"));
+	QCOMPARE(f.table()->currentRow(), 1);
 	f.prompts.confirmAnswer = true;
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == "Delete single-track restriction 'incomplete row'?" && f.model().singleTrackRestrictions.size() == 1
-			&& f.changedOnce("Delete single-track restriction", "single_track_restrictions"),
-		"a restriction is deleted when the user answers yes");
+	// A restriction is deleted when the user answers yes.
+	QCOMPARE(f.prompts.confirmQuestion, "Delete single-track restriction 'incomplete row'?");
+	QCOMPARE(f.model().singleTrackRestrictions.size(), std::size_t(1));
+	QVERIFY(f.changedOnce("Delete single-track restriction", "single_track_restrictions"));
 	f.select(0);
 	f.panel.deleteButton()->click();
-	ok &= expect(f.prompts.confirmQuestion == QString::fromStdString("Delete single-track restriction '" + sectionOf(f.model(), "block-b2") + "'?")
-			&& f.model().singleTrackRestrictions.empty(),
-		"a restriction is named by its start");
-	return ok;
+	// A restriction is named by its start.
+	QCOMPARE(f.prompts.confirmQuestion, QString::fromStdString("Delete single-track restriction '" + sectionOf(f.model(), "block-b2") + "'?"));
+	QVERIFY(f.model().singleTrackRestrictions.empty());
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	bool ok = true;
-	ok &= testFacets();
-	ok &= testBlockList();
-	ok &= testBlockEdit();
-	ok &= testBlockAdd();
-	ok &= testBlockInsertAndMove();
-	ok &= testBlockDelete();
-	ok &= testRoutes();
-	ok &= testRouteSections();
-	ok &= testDependencies();
-	ok &= testRestrictions();
-	return ok ? 0 : 1;
-}
+QTEST_MAIN(TestBlockRouteFacets)
+#include "test_editor_infrastructure_blocks.moc"
