@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "app/EditorDocks.h"
 #include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
 #include "app/ResultViews.h"
@@ -39,20 +40,14 @@
 #include "widgets/InspectorPanel.h"
 
 class AboutDialog;
-class CaseSettingsPanel;
-class CompositionPanel;
 class ConsoleWidget;
 class ElidedLabel;
-class EntranceDelayPanel;
 class FindDialog;
 class FollowCamera;
-class IncidentPanel;
-class InfrastructurePanel;
 class NetworkLegendWidget;
 class NetworkScene;
 class NetworkView;
 class PassengerItem;
-class PassengerPanel;
 class QAction;
 class QCheckBox;
 class QCloseEvent;
@@ -68,7 +63,6 @@ class QPointF;
 class QProgressDialog;
 class QPushButton;
 class QSettings;
-class QShortcut;
 class QShowEvent;
 class QSlider;
 class QThread;
@@ -80,23 +74,17 @@ class QVBoxLayout;
 class QWidget;
 class RecoveryController;
 class SceneDocument;
-class SceneEditorPanel;
 class SceneHistory;
-class ScenarioPanel;
 class SelfUpdater;
-class ServicePanel;
 class SignalItem;
 class SimulationWorker;
 class StationNodeItem;
 class StationOverlayItem;
 class TelemetryConsent;
 class TimeProgressBar;
-class TimetableStopsPanel;
 class TrackLineItem;
 class TrainBodyItem;
 class TrainItemGroup;
-class TrainUnitPanel;
-class TrainUnitSourceLinker;
 class UpdateChecker;
 class UpdateTelemetryController;
 class UserPrompts;
@@ -138,8 +126,8 @@ class MainWindow;
 
 /// The main window: the network canvas, the editor and inspection docks, the menus and the toolbar. It owns the scene
 /// document and the controllers that open, run and save the scene (SceneSession, RunController, ResultViews,
-/// RunResultsDock), and serves as the Host of each of them.
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host, private ResultViews::Host, private RunResultsDock::Host {
+/// RunResultsDock) and the editor docks (EditorDocks), and serves as the Host of each of them.
+class MainWindow final : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host, private ResultViews::Host, private RunResultsDock::Host, private EditorDocks::Host {
 	Q_OBJECT
 
 public:
@@ -304,8 +292,6 @@ private:
 	QAction* m_findAction = nullptr;
 	FindDialog* m_findDialog = nullptr;
 	bool m_committingPendingEditorValues = false;
-	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
-	std::vector<SceneEditorPanel*> m_editorPanels;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -316,39 +302,12 @@ private:
 	ValidationPanel* m_validation = nullptr;
 	QDockWidget* m_validationDock = nullptr;
 	QDockWidget* m_loadedDataDock = nullptr;
-	QDockWidget* m_caseSettingsDock = nullptr;
-	CaseSettingsPanel* m_caseSettingsPanel = nullptr;
-	QDockWidget* m_infrastructureDock = nullptr;
-	InfrastructurePanel* m_infrastructurePanel = nullptr;
+	// The editor panels and their docks at the right, which the constructor builds.
+	EditorDocks m_editorDocks{this, *this};
 	RunSelection m_runSelection;
 	int m_startupTimingIteration = 0;
 	int m_startupTimingWarmTrials = 0;
 	QString m_startupTimingScenePath;
-
-	// train-unit editor dock: physical values and piecewise traction rows
-	QDockWidget* m_trainUnitDock = nullptr;
-	TrainUnitPanel* m_trainUnitPanel = nullptr;
-	TrainUnitSourceLinker* m_trainUnitSourceLinker = nullptr;
-
-	// composition editor dock
-	QDockWidget* m_compositionDock = nullptr;
-	CompositionPanel* m_compositionPanel = nullptr;
-
-	// service editor dock (service-level fields, plus the per-stop timetable editor)
-	QDockWidget* m_serviceDock = nullptr;
-	ServicePanel* m_servicePanel = nullptr;
-
-	// stop (timetable) editor: edits the selected service's ordered stops
-	TimetableStopsPanel* m_timetableStopsPanel = nullptr;
-
-	// scenario library and selected scenario's incident editor
-	QDockWidget* m_incidentDock = nullptr;
-	ScenarioPanel* m_scenarioPanel = nullptr;
-	IncidentPanel* m_incidentPanel = nullptr;
-	// Esc while the target of an incident is picked on the network view; enabled only then.
-	QShortcut* m_endTargetPickShortcut = nullptr;
-	// entrance-delay editor: rows belong to the selected scenario
-	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
 
 	// Compact shell state. These pointers observe scene-owned items without
 	// taking ownership; teardownGUI clears them after scene->clear().
@@ -379,6 +338,37 @@ private:
 	bool m_replayActive = false;
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
+
+	// The parts of the window that the constructor builds, in the order in which it builds them.
+	void setupHelpMenu();
+	void setupSettingsAction();
+	void setupCentralWidget();
+	void setupReplayBar();
+	void setupSpeedSlider();
+	void setupNetworkScene();
+	void connectNetworkView();
+	void connectUiActions();
+	void setupFileMenu();
+	void connectSceneToInspector();
+	void connectSimulationControls();
+	void setupWindowIcon();
+	void setupToolBar();
+	void setupLayersDock();
+	void setupFollowControls();
+	void setupToolBarActions();
+	void setupToolBarButtons();
+	void setupOutputFolderAction();
+	void setupLogPane();
+	void setupValidationDocks();
+	void setupAdvancedDetailsAction();
+	// The Incidents tab takes the target of a new incident, and the target that it picks, from the network view, and the
+	// button of the inspector adds an incident.
+	void connectIncidentTargetPick();
+	void setupStatusBarFields();
+	void connectViewActions();
+	void setupDiagramsMenu();
+	// Puts the buttons of the toolbar, the speed slider and the train list in the Tab order, each taking the focus.
+	void setCommandBarTabOrder();
 
 	void refreshFollowTrainChoices();
 	// What followAvailability needs to know about the train of a row of the train list.
@@ -461,8 +451,12 @@ private:
 	void runEnded() override;
 	void runSettled() override;
 	void delayBaselineChanged() override;
+	// EditorDocks::Host: what the editor docks ask of the window. The other functions that it names are declared above and
+	// below, marked override.
+	void infrastructureSelectionChanged() override;
+	void renameTractionDiagrams(const QString& oldId, const QString& newId) override;
 
-	void registerEditorDock(QDockWidget* dock);
+	void registerEditorDock(QDockWidget* dock) override;
 	QMenu* createPopupMenu() override;
 	void revealEditorDock(QDockWidget* dock);
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
@@ -472,12 +466,12 @@ private:
 	void updatePassengerSwitch();
 	// Shows or hides the passenger counts, icons and platform bars, and sets them for the next run.
 	void applyPassengerLayer(bool shown);
-	void commitPendingEditorValues();
+	void commitPendingEditorValues() override;
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
 	// Enables the infrastructure dock and shows the panel again.
-	void refreshInfrastructurePanel(bool resetSelection = false);
-	void refreshValidationPanel();
+	void refreshInfrastructurePanel(bool resetSelection = false) override;
+	void refreshValidationPanel() override;
 	// Opens the editor or the view that a row of the loaded data tree stands for.
 	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
 	void sceneDocumentChanged();
@@ -504,19 +498,15 @@ private:
 	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
 
-	// passenger editor: canonical passengers, journeys, and ordered legs
-	QDockWidget* m_passengerDock = nullptr;
-	PassengerPanel* m_passengerPanel = nullptr;
-
 	// opens the tractive-effort plot of a unit
-	void plotTrainUnitTraction(const SceneTrainUnit& unit);
+	void plotTrainUnitTraction(const SceneTrainUnit& unit) override;
 
 	// train-unit editor
-	void updateTrainUnitSourceStatus();
-	void refreshInputTractionDiagrams(const std::string& unitId);
+	void updateTrainUnitSourceStatus() override;
+	void refreshInputTractionDiagrams(const std::string& unitId) override;
 
 	// Shows the scenarios, the incidents and the entrance delays again.
-	void refreshIncidentPanel();
+	void refreshIncidentPanel() override;
 	// The target that the selection on the network view gives an incident: a signal failure for a signal head, a breakdown
 	// of its occurrence for a train. The type is empty when the selection gives none, and `why` then says why when it is
 	// given. `selected` names what is selected, "signal", "train" or "item", for when it gives no target or the incident

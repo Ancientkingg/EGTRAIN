@@ -2303,8 +2303,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		link.tractionPath = sourceTractionPath;
 		link.acceptedPhysical = w.m_document->mutableModel().trainUnits.front().physical;
 		link.acceptedTraction = w.m_document->mutableModel().trainUnits.front().tractionCurve;
-		w.m_trainUnitSourceLinker->m_links[sourceLinkUnitId] = link;
-		w.m_trainUnitSourceLinker->refreshWatches();
+		trainUnitSourceLinker(w)->m_links[sourceLinkUnitId] = link;
+		trainUnitSourceLinker(w)->refreshWatches();
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 71\n");
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		settle();
@@ -2312,27 +2312,27 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			|| w.m_document->mutableModel().trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
 			facetFailure(facetOk, "source links", "complete file changes did not apply");
 		const quint64 acceptedRevision = w.m_document->revision();
-		w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred = true;
+		trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).tractionDeferred = true;
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		bool unchangedPrompted = false;
 		answerReload("Keep Edits", &unchangedPrompted);
-		w.m_trainUnitSourceLinker->m_pendingPaths.insert(sourceTractionPath);
-		w.m_trainUnitSourceLinker->processChanges();
+		trainUnitSourceLinker(w)->m_pendingPaths.insert(sourceTractionPath);
+		trainUnitSourceLinker(w)->processChanges();
 		settle();
 		if (w.m_document->revision() != acceptedRevision || unchangedPrompted
-			|| w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred)
+			|| trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).tractionDeferred)
 			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
 		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 210000
-			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Not loaded: "))
+			|| !trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Not loaded: "))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
 		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
 		settle();
 		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 220000
-			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
+			|| !trainUnitSourceLinker(w)->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
 		// The focused editor must commit before comparing with the accepted source.
 		trainUnitDock(w)->show();
@@ -2346,7 +2346,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		trainUnitPanel(w)->physicalEdits()[8]->findChild<QLineEdit*>()->setText("73");
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
 		answerReload("Keep Edits");
-		w.m_trainUnitSourceLinker->processFile(sourcePhysicalPath, false);
+		trainUnitSourceLinker(w)->processFile(sourcePhysicalPath, false);
 		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 73.0)
 			facetFailure(facetOk, "source links", "focused local edit was overwritten");
 		const quint64 keptRevision = w.m_document->revision();
@@ -2354,16 +2354,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_document->revision() != keptRevision)
 			facetFailure(facetOk, "source links", "rejected content was reapplied");
 		answerReload("Reload");
-		w.m_trainUnitSourceLinker->retry(sourceLinkUnitId, false);
-		w.m_trainUnitSourceLinker->processChanges();
+		trainUnitSourceLinker(w)->retry(sourceLinkUnitId, false);
+		trainUnitSourceLinker(w)->processChanges();
 		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 72.0)
 			facetFailure(facetOk, "source links", "explicit retry did not reload");
 		// A duplicate shares values, not the authority to watch an external file.
 		trainUnitPanel(w)->duplicateUnit();
 		const std::string duplicateId = w.m_document->mutableModel().trainUnits[1].id;
-		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId))
+		if (trainUnitSourceLinker(w)->m_links.count(duplicateId))
 			facetFailure(facetOk, "source links", "duplicate inherited a live link");
-		w.m_trainUnitSourceLinker->m_links[duplicateId] = w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId);
+		trainUnitSourceLinker(w)->m_links[duplicateId] = trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId);
 		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
 		settle();
 		if (w.m_document->mutableModel().trainUnits[0].tractionCurve.front()[2] != 230000
@@ -2372,22 +2372,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QString("shared source values %1 / %2; status %3")
 					.arg(w.m_document->mutableModel().trainUnits[0].tractionCurve.front()[2])
 					.arg(w.m_document->mutableModel().trainUnits[1].tractionCurve.front()[2])
-					.arg(w.m_trainUnitSourceLinker->m_links.at(duplicateId).tractionStatus));
+					.arg(trainUnitSourceLinker(w)->m_links.at(duplicateId).tractionStatus));
 		trainUnitPanel(w)->idEdit()->setText(QString::fromStdString(duplicateId + "_renamed"));
 		trainUnitPanel(w)->commitIdEdit();
-		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId)
-			|| !w.m_trainUnitSourceLinker->m_links.count(duplicateId + "_renamed"))
+		if (trainUnitSourceLinker(w)->m_links.count(duplicateId)
+			|| !trainUnitSourceLinker(w)->m_links.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
 		acceptConfirmation();
 		trainUnitPanel(w)->deleteUnit();
-		if (w.m_trainUnitSourceLinker->m_links.size() != 1
-			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
+		if (trainUnitSourceLinker(w)->m_links.size() != 1
+			|| !trainUnitSourceLinker(w)->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
 		trainUnitPanel(w)->listWidget()->setCurrentRow(0);
-		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, false);
-		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, true);
-		if (!w.m_trainUnitSourceLinker->m_links.empty() || !w.m_trainUnitSourceLinker->watchedFiles().isEmpty()
-			|| !w.m_trainUnitSourceLinker->watchedDirectories().isEmpty())
+		trainUnitSourceLinker(w)->unlink(sourceLinkUnitId, false);
+		trainUnitSourceLinker(w)->unlink(sourceLinkUnitId, true);
+		if (!trainUnitSourceLinker(w)->m_links.empty() || !trainUnitSourceLinker(w)->watchedFiles().isEmpty()
+			|| !trainUnitSourceLinker(w)->watchedDirectories().isEmpty())
 			facetFailure(facetOk, "source links", "unlink retained watches");
 		QFile::remove(sourcePhysicalPath);
 		QFile::remove(sourceTractionPath);
@@ -3704,8 +3704,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				pick->click();
 				QApplication::processEvents();
 				const QString hint = "Click a signal or a train for the incident target. Esc cancels.";
-				const bool started = incidentPanel(w)->isPickingTarget() && w.m_endTargetPickShortcut->isEnabled()
-					&& w.m_endTargetPickShortcut->key() == QKeySequence(Qt::Key_Escape)
+				const bool started = incidentPanel(w)->isPickingTarget() && endTargetPickShortcut(w)->isEnabled()
+					&& endTargetPickShortcut(w)->key() == QKeySequence(Qt::Key_Escape)
 					&& w.networkView->viewport()->cursor().shape() == Qt::CrossCursor && w.statusBar()->currentMessage() == hint;
 				w.scene->select(arc);
 				QApplication::processEvents();
@@ -3717,7 +3717,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QApplication::processEvents();
 				const SceneIncident* picked = incidentPanel(w)->selectedIncident();
 				const bool applied = picked && picked->type == "signal_failure" && QString::fromStdString(picked->target) == blockId
-					&& !pick->isChecked() && !w.m_endTargetPickShortcut->isEnabled()
+					&& !pick->isChecked() && !endTargetPickShortcut(w)->isEnabled()
 					&& w.networkView->viewport()->cursor().shape() == Qt::OpenHandCursor;
 				pick->click();
 				w.scene->select(arc);
@@ -3729,7 +3729,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const bool escTaken = qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				QApplication::processEvents();
 				const bool ended = restarted && escTaken && !incidentPanel(w)->isPickingTarget()
-					&& !w.m_endTargetPickShortcut->isEnabled() && w.statusBar()->currentMessage().isEmpty();
+					&& !endTargetPickShortcut(w)->isEnabled() && w.statusBar()->currentMessage().isEmpty();
 				// Without a pick no shortcut takes Esc, so it reaches the focused widget, such as an open cell.
 				const bool escLeft = !qt_sendShortcutOverrideEvent(w.networkView->viewport(), 0, Qt::Key_Escape, Qt::NoModifier);
 				const auto yes = [](bool value) { return value ? "yes" : "no"; };
@@ -3781,10 +3781,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.activateWindow();
 				QApplication::processEvents();
 				const std::vector<SceneIncident>& incidents = w.selectedScenarioIncidents();
-				const SceneIncident* added = incidents.size() == before.size() + 1 ? incidentPanel(w)->selectedIncident() : nullptr;
+				const SceneIncident* addedIncident = incidents.size() == before.size() + 1 ? incidentPanel(w)->selectedIncident() : nullptr;
 				const QString message = w.statusBar()->currentMessage();
-				const bool shown = added && added == &incidents.back() && added->type == "signal_failure"
-					&& QString::fromStdString(added->target) == blockId && incidentDock(w)->isVisible() && scenarioTabs
+				const bool shown = addedIncident && addedIncident == &incidents.back() && addedIncident->type == "signal_failure"
+					&& QString::fromStdString(addedIncident->target) == blockId && incidentDock(w)->isVisible() && scenarioTabs
 					&& scenarioTabs->currentWidget() == incidentPanel(w) && QApplication::focusWidget() == incidentPanel(w)->startSecondsEdit()
 					&& message == QString("Added a signal failure of %1.").arg(blockId)
 					&& w.statusBar()->fontMetrics().horizontalAdvance(message) <= w.statusBar()->fontMetrics().horizontalAdvance(hint);
@@ -5882,8 +5882,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		TrainUnitSourceLinker::Link link;
 		link.dataPath = linkedFile.fileName();
 		for (const std::string& unitId : {linkedUnitId, addedUnitId})
-			w.m_trainUnitSourceLinker->m_links[unitId] = link;
-		w.m_trainUnitSourceLinker->refreshWatches();
+			trainUnitSourceLinker(w)->m_links[unitId] = link;
+		trainUnitSourceLinker(w)->refreshWatches();
 	}
 	if (!step("a duplicated composition", "Add composition", [&] {
 			compositionPanel(w)->listWidget()->setCurrentRow(0);
@@ -6019,7 +6019,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	while (position > 0 && failures.isEmpty())
 		undo();
 	expect(!w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(), "Undo is available before the first edit");
-	expect(w.m_trainUnitSourceLinker->linkOf(linkedUnitId) && !w.m_trainUnitSourceLinker->linkOf(addedUnitId),
+	expect(trainUnitSourceLinker(w)->linkOf(linkedUnitId) && !trainUnitSourceLinker(w)->linkOf(addedUnitId),
 		"Undo dropped the link of a unit that the scene still has, or kept the link of one that it lost");
 	while (position < stepCount && failures.isEmpty())
 		redo();

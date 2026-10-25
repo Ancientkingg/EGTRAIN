@@ -31,7 +31,6 @@
 #include <QDesktopServices>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
-#include <QFileDialog>
 #include <QFont>
 #include <QGraphicsEffect>
 #include <QGraphicsEllipseItem>
@@ -89,7 +88,6 @@
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/FindDialog.h"
-#include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include "widgets/SettingsDialog.h"
@@ -136,10 +134,6 @@
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/ValidationPanel.h"
-#include "editors/infrastructure/BlockRouteFacets.h"
-#include "editors/infrastructure/SignalFacets.h"
-#include "editors/infrastructure/StationFacets.h"
-#include "editors/infrastructure/TopologyFacets.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
@@ -491,32 +485,6 @@ QString withShortcut(const QString& text, const QAction* action) {
 	return QStringLiteral("%1 (%2)").arg(text, action->shortcut().toString(QKeySequence::NativeText));
 }
 
-// A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where
-// the screen allows. A dock that the mouse drags out keeps the place where the user drops it.
-void fitFloatingDock(QDockWidget* dock, bool floating) {
-	if (!floating)
-		return;
-	if (QGuiApplication::mouseButtons() != Qt::NoButton) {
-		// A double click floats the dock while the button is still down, and a drag moves the mouse before the button is released.
-		auto* release = new QTimer(dock);
-		QObject::connect(release, &QTimer::timeout, dock, [dock, release, start = QCursor::pos()]() {
-			if (QGuiApplication::mouseButtons() != Qt::NoButton)
-				return;
-			release->deleteLater();
-			if (dock->isFloating() && (QCursor::pos() - start).manhattanLength() < QApplication::startDragDistance())
-				fitFloatingDock(dock, true);
-		});
-		release->start(50);
-		return;
-	}
-	const QRect available = dock->screen()->availableGeometry();
-	const QSize frame = dock->frameGeometry().size() - dock->size();
-	dock->resize(dock->size().expandedTo(dock->sizeHint()).boundedTo(available.size() - frame));
-	const QRect outer = dock->frameGeometry();
-	dock->move(std::clamp(outer.left(), available.left(), available.right() - outer.width() + 1),
-		std::clamp(outer.top(), available.top(), available.bottom() - outer.height() + 1));
-}
-
 } // namespace
 
 QString crashNoteFolder() {
@@ -592,6 +560,73 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				m_recovery->shutdown();
 		});
 	m_updateTelemetry->setupUpdateActions(ui->menuHelp);
+	setupHelpMenu();
+	setupSettingsAction();
+
+	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
+
+	setupCentralWidget();
+	setupReplayBar();
+
+	// set layout in QWidget
+	centralWidget->setLayout(mainLayout);
+
+	// set as central layout of the main window
+	setCentralWidget(centralWidget);
+
+	// hide progress bar
+	progressBar->hide();
+
+	setupSpeedSlider();
+	setupNetworkScene();
+
+	// setup info dock widget
+	m_inspector = new InspectorPanel(this, scene.data(), *m_presenter, *this);
+	setupRunResultsDock();
+
+	connectNetworkView();
+	connectUiActions();
+	setupFileMenu();
+	connectSceneToInspector();
+
+	// connect signals from EGTRAIN simulation
+	connect(&simulation, &DispatchController::snapshotAvailable, this, &MainWindow::waitForUpdates,
+		Qt::QueuedConnection);
+
+	connectSimulationControls();
+	setupWindowIcon();
+	setupToolBar();
+	setupLayersDock();
+	setupFollowControls();
+	setupToolBarActions();
+	setupToolBarButtons();
+	setupOutputFolderAction();
+	setupLogPane();
+	setupValidationDocks();
+	setupAdvancedDetailsAction();
+	m_editorDocks.build(m_document, m_userPrompts.get(), m_runSelection, m_session);
+	connectIncidentTargetPick();
+	setupStatusBarFields();
+	connectViewActions();
+	setupDiagramsMenu();
+
+	// --- Status bar ---
+	statusBar()->showMessage("Ready");
+
+	refreshIncidentPanel();
+	refreshInfrastructurePanel();
+	// Dock/editor construction above can rebuild the top-level focus chain;
+	// restore the command-bar sequence after every child widget exists.
+	setCommandBarTabOrder();
+	if (startupTimingEnabled()) {
+		bool ok = false;
+		m_startupTimingWarmTrials = qEnvironmentVariableIntValue("QEGTRAIN_STARTUP_WARM_TRIALS", &ok);
+		if (!ok || m_startupTimingWarmTrials < 0)
+			m_startupTimingWarmTrials = 0;
+	}
+}
+
+void MainWindow::setupHelpMenu() {
 	if (ui->menuHelp) {
 		// The help key works in every window of the application and opens the section of the widget that has the focus.
 		// F1 also works on macOS, where the system takes Cmd+? to search the Help menu.
@@ -613,6 +648,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
+}
+
+void MainWindow::setupSettingsAction() {
 	// On macOS the role puts the entry in the application menu, under the name that Qt gives it.
 	auto* settingsAction = new QAction(QStringLiteral("Settings..."), this);
 	settingsAction->setObjectName(QStringLiteral("actionSettings"));
@@ -648,9 +686,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_session->rebuildRecentScenesMenu();
 		updateSceneActions();
 	});
+}
 
-	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
-
+void MainWindow::setupCentralWidget() {
 	// define central widget
 	centralWidget = new QWidget();
 
@@ -671,6 +709,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(networkView);
 	mainLayout->addWidget(progressBar);
+}
+
+void MainWindow::setupReplayBar() {
 	m_replayBar = new QWidget(centralWidget);
 	m_replayBar->setObjectName("completedReplayBar");
 	auto* replayLayout = new QVBoxLayout(m_replayBar);
@@ -730,16 +771,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			showReplayPlaying(m_replayPlayButton, false);
 		}
 	});
+}
 
-	// set layout in QWidget
-	centralWidget->setLayout(mainLayout);
-
-	// set as central layout of the main window
-	setCentralWidget(centralWidget);
-
-	// hide progress bar
-	progressBar->hide();
-
+void MainWindow::setupSpeedSlider() {
 	// setup speed slider (will be added to toolbar)
 	m_speedSlider = new QSlider(Qt::Horizontal);
 	m_speedSlider->setRange(0, kMaxStepDelayMs);
@@ -749,18 +783,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider->setObjectName("speedSlider");
 	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
 	m_speedLabel->setObjectName("speedModeLabel");
+}
 
+void MainWindow::setupNetworkScene() {
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
 	m_presenter = std::make_unique<NetworkPresenter>(scene.data(), networkView);
 	m_presenter->setGeometrySource(makeRuntimeGeometryFromRun(simulation));
 	m_presenter->setFrameHost(this);
 	networkView->setScene(scene);
+}
 
-	// setup info dock widget
-	m_inspector = new InspectorPanel(this, scene.data(), *m_presenter, *this);
-	setupRunResultsDock();
-
+void MainWindow::connectNetworkView() {
 	connect(networkView, &NetworkView::viewportChanged, this, [this]() {
 		// The camera changes the position of the view and never its scale, so the overlays and the zoom
 		// label stay as they are. The station of the followed train is refreshed with the frame.
@@ -781,7 +815,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		});
 	});
 	networkView->setMouseTracking(true);
+}
 
+void MainWindow::connectUiActions() {
 	// connect elements from UI
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
 	connect(ui->actionSimulationStart, &QAction::triggered, m_runController, &RunController::runCurrent);
@@ -794,7 +830,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_followCamera->stop();
 		}
 	});
+}
 
+void MainWindow::setupFileMenu() {
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
 	ui->actionLoad_Network->setText("Import Legacy Case...");
@@ -837,7 +875,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	m_session->rebuildRecentScenesMenu();
 	updateSceneActions();
+}
 
+void MainWindow::connectSceneToInspector() {
 	// connect scene signals
 	connect(scene, &NetworkScene::MousePressedOnPreview, m_inspector, &InspectorPanel::displayPreviewInfo);
 	connect(scene, &NetworkScene::MousePressedOnNode, m_inspector, &InspectorPanel::displayNodeInfo);
@@ -849,11 +889,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(scene, &NetworkScene::MousePressedOnPassenger, m_inspector, &InspectorPanel::displayPassengerInfo);
 	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
 	connect(scene, &NetworkScene::DisableHighlight, m_inspector, &InspectorPanel::handleDisableHighlight);
+}
 
-	// connect signals from EGTRAIN simulation
-	connect(&simulation, &DispatchController::snapshotAvailable, this, &MainWindow::waitForUpdates,
-		Qt::QueuedConnection);
-
+void MainWindow::connectSimulationControls() {
 	// simulation control connections
 	connect(ui->actionSimulationPause, &QAction::triggered, this, [this]() {
 		if (!m_runController->running()) {
@@ -869,7 +907,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		updateSpeedModeDisplay(delayMs);
 		m_runController->setDelayMs(delayMs);
 	});
+}
 
+void MainWindow::setupWindowIcon() {
 	// set application item
 	QIcon window_icon;
 	window_icon.addFile(":/app/egtrain-16.png", QSize(16, 16));
@@ -881,7 +921,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	window_icon.addFile(":/app/egtrain-512.png", QSize(512, 512));
 	window_icon.addFile(":/app/egtrain-1024.png", QSize(1024, 1024));
 	setWindowIcon(window_icon);
+}
 
+void MainWindow::setupToolBar() {
 	// --- Build toolbar ---
 	m_toolBar = ui->mainToolBar;
 	m_toolBar->clear();
@@ -903,8 +945,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionSimulationStart->setToolTip(withShortcut("Run simulation", ui->actionSimulationStart));
 	ui->actionSimulationPause->setToolTip(withShortcut("Pause or resume simulation", ui->actionSimulationPause));
 	ui->actionSimulationStop->setToolTip(withShortcut("Stop simulation", ui->actionSimulationStop));
+}
 
-
+void MainWindow::setupLayersDock() {
 	// Keep the scenario state and the four useful display layers in the primary
 	// left rail. All scene pointers below are non-owning; QGraphicsScene owns the
 	// actual items and teardownGUI clears these observer lists after scene->clear().
@@ -1050,7 +1093,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			statusBar()->showMessage("Passengers show from the next run", 8000);
 	});
 	updateCaseLayersPanel();
+}
 
+void MainWindow::setupFollowControls() {
 	m_followTrainCombo = new ElidedComboBox(this);
 	m_followTrainCombo->setObjectName("followTrainCombo");
 	m_followTrainCombo->setMinimumWidth(180);
@@ -1086,7 +1131,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			setFollowTrain(-1);
 	});
 	refreshFollowTrainChoices();
+}
 
+void MainWindow::setupToolBarActions() {
 	// The one toolbar entry for every way of opening a case goes through the
 	// existing chooser so bundled scenes, recents, folders, and legacy import
 	// keep a single entry point.
@@ -1104,7 +1151,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionFitView->setObjectName("actionFit");
 	ui->actionFitView->setText("Fit");
 	ui->actionFitView->setIcon(QIcon());
+}
 
+void MainWindow::setupToolBarButtons() {
 	const auto addToolbarButton = [this](QAction* action, const char* objectName, Qt::ToolButtonStyle style) {
 		m_toolBar->addAction(action);
 		if (auto* button = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(action))) {
@@ -1183,41 +1232,43 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addToolbarButton(ui->actionZoomIn, "actionZoomInButton", Qt::ToolButtonIconOnly);
 	addToolbarButton(ui->actionZoomOut, "actionZoomOutButton", Qt::ToolButtonIconOnly);
 	addToolbarButton(ui->actionFitView, "actionFitButton", Qt::ToolButtonTextOnly);
-
-	const auto setCommandBarTabOrder = [this]() {
-		QWidget* openCaseButton = m_toolBar->widgetForAction(m_openCaseAction);
-		QWidget* runButton = m_toolBar->widgetForAction(ui->actionSimulationStart);
-		QWidget* pauseButton = m_toolBar->widgetForAction(ui->actionSimulationPause);
-		QWidget* stopButton = m_toolBar->widgetForAction(ui->actionSimulationStop);
-		QWidget* followButton = m_toolBar->widgetForAction(m_followAction);
-		QWidget* zoomInButton = m_toolBar->widgetForAction(ui->actionZoomIn);
-		QWidget* zoomOutButton = m_toolBar->widgetForAction(ui->actionZoomOut);
-		QWidget* fitButton = m_toolBar->widgetForAction(ui->actionFitView);
-		const QList<QWidget*> commandButtons{
-			openCaseButton, runButton, pauseButton, stopButton, followButton, zoomInButton, zoomOutButton, fitButton};
-		for (QWidget* widget : commandButtons) {
-			if (widget)
-				widget->setFocusPolicy(Qt::StrongFocus);
-		}
-		if (m_speedSlider)
-			m_speedSlider->setFocusPolicy(Qt::StrongFocus);
-		if (m_followTrainCombo)
-			m_followTrainCombo->setFocusPolicy(Qt::StrongFocus);
-		QWidget::setTabOrder(openCaseButton, runButton);
-		QWidget::setTabOrder(runButton, pauseButton);
-		QWidget::setTabOrder(pauseButton, stopButton);
-		QWidget::setTabOrder(stopButton, m_speedSlider);
-		QWidget::setTabOrder(m_speedSlider, followButton);
-		QWidget::setTabOrder(followButton, m_followTrainCombo);
-		QWidget::setTabOrder(m_followTrainCombo, zoomInButton);
-		QWidget::setTabOrder(zoomInButton, zoomOutButton);
-		QWidget::setTabOrder(zoomOutButton, fitButton);
-	};
 	setCommandBarTabOrder();
-	QTimer::singleShot(0, this, setCommandBarTabOrder);
+	QTimer::singleShot(0, this, &MainWindow::setCommandBarTabOrder);
 	// The toolbar button exists now, so it can take its description.
 	updateFollowAvailability();
+}
 
+void MainWindow::setCommandBarTabOrder() {
+	QWidget* openCaseButton = m_toolBar->widgetForAction(m_openCaseAction);
+	QWidget* runButton = m_toolBar->widgetForAction(ui->actionSimulationStart);
+	QWidget* pauseButton = m_toolBar->widgetForAction(ui->actionSimulationPause);
+	QWidget* stopButton = m_toolBar->widgetForAction(ui->actionSimulationStop);
+	QWidget* followButton = m_toolBar->widgetForAction(m_followAction);
+	QWidget* zoomInButton = m_toolBar->widgetForAction(ui->actionZoomIn);
+	QWidget* zoomOutButton = m_toolBar->widgetForAction(ui->actionZoomOut);
+	QWidget* fitButton = m_toolBar->widgetForAction(ui->actionFitView);
+	const QList<QWidget*> commandButtons{
+		openCaseButton, runButton, pauseButton, stopButton, followButton, zoomInButton, zoomOutButton, fitButton};
+	for (QWidget* widget : commandButtons) {
+		if (widget)
+			widget->setFocusPolicy(Qt::StrongFocus);
+	}
+	if (m_speedSlider)
+		m_speedSlider->setFocusPolicy(Qt::StrongFocus);
+	if (m_followTrainCombo)
+		m_followTrainCombo->setFocusPolicy(Qt::StrongFocus);
+	QWidget::setTabOrder(openCaseButton, runButton);
+	QWidget::setTabOrder(runButton, pauseButton);
+	QWidget::setTabOrder(pauseButton, stopButton);
+	QWidget::setTabOrder(stopButton, m_speedSlider);
+	QWidget::setTabOrder(m_speedSlider, followButton);
+	QWidget::setTabOrder(followButton, m_followTrainCombo);
+	QWidget::setTabOrder(m_followTrainCombo, zoomInButton);
+	QWidget::setTabOrder(zoomInButton, zoomOutButton);
+	QWidget::setTabOrder(zoomOutButton, fitButton);
+}
+
+void MainWindow::setupOutputFolderAction() {
 	// file menu: output folder chooser, after Import Legacy Case and above the separator before Quit
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
@@ -1225,7 +1276,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		const QList<QAction*> fileActions = ui->menuFile->actions();
 		ui->menuFile->insertAction(fileActions.value(fileActions.indexOf(ui->actionQuit) - 1), m_outputFolderAction);
 	}
+}
 
+void MainWindow::setupLogPane() {
 	// in-app logging pane (ConsoleWidget installs its own streambuf on construction)
 	m_logPane = new ConsoleWidget(this);
 	addDockWidget(Qt::BottomDockWidgetArea, m_logPane);
@@ -1233,7 +1286,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_logPane->toggleViewAction()->setShortcut(QKeySequence("Ctrl+Shift+L"));
 	if (ui->menuView)
 		ui->menuView->addAction(m_logPane->toggleViewAction());
+}
 
+void MainWindow::setupValidationDocks() {
 	// scene validation panel: dockable table of SceneDiagnostic entries, empty until a scene loads
 	m_validation = new ValidationPanel(this);
 	m_validation->setDocument(m_document);
@@ -1255,8 +1310,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_validation, &ValidationPanel::statusChanged, this, &MainWindow::updateCaseLayersPanel);
 	connect(m_validation, &ValidationPanel::refreshed, this, [this] {
-		m_scenarioPanel->refresh();
-		m_passengerPanel->refresh();
+		m_editorDocks.scenarioPanel()->refresh();
+		m_editorDocks.passengerPanel()->refresh();
 		updateSceneActions();
 	});
 	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
@@ -1279,7 +1334,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_loadedDataDock, m_runResultsPanel->dock());
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
+}
 
+void MainWindow::setupAdvancedDetailsAction() {
 	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced Details"), this);
 	m_advancedDetailsAction->setObjectName(QStringLiteral("actionAdvancedDetails"));
 	m_advancedDetailsAction->setCheckable(true);
@@ -1302,240 +1359,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		if (!enabled && m_validationDock)
 			m_validationDock->hide();
 		m_validation->updateStatus();
-		m_scenarioPanel->updatePresentation();
+		m_editorDocks.scenarioPanel()->updatePresentation();
 		refreshRunResultsSummary();
 		updateDiagramActions();
 	});
+}
 
-	// The editors on the right keep the full height of the window: Run Results and the other docks below the network end where
-	// the editors start, so that a short window still shows several rows of fields.
-	setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-	m_caseSettingsDock = new QDockWidget("Case Settings", this);
-	m_caseSettingsDock->setObjectName("caseSettingsDock");
-	m_caseSettingsDock->setProperty("manualSection", QStringLiteral("case-settings"));
-	m_caseSettingsPanel = new CaseSettingsPanel(m_caseSettingsDock);
-	m_caseSettingsDock->setWidget(m_caseSettingsPanel);
-	addDockWidget(Qt::RightDockWidgetArea, m_caseSettingsDock);
-	m_caseSettingsDock->hide();
-	registerEditorDock(m_caseSettingsDock);
-	m_caseSettingsPanel->setDocument(m_document);
-	m_caseSettingsDock->setEnabled(false);
-	connect(m_document, &SceneDocument::replaced, m_caseSettingsDock, [this] { m_caseSettingsDock->setEnabled(true); });
-	connect(m_caseSettingsPanel, &CaseSettingsPanel::baseTimeChanged, this,
-		[this](const QString& baseTime) { setStartOffset(baseTimeToSeconds(baseTime.toStdString())); });
-	connect(m_caseSettingsPanel, &CaseSettingsPanel::changed, this, [this] {
-		refreshValidationPanel();
-		m_servicePanel->refreshOccurrencePreview();
-		m_timetableStopsPanel->refresh();
-	});
-
-	// Infrastructure editor: one small facet selector and a table keep all
-	// canonical infrastructure fields visible without introducing a second model.
-	m_infrastructureDock = new QDockWidget("Infrastructure", this);
-	m_infrastructureDock->setObjectName("infrastructureDock");
-	m_infrastructurePanel = new InfrastructurePanel(m_infrastructureDock);
-	m_infrastructureDock->setWidget(m_infrastructurePanel);
-	addDockWidget(Qt::RightDockWidgetArea, m_infrastructureDock);
-	m_infrastructureDock->hide();
-	// The editor docks share one group of tabs, so each open editor has the full height of the side instead of a share of it.
-	tabifyDockWidget(m_caseSettingsDock, m_infrastructureDock);
-	registerEditorDock(m_infrastructureDock);
-	m_infrastructurePanel->setPrompts(m_userPrompts.get());
-	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
-		m_infrastructurePanel->setFacet(std::move(facet));
-	for (std::unique_ptr<InfrastructureFacet>& facet : makeBlockRouteFacets())
-		m_infrastructurePanel->setFacet(std::move(facet));
-	for (std::unique_ptr<InfrastructureFacet>& facet : makeStationFacets())
-		m_infrastructurePanel->setFacet(std::move(facet));
-	for (std::unique_ptr<InfrastructureFacet>& facet : makeSignalFacets())
-		m_infrastructurePanel->setFacet(std::move(facet));
-	m_infrastructurePanel->setDocument(m_document);
-	connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, this, [this]() {
-		if (m_document->isLoaded() && !m_runController->running() && !m_runController->resultsAvailable())
-			renderTrackPreview(m_document->model());
-	});
-	connect(m_infrastructurePanel, &InfrastructurePanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_infrastructurePanel, &InfrastructurePanel::entitiesChanged, this, [this](const QString& facet) {
-		if (facet == QStringLiteral("stations") || facet == QStringLiteral("platforms") || facet == QStringLiteral("routes"))
-			m_servicePanel->refresh();
-		if (facet == QStringLiteral("blocks") || facet == QStringLiteral("signals"))
-			refreshIncidentPanel();
-	});
-	connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, this,
-		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
-	connect(m_infrastructureDock, &QDockWidget::visibilityChanged, this,
-		[this](bool visible) {
-			if (visible)
-				m_infrastructurePanel->updateSelection();
-		});
-	refreshInfrastructurePanel();
-
-	m_trainUnitDock = new QDockWidget("Rolling Stock Units", this);
-	m_trainUnitDock->setObjectName("trainUnitDock");
-	m_trainUnitPanel = new TrainUnitPanel(m_trainUnitDock);
-	m_trainUnitDock->setWidget(m_trainUnitPanel);
-	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
-	tabifyDockWidget(m_infrastructureDock, m_trainUnitDock);
-	registerEditorDock(m_trainUnitDock);
-	m_trainUnitPanel->setPrompts(m_userPrompts.get());
-	m_trainUnitSourceLinker = new TrainUnitSourceLinker(this);
-	m_trainUnitSourceLinker->setDialogParent(this);
-	m_trainUnitSourceLinker->setDocument(m_document);
-	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusChanged, this, &MainWindow::updateTrainUnitSourceStatus);
-	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::commitPendingEditsRequested, this, &MainWindow::commitPendingEditorValues);
-	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusMessage, this,
-		[this](const QString& message, int milliseconds) { statusBar()->showMessage(message, milliseconds); });
-	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::linksCleared, this, [this] {
-		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-			if (window && !window->rollingStockSubject().isEmpty())
-				window->close();
-		}
-	});
-	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::reloaded, this, [this](const QStringList& tractionUnitIds) {
-		m_trainUnitPanel->refresh();
-		m_compositionPanel->refresh();
-		refreshValidationPanel();
-		for (const QString& unitId : tractionUnitIds)
-			refreshInputTractionDiagrams(unitId.toStdString());
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::detailsShown, this, &MainWindow::updateTrainUnitSourceStatus);
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceLinkRequested, this, [this](bool traction) {
-		commitPendingEditorValues();
-		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
-			m_trainUnitSourceLinker->link(unit->id, traction);
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceUnlinkRequested, this, [this](bool traction) {
-		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
-			m_trainUnitSourceLinker->unlink(unit->id, traction);
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceRetryRequested, this, [this](bool traction) {
-		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
-			m_trainUnitSourceLinker->retry(unit->id, traction);
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::unitRenamed, this, [this](const QString& oldId, const QString& newId) {
-		m_trainUnitSourceLinker->renameUnit(oldId.toStdString(), newId.toStdString());
-		const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), newId.toStdString());
-		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-			if (window && unit && window->rollingStockSubject() == oldId) {
-				window->setRollingStockSubject(newId);
-				window->setPresentation("Traction Curve", inputTractionContext(*unit), inputTractionWarning(*unit));
-			}
-		}
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::unitDeleted, this, [this](const QString& id) {
-		m_trainUnitSourceLinker->forgetUnit(id.toStdString());
-		refreshInputTractionDiagrams(id.toStdString());
-	});
-	connect(m_trainUnitPanel, &TrainUnitPanel::changed, this, &MainWindow::refreshValidationPanel);
-	const auto plotUnitTraction = [this](const QString& unitId) {
-		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), unitId.toStdString()))
-			plotTrainUnitTraction(*unit);
-	};
-	connect(m_trainUnitPanel, &TrainUnitPanel::tractionPlotRequested, this, plotUnitTraction);
-	m_trainUnitPanel->setDocument(m_document);
-
-	m_compositionDock = new QDockWidget("Compositions", this);
-	m_compositionDock->setObjectName("compositionDock");
-	m_compositionPanel = new CompositionPanel(m_compositionDock);
-	m_compositionDock->setWidget(m_compositionPanel);
-	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
-	m_compositionDock->hide();
-	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
-	registerEditorDock(m_compositionDock);
-	m_compositionPanel->setPrompts(m_userPrompts.get());
-	m_compositionPanel->setDocument(m_document);
-	connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, this, [this] { m_servicePanel->updateDetail(); });
-	connect(m_compositionPanel, &CompositionPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, this, plotUnitTraction);
-	connect(m_trainUnitPanel, &TrainUnitPanel::trainUnitsChanged, m_compositionPanel, &CompositionPanel::refresh);
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceReferencesChanged, m_compositionPanel, &CompositionPanel::refreshUnitDetails);
-
-	// service editor: dockable panel for the service-level fields, with the timetable (stops)
-	// of the selected service below them. Tabbed alongside Compositions.
-	m_serviceDock = new QDockWidget("Services", this);
-	m_serviceDock->setObjectName("serviceDock");
-	m_servicePanel = new ServicePanel(m_serviceDock);
-
-	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
-	m_timetableStopsPanel->setProperty("manualSection", QStringLiteral("timetable-editor"));
-	m_servicePanel->setTimetableWidget(m_timetableStopsPanel);
-
-	m_serviceDock->setWidget(m_servicePanel);
-	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
-	m_serviceDock->hide();
-	tabifyDockWidget(m_compositionDock, m_serviceDock);
-	registerEditorDock(m_serviceDock);
-
-	// scenario library and incident editor. each
-	// incident has a type (signal_failure or train_breakdown) and a target whose
-	// valid choices depend on that type, analogous to a stop's platform choices
-	// depending on the selected station.
-	m_incidentDock = new QDockWidget("Scenarios", this);
-	m_incidentDock->setObjectName("incidentDock");
-	QWidget* incidentWidget = new QWidget(m_incidentDock);
-	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
-
-	m_scenarioPanel = new ScenarioPanel(incidentWidget);
-
-	// The header names the scenario whose entries the tabs show, also while the scenario list is on another tab. It stays on
-	// one line, and a name wider than the dock is cut at the edge; the tooltip has all of it.
-	QLabel* scenarioHeaderLabel = new QLabel(incidentWidget);
-	scenarioHeaderLabel->setObjectName("scenarioHeaderLabel");
-	scenarioHeaderLabel->setTextFormat(Qt::PlainText);
-	scenarioHeaderLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	QFont scenarioHeaderFont = scenarioHeaderLabel->font();
-	scenarioHeaderFont.setBold(true);
-	scenarioHeaderLabel->setFont(scenarioHeaderFont);
-	incidentLayout->addWidget(scenarioHeaderLabel, 0);
-
-	QTabWidget* scenarioEditorTabs = new QTabWidget(incidentWidget);
-	scenarioEditorTabs->setObjectName("scenarioEditorTabs");
-	scenarioEditorTabs->addTab(m_scenarioPanel, "Scenario");
-
-	m_incidentPanel = new IncidentPanel(scenarioEditorTabs);
-	scenarioEditorTabs->addTab(m_incidentPanel, "Incidents");
-
-	m_entranceDelayPanel = new EntranceDelayPanel(scenarioEditorTabs);
-	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance delays");
-	scenarioEditorTabs->setMinimumSize(0, 0);
-	incidentLayout->addWidget(scenarioEditorTabs, 1);
-
-	m_incidentDock->setWidget(incidentWidget);
-	addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
-	m_incidentDock->hide();
-	m_trainUnitDock->hide();
-	tabifyDockWidget(m_serviceDock, m_incidentDock);
-	registerEditorDock(m_incidentDock);
-
-	m_scenarioPanel->setPrompts(m_userPrompts.get());
-	m_scenarioPanel->setRunSelection(&m_runSelection);
-	m_scenarioPanel->setDiagnostics(&m_session->diagnostics());
-	m_scenarioPanel->setAdvancedDetails([this] { return advancedDetailsEnabled(); });
-	m_scenarioPanel->setExportObserver([this] {
-		const auto operation = captureTelemetryOperation();
-		return [operation](const std::vector<SceneDiagnostic>& diagnostics) {
-			operation.failure(telemetry::Operation::Export, telemetryDiagnosticError(diagnostics));
-		};
-	});
-	m_scenarioPanel->setDocument(m_document);
-	const auto showScenarioHeader = [scenarioHeaderLabel](const QString& text) {
-		scenarioHeaderLabel->setText(text);
-		scenarioHeaderLabel->setToolTip(text);
-	};
-	showScenarioHeader(m_scenarioPanel->headerText());
-	connect(m_scenarioPanel, &ScenarioPanel::headerTextChanged, scenarioHeaderLabel, showScenarioHeader);
-	connect(m_scenarioPanel, &ScenarioPanel::scenarioSelected, this, [this] {
-		invalidateRunResults();
-		refreshIncidentPanel();
-	});
-	connect(m_scenarioPanel, &ScenarioPanel::statusMessage, this,
-		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
-	connect(m_scenarioPanel, &ScenarioPanel::changed, this, &MainWindow::refreshValidationPanel);
-	m_incidentPanel->setPrompts(m_userPrompts.get());
-	m_incidentPanel->setRunSelection(&m_runSelection);
-	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
-	m_incidentPanel->setDocument(m_document);
-	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
+void MainWindow::connectIncidentTargetPick() {
 	// The button of the inspector adds an incident for the signal or the train that it shows.
 	connect(m_inspector, &InspectorPanel::incidentRequested, this, [this] {
 		QString selected;
@@ -1543,11 +1373,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	// The target of an incident can come from the selection on the network view. Add Incident takes it, and the pick button
 	// of the panel waits for the next item that a click or Edit > Find... selects there.
-	m_incidentPanel->setDefaultTarget([this] {
+	m_editorDocks.incidentPanel()->setDefaultTarget([this] {
 		QString selected;
 		const IncidentTarget target = selectedIncidentTarget(selected);
 		// The edit that adds the incident can draw the preview again, which clears the status bar, so the message follows.
-		if (!selected.isEmpty() && !m_incidentPanel->offersTarget(target)) {
+		if (!selected.isEmpty() && !m_editorDocks.incidentPanel()->offersTarget(target)) {
 			const QString message = selected == "item"
 				? QString("The new incident has no target: select a signal or a train first")
 				: QString("The new incident has no target: the selected %1 cannot be its target").arg(selected);
@@ -1555,16 +1385,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		}
 		return target;
 	});
-	m_endTargetPickShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
-	m_endTargetPickShortcut->setContext(Qt::WindowShortcut);
-	m_endTargetPickShortcut->setEnabled(false);
-	connect(m_endTargetPickShortcut, &QShortcut::activated, m_incidentPanel, &IncidentPanel::endTargetPick);
-	connect(m_incidentPanel, &IncidentPanel::targetPickToggled, this, &MainWindow::setIncidentTargetPick);
-	// A dock behind another tab of its group stays shown, so the panel does not see it go.
-	connect(m_incidentDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
-		if (!visible)
-			m_incidentPanel->endTargetPick();
-	});
+	connect(m_editorDocks.incidentPanel(), &IncidentPanel::targetPickToggled, this, &MainWindow::setIncidentTargetPick);
 	// The inspector, whose slots were connected first, has taken the new selection when these run.
 	const auto pickTarget = [this] { pickIncidentTarget(); };
 	connect(scene, &NetworkScene::MousePressedOnPreview, this, pickTarget);
@@ -1577,83 +1398,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(scene, &NetworkScene::MousePressedOnPassenger, this, pickTarget);
 	// The end of a drag gives the view its hand cursor again.
 	connect(networkView, &NetworkView::interactionFinished, this, [this] {
-		if (m_incidentPanel->isPickingTarget())
+		if (m_editorDocks.incidentPanel()->isPickingTarget())
 			networkView->viewport()->setCursor(Qt::CrossCursor);
 	});
-	m_entranceDelayPanel->setPrompts(m_userPrompts.get());
-	m_entranceDelayPanel->setRunSelection(&m_runSelection);
-	m_entranceDelayPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
-	m_entranceDelayPanel->setDocument(m_document);
-	connect(m_entranceDelayPanel, &EntranceDelayPanel::changed, this, &MainWindow::refreshValidationPanel);
+}
 
-	// Passenger authoring: a deliberately direct list/detail editor over the
-	// canonical SceneModel.  Journeys and legs remain nested under the selected
-	// passenger; no second tree model or transient copy is needed.
-	m_passengerDock = new QDockWidget("Passengers", this);
-	m_passengerDock->setObjectName("passengerDock");
-	m_passengerPanel = new PassengerPanel(m_passengerDock);
-	m_passengerDock->setWidget(m_passengerPanel);
-	// A dock's viewport, rather than its form, limits the main window size.
-	// Keep wide tables and enlarged-font controls reachable when space is tight.
-	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
-			 m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
-		auto* content = dock->widget();
-		auto* scroll = new EditorLayout::DockScrollArea(dock);
-		scroll->setObjectName("editorContentScroll");
-		scroll->setWidgetResizable(true);
-		scroll->setFrameShape(QFrame::NoFrame);
-		scroll->setMinimumSize(0, 0);
-		scroll->setFocusPolicy(Qt::NoFocus);
-		scroll->setWidget(content);
-		dock->setWidget(scroll);
-		// The wheel scrolls the dock over a field and changes the field only once it has focus.
-		FocusWheel::watch(content);
-		// Once any dock has been resized, Qt opens a dock at the width that its side of the window had last. An editor dock
-		// that opens narrower than its size hint is widened to it, once the window has placed the dock.
-		connect(dock->toggleViewAction(), &QAction::toggled, this, [this, dock]() {
-			if (dock->isHidden() || dock->isFloating())
-				return;
-			dock->widget()->updateGeometry();
-			if (dock->width() < dock->sizeHint().width())
-				resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal); }, Qt::QueuedConnection);
-		connect(dock, &QDockWidget::topLevelChanged, this, [dock](bool floating) { fitFloatingDock(dock, floating); });
-	}
-	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
-	m_passengerDock->hide();
-	tabifyDockWidget(m_serviceDock, m_passengerDock);
-	registerEditorDock(m_passengerDock);
-
-	m_passengerPanel->setPrompts(m_userPrompts.get());
-	m_passengerPanel->setDiagnostics(&m_session->diagnostics());
-	m_passengerPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
-	m_passengerPanel->setImportFolderChooser([this]() -> QString {
-		if (const auto& passengerSource = mainWindowTestHooks().passengerSource) {
-			const QString sourcePath = passengerSource();
-			if (!sourcePath.isEmpty())
-				return sourcePath;
-		}
-		const QString startDir = m_session->sceneDir().isEmpty() ? QDir::homePath() : QFileInfo(m_session->sceneDir()).absolutePath();
-		return QFileDialog::getExistingDirectory(this, "Select Legacy Passenger Folder", startDir);
-	});
-	m_passengerPanel->setDocument(m_document);
-	m_passengerDock->setEnabled(false);
-	connect(m_passengerPanel, &PassengerPanel::statusMessage, this,
-		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
-	connect(m_passengerPanel, &PassengerPanel::changed, this, &MainWindow::refreshValidationPanel);
-
-	m_servicePanel->setPrompts(m_userPrompts.get());
-	m_timetableStopsPanel->setPrompts(m_userPrompts.get());
-	m_servicePanel->setRunSelection(&m_runSelection);
-	m_servicePanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
-	connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel, &TimetableStopsPanel::setServiceId);
-	connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_servicePanel, &ServicePanel::changed, this, &MainWindow::refreshValidationPanel);
-	m_servicePanel->setDocument(m_document);
-	m_timetableStopsPanel->setDocument(m_document);
-	m_serviceDock->setEnabled(false);
-	m_editorPanels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_compositionPanel,
-		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
-
+void MainWindow::setupStatusBarFields() {
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	statusBar()->addPermanentWidget(m_validation->statusLabel());
@@ -1662,7 +1412,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_zoomStatusLabel->setToolTip("Network zoom");
 	statusBar()->addPermanentWidget(m_zoomStatusLabel);
 	updateZoomStatus();
+}
 
+void MainWindow::connectViewActions() {
 	// Connect zoom actions
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
@@ -1671,7 +1423,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Quit closes the window, so it asks about unsaved changes and stops a running simulation
 	// like the close button does. The application exits when its last window has closed.
 	connect(ui->actionQuit, &QAction::triggered, this, &QWidget::close);
+}
 
+void MainWindow::setupDiagramsMenu() {
 	// Diagrams menu
 	m_diagramsMenu = menuBar()->addMenu("&Diagrams");
 	// An entry that asks for more input in a dialog ends in an ellipsis.
@@ -1682,21 +1436,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		connect(action, &QAction::triggered, m_resultViews, view.open);
 	}
 	updateDiagramActions();
-
-	// --- Status bar ---
-	statusBar()->showMessage("Ready");
-
-	refreshIncidentPanel();
-	refreshInfrastructurePanel();
-	// Dock/editor construction above can rebuild the top-level focus chain;
-	// restore the command-bar sequence after every child widget exists.
-	setCommandBarTabOrder();
-	if (startupTimingEnabled()) {
-		bool ok = false;
-		m_startupTimingWarmTrials = qEnvironmentVariableIntValue("QEGTRAIN_STARTUP_WARM_TRIALS", &ok);
-		if (!ok || m_startupTimingWarmTrials < 0)
-			m_startupTimingWarmTrials = 0;
-	}
 }
 
 MainWindow::~MainWindow() {
@@ -1802,9 +1541,10 @@ void MainWindow::revealEditorDock(QDockWidget* dock) {
 }
 
 void MainWindow::revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation) {
-	if (dock == m_caseSettingsDock || dock == m_infrastructureDock || dock == m_trainUnitDock
-		|| dock == m_compositionDock || dock == m_serviceDock || dock == m_incidentDock
-		|| dock == m_passengerDock)
+	if (dock == m_editorDocks.caseSettingsDock() || dock == m_editorDocks.infrastructureDock()
+		|| dock == m_editorDocks.trainUnitDock() || dock == m_editorDocks.compositionDock()
+		|| dock == m_editorDocks.serviceDock() || dock == m_editorDocks.incidentDock()
+		|| dock == m_editorDocks.passengerDock())
 		telemetry::revealEditor(dock, operation);
 	else if (dock) {
 		dock->show();
@@ -1882,7 +1622,7 @@ void MainWindow::resetForNewScene(const QString& baselineNote, bool saved, const
 	m_history->reset(m_document->model(), saved);
 	recoverySceneReplaced(recovery);
 	m_runSelection.clearModifiedScenarios();
-	m_passengerPanel->clearImportResult();
+	m_editorDocks.passengerPanel()->clearImportResult();
 	m_runController->setStartOffsetSeconds(baseTimeToSeconds(m_document->model().baseTime));
 	invalidateRunResults();
 	m_session->updateSceneWindowTitle();
@@ -1897,8 +1637,8 @@ void MainWindow::resetForNewScene(const QString& baselineNote, bool saved, const
 void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) {
 	resetForNewScene(QStringLiteral("Baseline cleared: a new case was created"), false, RecoverySource(), false);
 	statusBar()->showMessage("New case created");
-	telemetry::revealEditor(m_caseSettingsDock, operation);
-	telemetry::revealEditor(m_infrastructureDock, operation);
+	telemetry::revealEditor(m_editorDocks.caseSettingsDock(), operation);
+	telemetry::revealEditor(m_editorDocks.infrastructureDock(), operation);
 }
 
 bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
@@ -1932,12 +1672,12 @@ void MainWindow::sceneSaved() {
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
-	m_compositionPanel->refresh();
-	m_trainUnitPanel->refresh();
-	m_servicePanel->refresh();
+	m_editorDocks.compositionPanel()->refresh();
+	m_editorDocks.trainUnitPanel()->refresh();
+	m_editorDocks.servicePanel()->refresh();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
-	m_passengerPanel->refresh();
+	m_editorDocks.passengerPanel()->refresh();
 	// Last, because refreshing the panels redraws the track preview, which clears the status bar.
 	statusBar()->showMessage("Case saved");
 }
@@ -2114,7 +1854,7 @@ void MainWindow::runEnded() {
 	// A completed run can be replayed, so a train that has left can be followed in it.
 	updateFollowAvailability();
 	runPanelsChanged();
-	m_trainUnitSourceLinker->processChanges();
+	m_editorDocks.trainUnitSourceLinker()->processChanges();
 }
 
 void MainWindow::runSettled() {
@@ -2130,7 +1870,7 @@ void MainWindow::delayBaselineChanged() {
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_inspector->clearPreviewInspection();
 	m_presenter->resetPreviewFit();
-	const QString selectedInfrastructureId = m_infrastructurePanel->selectionId();
+	const QString selectedInfrastructureId = m_editorDocks.infrastructurePanel()->selectionId();
 	const bool hasRuntimeGraphics = static_cast<bool>(m_snapshot) || !m_presenter->allTrains.isEmpty()
 		|| !m_presenter->allArcs.isEmpty() || !m_presenter->allSignals.isEmpty()
 		|| !m_presenter->allPlatforms.isEmpty() || !m_presenter->m_stationOverlays.isEmpty()
@@ -2143,7 +1883,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		// observers before rebuilding the authoring preview so no stale pointers
 		// remain after scene->clear().
 		teardownGUI();
-		m_infrastructurePanel->setSelectionId(selectedInfrastructureId);
+		m_editorDocks.infrastructurePanel()->setSelectionId(selectedInfrastructureId);
 	} else if (scene) {
 		m_presenter->m_inspectedSignal = nullptr;
 		scene->clear();
@@ -2151,9 +1891,9 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_showingTrackPreview = true;
 	m_presenter->effect = nullptr;
 	NetworkPresenter::PreviewOptions options;
-	options.selectedFacet = m_infrastructurePanel->facetKey().toStdString();
-	options.selectedId = m_infrastructurePanel->selectionId().toStdString();
-	options.markSelection = m_infrastructureDock && m_infrastructureDock->isVisible();
+	options.selectedFacet = m_editorDocks.infrastructurePanel()->facetKey().toStdString();
+	options.selectedId = m_editorDocks.infrastructurePanel()->selectionId().toStdString();
+	options.markSelection = m_editorDocks.infrastructureDock() && m_editorDocks.infrastructureDock()->isVisible();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
 	if (!outcome.available) {
 		statusBar()->showMessage("This case has no tracks to draw");
@@ -2178,7 +1918,7 @@ void MainWindow::startRecovery() {
 		m_recoveryFailureShown = true;
 		const QString text = QStringLiteral("Autosave unavailable: %1. Save the case to keep your edits.").arg(message);
 		// The hint of a target pick stays until the pick ends, and the message follows it.
-		if (m_incidentPanel->isPickingTarget())
+		if (m_editorDocks.incidentPanel()->isPickingTarget())
 			m_heldRecoveryFailure = text;
 		else
 			statusBar()->showMessage(text);
@@ -2300,10 +2040,10 @@ void MainWindow::updateSceneActions() {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
 	}
-	if (m_serviceDock)
-		m_serviceDock->setEnabled(m_document->isLoaded() && !m_runController->running());
-	if (m_passengerDock)
-		m_passengerDock->setEnabled(m_document->isLoaded() && !m_runController->running());
+	if (m_editorDocks.serviceDock())
+		m_editorDocks.serviceDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
+	if (m_editorDocks.passengerDock())
+		m_editorDocks.passengerDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
 	updateUndoRedoActions();
 	updateDiagramActions();
 	if (QMenu* recentScenesMenu = m_session->recentScenesMenu())
@@ -2355,19 +2095,19 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 	}
 
 	if (targetType == "train_unit") {
-		if (m_trainUnitPanel->selectUnit(targetId))
-			raiseDock(m_trainUnitDock);
+		if (m_editorDocks.trainUnitPanel()->selectUnit(targetId))
+			raiseDock(m_editorDocks.trainUnitDock());
 		return;
 	}
 
 	QListWidget* targetList = nullptr;
 	QDockWidget* targetDock = nullptr;
 	if (targetType == "composition") {
-		targetList = m_compositionPanel->listWidget();
-		targetDock = m_compositionDock;
+		targetList = m_editorDocks.compositionPanel()->listWidget();
+		targetDock = m_editorDocks.compositionDock();
 	} else if (targetType == "service") {
-		targetList = m_servicePanel->listWidget();
-		targetDock = m_serviceDock;
+		targetList = m_editorDocks.servicePanel()->listWidget();
+		targetDock = m_editorDocks.serviceDock();
 	}
 	if (targetList) {
 		const QList<QListWidgetItem*> matches = targetList->findItems(targetId, Qt::MatchExactly);
@@ -2375,14 +2115,14 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 			targetList->setCurrentItem(matches.front());
 			raiseDock(targetDock);
 		}
-	} else if (targetType == "incident" && m_incidentPanel->listWidget()) {
+	} else if (targetType == "incident" && m_editorDocks.incidentPanel()->listWidget()) {
 		const auto& incidents = selectedScenarioIncidents();
 		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
 			if (QString::fromStdString(incidents[static_cast<std::size_t>(row)].id) == targetId) {
-				m_incidentPanel->listWidget()->setCurrentRow(row);
-				if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
-					tabs->setCurrentWidget(m_incidentPanel);
-				raiseDock(m_incidentDock);
+				m_editorDocks.incidentPanel()->listWidget()->setCurrentRow(row);
+				if (auto* tabs = m_editorDocks.incidentDock()->findChild<QTabWidget*>("scenarioEditorTabs"))
+					tabs->setCurrentWidget(m_editorDocks.incidentPanel());
+				raiseDock(m_editorDocks.incidentDock());
 				return;
 			}
 		}
@@ -2550,8 +2290,8 @@ void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
 		m_runSelection.selectScenario(fallback ? fallback->id : std::string());
 	}
 	for (const std::string& id : previousUnitIds) {
-		if (m_trainUnitSourceLinker->linkOf(id) && !sceneTrainUnitById(m_document->model(), id))
-			m_trainUnitSourceLinker->forgetUnit(id);
+		if (m_editorDocks.trainUnitSourceLinker()->linkOf(id) && !sceneTrainUnitById(m_document->model(), id))
+			m_editorDocks.trainUnitSourceLinker()->forgetUnit(id);
 	}
 	setStartOffset(baseTimeToSeconds(m_document->model().baseTime));
 	m_runSelection.pruneExcluded(m_document->model(), serviceOccurrenceDuration());
@@ -2564,11 +2304,11 @@ void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
 
 // Shows the scene in every editor, in the order in which sceneOpened refreshes them: validation last.
 void MainWindow::refreshAllEditorPanels() {
-	m_caseSettingsPanel->refresh();
-	m_trainUnitPanel->refresh();
-	m_compositionPanel->refresh();
-	m_servicePanel->refresh();
-	m_timetableStopsPanel->refresh();
+	m_editorDocks.caseSettingsPanel()->refresh();
+	m_editorDocks.trainUnitPanel()->refresh();
+	m_editorDocks.compositionPanel()->refresh();
+	m_editorDocks.servicePanel()->refresh();
+	m_editorDocks.timetableStopsPanel()->refresh();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	refreshValidationPanel();
@@ -2603,29 +2343,36 @@ void MainWindow::commitPendingEditorValues() {
 	m_committingPendingEditorValues = true;
 	// The scenario, incident and entrance delay controls are disabled and cleared during a run, and their panels take
 	// nothing then, because the document is not editable.
-	for (SceneEditorPanel* panel : m_editorPanels)
+	for (SceneEditorPanel* panel : m_editorDocks.panels())
 		panel->commitPendingEditors();
 	m_committingPendingEditorValues = false;
 }
 
 void MainWindow::commitPendingCaseSettings() {
-	m_caseSettingsPanel->commitPendingEditors();
+	m_editorDocks.caseSettingsPanel()->commitPendingEditors();
 }
 
 void MainWindow::commitCaseSettings() {
-	m_caseSettingsPanel->commit();
+	m_editorDocks.caseSettingsPanel()->commit();
 }
 
 void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
-	m_infrastructureDock->setEnabled(m_document->isLoaded() && !m_runController->running());
-	m_infrastructurePanel->refresh(resetSelection);
+	m_editorDocks.infrastructureDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
+	m_editorDocks.infrastructurePanel()->refresh(resetSelection);
+}
+
+void MainWindow::infrastructureSelectionChanged() {
+	if (m_document->isLoaded() && !m_runController->running() && !m_runController->resultsAvailable())
+		renderTrackPreview(m_document->model());
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
-	const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit();
-	const TrainUnitSourceLinker::Link* state = unit ? m_trainUnitSourceLinker->linkOf(unit->id) : nullptr;
-	m_trainUnitPanel->setSourceState(false, state ? state->dataPath : QString(), state ? state->dataStatus : QString());
-	m_trainUnitPanel->setSourceState(true, state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
+	const SceneTrainUnit* unit = m_editorDocks.trainUnitPanel()->selectedUnit();
+	const TrainUnitSourceLinker::Link* state = unit ? m_editorDocks.trainUnitSourceLinker()->linkOf(unit->id) : nullptr;
+	m_editorDocks.trainUnitPanel()->setSourceState(
+		false, state ? state->dataPath : QString(), state ? state->dataStatus : QString());
+	m_editorDocks.trainUnitPanel()->setSourceState(
+		true, state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
 }
 
 void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
@@ -2641,6 +2388,16 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 		window->setPresentation("Traction Curve", inputTractionContext(*unit),
 			inputTractionWarning(*unit));
 		window->setChart(buildInputTractionChart(*unit));
+	}
+}
+
+void MainWindow::renameTractionDiagrams(const QString& oldId, const QString& newId) {
+	const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), newId.toStdString());
+	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+		if (window && unit && window->rollingStockSubject() == oldId) {
+			window->setRollingStockSubject(newId);
+			window->setPresentation("Traction Curve", inputTractionContext(*unit), inputTractionWarning(*unit));
+		}
 	}
 }
 
@@ -2701,9 +2458,9 @@ QString MainWindow::scenarioContext() const {
 }
 
 void MainWindow::refreshIncidentPanel() {
-	m_scenarioPanel->refresh();
-	m_incidentPanel->refresh();
-	m_entranceDelayPanel->refresh();
+	m_editorDocks.scenarioPanel()->refresh();
+	m_editorDocks.incidentPanel()->refresh();
+	m_editorDocks.entranceDelayPanel()->refresh();
 }
 
 namespace {
@@ -2802,14 +2559,14 @@ QString MainWindow::viewIncidentBlocked(const IncidentTarget& target, const QStr
 		return QStringLiteral("Not available while the case runs");
 	if (target.type.isEmpty())
 		return why;
-	if (!m_incidentPanel->offersTarget(target))
+	if (!m_editorDocks.incidentPanel()->offersTarget(target))
 		return QStringLiteral("This %1 cannot be the target of an incident").arg(what);
 	return {};
 }
 
 void MainWindow::updateInspectorIncidentAction() {
 	// The inspector exists before the incident panel.
-	if (!m_incidentPanel)
+	if (!m_editorDocks.incidentPanel())
 		return;
 	QString selected;
 	QString why;
@@ -2827,18 +2584,18 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 		// Read first: a pending value that is committed can discard the results itself.
 		const bool discardsResults = m_runController->resultsAvailable();
 		commitPendingEditorValues();
-		if (!m_incidentPanel->addIncident(target)) {
+		if (!m_editorDocks.incidentPanel()->addIncident(target)) {
 			// The target can have gone since the menu or the button was shown.
 			const QString blocked = viewIncidentBlocked(target,
 				target.type == "train_breakdown" ? QStringLiteral("train") : QStringLiteral("signal"), QString());
 			statusBar()->showMessage(blocked.isEmpty() ? QStringLiteral("No incident added.") : blocked + QLatin1Char('.'), 8000);
 			return;
 		}
-		if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
-			tabs->setCurrentWidget(m_incidentPanel);
-		revealEditorDock(m_incidentDock);
-		m_incidentPanel->startSecondsEdit()->setFocus(Qt::OtherFocusReason);
-		m_incidentPanel->startSecondsEdit()->selectAll();
+		if (auto* tabs = m_editorDocks.incidentDock()->findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(m_editorDocks.incidentPanel());
+		revealEditorDock(m_editorDocks.incidentDock());
+		m_editorDocks.incidentPanel()->startSecondsEdit()->setFocus(Qt::OtherFocusReason);
+		m_editorDocks.incidentPanel()->startSecondsEdit()->selectAll();
 		// As short as the hint of a pick.
 		const QString added = target.type == "train_breakdown"
 			? QStringLiteral("Added a breakdown of %1 #%2").arg(target.id).arg(target.occurrence)
@@ -2848,7 +2605,7 @@ void MainWindow::addIncidentFromView(const IncidentTarget& target) {
 }
 
 void MainWindow::setIncidentTargetPick(bool picking) {
-	m_endTargetPickShortcut->setEnabled(picking);
+	m_editorDocks.endTargetPickShortcut()->setEnabled(picking);
 	networkView->viewport()->setCursor(picking ? Qt::CrossCursor : Qt::OpenHandCursor);
 	if (picking) {
 		statusBar()->showMessage(targetPickHint());
@@ -2862,23 +2619,25 @@ void MainWindow::setIncidentTargetPick(bool picking) {
 }
 
 void MainWindow::pickIncidentTarget() {
-	if (!m_incidentPanel->isPickingTarget())
+	if (!m_editorDocks.incidentPanel()->isPickingTarget())
 		return;
 	QString selected;
 	const IncidentTarget target = selectedIncidentTarget(selected);
 	// The edit can end a replay and draw the preview again, which deletes the item of the click, so it waits until the click
 	// has been handled.
 	QTimer::singleShot(0, this, [this, target, selected] {
-		if (!m_incidentPanel->isPickingTarget())
+		if (!m_editorDocks.incidentPanel()->isPickingTarget())
 			return;
-		if (!m_incidentPanel->applyTarget(target)) {
+		if (!m_editorDocks.incidentPanel()->applyTarget(target)) {
 			statusBar()->showMessage(targetPickRetry(selected));
 			return;
 		}
 		// The end of the pick shows a held autosave failure over this message.
 		statusBar()->showMessage(
-			QString("The target of incident %1 is now %2.").arg(m_incidentPanel->idEdit()->text(), m_incidentPanel->targetCombo()->currentText()), 8000);
-		m_incidentPanel->endTargetPick();
+			QString("The target of incident %1 is now %2.")
+				.arg(m_editorDocks.incidentPanel()->idEdit()->text(), m_editorDocks.incidentPanel()->targetCombo()->currentText()),
+			8000);
+		m_editorDocks.incidentPanel()->endTargetPick();
 	});
 }
 
@@ -3758,7 +3517,7 @@ void MainWindow::teardownGUI() {
 	m_inspector->clearSelectedStation();
 	if (m_networkLegendWidget)
 		m_networkLegendWidget->setCaseContent(NetworkLegendContent());
-	m_infrastructurePanel->setSelectionId(QString());
+	m_editorDocks.infrastructurePanel()->setSelectionId(QString());
 
 	setFollowTrain(-1);
 	m_inspector->clearSelectedTrain();

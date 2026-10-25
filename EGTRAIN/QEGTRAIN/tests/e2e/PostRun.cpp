@@ -644,7 +644,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		w.m_runController->clearSimulationWorker(false);
 		w.refreshInfrastructurePanel();
 		w.refreshIncidentPanel();
-		w.m_trainUnitSourceLinker->processChanges();
+		trainUnitSourceLinker(w)->processChanges();
 		QCoreApplication::exit(ok ? 0 : 2);
 		return true;
 	}

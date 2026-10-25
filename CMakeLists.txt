@@ -447,6 +447,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/GuardedApplication.cpp
     ${SRC_DIR}/app/MainWindow.cpp
+    ${SRC_DIR}/app/EditorDocks.cpp
     ${SRC_DIR}/app/ResultViews.cpp
     ${SRC_DIR}/app/RunController.cpp
     ${SRC_DIR}/app/RunResultsDock.cpp

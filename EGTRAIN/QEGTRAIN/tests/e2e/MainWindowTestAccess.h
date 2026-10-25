@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/EditorDocks.h"
 #include "app/MainWindow.h"
 #include "editors/SceneDocument.h"
 #include <QString>
@@ -64,41 +65,46 @@ public:
 	static void telemetryWindowDestroyed();
 #endif
 
-	// The editor panels and their docks, which the scenarios reach through these.
+	// The editor panels and their docks, the source links of the train units and the shortcut that ends a target pick,
+	// which the scenarios reach through these.
 	/// The Case Settings panel.
-	static CaseSettingsPanel* caseSettingsPanel(MainWindow& w) { return w.m_caseSettingsPanel; }
+	static CaseSettingsPanel* caseSettingsPanel(MainWindow& w) { return w.m_editorDocks.caseSettingsPanel(); }
 	/// The Case Settings dock.
-	static QDockWidget* caseSettingsDock(MainWindow& w) { return w.m_caseSettingsDock; }
+	static QDockWidget* caseSettingsDock(MainWindow& w) { return w.m_editorDocks.caseSettingsDock(); }
 	/// The Infrastructure panel.
-	static InfrastructurePanel* infrastructurePanel(MainWindow& w) { return w.m_infrastructurePanel; }
+	static InfrastructurePanel* infrastructurePanel(MainWindow& w) { return w.m_editorDocks.infrastructurePanel(); }
 	/// The Infrastructure dock.
-	static QDockWidget* infrastructureDock(MainWindow& w) { return w.m_infrastructureDock; }
+	static QDockWidget* infrastructureDock(MainWindow& w) { return w.m_editorDocks.infrastructureDock(); }
 	/// The Rolling Stock Units panel.
-	static TrainUnitPanel* trainUnitPanel(MainWindow& w) { return w.m_trainUnitPanel; }
+	static TrainUnitPanel* trainUnitPanel(MainWindow& w) { return w.m_editorDocks.trainUnitPanel(); }
 	/// The Rolling Stock Units dock.
-	static QDockWidget* trainUnitDock(MainWindow& w) { return w.m_trainUnitDock; }
+	static QDockWidget* trainUnitDock(MainWindow& w) { return w.m_editorDocks.trainUnitDock(); }
+	/// The links of the train units to their source files.
+	static TrainUnitSourceLinker* trainUnitSourceLinker(MainWindow& w) { return w.m_editorDocks.trainUnitSourceLinker(); }
 	/// The Compositions panel.
-	static CompositionPanel* compositionPanel(MainWindow& w) { return w.m_compositionPanel; }
+	static CompositionPanel* compositionPanel(MainWindow& w) { return w.m_editorDocks.compositionPanel(); }
 	/// The Compositions dock.
-	static QDockWidget* compositionDock(MainWindow& w) { return w.m_compositionDock; }
+	static QDockWidget* compositionDock(MainWindow& w) { return w.m_editorDocks.compositionDock(); }
 	/// The Services panel.
-	static ServicePanel* servicePanel(MainWindow& w) { return w.m_servicePanel; }
+	static ServicePanel* servicePanel(MainWindow& w) { return w.m_editorDocks.servicePanel(); }
 	/// The stops of the selected service, inside the Services panel.
-	static TimetableStopsPanel* timetableStopsPanel(MainWindow& w) { return w.m_timetableStopsPanel; }
+	static TimetableStopsPanel* timetableStopsPanel(MainWindow& w) { return w.m_editorDocks.timetableStopsPanel(); }
 	/// The Services dock.
-	static QDockWidget* serviceDock(MainWindow& w) { return w.m_serviceDock; }
+	static QDockWidget* serviceDock(MainWindow& w) { return w.m_editorDocks.serviceDock(); }
 	/// The Scenario tab of the Scenarios dock.
-	static ScenarioPanel* scenarioPanel(MainWindow& w) { return w.m_scenarioPanel; }
+	static ScenarioPanel* scenarioPanel(MainWindow& w) { return w.m_editorDocks.scenarioPanel(); }
 	/// The Incidents tab of the Scenarios dock.
-	static IncidentPanel* incidentPanel(MainWindow& w) { return w.m_incidentPanel; }
+	static IncidentPanel* incidentPanel(MainWindow& w) { return w.m_editorDocks.incidentPanel(); }
+	/// Esc while the target of an incident is picked on the network view.
+	static QShortcut* endTargetPickShortcut(MainWindow& w) { return w.m_editorDocks.endTargetPickShortcut(); }
 	/// The Entrance delays tab of the Scenarios dock.
-	static EntranceDelayPanel* entranceDelayPanel(MainWindow& w) { return w.m_entranceDelayPanel; }
+	static EntranceDelayPanel* entranceDelayPanel(MainWindow& w) { return w.m_editorDocks.entranceDelayPanel(); }
 	/// The Scenarios dock.
-	static QDockWidget* incidentDock(MainWindow& w) { return w.m_incidentDock; }
+	static QDockWidget* incidentDock(MainWindow& w) { return w.m_editorDocks.incidentDock(); }
 	/// The Passengers panel.
-	static PassengerPanel* passengerPanel(MainWindow& w) { return w.m_passengerPanel; }
+	static PassengerPanel* passengerPanel(MainWindow& w) { return w.m_editorDocks.passengerPanel(); }
 	/// The Passengers dock.
-	static QDockWidget* passengerDock(MainWindow& w) { return w.m_passengerDock; }
+	static QDockWidget* passengerDock(MainWindow& w) { return w.m_editorDocks.passengerDock(); }
 
 	// Whether a scenario has begun its checks, which it does once, and how often it has waited for the first train to be
 	// drawn. A run starts one scenario.
