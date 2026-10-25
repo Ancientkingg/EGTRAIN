@@ -1825,6 +1825,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
+	// A window destroyed while shown, at the end of a scripted run, would hide its docks in ~QWidget, after the members
+	// of MainWindow are gone, and the visibilityChanged slots of the docks read them. A window that the user closed is
+	// hidden already.
+	hide();
 	m_updateTelemetry->stopTelemetry();
 	m_runController->clearSimulationWorker(true);
 	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
