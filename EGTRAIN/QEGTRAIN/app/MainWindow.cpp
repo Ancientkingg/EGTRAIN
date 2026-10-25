@@ -1421,7 +1421,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		[this](const QString& message, int milliseconds) { statusBar()->showMessage(message, milliseconds); });
 	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::linksCleared, this, [this] {
 		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-			if (window && window->property("inputTrainUnitId").isValid())
+			if (window && !window->rollingStockSubject().isEmpty())
 				window->close();
 		}
 	});
@@ -1450,8 +1450,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_trainUnitSourceLinker->renameUnit(oldId.toStdString(), newId.toStdString());
 		const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), newId.toStdString());
 		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-			if (window && unit && window->property("inputTrainUnitId").toString() == oldId) {
-				window->setProperty("inputTrainUnitId", newId);
+			if (window && unit && window->rollingStockSubject() == oldId) {
+				window->setRollingStockSubject(newId);
 				window->setPresentation("Traction Curve", inputTractionContext(*unit), inputTractionWarning(*unit));
 			}
 		}
@@ -2757,7 +2757,7 @@ void MainWindow::updateTrainUnitSourceStatus() {
 void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 	const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), unitId);
 	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-		if (!window || window->property("inputTrainUnitId").toString() != QString::fromStdString(unitId)
+		if (!window || window->rollingStockSubject() != QString::fromStdString(unitId)
 			|| !window->isVisible())
 			continue;
 		if (!unit || unit->tractionCurve.empty()) {
@@ -2775,7 +2775,7 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 
 	DiagramWindow* win = new DiagramWindow("Traction Curve", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
-	win->setProperty("inputTrainUnitId", QString::fromStdString(unit.id));
+	win->setRollingStockSubject(QString::fromStdString(unit.id));
 	win->setChart(chart);
 	win->setPresentation("Traction Curve", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);

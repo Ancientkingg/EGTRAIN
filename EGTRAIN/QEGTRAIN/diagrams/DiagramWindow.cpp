@@ -1050,8 +1050,8 @@ void DiagramWindow::setFigureFileName(const QString& fileName) {
 	m_figureFileName = fileName;
 }
 
-void DiagramWindow::setRollingStockSubject(bool on) {
-	m_rollingStockSubject = on;
+void DiagramWindow::setRollingStockSubject(const QString& unitId) {
+	m_rollingStockSubject = unitId;
 	refreshTrainsSection();
 	refreshSelected();
 	refreshKey();
@@ -1059,7 +1059,7 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 
 // The Trains section is shown while the chart has trains, and never for rolling stock input.
 void DiagramWindow::refreshTrainsSection() {
-	if (m_trainsSection) m_frame->panel()->setSectionVisible(m_trainsSection, !m_rollingStockSubject && !m_groups.isEmpty());
+	if (m_trainsSection) m_frame->panel()->setSectionVisible(m_trainsSection, m_rollingStockSubject.isEmpty() && !m_groups.isEmpty());
 }
 
 // The kinds of mark that the shown series draw, as the class comment describes them, and those of the section strip.
@@ -1071,7 +1071,7 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		return std::find_if(entries.begin(), entries.end(), [&name](const DiagramKeyEntry& entry) { return entry.name == name; });
 	};
 	const auto series = chart->series();
-	if (m_rollingStockSubject) {
+	if (!m_rollingStockSubject.isEmpty()) {
 		for (QAbstractSeries* one : series) {
 			const auto* xy = qobject_cast<QXYSeries*>(one);
 			if (xy && xy->isVisible() && !one->name().isEmpty() && entryNamed(one->name()) == entries.end())
@@ -1174,7 +1174,7 @@ void DiagramWindow::setTrainCopies(const QHash<QString, QString>& copyOf) {
 // The colour rule needs the trains that the list shows, so the list keeps its check states and takes the colours of the
 // rule in its line samples only.
 void DiagramWindow::applyColourPlan() {
-	if (m_trainList && !m_rollingStockSubject) {
+	if (m_trainList && m_rollingStockSubject.isEmpty()) {
 		QVector<TrainColourInput> trains;
 		trains.reserve(m_groups.size());
 		for (const SeriesGroup& group : m_groups)
@@ -1246,9 +1246,6 @@ void DiagramWindow::setChart(QChart* chart) {
 	// once many trains are present.
 	if (chart && chart->legend())
 		chart->legend()->hide();
-	// Existing input-traction callers tag their windows before setting the chart.
-	// Keep the explicit API for future callers and avoid a train-only filter here.
-	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
 	rebuildFilterGroups();
 	// The trains of the old chart that were hidden stay hidden, and the Key follows.
 	applyTrainVisibility();
@@ -1728,7 +1725,7 @@ void DiagramWindow::refreshSelected() {
 	m_pinTitle->setText(withBreakOpportunities(m_selectedLines.value(0)));
 	m_pinLabel->setText(withBreakOpportunities(m_selectedLines.mid(1).join('\n')));
 	m_pinLabel->setVisible(m_selectedLines.size() > 1);
-	m_frame->panel()->setSectionVisible(m_selectedSection, !m_rollingStockSubject && !m_selectedLines.isEmpty());
+	m_frame->panel()->setSectionVisible(m_selectedSection, m_rollingStockSubject.isEmpty() && !m_selectedLines.isEmpty());
 }
 
 // The selected train is drawn wider and the others faint. A selected blocking time has its outline instead, so the
@@ -1935,7 +1932,7 @@ constexpr double kColumnSectionGap = 14; // between the Trains and the Key of th
 // service with a shown train while the list groups them, and the Key under "Key". Rows that do not fit end in "N more".
 FigureColumn DiagramWindow::panelColumn() const {
 	QVector<DiagramKeyEntry> trains;
-	if (m_trainList && !m_rollingStockSubject)
+	if (m_trainList && m_rollingStockSubject.isEmpty())
 		for (const auto& row : m_trainList->shownRows())
 			trains.push_back({row.first, DiagramKeyEntry::Shape::Line,
 				row.second.isValid() ? QPen(row.second, 2.5, Qt::SolidLine, Qt::RoundCap) : QPen(Qt::NoPen), QBrush()});

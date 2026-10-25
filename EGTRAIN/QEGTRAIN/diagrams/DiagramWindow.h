@@ -117,9 +117,12 @@ public:
 	void setEmptyText(const QString& text);
 	/// The file name that the PNG export suggests, such as "delays.png", in the place of the name of the CSV.
 	void setFigureFileName(const QString& fileName);
-	/// True for a chart of rolling stock input, which has no trains: hides the train filter and the selection, and the
+	/// The id of the rolling stock unit whose input the chart shows, such as its traction curve; empty, as it is until
+	/// set, for a chart of trains. A chart of a unit has no trains: it hides the train filter and the selection, and the
 	/// curves of the next chart keep their colours.
-	void setRollingStockSubject(bool on);
+	void setRollingStockSubject(const QString& unitId);
+	/// The id that setRollingStockSubject gave, or empty for a chart of trains.
+	QString rollingStockSubject() const { return m_rollingStockSubject; }
 	/// The colour that the case gives the service of each train, by its group id (trainColorsForRun), which wins over the
 	/// palette of the colour rule. Set before or after setChart. Keeps which trains are shown and which is selected.
 	void setTrainColors(const QHash<QString, QColor>& colors);
@@ -274,7 +277,7 @@ private:
 	QPointer<QWidget> m_warningArea; // the margins around the warning label
 	QPointer<QLabel> m_warningLabel;
 	QPointer<QLabel> m_contextLabel;
-	bool m_rollingStockSubject = false;
+	QString m_rollingStockSubject;
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;

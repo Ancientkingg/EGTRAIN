@@ -644,7 +644,7 @@ static bool exerciseTrainColors() {
 
 	// A chart of rolling stock input keeps the colours of its curves.
 	DiagramWindow input("Rolling stock colours");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	const ColoredChart curves = makeColoredChart();
 	input.setChart(curves.chart);
 	ok &= expect(curves.solid[0]->pen() == curves.solidPen[0] && curves.solid[1]->pen() == curves.solidPen[1],
@@ -922,7 +922,7 @@ static bool exerciseButtonDefaults() {
 	clear->click();
 	ok &= expect(!clear->isVisible() && !pin->isVisible(), "Clear hides itself and the selection");
 	DiagramWindow input("Input traction");
-	input.setProperty("inputTrainUnitId", "unit-a");
+	input.setRollingStockSubject("unit-a");
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
@@ -1742,7 +1742,7 @@ static bool exerciseLegend() {
 
 	// A chart of rolling stock input lists its curves by name, in their own pens.
 	DiagramWindow input("Key of rolling stock");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	input.show();
 	QChart* curves = makeNamedChart({"Draisy, input", "Draisy, limit"});
 	const QPen curvePen(QColor(20, 120, 60), 2.5);
@@ -2652,7 +2652,7 @@ static bool exercisePanelSections() {
 	QApplication::processEvents();
 	ok &= expect(shownHeadings(window) == QStringList({"Trains", "Export"}) && shownRules(window) == 1, "Clear removes the section Selected");
 	DiagramWindow input("Rolling stock panel");
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	input.setChart(buttonTestChart());
 	input.show();
 	QApplication::processEvents();
@@ -4021,7 +4021,7 @@ int main(int argc, char* argv[]) {
 	QFont scaled = input.font();
 	scaled.setPointSizeF(18);
 	input.setFont(scaled);
-	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setRollingStockSubject(QStringLiteral("Unit A"));
 	auto* inputChart = new QChart;
 	auto* inputLine = new QLineSeries;
 	inputLine->setName("Input effort");
