@@ -42,6 +42,47 @@ static bool containsPath(const fs::path& parent, const fs::path& child) {
 	return parentIt == parent.end();
 }
 
+static std::string lowerCopy(std::string value) {
+	std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
+	return value;
+}
+
+// The importer reads every file of Routes whose name without the extension is "route" and a number, in any case.
+static bool isLegacyRouteFile(const fs::path& path) {
+	const std::string stem = lowerCopy(path.stem().u8string());
+	return stem.size() > 5 && stem.compare(0, 5, "route") == 0
+		&& std::all_of(stem.begin() + 5, stem.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
+}
+
+/// An export is written to staging and moved to destination when it is complete. A file that destination already holds
+/// counts as present, because the export keeps it, unless it is stale: the publish removes the stale files first.
+struct ExportFolders {
+	fs::path staging;			 ///< The folder the export writes.
+	fs::path destination;		 ///< The folder the export is published to.
+	std::vector<fs::path> stale; ///< Files of destination that the publish removes.
+
+	/// The file at relative in staging, else the kept file in destination, else an empty path. Sets ec when the
+	/// filesystem cannot tell.
+	fs::path existing(const fs::path& relative, std::error_code& ec) const {
+		ec.clear();
+		const fs::path staged = staging / relative;
+		if (fs::exists(staged, ec) || ec)
+			return ec ? fs::path() : staged;
+		const fs::path kept = destination / relative;
+		const std::string key = lowerCopy(kept.lexically_normal().generic_u8string());
+		for (const fs::path& file : stale)
+			if (lowerCopy(file.lexically_normal().generic_u8string()) == key)
+				return fs::path();
+		return fs::exists(kept, ec) ? kept : fs::path();
+	}
+
+	/// True when existing finds a file at relative.
+	bool exists(const fs::path& relative) const {
+		std::error_code ec;
+		return !existing(relative, ec).empty();
+	}
+};
+
 static bool reconstructibleTrackNumber(const std::string& name, int& number) {
 	try {
 		number = std::stoi(name.substr(1));
@@ -265,7 +306,7 @@ static void writeInitialParameters(const SceneModel& scene, const std::string& o
 	}
 }
 
-static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std::string& outDir,
+static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const ExportFolders& folders,
 	const std::unordered_map<std::string, std::string>& outputTracks, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
@@ -284,7 +325,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 	};
 
 	std::unordered_map<std::string, LegacyNode> nodes;
-	const fs::path tracklinesDir = pathFromUtf8(outDir) / "TrackLines";
+	const fs::path tracklinesDir = folders.staging / "TrackLines";
 
 	auto numericSuffix = [](const std::string& value, const std::string& marker, const std::string& fallback) {
 		const std::size_t pos = value.rfind(marker);
@@ -321,10 +362,10 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 			continue;
 		}
 
-		auto writeIfMissing = [&](const fs::path& path, const auto& writer) {
-			std::error_code existsEc;
-			if (fs::exists(path, existsEc))
+		auto writeIfMissing = [&](const char* name, const auto& writer) {
+			if (folders.exists(fs::path("TrackLines") / outputTrack / name))
 				return;
+			const fs::path path = trackDir / name;
 			std::ofstream out(path);
 			if (!out) {
 				addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write the legacy file", path.u8string());
@@ -334,7 +375,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 			writer(out);
 		};
 
-		writeIfMissing(trackDir / "NodiCumPari.txt", [&](std::ofstream& out) {
+		writeIfMissing("NodiCumPari.txt", [&](std::ofstream& out) {
 			for (const auto& node : scene.nodes) {
 				if (node.trackId != track.id)
 					continue;
@@ -345,7 +386,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 			}
 		});
 
-		writeIfMissing(trackDir / "ArchiCumPari.txt", [&](std::ofstream& out) {
+		writeIfMissing("ArchiCumPari.txt", [&](std::ofstream& out) {
 			std::size_t arcIndex = 0;
 			for (const auto& arc : scene.arcs) {
 				if (arc.trackId != track.id)
@@ -365,7 +406,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 			}
 		});
 
-		writeIfMissing(trackDir / "BlockCumPari.txt", [&](std::ofstream& out) {
+		writeIfMissing("BlockCumPari.txt", [&](std::ofstream& out) {
 			std::size_t blockIndex = 0;
 			for (const auto& block : scene.blocks) {
 				if (block.trackId != track.id)
@@ -393,7 +434,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 
 	if (!scene.tracks.empty()) {
 		const fs::path connectionsFile = tracklinesDir / "Connections.txt";
-		if (!fs::exists(connectionsFile)) {
+		if (!folders.exists(fs::path("TrackLines") / "Connections.txt")) {
 			std::ofstream out(connectionsFile);
 			if (!out) {
 				addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write TrackLines/Connections.txt");
@@ -418,7 +459,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 
 	if (!scene.stations.empty()) {
 		const fs::path stationsFile = tracklinesDir / "Stations.txt";
-		if (!fs::exists(stationsFile)) {
+		if (!folders.exists(fs::path("TrackLines") / "Stations.txt")) {
 			std::ofstream out(stationsFile);
 			if (!out) {
 				addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write TrackLines/Stations.txt");
@@ -487,7 +528,7 @@ static bool passengerWindowToken(double start, double end, std::string& token) {
 	return false;
 }
 
-static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std::string& outDir,
+static void synthesizeCanonicalCompatibility(const SceneModel& scene, const ExportFolders& folders,
 	const std::unordered_map<std::string, int>& routeIndices,
 	const std::unordered_map<std::string, std::string>& blockIds, SceneExportResult& result) {
 	auto addError = [&](const std::string& code, const std::string& message, const std::string& file = "") {
@@ -506,16 +547,17 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 		addError("scene.export.write", message, file);
 	};
 
-	auto writeIfMissing = [&](const fs::path& path, const auto& writer, bool needed) {
+	auto writeIfMissing = [&](const fs::path& relative, const auto& writer, bool needed) {
 		if (!needed)
 			return;
 		std::error_code ec;
-		if (fs::exists(path, ec))
+		if (!folders.existing(relative, ec).empty())
 			return;
 		if (ec) {
-			addWriteError("Could not inspect compatibility file: " + ec.message(), path.u8string());
+			addWriteError("Could not inspect compatibility file: " + ec.message(), (folders.destination / relative).u8string());
 			return;
 		}
+		const fs::path path = folders.staging / relative;
 		fs::create_directories(path.parent_path(), ec);
 		if (ec) {
 			addWriteError("Could not create compatibility directory: " + ec.message(), path.parent_path().u8string());
@@ -544,11 +586,11 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 		}
 		corridorRows.emplace_back(routeIt->second, route.corridor);
 	}
-	writeIfMissing(pathFromUtf8(outDir) / "GUI" / "caseStudyRouteCorridors.txt", [&](std::ofstream& out) {
+	writeIfMissing(fs::path("GUI") / "caseStudyRouteCorridors.txt", [&](std::ofstream& out) {
 				for (const auto& row : corridorRows)
 					out << row.first << "\t" << row.second << "\n"; }, !corridorRows.empty());
 
-	writeIfMissing(pathFromUtf8(outDir) / "GUI" / "singleTrackLimits.txt", [&](std::ofstream& out) {
+	writeIfMissing(fs::path("GUI") / "singleTrackLimits.txt", [&](std::ofstream& out) {
 				for (const auto& restriction : scene.singleTrackRestrictions) {
 					out << legacyBoundaryToken(mapLegacyBlockReference(restriction.startBlock, blockIds)) << "\t"
 						<< legacyBoundaryToken(mapLegacyBlockReference(restriction.endBlock, blockIds)) << "\t"
@@ -556,7 +598,7 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 						<< mapLegacyBlockReference(restriction.protectedEndBlock, blockIds) << "\n";
 				} }, !scene.singleTrackRestrictions.empty());
 
-	writeIfMissing(pathFromUtf8(outDir) / "GUI" / "stationBoundarySections.txt", [&](std::ofstream& out) {
+	writeIfMissing(fs::path("GUI") / "stationBoundarySections.txt", [&](std::ofstream& out) {
 				for (const auto& boundary : scene.stationBoundaries) {
 					out << legacyBoundaryToken(mapLegacyBlockReference(boundary.entranceBlock, blockIds)) << "\t";
 					if (boundary.hasExitBlock)
@@ -566,21 +608,21 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 
 	if (scene.passengers.empty())
 		return;
-	const fs::path dasPath = pathFromUtf8(outDir) / "Passengers" / "DAS_FrenchCaseStudy.csv";
-	const fs::path routeChoicePath = pathFromUtf8(outDir) / "Passengers" / "RouteChoiceFC_EQ1.csv";
+	const fs::path dasPath = fs::path("Passengers") / "DAS_FrenchCaseStudy.csv";
+	const fs::path routeChoicePath = fs::path("Passengers") / "RouteChoiceFC_EQ1.csv";
 	std::error_code dasEc, routeChoiceEc;
-	const bool hasDas = fs::exists(dasPath, dasEc);
-	const bool hasRouteChoice = fs::exists(routeChoicePath, routeChoiceEc);
+	const bool hasDas = !folders.existing(dasPath, dasEc).empty();
+	const bool hasRouteChoice = !folders.existing(routeChoicePath, routeChoiceEc).empty();
 	if (dasEc || routeChoiceEc) {
 		addWriteError("Could not inspect legacy passenger compatibility files",
-			(dasEc ? dasPath : routeChoicePath).u8string());
+			(folders.destination / (dasEc ? dasPath : routeChoicePath)).u8string());
 		return;
 	}
 	if (hasDas && hasRouteChoice)
 		return;
 	if (hasDas != hasRouteChoice) {
 		addUnsupported("Existing legacy passenger data is missing its paired CSV",
-			(hasDas ? routeChoicePath : dasPath).u8string());
+			(folders.destination / (hasDas ? routeChoicePath : dasPath)).u8string());
 		return;
 	}
 
@@ -803,7 +845,7 @@ static void writeViewLayout(const SceneModel& scene, const std::unordered_map<st
 }
 
 static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
-	const std::string& outDir, SceneExportResult& result) {
+	const ExportFolders& folders, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
 		d.severity = sev;
@@ -815,19 +857,19 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 
 	// the two files describe one layout; a half-generated pair would assign
 	// regions that contradict the provided coordinates, so skip on either
-	fs::path providedSc = pathFromUtf8(outDir) / "GUI" / "StationsCoord.txt";
-	fs::path providedTd = pathFromUtf8(outDir) / "GUI" / "caseStudyTrackData.txt";
-	if (fs::exists(providedSc) || fs::exists(providedTd)) {
+	fs::path providedSc = folders.staging / "GUI" / "StationsCoord.txt";
+	fs::path providedTd = folders.staging / "GUI" / "caseStudyTrackData.txt";
+	if (folders.exists(fs::path("GUI") / "StationsCoord.txt") || folders.exists(fs::path("GUI") / "caseStudyTrackData.txt")) {
 		addDiag(SceneSeverity::Info, "scene.export.info", "The GUI layout of the case is used");
 		return;
 	}
 	if (!scene.stationViews.empty() || !scene.trackViews.empty()) {
-		writeViewLayout(scene, legacyTrackIds, outDir, result);
+		writeViewLayout(scene, legacyTrackIds, folders.staging.u8string(), result);
 		return;
 	}
 
-	fs::path stationsFile = pathFromUtf8(outDir) / "TrackLines" / "Stations.txt";
-	std::ifstream sf(stationsFile);
+	std::error_code stationsEc;
+	std::ifstream sf(folders.existing(fs::path("TrackLines") / "Stations.txt", stationsEc));
 	if (!sf) {
 		addDiag(SceneSeverity::Info, "scene.export.info", "No stations, so no GUI layout was generated");
 		return;
@@ -862,11 +904,17 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	std::map<int, std::vector<double>> tracklineNodes;
-	fs::path tracklinesDir = pathFromUtf8(outDir) / "TrackLines";
-	if (fs::exists(tracklinesDir) && fs::is_directory(tracklinesDir)) {
+	// The track folders of the kept and the staged output; a folder that both hold is read once.
+	for (const fs::path& tracklinesDir : {folders.destination / "TrackLines", folders.staging / "TrackLines"}) {
+		const bool staged = tracklinesDir == folders.staging / "TrackLines";
+		std::error_code dirEc;
+		if (!fs::is_directory(tracklinesDir, dirEc))
+			continue;
 		std::error_code ec;
 		for (const auto& entry : fs::directory_iterator(tracklinesDir, ec)) {
 			std::error_code dec;
+			if (staged && fs::exists(folders.destination / "TrackLines" / entry.path().filename(), dec))
+				continue;
 			if (entry.is_directory(dec) && !dec) {
 				std::string dirname = entry.path().filename().u8string();
 				if (dirname.size() > 1 && dirname[0] == 'B') {
@@ -877,8 +925,8 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 						}))
 						n = std::stoi(num);
 					if (n >= 0) {
-						fs::path nodiFile = entry.path() / "NodiCumPari.txt";
-						std::ifstream nf(nodiFile);
+						std::error_code nodiEc;
+						std::ifstream nf(folders.existing(fs::path("TrackLines") / entry.path().filename() / "NodiCumPari.txt", nodiEc));
 						if (nf) {
 							std::string nline;
 							while (std::getline(nf, nline)) {
@@ -991,7 +1039,7 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	std::error_code ec;
-	fs::create_directories(pathFromUtf8(outDir) / "GUI", ec);
+	fs::create_directories(folders.staging / "GUI", ec);
 
 	std::ofstream sc(providedSc);
 	if (sc) {
@@ -1014,6 +1062,48 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 			td << n << "\t" << n << "\t" << n << "\n";
 		}
 	}
+}
+
+// Publishes a complete export. A destination that does not exist becomes the staged folder. Otherwise the stale files are
+// removed and every staged file is moved over the file of the same name, so the files that the export did not write stay.
+// When a move fails, the destination keeps the files moved before it.
+static bool publishExport(StagedDirectory& staging, const ExportFolders& folders, bool destinationExists,
+	SceneExportResult& result) {
+	const auto fail = [&](const std::string& message, const fs::path& file, const std::error_code& ec) {
+		SceneDiagnostic d;
+		d.severity = SceneSeverity::Error;
+		d.code = "scene.export.write";
+		d.message = message + ": " + ec.message();
+		d.file = file.u8string();
+		result.diagnostics.push_back(d);
+		return false;
+	};
+	if (!destinationExists) {
+		const StagedPublishResult published = publishStagedDirectory(staging, folders.destination, fs::path());
+		return published.step == StagedPublishStep::Published
+			|| fail("Cannot move the export into place", folders.destination, published.error);
+	}
+	std::error_code ec;
+	for (const fs::path& file : folders.stale) {
+		fs::remove(file, ec);
+		if (ec)
+			return fail("Cannot remove the old export file", file, ec);
+	}
+	std::vector<fs::path> entries;
+	for (fs::recursive_directory_iterator it(staging.path, ec), end; !ec && it != end; it.increment(ec))
+		entries.push_back(it->path());
+	if (ec)
+		return fail("Cannot read the staged export", folders.destination, ec);
+	for (const fs::path& entry : entries) {
+		const fs::path target = folders.destination / entry.lexically_relative(staging.path);
+		if (fs::is_directory(entry, ec))
+			fs::create_directories(target, ec);
+		else if (!ec)
+			fs::rename(entry, target, ec);
+		if (ec)
+			return fail("Cannot move the exported file into place", target, ec);
+	}
+	return true;
 }
 
 SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::string& outDir) {
@@ -1076,22 +1166,29 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	const auto legacyTrackIds = buildLegacyTrackIds(scene);
 	const auto legacyBlockIds = buildLegacyBlockIds(scene, legacyTrackIds);
 
-	// Import resolves this path case-insensitively. Remove every recognised old sidecar
-	// before mutating compatibility output, and never copy one from legacy passthrough.
-	const auto lower = [](std::string value) {
-		std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
-		return value;
-	};
+	// The export is staged next to the destination and published when it is complete. Import resolves these paths
+	// case-insensitively. The publish removes the old files that the importer would read as part of the new export:
+	// every recognised area sidecar, the settings sidecar, Incidents.txt, the route files, because the importer reads all
+	// of them, and AreasCaseStudy.txt when the scene has no areas. Never copy a sidecar from legacy passthrough.
+	ExportFolders folders;
+	folders.destination = outputDir.has_filename() ? outputDir : outputDir.parent_path();
 	std::error_code cleanupEc;
-	if (fs::exists(outputDir, cleanupEc)) {
-		fs::directory_iterator roots(outputDir, cleanupEc), end;
+	const bool destinationExists = fs::exists(folders.destination, cleanupEc);
+	if (destinationExists) {
+		fs::directory_iterator roots(folders.destination, cleanupEc), end;
 		while (!cleanupEc && roots != end) {
-			if (lower(roots->path().filename().u8string()) == "tracklines" && roots->is_directory(cleanupEc)) {
+			const std::string rootName = lowerCopy(roots->path().filename().u8string());
+			if (rootName == "egtraininitialparameters.json" || rootName == "incidents.txt")
+				folders.stale.push_back(roots->path());
+			if ((rootName == "tracklines" || rootName == "routes") && roots->is_directory(cleanupEc)) {
 				fs::directory_iterator files(roots->path(), cleanupEc);
 				while (!cleanupEc && files != end) {
-					if (lower(files->path().filename().u8string()) == "egtrainsignallingareas.json"
-						|| (scene.signallingAreas.empty() && lower(files->path().filename().u8string()) == "areascasestudy.txt"))
-						fs::remove(files->path(), cleanupEc);
+					const std::string name = lowerCopy(files->path().filename().u8string());
+					const bool stale = rootName == "routes"
+						? isLegacyRouteFile(files->path()) && files->is_regular_file(cleanupEc)
+						: name == "egtrainsignallingareas.json" || (scene.signallingAreas.empty() && name == "areascasestudy.txt");
+					if (stale)
+						folders.stale.push_back(files->path());
 					if (!cleanupEc) files.increment(cleanupEc);
 				}
 			}
@@ -1099,7 +1196,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 	}
 	if (cleanupEc) {
-		addDiag(SceneSeverity::Error, "scene.export.write", "Cannot remove stale signalling area sidecar: " + cleanupEc.message(), outDir);
+		addDiag(SceneSeverity::Error, "scene.export.path", "Cannot inspect export destination: " + cleanupEc.message(), outDir);
 		return result;
 	}
 	// Validate only the new preservation boundary, not unrelated legacy export limitations.
@@ -1122,26 +1219,36 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	for (const auto& track : scene.tracks)
 		if (!admitTrack(legacyTrackIds.at(track.id), track.id)) return result;
 
-	// Use the importer's discovery rule again on actual retained/generated output.
+	// Use the importer's discovery rule again on actual retained/generated output. A track folder that the destination
+	// keeps and the export also writes is admitted once.
 	const auto admitOutputTracks = [&] {
 		reconstructedTracks.clear();
 		std::error_code scanEc;
-		const auto scan = [&](const fs::path& root) {
-			fs::directory_iterator entries(root, scanEc), end;
-			while (!scanEc && entries != end) {
-				const std::string name = entries->path().filename().u8string();
-				if (entries->is_directory(scanEc) && name.size() > 1 && (name[0] == 'B' || name[0] == 'b')
-					&& std::all_of(name.begin() + 1, name.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
-					if (!admitTrack(name, entries->path().u8string())) return false;
-				if (!scanEc) entries.increment(scanEc);
+		const auto scan = [&](const fs::path& relative) {
+			for (const fs::path& root : {folders.destination / relative, folders.staging / relative}) {
+				const bool staged = root == folders.staging / relative;
+				fs::directory_iterator entries(root, scanEc), end;
+				if (!staged && scanEc == std::errc::no_such_file_or_directory)
+					scanEc.clear();
+				while (!scanEc && entries != end) {
+					const std::string name = entries->path().filename().u8string();
+					const fs::path kept = folders.destination / relative / entries->path().filename();
+					std::error_code keptEc;
+					if (!(staged && fs::exists(kept, keptEc)) && entries->is_directory(scanEc) && name.size() > 1
+						&& (name[0] == 'B' || name[0] == 'b')
+						&& std::all_of(name.begin() + 1, name.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+						if (!admitTrack(name, kept.u8string())) return false;
+					if (!scanEc) entries.increment(scanEc);
+				}
+				if (scanEc) return false;
 			}
-			return !scanEc;
+			return true;
 		};
-		if (!scan(outputDir / "TrackLines")) {
+		if (!scan("TrackLines")) {
 			if (scanEc) addDiag(SceneSeverity::Error, "scene.export.ref", "Cannot inspect exported track directories: " + scanEc.message(), outDir);
 			return false;
 		}
-		if (reconstructedTracks.empty() && !scan(outputDir)) {
+		if (reconstructedTracks.empty() && !scan(fs::path())) {
 			if (scanEc) addDiag(SceneSeverity::Error, "scene.export.ref", "Cannot inspect exported track directories: " + scanEc.message(), outDir);
 			return false;
 		}
@@ -1149,16 +1256,24 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	};
 
 	std::error_code ec;
-	fs::create_directories(outputDir, ec);
+	const fs::path parent = folders.destination.parent_path();
+	if (!parent.empty())
+		fs::create_directories(parent, ec);
+	StagedDirectory staging;
+	if (!ec)
+		ec = createStagedDirectory(parent.empty() ? fs::path(".") : parent,
+			"." + folders.destination.filename().u8string() + ".export-", false, staging);
 	if (ec) {
 		addDiag(SceneSeverity::Error, "scene.export.write", "Could not create outDir", outDir);
 		return result;
 	}
+	folders.staging = staging.path;
+	const fs::path& writeDir = staging.path;
 
 	result.wroteAll = true;
 
 	for (const char* sub : {"Trains", "TimeTable", "TrainData", "Routes"}) {
-		fs::create_directories(outputDir / sub, ec);
+		fs::create_directories(writeDir / sub, ec);
 		if (ec) {
 			addDiag(SceneSeverity::Error, "scene.export.write", std::string("Could not create ") + sub + ": " + ec.message());
 			result.wroteAll = false;
@@ -1199,7 +1314,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	for (const auto& r : scene.routes) {
 		int idx = routeIndices[r.id];
 		std::string fname = "Route" + std::to_string(idx) + ".txt";
-		std::ofstream rf(outputDir / "Routes" / fname);
+		std::ofstream rf(writeDir / "Routes" / fname);
 		if (!rf) {
 			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write route file", fname);
 			result.wroteAll = false;
@@ -1294,7 +1409,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		std::string ttPathRel = "TimeTable/" + fname;
 
 		// Write unit files if not written
-		std::ofstream df(outputDir / pathFromUtf8(dataPathRel));
+		std::ofstream df(writeDir / pathFromUtf8(dataPathRel));
 		if (df) {
 			df << formatNumber(combinedPhysical.mass_of_traction_unit_kg) << "\t"
 			   << formatNumber(combinedPhysical.mass_of_a_wagon_kg) << "\t"
@@ -1310,7 +1425,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			result.wroteAll = false;
 		}
 
-		std::ofstream tf(outputDir / pathFromUtf8(tracPathRel));
+		std::ofstream tf(writeDir / pathFromUtf8(tracPathRel));
 		if (tf) {
 			for (const auto& row : combinedTraction) {
 				tf << formatNumber(row[0]) << "\t"
@@ -1324,7 +1439,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			result.wroteAll = false;
 		}
 
-		std::ofstream ttf(outputDir / pathFromUtf8(ttPathRel));
+		std::ofstream ttf(writeDir / pathFromUtf8(ttPathRel));
 		if (ttf) {
 			for (const auto& stop : svc.stops) {
 				if (stop.stationId.find_first_of(" \t\r\n") != std::string::npos) {
@@ -1341,7 +1456,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			result.wroteAll = false;
 		}
 
-		std::ofstream trf(outputDir / "Trains" / fname);
+		std::ofstream trf(writeDir / "Trains" / fname);
 		if (trf) {
 			trf << (svc.operatingCode.empty() ? svc.id : svc.operatingCode) << "\n"
 				<< formatNumber(entryTime) << "\n"
@@ -1356,7 +1471,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 	}
 
-	std::ofstream tnf(outputDir / "trainNames.txt");
+	std::ofstream tnf(writeDir / "trainNames.txt");
 	if (tnf) {
 		for (const auto& tf : trainFiles) {
 			tnf << tf << "\n";
@@ -1379,7 +1494,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			serviceOperatingCodes[svc.id] = svc.operatingCode.empty() ? svc.id : svc.operatingCode;
 		}
 
-		std::ofstream inf(outputDir / "Incidents.txt");
+		std::ofstream inf(writeDir / "Incidents.txt");
 		if (inf) {
 			for (const auto& inc : incidents) {
 				if (inc.type != "signal_failure" && inc.type != "train_breakdown") {
@@ -1479,12 +1594,13 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					relStr = "TimeTable";
 			}
 
-			if (lower(relStr) == "tracklines/egtrainsignallingareas.json" || lower(relStr) == "egtraininitialparameters.json"
-				|| (scene.signallingAreas.empty() && lower(relStr) == "tracklines/areascasestudy.txt")) return;
+			if (lowerCopy(relStr) == "tracklines/egtrainsignallingareas.json" || lowerCopy(relStr) == "egtraininitialparameters.json"
+				|| (scene.signallingAreas.empty() && lowerCopy(relStr) == "tracklines/areascasestudy.txt")) return;
 
-			fs::path dstPath = outputDir / pathFromUtf8(relStr);
+			const fs::path relative = pathFromUtf8(relStr);
+			const fs::path dstPath = writeDir / relative;
 			std::error_code cpec;
-			if (!fs::exists(dstPath, cpec)) {
+			if (folders.existing(relative, cpec).empty()) {
 				fs::create_directories(dstPath.parent_path(), cpec);
 				fs::copy_file(srcPath, dstPath, fs::copy_options::overwrite_existing, cpec);
 				if (cpec) {
@@ -1507,14 +1623,21 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 	}
 
-	synthesizeCanonicalInfrastructure(scene, outDir, legacyTrackIds, result);
-	synthesizeCanonicalCompatibility(scene, outDir, routeIndices, legacyBlockIds, result);
+	synthesizeCanonicalInfrastructure(scene, folders, legacyTrackIds, result);
+	synthesizeCanonicalCompatibility(scene, folders, routeIndices, legacyBlockIds, result);
 
+	const std::string stagedDir = writeDir.u8string();
 	if (result.success()) {
-		synthesizeGuiLayout(scene, legacyTrackIds, outDir, result);
-		writeInitialParameters(scene, outDir, result);
-		if (result.success() && admitOutputTracks()) synthesizeSignallingAreas(scene, legacyTrackIds, outDir, result);
+		synthesizeGuiLayout(scene, legacyTrackIds, folders, result);
+		writeInitialParameters(scene, stagedDir, result);
+		if (result.success() && admitOutputTracks()) synthesizeSignallingAreas(scene, legacyTrackIds, stagedDir, result);
 	}
 
+	// A diagnostic names a file where the export publishes it, not where it was staged.
+	for (SceneDiagnostic& diagnostic : result.diagnostics)
+		if (diagnostic.file.compare(0, stagedDir.size(), stagedDir) == 0)
+			diagnostic.file = folders.destination.u8string() + diagnostic.file.substr(stagedDir.size());
+	if (result.success() && !publishExport(staging, folders, destinationExists, result))
+		result.wroteAll = false;
 	return result;
 }

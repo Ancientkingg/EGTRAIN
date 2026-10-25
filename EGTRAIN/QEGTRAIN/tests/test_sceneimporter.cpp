@@ -1155,6 +1155,39 @@ int main() {
 		ok &= expect(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
 	}
 
+	// A case with three routes and an incident and then a case with one route and none, exported into the same folder,
+	// imports with one route and no incident.
+	{
+		TempDir root;
+		const fs::path threeRoutes = fs::path(root.dir) / "three";
+		const fs::path oneRoute = fs::path(root.dir) / "one";
+		writeSmallLegacyCase(threeRoutes);
+		writeText(threeRoutes / "Routes/Route1.txt", "@0-B0@\n");
+		writeText(threeRoutes / "Routes/Route2.txt", "@0-B0@\n");
+		writeText(threeRoutes / "Incidents.txt", "signal_failure\t0-B0\t10\t20\n");
+		writeSmallLegacyCase(oneRoute);
+		const fs::path exported = fs::path(root.dir) / "exported";
+		const fs::path reimported = fs::path(root.dir) / "reimported";
+		json threeSignalling, signalling, scenarios;
+		ok &= expect(importLegacyScene(threeRoutes.string(), (fs::path(root.dir) / "three-scene").string(), "Three").success()
+				&& readJson(fs::path(root.dir) / "three-scene/signalling.json", threeSignalling)
+				&& threeSignalling["routes"].size() == 3
+				&& exportLegacyScene((fs::path(root.dir) / "three-scene").string(), exported.string()).success()
+				&& fs::is_regular_file(exported / "Incidents.txt"),
+			"A case with three routes and an incident imports and exports");
+		ok &= expect(importLegacyScene(oneRoute.string(), (fs::path(root.dir) / "one-scene").string(), "One").success()
+				&& exportLegacyScene((fs::path(root.dir) / "one-scene").string(), exported.string()).success(),
+			"A case with one route exports into the same folder");
+		ok &= expect(importLegacyScene(exported.string(), reimported.string(), "One").success()
+				&& readJson(reimported / "signalling.json", signalling) && signalling["routes"].size() == 1,
+			"The folder imports with the one route of the last export");
+		bool incidents = false;
+		if (readJson(reimported / "scenarios.json", scenarios))
+			for (const auto& scenario : scenarios["scenarios"])
+				incidents = incidents || !scenario["incidents"].empty();
+		ok &= expect(!incidents, "The folder imports without the incident of the first export");
+	}
+
 	// A UTF-16 file with an odd byte count cannot be read. A manifest is then replaced by the Trains directory, and a
 	// rollout is left out.
 	{
