@@ -284,6 +284,7 @@ private slots:
 	void skipsNonFiniteNumbers();
 	void reportsFilesThatCannotBeOpened();
 	void reportsFolderThatCannotBeRead();
+	void reportsMalformedSceneFiles();
 	void reportsMalformedScenarioItems();
 	void reportsMalformedPassengers();
 };
@@ -1357,6 +1358,57 @@ void TestSceneImporter::reportsFolderThatCannotBeRead() {
 			"Passenger import from a folder that cannot be read reports the missing files");
 	}
 #endif
+}
+
+// Problems of whole files and of the fields that the loader checks itself, in a copy of the synthetic import.
+void TestSceneImporter::reportsMalformedSceneFiles() {
+	const SyntheticImport synthetic;
+	const std::string& output = synthetic.output.dir;
+	TempDir copyRoot;
+	const fs::path copy = fs::path(copyRoot.dir) / "scene";
+	// Loads a fresh copy of the scene in which change has altered the files.
+	const auto loadChanged = [&](const std::function<void(const fs::path&)>& change) {
+		fs::remove_all(copy);
+		fs::copy(output, copy, fs::copy_options::recursive);
+		change(copy);
+		return loadScene(copy.string());
+	};
+
+	SceneLoadResult loaded = loadChanged([](const fs::path& scene) { fs::remove(scene / "rolling_stock.json"); });
+	// A required file that is absent is reported under its name.
+	QCOMPARE(errorsIn(loaded.diagnostics, "rolling_stock.json"),
+		std::vector<std::string>{"scene.file.missing : Required file is missing"});
+	loaded = loadChanged([](const fs::path& scene) { writeText(scene / "views.json", "[]"); });
+	// A file whose root is not an object is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "views.json"),
+		std::vector<std::string>{"scene.section.missing : Root element must be an object"});
+
+	loaded = loadMutated(output, "scene.json", [](json& value) {
+		value.erase("schema_version");
+		value["units"] = {{"distance", "km"}, {"time", "s"}, {"speed", 5}};
+	});
+	// A scene file without a version and with units other than metres, seconds and metres per second is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "scene.json"),
+		std::vector<std::string>({"scene.version.missing schema_version: Missing schema_version",
+			"scene.units.unsupported units.distance: Unsupported distance unit",
+			"scene.units.unsupported units.speed: Unsupported speed unit"}));
+	loaded = loadMutated(output, "scene.json", [](json& value) { value["units"] = 7; });
+	// Units that are not an object are reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "scene.json"),
+		std::vector<std::string>{"scene.field.missing units: units must be an object"});
+
+	loaded = loadMutated(output, "services.json", [](json& value) {
+		value["services"][0]["stops"][0]["actual_arrival_seconds"] = 1;
+	});
+	// A simulation result in a service stop is reported.
+	QCOMPARE(errorsIn(loaded.diagnostics, "services.json"),
+		std::vector<std::string>{"scene.timetable.results services[0].stops[0].actual_arrival_seconds: Service stop input must not contain simulation-result fields"});
+
+	loaded = loadChanged([](const fs::path& scene) { writeText(scene / "incidents.json", "{"); });
+	// incidents.json next to scenarios.json is ignored with a warning, so its content is not read.
+	QVERIFY(hasDiag(loaded.diagnostics, "scene.compatibility.incidents_ignored", SceneSeverity::Warning));
+	QVERIFY(hasDiagAt(loaded.diagnostics, "incidents.json", ""));
+	QVERIFY(errorsIn(loaded.diagnostics, "incidents.json").empty());
 }
 
 // Malformed incidents and entrance delays, read from scenarios.json and from the legacy incidents.json. The directory

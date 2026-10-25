@@ -52,8 +52,16 @@ Each key of the scene files is written in one place and read in one place.
 `SceneWriter.cpp` has an encoder for each file (`encodeSceneMetadata`,
 `encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
-`encodePassengers`), and `loadScene` in `SceneModel.cpp` and
-`SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
+`encodePassengers`), and `SceneFieldReader.cpp` has a decoder for each file
+(`decodeSceneMetadata`, `decodeInfrastructure`, `decodeStations`,
+`decodeViews`, `decodeSignalling`, `decodeRollingStock`, `decodeServices`,
+`decodeScenarios`, `decodeHistoricalIncidents` for `incidents.json` and
+`decodePassengers`). `loadScene` in `SceneModel.cpp` reads and parses the
+files, gives each file its own `SceneFieldReader` and calls the decoders in that
+order. It also makes the checks that span files: it decodes `views.json` after
+the tracks and stations that the views name, and `incidents.json` only when the
+case has no `scenarios.json`; with both files it warns that `incidents.json` is
+ignored. The importer fills a [`SceneModel`] and
 hands it to `replaceSceneDirectory`, which writes, loads back and publishes it
 as `saveScene` does, so an imported scene has the form of a saved one. Unlike a
 save, it replaces a folder at the destination with everything in it and keeps
