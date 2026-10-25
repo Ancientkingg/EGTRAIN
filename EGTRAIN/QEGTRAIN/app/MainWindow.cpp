@@ -4385,20 +4385,6 @@ void MainWindow::bindStationOverlaySources() {
 						bars.append(platform->mapToScene(platform->rect()));
 			overlay->setPlatformBars(bars);
 		}
-		if (overlay->hasSourceIdentity()) {
-			const double representativeNodeId = overlay->sourceNodeId();
-			const int representativeTrack = overlay->sourceTrack();
-			overlay->setDisplacedClickHandler(
-				[this, representativeNodeId, representativeTrack](const QString&) {
-					QTimer::singleShot(0, this, [this, representativeNodeId, representativeTrack]() {
-						if (auto* current = resolveStationNodeItem(
-								representativeNodeId, representativeTrack))
-							m_inspector->displayStationNodeInfo(current);
-					});
-				});
-		} else {
-			overlay->setDisplacedClickHandler({});
-		}
 	}
 	m_presenter->measureStationTrackSpacing();
 }

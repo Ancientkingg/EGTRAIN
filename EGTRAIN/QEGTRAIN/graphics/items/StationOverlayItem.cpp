@@ -4,7 +4,7 @@
 
 #include <QGlyphRun>
 #include <QGraphicsScene>
-#include <QGraphicsSceneHoverEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QLineF>
 #include <QPaintDevice>
 #include <QPainter>
@@ -25,7 +25,6 @@ namespace {
 constexpr qreal kSymbolPixels = 16.0;
 constexpr qreal kLabelPixels = 11.0;
 constexpr qreal kLabelGap = 8.0;
-constexpr qreal kFitCollisionStep = 20.0;
 constexpr qreal kNameCollisionGap = 2.0;
 // A name meets the pictogram of a neighbour at the same height along the artwork line.
 // It covers that pictogram only when they share more than this many pixels both ways.
@@ -149,23 +148,6 @@ private:
 	QPainterPath m_outlines;
 };
 
-QList<QPointF> fitCollisionCandidates() {
-	return {
-		QPointF(),
-		QPointF(kFitCollisionStep, 0.0),
-		QPointF(-kFitCollisionStep, 0.0),
-		QPointF(0.0, kFitCollisionStep),
-		QPointF(0.0, -kFitCollisionStep),
-		QPointF(kFitCollisionStep, kFitCollisionStep),
-		QPointF(-kFitCollisionStep, kFitCollisionStep),
-		QPointF(kFitCollisionStep, -kFitCollisionStep),
-		QPointF(-kFitCollisionStep, -kFitCollisionStep),
-		QPointF(2.0 * kFitCollisionStep, 0.0),
-		QPointF(-2.0 * kFitCollisionStep, 0.0),
-		QPointF(0.0, 2.0 * kFitCollisionStep),
-		QPointF(0.0, -2.0 * kFitCollisionStep),
-	};
-}
 }
 
 StationMarkItem::StationMarkItem(StationClass cls, int size, QGraphicsItem* parent)
@@ -222,13 +204,11 @@ StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF
 	  m_visual(visual), m_degree(std::max(0, degree)), m_endpoint(degree == 1) {
 	setFlag(QGraphicsItem::ItemIgnoresTransformations);
 	setFlag(QGraphicsItem::ItemIsSelectable);
-	setAcceptHoverEvents(true);
 	setAcceptedMouseButtons(Qt::NoButton);
 	setZValue(3.5);
 	m_labelFont.setPixelSize(static_cast<int>(kLabelPixels));
 	m_displayName = displayName(m_stationName);
 	m_symbolRect = QRectF(-kSymbolPixels / 2.0, -kSymbolPixels / 2.0, kSymbolPixels, kSymbolPixels);
-	m_labelSide = LabelSide::Right;
 	rebuildGeometry();
 	setPos(m_stableAnchor);
 }
@@ -264,79 +244,8 @@ QString StationOverlayItem::displayName(const std::string& stationName) {
 	return displayName(QString::fromStdString(stationName));
 }
 
-qreal StationOverlayItem::labelScale() const {
-	return m_labelScale;
-}
-
-void StationOverlayItem::setLabelScale(qreal scale) {
-	scale = std::clamp(scale, 1.0, 3.0);
-	const int pixelSize = qRound(kLabelPixels * m_visualScale * scale);
-	if (qFuzzyCompare(m_labelScale, scale) && m_labelFont.pixelSize() == pixelSize)
-		return;
-	prepareGeometryChange();
-	m_labelScale = scale;
-	m_labelFont.setPixelSize(pixelSize);
-	rebuildGeometry();
-	update();
-}
-
-void StationOverlayItem::setVisualScale(qreal scale) {
-	scale = std::clamp(scale, 0.1, 1.0);
-	if (qFuzzyCompare(m_visualScale, scale))
-		return;
-	prepareGeometryChange();
-	m_visualScale = scale;
-	m_labelFont.setPixelSize(qRound(kLabelPixels * m_visualScale * m_labelScale));
-	m_symbolRect = QRectF(-kSymbolPixels * m_visualScale / 2.0,
-		-kSymbolPixels * m_visualScale / 2.0,
-		kSymbolPixels * m_visualScale, kSymbolPixels * m_visualScale);
-	rebuildGeometry();
-	update();
-}
-
-void StationOverlayItem::setViewportOffset(const QPointF& offset) {
-	if (m_viewportOffset == offset)
-		return;
-	prepareGeometryChange();
-	m_viewportOffset = offset;
-	update();
-}
-
-void StationOverlayItem::setFitCollisionOffset(const QPointF& offset) {
-	if (m_fitCollisionOffset == offset)
-		return;
-	prepareGeometryChange();
-	m_fitCollisionOffset = offset;
-	setAcceptedMouseButtons(!m_sceneDecoration && !offset.isNull() && m_fitSymbolVisible && m_displacedClickHandler
-			? Qt::LeftButton
-			: Qt::NoButton);
-	update();
-}
-
-void StationOverlayItem::setFitSymbolVisible(bool visible) {
-	if (m_fitSymbolVisible == visible)
-		return;
-	prepareGeometryChange();
-	m_fitSymbolVisible = visible;
-	setAcceptedMouseButtons(!m_sceneDecoration && visible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-			? Qt::LeftButton
-			: Qt::NoButton);
-	update();
-}
-
-void StationOverlayItem::setDisplacedClickHandler(std::function<void(const QString&)> handler) {
-	m_displacedClickHandler = std::move(handler);
-	setAcceptedMouseButtons(!m_sceneDecoration && m_fitSymbolVisible && !m_fitCollisionOffset.isNull() && m_displacedClickHandler
-			? Qt::LeftButton
-			: Qt::NoButton);
-}
-
 void StationOverlayItem::setSourceIdentities(const QList<SourceIdentity>& identities) {
 	m_sourceIdentities = identities;
-}
-
-void StationOverlayItem::clearSourceIdentities() {
-	m_sourceIdentities.clear();
 }
 
 bool StationOverlayItem::matchesSourceIdentity(double nodeId, int track) const {
@@ -352,39 +261,6 @@ double StationOverlayItem::sourceNodeId() const {
 
 int StationOverlayItem::sourceTrack() const {
 	return m_sourceIdentities.isEmpty() ? -1 : m_sourceIdentities.first().track;
-}
-
-QPointF StationOverlayItem::firstFitCollisionOffset(const QRectF& symbolRect,
-	const QRectF& viewportInset, const QList<QRectF>& occupiedSymbols,
-	const QList<QRectF>& blockedRects, bool* found) {
-	for (const QPointF& offset : fitCollisionCandidates()) {
-		const QRectF candidate = symbolRect.translated(offset);
-		if (!viewportInset.contains(candidate))
-			continue;
-		const bool occupied = std::any_of(occupiedSymbols.cbegin(), occupiedSymbols.cend(),
-			[&candidate](const QRectF& other) { return candidate.intersects(other); });
-		if (occupied)
-			continue;
-		const bool blocked = std::any_of(blockedRects.cbegin(), blockedRects.cend(),
-			[&candidate](const QRectF& other) { return candidate.intersects(other); });
-		if (blocked)
-			continue;
-		if (found)
-			*found = true;
-		return offset;
-	}
-	if (found)
-		*found = false;
-	return QPointF();
-}
-
-void StationOverlayItem::setLabelSide(LabelSide side) {
-	if (m_labelSide == side)
-		return;
-	prepareGeometryChange();
-	m_labelSide = side;
-	rebuildGeometry();
-	update();
 }
 
 StationOverlayItem::ViewportPlacement StationOverlayItem::placementForSide(
@@ -433,18 +309,7 @@ StationOverlayItem::ViewportPlacement StationOverlayItem::preferredViewportPlace
 }
 
 QRectF StationOverlayItem::combinedRect() const {
-	QRectF bounds = translated(m_labelRect);
-	if (m_fitSymbolVisible)
-		bounds = bounds.united(translatedSymbol(m_symbolRect));
-	return bounds;
-}
-
-QRectF StationOverlayItem::translated(const QRectF& rect) const {
-	return rect.translated(m_viewportOffset);
-}
-
-QRectF StationOverlayItem::translatedSymbol(const QRectF& rect) const {
-	return rect.translated(m_viewportOffset + m_fitCollisionOffset);
+	return m_labelRect.united(m_symbolRect);
 }
 
 QRectF StationOverlayItem::boundingRect() const {
@@ -455,10 +320,9 @@ QPainterPath StationOverlayItem::shape() const {
 	QPainterPath path;
 	if (m_sceneDecoration)
 		return path;
-	if (m_fitSymbolVisible)
-		path.addRect(translatedSymbol(m_symbolRect));
+	path.addRect(m_symbolRect);
 	if (isLabelVisible())
-		path.addRect(translated(m_labelRect));
+		path.addRect(m_labelRect);
 	return path;
 }
 
@@ -468,25 +332,15 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	if (m_sceneDecoration)
 		return;
 	painter->save();
-	painter->translate(m_viewportOffset);
 	// The pin reaches past its frame, so it is fitted to the symbol by what it paints.
-	if (m_fitSymbolVisible)
-		paintStationMark(painter,
-			stationMarkFrameIn(m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkHaloPixels),
-			m_visual.cls, stationMarkFill(), canvasColor(), kMarkHaloPixels);
+	paintStationMark(painter, stationMarkFrameIn(m_symbolRect, m_visual.cls, kMarkHaloPixels), m_visual.cls,
+		stationMarkFill(), canvasColor(), kMarkHaloPixels);
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
 		painter->setFont(m_labelFont);
 		painter->drawText(m_labelRect, Qt::AlignVCenter | Qt::AlignLeft, m_displayName);
 	}
 	painter->restore();
-}
-
-void StationOverlayItem::setLayoutVisible(bool visible) {
-	if (m_layoutVisible == visible)
-		return;
-	m_layoutVisible = visible;
-	update();
 }
 
 void StationOverlayItem::setNameVisible(bool visible) {
@@ -496,26 +350,11 @@ void StationOverlayItem::setNameVisible(bool visible) {
 	update();
 }
 
-bool StationOverlayItem::isLabelVisible() const {
-	return m_nameVisible && ((m_layoutVisible && !m_collisionBlocked) || m_hovered || isSelected());
-}
-
-void StationOverlayItem::setCollisionBlocked(bool blocked) {
-	if (m_collisionBlocked == blocked)
-		return;
-	m_collisionBlocked = blocked;
-	update();
-}
-
 void StationOverlayItem::setFollowed(bool followed) {
 	if (m_followed == followed)
 		return;
 	m_followed = followed;
 	update();
-}
-
-void StationOverlayItem::setDegree(int degree) {
-	setNetworkDegree(degree, degree >= 3, degree == 1);
 }
 
 void StationOverlayItem::setNetworkDegree(int degree, bool interchange, bool endpoint) {
@@ -836,38 +675,19 @@ void StationOverlayItem::resolveNameCollisions(const QList<StationOverlayItem*>&
 	}
 }
 
-void StationOverlayItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
-	m_hovered = true;
-	update();
-	QGraphicsItem::hoverEnterEvent(event);
-}
-
-void StationOverlayItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
-	m_hovered = false;
-	update();
-	QGraphicsItem::hoverLeaveEvent(event);
-}
-
 void StationOverlayItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
-	if (event->button() == Qt::LeftButton && m_fitSymbolVisible
-		&& !m_fitCollisionOffset.isNull() && translatedSymbol(m_symbolRect).contains(event->pos())
-		&& m_displacedClickHandler) {
-		m_displacedClickHandler(m_stationName);
-		event->accept();
-		return;
-	}
 	event->ignore();
 }
 
 void StationOverlayItem::rebuildGeometry() {
-	m_labelRect = labelRectForSide(m_labelSide);
+	m_labelRect = labelRectForSide(LabelSide::Right);
 }
 
 QRectF StationOverlayItem::labelRectForSide(LabelSide side) const {
 	const QFontMetricsF metrics(m_labelFont);
 	const qreal width = metrics.horizontalAdvance(m_displayName);
 	const qreal height = metrics.height();
-	const qreal gap = kLabelGap * m_visualScale;
+	const qreal gap = kLabelGap;
 	if (side == LabelSide::Right)
 		return QRectF(m_symbolRect.right() + gap, -height / 2.0, width, height);
 	if (side == LabelSide::Left)
