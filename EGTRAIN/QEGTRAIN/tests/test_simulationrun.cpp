@@ -18,7 +18,6 @@
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
-#include "simulation/builders/InfrastructureBuilderInternal.h"
 #ifdef signals
 #undef signals
 #endif

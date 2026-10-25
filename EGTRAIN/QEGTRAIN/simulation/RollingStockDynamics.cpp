@@ -115,34 +115,3 @@ void Train::TotalEnergyConsumptionWithAndWithoutRegBraking(double EtaSubst, doub
 
 	this->TotalEnergySubstRequestWithRegBrak = TotalEnergyConsWithRegBrak / EtaSubst; // this is the energy requested rom the substation by the train when it uses regenerative braking
 }
-
-Regional& Regional::operator=(const Regional& ob2) {
-	number_of_wagons = ob2.number_of_wagons;
-	MAX_OnBoard_Passengers = trainPassengerCapacity(number_of_wagons);
-	massFactor = ob2.massFactor;
-	mass_of_traction_unit = ob2.mass_of_traction_unit;
-	mass_of_a_wagon = ob2.mass_of_a_wagon;
-	total_train_mass = ob2.total_train_mass;
-	max_train_decelaration = ob2.max_train_decelaration;
-	max_train_speed = ob2.max_train_speed;
-	g = ob2.g;
-	frontal_wagon_area = ob2.frontal_wagon_area;
-	massPerWagonAxle = ob2.massPerWagonAxle;
-	Jerk = ob2.Jerk;
-	train_length = ob2.train_length;
-	operatingCode = ob2.operatingCode;
-	serviceId = ob2.serviceId;
-	serviceOccurrence = ob2.serviceOccurrence;
-	servicePerformancePercent = ob2.servicePerformancePercent;
-	hasConfiguredMaximumSpeed = ob2.hasConfiguredMaximumSpeed;
-	configuredMaximumSpeedKmh = ob2.configuredMaximumSpeedKmh;
-	compositionMaximumSpeedMs = ob2.compositionMaximumSpeedMs;
-	appliedMaximumSpeedMs = ob2.appliedMaximumSpeedMs;
-	appliedMaximumSpeedKmh = ob2.appliedMaximumSpeedKmh;
-	directIncidentIds = ob2.directIncidentIds;
-	firstDirectIncidentTime = ob2.firstDirectIncidentTime;
-	firstDirectIncidentLocation = ob2.firstDirectIncidentLocation;
-	destinationTerminationRequested = ob2.destinationTerminationRequested;
-	destinationTerminated = ob2.destinationTerminated;
-	return *this;
-}

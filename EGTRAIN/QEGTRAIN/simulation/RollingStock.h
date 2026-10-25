@@ -3,7 +3,7 @@
 
 // The member functions of the classes in this header are defined in the RollingStock*.cpp files in this folder. Only these short
 // bodies stay inline, with the files that call them:
-// - the empty destructors of Train and Regional;
+// - the empty destructor of Train;
 // - BlockingTimeList (RollingStockBlockingTimes.cpp, RollingStock.cpp, MainWindow.cpp, test_characterization.cpp);
 // - isShortOfBrakingPoint, isPastStopHoldback and their constants (RollingStockStops.cpp, RollingStockTrajectory.cpp,
 //   test_operationsbuilder.cpp);
@@ -41,7 +41,8 @@ struct SimulationRun;
 
 /// Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of
 /// the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of
-/// DispatchController::prepareScene. The run's random generator is seeded from initial_variables.randomSeed first. When the
+/// DispatchController::prepareScene. The scene must pass validateRunnableScene: the builder does not repeat its checks of
+/// the platforms. The run's random generator is seeded from initial_variables.randomSeed first. When the
 /// diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables
 /// takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene.
 std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,
@@ -118,12 +119,9 @@ public:
 	/// Sets the times, durations and positions to -1, the IDs to "None" and IsComplete to true.
 	BlockingTimes();
 
-	/// Copies every member of obj2.
-	BlockingTimes& operator=(const BlockingTimes& obj2);
-
 	/// Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets
 	/// InfraElementInPositionForTrain and the data of the previous train.
-	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(std::string TrainName, std::list<InfraEvent> ListAllInfraEvents);
+	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const std::string& TrainName, const std::list<InfraEvent>& ListAllInfraEvents);
 };
 
 /// Blocking times of one train, indexed like an array. Indexing a non-const list
@@ -243,10 +241,8 @@ public:
 
 	double EnergyForAuxiliaries = 0.0; ///< Energy for auxiliaries in MJ: 10 % of the traction energy.
 	/// Step from which the train may enter, in seconds from the start of the run. The builder sets it to
-	/// scheduled_departure_time and then spreads the trains over one hour per direction
-	/// (changeTrainDepartureTimesForHourlyTimetabling); runSimulation sets it back to scheduled_departure_time before the first step.
+	/// scheduled_departure_time.
 	double departure_time = 0.0;
-	int brakingPoint;					   ///< Index in Sbrak and Vbrak used by the last braking step. Nothing reads it.
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
 	/// Last accelerating, cruising or following step, from which brakingEffort counts the braking time (temp + 1 is the
 	/// first braking step).
@@ -273,13 +269,11 @@ public:
 	double firstDirectIncidentLocation = -1.0;	  ///< Position in metres where the first direct incident acted; -1 when there is none.
 	bool destinationTerminationRequested = false; ///< True when a breakdown asks to mark the train terminated at the end of its route.
 	bool destinationTerminated = false;			  ///< True once such a train has reached the end of its route.
-	Arc As;										  ///< Not used: the step and the braking routines keep their own arc.
 	Section Bs;									  ///< Copy of the section of the head in the current step.
 	double Start_Node_X = 0.0;					  ///< X in kilometres of the start of the route.
 	std::string TrainRouteID;					  ///< ID of the route of the train.
 	int indexOfRoute;							  ///< Index of the route in RunInfrastructure::routes, from 0.
 	std::string trainDescription;				  ///< Service ID and occurrence joined by "-", which names the train everywhere.
-	bool direction;								  ///< Copy of Route::reversed_direction of the route of the train. Nothing reads it.
 	/// True while the stored braking plan is below its target speed before its last point.
 	bool GradientExceptionInBraking;
 	std::vector<double> BX; ///< Route position in metres, at each step, where braking for the current target begins.
@@ -313,12 +307,10 @@ public:
 	/// there is none.
 	double StationConsecDelay[kMaxTimetableStations];
 	double StationDisturbance[kMaxTimetableStations];	  ///< Disturbance of the dwell at each stop in seconds; 0, since nothing sets it.
-	int N_Station_Stopped;								  ///< Set to 0 and never changed.
 	double ScheduledArrivals[kMaxTimetableStations] = {}; ///< Planned arrival at each stop in seconds from the start of the run; -1 when the stop has none.
 	/// Planned departure at each stop in seconds from the start of the run, moved by an entrance delay at that stop; -1 when
 	/// the stop has none. The train does not leave a stop before it.
 	double ScheduledDepartures[kMaxTimetableStations] = {};
-	int delayed;				   ///< Set to 0 and never changed.
 	double TotalInputDelays = 0.0; ///< Sum of the Entrance Delays +stochastic disturbances to dwell times, in seconds.
 	double EntranceDelay;		   ///< Entrance delay of the train in seconds from the scenario; 0 when there is none.
 	/// Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty
@@ -362,22 +354,13 @@ public:
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
 	int N_BlockSections;		///< Number of entries of BlockTime.
 	int N_BlockTimeComplete;	///< Number of entries of BlockTime that are complete.
-	int numOverlaps;			///< Set to 0 and never changed.
-	double Final_Delay;			///< Set to 0 and never changed.
 	/// Last step of the train: the first step at which its head is at or past the end of its route, or the last step of the
 	/// run while it has not reached it.
 	int End_Time;
-	int earliestActiveTrajectoryIndex = -1;	  ///< First simulation sample in the active run; -1 until the train enters.
-	std::list<Location> LocationNames;		  ///< Not filled by the simulation, so empty.
-	std::list<std::string> ConflictingTrains; ///< Not filled by the simulation, so empty.
-	int N_ConflictingTrains;				  ///< Set to 0 and never changed.
-	double ETCS3StoppingPoint;				  ///< Set to -1 and never changed.
-	bool IsTrainStoppedForEoA;				  ///< True while the train stands at an end of authority (Last_MA_StoppedAt).
+	int earliestActiveTrajectoryIndex = -1; ///< First simulation sample in the active run; -1 until the train enters.
+	bool IsTrainStoppedForEoA;				///< True while the train stands at an end of authority (Last_MA_StoppedAt).
 	/// Arrival and departure at each station node on the route, where the train stops or not (ComputeTimetablingPoints).
 	std::list<TrainEvent> TimetablePoints;
-	int prevIntendedDepTime; ///< First step that printTrainServicePathDiagram may print; set to 0 and never changed.
-	int dispLineID = -1;	 ///< Line ID written to TrainServicePathDiagram.txt; nothing sets it, so it is -1.
-	// std::map<char, std::list<std::pair<int, double>>> trainCorrPosTime; // train position over time for each corridor
 
 	float GibsonDwellTimeParameters[8]; ///< The eight parameters of the passenger dwell model (computePaxDependentDwellTimeAtStations); -1 until set.
 	/// Passenger capacity of the train (trainPassengerCapacity).
@@ -403,30 +386,31 @@ public:
 
 	/// Tractive effort in N at speed V in m/s, from the band of the traction curve that holds V, scaled by
 	/// servicePerformancePercent. 0 outside every band.
-	virtual double tractiveEffort(double V);
+	double tractiveEffort(double V);
 
 	/// Braking force in N after T seconds of braking: it grows with Jerk until the deceleration reaches max_train_decelaration.
-	virtual double brakingEffort(double T);
+	double brakingEffort(double T);
 
 
 	/// Resistance in N of the traction unit at speed V in m/s
 	/// (Modified Strahl Formulae_Italian FS Formulation)
-	virtual double traction_unit_resistences(double V);
+	double traction_unit_resistences(double V);
 
 	/// Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula
-	virtual double wagons_resistances(double V);
+	double wagons_resistances(double V);
 
 	/// Resistance in N of the gradient G, as rise per length (Arc::gradient).
-	virtual double gradient_resistances(double G);
+	double gradient_resistances(double G);
 
 	/// Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).
-	virtual double curvature_resistances(double R);
+	double curvature_resistances(double R);
 
 	/// Sum in N of all resistances at speed V in m/s on gradient G and curve radius R in metres.
+	/// Virtual so that a test can replace the resistances.
 	virtual double total_train_resistances(double V, double G, double R);
 
 	/// Stores the eight parameters of the passenger dwell model in GibsonDwellTimeParameters.
-	virtual void Initialise_Gibson_Dwell_Time_Parameters(float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
+	void Initialise_Gibson_Dwell_Time_Parameters(float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
 	/// Adds the energy of step t to instant_train_energy_consumption and returns the total in MJ.
 	double train_energy_consumption(int t);
@@ -484,12 +468,12 @@ public:
 
 	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
 	/// (X1, X2] (m).
-	virtual double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
+	double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
 	/// (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it
 	/// cannot accelerate on that either the result is -99999.
-	virtual double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
+	double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Finds the arc of the route under a head position in metres, continuing from the previous lookup.
 	///
@@ -549,6 +533,7 @@ public:
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
 	/// When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead.
+	/// Virtual so that a test can make the lookup fail.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks,
 		double cutoff = std::numeric_limits<double>::infinity());
 
@@ -566,7 +551,7 @@ public:
 
 	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
 	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
-	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
+	bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
 
 	/// Plans braking from head (m) and speed (m/s) to Vobmin 0.002 m before Xobmin (m): a first speed within the actual force range,
 	/// then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan.
@@ -584,13 +569,13 @@ public:
 
 	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
 	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
-	virtual void PrintTrajectory();
+	void PrintTrajectory();
 
 	/// Does nothing.
 	virtual ~Train() {}
 
 	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
-	virtual std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
+	std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
 
 	/// Adds incidentId to directIncidentIds, and records time in seconds and location in metres when it is the first.
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
@@ -609,7 +594,7 @@ public:
 
 	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
 	/// signalCode2 and signalCode3 are not read.
-	virtual void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
+	void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
 	/// Finds the steps in which the head reaches and leaves the route position LocationPosition (m) and writes them to PassingPoint as
 	/// Time and Time2 (s), with Position in the coordinates of the original direction. Nothing is written when the train never gets
@@ -622,7 +607,7 @@ public:
 
 	/// Adds the sections that the train covers from tail to head in step i to run.blocksOccupied, with its double switches and
 	/// diverging switches, and releases its last section when it has left the route. BS holds the Blocks sections of its route.
-	virtual void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks);
+	void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks);
 
 	/// Adds the ends of authority of the train in step i on the level 3 and 4 sections of its route to run.etcsMa: the tail less
 	/// ETCS3SafetyMargin (m) as "Tale", the head plus the margin as "Front", and the locks of the switches it covers.
@@ -693,8 +678,9 @@ public:
 	/// takes its X from run.infra.stations.
 	void checkTrainArrDep(int t);
 
-	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
-	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1.
+	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, -1 (the column of a line ID that nothing sets),
+	/// direction, corridor and its head position (m, original coordinates) in every step, empty where it does not run.
+	/// nextServiceRouteID is a route index or -1.
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
 
 	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
@@ -729,24 +715,8 @@ public:
 	void setTrainVectorSizesFromInput(int vec_size);
 };
 
-/// The train class that the operations builder fills. It adds no member to Train.
-class Regional : public Train {
-
-public:
-	/// Sets the default rolling stock values, which the operations builder replaces.
-	Regional();
-
-	/// Does nothing.
-	~Regional() {}
-
-	/// Copies the rolling stock data and the service and incident fields of ob2, and sets the passenger capacity from the wagons. The
-	/// traction curve, resistanceCoefficient, route, timetable and trajectory are not copied.
-	Regional& operator=(const Regional& ob2);
-};
-
-// ComputeEnergyConsumptionForAllTrains takes Train* and is called with SimulationRun::trains.data(),
-// so both types must have the same size.
-static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
+/// Another name for Train, which the tests use.
+using Regional = Train;
 
 /// Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers
 /// (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in

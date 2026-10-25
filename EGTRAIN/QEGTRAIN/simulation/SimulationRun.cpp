@@ -52,7 +52,7 @@ void SimulationRun::reset() {
 	entranceInputDelays = Stations();
 	disturbanceInput = Stations();
 	finalStation = Stations();
-	std::vector<Regional>().swap(trains);
+	std::vector<Train>().swap(trains);
 	numTrains = 0;
 	numberGenerator = NumberGenerator(kDefaultRandomSeed);
 	signallingDelay = 0;
@@ -66,7 +66,7 @@ void SimulationRun::resetInfrastructure() {
 
 void SimulationRun::adopt(SimulationRun&& staged) {
 	*this = std::move(staged);
-	for (Regional& train : trains)
+	for (Train& train : trains)
 		train.run_ = this;
 	// An index remembers the list it was built for, and the lists are now those of this run.
 	platformIndex.build(platforms);

@@ -1,7 +1,7 @@
 #ifndef FOLLOWAVAILABILITY_H
 #define FOLLOWAVAILABILITY_H
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "util/TimeFormat.h"
 
 #include <string>

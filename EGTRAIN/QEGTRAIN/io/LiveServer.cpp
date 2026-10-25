@@ -16,7 +16,6 @@
 #include <functional>
 #include <future>
 #include <mutex>
-#include <random>
 #include <set>
 #include <stdexcept>
 #include <string_view>
@@ -62,18 +61,6 @@ struct IoStarted {
 	std::string stateEndpoint;
 	std::string commandEndpoint;
 };
-
-std::string makeToken() {
-	static const char digits[] = "0123456789abcdef";
-	std::random_device random;
-	std::string token;
-	for (int word = 0; word < 4; ++word) {
-		const std::uint32_t bits = random();
-		for (int shift = 28; shift >= 0; shift -= 4)
-			token += digits[(bits >> shift) & 0xF];
-	}
-	return token;
-}
 
 // Creates the file before it holds the token and lets only its owner read it.
 bool writeEndpointFile(const fs::path& file, const json& content, std::string& error) {
@@ -352,7 +339,7 @@ bool LiveServer::start(int port, bool commandsEnabled, const fs::path& outputDir
 		config.port = port;
 		config.commandsEnabled = commandsEnabled;
 		if (commandsEnabled)
-			config.token = makeToken();
+			config.token = randomHex(4);
 		std::promise<IoStarted> started;
 		std::future<IoStarted> result = started.get_future();
 		m_state->thread = std::thread(ioMain, std::ref(*m_state), config, std::move(started));

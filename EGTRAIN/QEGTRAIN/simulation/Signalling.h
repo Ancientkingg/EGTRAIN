@@ -76,21 +76,6 @@ public:
 
 	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs and the status to "None".
 	TrainEvent();
-
-	/// Copies every member.
-	TrainEvent& operator=(const TrainEvent& ob2) {
-		this->trainDescription = ob2.trainDescription;
-		this->Time = ob2.Time;
-		this->Time2 = ob2.Time2;
-		Position = ob2.Position;
-		SuccessorID = ob2.SuccessorID;
-		TrainSpeed = ob2.TrainSpeed;
-		Acceleration = ob2.Acceleration;
-		CurrentSectionID = ob2.CurrentSectionID;
-		NextSectionID = ob2.NextSectionID;
-		InfraElemStatus = ob2.InfraElemStatus;
-		return *this;
-	}
 };
 
 /// Sorts the events by Time, earliest first, with non-finite times last. The sort is stable, so events with equal times keep their
@@ -106,20 +91,6 @@ public:
 
 	/// Sets the coordinates of the element to -1, its IDs and station name to "None" and its flags to false; no events.
 	InfraEvent();
-
-	/// Copies the element and the events.
-	InfraEvent& operator=(const InfraEvent& ob2) {
-		if (this == &ob2)
-			return *this;
-		this->ElementInfo = ob2.ElementInfo;
-		this->RecordedEvent.clear();
-		if (ob2.RecordedEvent.size() > 0) {
-			for (std::list<TrainEvent>::const_iterator it = ob2.RecordedEvent.begin(); it != ob2.RecordedEvent.end(); it++) {
-				this->RecordedEvent.push_back(*it);
-			}
-		}
-		return *this;
-	}
 };
 
 /// Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head
@@ -161,11 +132,12 @@ enum class SignalState : unsigned char {
 /// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
 class Section {
 public:
-	std::string ID;							  ///< ID of the section.
-	int trackLineId;						  ///< Slot of the track the section lies on; -1 for a section derived at a switch.
-	int FirstConnectedTrackLineID;			  ///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
-	int SecondConnectedTrackLineID;			  ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
-	Arc arcs_in_signalling_block_section[20]; ///< Arcs of the section, total_arcs of them; at most 20 (RuntimeLimits::kNativeMaxSectionArcs).
+	std::string ID;					///< ID of the section.
+	int trackLineId;				///< Slot of the track the section lies on; -1 for a section derived at a switch.
+	int FirstConnectedTrackLineID;	///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	int SecondConnectedTrackLineID; ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	/// Arcs of the section, total_arcs of them.
+	Arc arcs_in_signalling_block_section[RuntimeLimits::kNativeMaxSectionArcs];
 	/// Start node.
 	Node start_node, end_node; ///< End node.
 	/// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
@@ -190,9 +162,8 @@ public:
 	bool Occupied;							   ///< Block section occupied by a train
 	bool Occup_By_Train;					   ///< Set to false by the constructor and never given another value.
 	bool withSwitchDiv;						   ///< Block section contains a diverging switch
-	/// IDs of the sections that depend on this one, which are occupied and released with it: at most 10
-	/// (RuntimeLimits::kNativeMaxDependencies).
-	std::string IDConnectedBS[10];
+	/// IDs of the sections that depend on this one, which are occupied and released with it.
+	std::string IDConnectedBS[RuntimeLimits::kNativeMaxDependencies];
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
@@ -200,7 +171,8 @@ public:
 	/// the ETCS3 braking points are -1.
 	Section();
 
-	/// Copies every member; the node list stays shared.
+	/// Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints):
+	/// the entries after those keep their values. The copy constructor copies every entry. The node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -251,7 +223,7 @@ public:
 	}
 
 	/// True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.
-	bool operator==(const Section& ob2) {
+	bool operator==(const Section& ob2) const {
 		bool AreArcsEqual = true;
 		for (int i = 0; i < total_arcs && i < ob2.total_arcs; i++) {
 			if (!(arcs_in_signalling_block_section[i] == ob2.arcs_in_signalling_block_section[i])) {
@@ -278,21 +250,17 @@ public:
 	void CutBlockSection(std::string CutPart, double CuttingAbscissa);
 
 	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
-	void reverseBlockSection(Section blockSets, double RouteLength);
-
-
-	/// Names a function that does not exist.
-	friend void SetBlockSpeed();
+	void reverseBlockSection(const Section& blockSets, double RouteLength);
 };
 
 /// When N1 lies before N2, makes BS3 the section over a switch: BS1 up to node N1, a switch arc from N1 to N2 with the speed limit of
 /// the matching connection, and BS2 after N2. Its ID is "<BS1>-<N1>/<BS2>-<N2>" with the node coordinates in km.
-void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
+void generateConnectBlock(SimulationRun& run, const Section& BS1, const Section& BS2, const Node& N1, Node N2, Section& BS3);
 
 /// Appends to run.infra.sections the section over connection n_conn of node Nb of BS1 (generateConnectBlock), when the connection
 /// leads to a higher coordinate and none of the first Temp_Blocks sections has that ID in either direction. When the planned array is
 /// full it sets run.infra.derivedSectionsExceedPlan instead.
-void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn);
+void createBlockConn(SimulationRun& run, const Node& Nb, const Section& BS1, int Temp_Blocks, int n_conn);
 
 /// Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn).
 void setAllConnections(SimulationRun& run);
@@ -300,12 +268,12 @@ void setAllConnections(SimulationRun& run);
 /// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
 void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
 
-/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10). This entry point also adds
-/// the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (Node::IDConnectedBlocks).
+/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most
+/// RuntimeLimits::kNativeMaxDependencies).
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
 /// True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.
-bool areBlocksConnected(Section A, Section blockSets);
+bool areBlocksConnected(const Section& A, const Section& blockSets);
 
 /// Gives the switch and station nodes of the N_BlockSections sections of BS a track detection border ID (tdsbId) and geographic
 /// coordinates in metres (tdsbGeoCoordX and tdsbGeoCoordY, the node X and Y times 1000).
@@ -346,7 +314,7 @@ public:
 	/// Appends the infrastructure elements of section BS to InfrastructureElements: its TDS borders, stations and switches, with their
 	/// route position in metres and the ID of BS. An element with the ID or position of one already listed is left out; a
 	/// diverging switch edge only when its ID, switch name and connected point all match.
-	void setListInfrastructureElementsForRoute(Section BS);
+	void setListInfrastructureElementsForRoute(const Section& BS);
 
 	/// Marks with isEndOfDivSwitchStartOfADivSwitch each diverging switch edge of the list that has the position and switch name of
 	/// another edge with a different connected point: the end of one diverging switch that is the start of the next.
@@ -394,19 +362,6 @@ public:
 
 	/// Sets BSID, type and typePart to "None" and the positions to -1.
 	MovementAuthority();
-
-	/// Copies every member.
-	MovementAuthority& operator=(const MovementAuthority& MA2) {
-		BSID = MA2.BSID;
-		type = MA2.type;
-		ReversedDirection = MA2.ReversedDirection;
-		AbsPosEoA = MA2.AbsPosEoA;
-		EoA_Dist_From_BSID_Beg = MA2.EoA_Dist_From_BSID_Beg;
-		RelativePosEoA = MA2.RelativePosEoA;
-		typePart = MA2.typePart;
-		TrainInfo = MA2.TrainInfo;
-		return *this;
-	}
 };
 
 // --- Signalling System Functions ---

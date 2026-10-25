@@ -10,7 +10,7 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/items/ConnectionItem.h"

@@ -139,7 +139,7 @@ struct SimulationRun {
 
 	/// The trains of the scene. The operations builder creates the vector once per build with
 	/// exactly the trains of the scene, and it does not grow while the trains are live.
-	std::vector<Regional> trains;
+	std::vector<Train> trains;
 	/// Number of trains.
 	int numTrains = 0;
 

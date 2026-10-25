@@ -1,6 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "ui_MainWindow.h"
 

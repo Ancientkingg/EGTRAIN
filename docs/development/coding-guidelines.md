@@ -244,7 +244,7 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
   the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
   infrastructure needs a line in `RunInfrastructure::reset()`.
-  `SimulationRun::trains` is the `std::vector<Regional>` of the run, created with the
+  `SimulationRun::trains` is the `std::vector<Train>` of the run, created with the
   number of trains of the scene; `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps
   the stops of its service in a `std::vector<Node>`, and `trains` is created once

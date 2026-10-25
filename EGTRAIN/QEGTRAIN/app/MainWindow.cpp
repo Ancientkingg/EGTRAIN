@@ -4,7 +4,7 @@
 #include "app/DispatchController.h"
 #include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"

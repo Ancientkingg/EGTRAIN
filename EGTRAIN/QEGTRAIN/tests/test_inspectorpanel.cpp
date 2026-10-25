@@ -3,7 +3,7 @@
 
 #include "widgets/InspectorPanel.h"
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/RuntimeGeometrySource.h"

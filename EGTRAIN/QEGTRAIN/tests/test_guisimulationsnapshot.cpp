@@ -1,4 +1,4 @@
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 
 #include <algorithm>

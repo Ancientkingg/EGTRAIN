@@ -13,6 +13,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include "scene/RuntimeLimits.h"
 #include "simulation/NumberGenerator.h"
 #include <vector>
 #include "util/portability.h"
@@ -56,27 +57,6 @@ public:
 
 	/// Sets the strings to "None", the flags to false and the coordinates to -1.
 	InfraElement();
-
-	/// Copies every member.
-	InfraElement& operator=(const InfraElement& ob2) {
-		this->ID = ob2.ID;
-		this->SectionID = ob2.SectionID;
-		this->IsSignal = ob2.IsSignal;
-		this->isStation = ob2.isStation;
-		this->IsSwitch = ob2.IsSwitch;
-		this->IsTrackDetSecBorder = ob2.IsTrackDetSecBorder;
-		this->stationName = ob2.stationName;
-		this->SwitchName = ob2.SwitchName;
-		this->withSwitchDiv = ob2.withSwitchDiv;
-		this->XCoordinate = ob2.XCoordinate;
-		this->YCoordinate = ob2.YCoordinate;
-		this->GeoXCoord = ob2.GeoXCoord;
-		this->GeoYCoord = ob2.GeoYCoord;
-		this->ConnectedPoint = ob2.ConnectedPoint;
-		this->isEndOfDivSwitchStartOfADivSwitch = ob2.isEndOfDivSwitchStartOfADivSwitch;
-		this->XConnectedPoint = ob2.XConnectedPoint;
-		return *this;
-	}
 };
 
 /// A point of the network. A track is a chain of nodes joined by arcs. A train also keeps copies of its stop nodes
@@ -103,9 +83,10 @@ public:
 	int StepStopped;		  ///< Number of steps the train has stood at this stop; 0 before it arrives.
 	bool virtualCouplingNode; ///< True on a braking target node where the train can couple virtually to the train ahead.
 	int indexOrderList;		  ///< Not used by the simulation; -1 by default.
-	/// Track slot of the track at the other end of each connection at this node. Up to 6 (RuntimeLimits::kNativeMaxNodeConnections).
-	int connectIdBlockSet[6];
-	double connectXNode[6];					  ///< X in kilometres of the node at the other end of each connection.
+	/// Track slot of the track at the other end of each connection at this node.
+	int connectIdBlockSet[RuntimeLimits::kNativeMaxNodeConnections];
+	/// X in kilometres of the node at the other end of each connection.
+	double connectXNode[RuntimeLimits::kNativeMaxNodeConnections];
 	int numConnections;						  ///< Number of connections at this node, the used entries of the two arrays above.
 	std::list<std::string> IDConnectedBlocks; ///< IDs of the block sections that leave this node through a connection.
 	/// Speed in m/s to reach at this node when it is a braking target: the speedInBraking of the arc that ends here.
@@ -124,58 +105,13 @@ public:
 	/// Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.
 	Node();
 
-	/// Copies every member.
-	Node& operator=(const Node& ob2) {
-		sceneNodeId = ob2.sceneNodeId;
-		ID = ob2.ID;
-		X = ob2.X;
-		Y = ob2.Y;
-		isSignalled = ob2.isSignalled;
-		virtualCouplingNode = ob2.virtualCouplingNode;
-		station = ob2.station;
-		arcSpeedLimit = ob2.arcSpeedLimit;
-		indexOrderList = ob2.indexOrderList;
-		respectOrder = ob2.respectOrder;
-		stationName = ob2.stationName;
-		stationPlatformId = ob2.stationPlatformId;
-		dwellTime = ob2.dwellTime;
-		numConnections = ob2.numConnections;
-		tdsbId = ob2.tdsbId;
-		tdsbGeoCoordX = ob2.tdsbGeoCoordX;
-		tdsbGeoCoordY = ob2.tdsbGeoCoordY;
-		StopTime = ob2.StopTime;
-		StepStopped = ob2.StepStopped;
-		latitude = ob2.latitude;
-		longitude = ob2.longitude;
-		graphX = ob2.graphX;
-		graphY = ob2.graphY;
-		virtualSignal = ob2.virtualSignal;
-		for (int i = 0; i < 6; i++) {
-			connectIdBlockSet[i] = ob2.connectIdBlockSet[i];
-			connectXNode[i] = ob2.connectXNode[i];
-		}
-		if (this != &ob2) {
-			this->IDConnectedBlocks.clear();
-			if (ob2.IDConnectedBlocks.size() > 0) {
-				for (std::list<std::string>::const_iterator it = ob2.IDConnectedBlocks.begin(); it != ob2.IDConnectedBlocks.end(); it++) {
-					this->IDConnectedBlocks.push_back(*it);
-				}
-			}
-		}
-		return *this;
-	}
-
 	/// True when ID, X, Y, isSignalled, station and dwellTime are equal.
-	bool operator==(const Node& ob2) {
+	bool operator==(const Node& ob2) const {
 		if ((ID == ob2.ID) && (X == ob2.X) && (Y == ob2.Y) && (isSignalled == ob2.isSignalled) && (station == ob2.station) && (dwellTime == ob2.dwellTime))
 			return true;
 		else
 			return false;
 	}
-
-	/// Fills IDConnectedBlocks from the given block section IDs, choosing for each connection the ID that names its track
-	/// and node position.
-	void initialiseIdConnectedBlocks(std::string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock);
 };
 
 /// A directed piece of track between two nodes.
@@ -208,26 +144,11 @@ public:
 	void arcLength();
 
 	/// True when every member but the nodes is equal and the nodes have the same IDs.
-	bool operator==(const Arc& ob2) {
+	bool operator==(const Arc& ob2) const {
 		if ((ID == ob2.ID) && (length == ob2.length) && (startNode.ID == ob2.startNode.ID) && (endNode.ID == ob2.endNode.ID) && (speedLimit == ob2.speedLimit) && (gradient == ob2.gradient) && (curvature == ob2.curvature) && (fs == ob2.fs) && (brakingDistance == ob2.brakingDistance) && (speedInBraking == ob2.speedInBraking) && (signalSpeedLimit == ob2.signalSpeedLimit))
 			return true;
 		else
 			return false;
-	}
-	/// Copies every member.
-	Arc& operator=(const Arc& ob2) {
-		ID = ob2.ID;
-		startNode = ob2.startNode;
-		endNode = ob2.endNode;
-		curvature = ob2.curvature;
-		gradient = ob2.gradient;
-		speedLimit = ob2.speedLimit;
-		length = ob2.length;
-		fs = ob2.fs;
-		brakingDistance = ob2.brakingDistance;
-		speedInBraking = ob2.speedInBraking;
-		signalSpeedLimit = ob2.signalSpeedLimit;
-		return *this;
 	}
 };
 
@@ -255,10 +176,13 @@ public:
 	BlockSet();
 };
 
-/// The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.
-inline constexpr int kMaxTrackLines = 268;
-inline constexpr int kMaxConnections = 708; ///< See kMaxTrackLines.
-inline constexpr int kMaxStations = 95;		///< See kMaxTrackLines.
+/// The number of elements of the arrays of tracks, connections and stations, from RuntimeLimits. The builder rejects a
+/// scene that needs more.
+inline constexpr int kMaxTrackLines = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
+/// See kMaxTrackLines.
+inline constexpr int kMaxConnections = static_cast<int>(RuntimeLimits::kNativeMaxConnections);
+/// See kMaxTrackLines.
+inline constexpr int kMaxStations = static_cast<int>(RuntimeLimits::kNativeMaxStations);
 
 /// A connection between two tracks, such as a switch.
 class Connections {
@@ -352,16 +276,5 @@ public:
 };
 
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
-
-/// A block section or station on the route of a train. Train::LocationNames holds these, and nothing fills it.
-class Location {
-public:
-	std::string Name;				 ///< Not set or read by the simulation.
-	double MaxHW;					 ///< Not set or read by the simulation.
-	double MinHW;					 ///< Not set or read by the simulation.
-	double Position;				 ///< Not set or read by the simulation.
-	std::string MinimumTrainCouple;	 ///< Not set or read by the simulation.
-	std::string CriticalTrainCouple; ///< Not set or read by the simulation.
-};
 
 #endif

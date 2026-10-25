@@ -1,7 +1,7 @@
 #ifndef GUIREPLAYHISTORY_H
 #define GUIREPLAYHISTORY_H
 
-#include "app/GuiSimulationSnapshot.h"
+#include "simulation/GuiSimulationSnapshot.h"
 #include <cstddef>
 #include <cstdint>
 #include <deque>

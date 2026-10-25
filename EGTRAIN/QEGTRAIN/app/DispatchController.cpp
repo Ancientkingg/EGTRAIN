@@ -19,7 +19,6 @@
 #include <memory>
 #include <map>
 #include <optional>
-#include <random>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -367,18 +366,6 @@ struct DispatchLive {
 };
 
 namespace {
-std::string newRunId() {
-	static const char digits[] = "0123456789abcdef";
-	std::random_device random;
-	std::string id;
-	for (int word = 0; word < 2; ++word) {
-		const std::uint32_t bits = random();
-		for (int shift = 28; shift >= 0; shift -= 4)
-			id += digits[(bits >> shift) & 0xF];
-	}
-	return id;
-}
-
 // Text that is not UTF-8 becomes U+FFFD, so a frame is always made.
 std::shared_ptr<const std::string> frameText(const nlohmann::json& frame) {
 	return std::make_shared<const std::string>(frame.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace));
@@ -397,7 +384,7 @@ void rejectLiveCommands(DispatchLive& live, const char* reason) {
 
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
 void beginLiveRun(DispatchLive& live, const std::string& sceneName, const SimulationRun& run) {
-	live.run.runId = newRunId();
+	live.run.runId = randomHex(2);
 	live.run.sceneName = sceneName;
 	const InitialParameters& settings = run.settings;
 	live.run.baseTimeSeconds = settings.startingSimulationTime;
@@ -573,12 +560,6 @@ void DispatchController::runSimulationStages() {
 	};
 
 	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
-
-	// Setting departing time of train to the scheduled one
-	for (int i = 0; i < run.numTrains; i++) {
-
-		run.trains[i].departure_time = run.trains[i].scheduled_departure_time;
-	}
 
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
 

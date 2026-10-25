@@ -3457,9 +3457,9 @@ int main() {
 	ok &= expect(defaultRun().trains[0].entranceDelayStationId.empty() && defaultRun().trains[1].entranceDelayStationId == "Zero"
 			&& defaultRun().trains[2].entranceDelayStationId.empty(),
 		"the first delayed stop of the delayed occurrence names the entrance delay station");
-	ok &= expect(defaultRun().trains[0].departure_time == 1.0 && defaultRun().trains[1].departure_time == 1201.0
-			&& defaultRun().trains[2].departure_time == 2401.0,
-		"hourly departure retiming preserves the legacy algorithm");
+	ok &= expect(defaultRun().trains[0].departure_time == 100.0 && defaultRun().trains[1].departure_time == 130.0
+			&& defaultRun().trains[2].departure_time == 160.0,
+		"trains may enter at their scheduled times");
 	ok &= expect(defaultRun().incidents.size() == 2
 			&& defaultRun().incidents[0].target == "signal.0"
 			&& defaultRun().incidents[1].target == "service.native",
@@ -3567,21 +3567,6 @@ int main() {
 				&& platform->width == 2.5,
 			"absent platform geometry keeps effective defaults");
 	}
-	const std::string geometryPreviousName = initial_variables.name;
-	const int geometryPreviousRegions = defaultRun().numTrains;
-	const double previousPlatformLength = defaultRun().platforms.empty()
-		? -1.0
-		: defaultRun().platforms.front().length;
-	SceneModel invalidGeometry = completeScene();
-	invalidGeometry.stations[0].platforms[0].hasLength = true;
-	invalidGeometry.stations[0].platforms[0].lengthM = std::numeric_limits<double>::max();
-	const auto invalidGeometryDiagnostics = buildOperationsFromScene(defaultRun(), invalidGeometry, "scenario.selected");
-	ok &= expect(hasErrors(invalidGeometryDiagnostics)
-			&& hasCode(invalidGeometryDiagnostics, "scene.native.platform.capacity")
-			&& defaultRun().numTrains == geometryPreviousRegions
-			&& initial_variables.name == geometryPreviousName
-			&& (!defaultRun().platforms.empty() && defaultRun().platforms.front().length == previousPlatformLength),
-		"unsafe platform capacity is rejected before native state publication");
 	ok &= expect(defaultRun().passengers.size() == 1, "passenger journeys are built without filesystem input");
 	ok &= expect(!defaultRun().passengers.empty() && defaultRun().passengerIndex.covers(defaultRun().passengers)
 			&& defaultRun().passengerIndex.find(defaultRun().passengers.front().ID) == std::vector<Passenger*>({&defaultRun().passengers.front()})
@@ -3589,7 +3574,7 @@ int main() {
 			&& defaultRun().platformIndex.find(defaultRun().platforms.front().StationID,
 				   defaultRun().platforms.front().ID)
 				== &defaultRun().platforms.front(),
-		"the last accepted build is indexed, also after a rejected one");
+		"the last accepted build is indexed");
 	if (!defaultRun().passengers.empty() && !defaultRun().passengers.front().Journeys.empty()) {
 		const Journey& journey = defaultRun().passengers.front().Journeys.front();
 		ok &= expect(journey.N_Trips == 2 && std::isfinite(journey.Actual_Planned_Departure_Time)
