@@ -102,7 +102,7 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryConsent consent(settings, context);
 	assert(consent.save(false, false));
-	QSemaphore polled, proceed, settled, exited, pumped;
+	QSemaphore polled, proceed, settled, exited;
 	telemetry::TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Never transmit; inspect durable records.
@@ -111,7 +111,6 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 		assert(proceed.tryAcquire(1, 3000));
 		QTimer::singleShot(0, [&] { settled.release(); });
 	};
-	options.beforeFlagsRead = [&] { pumped.release(); };
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::TelemetrySender sender(context, metadata, storage, options);
 	assert(polled.tryAcquire(1, 3000));
@@ -183,13 +182,11 @@ static void testOperationTokens(const telemetry::Application& metadata, Telemetr
 	assert(!sender.tryEnqueue(usage, token) && !sender.tryEnqueue(diagnostic, token));
 	proceed.release();
 	assert(settled.tryAcquire(1, 3000));
-	// The next pump purges the queue. Reading usage.json while the worker replaces it makes the replacement fail on
-	// Windows. The first pump counted from here may be the purging one, so the file is read once the one after it starts.
-	pumped.tryAcquire(pumped.available());
-	assert(pumped.tryAcquire(2, 3000));
+	// The next pump purges the queue and the worker exits without a stop. Reading usage.json while the worker replaces
+	// it makes the replacement fail on Windows, so the file is read once the worker has exited.
+	assert(exited.tryAcquire(1, 3000));
 	assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
 	sender.stop();
-	assert(exited.tryAcquire(1, 3000));
 }
 
 static void testTokenLifetimeAndContention(const telemetry::Application& metadata, TelemetryContext context) {
@@ -456,17 +453,72 @@ static void testSessionAttemptLoss(const telemetry::Application& metadata, Telem
 			proceed.release();
 			assert(settled.tryAcquire(1, 3000));
 			sender.stop();
-		} else if (failure == 2) {
-			// Storage failure disables this worker without re-attempting.
-			assert(settled.tryAcquire(1, 3000));
+			assert(exited.tryAcquire(1, 3000));
+		} else {
+			// The exception and the storage failure end this worker without a stop, so it cannot attempt again.
+			assert(exited.tryAcquire(1, 3000));
 			sender.requestInteractiveSession();
 			sender.requestConsentRefresh();
 			sender.stop();
 		}
-		assert(exited.tryAcquire(1, 3000));
 		assert(attempts == 1 && !sender.tryEnqueue({}, sender.captureOperation()));
 		if (failure == 1)
 			assert(readDurableEvents(storage + QStringLiteral("/usage.json")).isEmpty());
+	}
+}
+
+static void testDisabledWorkerExits(const telemetry::Application& metadata, TelemetryContext context) {
+	// A worker that can send nothing more in this run leaves its loop without a stop: when its first pump finds the
+	// queue disabled, when a pump takes a receiver change, and after a 410 response. No pump follows.
+	for (int cause = 0; cause < 3; ++cause) {
+		QTemporaryDir directory;
+		const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+		const QString storage = directory.filePath(QStringLiteral("queue"));
+		QSettings settings(settingsFile, QSettings::IniFormat);
+		TelemetryConsent consent(settings, context);
+		assert(consent.save(true, false));
+		if (cause == 0) {
+			assert(QDir().mkpath(storage));
+			QFile marker(storage + QStringLiteral("/disabled"));
+			assert(marker.open(QIODevice::WriteOnly) && marker.write("disabled\n") == 9);
+		}
+		auto clock = std::make_shared<std::atomic<qint64>>(0);
+		const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+		QSemaphore polled, atPump, resume, exited;
+		std::atomic<int> pumps{0}, lastPump{1};
+		std::atomic<bool> hold{false};
+		telemetry::TelemetrySender::TestOptions options;
+		options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+		options.utcNow = [clock, base] { return base.addMSecs(clock->load()); };
+		options.monotonicMs = [clock] { return clock->load(); };
+		options.afterPoll = [&] { polled.release(); };
+		options.beforeFlagsRead = [&] {
+			++pumps;
+			if (!hold.exchange(false)) return;
+			atPump.release();
+			assert(resume.tryAcquire(1, 3000));
+		};
+		options.afterCompletion = [&] { lastPump = pumps.load(); };
+		options.onWorkerExit = [&] { exited.release(); };
+		options.post = [](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+			return new ScriptedReply(request, 410, &manager);
+		};
+		telemetry::TelemetrySender sender(context, metadata, storage, options);
+		if (cause == 1) {
+			assert(polled.tryAcquire(1, 3000));
+			hold = true;
+			assert(atPump.tryAcquire(1, 3000));
+			sender.invalidateReceiver();
+			lastPump = pumps.load();
+			resume.release();
+		} else if (cause == 2) {
+			assert(waitForGate(sender, {}));
+			*clock = 60001;
+		}
+		assert(exited.tryAcquire(1, 3000));
+		assert(pumps == lastPump);
+		assert(!sender.tryEnqueue({}));
+		sender.stop();
 	}
 }
 
@@ -1205,7 +1257,8 @@ int main(int argc, char** argv) {
 		} else if (selected == "sessions") {
 			testInteractiveSessions(metadata, context);
 			testSessionAttemptLoss(metadata, context);
-		} else if (selected == "isolation") testPathIsolation(metadata, context);
+		} else if (selected == "disabled") testDisabledWorkerExits(metadata, context);
+		else if (selected == "isolation") testPathIsolation(metadata, context);
 		else if (selected == "backoff") testBackoffSaturation(metadata, context);
 		else if (selected == "barrier") testPreparationBarrier(metadata, context);
 		else if (selected == "expiry") testExpiryAndActiveRevocation(metadata, context);
@@ -1219,6 +1272,7 @@ int main(int argc, char** argv) {
 	testTokenLifetimeAndContention(metadata, context);
 	testInteractiveSessions(metadata, context);
 	testSessionAttemptLoss(metadata, context);
+	testDisabledWorkerExits(metadata, context);
 	testPathIsolation(metadata, context);
 	testBackoffSaturation(metadata, context);
 	testOutcomes(metadata, context);

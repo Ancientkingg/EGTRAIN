@@ -18,7 +18,8 @@ namespace telemetry {
 /// TelemetryQueue and posts batches over HTTPS, handling each response as the HTTP outcomes of
 /// docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event
 /// is dropped. A sender whose context is not capable, or whose construction fails, starts no thread
-/// and accepts nothing.
+/// and accepts nothing. The worker exits by itself once it can send nothing more in this run: after
+/// a receiver change, a 410 response, or a failed consent read or storage operation.
 class TelemetrySender {
 public:
 	/// Internal ingress state retained by the worker until it exits.
@@ -93,8 +94,8 @@ public:
 	/// before; the worker purges their queued events and opens them again after its next consent read.
 	/// Connected directly to TelemetryConsent::revoked. Never waits.
 	void invalidateConsent(bool usage, bool diagnostics) noexcept;
-	/// Invalidates both categories; the worker purges every queued event and sends nothing more in this
-	/// run. Connected directly to TelemetryConsent::receiverChanged. Never waits.
+	/// Invalidates both categories; the worker purges every queued event and exits, so it sends nothing
+	/// more in this run. Connected directly to TelemetryConsent::receiverChanged. Never waits.
 	void invalidateReceiver() noexcept;
 	/// Asks the worker to re-read consent at its next tick, within about 50 ms, instead of at its next
 	/// poll.
