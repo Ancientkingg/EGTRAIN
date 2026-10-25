@@ -1,9 +1,10 @@
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
 
+#include <QTest>
+
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -11,24 +12,11 @@
 namespace fs = std::filesystem;
 using Ids = std::vector<std::string>;
 
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
-
 static std::string join(const Ids& ids) {
 	std::string text;
 	for (const std::string& id : ids)
 		text += (text.empty() ? "" : ", ") + id;
 	return "[" + text + "]";
-}
-
-static bool expectIds(const Ids& actual, const Ids& expected, const std::string& what) {
-	const bool same = actual == expected;
-	if (!same)
-		std::cerr << "failed: " << what << ": expected " << join(expected) << " got " << join(actual) << "\n";
-	return same;
 }
 
 static const SceneRoute* findRoute(const SceneModel& scene, const std::string& id) {
@@ -53,10 +41,9 @@ static bool isSubsequence(const Ids& needles, const Ids& haystack) {
 	return true;
 }
 
-static bool loadCommitted(const fs::path& scenes, const char* name, SceneModel& scene) {
-	const SceneLoadResult loaded = loadScene((scenes / name).string());
-	scene = loaded.scene;
-	return expect(!scene.routes.empty(), name);
+// The committed scene `name`.
+static SceneModel loadCommitted(const char* name) {
+	return loadScene((fs::path(EGTRAIN_SCENES_DIR) / name).string()).scene;
 }
 
 // One track with four nodes at 0, 1, 2 and 3 and one block per kilometre.
@@ -85,104 +72,129 @@ static SceneStation station(const std::string& id, const Ids& nodeIds) {
 	return result;
 }
 
-int main(int argc, char** argv) {
-	if (argc != 2) {
-		std::cerr << "usage: test_routestations <scenes directory>\n";
-		return 2;
-	}
-	const fs::path scenes = argv[1];
-	bool ok = true;
+class TestRouteStations : public QObject {
+	Q_OBJECT
 
-	SceneModel assignment;
-	if (loadCommitted(scenes, "Assignment_Gvc_Gdg_Ut", assignment)) {
-		const SceneRoute* route0 = findRoute(assignment, "route0");
-		const SceneRoute* route1 = findRoute(assignment, "route1");
-		ok &= expect(route0 && route1, "assignment has route0 and route1");
-		if (route0 && route1) {
-			const SceneRouteStations forward = stationsOf(assignment, *route0);
-			const SceneRouteStations back = stationsOf(assignment, *route1);
-			ok &= expect(forward.resolved && back.resolved, "assignment routes resolve");
-			ok &= expectIds(forward.stationIds, {"Gvc", "Gdg", "Ut"}, "assignment route0");
-			ok &= expectIds(back.stationIds, {"Ut", "Gdg", "Gvc"}, "assignment route1");
-		}
-	}
+private slots:
+	void listsAssignmentRouteStations();
+	void listsNetherlandsRouteStations();
+	void labelsEverySection_data();
+	void labelsEverySection();
+	void listsSectionsInTravelOrder();
+	void blockOrderDecidesDirection();
+	void routeWithoutStationsHasNone();
+	void unknownBlockIsUnresolved();
+	void consecutiveVisitsCollapse();
+};
 
-	SceneModel netherlands;
-	if (loadCommitted(scenes, "Netherlands", netherlands)) {
-		const SceneRoute* route6 = findRoute(netherlands, "route6");
-		ok &= expect(route6 != nullptr, "netherlands has route6");
-		if (route6)
-			ok &= expectIds(stationsOf(netherlands, *route6).stationIds,
-				{"Ut", "Uto", "Bhv", "Dld", "Stz", "St", "Sd", "Brn"}, "netherlands route6");
-		int checked = 0;
-		for (const SceneService& service : netherlands.services) {
-			const SceneRoute* route = findRoute(netherlands, service.route);
-			if (!route)
-				continue;
-			Ids stops;
-			for (const SceneStop& stop : service.stops)
-				stops.push_back(stop.stationId);
-			const SceneRouteStations stations = stationsOf(netherlands, *route);
-			if (!isSubsequence(stops, stations.stationIds))
-				std::cerr << "failed: stops of " << service.id << " " << join(stops)
-						  << " are not in order on " << route->id << " " << join(stations.stationIds) << "\n";
-			else
-				++checked;
-		}
-		ok &= expect(checked > 0 && checked == static_cast<int>(netherlands.services.size()),
-			"every netherlands service stops in route order");
-		const SceneRoute* route7 = findRoute(netherlands, "route7");
-		ok &= expect(route7 && stationsOf(netherlands, *route7).direction < 0,
-			"netherlands route7 runs against the native direction");
-	}
+void TestRouteStations::listsAssignmentRouteStations() {
+	const SceneModel assignment = loadCommitted("Assignment_Gvc_Gdg_Ut");
+	QVERIFY2(!assignment.routes.empty(), "Assignment_Gvc_Gdg_Ut");
+	const SceneRoute* route0 = findRoute(assignment, "route0");
+	const SceneRoute* route1 = findRoute(assignment, "route1");
+	// assignment has route0 and route1
+	if (route0 == nullptr)
+		QFAIL("assignment has route0");
+	if (route1 == nullptr)
+		QFAIL("assignment has route1");
+	const SceneRouteStations forward = stationsOf(assignment, *route0);
+	const SceneRouteStations back = stationsOf(assignment, *route1);
+	// assignment routes resolve
+	QVERIFY(forward.resolved);
+	QVERIFY(back.resolved);
+	// assignment route0
+	QCOMPARE(forward.stationIds, Ids({"Gvc", "Gdg", "Ut"}));
+	// assignment route1
+	QCOMPARE(back.stationIds, Ids({"Ut", "Gdg", "Gvc"}));
+}
 
-	// Every section of the converted case studies has a label of its own.
-	for (const char* name : {"Paimpol", "Netherlands", "Copenhagen", "Milano_Brescia"}) {
-		SceneModel scene;
-		if (!loadCommitted(scenes, name, scene))
+void TestRouteStations::listsNetherlandsRouteStations() {
+	const SceneModel netherlands = loadCommitted("Netherlands");
+	QVERIFY2(!netherlands.routes.empty(), "Netherlands");
+	const SceneRoute* route6 = findRoute(netherlands, "route6");
+	if (route6 == nullptr)
+		QFAIL("netherlands has route6");
+	// netherlands route6
+	QCOMPARE(stationsOf(netherlands, *route6).stationIds, Ids({"Ut", "Uto", "Bhv", "Dld", "Stz", "St", "Sd", "Brn"}));
+	int checked = 0;
+	for (const SceneService& service : netherlands.services) {
+		const SceneRoute* route = findRoute(netherlands, service.route);
+		if (!route)
 			continue;
-		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
-		const SceneSectionLabels labels = sceneSectionLabels(inventory);
-		std::set<std::string> distinct;
-		for (const SceneSectionDescriptor& section : inventory.sections)
-			distinct.insert(sceneSectionLabel(section));
-		ok &= expect(!inventory.sections.empty() && distinct.size() == inventory.sections.size()
-				&& labels.byReference.size() >= inventory.sections.size(),
-			name);
-		if (std::string(name) == "Paimpol")
-			ok &= expect(labels.label("@0-B0@") == "B0 0.000 to 0.230 km" && labels.label("70-B0") == "B0 20.710 to 21.010 km"
-					&& labels.label("@71-B0@-21.235000/@0-B1@-21.252000") == "B0 21.010 to 21.235, B1 21.252 to 21.450 km",
-				"paimpol labels");
-		if (std::string(name) == "Netherlands")
-			ok &= expect(labels.label("@15-B104@-58.099000/@16-B100@-58.152000") == "B104 58.000 to 58.099, B100 58.152 km",
-				"netherlands label with a piece of one kilometre");
+		Ids stops;
+		for (const SceneStop& stop : service.stops)
+			stops.push_back(stop.stationId);
+		const SceneRouteStations stations = stationsOf(netherlands, *route);
+		QVERIFY2(isSubsequence(stops, stations.stationIds),
+			("stops of " + service.id + " " + join(stops) + " are not in order on " + route->id + " " + join(stations.stationIds))
+				.c_str());
+		++checked;
 	}
+	// every netherlands service stops in route order
+	QVERIFY(checked > 0);
+	QCOMPARE(checked, static_cast<int>(netherlands.services.size()));
+	const SceneRoute* route7 = findRoute(netherlands, "route7");
+	// netherlands route7 runs against the native direction
+	if (route7 == nullptr)
+		QFAIL("netherlands has route7");
+	QVERIFY(stationsOf(netherlands, *route7).direction < 0);
+}
 
-	// Every route of the committed scenes lists its sections in the order of travel: each one joins the next in the
-	// direction of the route. A route may jump once between two kilometre references, as the Netherlands routes do
-	// between their regions; the runtime moves the sections after one such jump onto the reference before it.
+void TestRouteStations::labelsEverySection_data() {
+	QTest::addColumn<QString>("name");
+	for (const char* name : {"Paimpol", "Netherlands", "Copenhagen", "Milano_Brescia"})
+		QTest::newRow(name) << QString(name);
+}
+
+// Every section of the converted case studies has a label of its own.
+void TestRouteStations::labelsEverySection() {
+	QFETCH(QString, name);
+	const SceneModel scene = loadCommitted(qPrintable(name));
+	QVERIFY2(!scene.routes.empty(), qPrintable(name));
+	const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
+	const SceneSectionLabels labels = sceneSectionLabels(inventory);
+	std::set<std::string> distinct;
+	for (const SceneSectionDescriptor& section : inventory.sections)
+		distinct.insert(sceneSectionLabel(section));
+	QVERIFY(!inventory.sections.empty());
+	QCOMPARE(distinct.size(), inventory.sections.size());
+	QVERIFY(labels.byReference.size() >= inventory.sections.size());
+	if (name == "Paimpol") {
+		// paimpol labels
+		QCOMPARE(labels.label("@0-B0@"), "B0 0.000 to 0.230 km");
+		QCOMPARE(labels.label("70-B0"), "B0 20.710 to 21.010 km");
+		QCOMPARE(labels.label("@71-B0@-21.235000/@0-B1@-21.252000"), "B0 21.010 to 21.235, B1 21.252 to 21.450 km");
+	}
+	if (name == "Netherlands") {
+		// netherlands label with a piece of one kilometre
+		QCOMPARE(labels.label("@15-B104@-58.099000/@16-B100@-58.152000"), "B104 58.000 to 58.099, B100 58.152 km");
+	}
+}
+
+// Every route of the committed scenes lists its sections in the order of travel: each one joins the next in the
+// direction of the route. A route may jump once between two kilometre references, as the Netherlands routes do
+// between their regions; the runtime moves the sections after one such jump onto the reference before it.
+void TestRouteStations::listsSectionsInTravelOrder() {
 	std::vector<fs::path> committed;
-	for (const fs::directory_entry& entry : fs::directory_iterator(scenes))
+	for (const fs::directory_entry& entry : fs::directory_iterator(fs::path(EGTRAIN_SCENES_DIR)))
 		if (fs::exists(entry.path() / "scene.json"))
 			committed.push_back(entry.path());
 	std::sort(committed.begin(), committed.end());
-	ok &= expect(committed.size() >= 6, "the committed scenes are found");
+	QVERIFY2(committed.size() >= 6, "the committed scenes are found");
 	for (const fs::path& directory : committed) {
 		const SceneModel scene = loadScene(directory.string()).scene;
 		const SceneSectionInventory inventory = buildSceneSectionInventory(scene);
 		const std::string name = directory.filename().string();
-		ok &= expect(!scene.routes.empty(), name.c_str());
+		QVERIFY2(!scene.routes.empty(), name.c_str());
 		for (const SceneRoute& route : scene.routes) {
 			std::vector<const SceneSectionDescriptor*> sections;
 			for (const std::string& reference : route.blocks)
 				if (const SceneSectionDescriptor* section = inventory.resolve(reference))
 					sections.push_back(section);
 			const int direction = sceneRouteDirection(scene, sections);
-			if (sections.size() != route.blocks.size() || direction == 0) {
-				std::cerr << "failed: " << name << " " << route.id << " does not resolve to one direction\n";
-				ok = false;
-				continue;
-			}
+			const std::string unresolved = name + " " + route.id + " does not resolve to one direction";
+			QVERIFY2(sections.size() == route.blocks.size(), unresolved.c_str());
+			QVERIFY2(direction != 0, unresolved.c_str());
 			int jumps = 0;
 			for (std::size_t index = 1; index < sections.size(); ++index) {
 				const SceneSectionTransition transition = classifySceneSectionTransition(scene, *sections[index - 1], *sections[index]);
@@ -190,41 +202,55 @@ int main(int argc, char** argv) {
 					continue;
 				if (transition.regionJump && ++jumps == 1)
 					continue;
-				std::cerr << "failed: " << name << " " << route.id << " entries " << index << " and " << index + 1
-						  << " are not in the order of travel: " << route.blocks[index - 1] << " -> " << route.blocks[index] << "\n";
-				ok = false;
+				QFAIL((name + " " + route.id + " entries " + std::to_string(index) + " and " + std::to_string(index + 1)
+					+ " are not in the order of travel: " + route.blocks[index - 1] + " -> " + route.blocks[index])
+						.c_str());
 			}
 		}
 	}
+}
 
-	// Block order decides the travel direction, so the reversed route lists the far station first.
+// Block order decides the travel direction, so the reversed route lists the far station first.
+void TestRouteStations::blockOrderDecidesDirection() {
 	SceneModel reversed = lineScene();
 	reversed.stations = {station("A", {"node-1"}), station("B", {"node-4"})};
 	const SceneRouteStations forwardLine = stationsOf(reversed, reversed.routes[0]);
-	ok &= expect(forwardLine.resolved && forwardLine.direction > 0, "line route resolves forward");
-	ok &= expectIds(forwardLine.stationIds, {"A", "B"}, "forward line route");
+	// line route resolves forward
+	QVERIFY(forwardLine.resolved);
+	QVERIFY(forwardLine.direction > 0);
+	// forward line route
+	QCOMPARE(forwardLine.stationIds, Ids({"A", "B"}));
 	reversed.routes[0].blocks = {"block-3", "block-2", "block-1"};
 	const SceneRouteStations reverseLine = stationsOf(reversed, reversed.routes[0]);
-	ok &= expect(reverseLine.resolved && reverseLine.direction < 0, "reversed line route resolves in reverse");
-	ok &= expectIds(reverseLine.stationIds, {"B", "A"}, "reversed line route");
+	// reversed line route resolves in reverse
+	QVERIFY(reverseLine.resolved);
+	QVERIFY(reverseLine.direction < 0);
+	// reversed line route
+	QCOMPARE(reverseLine.stationIds, Ids({"B", "A"}));
+}
 
+void TestRouteStations::routeWithoutStationsHasNone() {
 	SceneModel bare = lineScene();
 	const SceneRouteStations none = stationsOf(bare, bare.routes[0]);
-	ok &= expect(none.resolved && none.stationIds.empty(), "route without stations resolves with an empty list");
+	// route without stations resolves with an empty list
+	QVERIFY(none.resolved);
+	QVERIFY(none.stationIds.empty());
+}
 
+void TestRouteStations::unknownBlockIsUnresolved() {
 	SceneModel unknown = lineScene();
 	unknown.stations = {station("A", {"node-1"})};
 	unknown.routes[0].blocks = {"no-such-block"};
-	ok &= expect(!stationsOf(unknown, unknown.routes[0]).resolved, "route with an unknown block id is unresolved");
+	QVERIFY2(!stationsOf(unknown, unknown.routes[0]).resolved, "route with an unknown block id is unresolved");
+}
 
-	// Several platforms of one station on consecutive nodes count once; a later visit counts again.
+// Several platforms of one station on consecutive nodes count once; a later visit counts again.
+void TestRouteStations::consecutiveVisitsCollapse() {
 	SceneModel repeated = lineScene();
 	repeated.stations = {station("A", {"node-1", "node-2", "node-4"}), station("B", {"node-3"})};
-	ok &= expectIds(stationsOf(repeated, repeated.routes[0]).stationIds, {"A", "B", "A"},
-		"consecutive visits collapse and a station visited again stays");
-
-	if (!ok)
-		return 1;
-	std::cout << "route station tests passed\n";
-	return 0;
+	// consecutive visits collapse and a station visited again stays
+	QCOMPARE(stationsOf(repeated, repeated.routes[0]).stationIds, Ids({"A", "B", "A"}));
 }
+
+QTEST_APPLESS_MAIN(TestRouteStations)
+#include "test_routestations.moc"
