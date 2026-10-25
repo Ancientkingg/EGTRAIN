@@ -137,7 +137,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb1b449e3a4de6b4c11ef128f35e9beb" id="r_acb1b449e3a4de6b4c11ef128f35e9beb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb1b449e3a4de6b4c11ef128f35e9beb">stop</a> () noexcept</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. </p>
+<div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. The worker exits by itself once it can send nothing more in this run: after a receiver change, a 410 response, or a failed consent read or storage operation. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a63aff60ffeeea563d18ef17a5388b88c" name="a63aff60ffeeea563d18ef17a5388b88c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63aff60ffeeea563d18ef17a5388b88c">&#9670;&#160;</a></span>TelemetrySender() <span class="overload">[1/2]</span></h2>
@@ -304,7 +304,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Invalidates both categories; the worker purges every queued event and sends nothing more in this run. Connected directly to <a class="el" href="class_telemetry_consent.html#a1441ab8158feface13517d832495d246">TelemetryConsent::receiverChanged</a>. Never waits. </p>
+<p>Invalidates both categories; the worker purges every queued event and exits, so it sends nothing more in this run. Connected directly to <a class="el" href="class_telemetry_consent.html#a1441ab8158feface13517d832495d246">TelemetryConsent::receiverChanged</a>. Never waits. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

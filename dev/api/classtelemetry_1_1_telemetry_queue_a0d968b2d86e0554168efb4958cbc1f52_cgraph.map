@@ -1,68 +1,62 @@
 <map id="telemetry::TelemetryQueue::TelemetryQueue" name="telemetry::TelemetryQueue::TelemetryQueue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,379,205,419"/>
-<area shape="poly" id="edge46_Node000001_Node000001" title=" " alt="" coords="59,379,56,369,64,360,80,354,105,352,134,355,150,362,148,367,133,360,105,357,81,359,67,364,62,370,64,378"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a3fc3db4ac492fc3ec649ceeed720feed" title=" " alt="" coords="253,5,453,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,378,119,316,145,229,164,182,188,136,217,93,251,55,257,51,260,55,255,59,221,97,192,139,169,185,150,231,124,317,112,379"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a22362d278dca1b6fa99c58051971bcbf" title="Stores a diagnostic event under its generation, as enqueueUsage() does." alt="" coords="501,120,701,160"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="111,378,129,334,158,278,199,222,224,197,252,176,308,150,369,135,430,128,487,127,487,132,430,133,370,140,310,155,255,181,227,201,203,225,162,281,133,336,116,380"/>
-<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="749,228,949,268"/>
-<area shape="poly" id="edge40_Node000001_Node000009" title=" " alt="" coords="141,376,207,342,294,302,395,264,501,236,561,228,622,225,736,230,736,236,622,231,561,233,502,241,397,269,296,307,209,347,144,381"/>
-<area shape="rect" id="Node000010" href="$classtelemetry_1_1_telemetry_queue.html#a368475d984ef28abb45dae6fe60cd5a1" title=" " alt="" coords="501,528,701,568"/>
-<area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="128,417,182,464,217,488,254,507,312,525,373,538,432,545,488,548,487,553,432,550,372,543,311,531,252,512,214,492,178,468,124,421"/>
-<area shape="rect" id="Node000011" href="$classtelemetry_1_1_telemetry_queue.html#aa33a74e8591a3d54d85b6029a604ffed" title="When the oldest queued event expires; invalid when there is none or the queue is not healthy." alt="" coords="253,69,453,109"/>
-<area shape="poly" id="edge20_Node000001_Node000011" title=" " alt="" coords="110,378,127,328,155,261,197,189,222,156,252,126,269,114,272,118,255,130,226,159,201,192,160,263,132,330,115,379"/>
-<area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_queue.html#ad2e0b52372cacd0ec50134db2b7f8ce5" title=" " alt="" coords="253,349,453,389"/>
-<area shape="poly" id="edge22_Node000001_Node000012" title=" " alt="" coords="205,384,239,380,240,385,206,390"/>
-<area shape="rect" id="Node000015" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="501,413,701,453"/>
-<area shape="poly" id="edge42_Node000001_Node000015" title=" " alt="" coords="206,403,488,423,487,428,206,408"/>
-<area shape="rect" id="Node000016" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="749,345,949,385"/>
-<area shape="poly" id="edge41_Node000001_Node000016" title=" " alt="" coords="152,416,254,455,321,474,394,489,471,499,550,499,627,488,664,478,700,463,716,451,724,437,733,421,748,405,773,389,776,393,751,409,737,424,729,439,720,455,703,468,666,483,628,493,550,505,471,504,393,495,319,479,252,460,150,421"/>
-<area shape="rect" id="Node000017" href="$classtelemetry_1_1_telemetry_queue.html#a56be34acf9623b6127721dc898964183" title=" " alt="" coords="253,728,453,768"/>
-<area shape="poly" id="edge29_Node000001_Node000017" title=" " alt="" coords="121,418,178,508,255,622,328,716,324,719,251,626,173,510,117,420"/>
-<area shape="rect" id="Node000020" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="749,585,949,625"/>
-<area shape="poly" id="edge43_Node000001_Node000020" title=" " alt="" coords="121,418,143,449,173,486,211,522,255,551,314,576,377,595,441,608,506,616,629,621,736,616,736,622,629,626,505,621,440,613,375,600,312,581,252,556,207,526,169,489,138,452,117,421"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="997,287,1197,327"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="454,15,563,15,691,27,759,39,826,57,890,82,951,114,995,149,1032,191,1061,235,1083,272,1078,275,1057,238,1028,195,991,153,948,118,888,87,824,62,758,44,691,32,562,20,454,20"/>
-<area shape="poly" id="edge12_Node000004_Node000003" title=" " alt="" coords="702,150,823,174,888,191,950,214,1009,243,1060,276,1057,281,1007,248,948,218,886,197,821,179,701,155"/>
-<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="763,535,935,561"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="622,158,662,208,704,272,720,306,728,334,737,362,752,396,793,466,832,523,828,526,789,469,747,399,732,364,723,336,715,308,699,275,658,212,618,162"/>
-<area shape="poly" id="edge13_Node000004_Node000009" title=" " alt="" coords="657,158,702,176,796,219,794,224,700,181,655,162"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="810,537,801,527,805,517,822,511,849,509,884,513,894,517,898,523,893,526,890,521,883,518,849,514,823,516,809,521,806,526,813,533"/>
-<area shape="rect" id="Node000006" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="1018,535,1177,561"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="935,545,1004,545,1004,551,935,551"/>
-<area shape="rect" id="Node000007" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="1024,618,1171,643"/>
-<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="906,558,950,571,1055,610,1053,615,948,576,905,563"/>
-<area shape="rect" id="Node000008" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="1020,701,1175,726"/>
-<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="928,559,951,571,969,591,977,612,984,633,999,654,1026,675,1054,692,1051,697,1023,680,995,658,980,635,972,614,965,594,948,575,926,563"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="1058,537,1049,527,1053,517,1070,511,1097,509,1132,513,1142,517,1146,523,1141,526,1138,521,1131,518,1097,514,1071,516,1057,521,1054,526,1061,533"/>
-<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="1058,620,1049,610,1053,600,1070,594,1097,591,1132,595,1142,600,1146,606,1141,609,1138,604,1131,600,1097,597,1071,599,1057,604,1054,609,1061,616"/>
-<area shape="poly" id="edge11_Node000008_Node000008" title=" " alt="" coords="1058,702,1049,692,1053,682,1070,676,1097,674,1132,678,1142,683,1146,688,1141,691,1138,687,1131,683,1097,679,1071,681,1057,686,1054,692,1061,699"/>
-<area shape="poly" id="edge14_Node000009_Node000003" title=" " alt="" coords="935,265,1000,281,998,286,934,271"/>
-<area shape="poly" id="edge17_Node000010_Node000003" title=" " alt="" coords="666,526,700,507,714,494,723,480,732,466,748,452,776,437,801,428,846,419,893,413,948,395,1006,365,1056,332,1059,337,1009,369,950,400,894,418,847,424,802,433,778,442,751,457,736,470,727,483,718,497,703,511,668,530"/>
-<area shape="poly" id="edge16_Node000010_Node000005" title=" " alt="" coords="701,545,750,545,750,551,701,551"/>
-<area shape="poly" id="edge19_Node000010_Node000008" title=" " alt="" coords="631,566,684,601,750,635,816,658,883,676,1007,699,1006,705,882,681,814,663,748,640,682,606,628,570"/>
-<area shape="poly" id="edge18_Node000010_Node000009" title=" " alt="" coords="633,526,667,499,699,464,716,429,723,399,729,368,747,332,774,300,804,275,808,279,778,304,752,335,734,369,728,400,721,431,704,467,671,503,636,530"/>
-<area shape="poly" id="edge21_Node000011_Node000003" title=" " alt="" coords="454,79,561,79,689,89,757,100,824,116,889,138,951,167,987,191,1021,219,1074,274,1070,278,1017,223,984,195,948,172,887,143,822,121,755,105,689,94,561,84,454,85"/>
-<area shape="poly" id="edge25_Node000012_Node000009" title=" " alt="" coords="375,347,430,307,464,287,500,271,559,255,620,245,735,239,736,245,621,251,560,260,502,276,466,291,433,311,379,351"/>
-<area shape="rect" id="Node000013" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="501,285,701,325"/>
-<area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="431,347,509,326,511,331,432,352"/>
-<area shape="rect" id="Node000014" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="501,349,701,389"/>
-<area shape="poly" id="edge24_Node000012_Node000014" title=" " alt="" coords="453,367,488,367,488,372,453,372"/>
-<area shape="poly" id="edge26_Node000012_Node000015" title=" " alt="" coords="432,387,511,407,509,412,431,392"/>
-<area shape="poly" id="edge27_Node000015_Node000016" title=" " alt="" coords="674,411,762,386,764,391,676,416"/>
-<area shape="poly" id="edge28_Node000016_Node000003" title=" " alt="" coords="934,343,998,327,1000,332,935,348"/>
-<area shape="poly" id="edge37_Node000017_Node000003" title=" " alt="" coords="422,725,486,702,559,670,632,629,699,578,715,558,722,538,730,517,748,498,775,482,800,474,847,471,895,470,920,465,948,452,986,427,1020,396,1072,336,1076,339,1024,400,989,431,951,457,922,470,895,476,847,477,801,479,777,487,751,502,734,520,727,540,719,560,703,582,635,633,561,675,488,707,424,730"/>
-<area shape="poly" id="edge39_Node000017_Node000008" title=" " alt="" coords="390,766,489,814,555,841,629,865,709,882,790,889,871,884,910,875,948,862,991,836,1028,803,1057,768,1079,737,1083,740,1062,771,1031,807,994,841,950,866,912,880,872,889,790,895,708,887,628,870,553,846,487,819,388,770"/>
-<area shape="rect" id="Node000018" href="$namespacetelemetry.html#a7a632c90b64def51977be566377b667d" title=" " alt="" coords="537,735,666,761"/>
-<area shape="poly" id="edge30_Node000017_Node000018" title=" " alt="" coords="453,745,523,745,523,751,453,751"/>
-<area shape="rect" id="Node000019" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="750,826,949,851"/>
-<area shape="poly" id="edge38_Node000017_Node000019" title=" " alt="" coords="454,764,766,821,765,826,453,769"/>
-<area shape="poly" id="edge32_Node000018_Node000005" title=" " alt="" coords="625,733,662,708,699,673,714,646,720,621,728,596,748,571,757,565,760,569,751,575,732,598,725,622,719,648,703,676,666,712,627,737"/>
-<area shape="poly" id="edge35_Node000018_Node000007" title=" " alt="" coords="655,733,1029,644,1030,649,657,738"/>
-<area shape="poly" id="edge36_Node000018_Node000008" title=" " alt="" coords="666,744,797,739,949,729,1006,723,1006,729,950,735,797,744,666,749"/>
-<area shape="poly" id="edge31_Node000018_Node000018" title=" " alt="" coords="562,737,553,727,557,717,574,711,601,709,636,713,646,717,650,723,645,726,642,721,635,718,601,714,575,716,561,721,558,726,565,733"/>
-<area shape="poly" id="edge33_Node000018_Node000019" title=" " alt="" coords="638,758,802,819,800,824,636,763"/>
-<area shape="poly" id="edge34_Node000019_Node000019" title=" " alt="" coords="810,828,801,818,805,808,822,802,849,799,884,803,894,808,898,814,893,817,890,812,883,808,849,805,823,807,809,812,806,817,813,824"/>
-<area shape="poly" id="edge44_Node000020_Node000003" title=" " alt="" coords="930,583,947,571,971,538,1007,474,1077,338,1082,340,1012,477,976,541,951,575,932,587"/>
-<area shape="poly" id="edge45_Node000020_Node000008" title=" " alt="" coords="897,623,1055,693,1053,697,895,628"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,316,205,356"/>
+<area shape="poly" id="edge40_Node000001_Node000001" title=" " alt="" coords="59,316,56,306,64,297,80,291,105,289,134,292,150,299,148,304,133,297,105,295,81,297,67,301,62,307,64,315"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a3fc3db4ac492fc3ec649ceeed720feed" title=" " alt="" coords="749,324,949,364"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,334,736,340,736,345,205,340"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a22362d278dca1b6fa99c58051971bcbf" title="Stores a diagnostic event under its generation, as enqueueUsage() does." alt="" coords="253,603,453,643"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="115,355,132,403,161,466,202,532,227,562,255,589,261,593,258,598,252,593,223,566,197,535,156,468,127,405,110,357"/>
+<area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_queue.html#a368475d984ef28abb45dae6fe60cd5a1" title=" " alt="" coords="253,460,453,500"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="136,354,190,391,255,431,295,452,293,457,252,436,187,396,133,358"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#aa33a74e8591a3d54d85b6029a604ffed" title="When the oldest queued event expires; invalid when there is none or the queue is not healthy." alt="" coords="253,5,453,45"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="112,315,131,269,161,207,201,140,251,79,292,50,295,54,255,83,206,143,165,210,135,271,116,317"/>
+<area shape="rect" id="Node000008" href="$classtelemetry_1_1_telemetry_queue.html#ad2e0b52372cacd0ec50134db2b7f8ce5" title=" " alt="" coords="253,172,453,212"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="129,314,184,272,252,228,280,215,282,220,255,233,187,276,132,318"/>
+<area shape="rect" id="Node000011" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="501,287,701,327"/>
+<area shape="poly" id="edge34_Node000001_Node000011" title=" " alt="" coords="206,327,487,311,488,316,206,333"/>
+<area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="501,44,701,84"/>
+<area shape="poly" id="edge36_Node000001_Node000012" title=" " alt="" coords="116,314,137,280,168,238,206,195,252,158,309,127,369,104,430,87,487,75,488,80,431,92,371,109,311,132,255,162,210,198,172,241,141,283,120,317"/>
+<area shape="rect" id="Node000013" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="749,209,949,249"/>
+<area shape="poly" id="edge35_Node000001_Node000013" title=" " alt="" coords="188,313,253,300,512,262,735,237,736,242,512,267,254,305,189,319"/>
+<area shape="rect" id="Node000014" href="$classtelemetry_1_1_telemetry_queue.html#a56be34acf9623b6127721dc898964183" title=" " alt="" coords="253,539,453,579"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="121,355,175,429,212,471,255,510,288,531,285,535,252,514,209,475,171,432,117,358"/>
+<area shape="rect" id="Node000020" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="749,388,949,428"/>
+<area shape="poly" id="edge37_Node000001_Node000020" title=" " alt="" coords="206,343,736,394,735,400,205,348"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="997,296,1197,336"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="949,330,983,326,984,331,950,335"/>
+<area shape="rect" id="Node000006" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="1020,554,1175,579"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="454,487,681,511,950,543,1007,550,1006,556,949,548,680,516,453,492"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="1058,556,1049,546,1053,536,1070,530,1097,527,1132,531,1142,536,1146,542,1141,545,1138,540,1131,536,1097,533,1071,535,1057,540,1054,545,1061,552"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="453,10,511,7,574,8,639,15,702,29,761,52,819,82,873,115,923,152,1010,225,1070,284,1066,288,1006,229,920,156,870,120,816,86,759,57,701,35,638,20,573,13,511,13,454,15"/>
+<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="501,108,701,148"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="431,169,509,149,511,154,432,175"/>
+<area shape="rect" id="Node000010" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="501,172,701,212"/>
+<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="453,189,488,189,488,195,453,195"/>
+<area shape="poly" id="edge12_Node000008_Node000011" title=" " alt="" coords="399,210,546,278,543,283,397,215"/>
+<area shape="poly" id="edge14_Node000008_Node000012" title=" " alt="" coords="379,169,434,132,500,94,516,87,518,91,503,98,436,136,382,174"/>
+<area shape="poly" id="edge13_Node000011_Node000003" title=" " alt="" coords="702,305,949,309,984,310,983,315,949,315,702,311"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="678,82,703,94,738,117,771,145,824,197,820,201,767,149,735,122,700,98,675,86"/>
+<area shape="poly" id="edge16_Node000013_Node000003" title=" " alt="" coords="908,247,1027,289,1025,294,907,252"/>
+<area shape="poly" id="edge31_Node000014_Node000003" title=" " alt="" coords="453,542,723,498,855,468,908,453,948,438,983,417,1015,393,1067,344,1071,348,1019,397,986,422,950,442,910,458,857,474,724,503,454,548"/>
+<area shape="poly" id="edge33_Node000014_Node000006" title=" " alt="" coords="454,557,1006,563,1006,568,453,562"/>
+<area shape="rect" id="Node000015" href="$namespacetelemetry.html#a7a632c90b64def51977be566377b667d" title=" " alt="" coords="537,679,666,705"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="426,576,455,588,522,628,576,669,573,673,519,633,452,593,424,581"/>
+<area shape="rect" id="Node000019" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="750,805,949,830"/>
+<area shape="poly" id="edge32_Node000014_Node000019" title=" " alt="" coords="439,577,455,589,468,605,476,622,480,654,484,685,491,700,503,715,528,736,556,753,616,780,678,798,737,808,736,813,677,803,614,785,553,758,525,740,499,719,486,703,479,687,474,655,470,623,464,608,451,593,436,581"/>
+<area shape="poly" id="edge30_Node000015_Node000006" title=" " alt="" coords="638,677,749,641,890,606,1017,579,1018,585,892,612,750,647,639,682"/>
+<area shape="poly" id="edge19_Node000015_Node000015" title=" " alt="" coords="562,681,553,671,557,661,574,655,601,653,636,657,646,661,650,667,645,670,642,665,635,662,601,658,575,660,561,665,558,670,565,677"/>
+<area shape="rect" id="Node000016" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="763,679,935,705"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="666,689,750,689,750,695,666,695"/>
+<area shape="rect" id="Node000018" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="1024,730,1171,755"/>
+<area shape="poly" id="edge29_Node000015_Node000018" title=" " alt="" coords="667,702,750,715,887,728,1010,736,1010,741,886,733,749,720,666,707"/>
+<area shape="poly" id="edge27_Node000015_Node000019" title=" " alt="" coords="629,702,812,796,810,801,626,707"/>
+<area shape="poly" id="edge26_Node000016_Node000006" title=" " alt="" coords="874,677,1058,583,1060,588,877,682"/>
+<area shape="poly" id="edge21_Node000016_Node000016" title=" " alt="" coords="810,681,801,671,805,661,822,655,849,653,884,657,894,661,898,667,893,670,890,665,883,662,849,658,823,660,809,665,806,670,813,677"/>
+<area shape="rect" id="Node000017" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="1018,657,1177,682"/>
+<area shape="poly" id="edge22_Node000016_Node000017" title=" " alt="" coords="935,682,1004,675,1004,680,936,687"/>
+<area shape="poly" id="edge24_Node000016_Node000018" title=" " alt="" coords="913,702,1022,725,1021,730,912,707"/>
+<area shape="poly" id="edge23_Node000017_Node000017" title=" " alt="" coords="1058,658,1049,648,1053,638,1070,632,1097,630,1132,634,1142,639,1146,644,1141,647,1138,643,1131,639,1097,635,1071,637,1057,642,1054,648,1061,655"/>
+<area shape="poly" id="edge25_Node000018_Node000018" title=" " alt="" coords="1058,732,1049,722,1053,712,1070,706,1097,703,1132,707,1142,712,1146,718,1141,721,1138,716,1131,712,1097,709,1071,711,1057,716,1054,721,1061,728"/>
+<area shape="poly" id="edge28_Node000019_Node000019" title=" " alt="" coords="810,806,801,796,805,786,822,780,849,778,884,782,894,787,898,792,893,795,890,791,883,787,849,783,823,785,809,790,806,796,813,803"/>
+<area shape="poly" id="edge38_Node000020_Node000003" title=" " alt="" coords="914,385,948,373,1036,339,1038,344,950,379,916,390"/>
+<area shape="poly" id="edge39_Node000020_Node000006" title=" " alt="" coords="883,426,1066,544,1063,548,880,430"/>
 </map>
