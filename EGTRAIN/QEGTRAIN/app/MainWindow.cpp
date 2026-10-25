@@ -792,8 +792,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		}
 	});
 
-	connect(ui->displayTrainPathDiagrams, &QAction::triggered, m_resultViews, &ResultViews::displayTrainPathDiagrams);
-
 	connect(ui->actionLoad_Network, &QAction::triggered, m_session, &SceneSession::actionLoad_Network);
 
 	ui->actionLoad_Network->setText("Import Legacy Case...");
@@ -1783,24 +1781,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Diagrams menu
 	m_diagramsMenu = menuBar()->addMenu("&Diagrams");
 	// An entry that asks for more input in a dialog ends in an ellipsis.
-	m_diagramsMenu->addAction(ResultViewName::kSpeedDistance, m_resultViews, &ResultViews::showSpeedDistanceDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kSpeedTime, m_resultViews, &ResultViews::showSpeedTimeDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kTimeDistance, m_resultViews, &ResultViews::showTimeDistanceDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kTractiveEffortDistance, m_resultViews, &ResultViews::showTractiveEffortDistanceDiagram);
-	m_diagramsMenu->addSeparator();
-	m_diagramsMenu->addAction(QString(ResultViewName::kTimetableGraph) + "...", m_resultViews, &ResultViews::showTimetableGraph);
-	m_diagramsMenu->addAction(QString(ResultViewName::kBlockingTime) + "...", m_resultViews, &ResultViews::showBlockingTimeDiagram);
-	m_diagramsMenu->addAction(QString(ResultViewName::kCapacity) + "...", m_resultViews, &ResultViews::showCapacityAnalysis);
-	m_diagramsMenu->addAction(QString(ResultViewName::kCapacityByArea) + "...", m_resultViews, &ResultViews::showAreaCapacity);
-	m_diagramsMenu->addAction(ResultViewName::kTimetable, m_resultViews, &ResultViews::showTimetableTable);
-	m_diagramsMenu->addAction(QString(ResultViewName::kDelays) + "...", m_resultViews, &ResultViews::showDelayDiagram);
-	m_diagramsMenu->addAction(ResultViewName::kDelayAnalysis, m_resultViews, &ResultViews::showDelayAnalysis);
-	// Train paths belongs with the other charts; retire the one-entry Tools menu.
-	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText(QString(ResultViewName::kTrainPaths) + "...");
-	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
-	if (ui->menuTools)
-		menuBar()->removeAction(ui->menuTools->menuAction());
+	for (const ResultViewEntry& view : kResultViewEntries) {
+		if (view.startsGroup)
+			m_diagramsMenu->addSeparator();
+		QAction* action = m_diagramsMenu->addAction(view.asksForInput ? QString(view.name) + "..." : QString(view.name));
+		connect(action, &QAction::triggered, m_resultViews, view.open);
+	}
 	updateDiagramActions();
 
 	// --- Status bar ---
@@ -3812,10 +3798,6 @@ void MainWindow::updateDiagramActions() {
 			action->setStatusTip(hint);
 			action->setToolTip(hint);
 		}
-	}
-	if (ui->displayTrainPathDiagrams) {
-		ui->displayTrainPathDiagrams->setEnabled(available);
-		ui->displayTrainPathDiagrams->setStatusTip(hint);
 	}
 	if (m_runResultsPanel)
 		m_runResultsPanel->updateAvailability(available);

@@ -1,18 +1,45 @@
 #ifndef RUNRESULTSDOCK_H
 #define RUNRESULTSDOCK_H
 
+#include "app/ResultViews.h"
+
 #include <QString>
+#include <array>
 
 class QDockWidget;
 class QLabel;
 class QMainWindow;
 class QPushButton;
 class QTableWidget;
-class ResultViews;
 class RunController;
 namespace telemetry {
 class OperationObservation;
 } // namespace telemetry
+
+/// A result view as the Diagrams menu and the result view menu of the Run Results dock list it.
+struct ResultViewEntry {
+	const char* name;			 ///< The name of the view, one of ResultViewName.
+	void (ResultViews::*open)(); ///< The slot of ResultViews that opens the view.
+	bool asksForInput;			 ///< A dialog asks for more input first, so the entry of the Diagrams menu ends in an ellipsis.
+	bool startsGroup;			 ///< A separator comes before the entry.
+};
+
+/// The result views in the order of both menus, in three groups: the timetable and the delays, the charts of each train,
+/// and the train paths, the blocking times and the capacity.
+inline constexpr std::array<ResultViewEntry, 12> kResultViewEntries{{
+	{ResultViewName::kTimetable, &ResultViews::showTimetableTable, false, false},
+	{ResultViewName::kTimetableGraph, &ResultViews::showTimetableGraph, true, false},
+	{ResultViewName::kDelays, &ResultViews::showDelayDiagram, true, false},
+	{ResultViewName::kDelayAnalysis, &ResultViews::showDelayAnalysis, false, false},
+	{ResultViewName::kSpeedDistance, &ResultViews::showSpeedDistanceDiagram, false, true},
+	{ResultViewName::kSpeedTime, &ResultViews::showSpeedTimeDiagram, false, false},
+	{ResultViewName::kTimeDistance, &ResultViews::showTimeDistanceDiagram, false, false},
+	{ResultViewName::kTractiveEffortDistance, &ResultViews::showTractiveEffortDistanceDiagram, false, false},
+	{ResultViewName::kTrainPaths, &ResultViews::displayTrainPathDiagrams, true, true},
+	{ResultViewName::kBlockingTime, &ResultViews::showBlockingTimeDiagram, true, false},
+	{ResultViewName::kCapacity, &ResultViews::showCapacityAnalysis, true, false},
+	{ResultViewName::kCapacityByArea, &ResultViews::showAreaCapacity, true, false},
+}};
 
 /// The Run Results dock: the table of the completed run, the lines that say which run it is, the menu that opens the result
 /// views, the exports of the table, and the delay baseline. It sits at the bottom of the window and stays hidden until a
