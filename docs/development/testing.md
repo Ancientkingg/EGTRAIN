@@ -208,6 +208,8 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
 - A Qt Test program that skips (`QSKIP`) exits with 0, so a test with `SKIP_RETURN_CODE` keeps a `main` of its own
   that returns the skip code before it calls `QTest::qExec`. So does a test that must set the environment before the
   application object exists (`tests/test_consolestream.cpp`).
+- `tests/support/FakePrompts.h` answers the prompts of an editor panel without a dialog and keeps what the panel
+  asked (`tests/test_editor_infrastructure_blocks.cpp`).
 - Files that are not converted yet keep their local `expect` or `check` helper ([Tests](coding-guidelines.md#tests)).
 
 ### Test labels

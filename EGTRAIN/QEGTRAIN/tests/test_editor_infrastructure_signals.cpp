@@ -558,6 +558,7 @@ void TestSignalFacets::wheelLeavesAreaCombo() {
 	Fixture f;
 	f.choose("signalling_areas");
 	QComboBox* box = f.combo(1, column);
+	if (box == nullptr) QFAIL("the column of the row has a combo");
 	const int index = box->currentIndex();
 	QWheelEvent wheel(QPointF(2, 2), box->mapToGlobal(QPoint(2, 2)), QPoint(), QPoint(0, -120), Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
 	QApplication::sendEvent(box, &wheel);
