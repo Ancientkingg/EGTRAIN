@@ -151,13 +151,11 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 		addWriteError(result, source.u8string(), "Cannot stage the previous case contents: " + ec.message());
 		return false;
 	}
-	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
-			 "signalling.json", "rolling_stock.json", "services.json", "scenarios.json",
-			 "passengers.json", "views.json", "incidents.json"}) {
+	for (const SceneFile& file : kSceneFiles) {
 		ec.clear();
-		fs::remove_all(staging / filename, ec);
+		fs::remove_all(staging / file.name, ec);
 		if (ec) {
-			addWriteError(result, filename, "Cannot prepare staged case file: " + ec.message());
+			addWriteError(result, file.name, "Cannot prepare staged case file: " + ec.message());
 			return false;
 		}
 	}
@@ -583,27 +581,35 @@ json encodeSceneMetadata(const SceneModel& scene) {
 	return metadata;
 }
 
+// The content of a scene file that saveScene writes; an empty object for a file that it never writes.
+static json encodeSceneFile(const std::string& name, const SceneModel& scene) {
+	if (name == "scene.json")
+		return encodeSceneMetadata(scene);
+	if (name == "infrastructure.json")
+		return encodeInfrastructure(scene);
+	if (name == "stations.json")
+		return encodeStations(scene);
+	if (name == "signalling.json")
+		return encodeSignalling(scene);
+	if (name == "rolling_stock.json")
+		return encodeRollingStock(scene);
+	if (name == "services.json")
+		return encodeServices(scene);
+	if (name == "scenarios.json")
+		return encodeScenarios(scene);
+	if (name == "views.json")
+		return encodeViews(scene);
+	if (name == "passengers.json")
+		return encodePassengers(scene.passengers);
+	return json::object();
+}
+
 static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
 	SceneSaveResult result;
-
-	const auto writeCanonical = [&](const std::string& filename, const json& value) {
-		return writeJsonFile(result, scenePath, filename, value);
-	};
 	bool wroteAll = true;
-	wroteAll = writeCanonical("scene.json", encodeSceneMetadata(scene)) && wroteAll;
-	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
-	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
-	wroteAll = writeCanonical("signalling.json", encodeSignalling(scene)) && wroteAll;
-	wroteAll = writeCanonical("rolling_stock.json", encodeRollingStock(scene)) && wroteAll;
-	wroteAll = writeCanonical("services.json", encodeServices(scene)) && wroteAll;
-	wroteAll = writeCanonical("scenarios.json", encodeScenarios(scene)) && wroteAll;
-	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
-	if (hasViews)
-		wroteAll = writeCanonical("views.json", encodeViews(scene)) && wroteAll;
-	if (!scene.passengers.empty()) {
-		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
-	}
-
+	for (const SceneFile& file : kSceneFiles)
+		if (sceneFileWritten(file, scene))
+			wroteAll = writeJsonFile(result, scenePath, file.name, encodeSceneFile(file.name, scene)) && wroteAll;
 	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);
 	return result;
 }

@@ -5,7 +5,6 @@
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
-#include <array>
 #include <chrono>
 #include <cctype>
 #include <climits>
@@ -36,16 +35,6 @@ constexpr mz_uint64 kMaxEntrySize = 16ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxTotalSize = 64ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxCompressionRatio = 1000;
 constexpr mz_uint kMaxEntries = 16;
-
-const std::array<const char*, 7> kRequiredEntries = {
-	"scene.json",
-	"infrastructure.json",
-	"stations.json",
-	"signalling.json",
-	"rolling_stock.json",
-	"services.json",
-	"scenarios.json",
-};
 
 struct TempDirectory {
 	fs::path path;
@@ -249,7 +238,24 @@ static bool readArchiveFile(const fs::path& path, std::string& contents,
 	return true;
 }
 
-static bool canonicalEntryName(const std::string& name);
+// A bundle holds the files that saveScene writes.
+static bool canonicalEntryName(const std::string& name) {
+	return std::any_of(kSceneFiles.begin(), kSceneFiles.end(), [&name](const SceneFile& file) {
+		return file.write != SceneFileWrite::Never && name == file.name;
+	});
+}
+
+// The first file that saveScene always writes and that entries lacks, or null when entries holds them all.
+static const char* missingRequiredEntry(const std::vector<ArchiveEntry>& entries) {
+	for (const SceneFile& file : kSceneFiles) {
+		if (file.write == SceneFileWrite::Always
+			&& std::none_of(entries.begin(), entries.end(), [&file](const ArchiveEntry& entry) {
+				   return entry.name == file.name;
+			   }))
+			return file.name;
+	}
+	return nullptr;
+}
 
 static bool inspectBundle(const fs::path& path, const std::string& archiveBytes, ZipReader& reader,
 	std::vector<ArchiveEntry>& entries, BundleManifest& manifest,
@@ -356,12 +362,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	std::string manifestText(static_cast<std::size_t>(manifestEntry->stat.m_uncomp_size), '\0');
 	if (!mz_zip_reader_extract_to_mem(&reader.zip, manifestEntry->index,
 			manifestText.empty() ? nullptr : manifestText.data(), manifestText.size(), 0)) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired)
 			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
 		else
@@ -405,12 +406,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			manifest.savedWithAppVersion = manifestJson["saved_with_app_version"].get<std::string>();
 		}
 	} catch (const json::exception& error) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired) {
 			const auto unknown = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
 				return !canonicalEntryName(entry.name);
@@ -427,21 +423,14 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	}
 	if (*manifest.bundleVersion == kCurrentSceneBundleVersion) {
 		for (const auto& entry : entries) {
-			if (entry.name != "passengers.json" && entry.name != "views.json"
-				&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&entry](const char* required) {
-					   return entry.name == required;
-				   })) {
+			if (!canonicalEntryName(entry.name)) {
 				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", entry.name);
 				return false;
 			}
 		}
-		for (const char* required : kRequiredEntries) {
-			if (std::none_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				})) {
-				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", required);
-				return false;
-			}
+		if (const char* missing = missingRequiredEntry(entries)) {
+			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", missing);
+			return false;
 		}
 	}
 	if (!mz_zip_validate_archive(&reader.zip, 0)) {
@@ -470,13 +459,6 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 		}
 	}
 	return true;
-}
-
-static bool canonicalEntryName(const std::string& name) {
-	return name == "passengers.json" || name == "views.json"
-		|| std::any_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
-			   return name == required;
-		   });
 }
 
 static bool publishPath(const fs::path& staging, const fs::path& target,
@@ -668,15 +650,11 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	}
 
 	std::vector<std::string> names;
-	for (const char* required : kRequiredEntries)
-		names.emplace_back(required);
-	std::error_code ec;
-	if (fs::is_regular_file(temp.path / "passengers.json", ec))
-		names.emplace_back("passengers.json");
-	ec.clear();
-	if (fs::is_regular_file(temp.path / "views.json", ec))
-		names.emplace_back("views.json");
+	for (const SceneFile& file : kSceneFiles)
+		if (sceneFileWritten(file, scene))
+			names.emplace_back(file.name);
 	std::sort(names.begin(), names.end());
+	std::error_code ec;
 
 	fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();
 	fs::create_directories(parent, ec);
