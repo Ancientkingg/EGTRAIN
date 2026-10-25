@@ -51,11 +51,11 @@ RunController::RunController(QMainWindow* window, SceneDocument* document, Scene
 	: QObject(window), m_window(window), m_document(document), m_session(session), m_selection(selection), m_host(host),
 	  m_startOffsetSeconds(initial_variables.startingSimulationTime) {}
 
-bool RunController::passengerGui() const {
+bool RunController::nextRunShowsPassengers() const {
 	return initial_variables.PAX_GUI;
 }
 
-void RunController::setPassengerGui(bool on) {
+void RunController::setNextRunShowsPassengers(bool on) {
 	initial_variables.PAX_GUI = on;
 }
 

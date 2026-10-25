@@ -158,9 +158,9 @@ public:
 	RunController(QMainWindow* window, SceneDocument* document, SceneSession* session, RunSelection& selection, Host& host);
 
 	/// The next run shows the passengers at the platforms and in the trains.
-	bool passengerGui() const;
+	bool nextRunShowsPassengers() const;
 	/// The next run starts with the passenger display on or off.
-	void setPassengerGui(bool on);
+	void setNextRunShowsPassengers(bool on);
 	/// The duration that the command line gave, in seconds, which replaces the duration of the scene. Empty without one.
 	std::optional<double> durationOverride() const;
 	/// A case was named when the program started or was opened by the system, so no case chooser opens.

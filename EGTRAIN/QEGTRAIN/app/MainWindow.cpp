@@ -945,7 +945,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_showPassengersAction = new QAction("Passengers", this);
 	m_showPassengersAction->setObjectName("actionShowPassengers");
 	m_showPassengersAction->setCheckable(true);
-	m_passengerChoice = m_runController->passengerGui();
+	m_passengerChoice = m_runController->nextRunShowsPassengers();
 	m_passengerLayerCheck->setChecked(m_passengerChoice);
 	m_showPassengersAction->setChecked(m_passengerChoice);
 	m_presenter->m_passengerLayerVisible = m_passengerChoice;
@@ -3058,7 +3058,7 @@ void MainWindow::updatePassengerSwitch() {
 }
 
 void MainWindow::applyPassengerLayer(bool shown) {
-	m_runController->setPassengerGui(shown);
+	m_runController->setNextRunShowsPassengers(shown);
 	m_presenter->m_passengerLayerVisible = shown;
 	m_presenter->applyPlatformVisibility();
 	if (m_presenter->trainPaxInfoItem)
