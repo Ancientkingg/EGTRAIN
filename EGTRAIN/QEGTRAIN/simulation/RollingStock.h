@@ -118,9 +118,6 @@ public:
 	/// Sets the times, durations and positions to -1, the IDs to "None" and IsComplete to true.
 	BlockingTimes();
 
-	/// Copies every member of obj2.
-	BlockingTimes& operator=(const BlockingTimes& obj2);
-
 	/// Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets
 	/// InfraElementInPositionForTrain and the data of the previous train.
 	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(std::string TrainName, std::list<InfraEvent> ListAllInfraEvents);

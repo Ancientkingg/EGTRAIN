@@ -76,21 +76,6 @@ public:
 
 	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs and the status to "None".
 	TrainEvent();
-
-	/// Copies every member.
-	TrainEvent& operator=(const TrainEvent& ob2) {
-		this->trainDescription = ob2.trainDescription;
-		this->Time = ob2.Time;
-		this->Time2 = ob2.Time2;
-		Position = ob2.Position;
-		SuccessorID = ob2.SuccessorID;
-		TrainSpeed = ob2.TrainSpeed;
-		Acceleration = ob2.Acceleration;
-		CurrentSectionID = ob2.CurrentSectionID;
-		NextSectionID = ob2.NextSectionID;
-		InfraElemStatus = ob2.InfraElemStatus;
-		return *this;
-	}
 };
 
 /// Sorts the events by Time, earliest first, with non-finite times last. The sort is stable, so events with equal times keep their
@@ -106,20 +91,6 @@ public:
 
 	/// Sets the coordinates of the element to -1, its IDs and station name to "None" and its flags to false; no events.
 	InfraEvent();
-
-	/// Copies the element and the events.
-	InfraEvent& operator=(const InfraEvent& ob2) {
-		if (this == &ob2)
-			return *this;
-		this->ElementInfo = ob2.ElementInfo;
-		this->RecordedEvent.clear();
-		if (ob2.RecordedEvent.size() > 0) {
-			for (std::list<TrainEvent>::const_iterator it = ob2.RecordedEvent.begin(); it != ob2.RecordedEvent.end(); it++) {
-				this->RecordedEvent.push_back(*it);
-			}
-		}
-		return *this;
-	}
 };
 
 /// Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head
@@ -200,7 +171,8 @@ public:
 	/// the ETCS3 braking points are -1.
 	Section();
 
-	/// Copies every member; the node list stays shared.
+	/// Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints):
+	/// the entries after those keep their values. The copy constructor copies every entry. The node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -251,7 +223,7 @@ public:
 	}
 
 	/// True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.
-	bool operator==(const Section& ob2) {
+	bool operator==(const Section& ob2) const {
 		bool AreArcsEqual = true;
 		for (int i = 0; i < total_arcs && i < ob2.total_arcs; i++) {
 			if (!(arcs_in_signalling_block_section[i] == ob2.arcs_in_signalling_block_section[i])) {
@@ -394,19 +366,6 @@ public:
 
 	/// Sets BSID, type and typePart to "None" and the positions to -1.
 	MovementAuthority();
-
-	/// Copies every member.
-	MovementAuthority& operator=(const MovementAuthority& MA2) {
-		BSID = MA2.BSID;
-		type = MA2.type;
-		ReversedDirection = MA2.ReversedDirection;
-		AbsPosEoA = MA2.AbsPosEoA;
-		EoA_Dist_From_BSID_Beg = MA2.EoA_Dist_From_BSID_Beg;
-		RelativePosEoA = MA2.RelativePosEoA;
-		typePart = MA2.typePart;
-		TrainInfo = MA2.TrainInfo;
-		return *this;
-	}
 };
 
 // --- Signalling System Functions ---

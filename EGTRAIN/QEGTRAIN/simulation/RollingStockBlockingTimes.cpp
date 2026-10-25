@@ -10,46 +10,6 @@
 
 using namespace std;
 
-BlockingTimes& BlockingTimes::operator=(const BlockingTimes& obj2) {
-	BlockID = obj2.BlockID;
-	trainDescription = obj2.trainDescription;
-	StartRunTime = obj2.StartRunTime;
-	EndRunTime = obj2.EndRunTime;
-	NextBlockID = obj2.NextBlockID;
-	this->NextBlockIDPreviousTrain = obj2.NextBlockIDPreviousTrain;
-	StartApproachTime = obj2.StartApproachTime;
-	EndApproachTime = obj2.EndApproachTime;
-	StartClearTime = obj2.StartClearTime;
-	EndClearTime = obj2.EndClearTime;
-	length = obj2.length;
-	StartOccTime = obj2.StartOccTime;
-	EndOccTime = obj2.EndOccTime;
-	setupTime = obj2.setupTime;
-	sightReacTime = obj2.sightReacTime;
-	ApproachTime = obj2.ApproachTime;
-	RunTime = obj2.RunTime;
-	clearingTime = obj2.clearingTime;
-	ReleaseTime = obj2.ReleaseTime;
-	RunTimeMargin = obj2.RunTimeMargin;
-	PosStart = obj2.PosStart;
-	PosEnd = obj2.PosEnd;
-	SignallingLevel = obj2.SignallingLevel;
-	stationName = obj2.stationName;
-	IsComplete = obj2.IsComplete;
-	GeoPosStart = obj2.GeoPosStart;
-	GeoPosEnd = obj2.GeoPosEnd;
-	this->LocationWithSwitch = obj2.LocationWithSwitch;
-	this->SpeedPreviousTrain = obj2.SpeedPreviousTrain;
-	this->ConnectedBlockingTimeID = obj2.ConnectedBlockingTimeID;
-	this->InfraElementInPositionForTrain = obj2.InfraElementInPositionForTrain;
-	this->SwitchName = obj2.SwitchName;
-	IsAlreadyUniformedToConnectedSwitch = obj2.IsAlreadyUniformedToConnectedSwitch;
-	NamePreviousTrain = obj2.NamePreviousTrain;
-	this->PosConnectedBlockingTime = obj2.PosConnectedBlockingTime;
-	this->IsEndOfDivSwitchBeingStartOfADivSwitch = obj2.IsEndOfDivSwitchBeingStartOfADivSwitch;
-	return *this;
-}
-
 void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string TrainName, list<InfraEvent> ListAllInfraEvents) {
 	bool IsStatusInfraElementFound = false; // this variable becomes true only when we have found the status of the infrastructure element we are computing the blocking times for, given a train
 	string NameOfInfraElement;
