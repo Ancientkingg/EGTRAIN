@@ -534,8 +534,10 @@ static int runMain(int argc, char* argv[]) {
 		}
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
-			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
-				QString::fromStdString(toDialogText(loaded.diagnostics.front())));
+			// A script that started the launch has no user to close the box.
+			if (!updatesSuppressedByEnvironment())
+				QMessageBox::critical(nullptr, "Cannot Start EGTRAIN",
+					QString::fromStdString(toDialogText(loaded.diagnostics.front())));
 			return 1;
 		}
 		// An opened file counts as an explicit scene, so the chooser stays closed.

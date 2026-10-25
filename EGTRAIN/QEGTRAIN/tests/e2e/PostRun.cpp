@@ -53,6 +53,7 @@
 #include <QLineF>
 #include <QList>
 #include <QMenu>
+#include <QMessageBox>
 #include <QMetaObject>
 #include <QMetaType>
 #include <QMouseEvent>
@@ -109,6 +110,8 @@ int operationalCompletions = 0;
 std::shared_ptr<const GuiSimulationSnapshot> operationalFirstFrame;
 // The result window and the traction curve that the first completion opens, which stay open through the rerun.
 QList<QPointer<QWidget>> operationalCaseWindows;
+// Whether a message box opened while the window refused a delay baseline in a run without a user.
+bool baselineBoxShown = false;
 
 // True when every head shows what the snapshot holds for it: the display code
 // and failed flag of its state, or unavailable when the snapshot has none.
@@ -1327,6 +1330,19 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 				QCoreApplication::exit(2);
 				return;
 			}
+		// Without a completed run the baseline is refused, and with nobody to answer, the message goes to standard error.
+		QTimer::singleShot(0, &w, [] {
+			if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+				baselineBoxShown = true;
+				box->accept();
+			}
+		});
+		w.m_runController->setDelayBaseline();
+		if (baselineBoxShown) {
+			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: a refused delay baseline opened a message box\n");
+			QCoreApplication::exit(2);
+			return;
+		}
 		QTimer::singleShot(0, &w, [&w]() {
 			if (w.m_snapshot || simulation.takeSimulationSnapshot()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: stale case notification\n");

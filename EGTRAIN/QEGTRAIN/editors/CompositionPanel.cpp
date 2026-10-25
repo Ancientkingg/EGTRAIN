@@ -11,7 +11,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QStringList>
@@ -232,7 +231,7 @@ void CompositionPanel::plotSelectedUnitTraction() {
 	const std::string unitId = m_unitsListWidget->item(unitRow)->text().toStdString();
 	const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), unitId);
 	if (!unit || unit->tractionCurve.empty()) {
-		QMessageBox::information(this, "No Traction Data", "The selected unit has no traction curve to plot.");
+		m_prompts->showInfo(this, "No Traction Data", "The selected unit has no traction curve to plot.");
 		return;
 	}
 	emit tractionPlotRequested(QString::fromStdString(unitId));
@@ -336,7 +335,7 @@ void CompositionPanel::addUnit() {
 		return;
 	SceneModel& model = m_document->mutableModel();
 	if (model.trainUnits.empty()) {
-		QMessageBox::information(this, "Add Rolling Stock Unit", "This case has no rolling stock units.");
+		m_prompts->showInfo(this, "Add Rolling Stock Unit", "This case has no rolling stock units.");
 		return;
 	}
 

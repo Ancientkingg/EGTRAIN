@@ -29,7 +29,6 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QStandardPaths>
 #include <QStatusBar>
@@ -443,13 +442,11 @@ RunController::DelayBaselineState RunController::delayBaselineState(bool results
 void RunController::setDelayBaseline() {
 	const DelayRunSnapshot snapshot = completedDelaySnapshot();
 	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
-		QMessageBox::warning(m_window, "Delay Baseline Unavailable",
-			"Complete a run with no incidents or entrance delays first.");
+		showError("Delay Baseline Unavailable", "Complete a run with no incidents or entrance delays first.");
 		return;
 	}
 	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
-		QMessageBox::warning(m_window, "Delay Baseline Rejected",
-			"The delay baseline must have no incidents and no entrance delays.");
+		showError("Delay Baseline Rejected", "The delay baseline must have no incidents and no entrance delays.");
 		return;
 	}
 	m_delayBaseline = snapshot;

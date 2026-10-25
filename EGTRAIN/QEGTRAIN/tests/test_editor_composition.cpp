@@ -8,13 +8,16 @@
 #include <QLineEdit>
 #include <QList>
 #include <QListWidget>
+#include <QMessageBox>
 #include <QPoint>
 #include <QPushButton>
 #include <QRect>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -71,12 +74,20 @@ public:
 	bool confirmAnswer = false;
 	QString chosenUnit;
 	QStringList offeredUnits;
+	int infoCount = 0;
+	QString infoTitle;
+	QString infoMessage;
 
 	void showError(QWidget*, const QString& title, const QString& message, bool warningIcon = false) override {
 		++errorCount;
 		errorTitle = title;
 		errorMessage = message;
 		errorWarning = warningIcon;
+	}
+	void showInfo(QWidget*, const QString& title, const QString& message) override {
+		++infoCount;
+		infoTitle = title;
+		infoMessage = message;
 	}
 	bool confirm(QWidget*, const QString&, const QString& question) override {
 		++confirmCount;
@@ -108,6 +119,21 @@ struct Events {
 };
 
 using Log = std::vector<std::string>;
+
+// Closes each message box that opens while `action` runs, and returns how many did.
+static int messageBoxesDuring(const std::function<void()>& action) {
+	int shown = 0;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			++shown;
+			box->accept();
+		}
+	});
+	timer.start(0);
+	action();
+	return shown;
+}
 
 static QStringList items(const QListWidget* list) {
 	QStringList result;
@@ -500,6 +526,34 @@ int main(int argc, char** argv) {
 		panel.unitsListWidget()->setCurrentRow(0);
 		ok &= expect(panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) != "inline style",
 			"selecting a unit with a curve hides the warning again");
+	}
+
+	{
+		// the messages go through the prompts, and a run without a user shows none
+		SceneDocument document;
+		CompositionPanel panel;
+		FakePrompts prompts;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		Events events(panel, document);
+		document.replace(compositionScene(), false);
+		panel.unitsListWidget()->setCurrentRow(1);
+		ok &= expect(messageBoxesDuring([&panel] { panel.plotSelectedUnitTraction(); }) == 0 && prompts.infoCount == 1
+				&& prompts.infoTitle == "No Traction Data" && prompts.infoMessage == "The selected unit has no traction curve to plot."
+				&& events.plotted.isEmpty(),
+			"a unit without a traction curve is reported through the prompts and plots nothing");
+		SceneModel bare;
+		bare.compositions = {composition("c1", {})};
+		document.replace(bare, false);
+		ok &= expect(messageBoxesDuring([&panel] { panel.addUnit(); }) == 0 && prompts.infoCount == 2
+				&& prompts.infoTitle == "Add Rolling Stock Unit" && prompts.infoMessage == "This case has no rolling stock units."
+				&& prompts.offeredUnits.isEmpty(),
+			"a case without rolling stock units is reported through the prompts and offers no unit");
+		UserPrompts suppressed([] { return true; });
+		panel.setPrompts(&suppressed);
+		const auto revision = document.revision();
+		ok &= expect(messageBoxesDuring([&panel] { panel.addUnit(); }) == 0 && document.revision() == revision,
+			"a run without a user shows no message and adds no unit");
 	}
 
 	if (!ok)
