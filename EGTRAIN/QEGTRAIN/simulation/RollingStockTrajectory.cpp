@@ -341,7 +341,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			instant_train_power_consumption[time_seconds] = 0;
 			instant_train_tractive_effort[time_seconds] = 0;
 			train_energy_consumption(time_seconds);
-			Eq[time_seconds] = 5;
+			setStepBranch(time_seconds, TrajectoryBranch::BreakdownHold);
 			return;
 		}
 
@@ -470,7 +470,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				instant_train_speed[time_seconds] = candidateSpeed;
 				instant_spatial_position[time_seconds] = candidateHead;
 
-				Eq[time_seconds] = 1;
+				setStepBranch(time_seconds, TrajectoryBranch::Accelerate);
 				instant_train_tractive_effort[time_seconds] = tractiveEffort(instant_train_speed[time_seconds - 1]);
 				instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
 				train_energy_consumption(time_seconds);
@@ -495,7 +495,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					brakingStep(time_seconds, As, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data(),
 						run_->infra.routes[indexOfRoute].N_Block_Sections);
 
-				if (Eq[time_seconds] == 54) {
+				if (Eq[time_seconds] == static_cast<int>(TrajectoryBranch::FullBraking)) {
 					instant_train_tractive_effort[time_seconds] =
 						-(brakingEffort((time_seconds - temp - 1) * timestep)
 							+ gradient_resistances(As.gradient)
@@ -506,7 +506,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 						+ total_train_resistances(speed, As.gradient, As.curvature);
 				}
 				instant_train_power_consumption[time_seconds] =
-					instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
+					instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
 				train_energy_consumption(time_seconds);
 				// A fallback from rest must not restart an active station's dwell clock.
 				if (speed > 0)
@@ -523,7 +523,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				const double cruisingEffort = total_train_resistances(speed, As.gradient, As.curvature);
 				instant_train_tractive_effort[time_seconds] = cruisingEffort;
 				instant_train_power_consumption[time_seconds] = cruisingEffort * speed;
-				Eq[time_seconds] = 12;
+				setStepBranch(time_seconds, TrajectoryBranch::Cruise);
 				train_energy_consumption(time_seconds);
 				temp = time_seconds;
 				stop = time_seconds;
@@ -634,7 +634,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 						temp = time_seconds;
 						stop = time_seconds;
 						counter = 0;
-						Eq[time_seconds] = 1002;
+						setStepBranch(time_seconds, TrajectoryBranch::FollowLeader);
 					}
 				}
 			}
@@ -669,7 +669,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				// Stopping at a station for an estabilished dwell time
 				if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && stationAtEndOfAs) {
 					this->StoppedForServiceStop = true; // Stating that the train is stopping at a station to perform a service stop
-					Eq[time_seconds] = 5;
+					setStepBranch(time_seconds, TrajectoryBranch::ServiceStop);
 					double stoptime = 0;
 					double dep_time = 0;
 					counter = 0;
@@ -739,14 +739,14 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 
 					if ((Cond_To_Stop_Train == 0) && (authorityHold == 0)) { // the checkpoint Node can coincide with an ETCS3 EoA, that is why the train can depart from this Node only after having verified that the checkpoint does not coincide with an ETCS3 EoA or that the EoA has been deleted
-						Eq[time_seconds] = 532;
+						setStepBranch(time_seconds, TrajectoryBranch::LeaveTrainOrder);
 						instant_train_speed[time_seconds] = 0.0001;
 						instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
 						BrakingForEoA = false; // setting back to false BrakingForEoa since the train starts to move again
 					}
 					// otherwise it has to be stopped
 					else {
-						Eq[time_seconds] = 534;
+						setStepBranch(time_seconds, TrajectoryBranch::HoldAtTrainOrder);
 						instant_train_speed[time_seconds] = 0;
 						instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 					}
@@ -758,7 +758,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 				// Stopping at a Red Signal
 				else if (As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1] < 4) {
-					Eq[time_seconds] = 6;
+					setStepBranch(time_seconds, TrajectoryBranch::AtSignal);
 
 					// also a signal can coincide with an ETCS3 EoA, that is why a train must stop at the signal also if this not red but and ETCS 3 EoA exists
 					if ((Bs.state == SignalState::Red) || (authorityHold == 1)) {
@@ -778,7 +778,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				else if (this->IsTrainStoppedForEoA == 1) {
 					instant_train_speed[time_seconds] = 0;
 					instant_spatial_position[time_seconds] = head;
-					Eq[time_seconds] = 323;
+					setStepBranch(time_seconds, TrajectoryBranch::HoldAtAuthority);
 					instant_train_power_consumption[time_seconds] = 0;
 					instant_train_tractive_effort[time_seconds] = 0;
 					train_energy_consumption(time_seconds);
@@ -788,7 +788,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				// if the speed limit on the Arc is 0: this case happens only when the BACC is implemented
 				if (V_lim == 0) {
 					counter = 0;
-					Eq[time_seconds] = 958;
+					setStepBranch(time_seconds, TrajectoryBranch::ZeroSpeedLimit);
 					instant_train_speed[time_seconds] = 0;
 					instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
 					instant_train_power_consumption[time_seconds] = 0;

@@ -179,6 +179,26 @@ inline bool isPastStopHoldback(double position, double stoppingPoint) {
 	return position > stoppingPoint - kStopHoldbackM + kStopHoldbackToleranceM;
 }
 
+/// The branch of Train::trajectoryComputationIncludingMovingBlock, or of the braking step that it calls, that produced the sample
+/// of a step. Train::Eq holds the number of each value, and the numbers do not change.
+enum class TrajectoryBranch : int {
+	None = 0,				///< No branch: a step before the train enters, and from End_Time + 2 on.
+	Accelerate = 1,			///< Accelerates towards the speed limit.
+	BreakdownHold = 5,		///< Stands still for a breakdown incident.
+	ServiceStop = 5,		///< Stands at a service stop, or leaves it; the same number as BreakdownHold.
+	AtSignal = 6,			///< Stands at the end of an arc: held by a red signal or an end of authority there, or leaving.
+	Cruise = 12,			///< Holds its speed at the speed limit.
+	FollowBrakingPlan = 52, ///< Takes the next state of the stored braking plan.
+	ReplanBraking = 53,		///< Brakes on a plan made in this step on the braking curve that it already had.
+	FullBraking = 54,		///< Brakes with the full braking force.
+	NewBrakingCurve = 55,	///< Brakes on a plan made in this step on a new braking curve, for a new target or a first braking step.
+	HoldAtAuthority = 323,	///< Stands at an end of authority.
+	LeaveTrainOrder = 532,	///< Leaves a node with a train order.
+	HoldAtTrainOrder = 534, ///< Stands at a node with a train order.
+	ZeroSpeedLimit = 958,	///< Stands on an arc whose speed limit is 0.
+	FollowLeader = 1002,	///< Follows the leader of its virtual coupling.
+};
+
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -345,11 +365,11 @@ public:
 	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
 	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
 	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
-	/// Label of the branch of the step that produced each sample: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell,
-	/// 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and
-	/// 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader; 0 on other steps before entry and from
-	/// End_Time + 2 on.
+	/// The branch of the step that produced each sample, as the number of its TrajectoryBranch; 0 (TrajectoryBranch::None) on other
+	/// steps before entry and from End_Time + 2 on.
 	std::vector<int> Eq;
+	/// Sets Eq[time_seconds] to the number of branch.
+	void setStepBranch(int time_seconds, TrajectoryBranch branch) { Eq[time_seconds] = static_cast<int>(branch); }
 	int RunStartTime;			///< Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
 	int N_BlockSections;		///< Number of entries of BlockTime.
