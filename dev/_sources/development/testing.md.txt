@@ -203,9 +203,11 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
   the slots. A `gui` test outside CTest needs `QT_QPA_PLATFORM=offscreen`.
 - Qt Test rejects arguments that it does not know. A test reads its paths from compile definitions of its
   registration, such as `EGTRAIN_TEST_SOURCE_DIR`, and a mode such as `EGTRAIN_UPDATE_EXPECTATIONS=1` from the
-  environment (`tests/test_liveframe.cpp`).
+  environment (`tests/test_liveframe.cpp`). A test that starts itself as a child keeps a `main` of its own that
+  handles its mode arguments before it calls `QTest::qExec` (`tests/test_recoverystore.cpp`).
 - A Qt Test program that skips (`QSKIP`) exits with 0, so a test with `SKIP_RETURN_CODE` keeps a `main` of its own
-  that returns the skip code before it calls `QTest::qExec`.
+  that returns the skip code before it calls `QTest::qExec`. So does a test that must set the environment before the
+  application object exists (`tests/test_consolestream.cpp`).
 - Files that are not converted yet keep their local `expect` or `check` helper ([Tests](coding-guidelines.md#tests)).
 
 ### Test labels

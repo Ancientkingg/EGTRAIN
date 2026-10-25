@@ -114,15 +114,20 @@ egtrain_add_test(test_updatepreparation
 # Stand-ins for an installed application, which the update helper test installs and relaunches.
 add_executable(egtrain_update_probe ${SRC_DIR}/tests/update_probe.cpp)
 egtrain_target_warnings(egtrain_update_probe STRICT)
-set(UPDATEHELPER_TEST_ARGS $<TARGET_FILE:egtrain_update_helper> $<TARGET_FILE:egtrain_update_probe>)
+set(UPDATEHELPER_TEST_DEFINITIONS
+	EGTRAIN_UPDATE_HELPER="$<TARGET_FILE:egtrain_update_helper>"
+	EGTRAIN_UPDATE_PROBE="$<TARGET_FILE:egtrain_update_probe>")
+set(UPDATEHELPER_TEST_PROGRAMS egtrain_update_helper egtrain_update_probe)
 if(WIN32)
 	add_library(egtrain_update_probe_dll SHARED ${SRC_DIR}/tests/update_probe_dll.cpp)
 	add_executable(egtrain_update_dllprobe ${SRC_DIR}/tests/update_dllprobe.cpp)
 	target_link_libraries(egtrain_update_dllprobe PRIVATE egtrain_update_probe_dll)
 	egtrain_target_warnings(egtrain_update_probe_dll STRICT)
 	egtrain_target_warnings(egtrain_update_dllprobe STRICT)
-	list(APPEND UPDATEHELPER_TEST_ARGS
-		$<TARGET_FILE:egtrain_update_dllprobe> $<TARGET_FILE:egtrain_update_probe_dll>)
+	list(APPEND UPDATEHELPER_TEST_DEFINITIONS
+		EGTRAIN_UPDATE_DLLPROBE="$<TARGET_FILE:egtrain_update_dllprobe>"
+		EGTRAIN_UPDATE_PROBE_DLL="$<TARGET_FILE:egtrain_update_probe_dll>")
+	list(APPEND UPDATEHELPER_TEST_PROGRAMS egtrain_update_dllprobe egtrain_update_probe_dll)
 endif()
 if(MSVC)
 	# Static runtime like the helper, so a copied probe needs no runtime DLLs.
@@ -136,9 +141,10 @@ endif()
 egtrain_add_test(test_updatehelper
 	SOURCES ${SRC_DIR}/tests/test_updatehelper.cpp
 	LIBS egtrain_update Qt::Core
-	COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS}
+	DEFINITIONS ${UPDATEHELPER_TEST_DEFINITIONS}
 	LABELS integration
 	TIMEOUT 120)
+add_dependencies(test_updatehelper ${UPDATEHELPER_TEST_PROGRAMS})
 
 # One real HTTPS request to GitHub through the update transport. The package job runs the program from a
 # copy of the package; the test test_updatetransport_https below runs it from the build.
@@ -248,10 +254,10 @@ endif()
 egtrain_add_test(test_selfupdater
 	SOURCES ${SRC_DIR}/tests/test_selfupdater.cpp ${SRC_DIR}/update/SelfUpdater.cpp
 	LIBS egtrain_update Qt::Core Qt::Network
-	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1
-	COMMAND test_selfupdater $<TARGET_FILE:egtrain_update_probe>
+	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1 EGTRAIN_UPDATE_PROBE="$<TARGET_FILE:egtrain_update_probe>"
 	LABELS integration
 	TIMEOUT 120)
+add_dependencies(test_selfupdater egtrain_update_probe)
 
 egtrain_add_test(test_updatestaging
 	SOURCES ${SRC_DIR}/tests/test_updatestaging.cpp
