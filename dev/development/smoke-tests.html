@@ -408,7 +408,10 @@ UndefinedBehaviorSanitizer, each with its cause and the change that removes it. 
 server, and <code class="docutils literal notranslate"><span class="pre">test_simulationworker</span></code> for the simulation worker. Qt, libzmq and the C library are not
 instrumented, so <code class="docutils literal notranslate"><span class="pre">TSAN_OPTIONS</span></code> ignores the accesses they make themselves
 (<code class="docutils literal notranslate"><span class="pre">ignore_noninstrumented_modules=1</span></code>), and <code class="docutils literal notranslate"><span class="pre">tools/e2e/tsan_suppressions.txt</span></code> lists the known reports,
-each with its cause. A race in the code of the application is fixed, not listed.</p>
+each with its cause (none at present). A race in the code of the application is fixed, not listed.
+<code class="docutils literal notranslate"><span class="pre">QSemaphore</span></code> waits inside Qt, so the sanitizer does not see that a value written before <code class="docutils literal notranslate"><span class="pre">release()</span></code> is
+read after the wait; a test hands values between threads through a <code class="docutils literal notranslate"><span class="pre">std::mutex</span></code>
+(<code class="docutils literal notranslate"><span class="pre">tests/test_telemetrysender.cpp</span></code>).</p>
 <p>To run the thread sanitizer tests yourself, in a build directory of its own:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-tsan<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DCMAKE_EXE_LINKER_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DEGTRAIN_TEST_TIMEOUT_SCALE<span class="o">=</span><span class="m">10</span>
