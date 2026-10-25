@@ -5,6 +5,7 @@
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -1738,9 +1739,9 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 		}
 	}
 
+	// The builder refuses a route of more than RuntimeLimits::kNativeMaxRouteBlocks sections before it creates the routes.
+	assert(BlockList.size() <= RuntimeLimits::kNativeMaxRouteBlocks);
 	N_Block_Sections = (int)BlockList.size();
-	if (N_Block_Sections > 600)
-		N_Block_Sections = 600;
 	if (N_Block_Sections == 0)
 		return;
 	// The reversed list below has the same length, so the vector keeps N_Block_Sections elements.
@@ -1806,8 +1807,6 @@ void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::s
 		BlockList.clear();
 		BlockList = TEMPBlockList;
 		N_Block_Sections = (int)BlockList.size();
-		if (N_Block_Sections > 600)
-			N_Block_Sections = 600;
 
 		list<Section>::iterator it = BlockList.begin();
 		if (BlockList.empty() != 1) {

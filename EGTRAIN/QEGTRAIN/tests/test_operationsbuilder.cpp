@@ -3567,21 +3567,6 @@ int main() {
 				&& platform->width == 2.5,
 			"absent platform geometry keeps effective defaults");
 	}
-	const std::string geometryPreviousName = initial_variables.name;
-	const int geometryPreviousRegions = defaultRun().numTrains;
-	const double previousPlatformLength = defaultRun().platforms.empty()
-		? -1.0
-		: defaultRun().platforms.front().length;
-	SceneModel invalidGeometry = completeScene();
-	invalidGeometry.stations[0].platforms[0].hasLength = true;
-	invalidGeometry.stations[0].platforms[0].lengthM = std::numeric_limits<double>::max();
-	const auto invalidGeometryDiagnostics = buildOperationsFromScene(defaultRun(), invalidGeometry, "scenario.selected");
-	ok &= expect(hasErrors(invalidGeometryDiagnostics)
-			&& hasCode(invalidGeometryDiagnostics, "scene.native.platform.capacity")
-			&& defaultRun().numTrains == geometryPreviousRegions
-			&& initial_variables.name == geometryPreviousName
-			&& (!defaultRun().platforms.empty() && defaultRun().platforms.front().length == previousPlatformLength),
-		"unsafe platform capacity is rejected before native state publication");
 	ok &= expect(defaultRun().passengers.size() == 1, "passenger journeys are built without filesystem input");
 	ok &= expect(!defaultRun().passengers.empty() && defaultRun().passengerIndex.covers(defaultRun().passengers)
 			&& defaultRun().passengerIndex.find(defaultRun().passengers.front().ID) == std::vector<Passenger*>({&defaultRun().passengers.front()})
@@ -3589,7 +3574,7 @@ int main() {
 			&& defaultRun().platformIndex.find(defaultRun().platforms.front().StationID,
 				   defaultRun().platforms.front().ID)
 				== &defaultRun().platforms.front(),
-		"the last accepted build is indexed, also after a rejected one");
+		"the last accepted build is indexed");
 	if (!defaultRun().passengers.empty() && !defaultRun().passengers.front().Journeys.empty()) {
 		const Journey& journey = defaultRun().passengers.front().Journeys.front();
 		ok &= expect(journey.N_Trips == 2 && std::isfinite(journey.Actual_Planned_Departure_Time)

@@ -132,11 +132,12 @@ enum class SignalState : unsigned char {
 /// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
 class Section {
 public:
-	std::string ID;							  ///< ID of the section.
-	int trackLineId;						  ///< Slot of the track the section lies on; -1 for a section derived at a switch.
-	int FirstConnectedTrackLineID;			  ///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
-	int SecondConnectedTrackLineID;			  ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
-	Arc arcs_in_signalling_block_section[20]; ///< Arcs of the section, total_arcs of them; at most 20 (RuntimeLimits::kNativeMaxSectionArcs).
+	std::string ID;					///< ID of the section.
+	int trackLineId;				///< Slot of the track the section lies on; -1 for a section derived at a switch.
+	int FirstConnectedTrackLineID;	///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	int SecondConnectedTrackLineID; ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	/// Arcs of the section, total_arcs of them.
+	Arc arcs_in_signalling_block_section[RuntimeLimits::kNativeMaxSectionArcs];
 	/// Start node.
 	Node start_node, end_node; ///< End node.
 	/// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
@@ -161,9 +162,8 @@ public:
 	bool Occupied;							   ///< Block section occupied by a train
 	bool Occup_By_Train;					   ///< Set to false by the constructor and never given another value.
 	bool withSwitchDiv;						   ///< Block section contains a diverging switch
-	/// IDs of the sections that depend on this one, which are occupied and released with it: at most 10
-	/// (RuntimeLimits::kNativeMaxDependencies).
-	std::string IDConnectedBS[10];
+	/// IDs of the sections that depend on this one, which are occupied and released with it.
+	std::string IDConnectedBS[RuntimeLimits::kNativeMaxDependencies];
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
@@ -268,7 +268,8 @@ void setAllConnections(SimulationRun& run);
 /// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
 void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
 
-/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10).
+/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most
+/// RuntimeLimits::kNativeMaxDependencies).
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
 /// True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.

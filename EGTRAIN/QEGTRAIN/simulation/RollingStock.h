@@ -41,7 +41,8 @@ struct SimulationRun;
 
 /// Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of
 /// the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of
-/// DispatchController::prepareScene. The run's random generator is seeded from initial_variables.randomSeed first. When the
+/// DispatchController::prepareScene. The scene must pass validateRunnableScene: the builder does not repeat its checks of
+/// the platforms. The run's random generator is seeded from initial_variables.randomSeed first. When the
 /// diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables
 /// takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene.
 std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,

@@ -286,34 +286,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 	const auto serviceById = nativeIndexById(scene.services, diagnostics, "services.json", "service");
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
 		[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
-	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
-		const SceneStation& station = scene.stations[stationIndex];
-		for (std::size_t platformIndex = 0; platformIndex < station.platforms.size(); ++platformIndex) {
-			const ScenePlatform& platform = station.platforms[platformIndex];
-			const std::string path = "stations[" + std::to_string(stationIndex) + "].platforms["
-				+ std::to_string(platformIndex) + "]";
-			if (platform.hasLength && (!nativeFinite(platform.lengthM) || platform.lengthM <= 0.0))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.length", "Platform length_m must be positive and finite",
-					"stations.json", "platform", platform.id, path + ".length_m", {},
-					"Use a platform length greater than 0 metres");
-			if (platform.hasWidth && (!nativeFinite(platform.widthM) || platform.widthM <= 0.0))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.width", "Platform width_m must be positive and finite",
-					"stations.json", "platform", platform.id, path + ".width_m", {},
-					"Use a platform width greater than 0 metres");
-			const double effectiveLength = platform.hasLength ? platform.lengthM : 100.0;
-			const double effectiveWidth = platform.hasWidth ? platform.widthM : 2.5;
-			const double capacity = effectiveLength * effectiveWidth
-				/ (3.14159 * std::pow(0.8, 2)) * 0.8;
-			if (nativeFinite(effectiveLength) && effectiveLength > 0.0
-				&& nativeFinite(effectiveWidth) && effectiveWidth > 0.0
-				&& (!nativeFinite(capacity) || capacity < 1.0
-					|| capacity > static_cast<double>(INT_MAX)))
-				addNativeDiagnostic(diagnostics, "scene.native.platform.capacity",
-					"Platform geometry produces an unsupported passenger capacity", "stations.json",
-					"platform", platform.id, path, {},
-					"Use dimensions that produce at least one passenger and fit the runtime capacity field");
-		}
-	}
 	if (scene.services.empty())
 		addNativeDiagnostic(diagnostics, "scene.native.services.none", "A case needs at least one service to run",
 			"services.json", "service", "", "services");
@@ -983,12 +955,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 		}
 		platform.length = sourcePlatform != nullptr && sourcePlatform->hasLength
 			? sourcePlatform->lengthM
-			: 100.0;
+			: kDefaultPlatformLengthM;
 		platform.width = sourcePlatform != nullptr && sourcePlatform->hasWidth
 			? sourcePlatform->widthM
-			: 2.5;
-		platform.Max_Passenger_Volume = static_cast<int>((platform.length * platform.width)
-			/ (3.14159 * std::pow(0.8, 2)) * 0.8);
+			: kDefaultPlatformWidthM;
+		platform.Max_Passenger_Volume = static_cast<int>(scenePlatformCapacity(platform.length, platform.width));
 		platform.Current_N_Passengers = 0;
 		platform.Current_List_Pax_On_Platform.clear();
 		platform.List_Trains_Stopping_At_Platform.clear();

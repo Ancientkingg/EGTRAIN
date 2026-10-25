@@ -13,6 +13,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include "scene/RuntimeLimits.h"
 #include "simulation/NumberGenerator.h"
 #include <vector>
 #include "util/portability.h"
@@ -82,9 +83,10 @@ public:
 	int StepStopped;		  ///< Number of steps the train has stood at this stop; 0 before it arrives.
 	bool virtualCouplingNode; ///< True on a braking target node where the train can couple virtually to the train ahead.
 	int indexOrderList;		  ///< Not used by the simulation; -1 by default.
-	/// Track slot of the track at the other end of each connection at this node. Up to 6 (RuntimeLimits::kNativeMaxNodeConnections).
-	int connectIdBlockSet[6];
-	double connectXNode[6];					  ///< X in kilometres of the node at the other end of each connection.
+	/// Track slot of the track at the other end of each connection at this node.
+	int connectIdBlockSet[RuntimeLimits::kNativeMaxNodeConnections];
+	/// X in kilometres of the node at the other end of each connection.
+	double connectXNode[RuntimeLimits::kNativeMaxNodeConnections];
 	int numConnections;						  ///< Number of connections at this node, the used entries of the two arrays above.
 	std::list<std::string> IDConnectedBlocks; ///< IDs of the block sections that leave this node through a connection.
 	/// Speed in m/s to reach at this node when it is a braking target: the speedInBraking of the arc that ends here.
@@ -174,10 +176,13 @@ public:
 	BlockSet();
 };
 
-/// The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.
-inline constexpr int kMaxTrackLines = 268;
-inline constexpr int kMaxConnections = 708; ///< See kMaxTrackLines.
-inline constexpr int kMaxStations = 95;		///< See kMaxTrackLines.
+/// The number of elements of the arrays of tracks, connections and stations, from RuntimeLimits. The builder rejects a
+/// scene that needs more.
+inline constexpr int kMaxTrackLines = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
+/// See kMaxTrackLines.
+inline constexpr int kMaxConnections = static_cast<int>(RuntimeLimits::kNativeMaxConnections);
+/// See kMaxTrackLines.
+inline constexpr int kMaxStations = static_cast<int>(RuntimeLimits::kNativeMaxStations);
 
 /// A connection between two tracks, such as a switch.
 class Connections {

@@ -34,7 +34,7 @@ Node::Node() {
 	latitude = longitude = graphX = graphY = 0;
 	virtualSignal = false;
 	stationPlatformId = "None";
-	for (int i = 0; i < 6; i++) {
+	for (std::size_t i = 0; i < RuntimeLimits::kNativeMaxNodeConnections; i++) {
 		connectIdBlockSet[i] = 0;
 		connectXNode[i] = 0;
 	}
