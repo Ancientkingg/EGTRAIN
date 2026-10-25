@@ -1106,6 +1106,11 @@ if(APPLE)
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh
 		LABELS integration
 		TIMEOUT 120)
+	# Runs the steps of the macOS package job on a fixture bundle. It needs cc, codesign and lipo, not the built application.
+	egtrain_add_test(test_package_macos
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_macos.sh
+		LABELS integration
+		TIMEOUT 120)
 endif()
 egtrain_add_test(test_release_version
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py

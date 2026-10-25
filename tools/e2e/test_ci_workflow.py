@@ -96,7 +96,9 @@ def workflow_text(name: str) -> str:
 
 
 def release_pipeline_text() -> str:
-    return workflow_text("release.yml") + "\n" + workflow_text("package.yml")
+    """The release and package workflows and the macOS packaging script that the package workflow runs."""
+    macos = (ROOT / "tools/release/package_macos.sh").read_text(encoding="utf-8")
+    return workflow_text("release.yml") + "\n" + workflow_text("package.yml") + "\n" + macos
 
 
 def trigger_block(text: str) -> str:
@@ -136,6 +138,12 @@ def configure_preset(presets: list[dict], name: str) -> dict:
     resolved["cacheVariables"].update(preset.get("cacheVariables", {}))
     resolved.update({key: value for key, value in preset.items() if key != "cacheVariables"})
     return resolved
+
+
+def script_function(text: str, name: str) -> str:
+    """The definition of a function of a shell script, from its first line to the closing brace."""
+    match = re.search(rf"^{name}\(\) {{\n.*?^}}\n", text, re.MULTILINE | re.DOTALL)
+    return match.group(0) if match else ""
 
 
 def test_registration(cmake: str, name: str) -> str:
@@ -663,7 +671,8 @@ def main() -> None:
     production_metadata = production_metadata.split("          fi", 1)[0]
     if "prerelease=false" not in production_metadata or "make_latest=true" not in production_metadata:
         missing.append("production releases offered by the stable updater")
-    macos_package_verification = step_block(job_block(package_only, "package-macos"), "Verify the packaged app")
+    macos_script = (ROOT / "tools/release/package_macos.sh").read_text(encoding="utf-8")
+    macos_package_verification = script_function(macos_script, "verify_package")
     required_macos_validation = (
         "set +e",
         'validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1)"',
@@ -676,31 +685,23 @@ def main() -> None:
         or '"$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1 | grep' in macos_package_verification
     ):
         missing.append("macOS scene validation status handling")
-    required_macos_package_checks = (
-        'APP="$PWD/build/QEGTRAIN.app"',
-        'test -x "$APP/Contents/MacOS/scene_tool"',
-        'test -d "$APP/Contents/Resources/Scenes/Paimpol"',
-        'RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"',
-        'rm -rf "$RUN_DIR"',
-        'mkdir -p "$RUN_DIR"',
-        'cd "$RUN_DIR"',
-        'QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \\',
-        '"$APP/Contents/MacOS/QEGTRAIN" --scene "$APP/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1',
-        'run_status=$?',
-        'if [ "$run_status" -ne 0 ]; then',
-        'cat "$RUN_DIR/qegtrain.log"',
-        'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
-        'test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"',
-    )
-    if any(check not in macos_package_verification for check in required_macos_package_checks):
-        missing.append("macOS packaged Paimpol headless smoke")
-    app_path_index = macos_package_verification.find('APP="$PWD/build/QEGTRAIN.app"')
-    run_dir_index = macos_package_verification.find('cd "$RUN_DIR"')
-    if (
-        "QT_QPA_PLATFORM=offscreen" in macos_package_verification
-        or (app_path_index >= 0 and run_dir_index >= 0 and app_path_index > run_dir_index)
-    ):
-        missing.append("macOS packaged app path resolution")
+    # Each step that fills, trims or checks the app is one call of the packaging script.
+    macos_script_steps = {
+        "Bundle Qt and dependencies into the app": "bundle",
+        "Add scene_tool and the licence files to the app": "add-files",
+        "Remove unused Qt modules and plugins": "trim",
+        "Keep only the arm64 code of the Qt 6 libraries": "thin",
+        "Remove build machine paths": "strip-paths",
+        "Set the minimum macOS version": "min-version",
+        "Verify the app is self-contained": "verify-contents",
+        "Verify the signature": "verify-signature",
+        "Verify the packaged app": "verify-package",
+    }
+    for name, step in macos_script_steps.items():
+        if not step_block(job_block(package_only, "package-macos"), name).endswith(
+            f"        run: bash tools/release/package_macos.sh {step} build/QEGTRAIN.app\n"
+        ):
+            missing.append(f"macOS package step '{name}' that runs package_macos.sh {step}")
     scene_names = (
         "Netherlands",
         "Paimpol",
@@ -1621,12 +1622,12 @@ def main() -> None:
     macos_positions = [macos_step_names.index(name) if name in macos_step_names else -1 for name in macos_steps]
     if -1 in macos_positions or macos_positions != sorted(macos_positions):
         missing.append("macOS package steps in the order " + ", ".join(macos_steps))
-    removal_step = step_block(macos_job, "Remove unused Qt modules and plugins")
-    trim_start = removal_step.find('          report_size "before trimming"\n')
-    trim_end = removal_step.find('          report_size "after trimming"\n')
+    removal_step = script_function(macos_script, "trim")
+    trim_start = removal_step.find('\treport_size "before trimming"\n')
+    trim_end = removal_step.find('\treport_size "after trimming"\n')
     if (
-        "          report_size() {\n" not in removal_step
-        or '            echo "macOS app $1: $files files, $bytes bytes" | tee -a "$GITHUB_STEP_SUMMARY"\n' not in removal_step
+        '\tsummary "macOS app $1: $files files, $bytes bytes"\n' not in script_function(macos_script, "report_size")
+        or '\t\techo "$1" >> "$GITHUB_STEP_SUMMARY"\n' not in script_function(macos_script, "summary")
         or not 0 <= trim_start < trim_end
     ):
         missing.append("macOS package size lines in the job summary before and after the removal")
@@ -1652,20 +1653,20 @@ def main() -> None:
     removal_commands = [line for line in removal_step.splitlines() if not line.lstrip().startswith("#")]
     if any("QtDBus" in line for line in removal_commands):
         missing.append("macOS package step that keeps QtDBus")
-    macos_verify = step_block(macos_job, "Verify the app is self-contained")
+    macos_verify = script_function(macos_script, "verify_contents")
     required_plugins = (
-        "          for plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do\n"
-        '            test -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }\n'
-        "          done\n"
+        "\tfor plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do\n"
+        '\t\ttest -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }\n'
+        "\tdone\n"
     )
     forbidden_macos_files = (
-        "          for name in virtualkeyboard platforminputcontexts 'QtVirtualKeyboard*' 'QtQuick*' 'QtQml*' 'libqwebp*' 'libqtiff*'"
+        "\tfor name in virtualkeyboard platforminputcontexts 'QtVirtualKeyboard*' 'QtQuick*' 'QtQml*' 'libqwebp*' 'libqtiff*'"
         " 'libwebp*' 'libtiff*'; do\n"
-        '            found="$(find "$APP" -name "$name")"\n'
-        '            if [ -n "$found" ]; then echo "ERROR: unexpected $name in the app:"; echo "$found"; exit 1; fi\n'
-        "          done\n"
+        '\t\tfound="$(find "$APP" -name "$name")"\n'
+        '\t\tif [ -n "$found" ]; then echo "ERROR: unexpected $name in the app:"; echo "$found"; exit 1; fi\n'
+        "\tdone\n"
     )
-    macos_verified = macos_verify.find('          echo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"\n')
+    macos_verified = macos_verify.find('\techo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"\n')
     if macos_verified < 0:
         missing.append("macOS package check that ends with a message that names the files it forbids")
     if required_plugins not in macos_verify or not 0 <= macos_verify.find(required_plugins) < macos_verified:
@@ -1675,9 +1676,8 @@ def main() -> None:
     # The build machine paths that macdeployqt leaves go before the signature, and the check fails on one in any Mach-O file.
     if (
         step_block(macos_job, "Test the build path script").strip().splitlines()[-1].strip() != "run: python3 tools/release/test_macos_build_paths.py"
-        or step_block(macos_job, "Remove build machine paths").strip().splitlines()[-1].strip()
-        != "run: python3 tools/release/macos_build_paths.py fix build/QEGTRAIN.app"
-        or '          python3 tools/release/macos_build_paths.py check "$APP"\n' not in macos_verify
+        or '\tpython3 "$ROOT/tools/release/macos_build_paths.py" fix "$APP"\n' not in script_function(macos_script, "strip_paths")
+        or '\tpython3 "$ROOT/tools/release/macos_build_paths.py" check "$APP"\n' not in macos_verify
         or "/opt/homebrew|/usr/local/opt" in macos_verify
     ):
         missing.append("macOS package step that removes build machine paths before the signature and a check that fails on one in any Mach-O file")
@@ -1694,15 +1694,15 @@ def main() -> None:
         missing.append("macOS package start of a copy under RUNNER_TEMP with Python set up")
     # scene_tool and the licence files go into the app before the signature, which seals them, and not into a folder beside it. The
     # app is built for macOS 26 and says so in its property list, in the same step order.
-    add_step = step_block(macos_job, "Add scene_tool and the licence files to the app")
+    add_step = script_function(macos_script, "add_files")
     if (
-        '          cp build/scene_tool "$APP/Contents/MacOS/scene_tool"\n' not in add_step
-        or '          cp LICENSE THIRD_PARTY_NOTICES.md "$APP/Contents/Resources/"\n' not in add_step
+        '\tcp "$BUILD/scene_tool" "$APP/Contents/MacOS/scene_tool"\n' not in add_step
+        or '\tcp "$ROOT/LICENSE" "$ROOT/THIRD_PARTY_NOTICES.md" "$APP/Contents/Resources/"\n' not in add_step
     ):
         missing.append("macOS package step that copies scene_tool and the licence files into the app")
     if "          -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0\n" not in step_block(macos_job, "Configure"):
         missing.append("macOS package configure for the deployment target macOS 26")
-    minimum_step = step_block(macos_job, "Set the minimum macOS version")
+    minimum_step = script_function(macos_script, "min_version")
     if (
         "otool -l \"$APP/Contents/MacOS/QEGTRAIN\"" not in minimum_step
         or 'PlistBuddy -c "Add :LSMinimumSystemVersion string $minimum" "$APP/Contents/Info.plist"\n' not in minimum_step
@@ -1808,11 +1808,11 @@ def main() -> None:
         or "--deep --sign" in package_only
     ):
         missing.append("macOS app signed by the script alone, with the identity from the environment of the import step and no codesign call in the workflow but the one for the disk image")
-    signature_step = step_block(macos_job, "Verify the signature")
+    signature_step = script_function(macos_script, "verify_signature")
     if any(
         part not in signature_step
         for part in (
-            'details="$(codesign -dvv build/QEGTRAIN.app 2>&1)"\n',
+            'details="$(codesign -dvv "$APP" 2>&1)"\n',
             "expect '^Authority=Developer ID Application: '",
             "expect '^TeamIdentifier=[A-Z0-9]{10}$'",
             "expect '^CodeDirectory .*flags=.*runtime'",
@@ -2038,12 +2038,12 @@ def main() -> None:
     if re.findall(r"^    runs-on: (.+)$", linux_job, re.MULTILINE) != ["ubuntu-24.04"]:
         missing.append("Linux package job on ubuntu-24.04, the oldest Ubuntu that the AppImage supports")
     # Every package job fails when the licence, the third-party notices or the manual are missing from its package.
-    for job, step in (
-        ("package-macos", "Verify the packaged app"),
-        ("package-windows", "Verify the package is complete"),
-        ("package-linux", "Verify AppImage contents"),
+    for job, check in (
+        ("package-macos", macos_package_verification),
+        ("package-windows", step_block(job_block(package_only, "package-windows"), "Verify the package is complete")),
+        ("package-linux", step_block(job_block(package_only, "package-linux"), "Verify AppImage contents")),
     ):
-        if any(name not in step_block(job_block(package_only, job), step) for name in ("LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch")):
+        if any(name not in check for name in ("LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch")):
             missing.append(f"{job} check that the package holds LICENSE, THIRD_PARTY_NOTICES.md and EGTRAIN.qch")
     if package_only.count("tools/release/package_start_smoke.py") != 4:
         missing.append("package start script in the three package jobs and for the portable archive")

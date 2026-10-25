@@ -94,6 +94,8 @@ scripts that build, sign and check the release packages.
   the app, runs `scene_tool` on the Paimpol scene of the app without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
+  The steps that fill, trim and check the app call `tools/release/package_macos.sh` (see
+  [macOS packaging script](#macos-packaging-script)).
   In a push to `production` or a `v*` tag it then notarizes and staples the app
   when the environment holds notarization credentials (see
   [macOS notarization script](#macos-notarization-script)). It builds
@@ -405,6 +407,51 @@ message for a missing tool, and the command lines, the link, the staged
 for `ditto` and `hdiutil`, and that the committed layout file names the app and
 the link. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
+
+### macOS packaging script
+
+`tools/release/package_macos.sh <step> <app>` runs one step of the macOS package job on the app in the build folder,
+`build/QEGTRAIN.app` in the job. Each step of the job is one call:
+
+| Step | Job step | What it does |
+| --- | --- | --- |
+| `bundle` | Bundle Qt and dependencies into the app | Runs `macdeployqt` from `$QT_ROOT_DIR` on the app and copies `egtrain_update_helper` of the build folder into `Contents/MacOS`. A Homebrew library can name a dependency as `@rpath/<name>`, which `macdeployqt` does not copy: the step copies it from the Homebrew prefix and points the reference at the copy, until nothing is missing. |
+| `add-files` | Add scene_tool and the licence files to the app | Copies `scene_tool` of the build folder into `Contents/MacOS`, and `LICENSE` and `THIRD_PARTY_NOTICES.md` into `Contents/Resources`. |
+| `trim` | Remove unused Qt modules and plugins | Removes the virtual keyboard and input context plugins, the Quick and QML frameworks, the WebP and TIFF plugins with their libraries and the database drivers other than SQLite, and prints the number of files and bytes of the app before and after. |
+| `thin` | Keep only the arm64 code of the Qt 6 libraries | Keeps the arm64 code of every universal file. |
+| `strip-paths` | Remove build machine paths | Runs `tools/release/macos_build_paths.py fix`. |
+| `min-version` | Set the minimum macOS version | Writes the minimum system version of the executable into `LSMinimumSystemVersion`. |
+| `verify-contents` | Verify the app is self-contained | Requires the Qt frameworks, the cocoa platform plugin, the SVG plugins, the macOS style, the SQLite driver, the icon and ZeroMQ, fails on a removed file and on a build machine path (`macos_build_paths.py check`), and runs `codesign --verify --deep --strict`. |
+| `verify-signature` | Verify the signature | Prints the identifier, the authority and the team, and requires an ad-hoc signature without `MACOS_SIGNING_IDENTITY` and a Developer ID Application authority, a team, the hardened runtime and a timestamp with it. |
+| `verify-package` | Verify the packaged app | Requires the three programs, the licence files, the manual and the Paimpol scene, and runs `scene_tool validate` on that scene. |
+
+The first six steps change the app, so they come before the signature, and the last three check the signed app. The app
+first runs in the next step, **Start the package**, from a copy. `bundle` and `add-files` take the programs from the
+folder that holds the app, which is the build folder. `bundle` needs `QT_ROOT_DIR` and Homebrew. `trim` and
+`min-version` also write their lines into the job summary when `GITHUB_STEP_SUMMARY` is set, so every step also runs
+outside a workflow. To package a local build, copy the app and the two programs into a new folder and run the steps in
+the order of the table, with `tools/release/sign_macos.sh` between `min-version` and `verify-contents`:
+
+```bash
+mkdir -p /tmp/package/build
+ditto build/QEGTRAIN.app /tmp/package/build/QEGTRAIN.app
+cp build/scene_tool build/egtrain_update_helper /tmp/package/build/
+QT_ROOT_DIR="$HOME/Qt/6.8.3/macos" bash tools/release/package_macos.sh bundle /tmp/package/build/QEGTRAIN.app
+```
+
+A build without the Sphinx environment of the manual has no `EGTRAIN.qch`, and `verify-package` then fails.
+
+The test is `tools/release/test_package_macos.sh`. It builds a fixture build folder whose app holds what `macdeployqt`
+leaves: frameworks, plugins and libraries, among them the files that `trim` removes, a universal program built for
+macOS 26 with a run path into the Homebrew Cellar, and a `scene_tool` that fails on request. It runs every step but
+`bundle` in the order of the job, signs the app ad hoc with `sign_macos.sh` in between, and checks the result of each:
+the copied files, the removed and the kept files, the size lines in a job summary and a run without one, the arm64
+program, the removed run path, the minimum version, and the three checks. Then it requires `verify-contents` to fail
+for a missing SVG icon engine, a missing Qt Svg framework, a WebP plugin, a run path into the Homebrew Cellar and a file
+changed after the signature, `verify-signature` to fail when an identity is set and the signature is ad hoc, and
+`verify-package` to fail for a missing manual and a scene that does not validate. It does not run `bundle`, which needs
+`macdeployqt`, Qt and Homebrew, or sign with an identity. Run it with
+`ctest --test-dir build -R test_package_macos --output-on-failure`.
 
 ### macOS signing script
 
