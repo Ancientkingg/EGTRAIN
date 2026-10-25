@@ -86,6 +86,9 @@ function(egtrain_add_test name)
 	if(EGTRAIN_TEST_TIMEOUT_SCALE GREATER 1)
 		# Scripts with waits of their own, such as startup_launch_contract.py, scale them by the same factor.
 		list(APPEND environment "EGTRAIN_TEST_TIMEOUT_SCALE=${EGTRAIN_TEST_TIMEOUT_SCALE}")
+		# Qt Test stops a slot after 300 seconds.
+		math(EXPR slot_timeout_ms "300000 * ${EGTRAIN_TEST_TIMEOUT_SCALE}")
+		list(APPEND environment "QTEST_FUNCTION_TIMEOUT=${slot_timeout_ms}")
 		if(ARG_TIMEOUT)
 			math(EXPR ARG_TIMEOUT "${ARG_TIMEOUT} * ${EGTRAIN_TEST_TIMEOUT_SCALE}")
 		endif()
