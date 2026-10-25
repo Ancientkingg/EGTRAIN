@@ -41,7 +41,7 @@ scripts that build, sign and check the release packages.
   and `latest/` after a successful release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
-  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
+  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`, the vcpkg manifest in `tools/vcpkg/`,
   `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
   `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
   and can be started by hand, which covers changes that reach the packages
@@ -666,18 +666,37 @@ The certificate is never exported or added to a trusted root, and the test
 removes it with its key. Run it by hand with
 `ctest --test-dir build -C Release -R test_verify_signatures --output-on-failure`.
 
+### Configure options
+
+The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
+`CMakePresets.json`. They inherit `ci-base`: the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in
+`build/`, where the later steps look. The configure step of each leg adds the compiler launcher of the matrix and the
+prefix path of its runner. macOS also passes `WrapOpenGL_AGL` and gets the Release build type as the default of
+`CMakeLists.txt`; Linux passes `CMAKE_BUILD_TYPE=Release`; Windows passes Ninja, `cl`, `CMAKE_BUILD_TYPE=Release` and
+`EGTRAIN_NETWORK_TESTS=ON`. The leak check and the nightly sanitizer jobs keep configure lines of their own.
+
+`ci-windows` also holds the vcpkg options: the toolchain of the vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`),
+the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json` and no DLL copy after each link
+(`VCPKG_APPLOCAL_DEPS=OFF`; the job puts the DLL folders on `PATH`). The configure step installs the packages of the
+manifest at its `builtin-baseline`, into the `installed` folder of that vcpkg (`VCPKG_INSTALLED_DIR`), where the DLL steps
+of the job read them. The Windows package job of `package.yml` passes the same vcpkg options on its configure line. The
+runner image clones vcpkg in full and a new image updates the clone, so the checkout holds the baseline commit. A
+baseline newer than the checkout of the image fails the configure step, because vcpkg reads the port versions from that
+checkout.
+
 ### Dependency caches
 
 Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg
-binary archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
+binary archives in `runner.temp/vcpkg-binary-cache`, which its configure step names in
+`VCPKG_BINARY_SOURCES`. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
-`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-<image>-v1`, where `<image>` is
-`ImageOS` and `ImageVersion` of the runner. A new image writes a new entry, and
-the save step runs when the restore found no entry with the exact key. To start
-over, for example after changing the vcpkg package list, raise the `-v1` suffix
-by hand in the restore and save steps. An existing key is never overwritten.
+`vcpkg-x64-windows-<packages>-<baseline>-<image>-v1`: the packages and the `builtin-baseline` of
+`tools/vcpkg/vcpkg.json`, which the step `Read the vcpkg manifest` reads, and `ImageOS` and `ImageVersion` of the
+runner. A new image or a change to the packages or the baseline writes a new entry. The save step follows the
+configure step, which installs the packages, and runs when the restore found no entry with the exact key. To start
+over, raise the `-v1` suffix by hand in the restore and save steps. An existing key is never overwritten.
 Homebrew and apt packages are not cached.
 
 All three legs also keep a compiler cache, set up by `hendrikmuhs/ccache-action`
@@ -695,7 +714,7 @@ cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
 and GitHub keeps 10 GB for the repository and removes the entries used least
 recently first.
 
-The three legs configure with `-DEGTRAIN_IPO=OFF`. A Release build links with
+The ci presets of the three legs set `EGTRAIN_IPO=OFF`. A Release build links with
 interprocedural optimization by default (link-time optimization, or LTCG with
 MSVC) when the toolchain supports it; with the option OFF the build skips it.
 The optimized link generates the code of the whole program again for every test

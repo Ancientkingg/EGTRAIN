@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import fnmatch
 import itertools
+import json
 import re
 import sys
 from pathlib import Path
@@ -37,6 +38,7 @@ PACKAGE_CHECK_PATHS = [
     ".github/workflows/package.yml",
     ".github/workflows/release.yml",
     "tools/release/**",
+    "tools/vcpkg/**",
     "installer/**",
     "Info.plist.in",
     "EGTRAIN/QEGTRAIN/update/**",
@@ -80,6 +82,7 @@ RULE_SAMPLES = [
     "sub/CMakeLists.txt",
     "tools/release/version.py",
     "tools/release/x/y.sh",
+    "tools/vcpkg/vcpkg.json",
     "tools/e2e/test_ci_workflow.py",
     "installer/a.iss",
     "installer/x/y.iss",
@@ -118,6 +121,21 @@ def job_block(text: str, job: str) -> str:
 
 def step_block(job: str, name: str) -> str:
     return next((block for block in job.split("\n      - ") if block.startswith(f"name: {name}\n")), "")
+
+
+def configure_preset(presets: list[dict], name: str) -> dict:
+    """The configure preset with the fields and cache variables that it inherits. Its own values win, then those of the
+    earlier presets in inherits. An unknown name gives a preset with no cache variables."""
+    preset = next((preset for preset in presets if preset["name"] == name), {})
+    parents = preset.get("inherits", [])
+    resolved: dict = {"cacheVariables": {}}
+    for parent in reversed([parents] if isinstance(parents, str) else parents):
+        inherited = configure_preset(presets, parent)
+        resolved["cacheVariables"].update(inherited.pop("cacheVariables"))
+        resolved.update(inherited)
+    resolved["cacheVariables"].update(preset.get("cacheVariables", {}))
+    resolved.update({key: value for key, value in preset.items() if key != "cacheVariables"})
+    return resolved
 
 
 def test_registration(cmake: str, name: str) -> str:
@@ -737,20 +755,43 @@ def main() -> None:
         or "      fail-fast: false\n" not in workflow
     ):
         missing.append("independent macOS, Windows and Linux validation legs")
-    windows_toolchain = (
-        "ilammy/msvc-dev-cmd@v1",
-        "vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows",
-        "-DVCPKG_TARGET_TRIPLET=x64-windows",
-        "scripts/buildsystems/vcpkg.cmake",
-    )
-    if any(entry not in workflow or entry not in release_workflow for entry in windows_toolchain):
-        missing.append("Windows toolchain shared with the release workflow")
+    build_job = job_block(workflow, "build")
+    # The Windows leg and the Windows package install the packages of the vcpkg manifest with the vcpkg of the runner image, at
+    # the configure step and into the installed folder of that vcpkg, where their DLL steps read them. The leg takes the vcpkg
+    # options from the ci-windows preset, and the package job passes the same options.
+    presets = json.loads((ROOT / "CMakePresets.json").read_text(encoding="utf-8"))["configurePresets"]
+    ci_windows = configure_preset(presets, "ci-windows")["cacheVariables"]
+    windows_vcpkg = {
+        "CMAKE_TOOLCHAIN_FILE": ("$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake", '"$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"'),
+        "VCPKG_TARGET_TRIPLET": ("x64-windows", "x64-windows"),
+        "VCPKG_MANIFEST_DIR": ("${sourceDir}/tools/vcpkg", '"$env:GITHUB_WORKSPACE/tools/vcpkg"'),
+        "VCPKG_INSTALLED_DIR": ("$env{VCPKG_INSTALLATION_ROOT}/installed", '"$env:VCPKG_INSTALLATION_ROOT/installed"'),
+    }
+    package_configure = step_block(job_block(package_only, "package-windows"), "Configure")
+    if (
+        any("ilammy/msvc-dev-cmd@v1" not in text for text in (workflow, release_workflow))
+        or "vcpkg install" in workflow + release_workflow
+        or "cmake --preset ci-windows " not in step_block(build_job, "Configure (Windows)")
+        or any(ci_windows.get(name) != preset_value for name, (preset_value, _) in windows_vcpkg.items())
+        or any(f"          -D{name}={flag_value}\n" not in package_configure for name, (_, flag_value) in windows_vcpkg.items())
+        or not (ROOT / "tools/vcpkg/vcpkg.json").is_file()
+    ):
+        missing.append("Windows toolchain and vcpkg manifest shared with the release workflow")
     # vcpkg would copy its DLLs next to every executable after linking, a step that fails at
     # random when the new file is still in use. The job puts the DLL directories on PATH instead.
-    if "-DVCPKG_APPLOCAL_DEPS=OFF" not in workflow or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
+    if ci_windows.get("VCPKG_APPLOCAL_DEPS") != "OFF" or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
         missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
-    # Each platform configures with the option, so a warning in a strict target fails its leg.
-    if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 3:
+    # Each platform configures with a ci preset that sets the option, so a warning in a strict target fails its leg. The presets
+    # build in build/, where the later steps look.
+    configure_names = ("Configure (macOS)", "Configure (Linux)", "Configure (Windows)")
+    ci_presets = dict(zip(configure_names, ("ci-macos", "ci-linux", "ci-windows")))
+    if any(
+        f"cmake --preset {preset} " not in " ".join(step_block(build_job, name).split()) + " "
+        or configure_preset(presets, preset).get("binaryDir") != "${sourceDir}/build"
+        or configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_WARNINGS_AS_ERRORS") != "ON"
+        or configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_BUILD_TESTS") != "ON"
+        for name, preset in ci_presets.items()
+    ):
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
     apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
     apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
@@ -763,16 +804,20 @@ def main() -> None:
         for package in apt_packages
     ):
         missing.append("Linux packages shared with the release workflow")
-    build_job = job_block(workflow, "build")
     build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
     # The runner image sets the compiler, CMake and the vcpkg checkout, and an archive of the vcpkg binary cache is named by a hash of
-    # them. The key of that cache has the image and a manual version, so a new image writes a new entry, and the save step runs when
-    # no entry has the exact key.
+    # them. The key of that cache has the packages and the baseline of the manifest, the image and a manual version, so a new image
+    # or manifest writes a new entry, and the save step runs when no entry has the exact key. The configure step installs the
+    # packages, so the save step follows it.
     image_step = step_block(build_job, "Identify the runner image")
+    manifest_step = step_block(build_job, "Read the vcpkg manifest")
     vcpkg_restore = step_block(build_job, "Restore vcpkg binary cache")
     vcpkg_save = step_block(build_job, "Save vcpkg binary cache")
     image_key = "-${{ steps.image.outputs.id }}"
-    vcpkg_key = re.search(r"^ +key: (vcpkg-[\w-]+" + re.escape(image_key) + r"-v\d+)$", vcpkg_restore, re.MULTILINE)
+    manifest_key = "-${{ steps.vcpkg-manifest.outputs.key }}"
+    vcpkg_key = re.search(
+        r"^ +key: (vcpkg-x64-windows" + re.escape(manifest_key + image_key) + r"-v\d+)$", vcpkg_restore, re.MULTILINE
+    )
     vcpkg_key = vcpkg_key.group(1) if vcpkg_key else ""
     if (
         "id: image\n" not in image_step
@@ -782,17 +827,23 @@ def main() -> None:
         or f"          key: {vcpkg_key}\n" not in vcpkg_save + "\n"
         or "steps.vcpkg-cache.outputs.cache-hit != 'true'" not in vcpkg_save
         or workflow.count(f"key: {vcpkg_key}") != 2
+        or "id: vcpkg-manifest\n" not in manifest_step
+        or "Get-Content tools/vcpkg/vcpkg.json" not in manifest_step
         or "Identify the runner image" not in build_step_names
+        or "Read the vcpkg manifest" not in build_step_names
         or build_step_names.index("Identify the runner image") > build_step_names.index("Restore vcpkg binary cache")
+        or build_step_names.index("Read the vcpkg manifest") > build_step_names.index("Restore vcpkg binary cache")
+        or "Save vcpkg binary cache" not in build_step_names
+        or build_step_names.index("Configure (Windows)") > build_step_names.index("Save vcpkg binary cache")
+        or "VCPKG_BINARY_SOURCES: \"clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite\"\n" not in step_block(build_job, "Configure (Windows)")
     ):
-        missing.append("vcpkg binary cache keyed by the runner image and a manual version, saved under the key that the restore missed")
+        missing.append("vcpkg binary cache keyed by the manifest, the runner image and a manual version, saved after the configure step under the key that the restore missed")
     # Every leg of the build compiles through a compiler cache, ccache on macOS and Linux and sccache on Windows. The matrix names the tool;
     # the cache step and the configure steps read it. The Visual Studio generator ignores a compiler launcher, so the Windows leg builds
     # with Ninja and names cl, and its executable is not in a Release directory.
     cache_legs = dict(re.findall(r"^ +- name: (\w+)\n +os: \S+\n +jobs: \d+\n +cache: (\w+)$", build_job, re.MULTILINE))
     compiler_cache = step_block(build_job, "Set up compiler cache")
     launcher_flags = "-DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}"
-    configure_names = ("Configure (macOS)", "Configure (Linux)", "Configure (Windows)")
     windows_configure = " ".join(step_block(build_job, "Configure (Windows)").split()) + " "
     if (
         cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
@@ -814,7 +865,7 @@ def main() -> None:
     # The pull request checks build without interprocedural optimization, which a compiler cache cannot store. The package and release
     # builds, and the CMake option, keep it.
     if (
-        any(" -DEGTRAIN_IPO=OFF " not in " ".join(step_block(build_job, name).split()) + " " for name in configure_names)
+        any(configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_IPO") != "OFF" for preset in ci_presets.values())
         or "EGTRAIN_IPO" in release_workflow
         or not re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake, re.MULTILINE)
     ):

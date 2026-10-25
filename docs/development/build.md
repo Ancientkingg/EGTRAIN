@@ -8,7 +8,7 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 
 ## Requirements
 
-- CMake 3.16 or newer
+- CMake 3.16 or newer, or 3.21 or newer for the presets in `CMakePresets.json`
 - C++17 compiler
 - Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
   (`qhelpgenerator` builds the manual). CI and the release packages use Qt 6.8.3.
@@ -28,8 +28,8 @@ Supported toolchains, as used by CI:
 
 - macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
-  `msvc2022_64` with Qt Charts, and vcpkg `zeromq cppzmq nlohmann-json` for the
-  `x64-windows` triplet. 32-bit Windows is not supported.
+  `msvc2022_64` with Qt Charts, and the vcpkg manifest `tools/vcpkg/vcpkg.json` (ZeroMQ, cppzmq and
+  nlohmann-json at its `builtin-baseline`) for the `x64-windows` triplet. 32-bit Windows is not supported.
 - Linux: Ubuntu 24.04 (the `ubuntu-24.04` runner image) with Qt 6.8.3 and the apt
   packages in the configure example below. The AppImage needs the glibc of the
   system that builds it, so CI builds and tests on 24.04 and not on `ubuntu-latest`.
@@ -98,6 +98,23 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 The configure step then prints `Could NOT find XKB` and `Could NOT find PkgConfig`, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.
 
+On macOS and Linux, `CMakePresets.json` also has the presets `macos-debug`, `macos-release`, `linux-debug` and
+`linux-release`. They build with Ninja (`brew install ninja`, or `sudo apt-get install -y ninja-build`) and with the
+tests, each in `out/build/<preset>`. The libraries come from the configure line, as above; the build folder keeps
+them, so later configures need only the preset:
+
+```bash
+cmake --preset macos-release \
+  -DCMAKE_PREFIX_PATH="$HOME/Qt/6.8.3/macos;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)" \
+  -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
+cmake --build --preset macos-release
+ctest --preset macos-release
+```
+
+On Linux, use `linux-release` and leave out `WrapOpenGL_AGL`. A preset build puts the application in
+`out/build/<preset>`, not in `build/`. CTest gives the smoke tests that path; a smoke script run by hand needs it in
+`QEGTRAIN_APP` (see [Platform coverage](testing.md#platform-coverage)).
+
 On Windows, `CMakePresets.json` holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 `x64-windows` triplet and the manifest `tools/vcpkg/vcpkg.json`, Qt from `C:/Qt/6.8.3/msvc2022_64`, and the tests.
 From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:
@@ -111,8 +128,13 @@ ctest --preset x64-release
 The `x64-debug` presets make a Debug build. Each preset builds in `out\build\<preset>`. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in `%LOCALAPPDATA%\vcpkg\archives`. The configure prints `Could NOT find WrapVulkanHeaders` twice, which does no
-harm. CI does not use the presets: it installs the same packages with
-vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in `.github/workflows/cmake.yml`.
+harm. The Windows leg of CI (`.github/workflows/cmake.yml`) and the Windows package (`.github/workflows/package.yml`)
+install the same manifest with the vcpkg of the runner image: the leg through the `ci-windows` preset, and the package
+job with the same options on its configure line.
+
+The `ci-macos`, `ci-linux` and `ci-windows` presets hold the options that the three CI legs share: the tests,
+`EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in `build/`. Each configure step of the workflow adds the
+compiler launcher and the prefix path of its runner; see [Configure options](ci-and-release.md#configure-options).
 
 The Start-menu entry **Developer PowerShell for VS** opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.

@@ -50,6 +50,7 @@ jobs:
                 .github/workflows/package.yml) package=true ;;
                 .github/workflows/release.yml) package=true ;;
                 tools/release/*) package=true ;;
+                tools/vcpkg/*) package=true ;;
                 installer/*) package=true ;;
                 Info.plist.in) package=true ;;
                 EGTRAIN/QEGTRAIN/update/*) package=true ;;

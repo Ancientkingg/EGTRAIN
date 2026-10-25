@@ -513,10 +513,6 @@ jobs:
       - name: Set up MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
-        shell: pwsh
-        run: vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
-
       - name: Install the packages of the manual
         # The build makes the manual EGTRAIN.qch from docs/guides with Sphinx in this environment.
         shell: pwsh
@@ -524,6 +520,9 @@ jobs:
           python -m venv build/docs-venv
           & build/docs-venv/Scripts/python.exe -m pip install -r docs/requirements.txt
 
+      # The configure step installs ZeroMQ, cppzmq and nlohmann-json from the manifest tools/vcpkg/vcpkg.json, at its
+      # builtin-baseline, with the vcpkg of the runner image, as the Windows leg of cmake.yml does. They go into the installed
+      # folder of that vcpkg, where the package step takes the DLLs from.
       - name: Configure
         shell: pwsh
         run: >
@@ -531,6 +530,8 @@ jobs:
           -DEGTRAIN_PACKAGED_BUILD=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DVCPKG_MANIFEST_DIR="$env:GITHUB_WORKSPACE/tools/vcpkg"
+          -DVCPKG_INSTALLED_DIR="$env:VCPKG_INSTALLATION_ROOT/installed"
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
       - name: Build

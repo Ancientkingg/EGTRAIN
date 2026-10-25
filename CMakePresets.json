@@ -45,6 +45,127 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "unix-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "EGTRAIN_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "inherits": "unix-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "unix-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "EGTRAIN_BUILD_TESTS": "ON",
+        "EGTRAIN_WARNINGS_AS_ERRORS": "ON",
+        "EGTRAIN_IPO": "OFF"
+      }
+    },
+    {
+      "name": "ci-macos",
+      "displayName": "CI macOS",
+      "description": "The options that the macOS leg of .github/workflows/cmake.yml shares with the other legs",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "ci-linux",
+      "displayName": "CI Linux",
+      "description": "The options that the Linux leg of .github/workflows/cmake.yml shares with the other legs",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "ci-windows",
+      "displayName": "CI Windows",
+      "description": "The shared options and the vcpkg manifest of the Windows leg of .github/workflows/cmake.yml, with the vcpkg of the runner image",
+      "inherits": "ci-base",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          },
+          {
+            "type": "notEquals",
+            "lhs": "$env{VCPKG_INSTALLATION_ROOT}",
+            "rhs": ""
+          }
+        ]
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}/tools/vcpkg",
+        "VCPKG_INSTALLED_DIR": "$env{VCPKG_INSTALLATION_ROOT}/installed",
+        "VCPKG_APPLOCAL_DEPS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -66,6 +187,44 @@
       "name": "x64-release",
       "inherits": "windows-base",
       "configurePreset": "x64-release"
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "macos-base",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-release",
+      "inherits": "macos-base",
+      "configurePreset": "macos-release"
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "linux-base",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "inherits": "linux-base",
+      "configurePreset": "linux-release"
     }
   ],
   "testPresets": [
@@ -90,6 +249,50 @@
       "name": "x64-release",
       "inherits": "windows-base",
       "configurePreset": "x64-release"
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "macos-base",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-release",
+      "inherits": "macos-base",
+      "configurePreset": "macos-release"
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "linux-base",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "inherits": "linux-base",
+      "configurePreset": "linux-release"
     }
   ]
 }

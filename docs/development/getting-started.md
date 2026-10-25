@@ -187,10 +187,11 @@ is the full rule.
 | Simulation, scene model, conversion or memory | the whole suite, which runs `tools/e2e/headless_smoke.py` and `tools/e2e/roundtrip_smoke.py` |
 | Scene format | the same, and validate and export the committed scenes with `build/scene_tool` |
 
-CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF` on all three systems; the
-warnings option is off by default. Add it to your configure line to see the warnings that CI rejects.
-The Windows leg also uses Ninja with `cl`, `-DCMAKE_BUILD_TYPE=Release` and
-`-DEGTRAIN_NETWORK_TESTS=ON`; see `.github/workflows/cmake.yml`.
+CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF` on all three systems, through the
+presets `ci-macos`, `ci-linux` and `ci-windows` of `CMakePresets.json`; the warnings option is off by default. Add it
+to your configure line to see the warnings that CI rejects. The Windows leg also uses Ninja with `cl`,
+`-DCMAKE_BUILD_TYPE=Release` and `-DEGTRAIN_NETWORK_TESTS=ON`; see `.github/workflows/cmake.yml` and
+[Configure options](ci-and-release.md#configure-options).
 
 The two Python smokes read the application that `QEGTRAIN_APP` names, and otherwise the executable in
 `build/` for the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/QEGTRAIN` on
