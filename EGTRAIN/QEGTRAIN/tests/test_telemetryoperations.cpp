@@ -10,36 +10,49 @@
 #include <QSemaphore>
 #include <QTabBar>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QTimer>
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-#include <cassert>
+#include <atomic>
 
 using namespace telemetry;
 
-static QJsonArray records(const QString& path) {
+// The events stored in path into result, none when the file does not exist; false when it cannot be opened.
+static bool records(const QString& path, QJsonArray& result) {
+	result = {};
 	QFile file(path);
-	if (!file.exists()) return {};
-	assert(file.open(QIODevice::ReadOnly));
-	return QJsonDocument::fromJson(file.readAll()).object().value("events").toArray();
+	if (!file.exists()) return true;
+	if (!file.open(QIODevice::ReadOnly)) return false;
+	result = QJsonDocument::fromJson(file.readAll()).object().value("events").toArray();
+	return true;
 }
+// The number of records with this name, or -1 when a record cannot be read or is still read with a private field.
 static int count(const QJsonArray& records, const QString& name, Category category) {
 	int result = 0;
 	for (auto record : records) {
 		const auto object = record.toObject().value("event").toObject();
 		TelemetryEvent parsed;
-		assert(readEvent(object, category, &parsed));
+		if (!readEvent(object, category, &parsed)) return -1;
 		auto privateField = object;
 		privateField.insert("private", "secret");
-		assert(!readEvent(privateField, category, &parsed));
+		if (readEvent(privateField, category, &parsed)) return -1;
 		if (object.value("name").toString() == name) ++result;
 	}
 	return result;
 }
+
+class TestTelemetryOperations : public QObject {
+	Q_OBJECT
+
+private slots:
+	void editorMenuState();
+	void durationBuckets_data();
+	void durationBuckets();
+	void operationsReachTheQueue();
+};
+
 // The check mark of an editor action stands for an editor that is open: a dock that is docked, floating or behind
 // another tab, and not one that is hidden or closed, whichever way it got there.
-static void checkEditorMenuState(QApplication& app) {
+void TestTelemetryOperations::editorMenuState() {
 	QMainWindow window;
 	QMenu menu;
 	QDockWidget* docks[3];
@@ -51,72 +64,94 @@ static void checkEditorMenuState(QApplication& app) {
 		window.addDockWidget(Qt::RightDockWidgetArea, docks[i]);
 		actions[i] = registerEditor(docks[i], &menu, {});
 	}
-	const auto settle = [&] { app.processEvents(); };
+	const auto settle = [] { QCoreApplication::processEvents(); };
 	const auto checks = [&](bool first, bool second, bool third) {
 		settle();
-		assert(actions[0]->isChecked() == first && actions[1]->isChecked() == second && actions[2]->isChecked() == third);
-		assert(first == !docks[0]->isHidden() && second == !docks[1]->isHidden() && third == !docks[2]->isHidden());
+		QCOMPARE(actions[0]->isChecked(), first);
+		QCOMPARE(actions[1]->isChecked(), second);
+		QCOMPARE(actions[2]->isChecked(), third);
+		QCOMPARE(!docks[0]->isHidden(), first);
+		QCOMPARE(!docks[1]->isHidden(), second);
+		QCOMPARE(!docks[2]->isHidden(), third);
 	};
-	checks(true, true, true);
+// A failed comparison returns from checks only, so the slot ends here after one.
+#define CHECKS(first, second, third)            \
+	do {                                        \
+		checks(first, second, third);           \
+		if (QTest::currentTestFailed()) return; \
+	} while (false)
+	CHECKS(true, true, true);
 	// Hidden before the window was ever shown, as the editors that start closed are.
 	docks[1]->hide();
-	checks(true, false, true);
+	CHECKS(true, false, true);
 	window.tabifyDockWidget(docks[0], docks[2]);
 	window.show();
-	checks(true, false, true);
+	CHECKS(true, false, true);
 	const QByteArray hiddenLayout = window.saveState();
 	docks[1]->show();
-	checks(true, true, true);
+	CHECKS(true, true, true);
 	docks[1]->setFloating(true);
-	checks(true, true, true);
+	CHECKS(true, true, true);
 	docks[1]->close();
-	checks(true, false, true);
+	CHECKS(true, false, true);
 	docks[1]->show();
-	checks(true, true, true);
+	CHECKS(true, true, true);
 	// Both docks of a tabbed pair are open, whichever tab is in front.
 	for (QTabBar* tabs : window.findChildren<QTabBar*>()) {
 		for (int tab = 0; tab < tabs->count(); ++tab) {
 			tabs->setCurrentIndex(tab);
-			checks(true, true, true);
+			CHECKS(true, true, true);
 		}
 	}
 	docks[2]->hide();
-	checks(true, true, false);
+	CHECKS(true, true, false);
 	docks[2]->show();
-	checks(true, true, true);
+	CHECKS(true, true, true);
 	docks[1]->setFloating(false);
-	assert(window.restoreState(hiddenLayout));
-	checks(true, false, true);
+	QVERIFY(window.restoreState(hiddenLayout));
+	CHECKS(true, false, true);
 	docks[0]->hide();
 	docks[2]->hide();
-	checks(false, false, false);
+	CHECKS(false, false, false);
+#undef CHECKS
 }
 
-int main(int argc, char** argv) {
-	QApplication app(argc, argv);
-	checkEditorMenuState(app);
-	assert(durationBucket(0) == Duration::Under1s);
-	assert(durationBucket(999) == Duration::Under1s);
-	assert(durationBucket(1000) == Duration::From1sTo10s);
-	assert(durationBucket(9999) == Duration::From1sTo10s);
-	assert(durationBucket(10000) == Duration::From10sTo1m);
-	assert(durationBucket(59999) == Duration::From10sTo1m);
-	assert(durationBucket(60000) == Duration::From1mTo10m);
-	assert(durationBucket(599999) == Duration::From1mTo10m);
-	assert(durationBucket(600000) == Duration::TenMinutesOrMore);
+void TestTelemetryOperations::durationBuckets_data() {
+	QTest::addColumn<qint64>("milliseconds");
+	QTest::addColumn<int>("bucket");
+	QTest::newRow("0 ms") << qint64(0) << int(Duration::Under1s);
+	QTest::newRow("999 ms") << qint64(999) << int(Duration::Under1s);
+	QTest::newRow("1000 ms") << qint64(1000) << int(Duration::From1sTo10s);
+	QTest::newRow("9999 ms") << qint64(9999) << int(Duration::From1sTo10s);
+	QTest::newRow("10000 ms") << qint64(10000) << int(Duration::From10sTo1m);
+	QTest::newRow("59999 ms") << qint64(59999) << int(Duration::From10sTo1m);
+	QTest::newRow("60000 ms") << qint64(60000) << int(Duration::From1mTo10m);
+	QTest::newRow("599999 ms") << qint64(599999) << int(Duration::From1mTo10m);
+	QTest::newRow("600000 ms") << qint64(600000) << int(Duration::TenMinutesOrMore);
+}
+
+void TestTelemetryOperations::durationBuckets() {
+	QFETCH(qint64, milliseconds);
+	QFETCH(int, bucket);
+	QCOMPARE(int(durationBucket(milliseconds)), bucket);
+}
+
+void TestTelemetryOperations::operationsReachTheQueue() {
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath("consent.ini");
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryContext context{true, true, true, "https://127.0.0.1:19497/collect", "1"};
 	TelemetryConsent consent(settings, context);
-	assert(consent.save(false, false));
+	QVERIFY(consent.save(false, false));
 	QSemaphore polled, proceed, drained, exited;
+	// The worker cannot fail the slot, so it records a wait that timed out for the end of the slot.
+	std::atomic<bool> proceedTimedOut{false};
 	TelemetrySender::TestOptions options;
 	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
 	options.monotonicMs = [] { return 0; }; // Durable observation, not transport.
 	options.afterPoll = [&] {
 		polled.release();
-		assert(proceed.tryAcquire(1, 10000));
+		if (!proceed.tryAcquire(1, 10000)) proceedTimedOut = true;
 		QTimer::singleShot(0, [&] { drained.release(); });
 	};
 	options.onWorkerExit = [&] { exited.release(); };
@@ -124,16 +159,16 @@ int main(int argc, char** argv) {
 	QObject::connect(
 		&consent, &TelemetryConsent::revoked, &consent,
 		[&](bool usage, bool diagnostic) { sender.invalidateConsent(usage, diagnostic); }, Qt::DirectConnection);
-	assert(polled.tryAcquire(1, 3000));
+	QVERIFY(polled.tryAcquire(1, 3000));
 	const auto cycle = [&] {
 		proceed.release();
-		assert(drained.tryAcquire(1, 3000));
+		if (!drained.tryAcquire(1, 3000)) return false;
 		sender.requestConsentRefresh();
-		assert(polled.tryAcquire(1, 3000));
+		return polled.tryAcquire(1, 3000);
 	};
 	const auto historical = OperationObservation(&sender);
-	assert(consent.save(true, true));
-	cycle();
+	QVERIFY(consent.save(true, true));
+	QVERIFY(cycle());
 	historical.sceneOpened(SceneKind::Local);
 	historical.failure(telemetry::Operation::SceneOpen, Error::InvalidInput);
 	const auto operation = OperationObservation(&sender);
@@ -174,59 +209,74 @@ int main(int argc, char** argv) {
 	registerEditor(second, &menu, [&] { return OperationObservation(&sender); });
 	const QByteArray hiddenLayout = window.saveState();
 	window.show();
-	app.processEvents();
+	QCoreApplication::processEvents();
 	action->trigger();
-	assert(!first->isHidden());
+	QVERIFY(!first->isHidden());
 	revealEditor(first, operation); // No count for focus.
 	window.tabifyDockWidget(first, second);
 	revealEditor(second, operation); // One explicit hidden-to-open transition.
 	first->raise();
 	second->raise();
-	app.processEvents(); // Tab switches do not count.
+	QCoreApplication::processEvents(); // Tab switches do not count.
 	window.hide();
 	window.show();
-	app.processEvents();
+	QCoreApplication::processEvents();
 	const QByteArray openLayout = window.saveState();
 	first->close();
-	assert(first->isHidden());
+	QVERIFY(first->isHidden());
 	action->trigger();
-	assert(!first->isHidden()); // Close/reopen counts once.
-	assert(window.restoreState(hiddenLayout));
-	app.processEvents();
-	assert(first->isHidden() && second->isHidden());
-	assert(window.restoreState(openLayout));
-	app.processEvents();
-	assert(!first->isHidden() && !second->isHidden()); // Restoration is not a user reveal.
-	cycle();
+	QVERIFY(!first->isHidden()); // Close/reopen counts once.
+	QVERIFY(window.restoreState(hiddenLayout));
+	QCoreApplication::processEvents();
+	QVERIFY(first->isHidden());
+	QVERIFY(second->isHidden());
+	QVERIFY(window.restoreState(openLayout));
+	QCoreApplication::processEvents();
+	// Restoration is not a user reveal.
+	QVERIFY(!first->isHidden());
+	QVERIFY(!second->isHidden());
+	QVERIFY(cycle());
 	const auto usagePath = directory.filePath("queue/usage.json");
 	const auto diagnosticPath = directory.filePath("queue/diagnostics.json");
-	const auto usage = records(usagePath);
-	const auto diagnostic = records(diagnosticPath);
-	assert(usage.size() == 12 && diagnostic.size() == 4);
-	assert(count(usage, "scene.opened", Category::Usage) == 1);
-	assert(count(usage, "editor.opened", Category::Usage) == 3);
-	assert(count(usage, "simulation.started", Category::Usage) == 3);
-	assert(count(usage, "simulation.completed", Category::Usage) == 1);
-	assert(count(usage, "simulation.failed", Category::Usage) == 1);
-	assert(count(usage, "export.completed", Category::Usage) == 2);
-	assert(count(usage, "export.failed", Category::Usage) == 1);
-	assert(count(diagnostic, "operation.failed", Category::Diagnostics) == 4);
+	QJsonArray usage;
+	QVERIFY(records(usagePath, usage));
+	QJsonArray diagnostic;
+	QVERIFY(records(diagnosticPath, diagnostic));
+	QCOMPARE(usage.size(), 12);
+	QCOMPARE(diagnostic.size(), 4);
+	QCOMPARE(count(usage, "scene.opened", Category::Usage), 1);
+	QCOMPARE(count(usage, "editor.opened", Category::Usage), 3);
+	QCOMPARE(count(usage, "simulation.started", Category::Usage), 3);
+	QCOMPARE(count(usage, "simulation.completed", Category::Usage), 1);
+	QCOMPARE(count(usage, "simulation.failed", Category::Usage), 1);
+	QCOMPARE(count(usage, "export.completed", Category::Usage), 2);
+	QCOMPARE(count(usage, "export.failed", Category::Usage), 1);
+	QCOMPARE(count(diagnostic, "operation.failed", Category::Diagnostics), 4);
 	// Old operations cannot rebind to either category after revoke/re-enable.
-	assert(consent.save(false, false));
-	cycle();
-	assert(consent.save(true, true));
-	cycle();
+	QVERIFY(consent.save(false, false));
+	QVERIFY(cycle());
+	QVERIFY(consent.save(true, true));
+	QVERIFY(cycle());
 	operation.exportFinished(ExportKind::Csv, false, true, Error::IoFailure);
-	cycle();
-	assert(records(usagePath).isEmpty() && records(diagnosticPath).isEmpty());
+	QVERIFY(cycle());
+	QVERIFY(records(usagePath, usage));
+	QVERIFY(usage.isEmpty());
+	QVERIFY(records(diagnosticPath, diagnostic));
+	QVERIFY(diagnostic.isEmpty());
 	const auto fresh = OperationObservation(&sender);
-	assert(consent.save(false, true));
-	cycle();
+	QVERIFY(consent.save(false, true));
+	QVERIFY(cycle());
 	fresh.exportFinished(ExportKind::Csv, false, true, Error::IoFailure);
-	cycle();
-	assert(records(usagePath).isEmpty());
-	assert(records(diagnosticPath).size() == 1); // Unrelated usage revocation preserves diagnostics.
+	QVERIFY(cycle());
+	QVERIFY(records(usagePath, usage));
+	QVERIFY(usage.isEmpty());
+	QVERIFY(records(diagnosticPath, diagnostic));
+	QCOMPARE(diagnostic.size(), 1); // Unrelated usage revocation preserves diagnostics.
 	sender.stop();
 	proceed.release();
-	assert(exited.tryAcquire(1, 3000));
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QVERIFY2(!proceedTimedOut, "the worker waited longer than 10 s for the test to let it go on");
 }
+
+QTEST_MAIN(TestTelemetryOperations)
+#include "test_telemetryoperations.moc"

@@ -6,20 +6,13 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <QTest>
 
 #include <csignal>
-#include <iostream>
 #include <stdexcept>
-#include <string>
 #include <thread>
 
 namespace {
-
-bool expect(bool condition, const std::string& message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 // Installs the crash handler with a note in folder and ends the process in the way that kind names.
 int crashChild(const QString& kind, const QString& folder) {
@@ -40,76 +33,96 @@ int crashChild(const QString& kind, const QString& folder) {
 	return 0;
 }
 
+} // namespace
+
+class TestCrashNote : public QObject {
+	Q_OBJECT
+
+private slots:
+	void crashLeavesOneNote_data();
+	void crashLeavesOneNote();
+	void reportedNotesKept();
+};
+
+void TestCrashNote::crashLeavesOneNote_data() {
+	QTest::addColumn<QString>("kind");
+	QTest::addColumn<QByteArray>("cause");
+	QTest::addColumn<bool>("exception");
+#ifdef Q_OS_WIN
+	QTest::newRow("segv") << QStringLiteral("segv") << QByteArray("Exception: 0xC0000005") << false;
+#else
+	QTest::newRow("segv") << QStringLiteral("segv") << QByteArray("Signal: SIGSEGV") << false;
+	QTest::newRow("throw-thread") << QStringLiteral("throw-thread") << QByteArray("Signal: SIGABRT") << true;
+#endif
+	QTest::newRow("throw") << QStringLiteral("throw") << QByteArray("Signal: SIGABRT") << true;
+}
+
 // A child of the kind leaves one note with the version, the cause and, on macOS and Linux, a stack, and the next take
 // reports it once.
-bool checkCrash(const char* kind, const char* cause, bool exception) {
-	const std::string name = kind;
+void TestCrashNote::crashLeavesOneNote() {
+	QFETCH(QString, kind);
+	QFETCH(QByteArray, cause);
+	QFETCH(bool, exception);
 	QTemporaryDir folder;
 	QProcess child;
 	child.setProcessChannelMode(QProcess::ForwardedChannels);
-	child.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--child"), QString::fromLatin1(kind), folder.path()});
-	bool ok = expect(child.waitForFinished(120000), name + ": the child did not end");
+	child.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--child"), kind, folder.path()});
+	QVERIFY2(child.waitForFinished(120000), "the child did not end");
 #ifdef Q_OS_WIN
 	// abort() without its fast-fail report exits quietly with 3.
-	ok &= expect(child.exitCode() != 0 && child.exitCode() != 3, name + ": the child ended normally or quietly");
+	// the child ended normally or quietly
+	QCOMPARE_NE(child.exitCode(), 0);
+	QCOMPARE_NE(child.exitCode(), 3);
 #else
-	ok &= expect(child.exitStatus() == QProcess::CrashExit, name + ": the child did not end by its signal");
+	QVERIFY2(child.exitStatus() == QProcess::CrashExit, "the child did not end by its signal");
 #endif
 	const QDir dir(folder.path());
 	const QStringList notes = dir.entryList({QStringLiteral("crash-*.txt")}, QDir::Files);
-	if (!expect(notes.size() == 1, name + ": " + std::to_string(notes.size()) + " notes, not one"))
-		return false;
+	QVERIFY2(notes.size() == 1, QByteArray::number(notes.size()).append(" notes, not one").constData());
 	QFile file(dir.filePath(notes.first()));
-	ok &= expect(file.open(QIODevice::ReadOnly), name + ": the note cannot be read");
+	QVERIFY2(file.open(QIODevice::ReadOnly), "the note cannot be read");
 	const QByteArray text = file.readAll();
 	file.close();
-	ok &= expect(text.startsWith("EGTRAIN 9.8.7-test (Qt "), name + ": no version header in\n" + text.toStdString());
-	ok &= expect(text.contains(cause), name + ": no " + cause + " in\n" + text.toStdString());
+	QVERIFY2(text.startsWith("EGTRAIN 9.8.7-test (Qt "), ("no version header in\n" + text).constData());
+	QVERIFY2(text.contains(cause), ("no " + cause + " in\n" + text).constData());
 	if (exception)
-		ok &= expect(text.contains("Uncaught exception: injected crash\n"), name + ": no exception in\n" + text.toStdString());
+		QVERIFY2(text.contains("Uncaught exception: injected crash\n"), ("no exception in\n" + text).constData());
 #ifndef Q_OS_WIN
 	const int stack = text.indexOf("Stack:\n");
-	ok &= expect(stack >= 0 && text.mid(stack + 7).trimmed().size() > 0, name + ": no stack in\n" + text.toStdString());
+	// no stack in the note
+	QCOMPARE_GE(stack, 0);
+	QCOMPARE_GT(text.mid(stack + 7).trimmed().size(), 0);
 #endif
 
 	const QFileInfo taken(takeCrashNote(folder.path()));
-	ok &= expect(taken.fileName() == QStringLiteral("reported-") + notes.first() && taken.isFile(), name + ": the note was not taken");
-	ok &= expect(takeCrashNote(folder.path()).isEmpty(), name + ": the note was taken twice");
-	return ok;
+	// the note was not taken
+	QCOMPARE(taken.fileName(), QStringLiteral("reported-") + notes.first());
+	QVERIFY(taken.isFile());
+	QVERIFY2(takeCrashNote(folder.path()).isEmpty(), "the note was taken twice");
 }
 
-bool checkReportedNotesKept() {
+void TestCrashNote::reportedNotesKept() {
 	QTemporaryDir folder;
 	const QDir dir(folder.path());
 	for (int second = 0; second < 12; ++second) {
 		QFile note(dir.filePath(QStringLiteral("reported-crash-20261019-1000%1-1.txt").arg(second, 2, 10, QLatin1Char('0'))));
-		if (!expect(note.open(QIODevice::WriteOnly), "a reported note cannot be made"))
-			return false;
+		QVERIFY2(note.open(QIODevice::WriteOnly), "a reported note cannot be made");
 	}
-	bool ok = expect(takeCrashNote(folder.path()).isEmpty(), "a reported note was taken again");
+	QVERIFY2(takeCrashNote(folder.path()).isEmpty(), "a reported note was taken again");
 	const QStringList kept = dir.entryList({QStringLiteral("reported-crash-*.txt")}, QDir::Files, QDir::Name);
-	ok &= expect(kept.size() == 10 && kept.first() == QStringLiteral("reported-crash-20261019-100002-1.txt"),
-		"the newest 10 reported notes are not the ones kept");
-	return ok;
+	// the newest 10 reported notes are not the ones kept
+	QCOMPARE(kept.size(), 10);
+	QCOMPARE(kept.first(), QStringLiteral("reported-crash-20261019-100002-1.txt"));
 }
-
-} // namespace
 
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
+	// A child crashes before Qt Test runs, so the crash handler of Qt Test does not take its signal.
 	const QStringList arguments = QCoreApplication::arguments();
 	if (arguments.size() == 4 && arguments.at(1) == QLatin1String("--child"))
 		return crashChild(arguments.at(2), arguments.at(3));
-
-	bool ok = true;
-#ifdef Q_OS_WIN
-	ok &= checkCrash("segv", "Exception: 0xC0000005", false);
-#else
-	ok &= checkCrash("segv", "Signal: SIGSEGV", false);
-	ok &= checkCrash("throw-thread", "Signal: SIGABRT", true);
-#endif
-	ok &= checkCrash("throw", "Signal: SIGABRT", true);
-	ok &= checkReportedNotesKept();
-	std::cout << (ok ? "test_crashnote: PASS\n" : "test_crashnote: FAIL\n");
-	return ok ? 0 : 1;
+	TestCrashNote test;
+	return QTest::qExec(&test, argc, argv);
 }
+
+#include "test_crashnote.moc"
