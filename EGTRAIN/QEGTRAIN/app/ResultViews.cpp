@@ -189,8 +189,9 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 		const QString name = QString::fromStdString(segment.trainName);
 		QAreaSeries* fill = nullptr;
 		if (left != right) {
-			auto* lower = new QLineSeries();
-			auto* upper = new QLineSeries();
+			// An area series does not own its two lines, so the chart does.
+			auto* lower = new QLineSeries(chart);
+			auto* upper = new QLineSeries(chart);
 			lower->append(left, segment.startTime);
 			lower->append(right, segment.startTime);
 			upper->append(left, segment.endTime);

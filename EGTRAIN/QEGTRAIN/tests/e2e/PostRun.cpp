@@ -237,6 +237,21 @@ DiagramWindow* newestWindow(const MainWindow& w) {
 	return windows.isEmpty() ? nullptr : windows.last();
 }
 
+// An area series does not own its two lines. Without a parent they outlive the chart.
+bool areaLinesOwned(const DiagramWindow& window) {
+	const auto* view = window.findChild<QChartView*>();
+	if (!view || !view->chart())
+		return true;
+	for (const QAbstractSeries* series : view->chart()->series())
+		if (const auto* area = qobject_cast<const QAreaSeries*>(series))
+			for (const QLineSeries* line : {area->upperSeries(), area->lowerSeries()})
+				if (line && !line->parent()) {
+					std::fprintf(stderr, "E2E_AREA_LINES_UNOWNED: %s\n", window.windowTitle().toStdString().c_str());
+					return false;
+				}
+	return true;
+}
+
 // The Trains list of a result window knows the service of each train of the run, `services` by train id, and groups more
 // than six trains in six services or fewer.
 bool trainServicesShown(DiagramWindow* window, const QHash<QString, QString>& services) {
@@ -530,6 +545,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			ok &= dump("blocking_time.csv", blocking && list ? blocking->csvContent() : std::string());
 			if (blocking && list) {
 				ok &= trainServicesShown(blocking, services);
+				ok &= areaLinesOwned(*blocking);
 				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
