@@ -54,7 +54,10 @@ Each key of the scene files is written in one place and read in one place.
 `encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
 `encodePassengers`), and `loadScene` in `SceneModel.cpp` and
 `SceneFieldReader.cpp` read the files. The importer fills a [`SceneModel`] and
-writes it with the encoders, so an imported scene has the form of a saved one.
+hands it to `replaceSceneDirectory`, which writes, loads back and publishes it
+as `saveScene` does, so an imported scene has the form of a saved one. Unlike a
+save, it replaces a folder at the destination with everything in it and keeps
+the default mode of a new folder.
 The exporter writes the items of its area sidecar with `encodeSignallingArea`,
 and the importer reads them with `decodeSignallingArea`.
 
@@ -284,7 +287,10 @@ in [Scene Schema Reference](../guides/scene-schema.md#historical-compatibility-a
 `SceneImporter` maps the legacy seven-token train definition, physical and
 traction source files, timetable rows, routes, stations, supported scenarios,
 and passengers into the model. It is an explicit conversion command/UI action,
-not a fallback used when running a scene. `SceneExporter` remains an explicit
+not a fallback used when running a scene. A legacy number that reads as `nan`
+or `inf` is malformed, like any other unreadable number: a row of a file is
+skipped with the warning `scene.import.parse`, and a Trains or train data file
+gives that code as an error and stops the import. `SceneExporter` remains an explicit
 interoperability tool; exporting does not change the active scene or stage the
 normal simulator input.
 

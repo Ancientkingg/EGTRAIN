@@ -608,7 +608,12 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	return result;
 }
 
-SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+// Writes the scene into a staging directory next to sceneDir, loads it back and renames it into place. With
+// keepOtherFiles the staging directory is limited to its owner and takes the files of the previous directory that are
+// not scene files; without it the previous directory is replaced with everything in it and the new one keeps the
+// default mode of a new directory.
+static SceneSaveResult writeSceneDirectory(const SceneModel& scene, const std::string& sceneDir,
+	bool keepOtherFiles) {
 	SceneSaveResult result;
 	const fs::path destination = pathFromUtf8(sceneDir);
 	const std::string destinationName = destination.filename().u8string();
@@ -639,12 +644,12 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 		return result;
 
 	StagedDirectory staging;
-	ec = createStagedDirectory(parent, destinationName + ".staging-", true, staging);
+	ec = createStagedDirectory(parent, destinationName + ".staging-", keepOtherFiles, staging);
 	if (ec) {
 		addWriteError(result, destination.u8string(), "Cannot create a private case staging directory");
 		return result;
 	}
-	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
+	if (keepOtherFiles && hadDestination && !copyExistingSceneContents(destination, staging.path, result))
 		return result;
 	const bool stagingAttempted = result.writeAttempted;
 	result = writeSceneGeneration(scene, staging.path);
@@ -696,4 +701,12 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (result.wroteAll)
 		result.inputSnapshot = stagedSnapshot;
 	return result;
+}
+
+SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
+	return writeSceneDirectory(scene, sceneDir, true);
+}
+
+SceneSaveResult replaceSceneDirectory(const SceneModel& scene, const std::string& sceneDir) {
+	return writeSceneDirectory(scene, sceneDir, false);
 }

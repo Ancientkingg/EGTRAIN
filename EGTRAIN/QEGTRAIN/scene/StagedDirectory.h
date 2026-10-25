@@ -8,7 +8,7 @@
 #include <system_error>
 
 // A scene directory is filled in a private directory next to its destination and then renamed into place, so that a
-// failure leaves the previous scene as it was. The functions here are shared by the scene writer and the legacy importer.
+// failure leaves the previous scene as it was. The functions here are shared by the scene writer and the legacy exporter.
 
 /// A directory that is removed when the object goes out of scope. release() keeps it, for a caller that has renamed it.
 struct StagedDirectory {
@@ -54,8 +54,8 @@ inline std::error_code uniqueSiblingPath(const std::filesystem::path& parent, co
 }
 
 /// Creates an empty directory in parent, named like uniqueSiblingPath names a path, and sets staged.path to it. With
-/// ownerOnly the directory is limited to its owner. The staged directory becomes the published scene directory, so its
-/// mode is part of the result: the writer asks for owner-only, the importer keeps the default mode.
+/// ownerOnly the directory is limited to its owner. The staged directory becomes the published directory, so its mode is
+/// part of the result: a save asks for owner-only, an import and an export keep the default mode.
 inline std::error_code createStagedDirectory(const std::filesystem::path& parent, const std::string& prefix,
 	bool ownerOnly, StagedDirectory& staged) {
 	std::error_code ec;

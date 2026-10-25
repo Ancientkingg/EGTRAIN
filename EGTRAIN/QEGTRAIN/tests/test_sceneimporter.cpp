@@ -4,12 +4,14 @@
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
@@ -714,8 +716,8 @@ int main() {
 				bool reported = false;
 				for (const auto& diagnostic : refused.diagnostics) {
 					reported = reported
-						|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.import.missing"
-							&& diagnostic.message.rfind("Cannot create staging directory", 0) == 0);
+						|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
+							&& diagnostic.message == "Cannot create a private case staging directory");
 				}
 				ok &= expect(!refused.wroteScene && reported, "Import into a read-only parent reports the staging directory");
 				ok &= expect(!fs::exists(blocked), "Failed import creates no destination");
@@ -732,8 +734,8 @@ int main() {
 				const auto kept = importLegacyScene(legacyDir.dir, keptScene.string(), "Paimpol");
 				fs::path backup;
 				for (const auto& diagnostic : kept.diagnostics) {
-					if (diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.import.cleanup"
-						&& diagnostic.message.rfind("Could not remove import backup", 0) == 0)
+					if (diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.save.cleanup"
+						&& diagnostic.message.rfind("Cannot remove the previous case generation", 0) == 0)
 						backup = diagnostic.file;
 				}
 				ok &= expect(kept.success() && fs::exists(keptScene / "scene.json"),
@@ -1213,6 +1215,48 @@ int main() {
 			rolloutImported = rolloutImported || scenario["id"] == "rollout_1";
 		ok &= expect(hasReadDiag(imported.diagnostics, rollout, SceneSeverity::Warning) && !rolloutImported,
 			"An odd-sized UTF-16 rollout is reported and left out");
+	}
+
+	// A token that std::stod reads as NaN or infinity is a malformed number. A node row with one is skipped with a warning
+	// that names the file and the row, and a Trains file with one stops the import. Passenger files without a passenger
+	// give no passengers.json, and the scene files have no carriage return on any platform.
+	{
+		TempDir root;
+		const fs::path legacy = fs::path(root.dir) / "nonfinite";
+		const fs::path destination = fs::path(root.dir) / "nonfinite-scene";
+		writeSmallLegacyCase(legacy);
+		const fs::path nodes = legacy / "TrackLines/B0/NodiCumPari.txt";
+		writeText(nodes, "0 0 0\n1 2 0\n2 nan 0\n3 2 inf\n");
+		writeText(legacy / "Passengers/DAS_FrenchCaseStudy.csv", "h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n");
+		writeText(legacy / "Passengers/RouteChoiceFC_EQ1.csv", "person_id,destination,nb_transfers\n");
+		const auto imported = importLegacyScene(legacy.string(), destination.string(), "NonFinite");
+		const auto skippedRow = [&](const std::string& message) {
+			return std::any_of(imported.diagnostics.begin(), imported.diagnostics.end(), [&](const SceneDiagnostic& diagnostic) {
+				return diagnostic.code == "scene.import.parse" && diagnostic.severity == SceneSeverity::Warning
+					&& diagnostic.message == message && fs::u8path(diagnostic.file).lexically_normal() == nodes.lexically_normal();
+			});
+		};
+		ok &= expect(skippedRow("Invalid node row 2") && skippedRow("Invalid node row 3"),
+			"A node row with nan or inf is skipped with a warning that names the file and the row");
+		const SceneLoadResult loaded = loadScene(destination.u8string());
+		ok &= expect(imported.success() && !hasErrors(loaded.diagnostics) && loaded.scene.nodes.size() == 2,
+			"A case with skipped non-finite node rows imports to a scene that loads");
+		ok &= expect(imported.success() && !fs::exists(destination / "passengers.json"),
+			"Passenger files that give no passenger write no passengers.json");
+		bool carriageReturn = false;
+		for (const auto& entry : fs::directory_iterator(destination)) {
+			std::ifstream input(entry.path(), std::ios::binary);
+			const std::string bytes((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+			carriageReturn = carriageReturn || bytes.find('\r') != std::string::npos;
+		}
+		ok &= expect(imported.success() && !carriageReturn, "The imported scene files contain no carriage return");
+
+		writeText(legacy / "Trains/Service.txt", "Service inf 99999999 0 /Service.dat /Service-effort.dat /TimeTable/Service.txt\n");
+		const fs::path refused = fs::path(root.dir) / "infinite-scene";
+		const auto infinite = importLegacyScene(legacy.string(), refused.string(), "NonFinite");
+		ok &= expect(!infinite.success() && hasDiag(infinite.diagnostics, "scene.import.parse", SceneSeverity::Error)
+				&& !fs::exists(refused),
+			"A Trains file with an infinite entry time stops the import and publishes no scene");
 	}
 
 #ifndef _WIN32
