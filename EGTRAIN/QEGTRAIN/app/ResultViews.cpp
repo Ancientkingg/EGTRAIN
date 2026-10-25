@@ -518,6 +518,7 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 			const QString event = QString::fromStdString(source.event);
 			series->setName(name + " (" + event + ")");
 			// The window paints the stops and dwells in the colour of the train; planned ones are dashed.
+			series->setProperty("planned", source.planned);
 			series->setPen(QPen(QColor(20, 35, 45), 1.0, source.planned ? Qt::DashLine : Qt::SolidLine));
 			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
 			series->setPointsVisible(!dwell);

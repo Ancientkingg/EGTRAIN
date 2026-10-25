@@ -103,8 +103,8 @@ public:
 	/// figure name the chart. Numeric axes that keep the ticks Qt gives them get ticks on round values, and their range
 	/// widens to the first round tick past each end; a range that starts at zero keeps that start. An axis whose
 	/// "exactRange" property is true keeps its range and still gets round ticks. A series is planned when its "planned"
-	/// property is true or its name holds "planned"; a planned series is drawn dashed. A line narrower than 2 px is drawn
-	/// 2 px wide, and the outline of a box ("inspectionFilled") keeps its width. A new chart ends the selection.
+	/// property is true, whatever its name; a planned series is drawn dashed. A line narrower than 2 px is drawn 2 px wide,
+	/// and the outline of a box ("inspectionFilled") keeps its width. A new chart ends the selection.
 	void setChart(QChart* chart);
 	/// Sets the window title to `heading`, shows `context` in one line in the header, elided at the right, and `warning`
 	/// above the chart with the look of a warning of the table windows, which the exported figure keeps; an empty text

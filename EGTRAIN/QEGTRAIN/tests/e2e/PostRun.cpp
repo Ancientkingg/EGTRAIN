@@ -454,6 +454,19 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 						if (line && ((window->windowTitle().startsWith("Timetable") && !line->name().contains("dwell")) || line->count() == 1))
 							ok &= line->pointsVisible();
 					}
+					// A line is planned as its data says, not by the name of its train.
+					const bool timetable = window->windowTitle().startsWith("Timetable");
+					const auto shown = routeDiagramData(*w.m_runController->m_completedRun, timetable, reference);
+					long long plannedLines = 0, plannedSeries = 0;
+					for (const QAbstractSeries* series : view->chart()->series())
+						plannedLines += series->property("planned").toBool() ? 1 : 0;
+					for (const RouteDiagramSeries& series : shown ? shown->series : std::vector<RouteDiagramSeries>())
+						plannedSeries += series.planned ? 1 : 0;
+					if (plannedLines != plannedSeries || (timetable && plannedSeries == 0)) {
+						std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_PLANNED %s: %lld planned lines for %lld planned series\n",
+							window->windowTitle().toStdString().c_str(), plannedLines, plannedSeries);
+						ok = false;
+					}
 					const QString file = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM") + "/"
 						+ (window->windowTitle().startsWith("Timetable") ? "timetable_graph" : "train_path_graph") + ".png";
 					ok &= view->grab().save(file);
