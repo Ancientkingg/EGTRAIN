@@ -48,6 +48,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.package == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -73,6 +74,7 @@ jobs:
     name: Check the release assets
     needs: [version, package]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 

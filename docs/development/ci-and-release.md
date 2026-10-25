@@ -118,7 +118,10 @@ scripts that build, sign and check the release packages.
   made. The Linux package job extracts its AppImage and starts the extracted
   image with the same script on a virtual display, after the script has checked
   that every Qt and ZeroMQ library of the programs and plugins comes from the
-  image. The start in each of the three package jobs is the headless run and the
+  image. That job runs on `ubuntu-24.04`, not `ubuntu-latest`, because the
+  AppImage needs the glibc of the system that built it; the workflow test
+  requires a named Ubuntu release no newer than the one of the rehearsal job
+  `rehearse-linux`. The start in each of the three package jobs is the headless run and the
   window start, with no CSV or PNG export, because a release build has no test
   hooks to ask for one. The check does not show how the SVG icons look, typing
   into text fields, the native file dialogs, how Finder presents the disk
@@ -271,6 +274,32 @@ build when the documentation check finds nothing. `main` requires these four che
 merge automatically when they are green. Do not require the build legs, the
 format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.
+
+### Workflow test
+
+`tools/e2e/test_ci_workflow.py` (CTest `test_ci_workflow`) reads the workflows and checks the properties that every
+workflow keeps:
+
+- The result job of each required workflow is its last job, always runs, needs every job of a pull request and fails
+  when one of them failed or was cancelled. Each `changes` job runs `tools/ci/changed_files.py`.
+- Every job that does not call a reusable workflow has `timeout-minutes`. The macOS package job allows 150 minutes,
+  because its two notarization steps may wait an hour each.
+- The permissions at the top of a workflow only read. A job writes only when `WRITE_PERMISSIONS` in the test lists it
+  with the reason: the `publish` job of `docs.yml` and the `release` job of `release.yml`.
+- A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
+  cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.
+- A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. A call of
+  `package.yml` passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs
+  ask for.
+- The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
+  `tools/release/` is registered in CTest or run by a workflow.
+
+`KNOWN_GAPS` in the test lists the workflows that lack one of these properties, such as the job time limits of
+`release.yml`. The test fails when one of them gets the property, so the entry goes with the change. The test then
+checks the properties of the build, package and release jobs that this page describes. It finds a step by what the
+step runs, not by its name, so a step can be renamed or moved as long as the property holds. It reads the workflows
+with a small reader of the YAML that they use, which needs no package; where PyYAML is installed, the test also
+checks that the reader reads every workflow as PyYAML does.
 
 ### Release assets script
 

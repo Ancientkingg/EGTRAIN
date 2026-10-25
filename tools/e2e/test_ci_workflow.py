@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-import fnmatch
-import itertools
+"""Checks the GitHub workflows for the properties that the required checks and the releases rely on.
+
+The first checks hold for every workflow: the result jobs that main requires, the changed-files filter, time limits,
+permissions, concurrency, credentials, the calls of the reusable package workflow and the files that the workflows name.
+The later ones are the properties of the build, package and release jobs that docs/development describes. Steps are
+found by what they run, not by their names.
+"""
 import json
 import re
 import sys
@@ -9,89 +14,42 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# The jobs of the CMake workflow that run only at night or by hand. The result job, which main requires, does not wait for them.
-NIGHTLY_SANITIZER_JOBS = ("sanitizers", "thread-sanitizer")
+# The condition of every job and step that signs, notarizes or publishes: a push to production or a v* tag.
+PUSH_GATE = "github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))"
+NIGHTLY_GATE = "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"
 
-# The path rules that decide which workflows start, in the filter syntax of GitHub, where * stays within a directory and
-# ** crosses directories. The CMake workflow skips a pull request that changes only these files. The production release
-# workflow still skips on them as a trigger filter.
-DOCUMENTATION_PATHS = ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]
-# The format workflow runs for a pull request that changes one of these files.
-FORMAT_PATHS = [
-    "EGTRAIN/QEGTRAIN/**",
-    ".clang-format",
-    ".clang-format-ignore",
-    "tools/format.py",
-    ".github/workflows/format.yml",
-]
-# The tidy workflow runs for a pull request that changes one of these files.
-TIDY_PATHS = [
-    "EGTRAIN/QEGTRAIN/**",
-    "CMakeLists.txt",
-    ".clang-tidy",
-    "tools/tidy.py",
-    ".github/workflows/tidy.yml",
-    ".github/actions/**",
-]
-# The package check runs for a pull request that changes one of these files.
-PACKAGE_CHECK_PATHS = [
-    ".github/workflows/package-check.yml",
-    ".github/workflows/package.yml",
-    ".github/workflows/release.yml",
-    ".github/actions/**",
-    "tools/release/**",
-    "tools/vcpkg/**",
-    "installer/**",
-    "Info.plist.in",
-    "EGTRAIN/QEGTRAIN/update/**",
-    "EGTRAIN/QEGTRAIN/app/main.cpp",
-]
-# Paths on both sides of every rule above.
-RULE_SAMPLES = [
-    "README.md",
-    ".hidden.md",
-    "notes.mdx",
-    "sub/dir/guide.md",
-    "docs/a.png",
-    "docs/x/y.txt",
-    "LICENSE",
-    "LICENSE.txt",
-    "sub/LICENSE",
-    ".github/ISSUE_TEMPLATE/bug.yml",
-    ".github/workflows/cmake.yml",
-    ".github/workflows/format.yml",
-    ".github/workflows/tidy.yml",
-    ".github/workflows/package.yml",
-    ".github/workflows/package-check.yml",
-    ".github/workflows/release.yml",
-    ".github/actions/setup-deps/action.yml",
-    "CMakeLists.txt",
-    "EGTRAIN/QEGTRAIN/a.cpp",
-    "EGTRAIN/QEGTRAIN/scene/b.h",
-    "EGTRAIN/QEGTRAIN/notes.md",
-    "EGTRAIN/QEGTRAIN/update/u.cpp",
-    "EGTRAIN/QEGTRAIN/app/main.cpp",
-    "EGTRAIN/QEGTRAIN/app/other.cpp",
-    "EGTRAIN/QEGTRAIN/tests/.clang-tidy",
-    ".clang-format",
-    ".clang-format-ignore",
-    ".clang-format.bak",
-    "tools/format.py",
-    "tools/format.pyc",
-    ".clang-tidy",
-    ".clang-tidy.bak",
-    "tools/tidy.py",
-    "tools/tidy.pyc",
-    "sub/CMakeLists.txt",
-    "tools/release/version.py",
-    "tools/release/x/y.sh",
-    "tools/vcpkg/vcpkg.json",
-    "tools/e2e/test_ci_workflow.py",
-    "installer/a.iss",
-    "installer/x/y.iss",
-    "Info.plist.in",
-    "sub/Info.plist.in",
-]
+# The workflows whose result job main requires: the name of that check, the entry of tools/ci/changed_files.py, the job
+# that skips when the entry selects nothing, and the jobs of the nightly and manual runs, which the result job does not
+# wait for.
+REQUIRED = {
+    "cmake.yml": ("CMake result", "cmake", "build", ("sanitizers", "thread-sanitizer")),
+    "format.yml": ("Format result", "format", "check", ()),
+    "tidy.yml": ("Tidy result", "tidy", "check", ()),
+    "package-check.yml": ("Package check result", "package-check", "version", ()),
+}
+
+# The jobs that may write with the token of the run, and why.
+WRITE_PERMISSIONS = {
+    ("docs.yml", "publish"): "pushes the documentation site to gh-pages",
+    ("release.yml", "release"): "creates and publishes the GitHub release",
+}
+
+# Properties that these workflows do not have yet. The test fails when one of them gets the property, so that the entry
+# goes with the change.
+KNOWN_GAPS = {
+    ("format.yml", "permissions"),
+    ("format.yml", "concurrency"),
+    ("format.yml", "changed-files script"),
+    ("telemetry-contract.yml", "permissions"),
+    ("telemetry-contract.yml", "concurrency"),
+    ("telemetry-contract.yml", "time limit of check"),
+    ("release.yml", "permissions"),
+    ("release.yml", "time limit of version"),
+    ("release.yml", "time limit of validation"),
+    ("release.yml", "time limit of sanitizer"),
+    ("release.yml", "time limit of release"),
+    ("release.yml", "setup action"),
+}
 
 
 def workflow_text(name: str) -> str:
@@ -104,28 +62,176 @@ def release_pipeline_text() -> str:
     return workflow_text("release.yml") + "\n" + workflow_text("package.yml") + "\n" + macos
 
 
-def trigger_block(text: str) -> str:
-    match = re.search(r"^on:\n((?:(?:  .*)?\n)*)", text, re.MULTILINE)
-    return match.group(1).rstrip("\n") + "\n" if match else ""
+# A reader of the YAML that the workflows use: block mappings and sequences, flow sequences, block scalars and plain or
+# quoted scalars on one line. Every scalar is a string, as yaml.BaseLoader reads it. It stops at an anchor, a tag, a
+# flow mapping or a plain scalar over several lines, which the workflows do not use.
+KEY = re.compile(r"^([^\s'\"#][^:#]*?|'[^']*'|\"[^\"]*\"):(?: +|$)(.*)$")
 
 
-def trigger_events(text: str) -> list[str]:
-    return re.findall(r"^  ([a-z_]+):", trigger_block(text), re.MULTILINE)
+def load_yaml(text: str):
+    lines = text.splitlines()
+    value, index = _node(lines, 0, 0)
+    index = _skip(lines, index)
+    if index < len(lines):
+        raise ValueError(f"line {index + 1}: not read: {lines[index]!r}")
+    return value
 
 
-def job_ids(text: str) -> list[str]:
-    jobs = text.split("\njobs:\n", 1)[-1]
-    return re.findall(r"^  ([a-z][a-z0-9-]*):\n", jobs, re.MULTILINE)
+def _skip(lines: list[str], index: int) -> int:
+    while index < len(lines) and (not lines[index].strip() or lines[index].lstrip().startswith("#")):
+        index += 1
+    return index
 
 
-def job_block(text: str, job: str) -> str:
-    jobs = text.split("\njobs:\n", 1)[-1]
-    match = re.search(rf"^  {job}:\n((?:(?:    .*)?\n)*)", jobs, re.MULTILINE)
-    return match.group(0).rstrip("\n") + "\n" if match else ""
+def _indent(line: str) -> int:
+    return len(line) - len(line.lstrip(" "))
 
 
-def step_block(job: str, name: str) -> str:
-    return next((block for block in job.split("\n      - ") if block.startswith(f"name: {name}\n")), "")
+def _node(lines: list[str], index: int, indent: int):
+    index = _skip(lines, index)
+    if index >= len(lines) or _indent(lines[index]) < indent:
+        return "", index
+    indent = _indent(lines[index])
+    if lines[index][indent:] == "-" or lines[index][indent:].startswith("- "):
+        return _sequence(lines, index, indent)
+    return _mapping(lines, index, indent)
+
+
+def _sequence(lines: list[str], index: int, indent: int):
+    items = []
+    while True:
+        index = _skip(lines, index)
+        if index >= len(lines) or _indent(lines[index]) != indent or not lines[index][indent:].startswith("-"):
+            return items, index
+        rest = lines[index][indent + 1:]
+        if not rest.strip():
+            item, index = _node(lines, index + 1, indent + 1)
+        elif KEY.match(rest.lstrip(" ")) or rest.lstrip(" ").startswith("- "):
+            # The item starts on the line of the dash: read it as if the dash were a space.
+            inner = indent + 1 + _indent(rest)
+            lines[index] = " " * inner + rest.lstrip(" ")
+            item, index = _node(lines, index, inner)
+        else:
+            item, index = _inline(rest), index + 1
+        items.append(item)
+
+
+def _mapping(lines: list[str], index: int, indent: int):
+    mapping = {}
+    while True:
+        index = _skip(lines, index)
+        if index >= len(lines) or _indent(lines[index]) != indent:
+            return mapping, index
+        match = KEY.match(lines[index][indent:])
+        if not match:
+            raise ValueError(f"line {index + 1}: no key in {lines[index]!r}")
+        key, rest = _scalar(match.group(1)), match.group(2)
+        if re.fullmatch(r"[|>][-+]?\s*(#.*)?", rest):
+            mapping[key], index = _block_scalar(lines, index + 1, indent, rest[0], rest[1:2])
+        elif not rest.strip() or rest.lstrip().startswith("#"):
+            following = _skip(lines, index + 1)
+            if following < len(lines) and (
+                _indent(lines[following]) > indent
+                or (_indent(lines[following]) == indent and lines[following][indent:].startswith("- "))
+            ):
+                mapping[key], index = _node(lines, following, _indent(lines[following]))
+            else:
+                mapping[key], index = "", index + 1
+        else:
+            mapping[key], index = _inline(rest), index + 1
+
+
+def _block_scalar(lines: list[str], index: int, parent: int, style: str, chomp: str):
+    body = []
+    block_indent = None
+    while index < len(lines):
+        line = lines[index]
+        if line.strip():
+            if block_indent is None:
+                block_indent = _indent(line)
+            if block_indent <= parent or _indent(line) < block_indent:
+                break
+            body.append(line[block_indent:])
+        else:
+            body.append("")
+        index += 1
+    while body and not body[-1] and chomp != "+":
+        body.pop()
+    if not body:
+        return "", index
+    if style == "|":
+        text = "\n".join(body)
+    else:
+        # Folded: a line break between two lines of text is a space. An empty line, and a line that is more indented
+        # or follows one, keeps its line break.
+        text = body[0]
+        for previous, line in zip(body, body[1:]):
+            if not line:
+                text += "\n"
+            elif line.startswith(" ") or previous.startswith(" ") or not previous:
+                text += ("\n" if previous else "") + line
+            else:
+                text += " " + line
+    return text + ("" if chomp == "-" else "\n"), index
+
+
+def _inline(text: str):
+    text = text.strip()
+    if text[:1] in ("{", "&", "*", "!"):
+        raise ValueError(f"unsupported YAML: {text!r}")
+    if text.startswith("["):
+        return [_scalar(item) for item in text[1:text.rindex("]")].split(",") if item.strip()]
+    if text[:1] not in ("'", '"'):
+        text = re.split(r"\s+#", text, maxsplit=1)[0]
+    return _scalar(text)
+
+
+def _scalar(text: str) -> str:
+    text = text.strip()
+    if len(text) >= 2 and text[0] == text[-1] == "'":
+        return text[1:-1].replace("''", "'")
+    if len(text) >= 2 and text[0] == text[-1] == '"':
+        return re.sub(r"\\(.)", lambda match: {"n": "\n", "t": "\t"}.get(match.group(1), match.group(1)), text[1:-1])
+    return text
+
+
+def flat(node) -> str:
+    """The keys and the text of a node, one value a line, to search what a job or a step runs."""
+    if isinstance(node, dict):
+        return "\n".join(f"{key}: {flat(value)}" for key, value in node.items())
+    if isinstance(node, list):
+        return "\n".join(flat(item) for item in node)
+    return node
+
+
+def triggers(workflow: dict) -> dict:
+    events = workflow.get("on", {})
+    return {events: ""} if isinstance(events, str) else dict.fromkeys(events, "") if isinstance(events, list) else events
+
+
+def needs(job: dict) -> list[str]:
+    value = job.get("needs", [])
+    return [value] if isinstance(value, str) else value
+
+
+def runs(job: dict) -> str:
+    """The shell of every step of a job."""
+    return "\n".join(step.get("run", "") for step in job.get("steps", []))
+
+
+def step_index(job: dict, marker: str) -> int:
+    """The first step of a job that names the marker, or -1."""
+    return next((index for index, step in enumerate(job.get("steps", [])) if marker in flat(step)), -1)
+
+
+def step(job: dict, marker: str) -> dict:
+    index = step_index(job, marker)
+    return job["steps"][index] if index >= 0 else {}
+
+
+def in_order(job: dict, *markers: str) -> bool:
+    positions = [step_index(job, marker) for marker in markers]
+    return -1 not in positions and positions == sorted(positions)
 
 
 def configure_preset(presets: list[dict], name: str) -> dict:
@@ -143,1984 +249,918 @@ def configure_preset(presets: list[dict], name: str) -> dict:
     return resolved
 
 
-def script_function(text: str, name: str) -> str:
-    """The definition of a function of a shell script, from its first line to the closing brace."""
-    match = re.search(rf"^{name}\(\) {{\n.*?^}}\n", text, re.MULTILINE | re.DOTALL)
-    return match.group(0) if match else ""
-
-
 def test_registration(cmake: str, name: str) -> str:
     """The egtrain_add_test call that registers the test, or an empty string."""
     found = re.search(rf"^\s*egtrain_add_test\({re.escape(name)}\b.*?\)$", cmake, re.MULTILINE | re.DOTALL)
     return found.group(0) if found else ""
 
 
-def test_labels(registration: str) -> list[str]:
-    found = re.search(r"\bLABELS((?:\s+[a-z][\w-]*)+)", registration)
-    return found.group(1).split() if found else []
+def ctest_names(text: str) -> list[str]:
+    """The test names of every ctest -R '^(a|b)$' in the text."""
+    return [name for names in re.findall(r"-R '\^\(([\w|]+)\)\$'", text) for name in names.split("|")]
 
 
-def filter_regex(pattern: str) -> "re.Pattern[str]":
-    regex = ""
-    index = 0
-    while index < len(pattern):
-        if pattern.startswith("**", index):
-            regex += ".*"
-            index += 2
-        elif pattern[index] == "*":
-            regex += "[^/]*"
-            index += 1
+class Checks:
+    """Collects the problems. A problem of a known gap is left out, and a known gap without a problem is one."""
+
+    def __init__(self) -> None:
+        self.problems: list[str] = []
+        self.gaps: set[tuple[str, str]] = set()
+
+    def expect(self, condition, problem: str, gap: tuple = None) -> None:
+        if condition:
+            return
+        if gap in KNOWN_GAPS:
+            self.gaps.add(gap)
         else:
-            regex += re.escape(pattern[index])
-            index += 1
-    return re.compile(regex + r"\Z")
+            self.problems.append(problem)
+
+    def finish(self) -> None:
+        for workflow, gap in sorted(KNOWN_GAPS - self.gaps):
+            self.problems.append(f"KNOWN_GAPS lists the {gap} of {workflow}, which it has now: remove the entry")
+        if self.problems:
+            raise SystemExit("These properties of the CI workflows do not hold:\n- " + "\n- ".join(self.problems))
 
 
-def runs_by_filter(files: list[str], patterns: list[str], ignore: bool) -> bool:
-    """Whether GitHub starts a workflow for a pull request that changes the files: it starts unless every file matches
-    a paths-ignore pattern, or when a file matches a paths pattern."""
-    matches = [any(filter_regex(pattern).match(file) for pattern in patterns) for file in files]
-    return not all(matches) if ignore else any(matches)
-
-
-def case_branches(job: str) -> list[tuple[str, str]]:
-    """The pattern and the action of each branch of the case statement that reads the changed files."""
-    body = job.split('case "$file" in\n', 1)[-1].split("esac", 1)[0]
-    branches = re.findall(r"^ +(\S+)\) ([^;\n]*?) ?;;$", body, re.MULTILINE)
-    return branches if len(branches) == len(body.strip().splitlines()) else []
-
-
-def selects(branches: list[tuple[str, str]], files: list[str], action: str) -> bool:
-    """Whether the first matching branch of any file takes the action. A case pattern matches a slash with *."""
-    for file in files:
-        for pattern, branch_action in branches:
-            if fnmatch.fnmatchcase(file, pattern):
-                if branch_action == action:
-                    return True
-                break
-    return False
-
-
-def result_job_problems(text: str, name: str, not_required: tuple[str, ...] = ()) -> list[str]:
-    """The last job of a pull request workflow reports the result of all other required jobs under a fixed name. The jobs in
-    not_required are left out."""
-    ids = job_ids(text)
-    job = job_block(text, "result")
-    needs = re.findall(r"^    needs: \[(.+)\]$", job, re.MULTILINE)
-    steps = re.findall(r"^      - name: (.+)$", job, re.MULTILINE)
-    fail_step = step_block(job, "Fail when a job failed or was cancelled")
-    problems = []
-    if not ids or ids[-1] != "result" or ids.count("result") != 1:
-        problems.append(f"{name} as the last job")
-    if f"    name: {name}\n" not in job or "    if: always()\n" not in job:
-        problems.append(f"{name} that always runs")
-    if len(needs) != 1 or needs[0].split(", ") != [job_id for job_id in ids[:-1] if job_id not in not_required]:
-        problems.append(f"{name} that needs every other required job")
-    if (
-        steps != ["Fail when a job failed or was cancelled"]
-        or "        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')\n" not in fail_step
-        or "        run: exit 1\n" not in fail_step
-    ):
-        problems.append(f"{name} that fails when a needed job failed or was cancelled")
-    return problems
-
-
-def required_result_problems(workflow: str, format_workflow: str, tidy_workflow: str, package_check: str) -> list[str]:
-    """Every pull request to main starts the CMake, Format, Tidy and Package check workflows, and each reports one result job
-    that main can require. The path rules that the triggers had decide in a first job whether the other jobs work. The CMake,
-    Tidy and Package check workflows read them from tools/ci/changed_files.py."""
-    sys.path.insert(0, str(ROOT / "tools/ci"))
-    from changed_files import needs_jobs
-
-    problems = []
-    for name, text, label, not_required, rule in (
-        ("CMake", workflow, "CMake result", NIGHTLY_SANITIZER_JOBS, "cmake"),
-        ("Format", format_workflow, "Format result", (), None),
-        ("Tidy", tidy_workflow, "Tidy result", (), "tidy"),
-        ("Package check", package_check, "Package check result", (), "package-check"),
-    ):
-        trigger = trigger_block(text)
-        pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", trigger, re.MULTILINE)
-        if "paths" in trigger or not pull_request or pull_request.group(1) != "    branches: [main]\n":
-            problems.append(f"{name} starting for every pull request to main, without a path filter")
-        problems.extend(result_job_problems(text, label, not_required))
-        changes = job_block(text, "changes")
-        script = f'run: python3 tools/ci/changed_files.py {rule} HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"\n'
-        if (
-            "    runs-on: ubuntu-latest\n" not in changes
-            or "          fetch-depth: 2\n" not in changes
-            or (rule and script not in changes)
-            or (not rule and 'if [ "$GITHUB_EVENT_NAME" = pull_request ]; then\n' not in changes)
-            or (not rule and "files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)\n" not in changes)
-        ):
-            problems.append(f"{name} changes job that reads the files of a pull request and selects the other events without a diff")
-
-    # CMake: the build job needs the changes job, and every step but the failure upload checks its output. A skipped matrix
-    # job would be listed under its unexpanded name, so the legs start and their steps skip.
-    gate = "needs.changes.outputs.build == 'true'"
-    build_job = job_block(workflow, "build")
-    ungated = []
-    for block in build_job.split("\n      - ")[1:]:
-        conditions = re.findall(r"^        if: (.+)$", block, re.MULTILINE)
-        if not block.startswith("name: Upload failure diagnostics\n") and not any(
-            condition == gate or condition.startswith(gate + " && ") for condition in conditions
-        ):
-            ungated.append(block.split("\n", 1)[0])
-    if "    needs: changes\n" not in build_job or ungated:
-        problems.append("CMake build job after the changes job, with every step but the failure upload checking its output")
-    if "      build: ${{ steps.select.outputs.build }}\n" not in job_block(workflow, "changes"):
-        problems.append("CMake changes job with the output build")
-    # Format and the package check: one job waits for the changes job and checks its output. The package check skips only the
-    # version job, and the package and release assets jobs follow it.
-    format_job = job_block(format_workflow, "check")
-    if "    name: format\n    needs: changes\n    if: needs.changes.outputs.format == 'true'\n" not in format_job:
-        problems.append("format job after the changes job, checking its output")
-    format_changes = job_block(format_workflow, "changes")
-    if "      format: ${{ steps.select.outputs.format }}\n" not in format_changes or "format=true\n          if [" not in format_changes:
-        problems.append("format changes job with the output format, true for every event but a pull request")
-    tidy_job = job_block(tidy_workflow, "check")
-    if "    name: tidy\n    needs: changes\n    if: needs.changes.outputs.tidy == 'true'\n" not in tidy_job:
-        problems.append("tidy job after the changes job, checking its output")
-    if "      tidy: ${{ steps.select.outputs.tidy }}\n" not in job_block(tidy_workflow, "changes"):
-        problems.append("tidy changes job with the output tidy")
-    package_version = job_block(package_check, "version")
-    if "    name: Select application version\n    needs: changes\n    if: needs.changes.outputs.package == 'true'\n" not in package_version:
-        problems.append("package check version job after the changes job, checking its output")
-    if "      package: ${{ steps.select.outputs.package }}\n" not in job_block(package_check, "changes"):
-        problems.append("package check changes job with the output package")
-
-    # The rules select the same pull requests as the filters did: on every file and every pair of files of the samples.
-    format_branches = case_branches(format_changes)
-    if not format_branches:
-        problems.append("format changes job with a case statement of one pattern for each branch")
-    if any(action != "format=true" for _, action in format_branches):
-        problems.append("format changes job whose patterns only select")
-    sets = [[sample] for sample in RULE_SAMPLES] + [list(pair) for pair in itertools.combinations(RULE_SAMPLES, 2)]
-    for files in sets:
-        for label, selected, expected in (
-            ("CMake", needs_jobs("cmake", files), runs_by_filter(files, DOCUMENTATION_PATHS, ignore=True)),
-            ("Format", selects(format_branches, files, "format=true"), runs_by_filter(files, FORMAT_PATHS, ignore=False)),
-            ("Tidy", needs_jobs("tidy", files), runs_by_filter(files, TIDY_PATHS, ignore=False)),
-            ("Package check", needs_jobs("package-check", files), runs_by_filter(files, PACKAGE_CHECK_PATHS, ignore=False)),
-        ):
-            if selected != expected:
-                problems.append(f"{label} jobs that run for {files} as the path filter did ({expected})")
-    return problems
-
-
-def main() -> None:
-    # The release script names the artifact directories and the scene bundles that the workflows must agree with, and the
-    # disk image script names the image. Other tests import this file, so the scripts are imported here and not at module level.
-    sys.path.insert(0, str(ROOT / "tools/release"))
-    import build_release_assets
-    import make_dmg
-
-    workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
-    cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
-    tests_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/CMakeLists.txt").read_text(encoding="utf-8")
-    gui_smoke =(ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
-    release_workflow = release_pipeline_text()
-    release_only = workflow_text("release.yml")
-    package_only = workflow_text("package.yml")
-    package_check = workflow_text("package-check.yml")
-    # Qt and the libraries of the build: the CMake, tidy and package jobs set them up with this action.
-    setup_action = (ROOT / ".github/actions/setup-deps/action.yml").read_text(encoding="utf-8")
-    setup_step = "        uses: ./.github/actions/setup-deps\n"
-    format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
-    format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
-    tidy_workflow = workflow_text("tidy.yml")
-    tidy_script = (ROOT / "tools/tidy.py").read_text(encoding="utf-8")
-    main_cpp = (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8")
-    windows_resource = (ROOT / "EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in").read_text(encoding="utf-8")
-    blocks = workflow.split("\n      - ")
-    required = {
-        "Build": "cmake --build build",
-        "Test": "ctest --test-dir build",
-    }
-    missing = [
-        name
-        for name, command in required.items()
-        if not any(block.startswith(f"name: {name}\n") and command in block for block in blocks)
-    ]
-    test_steps = [block for block in blocks if block.startswith("name: Test\n")]
-    if len(test_steps) != 1 or any(
-        "ctest --test-dir build" not in block or "--output-log" not in block
-        for block in test_steps
-    ):
-        missing.append("ctest output logs")
-    standalone_smokes = (
-        "headless_smoke.py",
-        "editor_smoke.sh",
-        "roundtrip_smoke.py",
-        "bundle_smoke.py",
-        "assignment_smoke.py",
-        "incident_smoke.py",
-        "scene_render_smoke.sh",
-        "track_preview_smoke.sh",
-        "visual_polish_smoke.sh",
-    )
-    if any(smoke in workflow for smoke in standalone_smokes):
-        missing.append("standalone smoke steps")
-    # LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job. It builds with sanitizers,
-    # takes longer than the pull request checks, and runs only in the nightly and manual runs. Only the nightly sanitizer
-    # jobs below use sanitizers as well.
-    leak_job = job_block(workflow, "leak-check")
-    nightly_job = job_block(workflow, "sanitizers")
-    tsan_job = job_block(workflow, "thread-sanitizer")
-    leak_upload = step_block(leak_job, "Upload leak check logs")
-    suppressions = re.search(r"^      LSAN_OPTIONS: suppressions=\$\{\{ github\.workspace \}\}/(\S+)$", leak_job, re.MULTILINE)
-    smoke_script = re.search(r"run: python3 (tools/e2e/\S+\.py) build/QEGTRAIN \"\$RUNNER_TEMP/leak-check\"\n", leak_job)
-    reload_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", leak_job)
-    reload_names = reload_tests.group(1).split("|") if reload_tests else []
-    characterization_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/characterization/CMakeLists.txt").read_text(encoding="utf-8")
-    if (
-        "\n  sanitizer:" in workflow
-        or workflow.count("EGTRAIN_ENABLE_SANITIZERS=ON") != 2
-        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON" not in leak_job
-        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON" not in nightly_job
-        or workflow.count("-fsanitize=thread") != 2
-        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON\n" not in tsan_job
-        or "-DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread" not in tsan_job
-    ):
-        missing.append("sanitizers only in Debug builds of the leak check and the nightly sanitizer jobs")
-    if (
-        "    runs-on: ubuntu-24.04\n" not in leak_job
-        or "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n" not in leak_job
-    ):
-        missing.append("leak check on Linux in the nightly and manual runs only")
-    if "      ASAN_OPTIONS: detect_leaks=1\n" not in leak_job:
-        missing.append("leak detection in the leak check job")
-    if not suppressions or not (ROOT / suppressions.group(1)).is_file():
-        missing.append("leak check suppressions file")
-    if not smoke_script or not (ROOT / smoke_script.group(1)).is_file():
-        missing.append("leak check script for the committed scenes")
-    if not {"characterization_repeatable", "characterization_repeat_paimpol"} <= set(reload_names) or any(
-        f"add_test(NAME {name}\n" not in characterization_cmake for name in reload_names
-    ):
-        missing.append("leak check reload runs of registered characterization tests")
-    # The presenter tests draw and clear the canvas many times in one process, which is the canvas rebuild.
-    canvas_step = step_block(leak_job, "Rebuild the canvas in one process")
-    canvas_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", canvas_step)
-    canvas_names = canvas_tests.group(1).split("|") if canvas_tests else []
-    sanitizer_targets = re.search(r"run: cmake --build build --target ([\w ]+)\n", step_block(leak_job, "Build with sanitizers"))
-    built_targets = sanitizer_targets.group(1).split() if sanitizer_targets else []
-    if (
-        not {"test_networkpresenter", "test_runtimecanvas"} <= set(canvas_names)
-        or any(not test_registration(tests_cmake, name) or name not in built_targets for name in canvas_names)
-        or "--output-log \"$RUNNER_TEMP/leak-check/" not in canvas_step
-    ):
-        missing.append("leak check canvas runs of registered presenter tests built with the sanitizers")
-    if (
-        '--output-log "$RUNNER_TEMP/leak-check/' not in leak_job
-        or "actions/upload-artifact@v4" not in leak_upload
-        or "if: ${{ !cancelled() }}" not in leak_upload
-        or "path: ${{ runner.temp }}/leak-check\n" not in leak_upload
-    ):
-        missing.append("leak check logs uploaded after a failure")
-    # The nightly sanitizer job runs the whole suite on Linux with the options and the test environment of the Sanitizers job
-    # of release.yml, so that the two cannot drift apart, and as many tests at once as the Linux leg. The thread sanitizer job
-    # builds and runs registered tests of the threaded parts. Both run only in the nightly and manual runs.
-    nightly_gate = "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n"
-    if any("    runs-on: ubuntu-24.04\n" not in job or nightly_gate not in job for job in (nightly_job, tsan_job)):
-        missing.append("nightly sanitizer jobs on Linux in the nightly and manual runs only")
-    release_sanitizer = job_block(release_only, "sanitizer")
-    plain_option = r"-D[A-Za-z_]+=[\w.]+(?=\s)"
-    release_options = set(re.findall(plain_option, step_block(release_sanitizer, "Configure") + "\n"))
-    nightly_options = set(re.findall(plain_option, step_block(nightly_job, "Configure with sanitizers") + "\n"))
-    # Leak detection and the fake stack for returned frames are off by default on macOS and on by default on Linux. The
-    # nightly job turns both off, so that it checks what the release job checks. The leak check owns the leaks. The nightly
-    # job also lists the known reports of UndefinedBehaviorSanitizer.
-    test_environment = r"^          ([A-Z_]+): (.+)$"
-    ubsan_suppressions = "tools/e2e/ubsan_suppressions.txt"
-    nightly_additions = {
-        "ASAN_OPTIONS": ":detect_leaks=0:detect_stack_use_after_return=0",
-        "UBSAN_OPTIONS": f":suppressions=${{{{ github.workspace }}}}/{ubsan_suppressions}",
-    }
-    release_environment = [
-        (key, value + nightly_additions.get(key, ""))
-        for key, value in re.findall(test_environment, step_block(release_sanitizer, "Test"), re.MULTILINE)
-    ]
-    nightly_test = step_block(nightly_job, "Test with sanitizers")
-    linux_jobs = re.search(r"^ +- name: Linux\n +os: \S+\n +jobs: (\d+)$", workflow, re.MULTILINE)
-    if (
-        not release_options
-        or release_options != nightly_options
-        or not set(nightly_additions) <= set(dict(release_environment))
-        or not (ROOT / ubsan_suppressions).is_file()
-        or re.findall(test_environment, nightly_test, re.MULTILINE) != release_environment
-        or not linux_jobs
-        or f"run: ctest --test-dir build --parallel {linux_jobs.group(1)} --timeout 1500 --output-on-failure"
-        ' --output-log "$RUNNER_TEMP/ctest-sanitizer.log"\n' not in nightly_test
-        or "run: cmake --build build\n" not in step_block(nightly_job, "Build with sanitizers")
-    ):
-        missing.append("nightly sanitizer job that runs all of CTest with the options and environment of the release sanitizer job")
-    tsan_build = " ".join(step_block(tsan_job, "Build with ThreadSanitizer").split())
-    tsan_targets = tsan_build.split("cmake --build build --target ", 1)[-1].split() if "--target " in tsan_build else []
-    tsan_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", step_block(tsan_job, "Test the threaded parts"))
-    tsan_names = tsan_tests.group(1).split("|") if tsan_tests else []
-    # Qt, libzmq and the C library are not instrumented, so the job ignores their own accesses and lists the known reports.
-    tsan_suppressions = re.search(
-        r"^      TSAN_OPTIONS: second_deadlock_stack=1:ignore_noninstrumented_modules=1"
-        r":suppressions=\$\{\{ github\.workspace \}\}/(\S+)$",
-        tsan_job,
-        re.MULTILINE,
-    )
-    if (
-        not {"test_recoverycontroller", "test_telemetrysender", "test_liveserver", "test_simulationworker"} <= set(tsan_names)
-        or any(not test_registration(tests_cmake, name) or name not in tsan_targets for name in tsan_names)
-        or '--no-tests=error --output-on-failure --output-log "$RUNNER_TEMP/ctest-thread-sanitizer.log"' not in tsan_job
-        or not tsan_suppressions
-        or not (ROOT / tsan_suppressions.group(1)).is_file()
-    ):
-        missing.append("thread sanitizer runs of registered tests of the threaded parts, built with ThreadSanitizer")
-    for job in (nightly_job, tsan_job):
-        upload = step_block(job, "Upload failure diagnostics")
-        if "if: failure()" not in upload or "actions/upload-artifact@v4" not in upload or "${{ runner.temp }}/ctest-" not in upload:
-            missing.append("nightly sanitizer logs uploaded after a failure")
-    if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_gui_autostart_smoke")):
-        missing.append("GUI smoke CTest timeout")
-    if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_package_contents_smoke")):
-        missing.append("package smoke CTest timeout")
-    if "DEFAULT_HORIZON = 200" not in gui_smoke:
-        missing.append("bounded GUI smoke horizon")
-    if "DEFAULT_MARKER_SECONDS = 300" not in gui_smoke:
-        missing.append("hosted-runner GUI startup budget")
-    if any(
-        job_block(workflow, job).count('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"') != 1
-        for job in ("build", *NIGHTLY_SANITIZER_JOBS)
-    ):
-        missing.append("TMPDIR routing step for CTest logs")
-    build_blocks = job_block(workflow, "build").split("\n      - ")
-    uploads = [block for block in build_blocks if block.startswith("name: Upload failure diagnostics\n")]
-    if len(uploads) != 1 or any(
-        "if: failure()" not in block
-        or "actions/upload-artifact@v4" not in block
-        or "runner.temp" not in block
-        for block in uploads
-    ):
-        missing.append("failure artifact steps")
-    if not uploads or any(
-        path not in uploads[0]
-        for path in (
-            "/ctest.log",
-            "qegtrain-gui-autostart-smoke.log",
-            "${{ runner.temp }}/qegtrain-*-e2e.*/\n",
-            "build/smoke-logs/headless_case_*.log",
+def check_required_workflows(checks: Checks, workflows: dict, rules: dict) -> None:
+    """Every pull request to main starts the required workflows, and each reports one result job that main can require.
+    A first job, changes, selects the other jobs with the entry of the workflow in tools/ci/changed_files.py."""
+    expect = checks.expect
+    for name, (check, rule, gated, nightly) in REQUIRED.items():
+        workflow = workflows[name]
+        events = triggers(workflow)
+        expect(
+            events.get("pull_request") == {"branches": ["main"]}
+            and "push" not in events
+            and not any(isinstance(event, dict) and {"paths", "paths-ignore"} & set(event) for event in events.values()),
+            f"{name}: starts for every pull request to main, without a path filter, and not for a push",
         )
-    ):
-        missing.append("build job failure logs")
-    # A shell smoke writes below TMPDIR only into folders that mktemp makes, so two build trees that run it at the same
-    # time write different files. The smokes with a log keep their folder when they fail, and the upload above finds it
-    # by the name qegtrain-<smoke>-e2e.<random>.
-    for script in sorted((ROOT / "tools/e2e").glob("*.sh")):
-        paths = re.findall(r'(mktemp -d )?"\$\{TMPDIR:-/tmp\}/([^"]*)"', script.read_text(encoding="utf-8"))
-        if any(not made or not name.endswith(".XXXXXX") for made, name in paths):
-            missing.append(f"{script.name} writing below TMPDIR only into mktemp folders")
-    for smoke in ("csv_export", "editor", "legacy_import", "scene_render", "track_preview", "visual_polish"):
-        text = (ROOT / f"tools/e2e/{smoke}_smoke.sh").read_text(encoding="utf-8")
-        if not re.search(r'mktemp -d "\$\{TMPDIR:-/tmp\}/qegtrain-[a-z-]+-e2e\.XXXXXX"', text):
-            missing.append(f"{smoke}_smoke.sh keeping its logs in a qegtrain-*-e2e folder")
-    validation_trigger = workflow.split("\njobs:", 1)[0]
-    if re.search(r"^  push:", validation_trigger, re.MULTILINE):
-        missing.append("no run for a push to main")
-    if "  pull_request:\n    branches: [main]\n" not in validation_trigger:
-        missing.append("main pull request validation trigger")
-    nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", validation_trigger, re.MULTILINE)
-    if not nightly or nightly.group(1) == "0":
-        missing.append("one nightly run at a minute that is not on the hour")
-    if not re.search(r"^  workflow_dispatch:\n(?!    )", validation_trigger, re.MULTILINE):
-        missing.append("manual start without inputs")
-    concurrency = workflow.split("\nconcurrency:\n", 1)[-1].split("\njobs:", 1)[0]
-    if (
-        "github.event_name == 'pull_request' && github.ref || github.run_id" not in concurrency
-        or "cancel-in-progress: ${{ github.event_name == 'pull_request' }}" not in concurrency
-    ):
-        missing.append("only a newer push to a pull request cancels a run")
-    if "paths:" in validation_trigger:
-        missing.append("main validation must not use a code allowlist")
-    missing.extend(required_result_problems(workflow, format_workflow, tidy_workflow, package_check))
-    release_trigger = release_only.split("\njobs:", 1)[0]
-    if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
-        missing.append("production release trigger")
-    if not re.search(r"pull_request:\n\s+branches:\n\s+- production\n", release_trigger):
-        missing.append("production pull request validation trigger")
-    if "paths:" in release_trigger:
-        missing.append("production release must not use a code allowlist")
-    expected_ignored_paths = set(DOCUMENTATION_PATHS)
-    for name, trigger, events in (("production", release_trigger, ("push", "pull_request")),):
-        for event in events:
-            event_match = re.search(
-                rf"^  {event}:\n((?:    .*\n|\n)*)", trigger, re.MULTILINE
+        job_ids = list(workflow["jobs"])
+        result = workflow["jobs"].get("result", {})
+        expect(job_ids[-1:] == ["result"] and result.get("name") == check and result.get("if") == "always()",
+               f"{name}: {check} is the last job and always runs")
+        expect(sorted(needs(result)) == sorted(job for job in job_ids if job not in ("result", *nightly)),
+               f"{name}: {check} needs every job of a pull request")
+        expect(all(workflow["jobs"].get(job, {}).get("if") == NIGHTLY_GATE for job in nightly),
+               f"{name}: the jobs that {check} does not need run only at night or by hand")
+        expect(
+            any(
+                step.get("if") == "contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')"
+                and step.get("run", "").strip() == "exit 1"
+                for step in result.get("steps", [])
+            ),
+            f"{name}: {check} fails when a job failed or was cancelled",
+        )
+
+        output, _kind, patterns = rules[rule]
+        changes = workflow["jobs"].get("changes", {})
+        select = next((step for step in changes.get("steps", []) if step.get("id") == "select"), {})
+        expect(
+            changes.get("runs-on") == "ubuntu-latest"
+            and any(step.get("with", {}).get("fetch-depth") == "2" for step in changes.get("steps", []))
+            and changes.get("outputs") == {output: f"${{{{ steps.select.outputs.{output} }}}}"},
+            f"{name}: the changes job checks out the merge commit and its parent and has the output {output}",
+        )
+        call = f'python3 tools/ci/changed_files.py {rule} HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"'
+        expect(select.get("run", "").strip() == call, f"{name}: the changes job runs {call}", gap=(name, "changed-files script"))
+        if (name, "changed-files script") in KNOWN_GAPS:
+            # Until then the case statement of the job has the patterns of the entry, and every other event selects.
+            branches = re.findall(r"^ +(\S+)\) (\w+)=true ;;$", select.get("run", ""), re.MULTILINE)
+            expect(
+                tuple(pattern for pattern, _ in branches) == patterns
+                and all(selected == output for _, selected in branches)
+                and select.get("run", "").startswith(f'{output}=true\nif [ "$GITHUB_EVENT_NAME" = pull_request ]; then\n'),
+                f"{name}: the case statement of the changes job has the patterns of the {rule} entry of tools/ci/changed_files.py",
             )
-            event_block = event_match.group(1) if event_match else ""
-            filters = re.search(
-                r"^    paths-ignore:\n((?:      - .*\n)+)", event_block, re.MULTILINE
+
+        # The gated job skips when the changes job selects nothing. A skipped matrix job would report under its unexpanded
+        # name, so the CMake build starts its legs and skips every step but the failure upload.
+        gate = f"needs.changes.outputs.{output} == 'true'"
+        job = workflow["jobs"].get(gated, {})
+        if "matrix" in job.get("strategy", {}):
+            gated_steps = all(
+                step.get("if", "") == gate or step.get("if", "").startswith(gate + " && ") or step.get("if") == "failure()"
+                for step in job.get("steps", [])
             )
-            ignored_paths = set(re.findall(r"      - '([^']+)'", filters.group(1))) if filters else set()
-            if ignored_paths != expected_ignored_paths:
-                missing.append(f"{name} {event} documentation-only path filters")
-    if "      - main\n" in release_trigger or "ci/release-pipeline" in release_trigger:
-        missing.append("stale non-production release trigger")
-    if "      - 'v*'" not in release_trigger:
-        missing.append("version tag release trigger")
-    if "  workflow_dispatch:\n" not in release_trigger:
-        missing.append("manual release trigger")
-    if not re.search(r'set\(EGTRAIN_VERSION "\d+\.\d+\.\d+" CACHE STRING', cmake):
-        missing.append("three-component CMake application version")
-    if any(
-        marker not in content
-        for marker, content in (
-            ('add_compile_definitions(EGTRAIN_APP_VERSION=\\"${PROJECT_VERSION}\\")', cmake),
-            ('file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION"', cmake),
-            ("setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION))", main_cpp),
-            ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', windows_resource),
-            ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', package_only),
-            ('project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES', cmake),
-            ("          VERSION: ${{ needs.version.outputs.version }}\n", release_only),
+        else:
+            gated_steps = job.get("if") == gate
+        expect("changes" in needs(job) and gated_steps, f"{name}: {gated} runs only when the changes job selects it")
+
+
+def check_every_workflow(checks: Checks, workflows: dict) -> None:
+    """Time limits, permissions, concurrency, schedules and the conditions of the jobs, in every workflow."""
+    expect = checks.expect
+    schedules = {}
+    for name, workflow in workflows.items():
+        events = triggers(workflow)
+        # A job that calls a reusable workflow cannot set a time limit; the jobs of that workflow have theirs.
+        for job_id, job in workflow["jobs"].items():
+            if "uses" not in job:
+                expect(re.fullmatch(r"\d+", job.get("timeout-minutes", "")), f"{name}: job {job_id} has a timeout-minutes",
+                       gap=(name, f"time limit of {job_id}"))
+        top = workflow.get("permissions")
+        expect(
+            top == "read-all" or isinstance(top, dict) and top and all(level in ("read", "none") for level in top.values()),
+            f"{name}: top-level permissions that only read",
+            gap=(name, "permissions"),
         )
-    ):
-        missing.append("single-source application version propagation")
-    if "\n  validation:\n" not in release_workflow or release_workflow.count(
-        "ctest --test-dir build --output-on-failure"
-    ) != 1:
-        missing.append("production validation CTest job")
-    if any(smoke in release_workflow for smoke in standalone_smokes):
-        missing.append("no standalone smoke steps in the release workflow, CTest runs them")
-    if "\n  sanitizer:\n" not in release_workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" not in release_workflow:
-        missing.append("production sanitizer job")
-    if any(
-        option not in release_workflow
-        for option in (
-            "UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1",
-            "ASAN_OPTIONS: abort_on_error=1:halt_on_error=1",
-            'QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"',
-            'QEGTRAIN_GUI_SMOKE_SECONDS: "30"',
-            "$RUNNER_TEMP/ctest-sanitizer.log",
-        )
-    ):
-        missing.append("production sanitizer diagnostics and time budgets")
-    # An instrumented build runs several times slower. The sanitizer job scales the time limits of the tests and runs as many
-    # tests at once as the macOS leg of the CMake workflow, so that it neither times out nor takes an hour. The scale is 1 by
-    # default and only the nightly sanitizer jobs of the CMake workflow pass it too, so every other build keeps its limits.
-    sanitizer_job = job_block(release_only, "sanitizer")
-    sanitizer_configure = " ".join(step_block(sanitizer_job, "Configure").split()) + " "
-    sanitizer_ctest = step_block(sanitizer_job, "Test")
-    macos_jobs = re.search(r"^ +- name: macOS\n +os: \S+\n +jobs: (\d+)$", workflow, re.MULTILINE)
-    timeout_scale = re.search(r" -DEGTRAIN_TEST_TIMEOUT_SCALE=(\d+) ", sanitizer_configure)
-    scene_timeout = re.search(r" -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=(\d+) ", sanitizer_configure)
-    if (
-        not macos_jobs
-        or f"run: ctest --test-dir build --parallel {macos_jobs.group(1)} --output-on-failure " not in sanitizer_ctest
-        or not timeout_scale
-        or int(timeout_scale.group(1)) < 2
-        or not scene_timeout
-        or int(scene_timeout.group(1)) <= 300
-    ):
-        missing.append("production sanitizer job that runs CTest in parallel with a scaled test time limit")
-    if (
-        'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' not in tests_cmake
-        or "set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING" not in characterization_cmake
-        or "EGTRAIN_TEST_TIMEOUT_SCALE" in workflow.replace(nightly_job, "").replace(tsan_job, "")
-        or "EGTRAIN_TEST_TIMEOUT_SCALE" in job_block(release_only, "validation")
-    ):
-        missing.append("test time limits that only the sanitizer jobs scale")
-    publish_job = release_only.split("\n  release:\n", 1)[1]
-    publish_condition = publish_job.split("\n    runs-on:", 1)[0]
-    if "needs: [version, validation, sanitizer, package]" not in publish_condition:
-        missing.append("release publication validation gates")
-    if "if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))" not in publish_condition:
-        missing.append("publication restricted to production and tag pushes")
-    # The root file includes the tests file in a packaged build, which registers the tests above the line that ends it
-    # without EGTRAIN_BUILD_TESTS.
-    packaged_tests = re.search(r"^if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\)\n(.*?)^endif\(\)", cmake, re.MULTILINE | re.DOTALL)
-    packaged_tests_text = tests_cmake.split("\nif(NOT EGTRAIN_BUILD_TESTS)\n\treturn()\nendif()\n", 1)[0]
-    if not packaged_tests or "include(${SRC_DIR}/tests/CMakeLists.txt)" not in packaged_tests.group(1) or packaged_tests_text == tests_cmake:
-        packaged_tests_text = ""
-    if not test_registration(packaged_tests_text, "test_updatepreparation") or release_workflow.count("'^test_update(helper|preparation)$'") != 3:
-        missing.append("real update preparation tests in all platform packages")
-    if 'tag="main-' in release_workflow or 'name="EGTRAIN main build' in release_workflow:
-        missing.append("stale main release metadata")
-    if 'tag="v${{ needs.version.outputs.version }}"' not in release_workflow:
-        missing.append("stable production release tag")
-    if (
-        release_only.count('"-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"') != 2
-        or package_only.count('"-DEGTRAIN_VERSION=${{ inputs.version }}"') != 3
-        or "needs.version" in package_only
-    ):
-        missing.append("quoted shared release version in all five build jobs")
-    # The package workflow selects no version. Its only needs: are the signing job, the finalize job and the installer signing
-    # job, which follow the Windows package job, and the Linux rehearsal, which follows the Linux package job.
-    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 4:
-        missing.append("version selection before all builds")
-    for marker in (
-        "fetch-depth: 0",
-        "run: python3 tools/release/version.py",
-        "cancel-in-progress: false",
-        "github.event_name == 'push' && 'egtrain-publish'",
-        'production_commit="$(git ls-remote origin refs/heads/production | cut -f1)"',
-        'if [[ "$production_commit" != "$GITHUB_SHA" ]]',
-        'git ls-remote origin "refs/tags/$tag"',
-        "draft: true",
-        'gh release edit "$RELEASE_TAG" --draft=false --latest="$MAKE_LATEST"',
-    ):
-        if marker not in release_workflow:
-            missing.append("safe versioned publication: " + marker)
-    production_metadata = publish_job.split('tag="v${{ needs.version.outputs.version }}"', 1)[-1]
-    production_metadata = production_metadata.split("          fi", 1)[0]
-    if "prerelease=false" not in production_metadata or "make_latest=true" not in production_metadata:
-        missing.append("production releases offered by the stable updater")
-    macos_script = (ROOT / "tools/release/package_macos.sh").read_text(encoding="utf-8")
-    macos_package_verification = script_function(macos_script, "verify_package")
-    required_macos_validation = (
-        "set +e",
-        'validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1)"',
-        "validation_status=$?",
-        "set -e",
-        '[ "$validation_status" -eq 0 ]',
+        for job_id, job in workflow["jobs"].items():
+            permissions = job.get("permissions", {})
+            writes = permissions == "write-all" or isinstance(permissions, dict) and "write" in permissions.values()
+            expect(writes == ((name, job_id) in WRITE_PERMISSIONS), f"{name}: job {job_id} writes exactly when WRITE_PERMISSIONS lists it")
+        # A newer push to a pull request replaces the running checks of that pull request; a scheduled, manual or push
+        # run has a group of its own. The release workflow has a publication group of its own.
+        if "pull_request" in events and name != "release.yml":
+            concurrency = workflow.get("concurrency", {})
+            expect(
+                isinstance(concurrency, dict)
+                and concurrency.get("group", "").endswith("${{ github.event_name == 'pull_request' && github.ref || github.run_id }}")
+                and concurrency.get("cancel-in-progress") == "${{ github.event_name == 'pull_request' }}",
+                f"{name}: a concurrency group in which only a newer push to the same pull request cancels a run",
+                gap=(name, "concurrency"),
+            )
+        # A scheduled run starts at a minute that is not on the hour, once a night, and not with another workflow.
+        if "schedule" in events:
+            crons = [entry.get("cron", "") for entry in events["schedule"]]
+            nightly = re.fullmatch(r"(\d+) (\d+) \* \* \*", crons[0]) if len(crons) == 1 else None
+            expect(nightly and nightly.group(1) != "0", f"{name}: one nightly run at a minute that is not on the hour")
+            for cron in crons:
+                schedules.setdefault(cron, []).append(name)
+        expect(events.get("workflow_dispatch", "") == "", f"{name}: a manual start without inputs")
+        expect("continue-on-error" not in flat(workflow), f"{name}: no step or job that ignores a failure")
+    for cron, names in schedules.items():
+        expect(len(names) == 1, f"{', '.join(names)}: start at the same time ({cron})")
+
+
+def check_credentials(checks: Checks, workflows: dict) -> None:
+    """A credential reaches only the steps of a push to production or a v* tag: through a job or a step with that
+    condition, or a job that runs only after such a job succeeded. A call passes a credential by name, never all of them,
+    and no step that reads one traces its commands."""
+    expect = checks.expect
+    for name, workflow in workflows.items():
+        push_jobs = set()
+        for job_id, job in workflow["jobs"].items():
+            condition = job.get("if", "")
+            if PUSH_GATE in condition or any(f"needs.{other}.result == 'success'" in condition for other in push_jobs):
+                push_jobs.add(job_id)
+        for job_id, job in workflow["jobs"].items():
+            if "uses" in job:
+                passed = job.get("secrets", {})
+                expect(
+                    passed != "inherit"
+                    and all(value == f"${{{{ secrets.{secret} }}}}" for secret, value in dict(passed or {}).items()),
+                    f"{name}: job {job_id} passes each credential by its own name",
+                )
+                continue
+            environment = job.get("environment", "")
+            expect(not environment or job_id in push_jobs or PUSH_GATE in environment,
+                   f"{name}: job {job_id} uses an environment only for a push to production or a v* tag")
+            for item in job.get("steps", []):
+                reads = "secrets." in flat({key: value for key, value in item.items() if key != "if"})
+                expect(not reads or job_id in push_jobs or PUSH_GATE in item.get("if", ""),
+                       f"{name}: job {job_id} reads a credential in a step that a pull request runs")
+                expect(not reads or not re.search(r"\bset\s+-\w*x", item.get("run", "")),
+                       f"{name}: job {job_id} traces the commands of a step that reads a credential")
+                expect("secrets." not in item.get("if", ""), f"{name}: job {job_id} has a step condition that reads a credential")
+
+
+def check_reusable_calls(checks: Checks, workflows: dict) -> None:
+    """A job that calls a workflow of the repository passes the inputs that the workflow declares, its required ones
+    included, only the credentials that it declares, and grants every permission that its jobs ask for: a called
+    workflow cannot hold more than its caller grants."""
+    expect = checks.expect
+    for name, workflow in workflows.items():
+        for job_id, job in workflow["jobs"].items():
+            target = re.fullmatch(r"\./\.github/workflows/(.+)", job.get("uses", ""))
+            if not target:
+                continue
+            called = workflows.get(target.group(1), {})
+            declared = triggers(called).get("workflow_call") or {}
+            inputs = declared.get("inputs", {}) if isinstance(declared, dict) else {}
+            passed = job.get("with", {})
+            expect(
+                set(passed) <= set(inputs) and {key for key, value in inputs.items() if value.get("required") == "true"} <= set(passed),
+                f"{name}: job {job_id} passes the inputs that {target.group(1)} declares",
+            )
+            expect(set(job.get("secrets") or {}) <= set(declared.get("secrets", {}) if isinstance(declared, dict) else {}),
+                   f"{name}: job {job_id} passes only the credentials that {target.group(1)} declares")
+            asked = [called.get("permissions", {})] + [other.get("permissions", {}) for other in called.get("jobs", {}).values()]
+            granted = job.get("permissions", {})
+            expect(
+                isinstance(granted, dict)
+                and all(granted.get(scope) in (level, "write") for block in asked if isinstance(block, dict) for scope, level in block.items()),
+                f"{name}: job {job_id} grants the permissions that the jobs of {target.group(1)} ask for",
+            )
+
+
+def check_references(checks: Checks, texts: dict, tests_cmake: str, characterization_cmake: str) -> None:
+    """The files that the workflows and the setup action name exist, the tests that they select are registered, and every
+    test script of tools/ci and tools/release is registered in CTest or run by a workflow."""
+    expect = checks.expect
+    everything = "\n".join(texts.values())
+    for name, text in texts.items():
+        for action in re.findall(r"uses: (\./\S+)", text):
+            expect((ROOT / action).is_file() or (ROOT / action / "action.yml").is_file(), f"{name}: {action} exists")
+        for path in sorted(set(re.findall(r"(?<![\w./-])tools/[\w./*$-]*[\w*]", text))):
+            expect("*" in path or "$" in path or (ROOT / path).exists(), f"{name}: {path} exists")
+        for test in ctest_names(text):
+            expect(test_registration(tests_cmake, test) or f"add_test(NAME {test}\n" in characterization_cmake,
+                   f"{name}: the test {test} that it runs is registered")
+    for script in sorted((ROOT / "tools/ci").glob("test_*")) + sorted((ROOT / "tools/release").glob("test_*")):
+        path = script.relative_to(ROOT).as_posix()
+        expect(f"${{CMAKE_CURRENT_SOURCE_DIR}}/{path}" in tests_cmake or path in everything,
+               f"{path} is registered in CTest or run by a workflow")
+
+
+def check_dependency_setup(checks: Checks, workflows: dict, texts: dict, action: dict) -> None:
+    """Qt 6.8.3 and the other libraries come from the setup action, and every job that installs Qt gets the same version."""
+    expect = checks.expect
+    install = next((step for step in action["runs"]["steps"] if step.get("uses", "").startswith("jurplel/install-qt-action@")), {})
+    expect(install.get("with", {}) == {"version": "6.8.3", "modules": "qtcharts", "cache": "true"},
+           "setup-deps: Qt 6.8.3 with Qt Charts from install-qt-action, cached")
+    expect("ilammy/msvc-dev-cmd@v1" in flat(action) and "brew install zeromq cppzmq nlohmann-json" in flat(action)
+           and "apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES" in flat(action),
+           "setup-deps: the MSVC environment, and ZeroMQ, cppzmq and nlohmann-json from Homebrew and apt")
+    for name, workflow in workflows.items():
+        for job_id, job in workflow["jobs"].items():
+            for item in job.get("steps", []):
+                installs = item.get("uses", "").startswith("jurplel/install-qt-action@")
+                expect(not installs, f"{name}: job {job_id} installs Qt with the setup action", gap=(name, "setup action"))
+                expect(not installs or item.get("with", {}).get("version") == install.get("with", {}).get("version"),
+                       f"{name}: job {job_id} installs the Qt version of the setup action")
+    qt5 = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|matrix\.qt|ARTIFACT_SUFFIX")
+    for name, text in texts.items():
+        found = qt5.search(text)
+        expect(not found, f"{name}: no Qt 5 and no choice of Qt version, but it has {found.group(0) if found else ''}")
+
+
+def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, package: dict, release_text: str, cmake_lists: str) -> None:
+    """The three legs of the CMake workflow, and what they share with the package jobs."""
+    expect = checks.expect
+    build = cmake["jobs"]["build"]
+    legs = {leg["name"]: leg for leg in build["strategy"]["matrix"]["include"]}
+    expect(
+        {name: leg["os"] for name, leg in legs.items()} == {"macOS": "macos-latest", "Windows": "windows-latest", "Linux": "ubuntu-24.04"}
+        and build["strategy"].get("fail-fast") == "false"
+        and {name: leg.get("cache") for name, leg in legs.items()} == {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"},
+        "cmake.yml: independent macOS, Windows and Linux legs, with ccache, sccache and ccache",
     )
-    if (
-        any(check not in macos_package_verification for check in required_macos_validation)
-        or '"$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1 | grep' in macos_package_verification
-    ):
-        missing.append("macOS scene validation status handling")
-    # Each step that fills, trims or checks the app is one call of the packaging script.
-    macos_script_steps = {
-        "Bundle Qt and dependencies into the app": "bundle",
-        "Add scene_tool and the licence files to the app": "add-files",
-        "Remove unused Qt modules and plugins": "trim",
-        "Keep only the arm64 code of the Qt 6 libraries": "thin",
-        "Remove build machine paths": "strip-paths",
-        "Set the minimum macOS version": "min-version",
-        "Verify the app is self-contained": "verify-contents",
-        "Verify the signature": "verify-signature",
-        "Verify the packaged app": "verify-package",
-    }
-    for name, step in macos_script_steps.items():
-        if not step_block(job_block(package_only, "package-macos"), name).endswith(
-            f"        run: bash tools/release/package_macos.sh {step} build/QEGTRAIN.app\n"
-        ):
-            missing.append(f"macOS package step '{name}' that runs package_macos.sh {step}")
-    scene_names = (
-        "Netherlands",
-        "Paimpol",
-        "Copenhagen",
-        "Milano_Brescia",
-        "Assignment_Gvc_Gdg_Ut",
-        "Amsterdam_Hilversum_Student",
+    configure = {preset: step(build, f"cmake --preset {preset} ") for preset in ("ci-macos", "ci-linux", "ci-windows")}
+    launcher = "-DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}"
+    for preset, item in configure.items():
+        variables = configure_preset(presets, preset)["cacheVariables"]
+        expect(
+            item and launcher in " ".join(item.get("run", "").split())
+            and configure_preset(presets, preset).get("binaryDir") == "${sourceDir}/build"
+            and variables.get("EGTRAIN_WARNINGS_AS_ERRORS") == "ON"
+            and variables.get("EGTRAIN_BUILD_TESTS") == "ON"
+            and variables.get("EGTRAIN_IPO") == "OFF",
+            f"cmake.yml: a configure step with the preset {preset}: tests, warnings as errors, no interprocedural "
+            "optimization, the compiler cache, in build/",
+        )
+    # A compiler cache cannot store objects with interprocedural optimization, which the package and release builds keep.
+    expect("EGTRAIN_IPO" not in release_text and re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake_lists, re.MULTILINE),
+           "interprocedural optimization on by default and left alone by the package and release workflows")
+    windows = " ".join(configure["ci-windows"].get("run", "").split()) + " "
+    expect(
+        all(part in windows for part in (" -G Ninja ", " -DCMAKE_BUILD_TYPE=Release ", " -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "))
+        and "build/Release" not in flat(build),
+        "cmake.yml: the Windows leg builds with Ninja and cl, so that sccache works, and its programs are not in build/Release",
     )
-    if any(f"            {name}\n" not in release_workflow for name in scene_names) or any(
-        command not in release_workflow
-        for command in (
-            'build/scene_tool pack "EGTRAIN/QEGTRAIN/Scenes/$name" "$bundle"',
-            'build/scene_tool validate "$bundle"',
-            "name: EGTRAIN-scenes",
-        )
-    ):
-        missing.append("six deterministic release scene bundles")
-    # The macOS package job packs the bundles that the release script reads, and the release job publishes every file
-    # that the script wrote, failing when the glob matches none.
-    scene_bundle_step = step_block(job_block(package_only, "package-macos"), "Generate scene bundles")
-    packed_scenes = re.search(r"\n          scenes=\(\n((?:            \S+\n)+)          \)\n", scene_bundle_step)
-    if not packed_scenes or set(packed_scenes.group(1).split()) != set(build_release_assets.SCENES):
-        missing.append("scene bundles packed by the package workflow are the scenes that the release script reads")
-    release_job = job_block(release_only, "release")
-    prepare_step = step_block(release_job, "Prepare release")
-    if (
-        "          files: release-assets/*\n" not in prepare_step
-        or "          fail_on_unmatched_files: true\n" not in prepare_step
-    ):
-        missing.append("release published from the files of the output directory, failing when none matches")
-    if "foreach(egtrain_case 1 2 3 4 5 7)" not in tests_cmake or "tools/e2e/headless_smoke.py ${egtrain_case}" not in tests_cmake:
-        missing.append("headless smoke of all six canonical scenes in CTest")
-    if "        run: python3 tools/docs/check_docs.py\n" not in job_block(workflow, "docs") or "    if:" in job_block(workflow, "docs"):
-        missing.append("documentation check on every pull request")
-    if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
-        missing.append("macOS Qt Network package verification")
-    if '"Qt6Network.dll"' not in release_workflow:
-        missing.append("Windows Qt Network package verification")
-    if "libQt6Network.so*" not in release_workflow:
-        missing.append("Linux Qt Network package verification")
-    if release_workflow.count("-DEGTRAIN_PACKAGED_BUILD=ON") != 3:
-        missing.append("packaged-build updater gate on all platform packages")
-    if release_workflow.count("Verify update helper transaction") != 3 or any(
-        helper not in release_workflow
-        for helper in (
-            "QEGTRAIN.app/Contents/MacOS/egtrain_update_helper",
-            "egtrain_update_helper.exe",
-            "squashfs-root/usr/bin/egtrain_update_helper",
-        )
-    ):
-        missing.append("packaged update helper verification")
-    # The release job downloads the artifacts, builds the release assets with the script and publishes them. The manifest,
-    # its hashes and the Windows archive come from the script only.
-    if re.findall(r"^      - name: (.+)$", release_job, re.MULTILINE) != [
-        "Download all artifacts",
-        "List downloaded files",
-        "Set release metadata",
-        "Build the release assets",
-        "Prepare release",
-        "Publish complete release",
-    ]:
-        missing.append("release job steps: download, list, metadata, build the release assets, prepare, publish")
-    for word in ("sha256", "shasum", "Get-FileHash", "unzip", "Compress-Archive", "stat -c", "update-manifest"):
-        if any(word.lower() in text.lower() for text in (release_only, package_only, package_check)):
-            missing.append(f"no {word} in the workflows, as the manifest, its hashes and the archive come from the script only")
-    if (
-        any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-24.04"))
-        or "      fail-fast: false\n" not in workflow
-    ):
-        missing.append("independent macOS, Windows and Linux validation legs")
-    build_job = job_block(workflow, "build")
-    # The Windows leg and the Windows package install the packages of the vcpkg manifest with the vcpkg of the runner image, at
-    # the configure step and into the installed folder of that vcpkg, where their DLL steps read them. The leg takes the vcpkg
-    # options from the ci-windows preset, and the package job passes the same options.
-    presets = json.loads((ROOT / "CMakePresets.json").read_text(encoding="utf-8"))["configurePresets"]
-    ci_windows = configure_preset(presets, "ci-windows")["cacheVariables"]
+    cache = step(build, "hendrikmuhs/ccache-action@")
+    expect(
+        cache.get("with", {}).get("variant") == "${{ matrix.cache }}"
+        and cache.get("with", {}).get("key", "").startswith("${{ matrix.name }}")
+        and all(step_index(build, "hendrikmuhs/ccache-action@") < step_index(build, f"cmake --preset {preset} ") for preset in configure),
+        "cmake.yml: the compiler cache of each leg is set up before its configure step",
+    )
+    test = step(build, "ctest --test-dir build -C Release --parallel ${{ matrix.jobs }}")
+    expect(
+        "cmake --build build --config Release" in runs(build)
+        and all(part in test.get("run", "") for part in ("--output-on-failure", "--output-log", "-LE network")),
+        "cmake.yml: each leg builds and runs CTest in parallel with a log, without the network tests",
+    )
+    # The network tests are built for the Windows leg only, and run in a step of their own after the other tests.
+    https = step(build, "ctest --test-dir build -C Release -L network --no-tests=error")
+    expect(
+        cmake_text.count("-DEGTRAIN_NETWORK_TESTS=ON") == 1 and "-DEGTRAIN_NETWORK_TESTS=ON" in windows
+        and "runner.os == 'Windows'" in https.get("if", "")
+        and in_order(build, "--output-log", "-L network --no-tests=error"),
+        "cmake.yml: the Windows HTTPS check after the tests, with the network tests of the Windows leg only",
+    )
+    # The vcpkg binary cache of the Windows leg is keyed by the manifest, the runner image and a manual version. The save
+    # step follows the configure step that installs the packages and runs when the restore missed the key.
+    restore = step(build, "actions/cache/restore@")
+    save = step(build, "actions/cache/save@")
+    key = restore.get("with", {}).get("key", "")
+    expect(
+        re.fullmatch(r"vcpkg-x64-windows-\$\{\{ steps\.vcpkg-manifest\.outputs\.key \}\}-\$\{\{ steps\.image\.outputs\.id \}\}-v\d+", key)
+        and save.get("with", {}).get("key") == key
+        and "cache-hit != 'true'" in save.get("if", "")
+        and in_order(build, "Get-Content tools/vcpkg/vcpkg.json", "actions/cache/restore@", "cmake --preset ci-windows ", "actions/cache/save@")
+        and in_order(build, "$env:ImageVersion", "actions/cache/restore@")
+        and "VCPKG_BINARY_SOURCES" in flat(configure["ci-windows"]),
+        "cmake.yml: the vcpkg binary cache keyed by the manifest, the image and a version, saved after the configure step",
+    )
+    # The Windows leg and the Windows package take the vcpkg options from the ci-windows preset. vcpkg copies no DLL next
+    # to each program; the leg puts the DLL folders on PATH.
+    windows_preset = configure_preset(presets, "ci-windows")["cacheVariables"]
     windows_vcpkg = {
         "CMAKE_TOOLCHAIN_FILE": ("$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake", '"$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"'),
         "VCPKG_TARGET_TRIPLET": ("x64-windows", "x64-windows"),
         "VCPKG_MANIFEST_DIR": ("${sourceDir}/tools/vcpkg", '"$env:GITHUB_WORKSPACE/tools/vcpkg"'),
         "VCPKG_INSTALLED_DIR": ("$env{VCPKG_INSTALLATION_ROOT}/installed", '"$env:VCPKG_INSTALLATION_ROOT/installed"'),
     }
-    package_configure = step_block(job_block(package_only, "package-windows"), "Configure")
-    if (
-        "ilammy/msvc-dev-cmd@v1" not in setup_action
-        or any(setup_step not in job for job in (build_job, job_block(package_only, "package-windows")))
-        or "vcpkg install" in workflow + release_workflow
-        or "cmake --preset ci-windows " not in step_block(build_job, "Configure (Windows)")
-        or any(ci_windows.get(name) != preset_value for name, (preset_value, _) in windows_vcpkg.items())
-        or any(f"          -D{name}={flag_value}\n" not in package_configure for name, (_, flag_value) in windows_vcpkg.items())
-        or not (ROOT / "tools/vcpkg/vcpkg.json").is_file()
-    ):
-        missing.append("Windows toolchain and vcpkg manifest shared with the release workflow")
-    # vcpkg would copy its DLLs next to every executable after linking, a step that fails at
-    # random when the new file is still in use. The job puts the DLL directories on PATH instead.
-    if ci_windows.get("VCPKG_APPLOCAL_DEPS") != "OFF" or "installed/x64-windows/bin\" | Out-File -Append" not in workflow:
-        missing.append("Windows build without the per-executable DLL copy, with the DLL directories on PATH")
-    # Each platform configures with a ci preset that sets the option, so a warning in a strict target fails its leg. The presets
-    # build in build/, where the later steps look.
-    configure_names = ("Configure (macOS)", "Configure (Linux)", "Configure (Windows)")
-    ci_presets = dict(zip(configure_names, ("ci-macos", "ci-linux", "ci-windows")))
-    if any(
-        f"cmake --preset {preset} " not in " ".join(step_block(build_job, name).split()) + " "
-        or configure_preset(presets, preset).get("binaryDir") != "${sourceDir}/build"
-        or configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_WARNINGS_AS_ERRORS") != "ON"
-        or configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_BUILD_TESTS") != "ON"
-        for name, preset in ci_presets.items()
-    ):
-        missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
-    # The Linux leg, the leak check and the nightly sanitizer jobs get Qt and the other libraries from the setup action, as
-    # the Linux package job does.
-    setup_jobs = [job_block(workflow, name) for name in ("build", "leak-check", "sanitizers", "thread-sanitizer")]
-    if "apt-get install" in workflow or any(setup_step not in job for job in setup_jobs) or "apt-packages:" in workflow:
-        missing.append("the same Linux packages in the build, leak check and nightly sanitizer jobs")
-    if (
-        "sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev $APT_PACKAGES\n" not in setup_action
-        or setup_step not in job_block(package_only, "package-linux")
-    ):
-        missing.append("Linux packages shared with the release workflow")
-    build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
-    # The runner image sets the compiler, CMake and the vcpkg checkout, and an archive of the vcpkg binary cache is named by a hash of
-    # them. The key of that cache has the packages and the baseline of the manifest, the image and a manual version, so a new image
-    # or manifest writes a new entry, and the save step runs when no entry has the exact key. The configure step installs the
-    # packages, so the save step follows it.
-    image_step = step_block(build_job, "Identify the runner image")
-    manifest_step = step_block(build_job, "Read the vcpkg manifest")
-    vcpkg_restore = step_block(build_job, "Restore vcpkg binary cache")
-    vcpkg_save = step_block(build_job, "Save vcpkg binary cache")
-    image_key = "-${{ steps.image.outputs.id }}"
-    manifest_key = "-${{ steps.vcpkg-manifest.outputs.key }}"
-    vcpkg_key = re.search(
-        r"^ +key: (vcpkg-x64-windows" + re.escape(manifest_key + image_key) + r"-v\d+)$", vcpkg_restore, re.MULTILINE
+    package_configure = runs(package["jobs"]["package-windows"])
+    expect(
+        all(windows_preset.get(name) == preset_value and f"-D{name}={flag_value}" in package_configure
+            for name, (preset_value, flag_value) in windows_vcpkg.items())
+        and windows_preset.get("VCPKG_APPLOCAL_DEPS") == "OFF"
+        and 'installed/x64-windows/bin" | Out-File -Append' in runs(build)
+        and "vcpkg install" not in cmake_text + release_text,
+        "cmake.yml: the vcpkg options of the ci-windows preset in the Windows package job, and the DLL folders on PATH",
     )
-    vcpkg_key = vcpkg_key.group(1) if vcpkg_key else ""
-    if (
-        "id: image\n" not in image_step
-        or "$env:ImageVersion" not in image_step
-        or "$env:GITHUB_OUTPUT" not in image_step
-        or not vcpkg_key
-        or f"          key: {vcpkg_key}\n" not in vcpkg_save + "\n"
-        or "steps.vcpkg-cache.outputs.cache-hit != 'true'" not in vcpkg_save
-        or workflow.count(f"key: {vcpkg_key}") != 2
-        or "id: vcpkg-manifest\n" not in manifest_step
-        or "Get-Content tools/vcpkg/vcpkg.json" not in manifest_step
-        or "Identify the runner image" not in build_step_names
-        or "Read the vcpkg manifest" not in build_step_names
-        or build_step_names.index("Identify the runner image") > build_step_names.index("Restore vcpkg binary cache")
-        or build_step_names.index("Read the vcpkg manifest") > build_step_names.index("Restore vcpkg binary cache")
-        or "Save vcpkg binary cache" not in build_step_names
-        or build_step_names.index("Configure (Windows)") > build_step_names.index("Save vcpkg binary cache")
-        or "VCPKG_BINARY_SOURCES: \"clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite\"\n" not in step_block(build_job, "Configure (Windows)")
-    ):
-        missing.append("vcpkg binary cache keyed by the manifest, the runner image and a manual version, saved after the configure step under the key that the restore missed")
-    # Every leg of the build compiles through a compiler cache, ccache on macOS and Linux and sccache on Windows. The matrix names the tool;
-    # the cache step and the configure steps read it. The Visual Studio generator ignores a compiler launcher, so the Windows leg builds
-    # with Ninja and names cl, and its executable is not in a Release directory.
-    cache_legs = dict(re.findall(r"^ +- name: (\w+)\n +os: \S+\n +jobs: \d+\n +cache: (\w+)$", build_job, re.MULTILINE))
-    compiler_cache = step_block(build_job, "Set up compiler cache")
-    launcher_flags = "-DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}"
-    windows_configure = " ".join(step_block(build_job, "Configure (Windows)").split()) + " "
-    if (
-        cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
-        or "        uses: hendrikmuhs/ccache-action@v1.2\n" not in compiler_cache
-        or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
-        or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
-        or "          restore-keys: |\n            ${{ matrix.name }}\n" not in compiler_cache
-        or re.findall(r"^        if: (.+)$", compiler_cache, re.MULTILINE) != ["needs.changes.outputs.build == 'true'"]
-        or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
-        or "Set up compiler cache" not in build_step_names
-        or build_step_names.index("Identify the runner image") > build_step_names.index("Set up compiler cache")
-        or any(build_step_names.index("Set up compiler cache") > build_step_names.index(name) for name in configure_names)
-        or " -G Ninja " not in windows_configure
-        or " -DCMAKE_BUILD_TYPE=Release " not in windows_configure
-        or " -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl " not in windows_configure
-        or "build/Release" in build_job
-    ):
-        missing.append("compiler cache for the macOS, Windows and Linux legs, set up before the configure steps, with Ninja and cl on Windows")
-    # The pull request checks build without interprocedural optimization, which a compiler cache cannot store. The package and release
-    # builds, and the CMake option, keep it.
-    if (
-        any(configure_preset(presets, preset)["cacheVariables"].get("EGTRAIN_IPO") != "OFF" for preset in ci_presets.values())
-        or "EGTRAIN_IPO" in release_workflow
-        or not re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake, re.MULTILINE)
-    ):
-        missing.append("interprocedural optimization off in the three CMake legs and left alone by the package and release workflows")
-    test_step = test_steps[0] if test_steps else ""
-    build_step = next((block for block in blocks if block.startswith("name: Build\n")), "")
-    if "ctest --test-dir build -C Release" not in test_step:
-        missing.append("multi-config CTest configuration")
-    if "--parallel ${{ matrix.jobs }}" not in test_step or "--output-on-failure" not in test_step:
-        missing.append("parallel CTest run with the jobs of the matrix")
-    if "cmake --build build --config Release" not in build_step:
-        missing.append("multi-config build configuration")
-    if "COMMAND python3" in cmake + tests_cmake or "Python3_EXECUTABLE" not in tests_cmake:
-        missing.append("CTest uses the configured Python interpreter")
-    bash_guards = [
-        re.findall(r"^\s*(if\(.*\)|else\(\)|elseif\(.*\)|endif\(\))\s*$", text[: bash_command.start()], re.MULTILINE)
-        for text in (cmake, tests_cmake)
-        for bash_command in re.finditer(r"COMMAND bash", text)
-    ]
-    if any(not guards or guards[-1] not in ("if(UNIX)", "if(APPLE)") for guards in bash_guards):
-        missing.append("bash CTest commands only on UNIX")
-    if not re.search(
-        r"if\(WIN32\)(?:(?!endif\(\)).)*?pe_image_size\.py(?:(?!endif\(\)).)*?--max-bytes",
-        tests_cmake,
-        re.DOTALL,
-    ):
-        missing.append("Windows image size CTest")
-    # One leg per platform, each with Qt 6.8.3 from the action, as the leak check and the nightly sanitizer jobs have. No step
-    # names a Qt 5 package, option or file, and the legs count in the result job.
-    legs = re.findall(r"^          - name: (.+)$", build_job, re.MULTILINE)
-    qt_install = "      uses: jurplel/install-qt-action@v4\n      with:\n        version: '6.8.3'\n        modules: qtcharts\n"
-    if (
-        sorted(legs) != ["Linux", "Windows", "macOS"]
-        or "continue-on-error" in build_job
-        or "matrix.qt" in workflow
-        or qt_install + "        cache: true\n" not in setup_action
-        or not step_block(build_job, "Set up the dependencies").startswith(
-            "name: Set up the dependencies\n        if: needs.changes.outputs.build == 'true'\n" + setup_step
-        )
-        or setup_step not in step_block(leak_job, "Set up the dependencies")
-        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(leak_job, "Configure with sanitizers")
-        or setup_step not in step_block(nightly_job, "Set up the dependencies")
-        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(nightly_job, "Configure with sanitizers")
-        or setup_step not in step_block(tsan_job, "Set up the dependencies")
-        or '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' not in step_block(tsan_job, "Configure with ThreadSanitizer")
-    ):
-        missing.append("one leg per platform, the leak check and the nightly sanitizer jobs, each on Qt 6.8.3 from the action")
-    qt5_names = re.compile(r"qt@5|qt5|Qt5|qtbase5|5\.15|--no-angle|--no-virtualkeyboard|qwindowsvistastyle|inputs\.qt|ARTIFACT_SUFFIX")
-    for name in ("cmake.yml", "package.yml", "package-check.yml", "release.yml", "tidy.yml"):
-        found = qt5_names.search(workflow_text(name))
-        if found:
-            missing.append(f"{name} without Qt 5 or a choice of Qt version, but it has {found.group(0)}")
-    package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
-    package_assembly = (
-        'installed/x64-windows/bin/*.dll" $dist/',
-        'windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw'
-        ' --no-system-d3d-compiler --no-system-dxc-compiler --no-quick-import "$dist/QEGTRAIN.exe"',
-        'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
+    # The Windows leg assembles a package as the package job does, with the same windeployqt line, and starts it.
+    start = step(build, "tools/release/package_start_smoke.py $dist --exports").get("run", "")
+    deploy = [line.strip() for line in runs(package["jobs"]["package-windows"]).splitlines() if "windeployqt.exe" in line]
+    expect(
+        len(deploy) == 1 and [line.strip() for line in start.splitlines() if "windeployqt.exe" in line] == deploy
+        and all(part in start and part in release_text for part in ('installed/x64-windows/bin/*.dll" $dist/', 'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"')),
+        "cmake.yml: the Windows start check assembles the package with the windeployqt line and the commands of the package job",
     )
-    if (
-        "tools/release/package_start_smoke.py $dist --exports" not in package_step
-        or any(entry not in package_step or entry not in release_workflow for entry in package_assembly)
-    ):
-        missing.append("Windows package start check with the exports and the assembly commands of the release workflow")
-    # The update requests go through WinHTTP on Windows. The Windows leg sends one real request
-    # to the GitHub release list through that transport and fails when no HTTPS response arrives. The test is registered only when
-    # the configuration asks for it, so no other test run needs internet access. The program returns one code for a rate limit or
-    # an outage of GitHub, which CTest shows as skipped.
-    https_probe = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_updatetransport_https.cpp").read_text(encoding="utf-8")
-    https_skip = re.search(r"^constexpr int kExitSkipped = (\d+);$", https_probe, re.MULTILINE)
-    https_registered = re.search(
-        r"\nif\(EGTRAIN_NETWORK_TESTS\)\n"
-        r"\tegtrain_add_test\(test_updatetransport_https LABELS integration network TIMEOUT \d+ SKIP_RETURN_CODE (\d+)\)\nendif\(\)\n",
-        tests_cmake,
+    # A failed leg uploads the CTest log, the GUI smoke log and the folders of the smokes. CTest writes below runner.temp.
+    upload = next((item for item in build["steps"] if item.get("if") == "failure()"), {})
+    expect(
+        upload.get("uses", "").startswith("actions/upload-artifact@")
+        and all(path in upload.get("with", {}).get("path", "") for path in (
+            "/ctest.log", "qegtrain-gui-autostart-smoke.log", "${{ runner.temp }}/qegtrain-*-e2e.*/\n", "build/smoke-logs/headless_case_*.log"))
+        and all('echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"' in runs(cmake["jobs"][job]) for job in ("build", "sanitizers", "thread-sanitizer")),
+        "cmake.yml: a failed leg uploads the logs that CTest and the smokes write below runner.temp",
     )
-    if "add_executable(test_updatetransport_https " not in packaged_tests_text:
-        missing.append("HTTPS probe program built in a packaged build")
-    if (
-        'option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)\n' not in cmake
-        or not https_registered
-        or not https_skip
-        or https_registered.group(1) != https_skip.group(1)
-    ):
-        missing.append("HTTPS probe test registered only with EGTRAIN_NETWORK_TESTS, labelled network, skipped on the code that the program returns")
-    if not re.search(
-        r"\negtrain_add_test\(test_updatetransport_https_cases\n\tCOMMAND \$\{Python3_EXECUTABLE\}\n"
-        r"[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\n",
-        tests_cmake,
-    ):
-        missing.append("HTTPS probe answers test registered for every platform")
-    https_step = step_block(build_job, "Check HTTPS (Windows)")
-    if (
-        workflow.count("-DEGTRAIN_NETWORK_TESTS=ON") != 1
-        or "-DEGTRAIN_NETWORK_TESTS=ON" not in step_block(build_job, "Configure (Windows)")
-        or "-LE network" not in test_step
-        or "if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'\n" not in https_step
-        or "        run: ctest --test-dir build -C Release -L network --no-tests=error --output-on-failure\n" not in https_step
-        or "Check HTTPS (Windows)" not in build_step_names
-        or build_step_names.index("Test") > build_step_names.index("Check HTTPS (Windows)")
-    ):
-        missing.append("Windows HTTPS check after the tests, with the network tests built for the Windows leg only and left out of the Test step")
-    if not re.search(
-        r"if\(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4\)\s*message\(FATAL_ERROR",
-        cmake,
-    ):
-        missing.append("64-bit Windows configure check")
-    # The format check installs the clang-format version that tools/format.py accepts.
+    docs = cmake["jobs"]["docs"]
+    expect("python3 tools/docs/check_docs.py" in runs(docs) and "if" not in docs, "cmake.yml: the documentation check on every pull request")
+    smokes = ("headless_smoke.py", "editor_smoke.sh", "roundtrip_smoke.py", "bundle_smoke.py", "assignment_smoke.py",
+              "incident_smoke.py", "scene_render_smoke.sh", "track_preview_smoke.sh", "visual_polish_smoke.sh")
+    expect(not any(smoke in cmake_text + release_text for smoke in smokes), "no smoke step outside CTest, which runs them all")
+
+
+def check_sanitizers(checks: Checks, cmake: dict, release: dict, tests_cmake: str, characterization_cmake: str) -> None:
+    """The leak check and the nightly sanitizer jobs build in Debug with the sanitizers, run only at night or by hand on
+    Linux, and keep the options and the environment of the sanitizer job of the release workflow."""
+    expect = checks.expect
+    jobs = cmake["jobs"]
+    leak, nightly, thread = jobs["leak-check"], jobs["sanitizers"], jobs["thread-sanitizer"]
+    for job in (leak, nightly, thread):
+        expect(job.get("runs-on") == "ubuntu-24.04" and job.get("if") == NIGHTLY_GATE and job.get("steps", [{}])[0].get("uses", "").startswith("actions/checkout@")
+               and "./.github/actions/setup-deps" in flat(job) and '-DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"' in runs(job),
+               "cmake.yml: the leak check and the sanitizer jobs on Linux, at night or by hand, with the setup action")
+    debug_asan = "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON"
+    expect(
+        debug_asan in runs(leak) and debug_asan in runs(nightly)
+        and "-DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread" in runs(thread)
+        and "-DCMAKE_BUILD_TYPE=Debug" in runs(thread)
+        and "SANITIZERS=ON" not in runs(jobs["build"]) and "-fsanitize" not in runs(jobs["build"]),
+        "cmake.yml: sanitizers only in the Debug builds of the leak check and the sanitizer jobs",
+    )
+    expect(leak.get("env", {}).get("ASAN_OPTIONS") == "detect_leaks=1" and "suppressions=" in leak.get("env", {}).get("LSAN_OPTIONS", ""),
+           "cmake.yml: the leak check detects leaks, with its suppressions")
+    expect({"characterization_repeatable", "characterization_repeat_paimpol", "test_networkpresenter", "test_runtimecanvas"} <= set(ctest_names(runs(leak))),
+           "cmake.yml: the leak check reloads scenes and rebuilds the canvas")
+    targets = re.search(r"cmake --build build --target ([\w ]+)", runs(leak))
+    expect(targets and {"test_networkpresenter", "test_runtimecanvas"} <= set(targets.group(1).split()),
+           "cmake.yml: the leak check builds the presenter tests that it runs")
+    thread_targets = " ".join(step(thread, "cmake --build build --target").get("run", "").split())
+    expect(
+        {"test_recoverycontroller", "test_telemetrysender", "test_liveserver", "test_simulationworker"} <= set(ctest_names(runs(thread)))
+        and all(name in thread_targets for name in ctest_names(runs(thread)))
+        and "--no-tests=error" in runs(thread)
+        and "suppressions=" in thread.get("env", {}).get("TSAN_OPTIONS", ""),
+        "cmake.yml: the thread sanitizer job builds and runs the tests of the threaded parts, with its suppressions",
+    )
+    for job in (leak, nightly, thread):
+        expect(any(item.get("uses", "").startswith("actions/upload-artifact@") and item.get("if") in ("failure()", "${{ !cancelled() }}")
+                   and "runner.temp" in flat(item) for item in job["steps"]),
+               "cmake.yml: the leak check and the sanitizer jobs upload their logs after a failure")
+    # The nightly job and the release sanitizer job configure with the same options. The nightly job adds two ASAN options
+    # and the UBSan suppressions to the environment of the release job and runs as many tests at once as the Linux leg.
+    plain_option = r"-D[A-Za-z_]+=[\w.]+(?=\s)"
+    release_job = release["jobs"]["sanitizer"]
+    release_configure = step(release_job, "EGTRAIN_ENABLE_SANITIZERS=ON").get("run", "")
+    nightly_configure = step(nightly, "EGTRAIN_ENABLE_SANITIZERS=ON").get("run", "")
+    additions = {"ASAN_OPTIONS": ":detect_leaks=0:detect_stack_use_after_return=0",
+                 "UBSAN_OPTIONS": ":suppressions=${{ github.workspace }}/tools/e2e/ubsan_suppressions.txt"}
+    release_test = step(release_job, "ctest --test-dir build --parallel")
+    nightly_test = step(nightly, "ctest --test-dir build --parallel")
+    linux_jobs = next((leg["jobs"] for leg in jobs["build"]["strategy"]["matrix"]["include"] if leg["name"] == "Linux"), "")
+    expect(
+        set(re.findall(plain_option, release_configure + "\n")) == set(re.findall(plain_option, nightly_configure + "\n")) != set()
+        and nightly_test.get("env") == {key: value + additions.get(key, "") for key, value in release_test.get("env", {}).items()}
+        and set(additions) <= set(release_test.get("env", {}))
+        and f"ctest --test-dir build --parallel {linux_jobs} --timeout 1500" in nightly_test.get("run", ""),
+        "cmake.yml: the nightly sanitizer job has the options and the environment of the release sanitizer job",
+    )
+    # An instrumented build runs slower: the release sanitizer job scales the time limits and runs as many tests at once as
+    # the macOS leg. Only the sanitizer jobs pass the scale, so every other build keeps its limits.
+    macos_jobs = next((leg["jobs"] for leg in jobs["build"]["strategy"]["matrix"]["include"] if leg["name"] == "macOS"), "")
+    scale = re.search(r"-DEGTRAIN_TEST_TIMEOUT_SCALE=(\d+)", release_configure)
+    scene = re.search(r"-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=(\d+)", release_configure)
+    expect(
+        f"ctest --test-dir build --parallel {macos_jobs} --output-on-failure" in release_test.get("run", "")
+        and scale and int(scale.group(1)) >= 2 and scene and int(scene.group(1)) > 300
+        and 'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' in tests_cmake
+        and "set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING" in characterization_cmake
+        and "EGTRAIN_TEST_TIMEOUT_SCALE" not in runs(jobs["build"]) + runs(leak) + runs(release["jobs"]["validation"]),
+        "release.yml: the sanitizer job scales the test time limits, which only the sanitizer jobs do",
+    )
+
+
+def check_format_and_tidy(checks: Checks, format_workflow: dict, tidy_workflow: dict) -> None:
+    """The format and tidy checks install the versions that tools/format.py and tools/tidy.py accept and run the scripts
+    that a developer runs. The tidy run analyses the changed sources of a pull request and all sources otherwise."""
+    expect = checks.expect
+    format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
+    tidy_script = (ROOT / "tools/tidy.py").read_text(encoding="utf-8")
     format_version = re.search(r'^CLANG_FORMAT_VERSION = "([0-9.]+)"$', format_script, re.MULTILINE)
-    if (
-        not format_version
-        or f"pip install 'clang-format=={format_version.group(1)}'" not in format_workflow
-        or "run: python3 tools/format.py\n" not in format_workflow
-        or "  pull_request:\n" not in format_workflow
-    ):
-        missing.append("format check on pull requests with the clang-format version of tools/format.py")
-    # The tidy check installs the major version of clang-tidy that tools/tidy.py accepts, and runs the script that a developer runs
-    # locally: on the changed sources of a pull request and on all sources in the nightly and manual runs. The nightly run starts at
-    # a minute that is not on the hour and does not start with the CMake run.
+    format_job = format_workflow["jobs"]["check"]
+    expect(format_version and f"pip install 'clang-format=={format_version.group(1)}'" in runs(format_job)
+           and "python3 tools/format.py" in runs(format_job),
+           "format.yml: the clang-format version of tools/format.py")
     tidy_version = re.search(r'^CLANG_TIDY_VERSION = "(\d+)\.\d+"$', tidy_script, re.MULTILINE)
-    tidy_step = step_block(job_block(tidy_workflow, "check"), "Run clang-tidy")
-    # The compile database is made with the Qt of the CMake workflow, which CMake finds through CMAKE_PREFIX_PATH.
-    if (
-        setup_step not in step_block(job_block(tidy_workflow, "check"), "Set up the dependencies")
-        or "        env:\n          CMAKE_PREFIX_PATH: ${{ env.QT_ROOT_DIR }}\n" not in tidy_step
-    ):
-        missing.append("tidy check with Qt 6.8.3 from the action, passed to CMake in CMAKE_PREFIX_PATH")
-    tidy_install = step_block(job_block(tidy_workflow, "check"), "Install clang-tidy")
-    tidy_trigger = tidy_workflow.split("\njobs:", 1)[0]
-    tidy_nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", tidy_trigger, re.MULTILINE)
-    if (
-        not tidy_version
-        or f'sudo "$RUNNER_TEMP/llvm.sh" {tidy_version.group(1)}\n' not in tidy_install
-        or f"sudo apt-get install -y clang-tidy-{tidy_version.group(1)}\n" not in tidy_install
-        or "python3 tools/tidy.py --changed-from HEAD^1\n" not in tidy_step
-        or tidy_step.count("python3 tools/tidy.py") != 2
-        or '[ "$GITHUB_EVENT_NAME" = pull_request ]' not in tidy_step
-        or re.search(r"^  push:", tidy_trigger, re.MULTILINE)
-        or not tidy_nightly
-        or tidy_nightly.group(1) == "0"
-        or (tidy_nightly.group(1), tidy_nightly.group(2)) == ("17", "2")
-        or not re.search(r"^  workflow_dispatch:\n(?!    )", tidy_trigger, re.MULTILINE)
-    ):
-        missing.append("tidy check with the clang-tidy version of tools/tidy.py, changed sources on pull requests and all sources in the nightly run")
-    # The pull request run analyses the changed sources and the sources that include a changed header, and every source when
-    # the configuration changed.
+    tidy_job = tidy_workflow["jobs"]["check"]
+    tidy_run = step(tidy_job, "python3 tools/tidy.py")
+    expect(
+        tidy_version
+        and f'sudo "$RUNNER_TEMP/llvm.sh" {tidy_version.group(1)}' in runs(tidy_job)
+        and f"sudo apt-get install -y clang-tidy-{tidy_version.group(1)}" in runs(tidy_job)
+        and "python3 tools/tidy.py --changed-from HEAD^1" in tidy_run.get("run", "")
+        and tidy_run.get("run", "").count("python3 tools/tidy.py") == 2
+        and '[ "$GITHUB_EVENT_NAME" = pull_request ]' in tidy_run.get("run", "")
+        and tidy_run.get("env", {}).get("CMAKE_PREFIX_PATH") == "${{ env.QT_ROOT_DIR }}"
+        and step_index(tidy_job, "./.github/actions/setup-deps") >= 0,
+        "tidy.yml: the clang-tidy version of tools/tidy.py, the changed sources of a pull request, all sources otherwise, "
+        "with the Qt of the setup action",
+    )
     sys.path.insert(0, str(ROOT / "tools"))
     import tidy
 
     prefix = "EGTRAIN/QEGTRAIN/"
     sources = {prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp", prefix + "util/Log.cpp"}
-    if (
-        tidy.select_changed([prefix + "util/Log.cpp", prefix + "simulation/Train.cpp", "README.md"], sources) != [prefix + "util/Log.cpp"]
-        or tidy.select_changed([prefix + "scene/SceneModel.h"], sources) != [prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp"]
-        or tidy.select_changed([".clang-tidy"], sources) != sorted(sources)
-        or tidy.select_changed([prefix + "scene/CMakeLists.txt"], sources) != sorted(sources)
-        or tidy.select_changed([prefix + "app/MainWindow.ui"], sources) != sorted(sources)
-        or tidy.select_changed([prefix + "simulation/RuntimeLimits.h"], sources) != [prefix + "scene/SceneValidator.cpp"]
-        or tidy.select_changed(["docs/development/build.md"], sources)
-    ):
-        missing.append("tidy run that selects the changed sources, the sources that include a changed header, and all sources for a configuration change")
-    sample = "/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]"
-    found = tidy.FINDING.match(sample)
-    if (
-        not found
-        or (found["line"], found["column"], found["check"]) != ("12", "5", "bugprone-foo")
-        or tidy.FINDING.match("Log.cpp:12:5: warning: message text [bugprone-foo]")
-        or tidy.FINDING.match("/work/Log.cpp:12:5: note: message text")
-        or not tidy.analysed(prefix + "util/Log.cpp")
-        or tidy.analysed(prefix + "simulation/Train.cpp")
-        or tidy.analysed(prefix + "io/third_party/zmq.hpp")
-        or tidy.analysed("tools/tidy.py")
-    ):
-        missing.append("tidy run that reads clang-tidy findings and leaves out simulation/ and vendored code")
-    # The package jobs live in a reusable workflow that the release workflow and the package check call. The two signing jobs
-    # of that workflow ask for two read permissions, and a called workflow cannot hold more than its caller grants, so both
-    # callers grant exactly those two. Only the release workflow passes the signing token, by name.
-    package_call = (
-        "    needs: version\n"
-        "    uses: ./.github/workflows/package.yml\n"
-        "    permissions:\n"
-        "      actions: read\n"
-        "      contents: read\n"
-        "    with:\n"
-        "      version: ${{ needs.version.outputs.version }}\n"
+    expect(
+        tidy.select_changed([prefix + "util/Log.cpp", prefix + "simulation/Train.cpp", "README.md"], sources) == [prefix + "util/Log.cpp"]
+        and tidy.select_changed([prefix + "scene/SceneModel.h"], sources) == [prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp"]
+        and tidy.select_changed([".clang-tidy"], sources) == sorted(sources)
+        and tidy.select_changed([prefix + "scene/CMakeLists.txt"], sources) == sorted(sources)
+        and tidy.select_changed([prefix + "app/MainWindow.ui"], sources) == sorted(sources)
+        and tidy.select_changed([prefix + "simulation/RuntimeLimits.h"], sources) == [prefix + "scene/SceneValidator.cpp"]
+        and not tidy.select_changed(["docs/development/build.md"], sources),
+        "tools/tidy.py selects the changed sources, the sources that include a changed header, and all for a settings change",
     )
-    signing_token_call = "    secrets:\n      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}\n"
-    if (
-        trigger_events(release_only) != ["push", "pull_request", "workflow_dispatch"]
-        or "\nconcurrency:\n"
-        "  group: ${{ github.event_name == 'push' && 'egtrain-publish' || github.run_id }}\n"
-        "  cancel-in-progress: false\n\njobs:\n" not in release_only
-        or release_only.count("permissions:") != 2
+    found = tidy.FINDING.match("/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]")
+    expect(
+        found and (found["line"], found["column"], found["check"]) == ("12", "5", "bugprone-foo")
+        and not tidy.FINDING.match("Log.cpp:12:5: warning: message text [bugprone-foo]")
+        and not tidy.FINDING.match("/work/Log.cpp:12:5: note: message text")
+        and tidy.analysed(prefix + "util/Log.cpp")
+        and not tidy.analysed(prefix + "simulation/Train.cpp")
+        and not tidy.analysed(prefix + "io/third_party/zmq.hpp")
+        and not tidy.analysed("tools/tidy.py"),
+        "tools/tidy.py reads the clang-tidy findings and leaves out simulation/ and vendored code",
+    )
+
+
+def check_release(checks: Checks, release: dict, release_text: str, package_check: dict, rules: dict, sources: dict) -> None:
+    """The release workflow selects one version, validates and packages it, and publishes only for a push to production
+    or a v* tag, after every other job succeeded. The package check runs the same version job and release assets script."""
+    expect = checks.expect
+    events = triggers(release)
+    documentation = sorted(pattern.replace("*", "**") for pattern in rules["cmake"][2])
+    expect(
+        sorted(events) == ["pull_request", "push", "workflow_dispatch"]
+        and events["push"].get("branches") == ["production"] and events["push"].get("tags") == ["v*"]
+        and events["pull_request"].get("branches") == ["production"]
+        and all(sorted(events[event].get("paths-ignore", [])) == documentation and "paths" not in events[event] for event in ("push", "pull_request")),
+        "release.yml: a push or pull request to production that changes more than the files of the documentation rule, "
+        "a v* tag, and a manual start",
+    )
+    expect(release.get("concurrency") == {"group": "${{ github.event_name == 'push' && 'egtrain-publish' || github.run_id }}", "cancel-in-progress": "false"},
+           "release.yml: publications run one at a time and are never cancelled")
+    jobs = release["jobs"]
+    publish = jobs.get("release", {})
+    expect(sorted(needs(publish)) == sorted(job for job in jobs if job != "release") and publish.get("if") == PUSH_GATE,
+           "release.yml: the release job needs every other job and publishes only for a push to production or a v* tag")
+    builds = [job for job in jobs.values() if "cmake -S . -B build" in runs(job)]
+    expect(all(needs(job) == ["version"] for job_id, job in jobs.items() if job_id not in ("version", "release"))
+           and builds and all('cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"' in runs(job) for job in builds)
+           and jobs["package"].get("with", {}).get("version") == "${{ needs.version.outputs.version }}",
+           "release.yml: every build gets the version that the version job selects")
+    prepare = step(publish, "softprops/action-gh-release@") or step(publish, "files: release-assets/*")
+    for marker in ("fetch-depth: 0", "run: python3 tools/release/version.py",
+                   'production_commit="$(git ls-remote origin refs/heads/production | cut -f1)"', 'if [[ "$production_commit" != "$GITHUB_SHA" ]]',
+                   'git ls-remote origin "refs/tags/$tag"', "draft: true", 'gh release edit "$RELEASE_TAG" --draft=false --latest="$MAKE_LATEST"',
+                   'tag="v${{ needs.version.outputs.version }}"', "prerelease=false", "make_latest=true"):
+        expect(marker in flat(release), f"release.yml: safe versioned publication: {marker}")
+    expect(prepare.get("with", {}).get("files") == "release-assets/*" and prepare.get("with", {}).get("fail_on_unmatched_files") == "true"
+           and 'tag="main-' not in release_text and 'name="EGTRAIN main build' not in release_text,
+           "release.yml: the release publishes the files of the release assets folder and fails when none matches")
+    # The package check selects the version as the release does and runs the release assets script as the release job does.
+    version = package_check["jobs"]["version"]
+    expect(
+        version.get("steps") and version.get("steps") == jobs["version"].get("steps") and version.get("outputs") == jobs["version"].get("outputs")
+        and version.get("if") == "needs.changes.outputs.package == 'true'",
+        "package-check.yml: the version job of the release workflow, skipped with the changes job",
+    )
+    assets = package_check["jobs"]["release-assets"]
+    script = "python3 tools/release/build_release_assets.py --version"
+    expect(
+        sorted(needs(assets)) == ["package", "version"]
+        and step(assets, script) == step(publish, script) != {}
+        and step(assets, "actions/download-artifact@") == step(publish, "actions/download-artifact@") != {}
+        and in_order(assets, "actions/checkout@", script) and in_order(publish, "actions/checkout@", script)
+        and not any(word in flat(assets) for word in ("upload-artifact", "permissions", "if: ")),
+        "package-check.yml: the release assets job downloads the artifacts and runs the script as the release job does, "
+        "and uploads and publishes nothing",
+    )
+    # One application version: the CMake cache variable, passed to the program, the Windows resource and the packages.
+    for marker, source in (
+        ('add_compile_definitions(EGTRAIN_APP_VERSION=\\"${PROJECT_VERSION}\\")', "cmake"),
+        ('file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/EGTRAIN_VERSION"', "cmake"),
+        ("project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES", "cmake"),
+        ("setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION))", "main"),
+        ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', "resource"),
+        ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', "package"),
     ):
-        missing.append("release triggers, concurrency and permissions")
-    # The only write permission of the release workflow is the one of the job that publishes.
-    if (
-        re.findall(r"^ *([\w-]+): write$", release_only, re.MULTILINE) != ["contents"]
-        or "    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n" not in job_block(release_only, "release")
-    ):
-        missing.append("release workflow whose only write permission is contents: write in the release job")
-    if job_ids(release_only) != ["version", "validation", "sanitizer", "package", "release"]:
-        missing.append("release jobs: version, validation, sanitizer, package, release")
-    if job_block(release_only, "package") != "  package:\n" + package_call + signing_token_call:
-        missing.append(
-            "release package job calls the package workflow with the selected version, the two read permissions "
-            "that the signing job asks for and the signing token by name"
-        )
-    if re.findall(r"\bsecrets\.\w+", release_only) != ["secrets.SIGNPATH_API_TOKEN"] or "inherit" in release_only:
-        missing.append("release workflow whose only credential is the signing token that it passes by name to the package workflow")
-    if trigger_block(package_only) != (
-        "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
-        "    secrets:\n      SIGNPATH_API_TOKEN:\n        required: false\n"
-    ):
-        missing.append("package workflow starts only by call, with the version and an optional signing token")
-    if (
-        "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
-        or package_only.count("permissions:") != 3
-        or re.search(r":\s*write", package_only)
-    ):
-        missing.append("package workflow with read permission at the top, one more block in each signing job, and no write permission")
-    # The signing token is named in one step of each Windows signing job, the certificate and its password of the macOS
-    # signing in the one step that imports them, and the key and the password of the notarization in the two steps that
-    # run the notarization script. No other step of any job can read them.
-    if re.findall(r"\bsecrets\.\w+", package_only) != [
-        "secrets.MACOS_CERTIFICATE",
-        "secrets.MACOS_CERTIFICATE_PASSWORD",
-        "secrets.MACOS_NOTARY_KEY",
-        "secrets.MACOS_NOTARY_PASSWORD",
-        "secrets.MACOS_NOTARY_KEY",
-        "secrets.MACOS_NOTARY_PASSWORD",
-        "secrets.SIGNPATH_API_TOKEN",
-        "secrets.SIGNPATH_API_TOKEN",
-    ]:
-        missing.append(
-            "package workflow whose only credentials are the macOS certificate and notarization key with their passwords and the Windows signing token"
-        )
-    package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux",
-                    "rehearse-linux"]
-    if job_ids(package_only) != package_jobs:
-        missing.append("package workflow jobs: " + ", ".join(package_jobs))
-    # The release script reads one artifact directory for each package, the Windows payload and the scene bundles. The
-    # package workflow uploads exactly those names, and each package as the file that the script publishes. A name with
-    # the release version in it is uploaded with the version input of the workflow.
+        expect(marker in sources[source], f"one application version: {marker}")
+    expect(re.search(r'set\(EGTRAIN_VERSION "\d+\.\d+\.\d+" CACHE STRING', sources["cmake"]), "a three-component CMake application version")
+
+
+def check_packages(checks: Checks, package: dict, package_text: str, package_check: dict, build_release_assets, make_dmg) -> None:
+    """The jobs of the package workflow: their artifacts, the order of building, checking and uploading, and signing."""
+    expect = checks.expect
+    jobs = package["jobs"]
+    expect(
+        triggers(package) == {"workflow_call": {"inputs": {"version": {"required": "true", "type": "string"}},
+                                                "secrets": {"SIGNPATH_API_TOKEN": {"required": "false"}}}},
+        "package.yml: starts only when called, with the version and an optional signing token",
+    )
+    # The release script reads one artifact for each package, the Windows payload and the scene bundles. A name with the
+    # version in it is uploaded with the version input.
+    uploads = [item.get("with", {}) for job in jobs.values() for item in job["steps"] if item.get("uses", "").startswith("actions/upload-artifact@")]
     for _key, template, directory in build_release_assets.PACKAGES:
         file = template.format(version="${{ inputs.version }}")
-        if not re.search(
-            rf"^          name: {re.escape(directory)}\n          path: (?:\S*/)?{re.escape(file)}\n", package_only, re.MULTILINE
-        ):
-            missing.append(f"package artifact {directory} uploaded as the file {file} that the release script reads")
+        expect(any(upload.get("name") == directory and upload.get("path", "").endswith(file) for upload in uploads),
+               f"package.yml: the artifact {directory} holds {file}, which the release script reads")
     for directory in (build_release_assets.WINDOWS_PAYLOAD, build_release_assets.SCENES_ARTIFACT):
-        if f"          name: {directory}\n          path: " not in package_only:
-            missing.append(f"package artifact {directory} uploaded under the name that the release script reads")
-    # The application draws with the raster engine, so the Windows package job leaves out the software OpenGL, Direct3D and
-    # DXC compiler, Qt Quick, QML and virtual keyboard files, fails when one is present and starts a copy of the package.
-    windows_job = job_block(package_only, "package-windows")
-    verify_step = step_block(windows_job, "Verify the package is complete")
-    forbidden_files = (
-        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")) {\n'
-        '            $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)\n'
-        '            if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }\n'
-        "          }\n"
-    )
-    if forbidden_files not in verify_step or verify_step.find(forbidden_files) > verify_step.find("Write-Host"):
-        missing.append("Windows package check that forbids the OpenGL, Direct3D and DXC compiler, Qt Quick, QML, virtual keyboard and vc_redist files")
-    for required_file in ("iconengines/qsvgicon.dll", "styles/qmodernwindowsstyle.dll"):
-        if f'          if (-not (Test-Path "$dist/{required_file}")) {{ throw "missing {required_file}" }}\n' not in verify_step:
-            missing.append(f"Windows package check that requires {required_file}")
-    deploy_options = ("--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler", "--no-system-dxc-compiler", "--no-quick-import")
-    package_deploy = [line.strip() for line in windows_job.splitlines() if "windeployqt.exe" in line]
-    start_deploy = [line.strip() for line in package_step.splitlines() if "windeployqt.exe" in line]
-    if len(package_deploy) != 1 or any(option not in package_deploy[0] for option in deploy_options):
-        missing.append("windeployqt options of the Windows package job that leave out the OpenGL, Direct3D and DXC compiler and Qt Quick files")
-    if package_deploy != start_deploy:
-        missing.append("the same windeployqt line in the Windows package job and in the Windows package start check")
-    windows_steps = ("Assemble package", "Copy the Visual C++ runtime", "Verify the package is complete",
-                     "Check the DLL imports of the package", "Report package size", "Start the package", "Upload artifact")
-    windows_step_names = re.findall(r"^      - name: (.+)$", windows_job, re.MULTILINE)
-    step_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in windows_steps]
-    if -1 in step_positions or step_positions != sorted(step_positions):
-        missing.append("Windows package steps in the order " + ", ".join(windows_steps))
-    # The installer installs per user and cannot run the redistributable, so the package holds the runtime DLLs that its files
-    # import, copied from the x64 folder of the MSVC redistributable that the runner has, and a check fails the job when a file
-    # imports a DLL that the package lacks.
-    runtime_step = step_block(windows_job, "Copy the Visual C++ runtime")
-    imports_step = step_block(windows_job, "Check the DLL imports of the package")
-    if (
-        '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' not in runtime_step
-        or "python tools/release/pe_imports.py $dist --missing" not in runtime_step
-        or 'Copy-Item -LiteralPath $source "$dist/$name"' not in runtime_step
-        or "vcruntime|msvcp|concrt" not in runtime_step
-        or re.search(r"\d+\.\d+\.\d+", runtime_step)
-        or "python tools/release/pe_imports.py dist/QEGTRAIN\n" not in imports_step
-        or "$LASTEXITCODE -ne 0" not in imports_step
-    ):
-        missing.append("Windows package job that copies the Visual C++ runtime DLLs, ships no vc_redist and checks the DLL imports")
-    size_step = step_block(windows_job, "Report package size")
-    if (
-        "Get-ChildItem dist/QEGTRAIN -Recurse -File" not in size_step
-        or '"Windows package: $($files.Count) files, $bytes bytes" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY' not in size_step
-    ):
-        missing.append("Windows package size in the job summary")
-    start_step = step_block(windows_job, "Start the package")
-    python_setup = next((block for block in windows_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
-    if (
-        not start_step.strip().endswith('python tools/release/package_start_smoke.py "$start"')
-        or '$start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"' not in start_step
-        or "Copy-Item -Recurse dist/QEGTRAIN/* $start" not in start_step
-        or start_step.count("dist/QEGTRAIN") != 1
-        or 'PYTHONUTF8: "1"' not in start_step
-        or "python-version: '3.12'" not in python_setup
-        or not 0 <= windows_job.find("uses: actions/setup-python@v5") < windows_job.find("name: Start the package")
-    ):
-        missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
-    # The package job starts the HTTPS probe from that copy, with only the Windows directories on PATH, so it loads the Qt files
-    # of the package. The exit code for a rate limit or an outage of GitHub does not fail the job.
-    https_package = step_block(windows_job, "Check HTTPS from the package")
-    https_order = ("Start the package", "Check HTTPS from the package", "Upload artifact")
-    https_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in https_order]
-    if (
-        -1 in https_positions
-        or https_positions != sorted(https_positions)
-        or '$start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"\n' not in https_package
-        or "Copy-Item $probe.FullName $start\n" not in https_package
-        or '$env:PATH = "$env:SystemRoot\\System32;$env:SystemRoot"\n' not in https_package
-        or '& "$start/test_updatetransport_https.exe"' not in https_package
-        or not https_skip
-        or f"$LASTEXITCODE -ne {https_skip.group(1)}" not in https_package
-    ):
-        missing.append("Windows package check of HTTPS from a copy of the package with only the Windows directories on PATH")
-    # The job uploads the directory that it verified, sized and started, with its hidden files. It writes no archive:
-    # the finalize job writes the portable archive from the uploaded files.
-    if step_block(windows_job, "Upload artifact") != (
-        "name: Upload artifact\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: QEGTRAIN-windows-x64-payload\n"
-        "          path: dist/QEGTRAIN\n"
-        "          include-hidden-files: true\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows package upload of the directory that is built, with its hidden files, as the payload artifact")
-    if "zip" in windows_job.lower():
-        missing.append("Windows package job without an archive")
-    # Every run, a pull request included, prints the signature state of the package before it is uploaded. The step has no
-    # condition and no mode that fails.
-    report_lines = step_block(windows_job, "Report the code signatures").strip().splitlines()
-    if (
-        not report_lines
-        or report_lines[-1].strip() != "run: ./tools/release/verify_signatures.ps1 -Directory dist/QEGTRAIN -Report"
-        or "        shell: pwsh" not in report_lines
-        or any(line.strip().startswith("if:") for line in report_lines)
-        or not 0 <= windows_step_names.index("Report package size") < windows_step_names.index("Report the code signatures")
-        or windows_step_names.index("Report the code signatures") > windows_step_names.index("Upload artifact")
-    ):
-        missing.append("Windows package report of the code signatures of the unsigned package on every run")
-    # The signing job runs only for a push to production or a v* tag in a repository that opts in by a variable, so a pull
-    # request, a manual run and a repository without the variable skip it. It sends the three program files and no library to
-    # the signing service, puts the signed files into the payload, checks them and replaces the payload artifact, which the
-    # finalize job reads. Its token is the input of its signing step; only this job, the installer signing job and the macOS
-    # package job have an environment.
-    sign_job = job_block(package_only, "sign-windows")
-    sign_steps = [
-        "Download the package",
-        "Collect the files to sign",
-        "Upload the files to sign",
-        "Sign the files",
-        "Put the signed files into the package",
-        "Verify the signatures",
-        "Upload the signed package",
-    ]
-    if re.findall(r"^      - name: (.+)$", sign_job, re.MULTILINE) != sign_steps:
-        missing.append("Windows signing steps: " + ", ".join(sign_steps))
-    if (
-        re.findall(r"^    needs: (.+)$", sign_job, re.MULTILINE) != ["package-windows"]
-        or re.findall(r"^    runs-on: (.+)$", sign_job, re.MULTILINE) != ["windows-latest"]
-        or re.findall(r"^    environment: (.+)$", sign_job, re.MULTILINE) != ["windows-signing"]
-        or package_only.count("environment:") != 3
-    ):
-        missing.append("Windows signing job after the Windows package job, on windows-latest, in an environment that only the two signing jobs and the macOS package job use")
-    # The signing action reads the run and downloads the uploaded files with the token of the job (its documentation names
-    # actions: read and contents: read), and the workflow grants contents: read only. The job holds the second block of the
-    # workflow, with nothing else in it.
-    if (
-        sign_job.count("permissions:") != 1
-        or "    environment: windows-signing\n    permissions:\n      actions: read\n      contents: read\n    timeout-minutes: 90\n"
-        not in sign_job
-    ):
-        missing.append("Windows signing job with its own permissions: actions: read and contents: read")
-    if re.findall(r"^    if: (.+)$", sign_job, re.MULTILINE) != [
-        "${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) "
-        "&& vars.WINDOWS_SIGNING == 'signpath' }}"
-    ]:
-        missing.append("Windows signing job only for a push to production or a v* tag when the variable WINDOWS_SIGNING is signpath")
-    if step_block(sign_job, "Download the package") != step_block(job_block(package_only, "finalize-windows"), "Download the package"):
-        missing.append("Windows signing download of the payload artifact into payload, as the finalize job does")
-    sign_collect = step_block(sign_job, "Collect the files to sign")
-    if (
-        'foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {\n' not in sign_collect
-        or sign_collect.count("Copy-Item") != 1
-        or ".dll" in sign_collect.lower()
-        or "*" in sign_collect
-    ):
-        missing.append("Windows signing that collects the three program files and no library")
-    if step_block(sign_job, "Upload the files to sign") != (
-        "name: Upload the files to sign\n"
-        "        id: upload-unsigned\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: QEGTRAIN-windows-x64-unsigned\n"
-        "          path: unsigned\n"
-        "          overwrite: true\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows signing upload of the collected files, replaceable on a re-run, as the artifact that the signing request names")
-    sign_request = step_block(sign_job, "Sign the files")
-    if any(
-        part not in sign_request
-        for part in (
-            "        uses: signpath/github-action-submit-signing-request@v3\n",
-            "          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}\n",
-            "          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}\n",
-            "          wait-for-completion: true\n",
-            "          output-artifact-directory: signed\n",
+        expect(any(upload.get("name") == directory for upload in uploads), f"package.yml: the artifact {directory}")
+    expect(build_release_assets.PACKAGES[0][1].format(version="X") == make_dmg.dmg_name("X"), "the disk image has the name that the release script reads")
+    scenes = re.search(r"\n *scenes=\(\n((?: +\S+\n)+) *\)\n", runs(jobs["package-macos"]))
+    expect(scenes and set(scenes.group(1).split()) == set(build_release_assets.SCENES)
+           and 'build/scene_tool pack "EGTRAIN/QEGTRAIN/Scenes/$name" "$bundle"' in runs(jobs["package-macos"])
+           and 'build/scene_tool validate "$bundle"' in runs(jobs["package-macos"]),
+           "package.yml: the macOS job packs and validates the scene bundles that the release script reads")
+    # Every package is a packaged build with the version input, holds Qt Network, the licence, the notices and the manual,
+    # runs the update tests and checks the update helper, and starts a copy of itself with the start script.
+    macos_script = (ROOT / "tools/release/package_macos.sh").read_text(encoding="utf-8")
+    for job_id, network in (("package-macos", '"$APP/Contents/Frameworks/QtNetwork.framework"'), ("package-windows", '"Qt6Network.dll"'),
+                            ("package-linux", "libQt6Network.so*")):
+        text = runs(jobs[job_id]) + (macos_script if job_id == "package-macos" else "")
+        expect(
+            all(part in text for part in (network, "LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch", "-DEGTRAIN_PACKAGED_BUILD=ON",
+                                          '"-DEGTRAIN_VERSION=${{ inputs.version }}"', "'^test_update(helper|preparation)$'",
+                                          "egtrain_update_helper", "tools/release/package_start_smoke.py"))
+            and "./.github/actions/setup-deps" in flat(jobs[job_id]) and re.search(r'-DCMAKE_PREFIX_PATH="\$(env:)?QT_ROOT_DIR', runs(jobs[job_id])),
+            f"package.yml: {job_id} builds a packaged build of the version with the setup action, checks Qt Network, the "
+            "licence, the notices, the manual and the update helper, and starts a copy",
         )
-    ) or package_only.count("SIGNPATH_API_TOKEN") != 3 or "set -x" in package_only:
-        missing.append("Windows signing request for the uploaded files with the token as the input of the signing step only")
-    sign_put = step_block(sign_job, "Put the signed files into the package")
-    if (
-        'foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {\n' not in sign_put
-        or 'Copy-Item -LiteralPath "signed/$name" -Destination payload -Force\n' not in sign_put
-        or sign_put.count("Copy-Item") != 1
-    ):
-        missing.append("Windows signing that puts the three signed program files into the payload")
-    sign_verify = step_block(sign_job, "Verify the signatures")
-    if (
-        "        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT\n"
-        not in sign_verify
-        or "          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}\n" not in sign_verify
-        or "-Report" in sign_verify
-        or "-AllowUntrustedRoot" in package_only
-        or "-NoTimestampCheck" in package_only
-    ):
-        missing.append("Windows signing check of the payload that requires the expected signer, a timestamp and a trusted chain")
-    if step_block(sign_job, "Upload the signed package") != (
-        "name: Upload the signed package\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: QEGTRAIN-windows-x64-payload\n"
-        "          path: payload\n"
-        "          include-hidden-files: true\n"
-        "          overwrite: true\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows signing upload of the checked payload in place of the payload artifact")
-    # The check script reads the signature, the digest algorithm, the timestamp and the signer, and fails only in the mode that
-    # requires them. Its test signs copies of scene_tool.exe with a throwaway certificate that it keeps in no file, and CTest
-    # runs it on Windows only.
-    verify_script = (ROOT / "tools/release/verify_signatures.ps1").read_text(encoding="utf-8")
+        expect("RUNNER_TEMP" in step(jobs[job_id], "tools/release/package_start_smoke.py").get("run", "")
+               and step(jobs[job_id], "tools/release/package_start_smoke.py").get("env", {}).get("PYTHONUTF8") == "1"
+               and in_order(jobs[job_id], "python-version: 3.12", "tools/release/package_start_smoke.py"),
+               f"package.yml: {job_id} starts a copy under RUNNER_TEMP with Python 3.12")
+    for word in ("sha256", "shasum", "Get-FileHash", "unzip", "Compress-Archive", "stat -c", "update-manifest"):
+        expect(word.lower() not in (package_text + flat(package_check)).lower(),
+               f"package.yml: no {word}: the manifest, its hashes and the archive come from the release script")
+    for word in ("action-gh-release", "gh release", "gh api", "git push", "git commit"):
+        expect(word not in package_text + flat(package_check), f"package.yml and package-check.yml publish nothing: {word}")
+    expect("codesign" not in flat(package_check) and "secrets" not in flat(package_check), "package-check.yml signs nothing and reads no credential")
+
+    # macOS: the script fills and trims the app before the one signature and checks it after; the start script runs a copy;
+    # the app is notarized before the disk image is built from it; the upload comes last and the keychain goes on every path.
+    macos = jobs["package-macos"]
+    subcommands = re.search(r"^\t(\w[\w |-]*)\) ;;$", macos_script, re.MULTILINE)
+    subcommands = [name.strip() for name in subcommands.group(1).split("|")] if subcommands else []
+    changes = [name for name in subcommands if not name.startswith("verify-")]
+    verifies = [name for name in subcommands if name.startswith("verify-")]
+    calls = [f"tools/release/package_macos.sh {name} build/QEGTRAIN.app" for name in subcommands]
+    expect(
+        changes and verifies
+        and all(runs(macos).count(call) == 1 for call in calls)
+        and in_order(macos, *calls[: len(changes)], "tools/release/sign_macos.sh build/QEGTRAIN.app", *calls[len(changes):],
+                     "tools/release/package_start_smoke.py", "tools/release/notarize_macos.sh build/QEGTRAIN.app",
+                     "tools/release/make_dmg.py", "hdiutil attach -readonly", "actions/upload-artifact@v4\nwith: name: QEGTRAIN-macos-arm64"),
+        "package.yml: the macOS job runs each step of package_macos.sh, the changes before the signature and the checks after "
+        "it, then the start, the notarization, the disk image, its check and the upload",
+    )
+    expect("-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0" in runs(macos), "package.yml: the macOS app is built for macOS 26")
+    keychain = macos["steps"][-1]
+    expect(keychain.get("if") == "${{ always() && env.MACOS_KEYCHAIN != '' }}" and keychain.get("run", "").strip() == 'security delete-keychain "$MACOS_KEYCHAIN"',
+           "package.yml: the last macOS step deletes the signing keychain on every path")
+    certificate = step(macos, "secrets.MACOS_CERTIFICATE ")
+    certificate_run = certificate.get("run", "")
+    expect(
+        certificate.get("if") == "${{ " + PUSH_GATE + " }}"
+        and 0 <= certificate_run.find('if [ -z "$MACOS_CERTIFICATE" ]; then') < certificate_run.find("security create-keychain")
+        < certificate_run.find("security find-identity -v -p codesigning") < certificate_run.find('echo "MACOS_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"')
+        and "trap 'rm -f \"$certificate\"' EXIT" in certificate_run,
+        "package.yml: the certificate import does nothing without a certificate and passes on the identity only after the import",
+    )
+    expect(
+        step(macos, "tools/release/sign_macos.sh").get("env") is None
+        and package_text.count("codesign --force") == 1 and "--deep --sign" not in package_text
+        and 0 <= runs(macos).find('if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then') < runs(macos).find('codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$DMG"'),
+        "package.yml: the script alone signs the app, and the disk image is signed with its identity or not at all",
+    )
+    image = make_dmg.dmg_name("${{ inputs.version }}")
+    for target in ("build/QEGTRAIN.app", f"build/dmg/{image}"):
+        notary = step(macos, f"tools/release/notarize_macos.sh {target}")
+        expect(notary.get("if") == "${{ " + PUSH_GATE + " }}" and notary.get("timeout-minutes") and "secrets.MACOS_NOTARY_KEY" in flat(notary),
+               f"package.yml: the notarization of {target} for a push to production or a v* tag, with a time limit")
+    expect(
+        step(macos, "tools/release/make_dmg.py").get("run", "").strip()
+        == 'python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout',
+        "package.yml: the disk image is built by the script from the final app",
+    )
+    verify_image = step(macos, "hdiutil attach -readonly")
+    after_image = "\n".join(flat(item) for item in macos["steps"][step_index(macos, "hdiutil attach -readonly"):])
+    expect(
+        all(part in verify_image.get("run", "") for part in (
+            f'DMG="$PWD/build/dmg/{image}"', "trap 'hdiutil detach \"$MOUNT\" -force >/dev/null 2>&1 || true' EXIT",
+            'test "$(readlink "$MOUNT/Applications")" = "/Applications"', 'cmp "$MOUNT/.DS_Store" tools/release/dmg/DS_Store',
+            'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"', 'codesign --verify --deep --strict --verbose=2 "$COPY/QEGTRAIN.app"',
+            '[ "$version" = "${{ inputs.version }}" ]', '"$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene', 'grep -q "End of Simulation"',
+            "expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene", "expect_no_plist CFBundleDocumentTypes:1\n",
+            "expect_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:0 public.data", "expect_no_plist UTExportedTypeDeclarations:1\n",
+            'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/scene_tool"', 'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper"'))
+        and "build/QEGTRAIN.app" not in after_image and "zip" not in flat(macos).lower(),
+        "package.yml: the disk image check mounts it read-only, detaches it on every path, checks the signatures, the "
+        "document type and the programs of the app in it and of a copy, and runs the copy; no later step uses the app",
+    )
+
+    # Windows: the job leaves out the OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and redistributable files,
+    # copies the Visual C++ runtime DLLs, checks the imports, reports the size and the signatures, starts a copy and checks
+    # HTTPS from it, and then uploads the folder that it checked.
+    windows = jobs["package-windows"]
+    windows_runs = runs(windows)
+    expect(
+        all(option in windows_runs for option in ("--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler", "--no-system-dxc-compiler", "--no-quick-import"))
+        and '@("opengl32sw.dll","d3dcompiler_47.dll","dxcompiler.dll","dxil.dll","Qt6Quick*","Qt6Qml*","*VirtualKeyboard*","vc_redist*")' in windows_runs
+        and all(f'if (-not (Test-Path "$dist/{name}")) {{ throw "missing {name}" }}' in windows_runs for name in ("iconengines/qsvgicon.dll", "styles/qmodernwindowsstyle.dll"))
+        and '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' in windows_runs and "python tools/release/pe_imports.py $dist --missing" in windows_runs
+        and not re.search(r"\d+\.\d+\.\d+", step(windows, "VCToolsRedistDir").get("run", ""))
+        and "$env:GITHUB_STEP_SUMMARY" in windows_runs and "zip" not in flat(windows).lower(),
+        "package.yml: the Windows package without the software OpenGL, Direct3D, DXC, Qt Quick, QML, virtual keyboard and "
+        "redistributable files, with the runtime DLLs that it imports and its size in the job summary",
+    )
+    # The HTTPS probe exits with this code on a rate limit or an outage of GitHub, which does not fail the job.
+    probe = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_updatetransport_https.cpp").read_text(encoding="utf-8")
+    skip = re.search(r"^constexpr int kExitSkipped = (\d+);$", probe, re.MULTILINE)
+    expect(skip and f"$LASTEXITCODE -ne {skip.group(1)}" in windows_runs, "package.yml: the HTTPS probe of the package skips on the code of the probe")
+    report = step(windows, "verify_signatures.ps1 -Directory dist/QEGTRAIN -Report")
+    expect(report and "if" not in report, "package.yml: every Windows package run reports the code signatures")
+    expect(
+        in_order(windows, "windeployqt.exe", "pe_imports.py dist/QEGTRAIN", "-Report", "tools/release/package_start_smoke.py",
+                 "test_updatetransport_https.exe", "name: QEGTRAIN-windows-x64-payload")
+        and '$env:PATH = "$env:SystemRoot\\System32;$env:SystemRoot"' in windows_runs
+        and step(windows, "name: QEGTRAIN-windows-x64-payload").get("with", {}).get("include-hidden-files") == "true",
+        "package.yml: the Windows job checks, starts and probes HTTPS from a copy before it uploads the payload with its "
+        "hidden files",
+    )
+    # Signing: the program files only, for a push to production or a v* tag when the repository opts in; the signed payload
+    # replaces the artifact. The finalize job builds the installer and the archive from that payload when signing succeeded
+    # or was skipped, signs nothing and uploads after its checks. The installer is signed only after the program files were.
+    sign = jobs["sign-windows"]
+    signed_payload = f"upload-artifact@v4\nwith: name: {build_release_assets.WINDOWS_PAYLOAD}\npath: payload"
+    expect(
+        sign.get("if") == "${{ " + PUSH_GATE + " && vars.WINDOWS_SIGNING == 'signpath' }}" and needs(sign) == ["package-windows"]
+        and sign.get("environment") == "windows-signing"
+        and runs(sign).count('@("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")') == 2
+        and ".dll" not in runs(sign).lower()
+        and in_order(sign, "signpath/github-action-submit-signing-request@", "-Directory payload -Require -ExpectedSubject", signed_payload)
+        and step(sign, signed_payload).get("with", {}).get("overwrite") == "true",
+        "package.yml: the Windows signing of the three program files of the payload, which replaces the payload artifact",
+    )
+    expect("-AllowUntrustedRoot" not in package_text and "-NoTimestampCheck" not in package_text,
+           "package.yml: the signature checks require a trusted chain and a timestamp")
+    finalize = jobs["finalize-windows"]
+    compiles = [line for line in runs(finalize).splitlines() if "& $env:ISCC" in line]
+    expect(
+        sorted(needs(finalize)) == ["package-windows", "sign-windows"]
+        and finalize.get("if") == "${{ !cancelled() && needs.package-windows.result == 'success' && "
+                                  "(needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped') }}"
+        and step(finalize, "actions/download-artifact@") == step(sign, "actions/download-artifact@") != {}
+        and not any(word in flat(finalize).lower() for word in ("signtool", "authenticode", "signpath", "environment", "secrets.", "copy-item", "move-item", "remove-item"))
+        and len(compiles) == 2 and all('"/DPayload=$payload"' in line for line in compiles) and "/DVersion=$newer" in compiles[1]
+        and in_order(finalize, "installer_smoke.ps1", "--payload payload --output portable", "tools/release/package_start_smoke.py", "actions/upload-artifact@")
+        and step_index(finalize, "actions/upload-artifact@") > step_index(finalize, "installer_smoke.ps1"),
+        "package.yml: the finalize job builds the installer, a newer one for the upgrade and the archive from the payload "
+        "after a successful or skipped signing, signs nothing, and uploads after the installer smoke and the start of the "
+        "portable archive",
+    )
+    installer = jobs["sign-windows-installer"]
+    installer_artifact = next(directory for key, _template, directory in build_release_assets.PACKAGES if key == "windows-x64-installer")
+    expect(
+        sorted(needs(installer)) == ["finalize-windows", "sign-windows"] and installer.get("if") == "${{ needs.sign-windows.result == 'success' }}"
+        and installer.get("environment") == "windows-signing"
+        and step(installer, "actions/download-artifact@") == step(finalize, "actions/download-artifact@") != {}
+        and in_order(installer, "-Directory payload -Require -ExpectedSubject", "-Directory signed -Name", f"name: {installer_artifact}\npath: signed/")
+        and step(installer, f"name: {installer_artifact}\npath: signed/").get("with", {}).get("overwrite") == "true",
+        "package.yml: the installer is signed only after the program files, and replaces its artifact after both checks",
+    )
+
+    # Linux: the AppImage holds the SVG icon engine, starts from its extraction on a virtual display with the platform plugin
+    # that it holds, and is uploaded after it started. The rehearsal job runs on a runner without Qt.
+    linux = jobs["package-linux"]
+    expect(
+        "EXTRA_QT_MODULES" in flat(linux) and "libqsvgicon.so" in runs(linux)
+        and {"xvfb", "xauth"} <= set(step(linux, "./.github/actions/setup-deps").get("with", {}).get("apt-packages", "").split())
+        and 'xvfb-run -a -s "-screen 0 1920x1080x24" python3 tools/release/package_start_smoke.py "$start/squashfs-root"' in runs(linux)
+        and "QT_QPA_PLATFORM" not in flat(linux) and "QT_PLUGIN_PATH" not in flat(linux)
+        and in_order(linux, "libqsvgicon.so", "tools/release/package_start_smoke.py", "actions/upload-artifact@"),
+        "package.yml: the Linux AppImage with the SVG icon engine, started on a virtual display before the upload",
+    )
+    rehearse = jobs["rehearse-linux"]
+    rehearse_install = re.search(r"apt-get install -y --no-install-recommends((?:.*\\\n)*.*\n)", runs(rehearse))
+    rehearse_packages = rehearse_install.group(1).replace("\\", " ").split() if rehearse_install else []
+    expect(
+        needs(rehearse) == ["package-linux"] and "if" not in rehearse
+        and {"xvfb", "xauth", "xdotool", "imagemagick", "dbus-x11", "at-spi2-core", "python3-gi", "gir1.2-atspi-2.0"} <= set(rehearse_packages)
+        and not any("qt" in name.lower() for name in rehearse_packages)
+        and '"$image/usr/bin/scene_tool" validate "$work/Downloads/Paimpol.egscene"' in runs(rehearse)
+        and "dbus-run-session -- /usr/bin/python3 tools/release/linux_rehearsal.py" in runs(rehearse)
+        and '--expected-version "${{ inputs.version }}"' in runs(rehearse)
+        and "QT_" not in flat(rehearse) and "QEGTRAIN_" not in flat(rehearse)
+        and step(rehearse, "actions/upload-artifact@").get("if") == "${{ always() }}"
+        and step(rehearse, "actions/upload-artifact@").get("with", {}).get("name") == "linux-rehearsal-evidence"
+        and "linux-rehearsal-evidence" not in [directory for _key, _template, directory in build_release_assets.PACKAGES],
+        "package.yml: the Linux rehearsal on a runner without Qt, which uploads its evidence on every path and no release asset",
+    )
+    # The AppImage needs the glibc of the system that builds it, so it is built on an Ubuntu release no newer than the one
+    # that rehearses it, both named explicitly rather than ubuntu-latest.
+    releases = [re.fullmatch(r"ubuntu-(\d+)\.04", str(job.get("runs-on", ""))) for job in (linux, rehearse)]
+    expect(
+        all(releases) and int(releases[0].group(1)) <= int(releases[1].group(1)),
+        "package.yml: the AppImage built on a named Ubuntu LTS no newer than the one of its rehearsal",
+    )
+
+
+def check_scripts(checks: Checks, tests_cmake: str) -> None:
+    """The release scripts that no CTest runs on every platform: the signature check, the installer smoke and the
+    notarization. No workflow and no script turns Gatekeeper off."""
+    expect = checks.expect
+    verify = (ROOT / "tools/release/verify_signatures.ps1").read_text(encoding="utf-8")
     verify_test = (ROOT / "tools/release/test_verify_signatures.ps1").read_text(encoding="utf-8")
-    if any(
-        part not in verify_script
-        for part in (
-            "Get-AuthenticodeSignature -LiteralPath $Path",
-            "$sha256 = '2.16.840.1.101.3.4.2.1'",
-            "$accepted = @('Valid')\n",
-            "if ($AllowUntrustedRoot) { $accepted += @('UnknownError', 'NotTrusted') }\n",
-            "if ($accepted -notcontains $status) { $problems += ",
+    expect(
+        all(part in verify for part in (
+            "Get-AuthenticodeSignature -LiteralPath $Path", "$sha256 = '2.16.840.1.101.3.4.2.1'", "$accepted = @('Valid')\n",
             "if ($ExpectedSubject -and $subject -ne $ExpectedSubject) { $problems += ",
             "if (-not $NoTimestampCheck -and -not $signature.TimeStamperCertificate) { $problems += ",
-            "if ($digest[0] -ne $sha256) { $problems += ",
-            "[switch]$Require",
-            "[switch]$Report",
-            "[switch]$AllowUntrustedRoot",
-            "[switch]$NoTimestampCheck",
-            "if ($Require -and $failed -gt 0) { exit 1 }\nexit 0\n",
-        )
-    ) or verify_script.count("exit 1") != 1:
-        missing.append("signature check script of the status, the SHA-256 digest, the timestamp and the signer that fails only with -Require")
-    if (
-        any(part not in verify_test for part in ("New-SelfSignedCertificate -Type CodeSigningCert", "Set-AuthenticodeSignature", "'SHA1'"))
-        or any(part in verify_test for part in ("Export-", ".pfx", "Import-Certificate", "Cert:\\CurrentUser\\Root", "Cert:\\LocalMachine"))
-        or "\nif(WIN32)\n\tfind_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)\n" not in tests_cmake
-        or "-File ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_verify_signatures.ps1" not in test_registration(tests_cmake, "test_verify_signatures")
-        or "-SceneTool $<TARGET_FILE:scene_tool>" not in test_registration(tests_cmake, "test_verify_signatures")
-        or "integration" not in test_labels(test_registration(tests_cmake, "test_verify_signatures"))
-    ):
-        missing.append("signature check test with a throwaway certificate that is never exported, registered for Windows only")
-    # The finalize job builds the installer and the portable archive from the payload that the Windows package job uploaded,
-    # so both hold the same files. It installs, upgrades and uninstalls the installer, starts the portable archive after
-    # it extracts it, and uploads the two files only after both checks passed. The archive comes from the release script.
-    finalize_job = job_block(package_only, "finalize-windows")
-    finalize_steps = (
-        "Download the package",
-        "Find Inno Setup",
-        "Build the installers",
-        "Smoke test the installer",
-        "Build the portable archive",
-        "Start the portable archive",
-        "Upload the installer",
-        "Upload the portable archive",
+            "if ($digest[0] -ne $sha256) { $problems += ", "if ($Require -and $failed -gt 0) { exit 1 }\nexit 0\n"))
+        and verify.count("exit 1") == 1,
+        "tools/release/verify_signatures.ps1 checks the status, the digest algorithm, the timestamp and the signer, and fails only with -Require",
     )
-    finalize_step_names = re.findall(r"^      - name: (.+)$", finalize_job, re.MULTILINE)
-    finalize_positions = [finalize_step_names.index(name) if name in finalize_step_names else -1 for name in finalize_steps]
-    if -1 in finalize_positions or finalize_positions != sorted(finalize_positions):
-        missing.append("Windows finalize steps in the order " + ", ".join(finalize_steps))
-    if (
-        re.findall(r"^    needs: (.+)$", finalize_job, re.MULTILINE) != ["[package-windows, sign-windows]"]
-        or re.findall(r"^    runs-on: (.+)$", finalize_job, re.MULTILINE) != ["windows-latest"]
-    ):
-        missing.append("Windows finalize job after the Windows package job and the signing job, on windows-latest")
-    # Signing is skipped, not failed, when it is not set up, and the finalize job then reads the unsigned package. When signing
-    # runs and fails the finalize job does not run, so the installer and the archive never come from unsigned files.
-    if re.findall(r"^    if: (.+)$", finalize_job, re.MULTILINE) != [
-        "${{ !cancelled() && needs.package-windows.result == 'success' && "
-        "(needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped') }}"
-    ]:
-        missing.append("Windows finalize job that runs after a skipped or successful signing job and not after a failed one")
-    if step_block(finalize_job, "Download the package") != (
-        "name: Download the package\n"
-        "        uses: actions/download-artifact@v4\n"
-        "        with:\n"
-        "          name: QEGTRAIN-windows-x64-payload\n"
-        "          path: payload\n"
-    ):
-        missing.append("Windows finalize download of the payload artifact of the Windows package job into payload")
-    installer_step = step_block(finalize_job, "Build the installers")
-    if (
-        '$payload = (Resolve-Path payload).Path\n' not in installer_step
-        or '"/DVersion=${{ inputs.version }}" "/DPayload=$payload" "/O$PWD\\installer-out" installer\\egtrain.iss\n' not in installer_step
-        or installer_step.count("/DPayload=$payload") != 2
-        or "/DVersion=$newer" not in installer_step
-    ):
-        missing.append("Windows finalize installers compiled from the payload, the second one with a newer version")
-    portable_step = step_block(finalize_job, "Build the portable archive")
-    if (
-        '--version "${{ inputs.version }}" --payload payload --output portable\n' not in portable_step
-        or finalize_job.count("--payload payload") != 1
-    ):
-        missing.append("Windows finalize portable archive written by the release script from the same payload directory")
-    smoke_step = step_block(finalize_job, "Smoke test the installer")
-    if any(
-        part not in smoke_step
-        for part in (
-            "./tools/release/installer_smoke.ps1",
-            '-Installer "installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe"',
-            '-UpgradeInstaller "installer-upgrade/EGTRAIN-Setup-$($env:UPGRADE_VERSION)-x64.exe"',
-            "-Payload payload",
-            '-Version "${{ inputs.version }}"',
-            'PYTHONUTF8: "1"',
-        )
-    ):
-        missing.append("Windows finalize installer smoke on the installers and the payload of the job")
-    portable_start = step_block(finalize_job, "Start the portable archive")
-    if (
-        'python -m zipfile -e "portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip" $start' not in portable_start
-        or not portable_start.strip().endswith('python tools/release/package_start_smoke.py "$start"')
-        or 'python tools/release/pe_imports.py "$start"\n          if ($LASTEXITCODE -ne 0) { throw ' not in portable_start
-        or 'PYTHONUTF8: "1"' not in portable_start
-    ):
-        missing.append("Windows finalize start of the extracted portable archive")
-    if "uses: actions/setup-python@v5" not in finalize_job or "python-version: '3.12'" not in finalize_job:
-        missing.append("Windows finalize job with Python set up")
-    if step_block(finalize_job, "Upload the installer") != (
-        "name: Upload the installer\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: EGTRAIN-windows-x64-installer\n"
-        "          path: installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows finalize upload of the installer that the smoke test installed")
-    if step_block(finalize_job, "Upload the portable archive") != (
-        "name: Upload the portable archive\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: EGTRAIN-windows-x64-portable\n"
-        "          path: portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows finalize upload of the portable archive that was started")
-    # The installer is signed after it is compiled, in a job of its own that runs only when sign-windows signed the program
-    # files. The finalize job compiles the installer and writes the archive from the payload that sign-windows replaced, and
-    # it signs and changes nothing, so both come from the signed files. The installer job sends the installer alone to the
-    # signing service, requires valid signatures by the expected signer on the installer and on the three program files of the
-    # payload, and replaces the installer artifact only after both checks passed.
-    if any(
-        word in finalize_job.lower()
-        for word in ("signtool", "authenticode", "signpath", "environment:", "secrets.", "copy-item", "move-item", "remove-item")
-    ):
-        missing.append("Windows finalize job that signs nothing and changes no file of the payload")
-    installer_artifact, installer_template = next(
-        (directory, template) for key, template, directory in build_release_assets.PACKAGES if key == "windows-x64-installer"
+    expect(
+        all(part in verify_test for part in ("New-SelfSignedCertificate -Type CodeSigningCert", "Set-AuthenticodeSignature", "'SHA1'"))
+        and not any(part in verify_test for part in ("Export-", ".pfx", "Import-Certificate", "Cert:\\CurrentUser\\Root", "Cert:\\LocalMachine"))
+        and "\nif(WIN32)\n\tfind_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)\n" in tests_cmake
+        and "-SceneTool $<TARGET_FILE:scene_tool>" in test_registration(tests_cmake, "test_verify_signatures"),
+        "tools/release/test_verify_signatures.ps1 signs with a certificate that it never exports, on Windows only",
     )
-    installer_file = installer_template.format(version="${{ inputs.version }}")
-    installer_job = job_block(package_only, "sign-windows-installer")
-    installer_sign_steps = [
-        "Download the package",
-        "Download the installer",
-        "Upload the installer to sign",
-        "Sign the installer",
-        "Verify the program files",
-        "Verify the installer",
-        "Upload the signed installer",
-    ]
-    if re.findall(r"^      - name: (.+)$", installer_job, re.MULTILINE) != installer_sign_steps:
-        missing.append("Windows installer signing steps: " + ", ".join(installer_sign_steps))
-    if (
-        re.findall(r"^    needs: (.+)$", installer_job, re.MULTILINE) != ["[sign-windows, finalize-windows]"]
-        or re.findall(r"^    if: (.+)$", installer_job, re.MULTILINE) != ["${{ needs.sign-windows.result == 'success' }}"]
-        or re.findall(r"^    runs-on: (.+)$", installer_job, re.MULTILINE) != ["windows-latest"]
-        or re.findall(r"^    environment: (.+)$", installer_job, re.MULTILINE) != ["windows-signing"]
-        or installer_job.count("permissions:") != 1
-        or "    environment: windows-signing\n    permissions:\n      actions: read\n      contents: read\n    timeout-minutes: 90\n"
-        not in installer_job
-    ):
-        missing.append(
-            "Windows installer signing job after the signing job and the finalize job, only when the program files were signed, "
-            "in the environment of the signing job with the same two read permissions"
-        )
-    if step_block(installer_job, "Download the package") != step_block(finalize_job, "Download the package"):
-        missing.append("Windows installer signing download of the payload artifact that the installer and the archive were built from")
-    if step_block(installer_job, "Download the installer") != (
-        "name: Download the installer\n"
-        "        uses: actions/download-artifact@v4\n"
-        "        with:\n"
-        f"          name: {installer_artifact}\n"
-        "          path: installer\n"
-    ):
-        missing.append("Windows installer signing download of the installer that the finalize job uploaded")
-    if step_block(installer_job, "Upload the installer to sign") != (
-        "name: Upload the installer to sign\n"
-        "        id: upload-unsigned\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        f"          name: {installer_artifact}-unsigned\n"
-        f"          path: installer/{installer_file}\n"
-        "          overwrite: true\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows installer signing upload of the installer alone, replaceable on a re-run, as the artifact that the signing request names")
-    installer_request = step_block(installer_job, "Sign the installer")
-    if any(
-        part not in installer_request
-        for part in (
-            "        uses: signpath/github-action-submit-signing-request@v3\n",
-            "          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}\n",
-            "          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}\n",
-            "          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}\n",
-            "          wait-for-completion: true\n",
-            "          output-artifact-directory: signed\n",
-        )
-    ):
-        missing.append("Windows installer signing request for the uploaded installer with its own artifact configuration")
-    installer_verify_env = (
-        "        shell: pwsh\n"
-        "        env:\n"
-        "          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}\n"
+    smoke = (ROOT / "tools/release/installer_smoke.ps1").read_text(encoding="utf-8")
+    expect(
+        all(part in smoke for part in ("'/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'", '/DIR=`"$Directory`"', "'/TASKS=desktopicon'",
+                                       "Assert-AsInvoker $Installer", "Assert-AsInvoker $UpgradeInstaller", "Invoke-StartSmoke $directory",
+                                       "Install-Egtrain $UpgradeInstaller 'upgrade-over'", "Assert-Registered $defaultDirectory $UpgradeVersion",
+                                       "Assert-Survives $outside"))
+        and not any(part in smoke.lower() for part in ("/currentuser", "/allusers", "sha256", "get-filehash", "program files")),
+        "tools/release/installer_smoke.ps1 installs silently per user, starts, upgrades and checks the registration",
     )
-    if step_block(installer_job, "Verify the program files") != (
-        "name: Verify the program files\n" + installer_verify_env +
-        "        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT\n"
-    ) or step_block(installer_job, "Verify the installer") != (
-        "name: Verify the installer\n" + installer_verify_env +
-        f'        run: ./tools/release/verify_signatures.ps1 -Directory signed -Name "{installer_file}" -Require '
-        "-ExpectedSubject $env:EXPECTED_SUBJECT\n"
-    ):
-        missing.append(
-            "Windows installer signing check that requires the expected signer on QEGTRAIN.exe, egtrain_update_helper.exe, "
-            "scene_tool.exe and the signed installer, each in a step of its own so that one failure fails the job"
-        )
-    if step_block(installer_job, "Upload the signed installer") != (
-        "name: Upload the signed installer\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        f"          name: {installer_artifact}\n"
-        f"          path: signed/{installer_file}\n"
-        "          overwrite: true\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("Windows installer signing upload of the checked installer in place of the installer artifact")
-    # The release job takes the package workflow as a whole, so it runs only after every job of that workflow, the signing and
-    # the checks of the signatures included, succeeded or was skipped. A condition with a status function, or a step that
-    # ignores a failure, would let it publish files that were not checked.
-    if (
-        re.findall(r"^    needs: (.+)$", release_job, re.MULTILINE) != ["[version, validation, sanitizer, package]"]
-        or re.findall(r"^    if: (.+)$", release_job, re.MULTILINE)
-        != ["github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))"]
-        or "continue-on-error" in release_only
-        or "continue-on-error" in package_only
-    ):
-        missing.append("release job that publishes only after the whole package workflow succeeded, with no failure ignored")
-    # The smoke script cannot run in this test. It has to keep the silent switches, the directory, the desktop task and
-    # the calls of its start, manifest, registry, upgrade and uninstall checks, and no hash, no Program Files and no
-    # /CURRENTUSER, which has no effect while the installer script offers no choice of scope.
-    installer_smoke = (ROOT / "tools/release/installer_smoke.ps1").read_text(encoding="utf-8")
-    if any(
-        part not in installer_smoke
-        for part in (
-            "'/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'",
-            '/LOG=`"$log`"',
-            '/DIR=`"$Directory`"',
-            "'/TASKS=desktopicon'",
-            "Assert-AsInvoker $Installer",
-            "Assert-AsInvoker $UpgradeInstaller",
-            "Invoke-StartSmoke $directory",
-            "Install-Egtrain $UpgradeInstaller 'upgrade-over'",
-            "Assert-Registered $defaultDirectory $UpgradeVersion",
-            "Assert-Survives $outside",
-        )
-    ) or any(part in installer_smoke.lower() for part in ("/currentuser", "/allusers", "sha256", "get-filehash", "program files")):
-        missing.append("installer smoke script with the silent switches, the desktop task, the start check and the checks of scope and manifest")
-    # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
-    # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
-    # macdeployqt and before the signature, fails when one of them is in the app, and starts a copy of the app. The
-    # app holds scene_tool and the licence files, and the disk image is built from it after the one signature.
-    macos_job = job_block(package_only, "package-macos")
-    macos_steps = (
-        "Test the notarization script",
-        "Test the build path script",
-        "Bundle Qt and dependencies into the app",
-        "Add scene_tool and the licence files to the app",
-        "Remove unused Qt modules and plugins",
-        "Remove build machine paths",
-        "Set the minimum macOS version",
-        "Import the signing certificate",
-        "Sign the app",
-        "Verify the app is self-contained",
-        "Verify the signature",
-        "Verify the packaged app",
-        "Start the package",
-        "Notarize the app",
-        "Build the disk image",
-        "Sign the disk image",
-        "Notarize the disk image",
-        "Verify the disk image",
-        "Upload artifact",
-        "Delete the signing keychain",
+    notarize = (ROOT / "tools/release/notarize_macos.sh").read_text(encoding="utf-8")
+    positions = [notarize.find(command) for command in ("xcrun notarytool submit", "--wait", "xcrun stapler staple", "xcrun stapler validate", "spctl --assess")]
+    expect(
+        -1 not in positions and positions == sorted(positions) and not re.search(r"\bset\s+-\w*x", notarize)
+        and not [line for line in notarize.splitlines() if re.search(r"\b(echo|printf|fail)\b.*\$\{?MACOS_NOTARY_", line) and "key.p8" not in line],
+        "tools/release/notarize_macos.sh submits and waits, staples, validates and assesses, and prints no credential",
     )
-    macos_step_names = re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)
-    macos_positions = [macos_step_names.index(name) if name in macos_step_names else -1 for name in macos_steps]
-    if -1 in macos_positions or macos_positions != sorted(macos_positions):
-        missing.append("macOS package steps in the order " + ", ".join(macos_steps))
-    removal_step = script_function(macos_script, "trim")
-    trim_start = removal_step.find('\treport_size "before trimming"\n')
-    trim_end = removal_step.find('\treport_size "after trimming"\n')
-    if (
-        '\tsummary "macOS app $1: $files files, $bytes bytes"\n' not in script_function(macos_script, "report_size")
-        or '\t\techo "$1" >> "$GITHUB_STEP_SUMMARY"\n' not in script_function(macos_script, "summary")
-        or not 0 <= trim_start < trim_end
-    ):
-        missing.append("macOS package size lines in the job summary before and after the removal")
-    trimming = removal_step[trim_start:trim_end] if 0 <= trim_start < trim_end else ""
-    trimming = [line.strip() for line in trimming.replace("\\\n", " ").splitlines() if not line.lstrip().startswith("#")]
-    removed_paths = (
-        '"$APP/Contents/PlugIns/virtualkeyboard"',
-        '"$APP/Contents/PlugIns/platforminputcontexts"',
-        '"$APP/Contents/PlugIns/imageformats/libqwebp.dylib"',
-        '"$APP/Contents/PlugIns/imageformats/libqtiff.dylib"',
-        '"$APP/Contents/Frameworks/QtVirtualKeyboard.framework"',
-        '"$APP/Contents/Frameworks/QtQuick.framework"',
-        '"$APP/Contents/Frameworks/QtQml.framework"',
-        '"$APP/Contents/Frameworks/QtQmlModels.framework"',
-        '"$APP"/Contents/Frameworks/libwebp*.dylib',
-        '"$APP"/Contents/Frameworks/libtiff*.dylib',
-        '"$APP"/Contents/Frameworks/liblzma*.dylib',
+    signature = re.search(r"^verify_signature\(\) \{\n.*?^\}\n", (ROOT / "tools/release/package_macos.sh").read_text(encoding="utf-8"), re.MULTILINE | re.DOTALL)
+    expect(
+        signature and all(part in signature.group(0) for part in (
+            "expect '^Authority=Developer ID Application: '", "expect '^TeamIdentifier=[A-Z0-9]{10}$'",
+            "expect '^CodeDirectory .*flags=.*runtime'", "expect '^Timestamp='", "expect '^Signature=adhoc$'")),
+        "tools/release/package_macos.sh verify-signature requires Developer ID, a team, the hardened runtime and a timestamp "
+        "with an identity, and an ad-hoc signature without one",
     )
-    for removed in removed_paths:
-        if trimming and not any(line.startswith("rm -") and removed in line for line in trimming):
-            missing.append(f"macOS package step that removes {removed} between the two size lines")
-    # QtGui loads QtDBus, so it stays.
-    removal_commands = [line for line in removal_step.splitlines() if not line.lstrip().startswith("#")]
-    if any("QtDBus" in line for line in removal_commands):
-        missing.append("macOS package step that keeps QtDBus")
-    macos_verify = script_function(macos_script, "verify_contents")
-    required_plugins = (
-        "\tfor plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do\n"
-        '\t\ttest -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }\n'
-        "\tdone\n"
-    )
-    forbidden_macos_files = (
-        "\tfor name in virtualkeyboard platforminputcontexts 'QtVirtualKeyboard*' 'QtQuick*' 'QtQml*' 'libqwebp*' 'libqtiff*'"
-        " 'libwebp*' 'libtiff*'; do\n"
-        '\t\tfound="$(find "$APP" -name "$name")"\n'
-        '\t\tif [ -n "$found" ]; then echo "ERROR: unexpected $name in the app:"; echo "$found"; exit 1; fi\n'
-        "\tdone\n"
-    )
-    macos_verified = macos_verify.find('\techo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"\n')
-    if macos_verified < 0:
-        missing.append("macOS package check that ends with a message that names the files it forbids")
-    if required_plugins not in macos_verify or not 0 <= macos_verify.find(required_plugins) < macos_verified:
-        missing.append("macOS package check that requires the cocoa platform plugin, the SVG icon engine and the macOS style")
-    if forbidden_macos_files not in macos_verify or not 0 <= macos_verify.find(forbidden_macos_files) < macos_verified:
-        missing.append("macOS package check that forbids the virtual keyboard, QML, WebP and TIFF files")
-    # The build machine paths that macdeployqt leaves go before the signature, and the check fails on one in any Mach-O file.
-    if (
-        step_block(macos_job, "Test the build path script").strip().splitlines()[-1].strip() != "run: python3 tools/release/test_macos_build_paths.py"
-        or '\tpython3 "$ROOT/tools/release/macos_build_paths.py" fix "$APP"\n' not in script_function(macos_script, "strip_paths")
-        or '\tpython3 "$ROOT/tools/release/macos_build_paths.py" check "$APP"\n' not in macos_verify
-        or "/opt/homebrew|/usr/local/opt" in macos_verify
-    ):
-        missing.append("macOS package step that removes build machine paths before the signature and a check that fails on one in any Mach-O file")
-    macos_start = step_block(macos_job, "Start the package")
-    macos_python = next((block for block in macos_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
-    if (
-        not macos_start.strip().endswith('python3 tools/release/package_start_smoke.py "$start"')
-        or 'start="$RUNNER_TEMP/package-start"\n' not in macos_start
-        or 'ditto build/QEGTRAIN.app "$start/QEGTRAIN.app"\n' not in macos_start
-        or 'PYTHONUTF8: "1"' not in macos_start
-        or "python-version: '3.12'" not in macos_python
-        or not 0 <= macos_job.find("uses: actions/setup-python@v5") < macos_job.find("name: Start the package")
-    ):
-        missing.append("macOS package start of a copy under RUNNER_TEMP with Python set up")
-    # scene_tool and the licence files go into the app before the signature, which seals them, and not into a folder beside it. The
-    # app is built for macOS 26 and says so in its property list, in the same step order.
-    add_step = script_function(macos_script, "add_files")
-    if (
-        '\tcp "$BUILD/scene_tool" "$APP/Contents/MacOS/scene_tool"\n' not in add_step
-        or '\tcp "$ROOT/LICENSE" "$ROOT/THIRD_PARTY_NOTICES.md" "$APP/Contents/Resources/"\n' not in add_step
-    ):
-        missing.append("macOS package step that copies scene_tool and the licence files into the app")
-    if "          -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0\n" not in step_block(macos_job, "Configure"):
-        missing.append("macOS package configure for the deployment target macOS 26")
-    minimum_step = script_function(macos_script, "min_version")
-    if (
-        "otool -l \"$APP/Contents/MacOS/QEGTRAIN\"" not in minimum_step
-        or 'PlistBuddy -c "Add :LSMinimumSystemVersion string $minimum" "$APP/Contents/Info.plist"\n' not in minimum_step
-    ):
-        missing.append("macOS package step that writes the minimum system version of the executable into the property list")
-    # The image is the macOS package and the only macOS artifact. The script builds it after every step that runs or changes
-    # the app, and no step after it uses build/QEGTRAIN.app: the image is mounted read-only and detached on every path, and
-    # the app is checked as the copy that ditto takes out of it.
-    if "zip" in macos_job.lower() or "build/dist" in macos_job:
-        missing.append("macOS package without a folder of the presentation package and without an archive")
-    image_step = step_block(macos_job, "Build the disk image")
-    if not image_step.strip().endswith('run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout'):
-        missing.append("macOS disk image built by the script from the final app")
-    after_image = macos_job.split("      - name: Verify the disk image\n", 1)[-1]
-    if "build/QEGTRAIN.app" in after_image or any(
-        change in after_image for change in ("codesign --force", "install_name_tool", "macdeployqt", "chmod", "PlistBuddy -c \"Add")
-    ):
-        missing.append("macOS app left as signed after the disk image is built")
-    image_name = make_dmg.dmg_name("${{ inputs.version }}")
-    image_verify = step_block(macos_job, "Verify the disk image")
-    verification_in_order = (
-        f'DMG="$PWD/build/dmg/{image_name}"\n',
-        "trap 'hdiutil detach \"$MOUNT\" -force >/dev/null 2>&1 || true' EXIT\n",
-        'hdiutil attach -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"\n',
-        'test "$(LC_ALL=C ls -A "$MOUNT" | tr \'\\n\' \' \')" = ".DS_Store Applications QEGTRAIN.app "\n',
-        'test "$(readlink "$MOUNT/Applications")" = "/Applications"\n',
-        'cmp "$MOUNT/.DS_Store" tools/release/dmg/DS_Store\n',
-        'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
-        'ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"\n',
-        'hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force\n          trap - EXIT\n',
-        'codesign --verify --deep --strict --verbose=2 "$COPY/QEGTRAIN.app"\n',
-        '[ "$version" = "${{ inputs.version }}" ]',
-        '"$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 >"$RUN_DIR/qegtrain.log" 2>&1\n',
-        'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
-        'test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"',
-    )
-    verification_positions = [image_verify.find(check) for check in verification_in_order]
-    if -1 in verification_positions or verification_positions != sorted(verification_positions):
-        missing.append("macOS disk image check that mounts it read-only, detaches it on every path, verifies the signature of the app in it and of a copy, and runs the copy")
-    # Finder takes the document type from the property list of the app in the image: .egscene is the one type of the app and
-    # conforms to public.data only. The checks read the mounted app, between its signature and the copy.
-    document_type_checks = (
-        'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
-        'PLIST="$MOUNT/QEGTRAIN.app/Contents/Info.plist"\n',
-        'expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case"\n',
-        "expect_plist CFBundleDocumentTypes:0:CFBundleTypeRole Editor\n",
-        "expect_plist CFBundleDocumentTypes:0:LSHandlerRank Owner\n",
-        "expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene\n",
-        "expect_no_plist CFBundleDocumentTypes:0:LSItemContentTypes:1\n",
-        "expect_no_plist CFBundleDocumentTypes:1\n",
-        "expect_plist UTExportedTypeDeclarations:0:UTTypeIdentifier com.egtrain.simulator.egscene\n",
-        "expect_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:0 public.data\n",
-        "expect_no_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:1\n",
-        "expect_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:0 egscene\n",
-        "expect_no_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:1\n",
-        "expect_no_plist UTExportedTypeDeclarations:1\n",
-        'ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"\n',
-    )
-    document_type_positions = [image_verify.find(check) for check in document_type_checks]
-    if -1 in document_type_positions or document_type_positions != sorted(document_type_positions):
-        missing.append("macOS disk image check of the .egscene document type and its type declaration in the property list of the mounted app")
-    if any(
-        f'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/{program}"\n' not in image_verify for program in ("QEGTRAIN", "egtrain_update_helper", "scene_tool")
-    ):
-        missing.append("macOS disk image check of the programs in the copy of the app")
-    if step_block(macos_job, "Upload artifact") != (
-        "name: Upload artifact\n"
-        "        uses: actions/upload-artifact@v4\n"
-        "        with:\n"
-        "          name: QEGTRAIN-macos-arm64\n"
-        f"          path: build/dmg/{image_name}\n"
-        "          if-no-files-found: error\n"
-    ):
-        missing.append("macOS upload of the disk image as the only file of the artifact that the release script reads")
-    # The script signs the app: ad hoc without an identity, and with the Developer ID identity when the environment
-    # macos-signing holds a certificate. Only a push to production or a v* tag runs in that environment, the import step is the
-    # one place that reads the certificate and its password, the identity reaches the later steps only after the import
-    # worked, and the keychain of the import is deleted by the last step on every path.
-    signing_gate = "github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))"
-    if re.findall(r"^    environment: (.+)$", macos_job, re.MULTILINE) != ["${{ " + signing_gate + " && 'macos-signing' || '' }}"]:
-        missing.append("macOS package job that runs in the environment macos-signing for a push to production or a v* tag, and in no environment otherwise")
-    import_step = step_block(macos_job, "Import the signing certificate")
-    import_run = import_step.split("        run: |\n", 1)[-1]
-    if (
-        "        if: ${{ " + signing_gate + " }}\n" not in import_step
-        or "          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}\n" not in import_step
-        or "          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}\n" not in import_step
-        or "          IDENTITY: ${{ vars.MACOS_SIGNING_IDENTITY }}\n" not in import_step
-        or re.search(r"\bset\s+-\w*x", import_step)
-        or not 0 <= import_run.find('if [ -z "$MACOS_CERTIFICATE" ]; then\n') < import_run.find("            exit 0\n") < import_run.find("security create-keychain")
-        or not 0 <= import_run.find("security create-keychain") < import_run.find('echo "MACOS_KEYCHAIN=$keychain" >> "$GITHUB_ENV"\n')
-        or not 0 <= import_run.find("security import") < import_run.find("security find-identity -v -p codesigning")
-        or not import_run.find("security find-identity -v -p codesigning") < import_run.find('echo "MACOS_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"\n')
-        or import_run.count("MACOS_SIGNING_IDENTITY=$IDENTITY") != 1
-        or "trap 'rm -f \"$certificate\"' EXIT\n" not in import_run
-    ):
-        missing.append("macOS signing certificate import that runs for a push to production or a v* tag, does nothing without a certificate, and passes on the identity only after the import")
-    sign_step = step_block(macos_job, "Sign the app")
-    if (
-        not sign_step.endswith("        run: bash tools/release/sign_macos.sh build/QEGTRAIN.app\n")
-        or "env:" in sign_step
-        or package_only.count("codesign --force") != 1
-        or "--deep --sign" in package_only
-    ):
-        missing.append("macOS app signed by the script alone, with the identity from the environment of the import step and no codesign call in the workflow but the one for the disk image")
-    signature_step = script_function(macos_script, "verify_signature")
-    if any(
-        part not in signature_step
-        for part in (
-            'details="$(codesign -dvv "$APP" 2>&1)"\n',
-            "expect '^Authority=Developer ID Application: '",
-            "expect '^TeamIdentifier=[A-Z0-9]{10}$'",
-            "expect '^CodeDirectory .*flags=.*runtime'",
-            "expect '^Timestamp='",
-            "expect '^Signature=adhoc$'",
-        )
-    ):
-        missing.append("macOS signature check that prints who signed the app and requires Developer ID, a team, the hardened runtime and a timestamp, or an ad-hoc signature without an identity")
-    # Notarization follows the signing. The app is notarized and stapled before the disk image is built from it, so that its
-    # ticket is in the image. The image is signed with the identity of the app, if there is one, and then notarized. Both
-    # notarization steps run only where the signing steps run, read the notarization credentials of the environment in the
-    # step alone, and fail the job when the script fails: the script itself does nothing without credentials, so no step
-    # condition and no continue-on-error is needed or allowed.
-    image_sign_step = step_block(macos_job, "Sign the disk image")
-    image_sign_run = image_sign_step.split("        run: |\n", 1)[-1]
-    if (
-        "env:" in image_sign_step
-        or "--deep" in image_sign_step
-        or f'DMG="build/dmg/{image_name}"\n' not in image_sign_run
-        or 'codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$DMG"\n' not in image_sign_run
-        or not 0
-        <= image_sign_run.find('if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then\n')
-        < image_sign_run.find("            exit 0\n")
-        < image_sign_run.find("codesign --force")
-        < image_sign_run.find('codesign --verify --verbose=2 "$DMG"\n')
-    ):
-        missing.append("macOS disk image signed with the identity of the app, and left unsigned without an identity")
-    notary_environment = (
-        "        env:\n"
-        "          MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}\n"
-        "          MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}\n"
-        "          MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}\n"
-        "          MACOS_NOTARY_APPLE_ID: ${{ vars.MACOS_NOTARY_APPLE_ID }}\n"
-        "          MACOS_NOTARY_TEAM_ID: ${{ vars.MACOS_NOTARY_TEAM_ID }}\n"
-        "          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}\n"
-    )
-    for notary_name, notary_target in (
-        ("Notarize the app", "build/QEGTRAIN.app"),
-        ("Notarize the disk image", f"build/dmg/{image_name}"),
-    ):
-        notary_step = step_block(macos_job, notary_name)
-        if (
-            "        if: ${{ " + signing_gate + " }}\n" not in notary_step
-            or "        timeout-minutes: 60\n" not in notary_step
-            or notary_environment not in notary_step
-            or not notary_step.endswith(f"        run: bash tools/release/notarize_macos.sh {notary_target}\n")
-        ):
-            missing.append(f"macOS step '{notary_name}' that runs the notarization script for a push to production or a v* tag with the notarization credentials of its environment")
-    step_conditions = re.findall(r"^        if: (.+)$", macos_job, re.MULTILINE)
-    if "continue-on-error" in macos_job or any(re.search(r"secrets\.|vars\.|NOTARY|CERTIFICATE", condition) for condition in step_conditions):
-        missing.append("macOS package job whose steps all fail the job and whose step conditions read no credential")
-    notarize_script = (ROOT / "tools/release/notarize_macos.sh").read_text(encoding="utf-8")
-    notarize_commands = ("xcrun notarytool submit", "--wait", "xcrun stapler staple", "xcrun stapler validate", "spctl --assess")
-    notarize_positions = [notarize_script.find(command) for command in notarize_commands]
-    printed_credentials = [
-        line for line in notarize_script.splitlines() if re.search(r"\b(echo|printf|fail)\b.*\$\{?MACOS_NOTARY_", line) and "key.p8" not in line
-    ]
-    if (
-        -1 in notarize_positions
-        or notarize_positions != sorted(notarize_positions)
-        or re.search(r"\bset\s+-\w*x", notarize_script)
-        or printed_credentials
-    ):
-        missing.append("notarization script that submits to Apple and waits, staples, validates and assesses in that order, and neither traces nor prints a credential")
-    if re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)[-1] != "Delete the signing keychain" or step_block(
-        macos_job, "Delete the signing keychain"
-    ) != (
-        "name: Delete the signing keychain\n"
-        "        if: ${{ always() && env.MACOS_KEYCHAIN != '' }}\n"
-        '        run: security delete-keychain "$MACOS_KEYCHAIN"\n'
-    ):
-        missing.append("macOS package job whose last step deletes the keychain of the certificate import on every path")
-    # Gatekeeper is never bypassed: no workflow and no release script takes the quarantine flag off a file or turns the check off.
     bypass = re.compile(r"\bxattr\b(?:\\\n|[^\n;|&])*(?:[\s'\"]-\w*[cd]|com\.apple\.quarantine)|\bspctl\s+--(master|global)-disable")
-    bypass_caught = (
-        "xattr -r -d com.apple.quarantine app",
-        "xattr -dr app",
-        "xattr \\\n  -c app",
-        "spctl --global-disable",
+    expect(
+        all(bypass.search(sample) for sample in ("xattr -r -d com.apple.quarantine app", "xattr -dr app", "xattr \\\n  -c app", "spctl --global-disable"))
+        and not bypass.search("spctl --assess --type execute app"),
+        "the Gatekeeper pattern matches the xattr and spctl bypass commands and not spctl --assess",
     )
-    if not all(bypass.search(sample) for sample in bypass_caught) or bypass.search("spctl --assess --type execute app"):
-        missing.append("quarantine pattern that matches xattr and spctl bypass commands and not spctl --assess")
-    bypassing = [
-        path.name
-        for path in sorted((ROOT / ".github/workflows").glob("*.yml")) + sorted((ROOT / "tools/release").glob("*.*"))
-        if path.suffix in (".yml", ".sh", ".py", ".ps1") and bypass.search(path.read_text(encoding="utf-8"))
-    ]
-    if bypassing:
-        missing.append("no step that removes the quarantine attribute or turns Gatekeeper off, found in " + ", ".join(bypassing))
-    if (
-        "\tegtrain_add_test(test_sign_macos\n\t\tCOMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh\n"
-        not in tests_cmake.split("\nif(APPLE)\n\tegtrain_add_test(test_package_contents_smoke", 1)[-1].split("\nendif()", 1)[0]
-        or "integration" not in test_labels(test_registration(tests_cmake, "test_sign_macos"))
-    ):
-        missing.append("signing script test registered in CTest on macOS only, with the integration label")
-    package_check_trigger = trigger_block(package_check)
-    if trigger_events(package_check) != ["pull_request", "schedule", "workflow_dispatch"]:
-        missing.append("package check starts on pull requests to main, nightly and by hand, and never for a push")
-    package_check_nightly = re.search(
-        r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", package_check_trigger, re.MULTILINE
+    files = [path for folder in (".github/workflows", ".github/actions", "tools/release", "tools/ci") for path in sorted((ROOT / folder).rglob("*"))
+             if path.suffix in (".yml", ".sh", ".py", ".ps1")]
+    bypassing = [path.relative_to(ROOT).as_posix() for path in files if bypass.search(path.read_text(encoding="utf-8"))]
+    expect(not bypassing, "no workflow or release script removes the quarantine attribute or turns Gatekeeper off: " + ", ".join(bypassing))
+
+
+def check_ctest(checks: Checks, cmake_lists: str, tests_cmake: str) -> None:
+    """How CTest runs the tests that the workflows rely on."""
+    expect = checks.expect
+    expect("COMMAND python3" not in cmake_lists + tests_cmake and "Python3_EXECUTABLE" in tests_cmake, "CTest runs Python with the configured interpreter")
+    for text in (cmake_lists, tests_cmake):
+        for command in re.finditer(r"COMMAND bash", text):
+            guards = re.findall(r"^\s*(if\(.*\)|else\(\)|elseif\(.*\)|endif\(\))\s*$", text[: command.start()], re.MULTILINE)
+            expect(guards and guards[-1] in ("if(UNIX)", "if(APPLE)"), "CTest runs bash only on UNIX")
+    expect(re.search(r"if\(WIN32\)(?:(?!endif\(\)).)*?pe_image_size\.py(?:(?!endif\(\)).)*?--max-bytes", tests_cmake, re.DOTALL),
+           "CTest checks the image size on Windows")
+    expect("foreach(egtrain_case 1 2 3 4 5 7)" in tests_cmake and "tools/e2e/headless_smoke.py ${egtrain_case}" in tests_cmake,
+           "CTest runs the headless smoke of the six canonical scenes")
+    expect(re.search(r"if\(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4\)\s*message\(FATAL_ERROR", cmake_lists), "a 64-bit Windows build only")
+    # A packaged build registers the tests above the line that ends the file without EGTRAIN_BUILD_TESTS.
+    packaged = tests_cmake.split("\nif(NOT EGTRAIN_BUILD_TESTS)\n\treturn()\nendif()\n", 1)[0]
+    expect(
+        packaged != tests_cmake
+        and re.search(r"^if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\)\n.*?include\(\$\{SRC_DIR\}/tests/CMakeLists\.txt\)", cmake_lists, re.MULTILINE | re.DOTALL)
+        and test_registration(packaged, "test_updatepreparation") and "add_executable(test_updatetransport_https " in packaged,
+        "a packaged build registers the update preparation test and builds the HTTPS probe",
     )
-    if (
-        not package_check_nightly
-        or package_check_nightly.group(1) == "0"
-        or not re.search(r"^  workflow_dispatch:\n(?!    )", package_check_trigger, re.MULTILINE)
-    ):
-        missing.append("package check with one nightly run off the hour and a manual start without inputs")
-    if (
-        "\npermissions:\n  contents: read\n" not in package_check
-        or package_check.count("permissions:") != 2
-        or re.search(r":\s*write", package_check)
-    ):
-        missing.append("package check with read permission only, and the block of its package job")
-    if (
-        "\nconcurrency:\n"
-        "  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}\n"
-        "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
-    ):
-        missing.append("package check replaces only the older run of the same pull request")
-    if job_ids(package_check) != ["changes", "version", "package", "release-assets", "result"]:
-        missing.append("package check jobs: changes, version, package, release-assets, result")
-    # The version job is the one of the release workflow. It waits for the changes job and skips with it, and the package and
-    # release assets jobs skip with the version job.
-    version_gate = "    needs: changes\n    if: needs.changes.outputs.package == 'true'\n"
-    if (
-        job_block(package_check, "version").replace(version_gate, "", 1) != job_block(release_only, "version")
-        or "    name: Select application version\n" + version_gate not in job_block(package_check, "version")
-        or "run: python3 tools/release/version.py\n" not in package_check
-    ):
-        missing.append("package check selects the version with the script and job of the release workflow")
-    if job_block(package_check, "package") != "  package:\n" + package_call:
-        missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
-    # The packages are built with Qt 6.8.3 from the action and checked for the Qt 6 files.
-    if any(name not in package_only for name in ('"Qt6Help.dll"', "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR")) or qt_install not in setup_action:
-        missing.append("packages built with Qt 6.8.3 and checked for Qt6Help.dll")
-    # The release assets job runs the script that builds the files of a release on the artifacts of the package
-    # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
-    # are those of the release job, so the package check runs what a release runs.
-    download_step = (
-        "name: Download all artifacts\n"
-        "        uses: actions/download-artifact@v4\n"
-        "        with:\n"
-        "          path: artifacts"
+    # The HTTPS probe needs internet access, so it is registered only on request and labelled network; the code for a
+    # rate limit or an outage of GitHub skips it.
+    probe = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_updatetransport_https.cpp").read_text(encoding="utf-8")
+    skip = re.search(r"^constexpr int kExitSkipped = (\d+);$", probe, re.MULTILINE)
+    registered = re.search(r"\nif\(EGTRAIN_NETWORK_TESTS\)\n\tegtrain_add_test\(test_updatetransport_https LABELS integration network TIMEOUT \d+ SKIP_RETURN_CODE (\d+)\)\nendif\(\)\n", tests_cmake)
+    expect(
+        'option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)\n' in cmake_lists
+        and skip and registered and skip.group(1) == registered.group(1)
+        and re.search(r"\negtrain_add_test\(test_updatetransport_https_cases\n\tCOMMAND \$\{Python3_EXECUTABLE\}\n[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\n", tests_cmake),
+        "the HTTPS probe registered only with EGTRAIN_NETWORK_TESTS, skipped on the code that it returns, and its answers tested everywhere",
     )
-    build_step = (
-        "name: Build the release assets\n"
-        "        env:\n"
-        "          VERSION: ${{ needs.version.outputs.version }}\n"
-        '        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets\n'
-    )
-    assets_job = job_block(package_check, "release-assets")
-    if (
-        re.findall(r"^    needs: (.+)$", assets_job, re.MULTILINE) != ["[version, package]"]
-        or re.findall(r"^    runs-on: (.+)$", assets_job, re.MULTILINE) != ["ubuntu-latest"]
-        or "      - uses: actions/checkout@v4\n" not in assets_job
-    ):
-        missing.append("package check release assets job after the version and package jobs, on ubuntu-latest with a checkout")
-    # The release job runs the script from its checkout, so the checkout has to come first.
-    if not 0 <= release_job.find("      - uses: actions/checkout@v4\n") < release_job.find("      - name: Build the release assets\n"):
-        missing.append("release job checkout before the step that builds the release assets")
-    if re.findall(r"^      - name: (.+)$", assets_job, re.MULTILINE) != [
-        "Download all artifacts",
-        "List downloaded files",
-        "Build the release assets",
-        "List the release assets",
-    ]:
-        missing.append("package check release assets steps: download, list, build, list")
-    if step_block(assets_job, "Download all artifacts").rstrip("\n") != download_step:
-        missing.append("package check release assets download of all artifacts into artifacts")
-    if step_block(assets_job, "Build the release assets") != build_step:
-        missing.append("package check release assets script run with the selected version")
-    if step_block(release_job, "Download all artifacts") != step_block(assets_job, "Download all artifacts") or (
-        step_block(release_job, "Download all artifacts").rstrip("\n") != download_step
-    ):
-        missing.append("release job download of all artifacts into artifacts, as the package check does")
-    if step_block(release_job, "Build the release assets") != build_step or (
-        step_block(release_job, "Build the release assets") != step_block(assets_job, "Build the release assets")
-    ):
-        missing.append("release job script run with the selected version, with the command line of the package check")
-    if not assets_job or any(word in assets_job for word in ("upload-artifact", "permissions:", "if:")):
-        missing.append("package check release assets job without an upload, a permissions block or a condition")
-    if (
-        "egtrain_add_test(test_release_assets\n"
-        "\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py\n" not in tests_cmake
-        or test_labels(test_registration(tests_cmake, "test_release_assets")) != ["unit"]
-    ):
-        missing.append("release assets unit test registered in CTest with the unit label")
-    # The Linux package job extracts the AppImage that it built into a directory under RUNNER_TEMP and starts it through its
-    # AppRun on a virtual display, with the platform plugin that the image holds. Every package job starts its package with
-    # the same script.
-    linux_job = job_block(package_only, "package-linux")
-    linux_steps = ("Build AppImage", "Verify AppImage contents", "Start the package", "Upload artifact")
-    linux_step_names = re.findall(r"^      - name: (.+)$", linux_job, re.MULTILINE)
-    linux_positions = [linux_step_names.index(name) if name in linux_step_names else -1 for name in linux_steps]
-    if -1 in linux_positions or linux_positions != sorted(linux_positions):
-        missing.append("Linux package steps in the order " + ", ".join(linux_steps))
-    # Without the SVG icon engine the AppImage scales its icons up from one size, so they blur above 100 %.
-    if "          EXTRA_QT_MODULES: svg\n" not in step_block(linux_job, "Build AppImage") or (
-        "          find squashfs-root -path '*/iconengines/libqsvgicon.so' -print -quit | grep -q .\n"
-        not in step_block(linux_job, "Verify AppImage contents")
-    ):
-        missing.append("Linux package job that deploys the SVG icon engine and fails without it")
-    linux_install = re.search(r"^          apt-packages: (.+)$", step_block(linux_job, "Set up the dependencies"), re.MULTILINE)
-    linux_apt_packages = linux_install.group(1).split() if linux_install else []
-    if "xvfb" not in linux_apt_packages or "xauth" not in linux_apt_packages:
-        missing.append("Linux package job that installs xvfb and xauth for the virtual display")
-    linux_start = step_block(linux_job, "Start the package")
-    linux_python = next((block for block in linux_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
-    if (
-        not linux_start.strip().endswith(
-            'xvfb-run -a -s "-screen 0 1920x1080x24" python3 tools/release/package_start_smoke.py "$start/squashfs-root"')
-        or 'PYTHONUTF8: "1"' not in linux_start
-        or 'start="$RUNNER_TEMP/package-start"\n' not in linux_start
-        or '(cd "$start" && "$image" --appimage-extract >/dev/null)\n' not in linux_start
-        or 'find "$start/squashfs-root/usr/plugins" -type f | sort\n' not in linux_start
-        or "python-version: '3.12'" not in linux_python
-        or not 0 <= linux_job.find("uses: actions/setup-python@v5") < linux_job.find("name: Start the package")
-    ):
-        missing.append("Linux package start of the extracted AppImage under RUNNER_TEMP on a virtual display with Python set up")
-    if "QT_QPA_PLATFORM" in linux_job or "QT_PLUGIN_PATH" in linux_job:
-        missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
-    # The AppImage needs the glibc of the system that builds it, so it is built on the Ubuntu of the rehearsal.
-    if re.findall(r"^    runs-on: (.+)$", linux_job, re.MULTILINE) != ["ubuntu-24.04"]:
-        missing.append("Linux package job on ubuntu-24.04, the oldest Ubuntu that the AppImage supports")
-    # Every package job fails when the licence, the third-party notices or the manual are missing from its package.
-    for job, check in (
-        ("package-macos", macos_package_verification),
-        ("package-windows", step_block(job_block(package_only, "package-windows"), "Verify the package is complete")),
-        ("package-linux", step_block(job_block(package_only, "package-linux"), "Verify AppImage contents")),
-    ):
-        if any(name not in check for name in ("LICENSE", "THIRD_PARTY_NOTICES.md", "EGTRAIN.qch")):
-            missing.append(f"{job} check that the package holds LICENSE, THIRD_PARTY_NOTICES.md and EGTRAIN.qch")
-    if package_only.count("tools/release/package_start_smoke.py") != 4:
-        missing.append("package start script in the three package jobs and for the portable archive")
-    # The Linux rehearsal runs on a runner of its own, with a display and the accessibility bus but no Qt. It takes the AppImage that
-    # the Linux package job uploaded, packs the bundle that it opens from the image, runs tools/release/linux_rehearsal.py and
-    # uploads the screenshots and logs under a name that the release script does not read. The job belongs to the package
-    # workflow, so the package check result and the release job count it through the package job like every other package job.
-    rehearse_job = job_block(package_only, "rehearse-linux")
-    rehearse_steps = ["Download the AppImage", "Install the display, the accessibility bus and the test tools",
-                      "Extract the AppImage and pack the downloaded bundle", "Rehearse the clean-install steps", "Upload the evidence"]
-    if (
-        re.findall(r"^    needs: (.+)$", rehearse_job, re.MULTILINE) != ["package-linux"]
-        or re.findall(r"^    runs-on: (.+)$", rehearse_job, re.MULTILINE) != ["ubuntu-24.04"]
-        or not re.search(r"^    timeout-minutes: \d+$", rehearse_job, re.MULTILINE)
-        or re.findall(r"^      - name: (.+)$", rehearse_job, re.MULTILINE) != rehearse_steps
-        or "      - uses: actions/checkout@v4\n        with:\n          sparse-checkout: tools/release\n" not in rehearse_job
-        or re.findall(r"^    if: ", rehearse_job, re.MULTILINE)
-    ):
-        missing.append("Linux rehearsal job after the Linux package job, on ubuntu-24.04, with a checkout of tools/release and its steps")
-    rehearse_download = step_block(rehearse_job, "Download the AppImage")
-    if (
-        "        uses: actions/download-artifact@v4\n" not in rehearse_download
-        or "          name: QEGTRAIN-linux-x86_64\n" not in rehearse_download
-    ):
-        missing.append("Linux rehearsal that downloads the artifact QEGTRAIN-linux-x86_64 of the Linux package job")
-    rehearse_install = re.search(r"apt-get install -y --no-install-recommends((?:.*\\\n)*.*\n)",
-                                 step_block(rehearse_job, "Install the display, the accessibility bus and the test tools"))
-    rehearse_packages = rehearse_install.group(1).replace("\\", " ").split() if rehearse_install else []
-    needed_packages = ("xvfb", "xauth", "xdotool", "imagemagick", "dbus-x11", "at-spi2-core", "python3-gi", "gir1.2-atspi-2.0")
-    if not all(package in rehearse_packages for package in needed_packages) or any("qt" in package.lower() for package in rehearse_packages):
-        missing.append("Linux rehearsal that installs the display, session bus, accessibility bus, key and screen tools and no Qt package")
-    rehearse_pack = step_block(rehearse_job, "Extract the AppImage and pack the downloaded bundle")
-    if (
-        '"$work/download/QEGTRAIN-linux-x86_64.AppImage" --appimage-extract' not in rehearse_pack
-        or '"$image/usr/bin/scene_tool" pack "$image/usr/bin/Scenes/Paimpol" "$work/Downloads/Paimpol.egscene"' not in rehearse_pack
-        or 'if ! "$image/usr/bin/scene_tool" validate "$work/Downloads/Paimpol.egscene" >"$work/bundle-validation.log" 2>&1; then\n'
-        not in rehearse_pack
-    ):
-        missing.append("Linux rehearsal that packs and validates the bundle with the scene_tool of the extracted AppImage")
-    rehearse_run = step_block(rehearse_job, "Rehearse the clean-install steps")
-    if (
-        'xvfb-run -a -s "-screen 0 1920x1080x24" dbus-run-session -- /usr/bin/python3 tools/release/linux_rehearsal.py' not in rehearse_run
-        or '"$work/package/squashfs-root" "$work/Downloads/Paimpol.egscene"' not in rehearse_run
-        or '--expected-version "${{ inputs.version }}"' not in rehearse_run
-        or "--evidence" not in rehearse_run
-        or re.findall(r"^          (\w+):", rehearse_run, re.MULTILINE) != ["PYTHONUTF8"]
-        or "QT_" in rehearse_run
-        or "QEGTRAIN_" in rehearse_run
-    ):
-        missing.append("Linux rehearsal script run on a virtual display with a session bus, with the version and no Qt or QEGTRAIN variable")
-    rehearse_upload = step_block(rehearse_job, "Upload the evidence")
-    if (
-        "        if: ${{ always() }}\n" not in rehearse_upload
-        or "        uses: actions/upload-artifact@v4\n" not in rehearse_upload
-        or "          name: linux-rehearsal-evidence\n          path: ${{ runner.temp }}/linux-rehearsal/evidence\n" not in rehearse_upload
-    ):
-        missing.append("Linux rehearsal evidence uploaded as linux-rehearsal-evidence even when a step fails")
-    release_artifacts = [directory for _key, _template, directory in build_release_assets.PACKAGES]
-    release_artifacts += [build_release_assets.WINDOWS_PAYLOAD, build_release_assets.SCENES_ARTIFACT]
-    if "linux-rehearsal-evidence" in release_artifacts or "rehearse-linux" in release_only or "rehearse-linux" in package_check:
-        missing.append("Linux rehearsal evidence that is no release asset and a job that only the package workflow names")
-    if (
-        "egtrain_add_test(test_linux_rehearsal\n"
-        "\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_linux_rehearsal.py\n" not in tests_cmake
-        or test_labels(test_registration(tests_cmake, "test_linux_rehearsal")) != ["unit"]
-    ):
-        missing.append("Linux rehearsal unit test registered in CTest with the unit label")
-    publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit")
-    if (
-        any(word in text for text in (package_check, package_only) for word in publishing)
-        or "codesign" in package_check
-        or "secrets" in package_check
-    ):
-        missing.append("no publishing, signing or repository write in the package check and the package workflow")
-    if missing:
-        raise SystemExit("CI workflows are missing: " + ", ".join(missing))
+    # A shell smoke writes below TMPDIR only into folders that mktemp makes, named qegtrain-<smoke>-e2e.<random> when it
+    # keeps them for the failure upload.
+    for script in sorted((ROOT / "tools/e2e").glob("*.sh")):
+        paths = re.findall(r'(mktemp -d )?"\$\{TMPDIR:-/tmp\}/([^"]*)"', script.read_text(encoding="utf-8"))
+        expect(all(made and name.endswith(".XXXXXX") for made, name in paths), f"{script.name} writes below TMPDIR only into mktemp folders")
+    for smoke in ("csv_export", "editor", "legacy_import", "scene_render", "track_preview", "visual_polish"):
+        text = (ROOT / f"tools/e2e/{smoke}_smoke.sh").read_text(encoding="utf-8")
+        expect(re.search(r'mktemp -d "\$\{TMPDIR:-/tmp\}/qegtrain-[a-z-]+-e2e\.XXXXXX"', text), f"{smoke}_smoke.sh keeps its logs in a qegtrain-*-e2e folder")
+
+
+def main() -> None:
+    # The release scripts name the artifacts, the scene bundles and the disk image that the workflows must agree with.
+    # Other tests import this file, so these imports are here and not at module level.
+    sys.path.insert(0, str(ROOT / "tools/release"))
+    sys.path.insert(0, str(ROOT / "tools/ci"))
+    import build_release_assets
+    import make_dmg
+    from changed_files import RULES
+
+    paths = sorted((ROOT / ".github/workflows").glob("*.yml"))
+    texts = {path.name: path.read_text(encoding="utf-8") for path in paths}
+    workflows = {name: load_yaml(text) for name, text in texts.items()}
+    action_text = (ROOT / ".github/actions/setup-deps/action.yml").read_text(encoding="utf-8")
+    action = load_yaml(action_text)
+    cmake_lists = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+    tests_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/CMakeLists.txt").read_text(encoding="utf-8")
+    characterization_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/characterization/CMakeLists.txt").read_text(encoding="utf-8")
+    presets = json.loads((ROOT / "CMakePresets.json").read_text(encoding="utf-8"))["configurePresets"]
+    release_text = release_pipeline_text()
+    sources = {
+        "cmake": cmake_lists,
+        "main": (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8"),
+        "resource": (ROOT / "EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in").read_text(encoding="utf-8"),
+        "package": texts["package.yml"],
+    }
+
+    checks = Checks()
+    # Where PyYAML is installed, the reader reads every file as it does.
+    try:
+        import yaml
+    except ImportError:
+        yaml = None
+    if yaml:
+        for name, text in {**texts, "setup-deps": action_text}.items():
+            checks.expect(load_yaml(text) == yaml.load(text, Loader=yaml.BaseLoader), f"{name}: read as PyYAML reads it")
+
+    check_required_workflows(checks, workflows, RULES)
+    check_every_workflow(checks, workflows)
+    check_credentials(checks, workflows)
+    check_reusable_calls(checks, workflows)
+    check_references(checks, {**texts, "setup-deps": action_text}, tests_cmake, characterization_cmake)
+    check_dependency_setup(checks, workflows, texts, action)
+    check_build(checks, workflows["cmake.yml"], texts["cmake.yml"], presets, workflows["package.yml"], release_text, cmake_lists)
+    check_sanitizers(checks, workflows["cmake.yml"], workflows["release.yml"], tests_cmake, characterization_cmake)
+    check_format_and_tidy(checks, workflows["format.yml"], workflows["tidy.yml"])
+    check_release(checks, workflows["release.yml"], release_text, workflows["package-check.yml"], RULES, sources)
+    check_packages(checks, workflows["package.yml"], texts["package.yml"], workflows["package-check.yml"], build_release_assets, make_dmg)
+    check_scripts(checks, tests_cmake)
+    check_ctest(checks, cmake_lists, tests_cmake)
+    checks.finish()
 
 
 if __name__ == "__main__":
