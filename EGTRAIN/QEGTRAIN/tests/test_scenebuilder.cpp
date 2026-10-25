@@ -330,6 +330,10 @@ void TestSceneBuilder::regionalRouteFollowsFirstSegment() {
 }
 
 void TestSceneBuilder::derivesSwitchSectionFromStableIds() {
+	const auto clearBlocks = qScopeGuard([] {
+		defaultRun().blocksOccupied.clear();
+		defaultRun().blocksConnected.clear();
+	});
 	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene());
 	// Stable-ID connection scene builds one switch section.
 	QVERIFY(!hasErrors(diagnostics));
@@ -1168,6 +1172,7 @@ static bool spansSections(const Route& route, double start, double end) {
 // A train leaves the network when its head passes the end of its route, so the end must lie where the last section ends, also when the
 // sections after a jump of the km reference were moved to one reference.
 void TestSceneBuilder::routeEndsWhereLastSectionEnds() {
+	const auto reset = qScopeGuard([] { resetNativeInfrastructureState(defaultRun()); });
 	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
 	// A route without a jump ends where its last section ends.
 	QVERIFY(!hasErrors(diagnostics));
@@ -1201,8 +1206,6 @@ void TestSceneBuilder::routeEndsWhereLastSectionEnds() {
 	QVERIFY(defaultRun().infra.routes.front().reversed_direction);
 	QCOMPARE_NE(defaultRun().infra.routes.front().diffRegionsJumpX.first, 0.0);
 	QVERIFY(spansSections(defaultRun().infra.routes.front(), 0.0, 4.0));
-
-	resetNativeInfrastructureState(defaultRun());
 }
 
 // The sample objects give every member that the copy operators copy a value of its own, different from the constructor default.
@@ -1651,6 +1654,7 @@ static std::vector<Logged> cutMessages(Capture& capture, const std::string& part
 
 // The route setup of a build: the progress text of each route, then the line end, also without routes.
 void TestSceneBuilder::logsRouteSetup() {
+	const auto reset = qScopeGuard([] { resetNativeInfrastructureState(defaultRun()); });
 	Capture capture;
 	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the scene with one route builds");
 	std::string problem = loggedProblem(capture.take(), {{infoLevel, "\rCreating Scene Route : 0 route.tiny"}, {infoLevel, "\n"}},
@@ -1659,7 +1663,6 @@ void TestSceneBuilder::logsRouteSetup() {
 	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())), "the scene without routes builds");
 	problem = loggedProblem(capture.take(), {{infoLevel, "\n"}}, "the route setup of a scene without routes");
 	QVERIFY2(problem.empty(), problem.c_str());
-	resetNativeInfrastructureState(defaultRun());
 }
 
 // A cut abscissa outside the section is an error.
