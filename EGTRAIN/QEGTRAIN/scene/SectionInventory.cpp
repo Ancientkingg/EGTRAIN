@@ -1,4 +1,5 @@
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include "scene/SignallingLevel.h"
 
 #include <algorithm>
@@ -13,12 +14,6 @@
 namespace {
 
 constexpr double kCoordinateTolerance = 1e-8;
-
-std::string runtimeBlockId(const std::string& id) {
-	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
-		return id;
-	return "@" + id + "@";
-}
 
 struct TrackChain {
 	std::vector<const SceneNode*> nodes;
@@ -182,7 +177,7 @@ std::string labelPiece(const std::string& trackId, double fromKm, double toKm) {
 }
 
 // The references that SceneSectionInventory::resolve() matches to this section: its runtime id, its block id
-// and the block id that runtimeBlockId() wraps into its runtime id.
+// and the block id that nativeRuntimeBlockId() wraps into its runtime id.
 std::vector<std::string> sectionReferences(const SceneSectionDescriptor& section) {
 	std::vector<std::string> references = {section.id};
 	if (!section.sourceBlockId.empty())
@@ -267,7 +262,7 @@ const SceneSectionDescriptor* SceneSectionInventory::exact(const std::string& ru
 
 bool SceneSectionInventory::ambiguous(const std::string& reference) const {
 	std::size_t count = 0;
-	const std::string wrapped = runtimeBlockId(reference);
+	const std::string wrapped = nativeRuntimeBlockId(reference);
 	for (const auto& section : sections) {
 		const bool exactMatch = section.id == reference;
 		const bool baseAlias = reference.find('/') == std::string::npos
@@ -285,7 +280,7 @@ const SceneSectionDescriptor* SceneSectionInventory::resolve(const std::string& 
 		return section;
 	if (reference.find('/') != std::string::npos)
 		return nullptr;
-	const std::string wrapped = runtimeBlockId(reference);
+	const std::string wrapped = nativeRuntimeBlockId(reference);
 	const SceneSectionDescriptor* result = nullptr;
 	for (const auto& section : sections) {
 		if (section.sourceBlockId == reference || section.id == wrapped) {
@@ -403,7 +398,7 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 
 	for (const BlockPlan& plan : plans) {
 		SceneSectionDescriptor section;
-		section.id = runtimeBlockId(plan.source->id);
+		section.id = nativeRuntimeBlockId(plan.source->id);
 		section.sourceBlockId = plan.source->id;
 		section.firstTrackId = plan.source->trackId;
 		section.startKm = plan.startKm;
@@ -450,8 +445,8 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 					|| second->xKm > secondPlan.endKm + kCoordinateTolerance)
 					continue;
 				SceneSectionDescriptor section;
-				section.id = runtimeBlockId(firstPlan.source->id) + "-" + firstX + "/"
-					+ runtimeBlockId(secondPlan.source->id) + "-" + secondX;
+				section.id = nativeRuntimeBlockId(firstPlan.source->id) + "-" + firstX + "/"
+					+ nativeRuntimeBlockId(secondPlan.source->id) + "-" + secondX;
 				section.sourceConnectionId = connection.id;
 				section.firstBlockId = firstPlan.source->id;
 				section.secondBlockId = secondPlan.source->id;

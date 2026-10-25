@@ -4,6 +4,7 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "scene/SectionReference.h"
 #include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 #include <filesystem>
@@ -106,36 +107,6 @@ static std::vector<std::string> readTokens(const std::string& line) {
 		tokens.push_back(token);
 	}
 	return tokens;
-}
-
-static bool isPositionedRouteEndpoint(const std::string& token) {
-	size_t first = token.find('@');
-	size_t last = token.rfind('@');
-	if (first != 0 || last == std::string::npos || first == last || last + 1 >= token.length())
-		return false;
-	std::string position = token.substr(last + 1);
-	size_t i = 0;
-	if (position[i] == '+' || position[i] == '-')
-		i++;
-	bool sawDigit = false;
-	bool sawDot = false;
-	for (; i < position.length(); ++i) {
-		if (std::isdigit(static_cast<unsigned char>(position[i]))) {
-			sawDigit = true;
-		} else if (position[i] == '.' && !sawDot) {
-			sawDot = true;
-		} else {
-			return false;
-		}
-	}
-	return sawDigit;
-}
-
-static bool isSwitchTransitionRouteToken(const std::string& token) {
-	size_t slash = token.find('/');
-	if (slash == std::string::npos || token.find('/', slash + 1) != std::string::npos)
-		return false;
-	return isPositionedRouteEndpoint(token.substr(0, slash)) && isPositionedRouteEndpoint(token.substr(slash + 1));
 }
 
 // Converts UTF-16 to UTF-8. An unpaired surrogate fails the conversion.
@@ -980,35 +951,16 @@ struct ImportContext {
 
 } // namespace
 
-static std::vector<std::string> blockReferenceComponents(const std::string& reference) {
-	std::vector<std::string> components;
-	std::size_t begin = 0;
-	while (begin <= reference.size()) {
-		const std::size_t slash = reference.find('/', begin);
-		const std::string part = reference.substr(begin,
-			slash == std::string::npos ? std::string::npos : slash - begin);
-		if (!part.empty()) {
-			std::string id = part;
-			if (part.front() == '@') {
-				const std::size_t end = part.find('@', 1);
-				if (end != std::string::npos) id = part.substr(1, end - 1);
-			} else {
-				const std::size_t at = part.find('@');
-				if (at != std::string::npos) id = part.substr(0, at);
-			}
-			if (!id.empty()) components.push_back(id);
-		}
-		if (slash == std::string::npos) break;
-		begin = slash + 1;
-	}
-	return components;
-}
-
+// True when every part of the reference names a known block, and there is one.
 static bool blockReferenceKnown(const std::set<std::string>& blockIds, const std::string& reference) {
-	const auto components = blockReferenceComponents(reference);
-	return !components.empty()
-		&& std::all_of(components.begin(), components.end(),
-			[&](const std::string& component) { return blockIds.count(component) != 0; });
+	bool named = false;
+	for (const std::string& part : sectionReferenceParts(reference)) {
+		if (part.empty()) continue;
+		const std::optional<SectionReferencePart> parsed = parseSectionReferencePart(part);
+		if (!parsed || blockIds.count(parsed->blockId) == 0) return false;
+		named = true;
+	}
+	return named;
 }
 
 static std::string stationIdFor(const std::vector<SceneStation>& stations, const std::string& raw, bool& ambiguous) {
@@ -1772,7 +1724,7 @@ static void importRoutes(ImportContext& context) {
 			}
 			const std::string& token = tokens[0];
 			const bool basic = token.size() >= 2 && token.front() == '@' && token.back() == '@' && token.find('/', 1) == std::string::npos;
-			if (!basic && !isSwitchTransitionRouteToken(token)) {
+			if (!basic && !isSwitchTransitionReference(token)) {
 				context.report.skipped("signalling.routes", source);
 				context.addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed route block token at row " + std::to_string(rowIndex), source);
 			}

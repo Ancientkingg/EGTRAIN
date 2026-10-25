@@ -30,7 +30,7 @@ On Paimpol:
 | Track | `B0` | `B` and the number of the legacy folder (`importTracks` in `scene/SceneImporter.cpp`) |
 | Node, arc | `B0.node.1`, `B0.arc.100` | the track and the first column of `NodiCumPari.txt` or `ArchiCumPari.txt` (`importTrackNodes`, `importTrackArcs`) |
 | Block | `0-B0`, `71-B0` | the row of `BlockCumPari.txt`, counted from 0, and the track (`:1205`) |
-| Block section | `@0-B0@` | the block id between `@` signs (`scene/SectionInventory.cpp:15` to `:19`, `:329`) |
+| Block section | `@0-B0@` | the block id between `@` signs (`nativeRuntimeBlockId` in `scene/SectionReference.cpp`) |
 | Switch section | `@71-B0@-21.235000/@0-B1@-21.252000` | the two blocks that hold the nodes of a connection, each followed by `-` and the kilometre of its node as printf `%f` writes it (`:169` to `:177`, `:363` to `:377`) |
 | Signal head | the id of the section it protects | no committed scene has a signal, so every head uses its section id (`graphics/NetworkPresenter.cpp:666`) |
 
@@ -40,7 +40,7 @@ The run numbers its tracks by their place in the list of track ids sorted as tex
 
 ### The ids are data
 
-- The run splits section ids on `@` and `/` and takes the parts by position: `simulation/Signalling.cpp:633` to `:660`, `diagrams/BlockingTimeDiagram.cpp:31` to `:46` and `scene/SectionInventory.cpp:137` to `:145`. The importer and the exporter read route tokens the same way (`blockReferenceComponents` and `blockReferenceKnown` in `scene/SceneImporter.cpp`, `scene/SceneExporter.cpp:66` to `:175`). A search of the product sources outside `tests/` for the literals `'@'` and `"@"` finds 78 lines in 8 files, 41 of them in `Signalling.cpp`.
+- The run splits section ids on `@` and `/` and takes the parts by position: `simulation/Signalling.cpp:633` to `:660`, `diagrams/BlockingTimeDiagram.cpp:31` to `:46` and `nativeSectionTokens` in `scene/SectionInventory.cpp`. The importer, the exporter, the validator and the editors read route tokens with one parser (`parseSectionReferencePart` in `scene/SectionReference.cpp`). A search of the product sources outside `tests/` for the literals `'@'` and `"@"` finds 70 lines in 9 files, 41 of them in `Signalling.cpp`.
 - Scene files hold both forms. Paimpol `route0` lists `0-B0` to `70-B0` and then `@71-B0@-21.235000/@0-B1@-21.252000`. The six committed scenes hold 25,730 block-id occurrences.
 - 127 of the 134 files in `tests/characterization/expected` contain a block or section id, 2,338 in all (`grep -lE '[0-9]+-B[0-9]+'`). The CSV exports, `BlockingTimes.txt` and `section_id` in the live frame (`io/LiveFrame.cpp:54`) contain them too.
 

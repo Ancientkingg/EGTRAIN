@@ -85,6 +85,7 @@ class TestSceneExporter : public QObject {
 private slots:
 	void minimalFixtureExportFails();
 	void keepsSlashBlockReference();
+	void keepsSwitchTransitions();
 	void leavesOutServiceColour();
 	void numbersNonAsciiRouteIds();
 	void missingSceneExportFails();
@@ -151,6 +152,26 @@ void TestSceneExporter::keepsSlashBlockReference() {
 	// Zero stops export as an empty legacy timetable without a flag.
 	QVERIFY(fs::exists(fs::path(outDir.dir) / "TimeTable" / "empty.txt"));
 	QCOMPARE(fs::file_size(fs::path(outDir.dir) / "TimeTable" / "empty.txt"), std::uintmax_t(0));
+}
+
+// A switch transition in a route is written as it is, in each offset form, and any other joined reference between '@'.
+void TestSceneExporter::keepsSwitchTransitions() {
+	TempDir sceneDir, outDir;
+	fs::path scene(sceneDir.dir);
+	std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Switch Transitions"})" << "\n";
+	std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+	std::ofstream(scene / "stations.json") << R"({"stations":[]})" << "\n";
+	std::ofstream(scene / "signalling.json")
+		<< R"({"signals":[],"routes":[{"id":"route0","blocks":["@a@-5/@b@-6","@a@--5/@b@--6","@a@5/@b@6","@a@+5/@b@-6","@a@x@-5/@b@-6"]}]})"
+		<< "\n";
+	std::ofstream(scene / "rolling_stock.json") << R"({"train_units":[],"compositions":[]})" << "\n";
+	std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
+
+	auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+	printErrors(res.diagnostics, "SwitchTransitions export");
+	QVERIFY2(res.success(), "Switch transition scene export succeeds");
+	QCOMPARE(readText(fs::path(outDir.dir) / "Routes" / "Route0.txt"),
+		"@a@-5/@b@-6\n@a@--5/@b@--6\n@a@5/@b@6\n@a@+5/@b@-6\n@@a@x@-5/@b@-6@\n");
 }
 
 // A service display colour has no place in the legacy format and is left out of the export.

@@ -278,6 +278,9 @@ private slots:
 	void markedConversionKeepsTrackFolders();
 	void marksCopenhagenDoubleSwitches_data();
 	void marksCopenhagenDoubleSwitches();
+	void readsRouteBlockTokens_data();
+	void readsRouteBlockTokens();
+	void warnsAboutBoundaryPartWithoutBlock();
 	void importsUnicodeNames();
 	void lastExportDecidesRoutesAndIncidents();
 	void reportsOddSizedUtf16Files();
@@ -1153,6 +1156,56 @@ void TestSceneImporter::marksCopenhagenDoubleSwitches() {
 	QVERIFY(importLegacyScene(exported.dir, reimported.dir, name.toStdString()).success());
 	QVERIFY(readJson(fs::path(reimported.dir) / "views.json", reimportedViews));
 	QVERIFY(reimportedViews["tracks"] == views["tracks"]);
+}
+
+void TestSceneImporter::readsRouteBlockTokens_data() {
+	QTest::addColumn<QString>("token");
+	QTest::addColumn<bool>("malformed");
+	QTest::newRow("signed") << "@0-B0@-0.5/@0-B1@-0.5" << false;
+	QTest::newRow("unsigned") << "@0-B0@0.5/@0-B1@0.5" << false;
+	QTest::newRow("plus") << "@0-B0@+0.5/@0-B1@-0.5" << false;
+	QTest::newRow("negative") << "@0-B0@--0.5/@0-B1@-0.5" << false;
+	QTest::newRow("separated plus") << "@0-B0@-+0.5/@0-B1@-0.5" << false;
+	QTest::newRow("third at sign") << "@0-B0@x@0.5/@0-B1@0.5" << true;
+	QTest::newRow("no offset") << "@0-B0@-/@0-B1@-" << true;
+	QTest::newRow("three endpoints") << "@0-B0@-1/@0-B1@-1/@0-B2@-1" << true;
+}
+
+// A route row is a block between '@' or a switch transition, whose two endpoints have an offset in any of the forms
+// that the runtime writes or the legacy files hold. Any other row is reported and kept as it is.
+void TestSceneImporter::readsRouteBlockTokens() {
+	QFETCH(QString, token);
+	QFETCH(bool, malformed);
+	TempDir legacyDir, output;
+	const fs::path legacy(legacyDir.dir);
+	writeSmallLegacyCase(legacy);
+	writeText(legacy / "Routes/Route0.txt", "@0-B0@\n" + token.toStdString() + "\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Route Tokens");
+	bool reported = false;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.message == "Malformed route block token at row 1")
+			reported = true;
+	}
+	json signalling;
+	QVERIFY(readJson(fs::path(output.dir) / "signalling.json", signalling));
+	QCOMPARE(reported, malformed);
+	QCOMPARE(QString::fromStdString(signalling["routes"][0]["blocks"][1].get<std::string>()), token);
+}
+
+// Each part of a joined station boundary must name a known block; an empty one between '@' names none.
+void TestSceneImporter::warnsAboutBoundaryPartWithoutBlock() {
+	TempDir legacyDir, output;
+	const fs::path legacy(legacyDir.dir);
+	writeSyntheticLegacyCase(legacy);
+	writeText(legacy / "GUI/stationBoundarySections.txt", "@0-B0@/@0-B1@\t@0-B1@/@@\t1\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Boundary Parts");
+	std::vector<std::string> references;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.code == "scene.import.ref" && diagnostic.message.rfind("Station boundary", 0) == 0)
+			references.push_back(diagnostic.message);
+	}
+	QVERIFY(result.success());
+	QCOMPARE(references, std::vector<std::string>{"Station boundary refers to unknown exit block @0-B1@/@@"});
 }
 
 // Legacy data with Unicode names: the case folder, the files that the manifest and the train file name, and the scene

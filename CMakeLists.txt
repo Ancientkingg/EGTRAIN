@@ -175,6 +175,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneValidator.cpp
     ${SRC_DIR}/scene/SceneWriter.cpp
     ${SRC_DIR}/scene/SectionInventory.cpp
+    ${SRC_DIR}/scene/SectionReference.cpp
     ${SRC_DIR}/scene/StopInsertion.cpp
     ${SRC_DIR}/scene/TrackPreview.cpp)
 target_link_libraries(egtrain_scene
