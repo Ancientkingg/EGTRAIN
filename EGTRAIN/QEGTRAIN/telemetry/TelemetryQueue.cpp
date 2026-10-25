@@ -28,6 +28,11 @@ bool keys(const QJsonObject& obj, std::initializer_list<const char*> expected) {
 		if (!obj.contains(QLatin1String(key))) return false;
 	return true;
 }
+// One stored event as the category file holds it.
+QJsonObject storedObject(const QString& stamp, const TelemetryEvent& event, Category category) {
+	return QJsonObject{{QStringLiteral("stamp"), stamp}, {QStringLiteral("event"), eventObject(event, category)}};
+}
+qint64 compactSize(const QJsonObject& object) { return QJsonDocument(object).toJson(QJsonDocument::Compact).size(); }
 bool validRetry(const RetryState& state) {
 	return state.failures >= 0 && state.failures <= 31
 		&& state.usageBatchLimit >= 1 && state.usageBatchLimit <= 50
@@ -174,13 +179,15 @@ bool TelemetryQueue::loadCategory(Category category) {
 	}
 	return true;
 }
-bool TelemetryQueue::saveCategory(Category category) {
+QByteArray TelemetryQueue::categoryBytes(Category category) const {
 	QJsonArray array;
-	for (const auto& stored : records(category)) array.append(QJsonObject{{QStringLiteral("stamp"), stored.stamp},
-		{QStringLiteral("event"), eventObject(stored.event, category)}});
+	for (const auto& stored : records(category)) array.append(storedObject(stored.stamp, stored.event, category));
 	const QJsonObject obj{{QStringLiteral("format"), 1}, {QStringLiteral("endpoint"), m_endpoint},
 		{QStringLiteral("terms"), m_terms}, {QStringLiteral("events"), array}};
-	return replace(filename(category), QJsonDocument(obj).toJson(QJsonDocument::Compact), kCategoryBytes);
+	return QJsonDocument(obj).toJson(QJsonDocument::Compact);
+}
+bool TelemetryQueue::saveCategory(Category category) {
+	return replace(filename(category), categoryBytes(category), kCategoryBytes);
 }
 TelemetryQueue::OpenResult TelemetryQueue::open(const QString& privateDirectory, const QString& exactEndpoint,
 	const QString& terms, const QDateTime& now) {
@@ -265,58 +272,37 @@ QDateTime TelemetryQueue::nextExpiryUtc() const {
 	return earliest.isValid() ? earliest.addMSecs(kLifetimeMs) : QDateTime();
 }
 bool TelemetryQueue::enqueueUsage(const UsageRecord& record, const QDateTime& now) {
-	if (!healthy() || !validUuid(record.installationId) || eventObject(record.event, Category::Usage).isEmpty()
-		|| !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
-	if (!prune(now)) return false;
-	auto& list = m_usage;
-	for (const auto& item : list)
-		if (item.event.id == record.event.id) return false;
-	Stored item{record.event, record.installationId};
-	if (QJsonDocument(QJsonObject{{QStringLiteral("stamp"), item.stamp}, {QStringLiteral("event"), eventObject(item.event, Category::Usage)}}).toJson(QJsonDocument::Compact).size() > kRecordBytes) return false;
-	list.append(item);
-	std::stable_sort(list.begin(), list.end(), [](const Stored& left, const Stored& right) {
-		return left.event.occurredAt < right.event.occurredAt;
-	});
-	while (list.size() > 512) list.removeFirst();
-	while (!list.isEmpty()) {
-		QJsonArray array;
-		for (const auto& entry : list) array.append(QJsonObject{{QStringLiteral("stamp"), entry.stamp},
-			{QStringLiteral("event"), eventObject(entry.event, Category::Usage)}});
-		if (QJsonDocument(QJsonObject{{QStringLiteral("format"), 1}, {QStringLiteral("endpoint"), m_endpoint},
-							  {QStringLiteral("terms"), m_terms}, {QStringLiteral("events"), array}})
-				.toJson(QJsonDocument::Compact)
-				.size()
-			<= kCategoryBytes) break;
-		list.removeFirst();
-	}
-	return saveCategory(Category::Usage);
+	return validUuid(record.installationId) && enqueue(Category::Usage, {record.event, record.installationId}, now);
 }
 bool TelemetryQueue::enqueueDiagnostic(const DiagnosticRecord& record, const QDateTime& now) {
-	if (!healthy() || record.generation < 0 || record.generation == INT_MAX || eventObject(record.event, Category::Diagnostics).isEmpty()
-		|| !utc(now) || record.event.occurredAt > now || record.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
+	return record.generation >= 0 && record.generation != INT_MAX
+		&& enqueue(Category::Diagnostics, {record.event, QString::number(record.generation)}, now);
+}
+bool TelemetryQueue::enqueue(Category category, const Stored& item, const QDateTime& now) {
+	if (!healthy() || eventObject(item.event, category).isEmpty() || !utc(now) || item.event.occurredAt > now
+		|| item.event.occurredAt.msecsTo(now) >= kLifetimeMs) return false;
 	if (!prune(now)) return false;
-	auto& list = m_diagnostics;
-	for (const auto& item : list)
-		if (item.event.id == record.event.id) return false;
-	Stored item{record.event, QString::number(record.generation)};
-	if (QJsonDocument(QJsonObject{{QStringLiteral("stamp"), item.stamp}, {QStringLiteral("event"), eventObject(item.event, Category::Diagnostics)}}).toJson(QJsonDocument::Compact).size() > kRecordBytes) return false;
+	auto& list = records(category);
+	for (const auto& stored : list)
+		if (stored.event.id == item.event.id) return false;
+	if (compactSize(storedObject(item.stamp, item.event, category)) > kRecordBytes) return false;
 	list.append(item);
 	std::stable_sort(list.begin(), list.end(), [](const Stored& left, const Stored& right) {
 		return left.event.occurredAt < right.event.occurredAt;
 	});
 	while (list.size() > 512) list.removeFirst();
-	while (!list.isEmpty()) {
-		QJsonArray array;
-		for (const auto& entry : list) array.append(QJsonObject{{QStringLiteral("stamp"), entry.stamp},
-			{QStringLiteral("event"), eventObject(entry.event, Category::Diagnostics)}});
-		if (QJsonDocument(QJsonObject{{QStringLiteral("format"), 1}, {QStringLiteral("endpoint"), m_endpoint},
-							  {QStringLiteral("terms"), m_terms}, {QStringLiteral("events"), array}})
-				.toJson(QJsonDocument::Compact)
-				.size()
-			<= kCategoryBytes) break;
-		list.removeFirst();
+	QByteArray bytes = categoryBytes(category);
+	if (bytes.size() > kCategoryBytes) {
+		// The file holds the stored events one after another with a comma between two of them, so
+		// the oldest give way by their own sizes and the category is serialised once more.
+		qint64 size = bytes.size();
+		while (!list.isEmpty() && size > kCategoryBytes) {
+			size -= compactSize(storedObject(list.first().stamp, list.first().event, category)) + (list.size() > 1 ? 1 : 0);
+			list.removeFirst();
+		}
+		bytes = categoryBytes(category);
 	}
-	return saveCategory(Category::Diagnostics);
+	return replace(filename(category), bytes, kCategoryBytes);
 }
 bool TelemetryQueue::purgeCategory(Category category) {
 	if (!healthy()) return false;

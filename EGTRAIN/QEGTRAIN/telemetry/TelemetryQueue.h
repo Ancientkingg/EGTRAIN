@@ -103,6 +103,8 @@ private:
 		TelemetryEvent event;
 		QString stamp;
 	};
+	bool enqueue(Category category, const Stored& item, const QDateTime& now);
+	QByteArray categoryBytes(Category category) const;
 	bool saveCategory(Category category);
 	bool saveControl();
 	bool replace(const QString& file, const QByteArray& bytes, qint64 limit);
