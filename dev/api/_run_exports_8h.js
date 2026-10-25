@@ -9,7 +9,6 @@ var _run_exports_8h =
     [ "DelayDiagramSeries", "struct_delay_diagram_series.html", "struct_delay_diagram_series" ],
     [ "DelayDiagramData", "struct_delay_diagram_data.html", "struct_delay_diagram_data" ],
     [ "CompletedRunCsv", "_run_exports_8h.html#a682c21128ac2148b789ee06a690d2194", null ],
-    [ "blockingTimeCsvFrom", "_run_exports_8h.html#a96f46f75ea72acb64797227079ad4f77", null ],
     [ "blockingTimeDiagramData", "_run_exports_8h.html#a409140b657b52e1822517ded4f3d9678", null ],
     [ "blockingTimeScopeChoicesFrom", "_run_exports_8h.html#a01e2b79e71e50a5ec565e39b34393e6c", null ],
     [ "blockTimesFrom", "_run_exports_8h.html#a3f71bcbe035affebd92825d3958dfab8", null ],
@@ -29,6 +28,5 @@ var _run_exports_8h =
     [ "timetableCsvFrom", "_run_exports_8h.html#a51e23926b07af75724be1c3bff22f587", null ],
     [ "trainIdsFrom", "_run_exports_8h.html#acc9e721df4c93951d7c998c7b3851059", null ],
     [ "trajectoryCsvFrom", "_run_exports_8h.html#aef3655f13c5de447c146b76cd0783430", null ],
-    [ "usedRouteReferencesFrom", "_run_exports_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449", null ],
-    [ "writeCsvFileWithProvenance", "_run_exports_8h.html#a3321c0b0748f2b3f568225db8bd70ca2", null ]
+    [ "usedRouteReferencesFrom", "_run_exports_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449", null ]
 ];

@@ -1,9 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"class_settings_dialog.html":[2,0,277],
-"class_settings_dialog.html#a82b474f63399b5150af200c4c0ad9955":[2,0,277,1],
-"class_settings_dialog.html#ae1189358d589b3652bf92dfd81e08696":[2,0,277,2],
-"class_settings_dialog.html#afb3feeb24dd3a34f55740bcd6820680e":[2,0,277,0],
 "class_signal_item.html":[2,0,279],
 "class_signal_item.html#a0dd23e201d31c99497f3da7906f718db":[2,0,279,10],
 "class_signal_item.html#a11f62074b01b942744c5511b3bb3c80a":[2,0,279,14],
@@ -249,5 +245,9 @@ var NAVTREEINDEX14 =
 "class_timetable_stops_panel.html#a19193f5fcb40b0a2b41a90be95f93744":[2,0,305,7],
 "class_timetable_stops_panel.html#a35f1db92b1086f255af7ebb8a811854d":[2,0,305,17],
 "class_timetable_stops_panel.html#a3630bb0390a301edcf926b5626349f98":[2,0,305,0],
-"class_timetable_stops_panel.html#a3ef1459678628d741ae0bf16ed8b1254":[2,0,305,8]
+"class_timetable_stops_panel.html#a3ef1459678628d741ae0bf16ed8b1254":[2,0,305,8],
+"class_timetable_stops_panel.html#a6eb65b320943c72c12ae0721713c5ea6":[2,0,305,6],
+"class_timetable_stops_panel.html#a891c5b5731fd3de4fadb9ab49d4c8f24":[2,0,305,1],
+"class_timetable_stops_panel.html#a9282f4307dbca9d8104829d06d838d40":[2,0,305,15],
+"class_timetable_stops_panel.html#a929a66d2bef3d23ad2e5d005fcec5a04":[2,0,305,19]
 };

@@ -170,8 +170,6 @@ Functions</h2></td></tr>
 <tr class="memitem:af4427af0200906891a03bce3aff863b6" id="r_af4427af0200906891a03bce3aff863b6"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#af4427af0200906891a03bce3aff863b6">fullTableImage</a> (const QTableView &amp;table)</td></tr>
 <tr class="memdesc:af4427af0200906891a03bce3aff863b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole table as an image: every row and column at its natural size, with no scroll bars.  <br /></td></tr>
 <tr class="memitem:a587c3daade1504ca9e5d8fd12410f04d" id="r_a587c3daade1504ca9e5d8fd12410f04d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a587c3daade1504ca9e5d8fd12410f04d">buildBlockingTimeCsv</a> (const QStringList &amp;visibleTrainIds, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;plannedReferences, const std::vector&lt; std::vector&lt; std::string &gt; &gt; &amp;trajectories={}, const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents={}, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;unmapped={})</td></tr>
-<tr class="memitem:a3321c0b0748f2b3f568225db8bd70ca2" id="r_a3321c0b0748f2b3f568225db8bd70ca2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3321c0b0748f2b3f568225db8bd70ca2">writeCsvFileWithProvenance</a> (const QString &amp;path, const std::string &amp;content, const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;provenance)</td></tr>
-<tr class="memdesc:a3321c0b0748f2b3f568225db8bd70ca2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a CSV export and its provenance sidecar. False when a write fails.  <br /></td></tr>
 <tr class="memitem:acc9e721df4c93951d7c998c7b3851059" id="r_acc9e721df4c93951d7c998c7b3851059"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#acc9e721df4c93951d7c998c7b3851059">trainIdsFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:acc9e721df4c93951d7c998c7b3851059"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids of the trains of the run, in run order.  <br /></td></tr>
 <tr class="memitem:aef3655f13c5de447c146b76cd0783430" id="r_aef3655f13c5de447c146b76cd0783430"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aef3655f13c5de447c146b76cd0783430">trajectoryCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
@@ -179,8 +177,6 @@ Functions</h2></td></tr>
 <tr class="memdesc:a51e23926b07af75724be1c3bff22f587"><td class="mdescLeft">&#160;</td><td class="mdescRight">The planned and simulated times and the delays of every stop, in seconds.  <br /></td></tr>
 <tr class="memitem:a0fe35063db3c59420e10e14614f7889e" id="r_a0fe35063db3c59420e10e14614f7889e"><td class="memItemLeft">std::function&lt; std::string(const QStringList &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0fe35063db3c59420e10e14614f7889e">csvProviderFrom</a> (std::shared_ptr&lt; const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &gt; run, <a class="el" href="#a682c21128ac2148b789ee06a690d2194">CompletedRunCsv</a> csv)</td></tr>
 <tr class="memdesc:a0fe35063db3c59420e10e14614f7889e"><td class="mdescLeft">&#160;</td><td class="mdescRight">A provider that calls <span class="tt"><a class="el" href="namespacecsv.html">csv</a></span> on the shared run with the visible train ids.  <br /></td></tr>
-<tr class="memitem:a96f46f75ea72acb64797227079ad4f77" id="r_a96f46f75ea72acb64797227079ad4f77"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a96f46f75ea72acb64797227079ad4f77">blockingTimeCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
-<tr class="memdesc:a96f46f75ea72acb64797227079ad4f77"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole run, the first route that a train runs on as reference, no recorded trajectories.  <br /></td></tr>
 <tr class="memitem:a3f71bcbe035affebd92825d3958dfab8" id="r_a3f71bcbe035affebd92825d3958dfab8"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3f71bcbe035affebd92825d3958dfab8">blockTimesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:a3f71bcbe035affebd92825d3958dfab8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every train's blocking-time segments, classified against the other trains.  <br /></td></tr>
 <tr class="memitem:aaa5c75f0e512880c5089e1f120efeab7" id="r_aaa5c75f0e512880c5089e1f120efeab7"><td class="memItemLeft"><a class="el" href="struct_blocking_time_scope.html">BlockingTimeScope</a>&#160;</td><td class="memItemRight"><a class="el" href="#aaa5c75f0e512880c5089e1f120efeab7">defaultBlockingTimeScopeFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
@@ -218,34 +214,6 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a96f46f75ea72acb64797227079ad4f77" name="a96f46f75ea72acb64797227079ad4f77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96f46f75ea72acb64797227079ad4f77">&#9670;&#160;</a></span>blockingTimeCsvFrom()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string blockingTimeCsvFrom </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const QStringList &amp;</td>          <td class="paramname"><span class="paramname"><em>visibleTrainIds</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The whole run, the first route that a train runs on as reference, no recorded trajectories. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a96f46f75ea72acb64797227079ad4f77_cgraph.svg" width="1239" height="1078"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="a409140b657b52e1822517ded4f3d9678" name="a409140b657b52e1822517ded4f3d9678"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a409140b657b52e1822517ded4f3d9678">&#9670;&#160;</a></span>blockingTimeDiagramData()</h2>
 
@@ -807,39 +775,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a23cc6d8743ea6132e2b4601ffaeb5449_cgraph.svg" width="475" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a3321c0b0748f2b3f568225db8bd70ca2" name="a3321c0b0748f2b3f568225db8bd70ca2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3321c0b0748f2b3f568225db8bd70ca2">&#9670;&#160;</a></span>writeCsvFileWithProvenance()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool writeCsvFileWithProvenance </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>content</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>provenance</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Writes a CSV export and its provenance sidecar. False when a write fails. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_exports_8h_a3321c0b0748f2b3f568225db8bd70ca2_cgraph.svg" width="502" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

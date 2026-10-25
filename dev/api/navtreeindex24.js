@@ -1,9 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"struct_scene_simulation_settings.html#aef3d7b081937d08bf0eef303ebc77bdf":[2,0,252,0],
-"struct_scene_simulation_settings.html#af4877e95d3f036fd5c84bcab6a3fa097":[2,0,252,5],
-"struct_scene_single_track_restriction.html":[2,0,253],
-"struct_scene_single_track_restriction.html#a22687bf6aeaed7afd82a2db7e5be9f9d":[2,0,253,1],
 "struct_scene_single_track_restriction.html#a25b3874fb60873c635999428802c4b89":[2,0,253,2],
 "struct_scene_single_track_restriction.html#a89bf3d14fafabe328a7c901c45f522f9":[2,0,253,3],
 "struct_scene_single_track_restriction.html#ac6cb04d5dae38a14314671ff8039484b":[2,0,253,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX24 =
 "struct_track_preview_connection.html#a35d07cc87b54e5ed7306e0fa6bb83756":[2,0,308,0],
 "struct_track_preview_connection.html#a4e76fc13a6de29abd246e0f9e41fa7ad":[2,0,308,4],
 "struct_track_preview_connection.html#a984b88e68d45d96189cbb9c92fe86a85":[2,0,308,2],
-"struct_track_preview_connection.html#aed367d808e0995502820f807e383c8f4":[2,0,308,3]
+"struct_track_preview_connection.html#aed367d808e0995502820f807e383c8f4":[2,0,308,3],
+"struct_track_preview_line.html":[2,0,309],
+"struct_track_preview_line.html#a1c4f36f1cb424cd87689dd5ac18825f9":[2,0,309,4],
+"struct_track_preview_line.html#a28d2331737ae7f8d6f4e5181d2aa4b8f":[2,0,309,3],
+"struct_track_preview_line.html#a3f84aab277f4a60fbad9b5fff2e7c292":[2,0,309,2]
 };
