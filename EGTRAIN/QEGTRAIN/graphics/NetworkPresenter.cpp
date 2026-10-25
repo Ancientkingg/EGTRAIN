@@ -93,6 +93,13 @@ constexpr double kPi = 3.14159265;
 // The zoom of the view from which the labels of the platforms are legible.
 constexpr qreal kDenseDetailZoom = 3.0;
 
+// The diameter of the nodes of a double switch, which keep their item but show no dot. It was once written as a
+// cast of 0.1, which truncates to 0.
+constexpr int kHiddenNodeSize = 0;
+
+// The number of seconds after its step for which a message of virtual coupling shows at its train.
+constexpr int kVirtualCouplingMessageSeconds = 40;
+
 // A station node stands for a platform: its platform id is neither empty nor "None".
 bool hasPlatformId(const std::string& platformId) {
 	return !platformId.empty() && platformId != "None";
@@ -1147,7 +1154,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			}
 			// if it is a double switch then do not paint nodes Copenhagen case
 			else if (doubleSwitch || trackSet.numNodes == 4) {
-				paintNode(pt, static_cast<int>(0.1), track, &trackSet.member[i].startNode);
+				paintNode(pt, kHiddenNodeSize, track, &trackSet.member[i].startNode);
 			} else {
 				paintNode(pt, node_size, track, &trackSet.member[i].startNode);
 			}
@@ -3299,7 +3306,7 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 void NetworkPresenter::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train,
 	const GuiSimulationSnapshot& snapshot, int t) {
 	for (auto it = snapshot.virtualCouplingMessages.rbegin(); it != snapshot.virtualCouplingMessages.rend(); ++it) {
-		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + 40) {
+		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + kVirtualCouplingMessageSeconds) {
 			paintVCouplingMsg(trainItem, it->message);
 			break;
 		}

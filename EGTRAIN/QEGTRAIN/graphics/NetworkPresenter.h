@@ -378,26 +378,28 @@ public:
 
 	// scene item sizes
 	/// The factor of the sizes below.
-	int global_scale = 10;
-	/// The diameter of a node and of a signal head in scene units. The cast truncates 2.8 to 2, so it is 20.
-	int node_size = (int)2.8 * global_scale;
-	/// The side of the square of a station node in scene units. The cast truncates 2.5 to 2, so it is 40.
-	int station_node_size = (int)2.5 * node_size;
+	static constexpr int global_scale = 10;
+	/// The diameter of a node and of a signal head in scene units: 20. It was once written as 2.8 times
+	/// global_scale with a cast that truncated 2.8 to 2.
+	static constexpr int node_size = 2 * global_scale;
+	/// The side of the square of a station node in scene units: 40. It was once written as 2.5 times node_size
+	/// with a cast that truncated 2.5 to 2.
+	static constexpr int station_node_size = 2 * node_size;
 	/// The multiple of track_separation by which a run without the preview moves the picture and the name of a
 	/// station along the shift of its region; negative puts them on the side opposite the shifted track lines.
-	int station_name_graphID = -8;
+	static constexpr int station_name_graphID = -8;
 	/// The width in pixels of the cosmetic pens of connections, signal posts and callout lines, and the smallest
 	/// width of a track line.
-	int line_width = 2;
+	static constexpr int line_width = 2;
 	/// The distance in scene units between two display levels of track lines. Signal posts, train bodies and
 	/// callout lines are sized from it.
-	int track_separation = 15 * global_scale;
+	static constexpr int track_separation = 15 * global_scale;
 	/// The height of a station picture in scene units. A station name uses a font of a fifth of it in pixels,
 	/// the labels of platforms and the passenger information a fifteenth.
-	int station_size = 30 * global_scale;
+	static constexpr int station_size = 30 * global_scale;
 	/// The factor of the Mercator projection that places a station with a latitude and longitude in a run
 	/// without the preview. The projection also uses the width and height of the view in pixels.
-	int geo_scale = 80000 * global_scale;
+	static constexpr int geo_scale = 80000 * global_scale;
 
 	/// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
 	/// application resource is missing.
