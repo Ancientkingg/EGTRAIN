@@ -192,6 +192,14 @@ std::string describe(const std::optional<BlockingTimeDiagramData>& d, const QStr
 	return d ? describe(*d, visible) : std::string("no diagram\n");
 }
 
+// The blocking-time CSV of the whole run for the visible trains, as the window that opens without its scope dialog
+// exports it.
+std::string blockingTimeCsvOf(const CompletedRunData& data, const QStringList& visible) {
+	const std::optional<BlockingTimeDiagramData> d = blockingTimeDiagramData(data, defaultBlockingTimeScopeFrom(data));
+	return d ? buildBlockingTimeCsv(visible, d->segments, d->plannedReferences, d->trajectoryRows, d->extents, d->unmapped)
+			 : std::string();
+}
+
 std::string describe(const RouteDiagramData& d) {
 	std::ostringstream text;
 	text << describe(d.referencePath);
@@ -420,7 +428,7 @@ void checkExports(const CapturedRun& run) {
 		const std::string trajectory = trajectoryCsvFrom(data, selections[k]);
 		const std::string timetable = timetableCsvFrom(data, selections[k]);
 		check(rowsOnlyOf(trajectory, selections[k]) && rowsOnlyOf(timetable, selections[k])
-				&& rowsOnlyOf(blockingTimeCsvFrom(data, selections[k]), selections[k]),
+				&& rowsOnlyOf(blockingTimeCsvOf(data, selections[k]), selections[k]),
 			label + ": the exports list the selected trains only");
 		check(dataLines(trajectory).size() == trajectorySamples(selections[k]), label + ": trajectory.csv has the valid samples");
 		std::size_t timetableRows = 0;
@@ -430,7 +438,7 @@ void checkExports(const CapturedRun& run) {
 	}
 	check(!trajectoryCsvFrom(data, ids).empty(), scene + ": trajectory.csv has rows");
 	check(!timetableCsvFrom(data, ids).empty(), scene + ": timetable.csv has rows");
-	check(!blockingTimeCsvFrom(data, ids).empty(), scene + ": blocking_time.csv has rows");
+	check(!blockingTimeCsvOf(data, ids).empty(), scene + ": blocking_time.csv has rows");
 	check(!blockTimesFrom(data).empty(), scene + ": blocking-time segments exist");
 	const BlockingTimeScope whole = defaultBlockingTimeScope(initial_variables.times * timestep);
 	const BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
@@ -749,7 +757,7 @@ std::size_t checkDelayDiagrams(const CapturedRun& run) {
 // The first run has to give the same text after the second run has replaced the simulation state.
 std::string exportsOf(const CompletedRunData& data) {
 	const QStringList ids = trainIdsFrom(data);
-	std::string text = trajectoryCsvFrom(data, ids) + timetableCsvFrom(data, ids) + blockingTimeCsvFrom(data, ids)
+	std::string text = trajectoryCsvFrom(data, ids) + timetableCsvFrom(data, ids) + blockingTimeCsvOf(data, ids)
 		+ capacityCsvFrom(data, firstCapacityScopeWithPairFrom(data));
 	for (const auto& used : usedRouteReferencesFrom(data))
 		for (bool timetable : {false, true})
