@@ -3250,7 +3250,7 @@ static bool runRollingStockMessageChecks() {
 
 	// Arrival at the last station and departure from the first: the position of the train is read from the route.
 	QTemporaryDir output;
-	ok &= expect(output.isValid() && QDir(output.path()).mkdir("Rescheduling"), "temporary output folder");
+	ok &= expect(output.isValid(), "temporary output folder");
 	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
 	defaultRun().settings.OutputMainFolder = output.path().toStdString();
 	train.Stations.resize(2);
@@ -3262,7 +3262,7 @@ static bool runRollingStockMessageChecks() {
 	train.instant_spatial_position = {500.0, 1000.0, 1500.0, 1750.0, 2000.0};
 	train.instant_train_speed = {0.0, 5.0, 5.0, 0.0, 0.0};
 	const auto checkAt = [&](int second) {
-		train.checkTrainArrDep(0, second);
+		train.checkTrainArrDep(second);
 		return capture.take();
 	};
 	shows(checkAt(0), {}, "a train at the start of the route");
@@ -3273,7 +3273,7 @@ static bool runRollingStockMessageChecks() {
 	shows(checkAt(4),
 		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, defaultRun().settings.startingSimulationTime) + "\n"}},
 		"a train that arrives at its last station");
-	ok &= expect(QDir(output.filePath("Rescheduling")).isEmpty(), "an arrival at the last station writes no file");
+	ok &= expect(QDir(output.path()).isEmpty(), "an arrival at the last station writes no file");
 	defaultRun().settings.OutputMainFolder = savedOutputFolder;
 	defaultRun().infra.routes.swap(savedRoutes);
 	return ok;
@@ -4002,7 +4002,7 @@ int main() {
 	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && defaultRun().numTrains == 1) {
 		Train& through = defaultRun().trains[0];
 		through.departure_time = 0.0;
-		through.checkTrainArrDep(0, 0);
+		through.checkTrainArrDep(0);
 		Stations finalProbe;
 		finalProbe.stationName = "Final_Station";
 		finalProbe.totalArrivalDelay = finalProbe.Max_TotalDelay = finalProbe.Max_Cons_Delay = 42.0;

@@ -485,7 +485,7 @@ void stepRun(SimulationRun& run, int t) {
 		train.trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
 		train.recordEarliestActiveTrajectoryIndex(t);
 		train.recordStationPassagesAtTime(t);
-		train.checkTrainArrDep(static_cast<int>(index), t);
+		train.checkTrainArrDep(t);
 	}
 	for (Regional& train : run.trains)
 		Simulate_Train_Passenger_Interactions(run, t, run.settings.startingSimulationTime, train, run.passengers, run.platforms);

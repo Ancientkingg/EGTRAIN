@@ -562,6 +562,7 @@ int main(int argc, char** argv) {
 					ok &= expect(content == firstContents[i], std::string(files[i]) + ": second run equals first (lines " + std::to_string(firstContents[i].count('\n')) + ", " + std::to_string(content.count('\n')) + ")");
 			}
 		}
+		ok &= expect(!QFileInfo::exists(output.filePath("Rescheduling")), "reused output folder: a run creates no Rescheduling folder");
 		simulation.setSnapshotsEnabled(true);
 		SceneModel invalid = loaded.scene;
 		invalid.services.clear();

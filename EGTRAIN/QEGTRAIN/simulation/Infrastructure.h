@@ -93,7 +93,7 @@ public:
 	/// True on a braking target node that is an end of authority; its X is then a route position in metres. Nodes of the
 	/// infrastructure keep false.
 	bool isSignalled;
-	bool station; ///< True when a train stops at the node: a platform node, or a stop of the train.
+	bool station; ///< True on a node of a station of the scene: a platform node, or a node at the position of a station.
 	/// True when a train stopping at the node may leave only when the aspect of its section is not restrictive. Nothing
 	/// outside the tests sets it.
 	bool respectOrder;

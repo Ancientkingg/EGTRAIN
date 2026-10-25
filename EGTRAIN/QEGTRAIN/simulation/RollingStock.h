@@ -690,8 +690,8 @@ public:
 	std::string stationNameForArrivalStats(int stationIndex) const;
 
 	/// In step t, logs the arrival of the train at its last stop and its departure from its first stop. A first or last stop with X 0
-	/// takes its X from run.infra.stations. trainIdx is not read.
-	void checkTrainArrDep(int trainIdx, int t);
+	/// takes its X from run.infra.stations.
+	void checkTrainArrDep(int t);
 
 	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
 	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1.

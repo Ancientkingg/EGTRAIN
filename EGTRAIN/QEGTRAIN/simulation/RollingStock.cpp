@@ -508,7 +508,7 @@ void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyM
 }
 
 // check train arrival/departure at/from destination/origin
-void Train::checkTrainArrDep(int trainIdx, int t) {
+void Train::checkTrainArrDep(int t) {
 	if (numStations <= 0 || Stations.empty())
 		return;
 
