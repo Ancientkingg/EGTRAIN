@@ -329,9 +329,7 @@ egtrain_add_test(test_livecommand
 egtrain_add_test(test_livereplay SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_livereplay.cpp
 	LIBS egtrain_live egtrain_dispatch egtrain_sim cppzmq Qt::Core Qt::Gui Qt::Widgets
-	COMMAND test_livereplay
-		--fixture ${SRC_DIR}/tests/fixtures/scenes/line
-		--script ${SRC_DIR}/tests/live/commands
+	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS integration
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 	TIMEOUT 180)

@@ -1,10 +1,13 @@
 #include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 
+#include <QObject>
+#include <QTest>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
-#include <iostream>
+#include <iterator>
 #include <memory>
 #include <new>
 #include <set>
@@ -20,15 +23,6 @@
 #define TEST_ADDRESS_SANITIZER 1
 #endif
 #endif
-
-namespace {
-void require(bool condition, const char* message) {
-	if (!condition) {
-		std::cerr << message << '\n';
-		std::exit(1);
-	}
-}
-}
 
 // Counts the bytes requested from the allocator, so that the accounted replay bytes can be
 // compared with what the history really holds. AddressSanitizer keeps its own count: with it, a
@@ -230,41 +224,129 @@ std::shared_ptr<const GuiSimulationSnapshot> shared(GuiSimulationSnapshot snapsh
 }
 }
 
-int main() {
-	require(!guiSectionReportsPermissiveSignalling(0.0),
+
+namespace {
+// A train with an operating code, one occupied arc, a position and one wagon, due at 5 s.
+GuiTrainState displayedTrain() {
+	GuiTrainState train;
+	train.description = "Intercity northbound";
+	train.operatingCode = "1725";
+	train.occupiedArcs.push_back({7, 2.5});
+	train.routeAxisPosition = 25.0;
+	train.departureTime = 5;
+	train.wagonHeadPositions.push_back(25.0);
+	train.wagonTailPositions.push_back(24.0);
+	return train;
+}
+
+// Records the 600 steps of a run of sample snapshots.
+void recordSampleRun(GuiReplayHistory& history) {
+	for (int t = 0; t < 600; ++t)
+		history.record(shared(sampleSnapshot(t, 3, 600)));
+}
+
+// A change of one field that is stored once per layout.
+struct StaticChange {
+	const char* name;
+	void (*apply)(GuiSimulationSnapshot&);
+};
+
+const StaticChange kStaticChanges[] = {
+	{"train index", [](GuiSimulationSnapshot& s) { s.trains[1].index += 10; }},
+	{"train id", [](GuiSimulationSnapshot& s) { s.trains[1].id += 1.0; }},
+	{"train type", [](GuiSimulationSnapshot& s) { s.trains[1].type += "x"; }},
+	{"train description", [](GuiSimulationSnapshot& s) { s.trains[1].description += "x"; }},
+	{"train operating code", [](GuiSimulationSnapshot& s) { s.trains[1].operatingCode += "x"; }},
+	{"train service", [](GuiSimulationSnapshot& s) { s.trains[1].serviceId += "x"; }},
+	{"train occurrence", [](GuiSimulationSnapshot& s) { s.trains[1].occurrence += 1; }},
+	{"train wagon count", [](GuiSimulationSnapshot& s) { s.trains[1].wagonCount += 1; }},
+	{"train length", [](GuiSimulationSnapshot& s) { s.trains[1].length += 1.0; }},
+	{"train departure time", [](GuiSimulationSnapshot& s) { s.trains[1].departureTime += 1; }},
+	{"train capacity", [](GuiSimulationSnapshot& s) { s.trains[1].maxOnboardPassengers += 1; }},
+	{"signal section", [](GuiSimulationSnapshot& s) { s.signalStates[2].sectionId += "x"; }},
+	{"signal direction", [](GuiSimulationSnapshot& s) { s.signalStates[2].reversedDirection = !s.signalStates[2].reversedDirection; }},
+	{"section id", [](GuiSimulationSnapshot& s) { s.sectionStates[2].sectionId += "x"; }},
+	{"platform station", [](GuiSimulationSnapshot& s) { s.platforms[1].stationId += "x"; }},
+	{"platform id", [](GuiSimulationSnapshot& s) { s.platforms[1].platformId += "x"; }},
+	{"platform capacity", [](GuiSimulationSnapshot& s) { s.platforms[1].maxVolume += 1; }},
+};
+}
+
+class TestGuiSimulationSnapshot : public QObject {
+	Q_OBJECT
+
+private slots:
+	void permissiveSignalling();
+	void ordersSignalCodes();
+	void mergeKeepsMostRestrictiveCode();
+	void mergeKeepsDirectionsAndSections();
+	void failureMarksBothDirections();
+	void copyWithoutLevel();
+	void displayCode();
+	void trainDisplay();
+	void mailbox();
+	void replayLookup();
+	void framesComeBackAsRecorded();
+	void keepsFrameHandedOutLast();
+	void sameFrameSameObject();
+	void layoutChanges();
+	void staticChange_data();
+	void staticChange();
+	void accountedBytes();
+	void evictionKeepsNewestFrames();
+	void evictedLayoutIsReleased();
+	void largeSceneFits_data();
+	void largeSceneFits();
+	void countsServiceId();
+	void countsSignalStates();
+	void storesStringsOnce();
+	void noFrameCountLimit();
+	void movedHistory();
+};
+
+void TestGuiSimulationSnapshot::permissiveSignalling() {
+	QVERIFY2(!guiSectionReportsPermissiveSignalling(0.0),
 		"zero signalling code was reported as permissive signalling");
-	require(guiSectionReportsPermissiveSignalling(1.0)
-			&& guiSectionReportsPermissiveSignalling(75.0)
-			&& guiSectionReportsPermissiveSignalling(180.0)
-			&& guiSectionReportsPermissiveSignalling(270.0)
-			&& guiSectionReportsPermissiveSignalling(751.0),
-		"nonzero signalling codes did not report permissive signalling");
+	// Nonzero signalling codes report permissive signalling.
+	QVERIFY(guiSectionReportsPermissiveSignalling(1.0));
+	QVERIFY(guiSectionReportsPermissiveSignalling(75.0));
+	QVERIFY(guiSectionReportsPermissiveSignalling(180.0));
+	QVERIFY(guiSectionReportsPermissiveSignalling(270.0));
+	QVERIFY(guiSectionReportsPermissiveSignalling(751.0));
 	GuiSimulationSnapshot operational;
 	operational.sectionStates.push_back({"unused-nonzero", guiSectionReportsPermissiveSignalling(751.0), false});
 	operational.sectionStates.push_back({"blocked", guiSectionReportsPermissiveSignalling(0.0), true});
 	GuiTrainState occupiedTrain;
 	occupiedTrain.occupiedArcs.push_back({7, 2.5});
 	operational.trains.push_back(occupiedTrain);
-	require(operational.sectionStates.at(0).prepared
-			&& !operational.sectionStates.at(0).blocked
-			&& operational.trains.front().occupiedArcs.size() == 1,
-		"permissive signalling was conflated with occupied or blocked state");
-	require(operational.sectionStates.at(1).blocked
-			&& !operational.sectionStates.at(1).prepared,
-		"blocked section did not remain independent of permissive signalling");
+	// Permissive signalling is not conflated with occupied or blocked state.
+	QVERIFY(operational.sectionStates.at(0).prepared);
+	QVERIFY(!operational.sectionStates.at(0).blocked);
+	QCOMPARE(operational.trains.front().occupiedArcs.size(), std::size_t(1));
+	// A blocked section remains independent of permissive signalling.
+	QVERIFY(operational.sectionStates.at(1).blocked);
+	QVERIFY(!operational.sectionStates.at(1).prepared);
+}
 
-	// Route copies of one section and direction merge into the most restrictive
-	// code, whatever the order they arrive in.
-	require(guiSignalRestriction(0) < guiSignalRestriction(751)
-			&& guiSignalRestriction(751) < guiSignalRestriction(75)
-			&& guiSignalRestriction(75) < guiSignalRestriction(180)
-			&& guiSignalRestriction(180) < guiSignalRestriction(270)
-			&& guiSignalRestriction(270) < guiSignalRestriction(-1)
-			&& guiSignalRestriction(-1) == guiSignalRestriction(1000),
-		"signal codes are not ordered from stop to clear");
-	require(guiSignalHasLevel(0) && guiSignalHasLevel(5) && !guiSignalHasLevel(6)
-			&& !guiSignalHasLevel(kGuiSignalNoLevel) && !guiSignalHasLevel(-99999999),
-		"signalling levels are not 0 to 5");
+// Route copies of one section and direction merge into the most restrictive
+// code, whatever the order they arrive in.
+void TestGuiSimulationSnapshot::ordersSignalCodes() {
+	// Signal codes are ordered from stop to clear.
+	QCOMPARE_LT(guiSignalRestriction(0), guiSignalRestriction(751));
+	QCOMPARE_LT(guiSignalRestriction(751), guiSignalRestriction(75));
+	QCOMPARE_LT(guiSignalRestriction(75), guiSignalRestriction(180));
+	QCOMPARE_LT(guiSignalRestriction(180), guiSignalRestriction(270));
+	QCOMPARE_LT(guiSignalRestriction(270), guiSignalRestriction(-1));
+	QCOMPARE(guiSignalRestriction(-1), guiSignalRestriction(1000));
+	// Signalling levels are 0 to 5.
+	QVERIFY(guiSignalHasLevel(0));
+	QVERIFY(guiSignalHasLevel(5));
+	QVERIFY(!guiSignalHasLevel(6));
+	QVERIFY(!guiSignalHasLevel(kGuiSignalNoLevel));
+	QVERIFY(!guiSignalHasLevel(-99999999));
+}
+
+void TestGuiSimulationSnapshot::mergeKeepsMostRestrictiveCode() {
 	std::array<int, 4> codes{270, 75, 180, 751};
 	std::sort(codes.begin(), codes.end());
 	do {
@@ -272,10 +354,14 @@ int main() {
 		for (const int code : codes)
 			copies.merge("@1-B0@", false, code, 0);
 		const auto merged = copies.take();
-		require(merged.size() == 1 && merged.front().code == 751,
-			"merge did not keep the most restrictive code in every order");
+		// Merge keeps the most restrictive code in every order.
+		QCOMPARE(merged.size(), std::size_t(1));
+		QCOMPARE(merged.front().code, 751);
 	} while (std::next_permutation(codes.begin(), codes.end()));
-	// Directions and sections stay separate, in the order they first appear.
+}
+
+// Directions and sections stay separate, in the order they first appear.
+void TestGuiSimulationSnapshot::mergeKeepsDirectionsAndSections() {
 	GuiSignalStateList routes;
 	routes.merge("@2-B0@", false, 75, 2);
 	routes.merge("@1-B0@", false, 270, 2);
@@ -283,12 +369,22 @@ int main() {
 	routes.merge("@1-B0@", false, 180, 2);
 	routes.merge("@1-B0@", true, 270, 2);
 	const auto separate = routes.take();
-	require(separate.size() == 3, "directions or sections were merged");
-	require(separate[0].sectionId == "@2-B0@" && separate[0].code == 75 && !separate[0].reversedDirection
-			&& separate[1].sectionId == "@1-B0@" && separate[1].code == 180 && !separate[1].reversedDirection
-			&& separate[2].sectionId == "@1-B0@" && separate[2].code == 0 && separate[2].reversedDirection,
-		"a direction took the code of the other direction");
-	// A clear copy does not hide a stop, and a failure marks both directions.
+	// Directions and sections are not merged.
+	QCOMPARE(separate.size(), std::size_t(3));
+	// A direction does not take the code of the other direction.
+	QCOMPARE(separate[0].sectionId, std::string("@2-B0@"));
+	QCOMPARE(separate[0].code, 75);
+	QVERIFY(!separate[0].reversedDirection);
+	QCOMPARE(separate[1].sectionId, std::string("@1-B0@"));
+	QCOMPARE(separate[1].code, 180);
+	QVERIFY(!separate[1].reversedDirection);
+	QCOMPARE(separate[2].sectionId, std::string("@1-B0@"));
+	QCOMPARE(separate[2].code, 0);
+	QVERIFY(separate[2].reversedDirection);
+}
+
+// A clear copy does not hide a stop, and a failure marks both directions.
+void TestGuiSimulationSnapshot::failureMarksBothDirections() {
 	GuiSignalStateList failure;
 	failure.merge("@1-B0@", false, 0, 0);
 	failure.merge("@1-B0@", false, 270, 0);
@@ -297,47 +393,61 @@ int main() {
 	failure.fail("@1-B0@");
 	failure.fail("@3-B0@");
 	const auto failed = failure.take();
-	require(failed.size() == 3 && failed[0].code == 0 && failed[0].failed
-			&& failed[1].failed && failed[1].reversedDirection && !failed[2].failed,
-		"a clear copy hid a stop, or a failure missed a direction");
-	// A copy without a level has no signalling and never hides one that has.
+	// A clear copy does not hide a stop, and a failure does not miss a direction.
+	QCOMPARE(failed.size(), std::size_t(3));
+	QCOMPARE(failed[0].code, 0);
+	QVERIFY(failed[0].failed);
+	QVERIFY(failed[1].failed);
+	QVERIFY(failed[1].reversedDirection);
+	QVERIFY(!failed[2].failed);
+}
+
+// A copy without a level has no signalling and never hides one that has.
+void TestGuiSimulationSnapshot::copyWithoutLevel() {
 	GuiSignalStateList levels;
 	levels.merge("@1-B0@", false, 270, kGuiSignalNoLevel);
 	levels.merge("@1-B0@", false, 75, 1);
 	levels.merge("@1-B0@", false, 0, kGuiSignalNoLevel);
 	const auto withLevel = levels.take();
-	require(withLevel.size() == 1 && withLevel.front().level == 1 && withLevel.front().code == 75,
-		"a copy without a level replaced or hid one with a level");
+	// A copy without a level does not replace or hide one with a level.
+	QCOMPARE(withLevel.size(), std::size_t(1));
+	QCOMPARE(withLevel.front().level, 1);
+	QCOMPARE(withLevel.front().code, 75);
 	GuiSignalStateList noLevel;
 	noLevel.merge("@1-B0@", false, 270, kGuiSignalNoLevel);
 	noLevel.merge("@1-B0@", false, 270, 99999999);
 	const auto without = noLevel.take();
-	require(without.size() == 1 && without.front().level == kGuiSignalNoLevel,
-		"a section without a level was given one");
-	require(GuiSignalState().level == kGuiSignalNoLevel && !GuiSignalState().failed,
-		"a signal state starts with a level or failed");
-	require(GuiSignalStateList().take().empty(), "an empty list has entries");
+	// A section without a level is not given one.
+	QCOMPARE(without.size(), std::size_t(1));
+	QCOMPARE(without.front().level, kGuiSignalNoLevel);
+	// A signal state starts without a level and not failed.
+	QCOMPARE(GuiSignalState().level, kGuiSignalNoLevel);
+	QVERIFY(!GuiSignalState().failed);
+	QVERIFY2(GuiSignalStateList().take().empty(), "an empty list has entries");
+}
 
-	// A head shows the code of a section with a level, and unavailable without one.
-	require(guiSignalDisplayCode({"@1-B0@", 75, false, 0, false}) == 75
-			&& guiSignalDisplayCode({"@1-B0@", 751, true, 5, false}) == 751
-			&& guiSignalDisplayCode({"@1-B0@", 270, false, kGuiSignalNoLevel, false}) == kGuiSignalUnavailable
-			&& guiSignalDisplayCode({"@1-B0@", 0, false, 99999999, false}) == kGuiSignalUnavailable,
-		"a head did not show the code of its level, or unavailable without one");
+// A head shows the code of a section with a level, and unavailable without one.
+void TestGuiSimulationSnapshot::displayCode() {
+	QCOMPARE(guiSignalDisplayCode({"@1-B0@", 75, false, 0, false}), 75);
+	QCOMPARE(guiSignalDisplayCode({"@1-B0@", 751, true, 5, false}), 751);
+	QCOMPARE(guiSignalDisplayCode({"@1-B0@", 270, false, kGuiSignalNoLevel, false}), kGuiSignalUnavailable);
+	QCOMPARE(guiSignalDisplayCode({"@1-B0@", 0, false, 99999999, false}), kGuiSignalUnavailable);
+}
 
+void TestGuiSimulationSnapshot::trainDisplay() {
 	GuiTrainState activeTrain;
 	activeTrain.description = "Intercity northbound";
-	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.description,
-		"train description fallback was not used");
+	// The train description is the fallback.
+	QCOMPARE(guiTrainDisplayIdentifier(activeTrain), activeTrain.description);
 	activeTrain.operatingCode = "1725";
-	require(guiTrainDisplayIdentifier(activeTrain) == activeTrain.operatingCode,
-		"operating code was not preferred");
+	// The operating code is preferred.
+	QCOMPARE(guiTrainDisplayIdentifier(activeTrain), activeTrain.operatingCode);
 	activeTrain.occupiedArcs.push_back({7, 2.5});
 	GuiTrainState exitedTrain = activeTrain;
 	exitedTrain.outOfSimulation = true;
-	require(guiTrainPublishesOccupiedArcs(activeTrain),
+	QVERIFY2(guiTrainPublishesOccupiedArcs(activeTrain),
 		"active train occupation was filtered");
-	require(!guiTrainPublishesOccupiedArcs(exitedTrain),
+	QVERIFY2(!guiTrainPublishesOccupiedArcs(exitedTrain),
 		"out-of-simulation train occupation was retained");
 	activeTrain.routeAxisPosition = 25.0;
 	activeTrain.departureTime = 5;
@@ -345,14 +455,15 @@ int main() {
 	activeTrain.wagonTailPositions.push_back(24.0);
 	exitedTrain = activeTrain;
 	exitedTrain.outOfSimulation = true;
-	require(!guiReplayTrainHasPosition(activeTrain, 4)
-			&& guiReplayTrainHasPosition(activeTrain, 5)
-			&& !guiReplayTrainHasPosition(exitedTrain, 5),
-		"replay train visibility ignored departure or exit");
+	// Replay train visibility follows departure and exit.
+	QVERIFY(!guiReplayTrainHasPosition(activeTrain, 4));
+	QVERIFY(guiReplayTrainHasPosition(activeTrain, 5));
+	QVERIFY(!guiReplayTrainHasPosition(exitedTrain, 5));
 	activeTrain.routeAxisPosition = -9999.0;
-	require(!guiReplayTrainHasPosition(activeTrain, 5), "replay accepted sentinel geometry");
-	activeTrain.routeAxisPosition = 25.0;
+	QVERIFY2(!guiReplayTrainHasPosition(activeTrain, 5), "replay accepted sentinel geometry");
+}
 
+void TestGuiSimulationSnapshot::mailbox() {
 	GuiSimulationSnapshot first;
 	first.timestep = 1;
 	first.trains.push_back(GuiTrainState{});
@@ -362,9 +473,11 @@ int main() {
 	std::set<std::string> sectionIds;
 	for (const GuiSectionState& section : first.sectionStates)
 		sectionIds.insert(section.sectionId);
-	require(sectionIds.size() == first.sectionStates.size(), "section states contain duplicate IDs");
-	require(first.sectionStates.front().prepared && first.sectionStates.front().blocked,
-		"section state flags were not retained");
+	// Section states contain no duplicate IDs.
+	QCOMPARE(sectionIds.size(), first.sectionStates.size());
+	// Section state flags are retained.
+	QVERIFY(first.sectionStates.front().prepared);
+	QVERIFY(first.sectionStates.front().blocked);
 	auto firstSnapshot = std::make_shared<const GuiSimulationSnapshot>(first);
 
 	GuiSimulationSnapshot second;
@@ -375,25 +488,37 @@ int main() {
 	auto secondSnapshot = std::make_shared<const GuiSimulationSnapshot>(second);
 
 	GuiSimulationSnapshotMailbox mailbox;
-	require(mailbox.publish(firstSnapshot), "first publish did not request a notification");
-	require(!mailbox.publish(secondSnapshot), "second publish requested a duplicate notification");
+	QVERIFY2(mailbox.publish(firstSnapshot), "first publish did not request a notification");
+	QVERIFY2(!mailbox.publish(secondSnapshot), "second publish requested a duplicate notification");
 
 	second.trains.front().description = "mutated source";
 	const auto latest = mailbox.take();
-	require(latest != nullptr, "take returned no snapshot");
-	require(latest->timestep == 2, "take did not return the latest snapshot");
-	require(latest->trains.front().description == "second", "snapshot changed after source mutation");
-	require(latest->sectionStates.size() == 1 && latest->sectionStates.front().sectionId == "section-a",
-		"section state payload was not copied into immutable snapshot");
+	if (latest == nullptr)
+		QFAIL("take returned no snapshot");
+	// Take returns the latest snapshot.
+	QCOMPARE(latest->timestep, 2);
+	// The snapshot does not change after the source is changed.
+	QCOMPARE(latest->trains.front().description, std::string("second"));
+	// The section state payload is copied into the immutable snapshot.
+	QCOMPARE(latest->sectionStates.size(), std::size_t(1));
+	QCOMPARE(latest->sectionStates.front().sectionId, std::string("section-a"));
 
-	require(mailbox.publish(firstSnapshot), "publish after take did not request a notification");
-	require(mailbox.take()->timestep == 1, "second take returned the wrong snapshot");
+	QVERIFY2(mailbox.publish(firstSnapshot), "publish after take did not request a notification");
+	// The second take returns the snapshot published after the first.
+	QCOMPARE(mailbox.take()->timestep, 1);
+}
 
+void TestGuiSimulationSnapshot::replayLookup() {
 	GuiReplayHistory history;
-	require(!history.atOrBefore(4), "empty replay selected a frame");
-	require(history.empty() && history.payloadBytes() == 0 && history.size() == 0 && !history.truncated()
-			&& history.evictedBeforeTime() == 0 && history.budgetBytes() == GuiReplayHistory::payloadLimit,
-		"empty replay is not empty");
+	QVERIFY2(!history.atOrBefore(4), "empty replay selected a frame");
+	// An empty replay is empty.
+	QVERIFY(history.empty());
+	QCOMPARE(history.payloadBytes(), std::size_t(0));
+	QCOMPARE(history.size(), std::size_t(0));
+	QVERIFY(!history.truncated());
+	QCOMPARE(history.evictedBeforeTime(), 0);
+	QCOMPARE(history.budgetBytes(), GuiReplayHistory::payloadLimit);
+	const GuiTrainState activeTrain = displayedTrain();
 	for (int t = 0; t <= 12; ++t) {
 		auto frame = std::make_shared<GuiSimulationSnapshot>();
 		frame->timestep = t;
@@ -401,39 +526,56 @@ int main() {
 		frame->trains.push_back(activeTrain);
 		history.record(frame);
 	}
-	require(history.size() == 4 && history.firstTime() == 0 && history.lastTime() == 12,
-		"first/cadence/final samples not retained");
-	require(history.atOrBefore(-1)->timestep == 0 && history.atOrBefore(7)->timestep == 5
-			&& history.atOrBefore(99)->timestep == 12,
-		"replay lookup failed to clamp or floor");
+	// The first, cadence and final samples are retained.
+	QCOMPARE(history.size(), std::size_t(4));
+	QCOMPARE(history.firstTime(), 0);
+	QCOMPARE(history.lastTime(), 12);
+	// Replay lookup clamps and floors.
+	QCOMPARE(history.atOrBefore(-1)->timestep, 0);
+	QCOMPARE(history.atOrBefore(7)->timestep, 5);
+	QCOMPARE(history.atOrBefore(99)->timestep, 12);
 	history.clear();
-	require(history.empty() && !history.truncated() && history.payloadBytes() == 0 && history.layoutCount() == 0,
-		"replacement retained old frames");
+	// A replacement retains no old frames.
+	QVERIFY(history.empty());
+	QVERIFY(!history.truncated());
+	QCOMPARE(history.payloadBytes(), std::size_t(0));
+	QCOMPARE(history.layoutCount(), std::size_t(0));
 	auto only = std::make_shared<GuiSimulationSnapshot>();
 	only->timestep = 3;
 	only->totalTimesteps = 4;
 	history.record(only);
-	require(history.size() == 1 && history.atOrBefore(0)->timestep == 3, "one-frame replay failed");
+	// A one-frame replay works.
+	QCOMPARE(history.size(), std::size_t(1));
+	QCOMPARE(history.atOrBefore(0)->timestep, 3);
+}
 
-	// Every field of a frame with trains, signals, sections, platforms, passengers and messages
-	// comes back, for many frames with changing values.
-	history.clear();
+// Every field of a frame with trains, signals, sections, platforms, passengers and messages
+// comes back, for many frames with changing values.
+void TestGuiSimulationSnapshot::framesComeBackAsRecorded() {
+	GuiReplayHistory history;
 	std::vector<GuiSimulationSnapshot> recorded;
 	for (int t = 0; t < 600; ++t) {
 		recorded.push_back(sampleSnapshot(t, 3, 600));
 		history.record(shared(recorded.back()));
 	}
-	require(history.size() == 121 && history.firstTime() == 0 && history.lastTime() == 599 && !history.truncated()
-			&& history.evictedBeforeTime() == 0 && history.layoutCount() == 1,
-		"run did not keep every cadence frame under one layout");
+	// The run keeps every cadence frame under one layout.
+	QCOMPARE(history.size(), std::size_t(121));
+	QCOMPARE(history.firstTime(), 0);
+	QCOMPARE(history.lastTime(), 599);
+	QVERIFY(!history.truncated());
+	QCOMPARE(history.evictedBeforeTime(), 0);
+	QCOMPARE(history.layoutCount(), std::size_t(1));
 	for (const GuiSimulationSnapshot& expected : recorded) {
 		if (expected.timestep % 5 != 0 && expected.timestep != 599)
 			continue;
 		const auto back = history.atOrBefore(expected.timestep);
-		require(back && sameSnapshot(*back, expected), "a frame did not come back as recorded");
+		// A frame comes back as recorded.
+		QVERIFY(back);
+		QVERIFY(sameSnapshot(*back, expected));
 		const auto between = history.atOrBefore(expected.timestep + 1);
-		require(between && (expected.timestep == 599 || between->timestep == expected.timestep),
-			"a time between frames did not select the frame before it");
+		// A time between frames selects the frame before it.
+		QVERIFY(between);
+		QVERIFY(expected.timestep == 599 || between->timestep == expected.timestep);
 	}
 	// The sample sets every field to something other than its default in some frame.
 	bool sawReversed = false, sawExited = false, sawArcs = false, sawLevel = false, sawNoLevel = false;
@@ -462,37 +604,63 @@ int main() {
 		}
 		sawMessages = sawMessages || !snapshot.virtualCouplingMessages.empty();
 	}
-	require(sawReversed && sawExited && sawArcs && sawStale && sawLevel && sawNoLevel && sawFailed && sawPrepared && sawBlocked
-			&& sawPlatformIds && sawNextTrain && sawNoNextTrain && sawMessages,
-		"the sample snapshot leaves a field at its default");
-	require(history.atOrBefore(300)->trains[2].outOfSimulation && history.atOrBefore(300)->trains[2].wagonHeadPositions.size() == 6
-			&& history.atOrBefore(300)->virtualCouplingMessages.size() == 2,
-		"stale wagon positions of an exited train or the messages were lost");
+	// The sample snapshot leaves no field at its default.
+	QVERIFY(sawReversed);
+	QVERIFY(sawExited);
+	QVERIFY(sawArcs);
+	QVERIFY(sawStale);
+	QVERIFY(sawLevel);
+	QVERIFY(sawNoLevel);
+	QVERIFY(sawFailed);
+	QVERIFY(sawPrepared);
+	QVERIFY(sawBlocked);
+	QVERIFY(sawPlatformIds);
+	QVERIFY(sawNextTrain);
+	QVERIFY(sawNoNextTrain);
+	QVERIFY(sawMessages);
+	// The stale wagon positions of an exited train and the messages are kept.
+	QVERIFY(history.atOrBefore(300)->trains[2].outOfSimulation);
+	QCOMPARE(history.atOrBefore(300)->trains[2].wagonHeadPositions.size(), std::size_t(6));
+	QCOMPARE(history.atOrBefore(300)->virtualCouplingMessages.size(), std::size_t(2));
+}
 
-	// The history itself keeps the frame it handed out last, so a caller that drops the result
-	// can ask again and gets the same object, and the cache moves with the latest request.
-	{
-		const std::weak_ptr<const GuiSimulationSnapshot> last = history.atOrBefore(100);
-		require(!last.expired() && last.lock() == history.atOrBefore(104), "the frame handed out last was not kept");
-		history.atOrBefore(105);
-		require(last.expired(), "the cache kept more than one frame");
-	}
+// The history itself keeps the frame it handed out last, so a caller that drops the result
+// can ask again and gets the same object, and the cache moves with the latest request.
+void TestGuiSimulationSnapshot::keepsFrameHandedOutLast() {
+	GuiReplayHistory history;
+	recordSampleRun(history);
+	const std::weak_ptr<const GuiSimulationSnapshot> last = history.atOrBefore(100);
+	// The frame handed out last is kept.
+	QVERIFY(!last.expired());
+	QVERIFY(last.lock() == history.atOrBefore(104));
+	history.atOrBefore(105);
+	QVERIFY2(last.expired(), "the cache kept more than one frame");
+}
 
-	// Asking for the same frame twice returns the same object, another frame another one.
-	{
-		const auto a = history.atOrBefore(100);
-		const auto b = history.atOrBefore(104);
-		require(a == b && a == history.atOrBefore(100), "the same frame was rebuilt twice");
-		const auto c = history.atOrBefore(105);
-		require(c != a && c->timestep == 105 && history.atOrBefore(105) == c, "a different frame returned the cached object");
-		// A frame that the caller still holds is not rebuilt after other frames were asked for.
-		for (int t = 110; t < 300; t += 5) history.atOrBefore(t);
-		require(history.atOrBefore(100) == a && history.atOrBefore(105) == c, "a frame in use was rebuilt");
-	}
+// Asking for the same frame twice returns the same object, another frame another one.
+void TestGuiSimulationSnapshot::sameFrameSameObject() {
+	GuiReplayHistory history;
+	recordSampleRun(history);
+	const auto a = history.atOrBefore(100);
+	const auto b = history.atOrBefore(104);
+	// The same frame is not rebuilt twice.
+	QVERIFY(a == b);
+	QVERIFY(a == history.atOrBefore(100));
+	const auto c = history.atOrBefore(105);
+	// A different frame does not return the cached object.
+	QVERIFY(c != a);
+	QCOMPARE(c->timestep, 105);
+	QVERIFY(history.atOrBefore(105) == c);
+	// A frame that the caller still holds is not rebuilt after other frames were asked for.
+	for (int t = 110; t < 300; t += 5) history.atOrBefore(t);
+	QVERIFY(history.atOrBefore(100) == a);
+	QVERIFY(history.atOrBefore(105) == c);
+}
 
-	// A run in which the number of trains and a static field change starts a new layout; frames
-	// of both layouts come back.
-	history.clear();
+// A run in which the number of trains and a static field change starts a new layout; frames
+// of both layouts come back.
+void TestGuiSimulationSnapshot::layoutChanges() {
+	GuiReplayHistory history;
 	std::vector<GuiSimulationSnapshot> mixed;
 	for (int t = 0; t < 40; t += 5) {
 		mixed.push_back(sampleSnapshot(t, t < 15 ? 2 : 4, 40));
@@ -500,57 +668,45 @@ int main() {
 			mixed.back().trains[0].description = "renamed";
 		history.record(shared(mixed.back()));
 	}
-	require(history.size() == 8 && history.layoutCount() == 3, "a change of the static data did not start a layout");
+	// A change of the static data starts a layout.
+	QCOMPARE(history.size(), std::size_t(8));
+	QCOMPARE(history.layoutCount(), std::size_t(3));
 	for (const GuiSimulationSnapshot& expected : mixed)
-		require(sameSnapshot(*history.atOrBefore(expected.timestep), expected), "a frame of a changed layout did not come back");
-	require(history.atOrBefore(0)->trains.size() == 2 && history.atOrBefore(20)->trains.size() == 4
-			&& history.atOrBefore(35)->trains.front().description == "renamed" && history.atOrBefore(25)->trains.front().description == "train 0",
-		"a layout leaked into a frame of another");
+		QVERIFY2(sameSnapshot(*history.atOrBefore(expected.timestep), expected), "a frame of a changed layout did not come back");
+	// A layout does not leak into a frame of another.
+	QCOMPARE(history.atOrBefore(0)->trains.size(), std::size_t(2));
+	QCOMPARE(history.atOrBefore(20)->trains.size(), std::size_t(4));
+	QCOMPARE(history.atOrBefore(35)->trains.front().description, std::string("renamed"));
+	QCOMPARE(history.atOrBefore(25)->trains.front().description, std::string("train 0"));
+}
 
-	// A change of any one field that is stored once per layout starts a new layout, and both
-	// frames come back as recorded. A field that is missing from the comparison would be restored
-	// from the layout of the first frame.
-	{
-		struct StaticChange {
-			const char* name;
-			void (*apply)(GuiSimulationSnapshot&);
-		};
-		const StaticChange changes[] = {
-			{"train index", [](GuiSimulationSnapshot& s) { s.trains[1].index += 10; }},
-			{"train id", [](GuiSimulationSnapshot& s) { s.trains[1].id += 1.0; }},
-			{"train type", [](GuiSimulationSnapshot& s) { s.trains[1].type += "x"; }},
-			{"train description", [](GuiSimulationSnapshot& s) { s.trains[1].description += "x"; }},
-			{"train operating code", [](GuiSimulationSnapshot& s) { s.trains[1].operatingCode += "x"; }},
-			{"train service", [](GuiSimulationSnapshot& s) { s.trains[1].serviceId += "x"; }},
-			{"train occurrence", [](GuiSimulationSnapshot& s) { s.trains[1].occurrence += 1; }},
-			{"train wagon count", [](GuiSimulationSnapshot& s) { s.trains[1].wagonCount += 1; }},
-			{"train length", [](GuiSimulationSnapshot& s) { s.trains[1].length += 1.0; }},
-			{"train departure time", [](GuiSimulationSnapshot& s) { s.trains[1].departureTime += 1; }},
-			{"train capacity", [](GuiSimulationSnapshot& s) { s.trains[1].maxOnboardPassengers += 1; }},
-			{"signal section", [](GuiSimulationSnapshot& s) { s.signalStates[2].sectionId += "x"; }},
-			{"signal direction", [](GuiSimulationSnapshot& s) { s.signalStates[2].reversedDirection = !s.signalStates[2].reversedDirection; }},
-			{"section id", [](GuiSimulationSnapshot& s) { s.sectionStates[2].sectionId += "x"; }},
-			{"platform station", [](GuiSimulationSnapshot& s) { s.platforms[1].stationId += "x"; }},
-			{"platform id", [](GuiSimulationSnapshot& s) { s.platforms[1].platformId += "x"; }},
-			{"platform capacity", [](GuiSimulationSnapshot& s) { s.platforms[1].maxVolume += 1; }},
-		};
-		for (const StaticChange& change : changes) {
-			GuiReplayHistory single;
-			GuiSimulationSnapshot before = sampleSnapshot(0, 3, 40);
-			GuiSimulationSnapshot after = sampleSnapshot(5, 3, 40);
-			change.apply(after);
-			single.record(shared(before));
-			single.record(shared(after));
-			const bool restored = single.size() == 2 && sameSnapshot(*single.atOrBefore(0), before) && sameSnapshot(*single.atOrBefore(5), after);
-			if (!restored || single.layoutCount() != 2) {
-				std::cerr << "a change of the " << change.name << " was not kept by the replay\n";
-				return 1;
-			}
-		}
-	}
+// A change of any one field that is stored once per layout starts a new layout, and both
+// frames come back as recorded. A field that is missing from the comparison would be restored
+// from the layout of the first frame.
+void TestGuiSimulationSnapshot::staticChange_data() {
+	QTest::addColumn<int>("change");
+	for (int i = 0; i < static_cast<int>(std::size(kStaticChanges)); ++i)
+		QTest::newRow(kStaticChanges[i].name) << i;
+}
 
-	// The accounted bytes grow with every frame and are close to what the history holds.
-	history.clear();
+void TestGuiSimulationSnapshot::staticChange() {
+	QFETCH(int, change);
+	GuiReplayHistory single;
+	GuiSimulationSnapshot before = sampleSnapshot(0, 3, 40);
+	GuiSimulationSnapshot after = sampleSnapshot(5, 3, 40);
+	kStaticChanges[change].apply(after);
+	single.record(shared(before));
+	single.record(shared(after));
+	// The replay keeps the change.
+	QCOMPARE(single.size(), std::size_t(2));
+	QVERIFY(sameSnapshot(*single.atOrBefore(0), before));
+	QVERIFY(sameSnapshot(*single.atOrBefore(5), after));
+	QCOMPARE(single.layoutCount(), std::size_t(2));
+}
+
+// The accounted bytes grow with every frame and are close to what the history holds.
+void TestGuiSimulationSnapshot::accountedBytes() {
+	GuiReplayHistory history;
 	const std::size_t heapBefore = heapBytes();
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> large;
 	for (int t = 0; t < 400; t += 5) large.push_back(shared(sceneSnapshot(t, 40, 1350, 700, 400)));
@@ -570,18 +726,27 @@ int main() {
 	}
 	const std::size_t held = heapBytes() - heapWithInput;
 	const std::size_t accounted = history.payloadBytes();
-	require(grows && history.size() == large.size(), "accounted bytes do not grow with the frames");
-	require(accounted > held - held / 10 && accounted < held + held / 10, "accounted bytes differ from the bytes held by more than 10 percent");
-	// One frame is much smaller than the first, which also holds the layout, and a frame of a
-	// scene of this size needs far less than the snapshot it was made from.
-	require(history.layoutCount() == 1 && 2 * lastStep < firstStep, "frames repeat the static data of the run");
-	require(heapWithInput - heapBefore > 3 * held, "the compact form is not much smaller than the snapshots");
+	// The accounted bytes grow with the frames.
+	QVERIFY(grows);
+	QCOMPARE(history.size(), large.size());
+	// The accounted bytes differ from the bytes held by less than 10 percent.
+	QCOMPARE_GT(accounted, held - held / 10);
+	QCOMPARE_LT(accounted, held + held / 10);
+	// One frame is much smaller than the first, which also holds the layout: frames do not repeat
+	// the static data of the run.
+	QCOMPARE(history.layoutCount(), std::size_t(1));
+	QCOMPARE_LT(2 * lastStep, firstStep);
+	// A frame of a scene of this size needs far less than the snapshot it was made from: the compact
+	// form is much smaller than the snapshots.
+	QCOMPARE_GT(heapWithInput - heapBefore, 3 * held);
 	large.clear();
 	history.clear();
-	require(history.payloadBytes() == 0, "clearing did not reset the accounted bytes");
+	// Clearing resets the accounted bytes.
+	QCOMPARE(history.payloadBytes(), std::size_t(0));
+}
 
-	// Eviction under a small budget keeps the newest frames and says what it covers.
-	history.clear();
+// Eviction under a small budget keeps the newest frames and says what it covers.
+void TestGuiSimulationSnapshot::evictionKeepsNewestFrames() {
 	std::vector<int> times;
 	std::vector<GuiSimulationSnapshot> run;
 	for (int t = 0; t < 500; ++t) {
@@ -593,45 +758,76 @@ int main() {
 	for (int t = 0; t < 50; ++t) reference.record(shared(run[static_cast<std::size_t>(t)]));
 	GuiReplayHistory small(reference.payloadBytes());
 	for (const GuiSimulationSnapshot& snapshot : run) small.record(shared(snapshot));
-	require(small.truncated() && small.size() >= 3 && small.size() < times.size() / 2 && small.payloadBytes() <= small.budgetBytes(),
-		"a small budget did not evict");
-	require(small.lastTime() == 499 && small.firstTime() == times[times.size() - small.size()]
-			&& small.evictedBeforeTime() == small.firstTime() && small.firstTime() > 0,
-		"eviction did not keep the newest frames or did not report the covered interval");
-	require(small.atOrBefore(0)->timestep == small.firstTime() && small.atOrBefore(499)->timestep == 499,
-		"a time before the covered interval did not select its first frame");
+	// A small budget evicts.
+	QVERIFY(small.truncated());
+	QCOMPARE_GE(small.size(), std::size_t(3));
+	QCOMPARE_LT(small.size(), times.size() / 2);
+	QCOMPARE_LE(small.payloadBytes(), small.budgetBytes());
+	// Eviction keeps the newest frames and reports the covered interval.
+	QCOMPARE(small.lastTime(), 499);
+	QCOMPARE(small.firstTime(), times[times.size() - small.size()]);
+	QCOMPARE(small.evictedBeforeTime(), small.firstTime());
+	QCOMPARE_GT(small.firstTime(), 0);
+	// A time before the covered interval selects its first frame.
+	QCOMPARE(small.atOrBefore(0)->timestep, small.firstTime());
+	QCOMPARE(small.atOrBefore(499)->timestep, 499);
 	for (std::size_t k = times.size() - small.size(); k < times.size(); ++k)
-		require(sameSnapshot(*small.atOrBefore(times[k]), run[static_cast<std::size_t>(times[k])]), "a frame kept after eviction changed");
-	require(small.layoutCount() == 1, "eviction multiplied the layouts");
+		QVERIFY2(sameSnapshot(*small.atOrBefore(times[k]), run[static_cast<std::size_t>(times[k])]), "a frame kept after eviction changed");
+	// Eviction does not multiply the layouts.
+	QCOMPARE(small.layoutCount(), std::size_t(1));
+}
 
-	// A layout of evicted frames is released and no longer counted.
+// A layout of evicted frames is released and no longer counted.
+void TestGuiSimulationSnapshot::evictedLayoutIsReleased() {
 	GuiReplayHistory later;
 	for (int t = 50; t < 100; t += 5) later.record(shared(sampleSnapshot(t, 6, 100)));
 	GuiReplayHistory trade(later.payloadBytes());
 	for (int t = 0; t < 100; t += 5) trade.record(shared(sampleSnapshot(t, t < 50 ? 2 : 6, 100)));
-	require(trade.truncated() && trade.layoutCount() == 1 && trade.firstTime() >= 50 && trade.size() >= 5 && trade.payloadBytes() <= trade.budgetBytes()
-			&& trade.atOrBefore(0)->trains.size() == 6 && trade.atOrBefore(95)->trains.size() == 6,
-		"the layout of evicted frames was kept");
+	// The layout of evicted frames is not kept.
+	QVERIFY(trade.truncated());
+	QCOMPARE(trade.layoutCount(), std::size_t(1));
+	QCOMPARE_GE(trade.firstTime(), 50);
+	QCOMPARE_GE(trade.size(), std::size_t(5));
+	QCOMPARE_LE(trade.payloadBytes(), trade.budgetBytes());
+	QCOMPARE(trade.atOrBefore(0)->trains.size(), std::size_t(6));
+	QCOMPARE(trade.atOrBefore(95)->trains.size(), std::size_t(6));
+}
 
-	// Frames with the shape of Copenhagen and of the Netherlands scene fit the default budget.
-	struct Shape {
-		std::size_t trains, signals, sections;
-		int frames;
+// Frames with the shape of Copenhagen and of the Netherlands scene fit the default budget.
+void TestGuiSimulationSnapshot::largeSceneFits_data() {
+	QTest::addColumn<int>("trainCount");
+	QTest::addColumn<int>("signalCount");
+	QTest::addColumn<int>("sectionCount");
+	QTest::addColumn<int>("frames");
+	QTest::newRow("Copenhagen") << 196 << 1331 << 1265 << 1601;
+	QTest::newRow("Netherlands") << 40 << 1353 << 700 << 1601;
+}
+
+void TestGuiSimulationSnapshot::largeSceneFits() {
+	QFETCH(int, trainCount);
+	QFETCH(int, signalCount);
+	QFETCH(int, sectionCount);
+	QFETCH(int, frames);
+	const int total = (frames - 1) * GuiReplayHistory::cadenceSeconds + 1;
+	const auto scene = [&](int t) {
+		return sceneSnapshot(t, static_cast<std::size_t>(trainCount), static_cast<std::size_t>(signalCount), static_cast<std::size_t>(sectionCount), total);
 	};
-	for (const Shape shape : {Shape{196, 1331, 1265, 1601}, Shape{40, 1353, 700, 1601}}) {
-		GuiReplayHistory wholeRun;
-		const int total = (shape.frames - 1) * GuiReplayHistory::cadenceSeconds + 1;
-		for (int t = 0; t < total; t += GuiReplayHistory::cadenceSeconds)
-			wholeRun.record(shared(sceneSnapshot(t, shape.trains, shape.signals, shape.sections, total)));
-		require(!wholeRun.truncated() && wholeRun.firstTime() == 0 && wholeRun.size() == static_cast<std::size_t>(shape.frames)
-				&& wholeRun.payloadBytes() < GuiReplayHistory::payloadLimit && wholeRun.layoutCount() == 1,
-			"a full run of a large scene did not fit the replay budget");
-		require(sameSnapshot(*wholeRun.atOrBefore(0), sceneSnapshot(0, shape.trains, shape.signals, shape.sections, total))
-				&& sameSnapshot(*wholeRun.atOrBefore(4000), sceneSnapshot(4000, shape.trains, shape.signals, shape.sections, total)),
-			"a frame of a large scene did not come back as recorded");
-	}
+	GuiReplayHistory wholeRun;
+	for (int t = 0; t < total; t += GuiReplayHistory::cadenceSeconds)
+		wholeRun.record(shared(scene(t)));
+	// A full run of a large scene fits the replay budget.
+	QVERIFY(!wholeRun.truncated());
+	QCOMPARE(wholeRun.firstTime(), 0);
+	QCOMPARE(wholeRun.size(), static_cast<std::size_t>(frames));
+	QCOMPARE_LT(wholeRun.payloadBytes(), GuiReplayHistory::payloadLimit);
+	QCOMPARE(wholeRun.layoutCount(), std::size_t(1));
+	// A frame of a large scene comes back as recorded.
+	QVERIFY(sameSnapshot(*wholeRun.atOrBefore(0), scene(0)));
+	QVERIFY(sameSnapshot(*wholeRun.atOrBefore(4000), scene(4000)));
+}
 
-	history.clear();
+void TestGuiSimulationSnapshot::countsServiceId() {
+	GuiReplayHistory history;
 	auto withoutService = std::make_shared<GuiSimulationSnapshot>();
 	withoutService->trains.push_back(GuiTrainState{});
 	history.record(withoutService);
@@ -641,20 +837,25 @@ int main() {
 	withService->trains.push_back(GuiTrainState{});
 	withService->trains.front().serviceId = std::string(1000, 's');
 	history.record(withService);
-	require(history.atOrBefore(0)->trains.front().serviceId == std::string(1000, 's')
-			&& history.payloadBytes() >= bytesWithoutService + 900,
-		"service id is not part of the train state or the replay byte count");
-	history.clear();
+	// The service id is part of the train state and of the replay byte count.
+	QCOMPARE(history.atOrBefore(0)->trains.front().serviceId, std::string(1000, 's'));
+	QCOMPARE_GE(history.payloadBytes(), bytesWithoutService + 900);
+}
+
+void TestGuiSimulationSnapshot::countsSignalStates() {
+	GuiReplayHistory history;
 	auto withSignals = std::make_shared<GuiSimulationSnapshot>();
 	withSignals->signalStates.resize(1000);
 	for (auto& signal : withSignals->signalStates)
 		signal.sectionId = std::string(100, 'x');
 	history.record(withSignals);
-	require(history.payloadBytes() >= 1000 * (sizeof(GuiSignalState) + 100),
-		"signal states are not part of the replay byte count");
+	// The signal states are part of the replay byte count.
+	QCOMPARE_GE(history.payloadBytes(), 1000 * (sizeof(GuiSignalState) + 100));
+}
 
-	// Strings that vary are stored once, so repeated passenger frames stay small, and a frame
-	// that cannot fit the budget turns replay off.
+// Strings that vary are stored once, so repeated passenger frames stay small, and a frame
+// that cannot fit the budget turns replay off.
+void TestGuiSimulationSnapshot::storesStringsOnce() {
 	GuiReplayHistory passengersOnly(8u << 20);
 	auto crowd = std::make_shared<GuiSimulationSnapshot>();
 	crowd->passengers.resize(10000);
@@ -664,19 +865,28 @@ int main() {
 		frame->timestep = t * GuiReplayHistory::cadenceSeconds;
 		passengersOnly.record(frame);
 	}
-	require(!passengersOnly.truncated() && passengersOnly.size() == 12 && passengersOnly.payloadBytes() <= passengersOnly.budgetBytes(),
-		"equal strings were stored once per passenger");
+	// Equal strings are stored once, not once per passenger.
+	QVERIFY(!passengersOnly.truncated());
+	QCOMPARE(passengersOnly.size(), std::size_t(12));
+	QCOMPARE_LE(passengersOnly.payloadBytes(), passengersOnly.budgetBytes());
 	crowd->passengers.front().id = std::string(passengersOnly.budgetBytes(), 'x');
 	passengersOnly.record(crowd);
-	require(passengersOnly.oversize() && passengersOnly.empty() && passengersOnly.payloadBytes() == 0 && !passengersOnly.atOrBefore(0),
-		"oversize frame did not disable replay");
+	// An oversize frame disables replay.
+	QVERIFY(passengersOnly.oversize());
+	QVERIFY(passengersOnly.empty());
+	QCOMPARE(passengersOnly.payloadBytes(), std::size_t(0));
+	QVERIFY(!passengersOnly.atOrBefore(0));
 	// A small frame is refused too once replay is off for the run.
 	auto tiny = std::make_shared<GuiSimulationSnapshot>();
 	tiny->timestep = 500;
 	passengersOnly.record(tiny);
-	require(passengersOnly.empty() && passengersOnly.oversize(), "a history without replay recorded a frame");
+	// A history without replay records no frame.
+	QVERIFY(passengersOnly.empty());
+	QVERIFY(passengersOnly.oversize());
+}
 
-	// There is no frame count limit: far more frames than any fixed limit stay.
+// There is no frame count limit: far more frames than any fixed limit stay.
+void TestGuiSimulationSnapshot::noFrameCountLimit() {
 	GuiReplayHistory many;
 	for (int t = 0; t < 9000 * GuiReplayHistory::cadenceSeconds; t += GuiReplayHistory::cadenceSeconds) {
 		auto frame = std::make_shared<GuiSimulationSnapshot>();
@@ -684,10 +894,15 @@ int main() {
 		frame->totalTimesteps = 9000 * GuiReplayHistory::cadenceSeconds + 1;
 		many.record(frame);
 	}
-	require(many.size() == 9000 && !many.truncated() && many.firstTime() == 0, "the number of frames is limited");
+	// The number of frames is not limited.
+	QCOMPARE(many.size(), std::size_t(9000));
+	QVERIFY(!many.truncated());
+	QCOMPARE(many.firstTime(), 0);
+}
 
-	// The window receives the history by move. A moved history gives the same frames back, and it
-	// still records: the string table of the new object serves a frame that is recorded afterwards.
+// The window receives the history by move. A moved history gives the same frames back, and it
+// still records: the string table of the new object serves a frame that is recorded afterwards.
+void TestGuiSimulationSnapshot::movedHistory() {
 	GuiReplayHistory source;
 	std::vector<GuiSimulationSnapshot> kept;
 	for (int t = 0; t < 50; t += GuiReplayHistory::cadenceSeconds) {
@@ -699,10 +914,15 @@ int main() {
 	assigned = std::move(moved);
 	kept.push_back(sampleSnapshot(50, 3, 600));
 	assigned.record(shared(kept.back()));
-	require(assigned.size() == kept.size(), "a moved history did not keep its frames or refused a new one");
+	// A moved history keeps its frames and takes a new one.
+	QCOMPARE(assigned.size(), kept.size());
 	for (const GuiSimulationSnapshot& expected : kept) {
 		const auto back = assigned.atOrBefore(expected.timestep);
-		require(back && sameSnapshot(*back, expected), "a frame of a moved history did not come back as recorded");
+		// A frame of a moved history comes back as recorded.
+		QVERIFY(back);
+		QVERIFY(sameSnapshot(*back, expected));
 	}
-	return 0;
 }
+
+QTEST_APPLESS_MAIN(TestGuiSimulationSnapshot)
+#include "test_guisimulationsnapshot.moc"
