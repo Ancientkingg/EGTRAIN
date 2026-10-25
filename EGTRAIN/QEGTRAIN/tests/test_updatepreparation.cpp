@@ -1,27 +1,22 @@
 #include "update/UpdatePreparation.h"
 
-#include <QCryptographicHash>
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
+#include <QScopeGuard>
 #include <QStandardPaths>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QThread>
 #include <QTimer>
 
 #include <chrono>
 #include <functional>
-#include <iostream>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static bool writeFile(const QString& path, const QByteArray& contents) {
 	QFile file(path);
@@ -46,6 +41,7 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 								  QString* error) {
 		outcome.stagerRan = true;
 		outcome.stagerThread = QThread::currentThread();
+		// The stager takes a while, in which the event loop of the application thread keeps running.
 		QThread::msleep(150);
 		return stager ? stager(stagerInput, error) : QString();
 	});
@@ -75,7 +71,7 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 	heartbeat.stop();
 	thread->quit();
 	if (!thread->wait(5000))
-		std::cerr << "failed: preparation thread stopped\n";
+		qWarning("the preparation thread did not stop");
 	delete thread;
 	return outcome;
 }
@@ -83,142 +79,6 @@ static PreparationOutcome runPreparation(const UpdatePreparationInput& input,
 static bool setModificationTime(const QString& path, const QDateTime& time) {
 	QFile file(path);
 	return file.open(QIODevice::ReadWrite | QIODevice::ExistingOnly) && file.setFileTime(time, QFileDevice::FileModificationTime);
-}
-
-static bool testStaleStagingSweep(const QString& base) {
-	const QDir parent(QDir(base).filePath("sweep"));
-	const QString stale = parent.filePath(".qegtrain-update-stale");
-	const QString empty = parent.filePath(".qegtrain-update-empty");
-	const QString other = parent.filePath("other");
-	const QString upper = parent.filePath(".QEGTRAIN-UPDATE-upper");
-	const QString file = parent.filePath(".qegtrain-update-file");
-	const QString target = parent.filePath("target");
-	const QString link = parent.filePath(".qegtrain-update-link");
-	bool ok = expect(QDir().mkpath(stale + "/extract") && QDir().mkpath(empty) && QDir().mkpath(other)
-			&& QDir().mkpath(target) && writeFile(stale + "/package.zip", "p") && writeFile(stale + "/extract/file", "f")
-			&& writeFile(other + "/file", "o") && QDir().mkpath(upper) && writeFile(upper + "/file", "u") && writeFile(file, "f")
-			&& writeFile(target + "/keep", "k")
-			&& QFile::link(target, link),
-		"sweep fixtures are writable");
-
-	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
-	ok &= expect(QFileInfo::exists(stale) && QFileInfo::exists(empty),
-		"a staging folder that changed within the minimum age is kept");
-
-	QThread::msleep(20);
-	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(0));
-	ok &= expect(!QFileInfo::exists(stale), "an old staging folder is removed with its content");
-	ok &= expect(!QFileInfo::exists(empty), "an old empty staging folder is removed");
-	ok &= expect(QFileInfo::exists(other + "/file"), "a folder with another name is kept");
-	ok &= expect(QFileInfo::exists(upper + "/file"), "a folder whose name differs in case is kept");
-	ok &= expect(QFileInfo::exists(file), "a file with the name of a staging folder is kept");
-	ok &= expect(QFileInfo::exists(target + "/keep"), "the target of a symbolic link is kept");
-// QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
-#if !defined(Q_OS_WIN)
-	ok &= expect(QFileInfo(link).isSymLink(), "a symbolic link with the name of a staging folder is kept");
-#endif
-
-	// The folder time is now. Only the age of the entries counts.
-	const QString oldEntries = parent.filePath(".qegtrain-update-old-entries");
-	const QString recentInside = parent.filePath(".qegtrain-update-recent-inside");
-	const QDateTime twoHoursAgo = QDateTime::currentDateTime().addSecs(-2 * 3600);
-	ok &= expect(QDir().mkpath(oldEntries) && writeFile(oldEntries + "/package.zip", "p")
-			&& QDir().mkpath(recentInside + "/extract") && writeFile(recentInside + "/package.zip", "p")
-			&& writeFile(recentInside + "/extract/file", "f"),
-		"age fixtures are writable");
-	ok &= expect(setModificationTime(oldEntries + "/package.zip", twoHoursAgo) && setModificationTime(recentInside + "/package.zip", twoHoursAgo),
-		"age fixtures can be dated");
-	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
-	ok &= expect(!QFileInfo::exists(oldEntries), "a folder whose entries are old is removed although the folder itself changed");
-	ok &= expect(QFileInfo::exists(recentInside), "a recent entry in a subfolder keeps the folder");
-
-	removeStaleUpdateStaging(QDir(base).filePath("missing"), std::chrono::minutes(0));
-	ok &= expect(!QFileInfo::exists(QDir(base).filePath("missing")), "a missing parent is left alone");
-	return ok;
-}
-
-// The failure text of the unpacking step says what failed, that nothing changed and how to try again,
-// and keeps the technical detail apart from that.
-static bool testUnpackFailureMessage() {
-	const QString timedOut = unpackFailureMessage(QStringLiteral("powershell.exe timed out."));
-	bool ok = expect(timedOut.startsWith(QStringLiteral("EGTRAIN could not unpack the downloaded update.")),
-		"the unpack failure says what failed");
-	ok &= expect(timedOut.contains(QStringLiteral("Nothing was changed.")), "the unpack failure says that nothing changed");
-	ok &= expect(timedOut.contains(QStringLiteral("Check for Updates")), "the unpack failure says how to try again");
-	ok &= expect(timedOut.endsWith(QStringLiteral("\n\nDetails: powershell.exe timed out.")),
-		"the technical detail follows the sentence");
-	ok &= expect(!unpackFailureMessage(QString()).contains(QStringLiteral("Details")), "no detail adds no details line");
-	return ok;
-}
-
-static bool testCanCreateFilesIn(const QString& base) {
-	const QString writable = QDir(base).filePath("probe-writable");
-	bool ok = expect(QDir().mkpath(writable), "probe fixture is writable");
-	ok &= expect(canCreateFilesIn(writable), "a folder that accepts files is writable");
-	ok &= expect(QDir(writable).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty(),
-		"the probe leaves no file behind");
-	ok &= expect(!canCreateFilesIn(QDir(base).filePath("probe-missing")), "a folder that does not exist is not writable");
-	ok &= expect(writeFile(base + "/probe-file", "f") && !canCreateFilesIn(base + "/probe-file"), "a file is not a writable folder");
-
-// Windows ignores the read-only attribute of a folder when a file is created in it, so only POSIX
-// permissions are covered here.
-#if !defined(Q_OS_WIN)
-	// A process that may write anywhere, such as root, creates the file in a folder without permission too.
-	const QString locked = QDir(base).filePath("probe-locked");
-	ok &= expect(QDir().mkpath(locked) && QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner),
-		"the locked fixture is made");
-	if (!QFileInfo(locked).isWritable())
-		ok &= expect(!canCreateFilesIn(locked), "a folder without write permission is not writable");
-	QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
-#endif
-	return ok;
-}
-
-// The package of an installed Windows copy is the installer. It is checked against the manifest and
-// then staged as it is: nothing is extracted, on any platform.
-static bool testInstallerStaging(const QString& base) {
-	const QString staging = QDir(base).filePath("installer-staging");
-	const QByteArray installerBytes = QByteArray("MZ") + QByteArray(5000, 'i');
-	UpdatePreparationInput input;
-	input.packagePath = QDir(staging).filePath("EGTRAIN-Setup-1.2.3-x64.exe");
-	input.stagingRoot = staging;
-	input.installer = true;
-	input.manifest.version = QStringLiteral("1.2.3");
-	input.manifest.assetName = QStringLiteral("EGTRAIN-Setup-1.2.3-x64.exe");
-	input.manifest.sha256 = QString::fromLatin1(QCryptographicHash::hash(installerBytes, QCryptographicHash::Sha256).toHex());
-	input.manifest.assetSize = installerBytes.size();
-	bool ok = expect(QDir().mkpath(staging) && writeFile(input.packagePath, installerBytes), "installer fixture is writable");
-
-	QString error;
-	ok &= expect(stageUpdatePackage(input, &error) == input.packagePath && error.isEmpty(), "the staged path of an installer is the installer");
-
-	const auto prepare = [](const UpdatePreparationInput& preparation) {
-		UpdatePreparationWorker worker;
-		UpdatePreparationResult result;
-		QObject::connect(&worker, &UpdatePreparationWorker::finished, &worker,
-			[&result](const UpdatePreparationResult& outcome) { result = outcome; });
-		worker.prepare(preparation);
-		return result;
-	};
-	const UpdatePreparationResult prepared = prepare(input);
-	ok &= expect(prepared.success && prepared.stagedPath == input.packagePath && prepared.error.isEmpty(),
-		"an installer that fits the manifest is prepared");
-	ok &= expect(QDir(staging).entryList(QDir::AllEntries | QDir::NoDotAndDotDot) == QStringList({"EGTRAIN-Setup-1.2.3-x64.exe"}),
-		"preparing an installer extracts nothing");
-
-	input.manifest.sha256 = QString(64, '0');
-	const UpdatePreparationResult mismatch = prepare(input);
-	ok &= expect(!mismatch.success && mismatch.stagedPath.isEmpty()
-			&& mismatch.error == QStringLiteral("The downloaded update failed its SHA-256 check."),
-		"an installer that differs from the manifest is not staged");
-	return ok;
-}
-
-static bool testReadOnlyLocation(const QString& base) {
-	bool ok = expect(!isReadOnlyLocation(base), "a writable folder is not a read-only location");
-	ok &= expect(isReadOnlyLocation("/private/var/folders/ab/cd/T/AppTranslocation/0123/d/QEGTRAIN.app"),
-		"an App Translocation location is a read-only location");
-	return ok;
 }
 
 #if defined(Q_OS_MACOS)
@@ -288,149 +148,342 @@ static MacStageOutcome stageMacPackageAt(const QString& stagingRoot, const QStri
 	runTool("/usr/bin/hdiutil", {"detach", "-force", stagingRoot + "/mnt"});
 	return outcome;
 }
-
-static bool testMacDiskImage(const QString& base) {
-	const QString folder = QDir(base).filePath("macos");
-	const QString fixture = folder + "/fixture/QEGTRAIN.app";
-	const QString broken = folder + "/broken/QEGTRAIN.app";
-	const QString notImage = folder + "/not-an-image.dmg";
-	const QString legacyZip = folder + "/legacy.zip";
-	bool ok = expect(buildFixtureApp(fixture, "1.2.3", true) && buildFixtureApp(broken, "1.2.3", false)
-			&& writeFile(notImage, "not a disk image"),
-		"disk image fixtures are writable");
-	const QString image = buildDiskImage(fixture, folder + "/image");
-	const QString brokenImage = buildDiskImage(broken, folder + "/broken-image");
-	ok &= expect(!image.isEmpty() && !brokenImage.isEmpty(), "the release script builds the fixture disk images");
-	// The zip package of earlier releases holds QEGTRAIN-Lebanon/QEGTRAIN.app.
-	ok &= expect(runTool("/usr/bin/ditto", {fixture, folder + "/legacy/QEGTRAIN-Lebanon/QEGTRAIN.app"})
-			&& runTool("/usr/bin/ditto", {"-c", "-k", "--keepParent", folder + "/legacy/QEGTRAIN-Lebanon", legacyZip}),
-		"the zip fixture is writable");
-	if (!ok)
-		return false;
-
-	const MacStageOutcome staged = stageMacPackageAt(folder + "/staged", image, "1.2.3");
-	QFile program(fixture + "/Contents/MacOS/QEGTRAIN");
-	QFile stagedProgram(staged.stagedPath + "/Contents/MacOS/QEGTRAIN");
-	ok &= expect(staged.stagedPath == folder + "/staged/QEGTRAIN.app" && staged.error.isEmpty(),
-		"the app is staged from a disk image");
-	ok &= expect(program.open(QIODevice::ReadOnly) && stagedProgram.open(QIODevice::ReadOnly)
-			&& program.readAll() == stagedProgram.readAll(),
-		"the staged app is the app of the disk image");
-	ok &= expect(!staged.mounted, "the disk image is detached after staging");
-
-	const QString readOnlyMount = folder + "/read-only";
-	ok &= expect(QDir().mkpath(readOnlyMount)
-			&& runTool("/usr/bin/hdiutil", {"attach", "-readonly", "-nobrowse", "-noautoopen", "-mountpoint", readOnlyMount, image}),
-		"the disk image mounts");
-	ok &= expect(isReadOnlyLocation(readOnlyMount + "/QEGTRAIN.app"), "an app on a mounted disk image is in a read-only location");
-	ok &= expect(runTool("/usr/bin/hdiutil", {"detach", readOnlyMount}) || runTool("/usr/bin/hdiutil", {"detach", "-force", readOnlyMount}),
-		"the disk image detaches");
-
-	const MacStageOutcome mismatch = stageMacPackageAt(folder + "/mismatch", image, "9.9.9");
-	ok &= expect(mismatch.stagedPath.isEmpty()
-			&& mismatch.error == QStringLiteral("The macOS update app version does not match the release manifest."),
-		"a disk image with another app version is rejected");
-	ok &= expect(!mismatch.mounted, "the disk image is detached after a version mismatch");
-
-	const MacStageOutcome invalid = stageMacPackageAt(folder + "/invalid", brokenImage, "1.2.3");
-	ok &= expect(invalid.stagedPath.isEmpty()
-			&& invalid.error == QStringLiteral("The macOS update package has an invalid app bundle."),
-		"a disk image whose app has no program is rejected");
-	ok &= expect(!invalid.mounted, "the disk image is detached after an invalid app bundle");
-
-	const MacStageOutcome unreadable = stageMacPackageAt(folder + "/unreadable", notImage, "1.2.3");
-	ok &= expect(unreadable.stagedPath.isEmpty() && !unreadable.error.isEmpty(), "a file that is no disk image is rejected");
-	ok &= expect(!unreadable.mounted, "nothing is mounted after a file that is no disk image");
-
-	const MacStageOutcome legacy = stageMacPackageAt(folder + "/legacy-staged", legacyZip, "1.2.3");
-	ok &= expect(legacy.stagedPath == folder + "/legacy-staged/QEGTRAIN.app" && legacy.error.isEmpty(),
-		"the app is still staged from a zip package");
-	return ok;
-}
 #endif
 
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
+class TestUpdatePreparation : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void stagesAppImage();
+	void failedHashNeverStages();
+	void preparesOffApplicationThread();
+	void sweepsStaleStaging();
+	void explainsUnpackFailure();
+	void detectsReadOnlyLocation();
+	void probesWritableFolder();
+	void stagesInstallerAsIs();
+	void stagesMacDiskImage();
+
+private:
+	UpdatePreparationInput baseInput(const QString& sha256) const;
+
+	QTemporaryDir m_temp;
+	QByteArray m_packageContents;
+	QString m_packagePath;
+};
+
+void TestUpdatePreparation::initTestCase() {
 	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
 	qRegisterMetaType<UpdatePreparationResult>("UpdatePreparationResult");
-	QTemporaryDir temp;
-	if (!temp.isValid())
-		return 1;
+	QVERIFY(m_temp.isValid());
+	m_packageContents = QByteArray(3 * 1024 * 1024, 'p');
+	for (int offset = 0; offset < m_packageContents.size(); offset += 4096)
+		m_packageContents[offset] = static_cast<char>(offset % 251);
+	m_packagePath = QDir(m_temp.path()).filePath(QStringLiteral("package.zip"));
+	QVERIFY2(writeFile(m_packagePath, m_packageContents), "package fixture is writable");
+}
 
-	bool ok = true;
+UpdatePreparationInput TestUpdatePreparation::baseInput(const QString& sha256) const {
+	UpdatePreparationInput input;
+	input.packagePath = m_packagePath;
+	input.stagingRoot = QDir(m_temp.path()).filePath(QStringLiteral("staging"));
+	input.currentPath = QDir(m_temp.path()).filePath(QStringLiteral("current"));
+	input.manifest.version = QStringLiteral("1.2.3");
+	input.manifest.assetName = QStringLiteral("package.zip");
+	input.manifest.sha256 = sha256;
+	input.manifest.assetSize = m_packageContents.size();
+	return input;
+}
+
+void TestUpdatePreparation::stagesAppImage() {
 #if defined(Q_OS_LINUX)
 	UpdatePreparationInput linuxInput;
-	linuxInput.stagingRoot = temp.path();
-	linuxInput.packagePath = QDir(temp.path()).filePath("QEGTRAIN-linux-x86_64.AppImage");
-	linuxInput.currentPath = QDir(temp.path()).filePath("current.AppImage");
+	linuxInput.stagingRoot = m_temp.path();
+	linuxInput.packagePath = QDir(m_temp.path()).filePath("QEGTRAIN-linux-x86_64.AppImage");
+	linuxInput.currentPath = QDir(m_temp.path()).filePath("current.AppImage");
 	const QByteArray elfContents = QByteArray::fromHex("7f454c46") + "test AppImage";
-	ok &= expect(writeFile(linuxInput.packagePath, elfContents)
-			&& writeFile(linuxInput.currentPath, elfContents),
-		"AppImage fixtures are writable");
+	// AppImage fixtures are writable.
+	QVERIFY(writeFile(linuxInput.packagePath, elfContents));
+	QVERIFY(writeFile(linuxInput.currentPath, elfContents));
 	QString stageError;
 	const QString linuxStage = stageUpdatePackage(linuxInput, &stageError);
-	ok &= expect(!linuxStage.isEmpty() && stageError.isEmpty(),
-		"real Linux preparation accepts the production download path");
-	ok &= expect(linuxStage != linuxInput.packagePath && QFile::exists(linuxInput.packagePath),
-		"AppImage preparation keeps download and staged installation separate");
-	ok &= expect(QFileInfo(linuxStage).isExecutable(), "staged AppImage is executable");
+	// Real Linux preparation accepts the production download path.
+	QVERIFY(!linuxStage.isEmpty());
+	QVERIFY(stageError.isEmpty());
+	// AppImage preparation keeps download and staged installation separate.
+	QVERIFY(linuxStage != linuxInput.packagePath);
+	QVERIFY(QFile::exists(linuxInput.packagePath));
+	QVERIFY2(QFileInfo(linuxStage).isExecutable(), "staged AppImage is executable");
+#else
+	QSKIP("An AppImage is staged on Linux only.");
 #endif
-	QByteArray packageContents(3 * 1024 * 1024, 'p');
-	for (int offset = 0; offset < packageContents.size(); offset += 4096)
-		packageContents[offset] = static_cast<char>(offset % 251);
-	const QString packagePath = QDir(temp.path()).filePath(QStringLiteral("package.zip"));
-	ok &= expect(writeFile(packagePath, packageContents), "package fixture is writable");
-	const QString expectedSha = QString::fromLatin1(
-		QCryptographicHash::hash(packageContents, QCryptographicHash::Sha256).toHex());
-	const QThread* mainThread = QCoreApplication::instance()->thread();
+}
 
-	const auto baseInput = [&](const QString& sha256) {
-		UpdatePreparationInput input;
-		input.packagePath = packagePath;
-		input.stagingRoot = QDir(temp.path()).filePath(QStringLiteral("staging"));
-		input.currentPath = QDir(temp.path()).filePath(QStringLiteral("current"));
-		input.manifest.version = QStringLiteral("1.2.3");
-		input.manifest.assetName = QStringLiteral("package.zip");
-		input.manifest.sha256 = sha256;
-		input.manifest.assetSize = packageContents.size();
-		return input;
-	};
-
+void TestUpdatePreparation::failedHashNeverStages() {
 	PreparationOutcome failedHash = runPreparation(
 		baseInput(QString(64, '0')), [](const UpdatePreparationInput&, QString*) {
 			return QStringLiteral("should-not-stage");
 		});
-	ok &= expect(!failedHash.result.success && !failedHash.stagerRan,
-		"a failed hash never proceeds to staging");
-	ok &= expect(failedHash.result.error
-			== QStringLiteral("The downloaded update failed its SHA-256 check."),
-		"hash failure reports the SHA-256 mismatch");
-	ok &= expect(failedHash.result.stagedPath.isEmpty(),
+	// A failed hash never proceeds to staging.
+	QVERIFY(!failedHash.result.success);
+	QVERIFY(!failedHash.stagerRan);
+	// A hash failure reports the SHA-256 mismatch.
+	QCOMPARE(failedHash.result.error, QStringLiteral("The downloaded update failed its SHA-256 check."));
+	QVERIFY2(failedHash.result.stagedPath.isEmpty(),
 		"a failed hash publishes no staged path");
+}
 
-	const QString stagedPath = QDir(temp.path()).filePath(QStringLiteral("staged"));
+void TestUpdatePreparation::preparesOffApplicationThread() {
+	const QString expectedSha = QString::fromLatin1(
+		QCryptographicHash::hash(m_packageContents, QCryptographicHash::Sha256).toHex());
+	const QThread* mainThread = QCoreApplication::instance()->thread();
+	const QString stagedPath = QDir(m_temp.path()).filePath(QStringLiteral("staged"));
 	PreparationOutcome prepared = runPreparation(baseInput(expectedSha),
 		[stagedPath](const UpdatePreparationInput&, QString*) { return stagedPath; });
-	ok &= expect(prepared.result.success && prepared.result.error.isEmpty(),
-		"successful preparation completes without an error");
-	ok &= expect(prepared.result.stagedPath == stagedPath,
-		"successful preparation publishes only the resulting staged path");
-	ok &= expect(prepared.stagerRan && prepared.stagerThread
-			&& prepared.stagerThread != mainThread,
-		"preparation work runs off the application thread");
-	ok &= expect(prepared.deliveryThread == mainThread,
+	// A successful preparation completes without an error.
+	QVERIFY(prepared.result.success);
+	QVERIFY(prepared.result.error.isEmpty());
+	// A successful preparation publishes only the resulting staged path.
+	QCOMPARE(prepared.result.stagedPath, stagedPath);
+	// The preparation work runs off the application thread.
+	QVERIFY(prepared.stagerRan);
+	QVERIFY(prepared.stagerThread != nullptr);
+	QVERIFY(prepared.stagerThread != mainThread);
+	QVERIFY2(prepared.deliveryThread == mainThread,
 		"preparation completion is delivered on the application thread");
-	ok &= expect(prepared.heartbeatTicks >= 4,
-		"the event loop keeps processing events while preparation runs");
+	// The event loop keeps processing events while the preparation runs.
+	QCOMPARE_GE(prepared.heartbeatTicks, 4);
+}
 
-	ok &= testStaleStagingSweep(temp.path());
-	ok &= testUnpackFailureMessage();
-	ok &= testReadOnlyLocation(temp.path());
-	ok &= testCanCreateFilesIn(temp.path());
-	ok &= testInstallerStaging(temp.path());
-#if defined(Q_OS_MACOS)
-	ok &= testMacDiskImage(temp.path());
+void TestUpdatePreparation::sweepsStaleStaging() {
+	const QDir parent(QDir(m_temp.path()).filePath("sweep"));
+	const QString stale = parent.filePath(".qegtrain-update-stale");
+	const QString empty = parent.filePath(".qegtrain-update-empty");
+	const QString other = parent.filePath("other");
+	const QString upper = parent.filePath(".QEGTRAIN-UPDATE-upper");
+	const QString file = parent.filePath(".qegtrain-update-file");
+	const QString target = parent.filePath("target");
+	const QString link = parent.filePath(".qegtrain-update-link");
+	// The sweep fixtures are writable.
+	QVERIFY(QDir().mkpath(stale + "/extract"));
+	QVERIFY(QDir().mkpath(empty));
+	QVERIFY(QDir().mkpath(other));
+	QVERIFY(QDir().mkpath(target));
+	QVERIFY(writeFile(stale + "/package.zip", "p"));
+	QVERIFY(writeFile(stale + "/extract/file", "f"));
+	QVERIFY(writeFile(other + "/file", "o"));
+	QVERIFY(QDir().mkpath(upper));
+	QVERIFY(writeFile(upper + "/file", "u"));
+	QVERIFY(writeFile(file, "f"));
+	QVERIFY(writeFile(target + "/keep", "k"));
+	QVERIFY(QFile::link(target, link));
+
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
+	// A staging folder that changed within the minimum age is kept.
+	QVERIFY(QFileInfo::exists(stale));
+	QVERIFY(QFileInfo::exists(empty));
+
+	// A minimum age of zero removes a folder whose newest entry changed before now.
+	QTRY_VERIFY_WITH_TIMEOUT(QFileInfo(stale + "/extract/file").lastModified() < QDateTime::currentDateTime()
+			&& QFileInfo(empty).lastModified() < QDateTime::currentDateTime(),
+		1000);
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(0));
+	QVERIFY2(!QFileInfo::exists(stale), "an old staging folder is removed with its content");
+	QVERIFY2(!QFileInfo::exists(empty), "an old empty staging folder is removed");
+	QVERIFY2(QFileInfo::exists(other + "/file"), "a folder with another name is kept");
+	QVERIFY2(QFileInfo::exists(upper + "/file"), "a folder whose name differs in case is kept");
+	QVERIFY2(QFileInfo::exists(file), "a file with the name of a staging folder is kept");
+	QVERIFY2(QFileInfo::exists(target + "/keep"), "the target of a symbolic link is kept");
+// QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
+#if !defined(Q_OS_WIN)
+	QVERIFY2(QFileInfo(link).isSymLink(), "a symbolic link with the name of a staging folder is kept");
 #endif
 
-	return ok ? 0 : 1;
+	// The folder time is now. Only the age of the entries counts.
+	const QString oldEntries = parent.filePath(".qegtrain-update-old-entries");
+	const QString recentInside = parent.filePath(".qegtrain-update-recent-inside");
+	const QDateTime twoHoursAgo = QDateTime::currentDateTime().addSecs(-2 * 3600);
+	// The age fixtures are writable.
+	QVERIFY(QDir().mkpath(oldEntries));
+	QVERIFY(writeFile(oldEntries + "/package.zip", "p"));
+	QVERIFY(QDir().mkpath(recentInside + "/extract"));
+	QVERIFY(writeFile(recentInside + "/package.zip", "p"));
+	QVERIFY(writeFile(recentInside + "/extract/file", "f"));
+	// The age fixtures can be dated.
+	QVERIFY(setModificationTime(oldEntries + "/package.zip", twoHoursAgo));
+	QVERIFY(setModificationTime(recentInside + "/package.zip", twoHoursAgo));
+	removeStaleUpdateStaging(parent.path(), std::chrono::minutes(60));
+	QVERIFY2(!QFileInfo::exists(oldEntries), "a folder whose entries are old is removed although the folder itself changed");
+	QVERIFY2(QFileInfo::exists(recentInside), "a recent entry in a subfolder keeps the folder");
+
+	removeStaleUpdateStaging(QDir(m_temp.path()).filePath("missing"), std::chrono::minutes(0));
+	QVERIFY2(!QFileInfo::exists(QDir(m_temp.path()).filePath("missing")), "a missing parent is left alone");
 }
+
+// The failure text of the unpacking step says what failed, that nothing changed and how to try again,
+// and keeps the technical detail apart from that.
+void TestUpdatePreparation::explainsUnpackFailure() {
+	const QString timedOut = unpackFailureMessage(QStringLiteral("powershell.exe timed out."));
+	QVERIFY2(timedOut.startsWith(QStringLiteral("EGTRAIN could not unpack the downloaded update.")),
+		"the unpack failure says what failed");
+	QVERIFY2(timedOut.contains(QStringLiteral("Nothing was changed.")), "the unpack failure says that nothing changed");
+	QVERIFY2(timedOut.contains(QStringLiteral("Check for Updates")), "the unpack failure says how to try again");
+	QVERIFY2(timedOut.endsWith(QStringLiteral("\n\nDetails: powershell.exe timed out.")),
+		"the technical detail follows the sentence");
+	QVERIFY2(!unpackFailureMessage(QString()).contains(QStringLiteral("Details")), "no detail adds no details line");
+}
+
+void TestUpdatePreparation::detectsReadOnlyLocation() {
+	QVERIFY2(!isReadOnlyLocation(m_temp.path()), "a writable folder is not a read-only location");
+	QVERIFY2(isReadOnlyLocation("/private/var/folders/ab/cd/T/AppTranslocation/0123/d/QEGTRAIN.app"),
+		"an App Translocation location is a read-only location");
+}
+
+void TestUpdatePreparation::probesWritableFolder() {
+	const QString base = m_temp.path();
+	const QString writable = QDir(base).filePath("probe-writable");
+	QVERIFY2(QDir().mkpath(writable), "probe fixture is writable");
+	QVERIFY2(canCreateFilesIn(writable), "a folder that accepts files is writable");
+	QVERIFY2(QDir(writable).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty(),
+		"the probe leaves no file behind");
+	QVERIFY2(!canCreateFilesIn(QDir(base).filePath("probe-missing")), "a folder that does not exist is not writable");
+	// A file is not a writable folder.
+	QVERIFY(writeFile(base + "/probe-file", "f"));
+	QVERIFY(!canCreateFilesIn(base + "/probe-file"));
+
+// Windows ignores the read-only attribute of a folder when a file is created in it, so only POSIX
+// permissions are covered here.
+#if !defined(Q_OS_WIN)
+	// A process that may write anywhere, such as root, creates the file in a folder without permission too.
+	const QString locked = QDir(base).filePath("probe-locked");
+	const auto unlock = qScopeGuard([&locked]() {
+		QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+	});
+	// The locked fixture is made.
+	QVERIFY(QDir().mkpath(locked));
+	QVERIFY(QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+	if (!QFileInfo(locked).isWritable())
+		QVERIFY2(!canCreateFilesIn(locked), "a folder without write permission is not writable");
+#endif
+}
+
+// The package of an installed Windows copy is the installer. It is checked against the manifest and
+// then staged as it is: nothing is extracted, on any platform.
+void TestUpdatePreparation::stagesInstallerAsIs() {
+	const QString staging = QDir(m_temp.path()).filePath("installer-staging");
+	const QByteArray installerBytes = QByteArray("MZ") + QByteArray(5000, 'i');
+	UpdatePreparationInput input;
+	input.packagePath = QDir(staging).filePath("EGTRAIN-Setup-1.2.3-x64.exe");
+	input.stagingRoot = staging;
+	input.installer = true;
+	input.manifest.version = QStringLiteral("1.2.3");
+	input.manifest.assetName = QStringLiteral("EGTRAIN-Setup-1.2.3-x64.exe");
+	input.manifest.sha256 = QString::fromLatin1(QCryptographicHash::hash(installerBytes, QCryptographicHash::Sha256).toHex());
+	input.manifest.assetSize = installerBytes.size();
+	// The installer fixture is writable.
+	QVERIFY(QDir().mkpath(staging));
+	QVERIFY(writeFile(input.packagePath, installerBytes));
+
+	QString error;
+	// The staged path of an installer is the installer.
+	QCOMPARE(stageUpdatePackage(input, &error), input.packagePath);
+	QVERIFY(error.isEmpty());
+
+	const auto prepare = [](const UpdatePreparationInput& preparation) {
+		UpdatePreparationWorker worker;
+		UpdatePreparationResult result;
+		QObject::connect(&worker, &UpdatePreparationWorker::finished, &worker,
+			[&result](const UpdatePreparationResult& outcome) { result = outcome; });
+		worker.prepare(preparation);
+		return result;
+	};
+	const UpdatePreparationResult prepared = prepare(input);
+	// An installer that fits the manifest is prepared.
+	QVERIFY(prepared.success);
+	QCOMPARE(prepared.stagedPath, input.packagePath);
+	QVERIFY(prepared.error.isEmpty());
+	// Preparing an installer extracts nothing.
+	QCOMPARE(QDir(staging).entryList(QDir::AllEntries | QDir::NoDotAndDotDot), QStringList({"EGTRAIN-Setup-1.2.3-x64.exe"}));
+
+	input.manifest.sha256 = QString(64, '0');
+	const UpdatePreparationResult mismatch = prepare(input);
+	// An installer that differs from the manifest is not staged.
+	QVERIFY(!mismatch.success);
+	QVERIFY(mismatch.stagedPath.isEmpty());
+	QCOMPARE(mismatch.error, QStringLiteral("The downloaded update failed its SHA-256 check."));
+}
+
+void TestUpdatePreparation::stagesMacDiskImage() {
+#if defined(Q_OS_MACOS)
+	const QString folder = QDir(m_temp.path()).filePath("macos");
+	const QString fixture = folder + "/fixture/QEGTRAIN.app";
+	const QString broken = folder + "/broken/QEGTRAIN.app";
+	const QString notImage = folder + "/not-an-image.dmg";
+	const QString legacyZip = folder + "/legacy.zip";
+	// The disk image fixtures are writable.
+	QVERIFY(buildFixtureApp(fixture, "1.2.3", true));
+	QVERIFY(buildFixtureApp(broken, "1.2.3", false));
+	QVERIFY(writeFile(notImage, "not a disk image"));
+	const QString image = buildDiskImage(fixture, folder + "/image");
+	const QString brokenImage = buildDiskImage(broken, folder + "/broken-image");
+	// The release script builds the fixture disk images.
+	QVERIFY(!image.isEmpty());
+	QVERIFY(!brokenImage.isEmpty());
+	// The zip package of earlier releases holds QEGTRAIN-Lebanon/QEGTRAIN.app.
+	// The zip fixture is writable.
+	QVERIFY(runTool("/usr/bin/ditto", {fixture, folder + "/legacy/QEGTRAIN-Lebanon/QEGTRAIN.app"}));
+	QVERIFY(runTool("/usr/bin/ditto", {"-c", "-k", "--keepParent", folder + "/legacy/QEGTRAIN-Lebanon", legacyZip}));
+
+	const MacStageOutcome staged = stageMacPackageAt(folder + "/staged", image, "1.2.3");
+	QFile program(fixture + "/Contents/MacOS/QEGTRAIN");
+	QFile stagedProgram(staged.stagedPath + "/Contents/MacOS/QEGTRAIN");
+	// The app is staged from a disk image.
+	QCOMPARE(staged.stagedPath, folder + "/staged/QEGTRAIN.app");
+	QVERIFY(staged.error.isEmpty());
+	// The staged app is the app of the disk image.
+	QVERIFY(program.open(QIODevice::ReadOnly));
+	QVERIFY(stagedProgram.open(QIODevice::ReadOnly));
+	QVERIFY(program.readAll() == stagedProgram.readAll());
+	QVERIFY2(!staged.mounted, "the disk image is detached after staging");
+
+	const QString readOnlyMount = folder + "/read-only";
+	// The disk image mounts.
+	QVERIFY(QDir().mkpath(readOnlyMount));
+	QVERIFY(runTool("/usr/bin/hdiutil", {"attach", "-readonly", "-nobrowse", "-noautoopen", "-mountpoint", readOnlyMount, image}));
+	// A failed check still detaches the image.
+	auto detach = qScopeGuard([&readOnlyMount]() { runTool("/usr/bin/hdiutil", {"detach", "-force", readOnlyMount}); });
+	QVERIFY2(isReadOnlyLocation(readOnlyMount + "/QEGTRAIN.app"), "an app on a mounted disk image is in a read-only location");
+	detach.dismiss();
+	QVERIFY2(runTool("/usr/bin/hdiutil", {"detach", readOnlyMount}) || runTool("/usr/bin/hdiutil", {"detach", "-force", readOnlyMount}),
+		"the disk image detaches");
+
+	const MacStageOutcome mismatch = stageMacPackageAt(folder + "/mismatch", image, "9.9.9");
+	// A disk image with another app version is rejected.
+	QVERIFY(mismatch.stagedPath.isEmpty());
+	QCOMPARE(mismatch.error, QStringLiteral("The macOS update app version does not match the release manifest."));
+	QVERIFY2(!mismatch.mounted, "the disk image is detached after a version mismatch");
+
+	const MacStageOutcome invalid = stageMacPackageAt(folder + "/invalid", brokenImage, "1.2.3");
+	// A disk image whose app has no program is rejected.
+	QVERIFY(invalid.stagedPath.isEmpty());
+	QCOMPARE(invalid.error, QStringLiteral("The macOS update package has an invalid app bundle."));
+	QVERIFY2(!invalid.mounted, "the disk image is detached after an invalid app bundle");
+
+	const MacStageOutcome unreadable = stageMacPackageAt(folder + "/unreadable", notImage, "1.2.3");
+	// A file that is no disk image is rejected.
+	QVERIFY(unreadable.stagedPath.isEmpty());
+	QVERIFY(!unreadable.error.isEmpty());
+	QVERIFY2(!unreadable.mounted, "nothing is mounted after a file that is no disk image");
+
+	const MacStageOutcome legacy = stageMacPackageAt(folder + "/legacy-staged", legacyZip, "1.2.3");
+	// The app is still staged from a zip package.
+	QCOMPARE(legacy.stagedPath, folder + "/legacy-staged/QEGTRAIN.app");
+	QVERIFY(legacy.error.isEmpty());
+#else
+	QSKIP("A disk image is staged on macOS only.");
+#endif
+}
+
+QTEST_GUILESS_MAIN(TestUpdatePreparation)
+#include "test_updatepreparation.moc"

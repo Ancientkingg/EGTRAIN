@@ -1,6 +1,5 @@
 #include "update/HttpTransport.h"
 
-#include <QCoreApplication>
 #include <QEventLoop>
 #include <QHash>
 #include <QHostAddress>
@@ -8,18 +7,12 @@
 #include <QPointer>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QTest>
 #include <QTimer>
 
-#include <iostream>
 #include <vector>
 
 static constexpr int kGuardMs = 10000;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 // Runs the event loop for the given time.
 static void spin(int milliseconds) {
@@ -252,206 +245,256 @@ static HttpRequest makePost(const QUrl& url, const QByteArray& body) {
 	return request;
 }
 
-static bool testSmallBody(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/small")));
-	bool ok = expect(fetch.waitFinished(), "small body: finished() arrives");
+class TestHttpTransport : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void readsSmallBody();
+	void requestHeaders();
+	void postsBody();
+	void postRedirectNotFollowed();
+	void postErrorStatus();
+	void postSendsNoCookie();
+	void readsLargeBody();
+	void redirect();
+	void relativeRedirect();
+	void redirectLoop();
+	void errorStatus();
+	void abortDuringResponse();
+	void connectionDropped();
+	void connectionRefused();
+	void releaseAfterFinished();
+	void teardownDuringRequest();
+	void plainHttpRefused();
+	void redirectToPlainHttpRefused();
+
+private:
+	TestServer m_server;
+	// The server speaks plain http, which the transport of the application refuses on Windows unless a test allows it.
+	HttpTransport* m_transport = nullptr;
+};
+
+void TestHttpTransport::initTestCase() {
+	QVERIFY2(m_server.listening, "the test server listens on the loopback address");
+	m_transport = createHttpTransport(this, true);
+}
+
+void TestHttpTransport::readsSmallBody() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/small")));
+	QVERIFY2(fetch.waitFinished(), "small body: finished() arrives");
 	spin(50);
-	ok &= expect(fetch.finishedCount == 1, "small body: finished() is emitted once");
-	ok &= expect(!fetch.failed, "small body: the reply has not failed");
-	ok &= expect(fetch.status == 200, "small body: the status code is 200");
-	ok &= expect(fetch.contentLength == smallBody().size(), "small body: contentLength() is the size of the body");
-	ok &= expect(fetch.data == smallBody(), "small body: readAll() returns the body");
-	return ok;
+	// finished() is emitted once.
+	QCOMPARE(fetch.finishedCount, 1);
+	QVERIFY2(!fetch.failed, "small body: the reply has not failed");
+	// The status code is 200.
+	QCOMPARE(fetch.status, 200);
+	// contentLength() is the size of the body.
+	QCOMPARE(fetch.contentLength, smallBody().size());
+	// readAll() returns the body.
+	QCOMPARE(fetch.data, smallBody());
 }
 
-static bool testRequestHeaders(HttpTransport& transport, const TestServer& server) {
+void TestHttpTransport::requestHeaders() {
 	const QByteArray accept = QByteArrayLiteral("application/vnd.github+json");
-	Fetch first(transport, makeRequest(server.url("/headers-first"), "EGTRAIN/9.9.9", accept));
-	bool ok = expect(first.waitFinished(), "headers: the first request finishes");
-	const RecordedRequest* recorded = server.find("/headers-first");
-	ok &= expect(recorded != nullptr, "headers: the server saw the first request");
-	if (recorded) {
-		ok &= expect(recorded->userAgent == "EGTRAIN/9.9.9", "headers: the User-Agent is the one of the request");
-		ok &= expect(recorded->accept == accept, "headers: the Accept header is the one of the request");
-	}
+	Fetch first(*m_transport, makeRequest(m_server.url("/headers-first"), "EGTRAIN/9.9.9", accept));
+	QVERIFY2(first.waitFinished(), "headers: the first request finishes");
+	const RecordedRequest* recorded = m_server.find("/headers-first");
+	if (recorded == nullptr)
+		QFAIL("headers: the server saw the first request");
+	// The User-Agent is the one of the request.
+	QCOMPARE(recorded->userAgent, QByteArray("EGTRAIN/9.9.9"));
+	// The Accept header is the one of the request.
+	QCOMPARE(recorded->accept, accept);
 
-	Fetch second(transport, makeRequest(server.url("/headers-second"), "EGTRAIN/9.9.9"));
-	ok &= expect(second.waitFinished(), "headers: the second request finishes");
-	recorded = server.find("/headers-second");
-	ok &= expect(recorded != nullptr, "headers: the server saw the second request");
-	if (recorded)
-		ok &= expect(recorded->accept != accept, "headers: an empty accept does not send the Accept value of an earlier request");
-	return ok;
+	Fetch second(*m_transport, makeRequest(m_server.url("/headers-second"), "EGTRAIN/9.9.9"));
+	QVERIFY2(second.waitFinished(), "headers: the second request finishes");
+	recorded = m_server.find("/headers-second");
+	if (recorded == nullptr)
+		QFAIL("headers: the server saw the second request");
+	QVERIFY2(recorded->accept != accept, "headers: an empty accept does not send the Accept value of an earlier request");
 }
 
-static bool testPost(HttpTransport& transport, const TestServer& server) {
+void TestHttpTransport::postsBody() {
 	const QByteArray body = bigBody();
-	Fetch fetch(transport, makePost(server.url("/post-accepted"), body), true);
-	bool ok = expect(fetch.reply != nullptr, "post: the transport posts");
-	if (!ok)
-		return false;
-	ok &= expect(fetch.waitFinished(), "post: finished() arrives");
-	ok &= expect(!fetch.failed && fetch.status == 202, "post: the status code is 202");
-	ok &= expect(fetch.retryAfter == "120", "post: header() returns a header of the response, whatever its case");
-	const RecordedRequest* recorded = server.find("/post-accepted");
-	ok &= expect(recorded != nullptr, "post: the server saw the request");
-	if (recorded) {
-		ok &= expect(recorded->method == "POST", "post: the method is POST");
-		ok &= expect(recorded->contentType == "application/json; charset=utf-8", "post: the Content-Type is the one of the request");
-		ok &= expect(recorded->userAgent == "EGTRAIN/9.9.9", "post: the User-Agent is the one of the request");
-		ok &= expect(recorded->body == body, "post: the body arrives whole");
-	}
-	return ok;
+	Fetch fetch(*m_transport, makePost(m_server.url("/post-accepted"), body), true);
+	QVERIFY2(fetch.reply != nullptr, "post: the transport posts");
+	QVERIFY2(fetch.waitFinished(), "post: finished() arrives");
+	// The status code is 202.
+	QVERIFY(!fetch.failed);
+	QCOMPARE(fetch.status, 202);
+	// header() returns a header of the response, whatever its case.
+	QCOMPARE(fetch.retryAfter, QByteArray("120"));
+	const RecordedRequest* recorded = m_server.find("/post-accepted");
+	if (recorded == nullptr)
+		QFAIL("post: the server saw the request");
+	// The method is POST.
+	QCOMPARE(recorded->method, QByteArray("POST"));
+	// The Content-Type is the one of the request.
+	QCOMPARE(recorded->contentType, QByteArray("application/json; charset=utf-8"));
+	// The User-Agent is the one of the request.
+	QCOMPARE(recorded->userAgent, QByteArray("EGTRAIN/9.9.9"));
+	// The body arrives whole.
+	QCOMPARE(recorded->body, body);
 }
 
 // A redirect of a post is a reply like any other: it is not followed.
-static bool testPostRedirectNotFollowed(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makePost(server.url("/post-redirect"), smallBody()), true);
-	bool ok = expect(fetch.waitFinished(), "post redirect: finished() arrives");
-	ok &= expect(!fetch.failed && fetch.status == 302, "post redirect: the reply is the redirect, without an error");
-	ok &= expect(fetch.location == server.url("/post-target").toEncoded(), "post redirect: header() returns the Location");
+void TestHttpTransport::postRedirectNotFollowed() {
+	Fetch fetch(*m_transport, makePost(m_server.url("/post-redirect"), smallBody()), true);
+	QVERIFY2(fetch.waitFinished(), "post redirect: finished() arrives");
+	// The reply is the redirect, without an error.
+	QVERIFY(!fetch.failed);
+	QCOMPARE(fetch.status, 302);
+	// header() returns the Location.
+	QCOMPARE(fetch.location, m_server.url("/post-target").toEncoded());
 	spin(50);
-	ok &= expect(server.find("/post-target") == nullptr, "post redirect: the redirect is not followed");
-	return ok;
+	QVERIFY2(m_server.find("/post-target") == nullptr, "post redirect: the redirect is not followed");
 }
 
-static bool testPostErrorStatus(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makePost(server.url("/missing"), smallBody()), true);
-	bool ok = expect(fetch.waitFinished(), "post 404: finished() arrives");
-	ok &= expect(fetch.failed && fetch.status == 404, "post 404: an HTTP error status is a failure with its status code");
-	return ok;
+void TestHttpTransport::postErrorStatus() {
+	Fetch fetch(*m_transport, makePost(m_server.url("/missing"), smallBody()), true);
+	QVERIFY2(fetch.waitFinished(), "post 404: finished() arrives");
+	// An HTTP error status is a failure with its status code.
+	QVERIFY(fetch.failed);
+	QCOMPARE(fetch.status, 404);
 }
 
 // A cookie that an earlier response set is not sent with a post.
-static bool testPostSendsNoCookie(HttpTransport& transport, const TestServer& server) {
-	Fetch first(transport, makeRequest(server.url("/set-cookie")));
-	bool ok = expect(first.waitFinished(), "cookie: the request that sets a cookie finishes");
-	Fetch second(transport, makePost(server.url("/cookie-check"), smallBody()), true);
-	ok &= expect(second.waitFinished(), "cookie: the post finishes");
-	const RecordedRequest* recorded = server.find("/cookie-check");
-	ok &= expect(recorded != nullptr, "cookie: the server saw the post");
-	if (recorded)
-		ok &= expect(recorded->cookie.isEmpty(), "cookie: the post sends no cookie");
-	return ok;
+void TestHttpTransport::postSendsNoCookie() {
+	Fetch first(*m_transport, makeRequest(m_server.url("/set-cookie")));
+	QVERIFY2(first.waitFinished(), "cookie: the request that sets a cookie finishes");
+	Fetch second(*m_transport, makePost(m_server.url("/cookie-check"), smallBody()), true);
+	QVERIFY2(second.waitFinished(), "cookie: the post finishes");
+	const RecordedRequest* recorded = m_server.find("/cookie-check");
+	if (recorded == nullptr)
+		QFAIL("cookie: the server saw the post");
+	QVERIFY2(recorded->cookie.isEmpty(), "cookie: the post sends no cookie");
 }
 
-static bool testLargeBody(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/big")));
+void TestHttpTransport::readsLargeBody() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/big")));
 	const QByteArray body = bigBody();
-	bool ok = expect(fetch.waitFinished(), "large body: finished() arrives");
-	ok &= expect(!fetch.failed && fetch.status == 200, "large body: the request succeeds");
-	ok &= expect(fetch.readyReads >= 1, "large body: readyRead is emitted");
-	ok &= expect(fetch.lastReceived == body.size() && fetch.lastTotal == body.size(), "large body: downloadProgress reaches the size of the body");
-	ok &= expect(fetch.data == body, "large body: all bytes arrive");
-	return ok;
+	QVERIFY2(fetch.waitFinished(), "large body: finished() arrives");
+	// The request succeeds.
+	QVERIFY(!fetch.failed);
+	QCOMPARE(fetch.status, 200);
+	// readyRead is emitted.
+	QCOMPARE_GE(fetch.readyReads, 1);
+	// downloadProgress reaches the size of the body.
+	QCOMPARE(fetch.lastReceived, body.size());
+	QCOMPARE(fetch.lastTotal, body.size());
+	// All bytes arrive.
+	QCOMPARE(fetch.data, body);
 }
 
-static bool testRedirect(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/redirect")));
-	bool ok = expect(fetch.waitFinished(), "redirect: finished() arrives");
-	ok &= expect(!fetch.failed && fetch.status == 200, "redirect: the reply is the one of the target");
-	ok &= expect(fetch.data == targetBody(), "redirect: the body is the one of the target");
-	return ok;
+void TestHttpTransport::redirect() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect")));
+	QVERIFY2(fetch.waitFinished(), "redirect: finished() arrives");
+	// The reply is the one of the target.
+	QVERIFY(!fetch.failed);
+	QCOMPARE(fetch.status, 200);
+	// The body is the one of the target.
+	QCOMPARE(fetch.data, targetBody());
 }
 
-static bool testRelativeRedirect(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/redirect-relative")));
-	bool ok = expect(fetch.waitFinished(), "relative redirect: finished() arrives");
-	ok &= expect(!fetch.failed && fetch.status == 200, "relative redirect: the reply is the one of the target");
-	ok &= expect(fetch.data == targetBody(), "relative redirect: the body is the one of the target");
-	return ok;
+void TestHttpTransport::relativeRedirect() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-relative")));
+	QVERIFY2(fetch.waitFinished(), "relative redirect: finished() arrives");
+	// The reply is the one of the target.
+	QVERIFY(!fetch.failed);
+	QCOMPARE(fetch.status, 200);
+	// The body is the one of the target.
+	QCOMPARE(fetch.data, targetBody());
 }
 
 // A server that redirects to its own address: the transport gives up after a limited number of redirects.
-static bool testRedirectLoop(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/redirect-loop")));
-	bool ok = expect(fetch.waitFinished(), "redirect loop: finished() arrives");
+void TestHttpTransport::redirectLoop() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-loop")));
+	QVERIFY2(fetch.waitFinished(), "redirect loop: finished() arrives");
 	spin(50);
-	ok &= expect(fetch.finishedCount == 1, "redirect loop: finished() is emitted once");
-	ok &= expect(fetch.failed, "redirect loop: the reply has failed");
-	ok &= expect(!fetch.error.isEmpty(), "redirect loop: errorString() is not empty");
-	return ok;
+	// finished() is emitted once.
+	QCOMPARE(fetch.finishedCount, 1);
+	QVERIFY2(fetch.failed, "redirect loop: the reply has failed");
+	QVERIFY2(!fetch.error.isEmpty(), "redirect loop: errorString() is not empty");
 }
 
-static bool testErrorStatus(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/missing")));
-	bool ok = expect(fetch.waitFinished(), "404: finished() arrives");
-	ok &= expect(fetch.failed, "404: an HTTP error status is a failure");
-	ok &= expect(fetch.status == 404, "404: the status code is 404");
-	ok &= expect(!fetch.error.isEmpty(), "404: errorString() is not empty");
-	return ok;
+void TestHttpTransport::errorStatus() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/missing")));
+	QVERIFY2(fetch.waitFinished(), "404: finished() arrives");
+	QVERIFY2(fetch.failed, "404: an HTTP error status is a failure");
+	// The status code is 404.
+	QCOMPARE(fetch.status, 404);
+	QVERIFY2(!fetch.error.isEmpty(), "404: errorString() is not empty");
 }
 
-static bool testAbortDuringResponse(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/stall")));
+void TestHttpTransport::abortDuringResponse() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/stall")));
 	fetch.abortOnData = true;
-	bool ok = expect(fetch.waitFinished(), "abort: finished() arrives");
-	ok &= expect(fetch.abortCalled, "abort: the response had started when abort() was called");
-	ok &= expect(fetch.failed, "abort: a cancelled request has failed");
-	ok &= expect(!fetch.error.isEmpty(), "abort: errorString() is not empty");
+	QVERIFY2(fetch.waitFinished(), "abort: finished() arrives");
+	QVERIFY2(fetch.abortCalled, "abort: the response had started when abort() was called");
+	QVERIFY2(fetch.failed, "abort: a cancelled request has failed");
+	QVERIFY2(!fetch.error.isEmpty(), "abort: errorString() is not empty");
 	spin(200);
-	ok &= expect(fetch.finishedCount == 1, "abort: finished() is emitted once");
-	return ok;
+	// finished() is emitted once.
+	QCOMPARE(fetch.finishedCount, 1);
 }
 
-static bool testConnectionDropped(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/drop")));
-	bool ok = expect(fetch.waitFinished(), "dropped: finished() arrives");
-	ok &= expect(fetch.failed, "dropped: the reply has failed");
-	ok &= expect(fetch.status == 0, "dropped: no status code arrives");
-	ok &= expect(!fetch.error.isEmpty(), "dropped: errorString() is not empty");
-	return ok;
+void TestHttpTransport::connectionDropped() {
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/drop")));
+	QVERIFY2(fetch.waitFinished(), "dropped: finished() arrives");
+	QVERIFY2(fetch.failed, "dropped: the reply has failed");
+	// No status code arrives.
+	QCOMPARE(fetch.status, 0);
+	QVERIFY2(!fetch.error.isEmpty(), "dropped: errorString() is not empty");
 }
 
 // Nothing listens on the port: the server that had it is closed. Some Qt builds report the refused
 // connection and some leave the request pending; a request that is still pending after a short wait is
 // aborted, as the timeouts of UpdateChecker and SelfUpdater do. Either way the reply must end as failed.
-static bool testConnectionRefused(HttpTransport& transport) {
+void TestHttpTransport::connectionRefused() {
 	QUrl url;
 	{
 		QTcpServer closed;
-		if (!expect(closed.listen(QHostAddress::LocalHost, 0), "refused: a free port is found"))
-			return false;
+		QVERIFY2(closed.listen(QHostAddress::LocalHost, 0), "refused: a free port is found");
 		url = QUrl(QStringLiteral("http://127.0.0.1:%1/").arg(closed.serverPort()));
 	}
-	Fetch fetch(transport, makeRequest(url));
-	bool ok = true;
+	Fetch fetch(*m_transport, makeRequest(url));
 	if (!fetch.waitFinished(1000)) {
-		ok &= expect(fetch.reply != nullptr, "refused: the reply exists while it is pending");
-		if (fetch.reply)
-			fetch.reply->abort();
-		ok &= expect(fetch.waitFinished(), "refused: finished() arrives once a pending request is aborted");
+		if (fetch.reply == nullptr)
+			QFAIL("refused: the reply exists while it is pending");
+		fetch.reply->abort();
+		QVERIFY2(fetch.waitFinished(), "refused: finished() arrives once a pending request is aborted");
 	}
 	spin(50);
-	ok &= expect(fetch.finishedCount == 1, "refused: finished() is emitted once");
-	ok &= expect(fetch.failed, "refused: the reply has failed");
-	ok &= expect(fetch.status == 0, "refused: no status code arrives");
-	ok &= expect(!fetch.error.isEmpty(), "refused: errorString() is not empty");
-	return ok;
+	// finished() is emitted once.
+	QCOMPARE(fetch.finishedCount, 1);
+	QVERIFY2(fetch.failed, "refused: the reply has failed");
+	// No status code arrives.
+	QCOMPARE(fetch.status, 0);
+	QVERIFY2(!fetch.error.isEmpty(), "refused: errorString() is not empty");
 }
 
-static bool testReleaseAfterFinished(HttpTransport& transport, const TestServer& server) {
+void TestHttpTransport::releaseAfterFinished() {
 	QPointer<HttpReply> released;
 	{
-		Fetch fetch(transport, makeRequest(server.url("/small")));
-		if (!expect(fetch.waitFinished(), "release: the first request finishes"))
-			return false;
+		Fetch fetch(*m_transport, makeRequest(m_server.url("/small")));
+		QVERIFY2(fetch.waitFinished(), "release: the first request finishes");
 		released = fetch.reply;
 		fetch.reply->deleteLater();
 		spin(50);
-		if (!expect(released.isNull(), "release: the reply is deleted after deleteLater()"))
-			return false;
+		QVERIFY2(released.isNull(), "release: the reply is deleted after deleteLater()");
 	}
-	Fetch next(transport, makeRequest(server.url("/small")));
-	bool ok = expect(next.waitFinished(), "release: a further request finishes");
-	ok &= expect(!next.failed && next.data == smallBody(), "release: a further request succeeds");
-	return ok;
+	Fetch next(*m_transport, makeRequest(m_server.url("/small")));
+	QVERIFY2(next.waitFinished(), "release: a further request finishes");
+	// A further request succeeds.
+	QVERIFY(!next.failed);
+	QCOMPARE(next.data, smallBody());
 }
 
 // Deleting the transport with a request in flight deletes the reply, and no signal arrives afterwards.
-static bool testTeardownDuringRequest(const TestServer& server) {
+void TestHttpTransport::teardownDuringRequest() {
 	HttpTransport* transport = createHttpTransport(nullptr, true);
-	QPointer<HttpReply> reply = transport->get(makeRequest(server.url("/stall"), "EGTRAIN/test"));
+	QPointer<HttpReply> reply = transport->get(makeRequest(m_server.url("/stall"), "EGTRAIN/test"));
 	QObject context;
 	int signalCount = 0;
 	bool dataArrived = false;
@@ -470,75 +513,51 @@ static bool testTeardownDuringRequest(const TestServer& server) {
 	loop.exec();
 	guard.stop();
 
-	bool ok = expect(dataArrived, "teardown: data arrives before the transport is deleted");
+	const bool arrivedBeforeDelete = dataArrived;
 	const int signalsBefore = signalCount;
 	delete transport;
-	ok &= expect(reply.isNull(), "teardown: the reply is deleted with the transport");
+	QVERIFY2(arrivedBeforeDelete, "teardown: data arrives before the transport is deleted");
+	QVERIFY2(reply.isNull(), "teardown: the reply is deleted with the transport");
 	spin(200);
-	ok &= expect(signalCount == signalsBefore, "teardown: no signal arrives after the transport is deleted");
-	return ok;
+	// No signal arrives after the transport is deleted.
+	QCOMPARE(signalCount, signalsBefore);
 }
 
-#ifdef Q_OS_WIN
 // The transport of the application fetches https addresses only, so a request for plain http fails
 // without a connection to the server.
-static bool testPlainHttpRefused(HttpTransport& strict, const TestServer& server) {
-	bool ok = true;
+void TestHttpTransport::plainHttpRefused() {
+#ifdef Q_OS_WIN
+	HttpTransport* strict = createHttpTransport(this);
 	{
-		Fetch fetch(strict, makeRequest(server.url("/plain-http")));
-		ok &= expect(fetch.waitFinished(), "plain http: finished() arrives");
-		ok &= expect(fetch.failed, "plain http: the reply has failed");
-		ok &= expect(fetch.status == 0, "plain http: no status code arrives");
-		ok &= expect(!fetch.error.isEmpty(), "plain http: errorString() is not empty");
+		Fetch fetch(*strict, makeRequest(m_server.url("/plain-http")));
+		QVERIFY2(fetch.waitFinished(), "plain http: finished() arrives");
+		QVERIFY2(fetch.failed, "plain http: the reply has failed");
+		// No status code arrives.
+		QCOMPARE(fetch.status, 0);
+		QVERIFY2(!fetch.error.isEmpty(), "plain http: errorString() is not empty");
 	}
 	spin(50);
-	ok &= expect(server.find("/plain-http") == nullptr, "plain http: no request reaches the server");
-	return ok;
+	QVERIFY2(m_server.find("/plain-http") == nullptr, "plain http: no request reaches the server");
+#else
+	QSKIP("Only the transport on Windows refuses plain http.");
+#endif
 }
 
 // With plain http to the loopback address allowed, a redirect to another plain http address is still
 // refused. The redirect names this server by host name, which is not the loopback address the test
 // allows, so a transport that followed it would send the request to this server.
-static bool testRedirectToPlainHttpRefused(HttpTransport& transport, const TestServer& server) {
-	Fetch fetch(transport, makeRequest(server.url("/redirect-away")));
-	bool ok = expect(fetch.waitFinished(), "redirect to http: finished() arrives");
-	ok &= expect(fetch.failed, "redirect to http: the reply has failed");
-	ok &= expect(!fetch.error.isEmpty(), "redirect to http: errorString() is not empty");
-	spin(50);
-	ok &= expect(server.find("/redirect-away-target") == nullptr, "redirect to http: the redirect is not followed");
-	return ok;
-}
-#endif
-
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
-	TestServer server;
-	if (!expect(server.listening, "the test server listens on the loopback address"))
-		return 1;
-	// The server speaks plain http, which the transport of the application refuses on Windows unless a test allows it.
-	HttpTransport* transport = createHttpTransport(&application, true);
-
-	bool ok = true;
-	ok &= testSmallBody(*transport, server);
-	ok &= testRequestHeaders(*transport, server);
-	ok &= testPost(*transport, server);
-	ok &= testPostRedirectNotFollowed(*transport, server);
-	ok &= testPostErrorStatus(*transport, server);
-	ok &= testPostSendsNoCookie(*transport, server);
-	ok &= testLargeBody(*transport, server);
-	ok &= testRedirect(*transport, server);
-	ok &= testRelativeRedirect(*transport, server);
-	ok &= testRedirectLoop(*transport, server);
-	ok &= testErrorStatus(*transport, server);
-	ok &= testAbortDuringResponse(*transport, server);
-	ok &= testConnectionDropped(*transport, server);
-	ok &= testConnectionRefused(*transport);
-	ok &= testReleaseAfterFinished(*transport, server);
-	ok &= testTeardownDuringRequest(server);
+void TestHttpTransport::redirectToPlainHttpRefused() {
 #ifdef Q_OS_WIN
-	HttpTransport* strict = createHttpTransport(&application);
-	ok &= testPlainHttpRefused(*strict, server);
-	ok &= testRedirectToPlainHttpRefused(*transport, server);
+	Fetch fetch(*m_transport, makeRequest(m_server.url("/redirect-away")));
+	QVERIFY2(fetch.waitFinished(), "redirect to http: finished() arrives");
+	QVERIFY2(fetch.failed, "redirect to http: the reply has failed");
+	QVERIFY2(!fetch.error.isEmpty(), "redirect to http: errorString() is not empty");
+	spin(50);
+	QVERIFY2(m_server.find("/redirect-away-target") == nullptr, "redirect to http: the redirect is not followed");
+#else
+	QSKIP("Only the transport on Windows refuses plain http.");
 #endif
-	return ok ? 0 : 1;
 }
+
+QTEST_GUILESS_MAIN(TestHttpTransport)
+#include "test_httptransport.moc"

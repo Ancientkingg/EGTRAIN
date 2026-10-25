@@ -9,18 +9,11 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QThread>
 
 #include <functional>
-#include <iostream>
 #include <optional>
-#include <string>
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static bool writeFile(const QString& path, const QByteArray& contents) {
 	QFile file(path);
@@ -58,16 +51,8 @@ static QStringList logLines(const QString& log) {
 	return lines;
 }
 
-static bool waitForLogLine(const QString& log, const QString& line, int timeoutMs = 10000) {
-	QElapsedTimer timer;
-	timer.start();
-	while (timer.elapsed() < timeoutMs) {
-		if (logLines(log).contains(line))
-			return true;
-		QThread::msleep(50);
-	}
-	return false;
-}
+// How long a line of a probe may take to reach the log.
+constexpr int kLogWaitMs = 10000;
 
 // Window for the scenarios in which the new version fails at once. The helper returns as soon
 // as the process has ended, so a long window only gives a slow machine room.
@@ -125,15 +110,18 @@ static QStringList recordArguments(const QString& root) {
 
 // The record that the helper left, read with the reader of the application. The bytes are checked as
 // well, because the reader also accepts CRLF and a missing last line feed.
-static bool recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateOutcome::RolledBack) {
-	bool ok = expect(QFileInfo::exists(path), "the helper leaves a record");
+static void recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateOutcome::RolledBack) {
+	QVERIFY2(QFileInfo::exists(path), "the helper leaves a record");
 	QFile file(path);
 	const QByteArray bytes = file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 	const std::optional<UpdateRecord> record = parseUpdateRecord(bytes);
-	ok &= expect(record && record->version == kUpdatedVersion, "the application reads the version of the record");
-	ok &= expect(record && record->outcome == outcome, "the application reads the outcome of the record");
-	ok &= expect(record && qAbs(record->time.secsTo(QDateTime::currentDateTimeUtc())) <= 300,
-		"the record holds the current UTC time");
+	// The application reads the version of the record.
+	QVERIFY(record.has_value());
+	QVERIFY(record->version == kUpdatedVersion);
+	// The application reads the outcome of the record.
+	QCOMPARE(record->outcome, outcome);
+	// The record holds the current UTC time.
+	QCOMPARE_LE(qAbs(record->time.secsTo(QDateTime::currentDateTimeUtc())), 300);
 	QString name = QStringLiteral("rolled-back");
 	if (outcome == UpdateOutcome::NotApplied)
 		name = QStringLiteral("not-applied");
@@ -141,9 +129,7 @@ static bool recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateO
 		name = QStringLiteral("applied");
 	const QRegularExpression format(QRegularExpression::anchoredPattern(
 		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n").arg(name)));
-	ok &= expect(format.match(QString::fromLatin1(bytes)).hasMatch(),
-		"the record is three lines, each ended by one line feed");
-	return ok;
+	QVERIFY2(format.match(QString::fromLatin1(bytes)).hasMatch(), "the record is three lines, each ended by one line feed");
 }
 
 struct HelperRun {
@@ -166,6 +152,7 @@ static HelperRun runHelperProcess(const QString& helper, const QString& root, co
 	timer.start();
 	process.start();
 	if (whileRunning) {
+		// Not a wait for the helper: until whileRunning is called, the renames of the helper are meant to fail.
 		QThread::msleep(static_cast<unsigned long>(delayMs));
 		whileRunning();
 	}
@@ -210,248 +197,20 @@ static bool installationIs(const QString& root, const QString& directory, const 
 	return readFile(QDir(root).filePath(directory + "/behavior.txt")).contains(label);
 }
 
-// A new version that exits with a failure code is replaced by the previous installation, and the record
-// that the update was applied, which the new version found at its start, by the record of the rollback.
-static bool testEarlyFailureRollsBack(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log,
-						 QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root))
-			&& writeInstallation(stagePath(root), program, "new", log,
-				QStringLiteral("mode=exit\ncode=3\nrecord=") + recordPath(root)),
-		"early failure fixtures are writable");
-	const HelperRun run = runHelper(helper, root, kFailureObserveMs, recordArguments(root));
-	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version exits with an error");
-	ok &= expect(installationIs(root, "install", "label=old"), "early failure restores the previous installation");
-	ok &= expect(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")), "early failure consumes the backup");
-#if !defined(Q_OS_WIN)
-	// On Windows a scanner can hold the crashed files, so the best-effort removal may lag.
-	ok &= expect(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old.failed")),
-		"early failure removes the failed installation");
-#endif
-	ok &= expect(waitForLogLine(log, "old started"), "early failure starts the previous version again");
-	ok &= expect(logLines(log).contains("new sees record"), "the new version finds a record at its start");
-	ok &= recordIsWritten(recordPath(root));
-	ok &= expect(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a rollback");
-	const QString install = QDir(root).filePath("install");
-	ok &= expect(ranIn(log, "new", install), "the new version starts in the installation directory");
-	ok &= expect(ranIn(log, "old", install), "the restored version starts in the installation directory");
-	const QStringList lines = logLines(log);
-	ok &= expect(lines.indexOf("new started") >= 0 && lines.indexOf("new started") < lines.indexOf("old started"),
-		"the new version ran before the previous one");
 #if defined(Q_OS_WIN)
-	QThread::msleep(300);
+// The helper does not watch the version that it starts after a rollback or an installer, so that version can
+// still run when the helper has ended. Windows keeps the program file of a running process from being opened
+// for writing, so this is true once that version has ended and its files are free.
+static bool startedVersionHasEnded(const QString& root) {
+	QFile program(QDir(root).filePath("install/app.exe"));
+	return program.open(QIODevice::ReadWrite);
+}
 #endif
-	return ok;
-}
-
-// A new version that keeps running is installed, finds the record that the update was applied at its
-// start, and the helper ends after the observation window.
-static bool testRunningVersionIsInstalled(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	const int observeMs = 1500;
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log,
-				QStringLiteral("mode=sleep\nms=6000\nrecord=") + recordPath(root)),
-		"running version fixtures are writable");
-	const HelperRun run = runHelper(helper, root, observeMs, recordArguments(root));
-	ok &= expect(run.exitCode == 0, "helper succeeds while the new version keeps running");
-	ok &= expect(run.milliseconds >= observeMs - 100, "helper watches the new version for the whole window");
-	ok &= expect(run.milliseconds < observeMs + 4000, "helper does not wait for the new version to end");
-	if (!ok)
-		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
-	ok &= expect(installationIs(root, "install", "label=new"), "running version stays installed");
-	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "running version keeps the backup");
-	ok &= expect(waitForLogLine(log, "new done"), "running version finishes");
-	ok &= expect(ranIn(log, "new", QDir(root).filePath("install")), "running version starts in the installation directory");
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the observation window");
-	ok &= expect(!logLines(log).contains("old started"), "previous version is not started again");
-	ok &= expect(logLines(log).contains("new sees record"), "the record exists before the new version starts");
-	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
-#if defined(Q_OS_WIN)
-	QThread::msleep(300);
-#endif
-	return ok;
-}
-
-// A new version that exits with code 0 right away counts as started and ends the helper early.
-static bool testCleanQuickExitIsInstalled(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	const int observeMs = 6000;
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=0"),
-		"quick exit fixtures are writable");
-	const HelperRun run = runHelper(helper, root, observeMs, recordArguments(root));
-	ok &= expect(run.exitCode == 0, "helper succeeds when the new version exits cleanly");
-	ok &= expect(run.milliseconds < observeMs - 500, "helper does not sit out the window after a clean exit");
-	if (!ok)
-		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
-	ok &= expect(installationIs(root, "install", "label=new"), "clean exit stays installed");
-	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "clean exit keeps the backup");
-	ok &= expect(!logLines(log).contains("old started"), "previous version is not started after a clean exit");
-	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
-	ok &= expect(ranIn(log, "new", QDir(root).filePath("install")), "clean exit starts in the installation directory");
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a clean exit");
-	return ok;
-}
 
 // A backup in a folder that does not exist: the first rename of the installation fails until the folder is
 // made, as it does on Windows while a file of the installation is locked.
 static QString unavailableBackup(const QString& root) {
 	return QDir(root).filePath("unavailable/install.egtrain-old");
-}
-
-// A first rename that fails for a while is tried again, and the update ends installed.
-static bool testRenameIsRetried(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	const int observeMs = 6000;
-	const int delayMs = 600;
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=0"),
-		"retry fixtures are writable");
-	const HelperRun run = runHelper(helper, root, observeMs,
-		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root), delayMs,
-		[&root]() { QDir().mkpath(QDir(root).filePath("unavailable")); });
-	ok &= expect(run.exitCode == 0, "helper succeeds when the first rename works after a few attempts");
-	ok &= expect(run.milliseconds >= delayMs - 100, "helper waited for the rename instead of giving up");
-	ok &= expect(installationIs(root, "install", "label=new"), "the new version is installed after the retries");
-	ok &= expect(readFile(unavailableBackup(root) + "/behavior.txt").contains("label=old"),
-		"the previous installation is kept as the backup");
-	ok &= expect(!logLines(log).contains("old started"), "the previous version is not started");
-	ok &= recordIsWritten(recordPath(root), UpdateOutcome::Applied);
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the retries");
-	return ok;
-}
-
-// A first rename that keeps failing leaves the previous installation as it was and starts it.
-static bool testRenameKeepsFailing(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log,
-						 QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root))
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=0"),
-		"failing rename fixtures are writable");
-	const HelperRun run = runHelper(helper, root, kFailureObserveMs,
-		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root));
-	ok &= expect(run.exitCode == 1, "helper ends with code 1 when the installation cannot be renamed");
-	ok &= expect(installationIs(root, "install", "label=old"), "the previous installation stays in place");
-	ok &= expect(!QFileInfo::exists(QDir(root).filePath("unavailable")), "no backup is made");
-	ok &= expect(waitForLogLine(log, "old started"), "the previous version is started");
-	ok &= expect(!logLines(log).contains("new started"), "the new version is not started");
-	ok &= recordIsWritten(recordPath(root), UpdateOutcome::NotApplied);
-	ok &= expect(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder of the failed attempt is removed");
-	ok &= expect(ranIn(log, "old", QDir(root).filePath("install")),
-		"the previous version starts in the installation directory");
-#if defined(Q_OS_WIN)
-	QThread::msleep(300);
-#endif
-	return ok;
-}
-
-#if defined(Q_OS_WIN)
-// A crash at startup is detected and does not leave an error dialog open.
-static bool testCrashRollsBack(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=crash"),
-		"crash fixtures are writable");
-	const HelperRun run = runHelper(helper, root, kFailureObserveMs, recordArguments(root));
-	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version crashes");
-	ok &= expect(installationIs(root, "install", "label=old"), "crash restores the previous installation");
-	ok &= expect(waitForLogLine(log, "old started"), "crash starts the previous version again");
-	ok &= recordIsWritten(recordPath(root));
-	QThread::msleep(300);
-	return ok;
-}
-
-// A package without an imported DLL fails in the loader and is replaced by the previous installation.
-static bool testMissingDllRollsBack(const QString& helper, const QString& dllProbe, const QString& dll,
-	const QString& root) {
-	const QDir directory(root);
-	const QString dllName = QFileInfo(dll).fileName();
-	bool ok = expect(QDir().mkpath(directory.filePath("install")) && QDir().mkpath(stagePath(root))
-			&& QFile::copy(dllProbe, directory.filePath("install/app.exe"))
-			&& QFile::copy(dll, directory.filePath("install/" + dllName))
-			&& QFile::copy(dllProbe, QDir(stagePath(root)).filePath("app.exe"))
-			&& writeFile(QDir(stagePath(root)).filePath("new-marker"), "new"),
-		"missing DLL fixtures are writable");
-	const HelperRun run = runHelper(helper, root, kFailureObserveMs, recordArguments(root));
-	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version cannot load a DLL");
-	ok &= expect(QFileInfo::exists(directory.filePath("install/" + dllName)),
-		"loader failure restores the previous installation");
-	ok &= expect(!QFileInfo::exists(directory.filePath("install/new-marker")),
-		"loader failure removes the new installation");
-	ok &= expect(!QFileInfo::exists(directory.filePath("install.egtrain-old")), "loader failure consumes the backup");
-	ok &= recordIsWritten(recordPath(root));
-	QThread::msleep(500);
-	return ok;
-}
-#endif
-
-// A record that cannot be written changes nothing else. The path lies below a regular file, so the
-// helper cannot create its folder; it must still restore the previous version and end normally.
-static bool testUnwritableRecordStillRollsBack(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	const QString blocker = QDir(root).filePath("blocker");
-	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=3")
-			&& writeFile(blocker, "file"),
-		"unwritable record fixtures are writable");
-	const HelperRun run = runHelper(helper, root, kFailureObserveMs,
-		updateRecordArguments(kUpdatedVersion, QDir(blocker).filePath("record.txt")));
-	ok &= expect(run.exitCode == 1, "helper ends normally with code 1 when the record cannot be written");
-	ok &= expect(installationIs(root, "install", "label=old"), "the previous installation is restored without a record");
-	ok &= expect(waitForLogLine(log, "old started"), "the previous version is started without a record");
-#if defined(Q_OS_WIN)
-	QThread::msleep(300);
-#endif
-	return ok;
-}
-
-// Options that are missing or not accepted write no record, and the helper rolls back as before.
-// Every case runs the early failure fixtures in a root of its own.
-static bool testNoRecordWithoutValidOptions(const QString& helper, const QString& program, const QString& base) {
-	struct Case {
-		const char* label;
-		QStringList (*arguments)(const QString& record);
-	};
-	const Case cases[] = {
-		{"no options", [](const QString&) { return QStringList(); }},
-		{"only --record", [](const QString& record) { return QStringList{"--record", record}; }},
-		{"a version with a letter",
-			[](const QString& record) { return QStringList{"--version", "1.2.x", "--record", record}; }},
-		{"an empty version", [](const QString& record) { return QStringList{"--version", "", "--record", record}; }},
-		{"a version of 33 digits",
-			[](const QString& record) {
-				return QStringList{"--version", QString(33, QLatin1Char('9')), "--record", record};
-			}},
-		{"a relative record path",
-			[](const QString&) { return QStringList{"--version", "9.8.7", "--record", "rel.txt"}; }},
-		{"a relative record path in a folder",
-			[](const QString&) { return QStringList{"--version", "9.8.7", "--record", "rel/record.txt"}; }}};
-	bool ok = true;
-	int number = 0;
-	for (const Case& entry : cases) {
-		const QString root = QDir(base).filePath(QStringLiteral("no-record-%1").arg(++number));
-		const QString log = QDir(root).filePath("log.txt");
-		const std::string label = entry.label;
-		ok &= expect(QDir().mkpath(root)
-				&& writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
-				&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=3"),
-			(label + ": fixtures are writable").c_str());
-		const HelperRun run = runHelper(helper, root, kFailureObserveMs, entry.arguments(recordPath(root)));
-		ok &= expect(run.exitCode == 1, (label + ": helper ends with code 1").c_str());
-		ok &= expect(installationIs(root, "install", "label=old"), (label + ": the previous installation is restored").c_str());
-		ok &= expect(waitForLogLine(log, "old started"), (label + ": the previous version is started").c_str());
-		// The helper works in the parent of the installation, which is root, so a relative path would end up here.
-		ok &= expect(!QFileInfo::exists(recordPath(root)) && !QFileInfo::exists(QDir(root).filePath("rel.txt"))
-				&& !QFileInfo::exists(QDir(root).filePath("rel")),
-			(label + ": no record is written").c_str());
-#if defined(Q_OS_WIN)
-		QThread::msleep(300);
-#endif
-	}
-	return ok;
 }
 
 // The fixtures of an installer-mode update in root: the installed application and, in the staging
@@ -480,101 +239,17 @@ static bool applicationStartedOnceWithRecord(const QString& log) {
 
 // The record of an installer-mode update: the outcome, the version, a current UTC time and the details.
 // The reader of a rolled-back update must not take it.
-static bool installerRecordIs(const QString& path, const QString& outcome, const QString& details) {
+static void installerRecordIs(const QString& path, const QString& outcome, const QString& details) {
 	const QByteArray bytes = readFile(path);
 	const QRegularExpression format(QRegularExpression::anchoredPattern(
 		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)\n%2")
 			.arg(outcome, details)));
 	const QRegularExpressionMatch match = format.match(QString::fromLatin1(bytes));
-	bool ok = expect(match.hasMatch(), "the installer record holds the outcome, the version, the time and the details");
-	ok &= expect(match.hasMatch()
-			&& qAbs(QDateTime::fromString(match.captured(1), Qt::ISODate).secsTo(QDateTime::currentDateTimeUtc())) <= 300,
-		"the installer record holds the current UTC time");
-	ok &= expect(!parseUpdateRecord(bytes), "the reader of a rolled-back update does not take an installer record");
-	return ok;
-}
-
-// An installer that exits with 0 runs with its arguments and before the application, which finds the
-// record. The helper replaces no file and clears the staging folder.
-static bool testInstallerRunsThenApplicationStarts(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallerFixtures(root, program, log, "mode=exit\ncode=0"), "installer fixtures are writable");
-	QStringList extraArguments = {"--installer-args", "/VERYSILENT /NORESTART"};
-	extraArguments += recordArguments(root);
-	const HelperRun run = runInstallerHelper(helper, root, kFailureObserveMs, extraArguments);
-	ok &= expect(run.exitCode == 0, "helper succeeds when the installer exits with 0");
-	ok &= expect(waitForLogLine(log, "app started"), "the application starts after the installer");
-	const QStringList lines = logLines(log);
-	ok &= expect(lines.contains("setup args /VERYSILENT|/NORESTART"), "the installer gets its arguments");
-	ok &= expect(lines.contains("setup sees no record"), "the record is written after the installer has ended");
-	ok &= expect(applicationStartedOnceWithRecord(log), "the application starts once, after the record is written");
-	ok &= expect(lines.indexOf("setup started") >= 0 && lines.indexOf("setup started") < lines.indexOf("app started"),
-		"the installer ran before the application");
-	ok &= installerRecordIs(recordPath(root), "installer-succeeded", QString());
-	ok &= expect(ranIn(log, "app", QDir(root).filePath("install")), "the application starts in the installation directory");
-	ok &= expect(ranIn(log, "setup", root), "the installer runs in the parent of the installation");
-	ok &= expect(installationIsUntouched(root), "the helper replaces no file of the installation");
-	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the application has started");
-	return ok;
-}
-
-// Any installer exit code other than 0 is a failure. The helper starts the application anyway and
-// records the failure with the exit code. Every code runs in a root of its own.
-static bool testFailedInstallerStartsApplication(const QString& helper, const QString& program, const QString& base) {
-	bool ok = true;
-	for (const int code : {1, 8}) {
-		const QString root = QDir(base).filePath(QStringLiteral("installer-failed-%1").arg(code));
-		const QString log = QDir(root).filePath("log.txt");
-		const std::string label = "installer exit code " + std::to_string(code) + ": ";
-		ok &= expect(QDir().mkpath(root)
-				&& writeInstallerFixtures(root, program, log, QStringLiteral("mode=exit\ncode=%1").arg(code)),
-			(label + "fixtures are writable").c_str());
-		const HelperRun run = runInstallerHelper(helper, root, kFailureObserveMs, recordArguments(root));
-		ok &= expect(run.exitCode == 1, (label + "helper ends with code 1").c_str());
-		ok &= expect(waitForLogLine(log, "app started"), (label + "the application is started").c_str());
-		ok &= expect(applicationStartedOnceWithRecord(log),
-			(label + "the application starts once, after the record is written").c_str());
-		ok &= installerRecordIs(recordPath(root), "installer-failed", QStringLiteral("exit-code=%1\n").arg(code));
-		ok &= expect(installationIsUntouched(root), (label + "the helper replaces no file of the installation").c_str());
-#if defined(Q_OS_WIN)
-		QThread::msleep(300);
-#endif
-	}
-	return ok;
-}
-
-// An installer that is not there cannot fail with a code: the record has none.
-static bool testMissingInstaller(const QString& helper, const QString& program, const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallerFixtures(root, program, log, "mode=exit\ncode=0")
-			&& QFile::remove(installerPath(root)),
-		"missing installer fixtures are writable");
-	const HelperRun run = runInstallerHelper(helper, root, kFailureObserveMs, recordArguments(root));
-	ok &= expect(run.exitCode == 1, "helper ends with code 1 when the installer is missing");
-	ok &= expect(waitForLogLine(log, "app started"), "the application is started when the installer is missing");
-	ok &= expect(applicationStartedOnceWithRecord(log), "the application starts once, after the record is written");
-	ok &= installerRecordIs(recordPath(root), "installer-failed", QString());
-	ok &= expect(!logLines(log).contains("setup started"), "no installer ran");
-	ok &= expect(installationIsUntouched(root), "the helper replaces no file of the installation");
-#if defined(Q_OS_WIN)
-	QThread::msleep(300);
-#endif
-	return ok;
-}
-
-// The installer has done its work but the application cannot be started: the helper reports that by
-// its exit code, and the record still says that the installer succeeded.
-static bool testInstallerSucceedsButApplicationDoesNotStart(const QString& helper, const QString& program,
-	const QString& root) {
-	const QString log = QDir(root).filePath("log.txt");
-	bool ok = expect(writeInstallerFixtures(root, program, log, "mode=exit\ncode=0")
-			&& QFile::remove(QDir(root).filePath("install/app" + kProbeSuffix)),
-		"missing application fixtures are writable");
-	const HelperRun run = runInstallerHelper(helper, root, kFailureObserveMs, recordArguments(root));
-	ok &= expect(run.exitCode == 1, "helper ends with code 1 when the application cannot be started");
-	ok &= expect(logLines(log).contains("setup started"), "the installer ran");
-	ok &= installerRecordIs(recordPath(root), "installer-succeeded", QString());
-	return ok;
+	QVERIFY2(match.hasMatch(), "the installer record holds the outcome, the version, the time and the details");
+	const qint64 age = qAbs(QDateTime::fromString(match.captured(1), Qt::ISODate).secsTo(QDateTime::currentDateTimeUtc()));
+	// The installer record holds the current UTC time.
+	QCOMPARE_LE(age, 300);
+	QVERIFY2(!parseUpdateRecord(bytes), "the reader of a rolled-back update does not take an installer record");
 }
 
 // The options of the update of root/install by the stage in the staging folder.
@@ -584,146 +259,550 @@ static QStringList transactionArguments(const QString& root) {
 		"--backup", directory.filePath("install.egtrain-old")};
 }
 
-// Installer mode never replaces files, so the options of the transaction are not accepted with it, and
-// the options of the installer are not accepted without it. The helper then does nothing.
-static bool testInstallerOptionsExcludeTheTransaction(const QString& helper, const QString& program,
-	const QString& base) {
-	struct Case {
-		const char* label;
-		QStringList (*arguments)(const QString& root);
-	};
-	const Case cases[] = {
-		{"an installer with the options of the transaction",
-			[](const QString& root) {
-				QStringList arguments = {"--installer", installerPath(root)};
-				arguments += transactionArguments(root);
-				return arguments;
-			}},
-		{"installer arguments without an installer", [](const QString& root) {
-			 QStringList arguments = {"--installer-args", "/VERYSILENT"};
-			 arguments += transactionArguments(root);
-			 return arguments;
-		 }}};
-	bool ok = true;
-	int number = 0;
-	for (const Case& entry : cases) {
-		const QString root = QDir(base).filePath(QStringLiteral("installer-exclusive-%1").arg(++number));
-		const QString log = QDir(root).filePath("log.txt");
-		const std::string label = entry.label;
-		ok &= expect(QDir().mkpath(root) && writeInstallerFixtures(root, program, log, "mode=exit\ncode=0")
-				&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=3"),
-			(label + ": fixtures are writable").c_str());
-		QStringList arguments = {"--parent-pid", "0", "--launch", QDir(root).filePath("install/app" + kProbeSuffix)};
-		arguments += entry.arguments(root);
-		const HelperRun run = runHelperProcess(helper, root, arguments);
-		ok &= expect(run.exitCode == 2, (label + ": helper ends with the usage code").c_str());
-		ok &= expect(logLines(log).isEmpty(), (label + ": nothing is started").c_str());
-		ok &= expect(QFileInfo::exists(stagePath(root)) && !QFileInfo::exists(QDir(root).filePath("install.egtrain-old"))
-				&& readFile(QDir(root).filePath("install/behavior.txt")).contains("label=app"),
-			(label + ": no file is replaced").c_str());
-	}
-	return ok;
+class TestUpdateHelper : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void installsStagedFile();
+	void rollsBackWhenRelaunchFails();
+	void installsStagedDirectory();
+	void earlyFailureRollsBack();
+	void runningVersionIsInstalled();
+	void cleanQuickExitIsInstalled();
+	void renameIsRetried();
+	void renameKeepsFailing();
+	void unwritableRecordStillRollsBack();
+	void noRecordWithoutValidOptions_data();
+	void noRecordWithoutValidOptions();
+	void installerRunsThenApplicationStarts();
+	void failedInstallerStartsApplication_data();
+	void failedInstallerStartsApplication();
+	void missingInstaller();
+	void installerSucceedsButApplicationDoesNotStart();
+	void installerOptionsExcludeTheTransaction_data();
+	void installerOptionsExcludeTheTransaction();
+	void crashRollsBack();
+	void missingDllRollsBack();
+
+private:
+	// A folder of the scenario in the temporary folder.
+	QString scenarioRoot(const char* name) const;
+
+	QTemporaryDir m_temp;
+	QString m_helper;
+	// The probe that stands in for an installed application.
+	QString m_probe;
+	// A copy of the probe that exits with 0 at once, for the updates that start the application.
+	QString m_application;
+#if defined(Q_OS_WIN)
+	// A probe that needs the DLL next to it.
+	QString m_dllProbe;
+	QString m_dll;
+#endif
+};
+
+void TestUpdateHelper::initTestCase() {
+	QVERIFY(m_temp.isValid());
+	m_helper = QStringLiteral(EGTRAIN_UPDATE_HELPER);
+	m_probe = QStringLiteral(EGTRAIN_UPDATE_PROBE);
+	QVERIFY2(QFileInfo(m_helper).isFile(), "the update helper exists");
+	QVERIFY2(QFileInfo(m_probe).isFile(), "the update probe exists");
+#if defined(Q_OS_WIN)
+	m_dllProbe = QStringLiteral(EGTRAIN_UPDATE_DLLPROBE);
+	m_dll = QStringLiteral(EGTRAIN_UPDATE_PROBE_DLL);
+	QVERIFY2(QFileInfo(m_dllProbe).isFile(), "the DLL probe exists");
+	QVERIFY2(QFileInfo(m_dll).isFile(), "the DLL of the probe exists");
+#endif
+	const QString application = QDir(m_temp.path()).filePath("application");
+	QVERIFY2(writeInstallation(application, m_probe, "application", QString(), "mode=exit\ncode=0"),
+		"the application to start is written");
+	m_application = QDir(application).filePath("app" + kProbeSuffix);
 }
 
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
-	if (argc == 1)
-		return 0;
-#if defined(Q_OS_WIN)
-	if (argc != 5)
-		return 2;
-#else
-	if (argc != 3)
-		return 2;
-#endif
-	const QString helper = QString::fromLocal8Bit(argv[1]);
-	const QString probe = QString::fromLocal8Bit(argv[2]);
-	QTemporaryDir temp;
-	if (!temp.isValid())
-		return 1;
+QString TestUpdateHelper::scenarioRoot(const char* name) const {
+	const QString root = QDir(m_temp.path()).filePath(name);
+	QDir().mkpath(root);
+	return root;
+}
 
-	bool ok = true;
-	const QString current = QDir(temp.path()).filePath("current.bin");
-	const QString staged = QDir(temp.path()).filePath("staged.bin");
-	const QString backup = QDir(temp.path()).filePath("backup.bin");
-	ok &= expect(writeFile(current, "old"), "fixture current file is writable");
-	ok &= expect(writeFile(staged, "new"), "fixture staged file is writable");
+// A staged file replaces the current one and the current one is kept as the backup. A stage that is
+// missing leaves the current file as it is.
+void TestUpdateHelper::installsStagedFile() {
+	const QString current = QDir(m_temp.path()).filePath("current.bin");
+	const QString staged = QDir(m_temp.path()).filePath("staged.bin");
+	const QString backup = QDir(m_temp.path()).filePath("backup.bin");
+	QVERIFY2(writeFile(current, "old"), "fixture current file is writable");
+	QVERIFY2(writeFile(staged, "new"), "fixture staged file is writable");
 	const QStringList successArguments = {
 		"--parent-pid", "0", "--current", current, "--staged", staged,
-		"--backup", backup, "--launch", QCoreApplication::applicationFilePath()};
-	ok &= expect(QProcess::execute(helper, successArguments) == 0,
-		"helper installs a staged file");
-	ok &= expect(readFile(current) == QByteArray("new"), "new file is active after helper success");
-	ok &= expect(readFile(backup) == QByteArray("old"),
-		"successful helper retains a recoverable backup");
+		"--backup", backup, "--launch", m_application};
+	// The helper installs a staged file.
+	QCOMPARE(QProcess::execute(m_helper, successArguments), 0);
+	// The new file is active after helper success.
+	QCOMPARE(readFile(current), QByteArray("new"));
+	// A successful helper retains a recoverable backup.
+	QCOMPARE(readFile(backup), QByteArray("old"));
 
-	const QString missingStage = QDir(temp.path()).filePath("missing.bin");
-	const QString rollbackBackup = QDir(temp.path()).filePath("rollback.bin");
-	ok &= expect(
-		QProcess::execute(helper,
-			{"--parent-pid", "0", "--current", current, "--staged", missingStage,
-				"--backup", rollbackBackup, "--launch", QCoreApplication::applicationFilePath()})
-			!= 0,
-		"helper rejects a missing staged file");
-	ok &= expect(readFile(current) == QByteArray("new"),
-		"failed helper leaves the active file untouched");
-	const QString rollbackStage = QDir(temp.path()).filePath("rollback-stage.bin");
-	const QString launchFailureBackup = QDir(temp.path()).filePath("launch-failure.bin");
-	ok &= expect(writeFile(current, "old-again") && writeFile(rollbackStage, "new-again"),
-		"rollback fixture is writable");
-	const QString relaunchRecord = QDir(temp.path()).filePath("relaunch-record.txt");
+	const QString missingStage = QDir(m_temp.path()).filePath("missing.bin");
+	const QString rollbackBackup = QDir(m_temp.path()).filePath("rollback.bin");
+	const int missingStageCode = QProcess::execute(m_helper,
+		{"--parent-pid", "0", "--current", current, "--staged", missingStage,
+			"--backup", rollbackBackup, "--launch", m_application});
+	// The helper rejects a missing staged file.
+	QCOMPARE_NE(missingStageCode, 0);
+	// A failed helper leaves the active file untouched.
+	QCOMPARE(readFile(current), QByteArray("new"));
+}
+
+void TestUpdateHelper::rollsBackWhenRelaunchFails() {
+	const QString current = QDir(m_temp.path()).filePath("current.bin");
+	const QString rollbackStage = QDir(m_temp.path()).filePath("rollback-stage.bin");
+	const QString launchFailureBackup = QDir(m_temp.path()).filePath("launch-failure.bin");
+	// The rollback fixture is writable.
+	QVERIFY(writeFile(current, "old-again"));
+	QVERIFY(writeFile(rollbackStage, "new-again"));
+	const QString relaunchRecord = QDir(m_temp.path()).filePath("relaunch-record.txt");
 	QStringList relaunchArguments = {"--parent-pid", "0", "--current", current, "--staged", rollbackStage,
-		"--backup", launchFailureBackup, "--launch", QDir(temp.path()).filePath("missing-launch")};
+		"--backup", launchFailureBackup, "--launch", QDir(m_temp.path()).filePath("missing-launch")};
 	relaunchArguments += updateRecordArguments(kUpdatedVersion, relaunchRecord);
-	ok &= expect(QProcess::execute(helper, relaunchArguments) != 0, "helper rolls back when relaunch fails");
-	ok &= expect(readFile(current) == QByteArray("old-again"),
-		"launch failure restores the previous file");
-	ok &= recordIsWritten(relaunchRecord);
+	// The helper rolls back when relaunch fails.
+	QCOMPARE_NE(QProcess::execute(m_helper, relaunchArguments), 0);
+	// A launch failure restores the previous file.
+	QCOMPARE(readFile(current), QByteArray("old-again"));
+	recordIsWritten(relaunchRecord);
+}
 
-	const QString currentDir = QDir(temp.path()).filePath("current-dir");
-	const QString stagedDir = QDir(temp.path()).filePath("staged-dir");
-	const QString backupDir = QDir(temp.path()).filePath("backup-dir");
+void TestUpdateHelper::installsStagedDirectory() {
+	const QString currentDir = QDir(m_temp.path()).filePath("current-dir");
+	const QString stagedDir = QDir(m_temp.path()).filePath("staged-dir");
+	const QString backupDir = QDir(m_temp.path()).filePath("backup-dir");
 	QDir().mkpath(currentDir);
 	QDir().mkpath(stagedDir);
-	ok &= expect(writeFile(QDir(currentDir).filePath("marker"), "old"),
-		"directory fixture current is writable");
-	ok &= expect(writeFile(QDir(stagedDir).filePath("marker"), "new"),
-		"directory fixture staged is writable");
+	QVERIFY2(writeFile(QDir(currentDir).filePath("marker"), "old"), "directory fixture current is writable");
+	QVERIFY2(writeFile(QDir(stagedDir).filePath("marker"), "new"), "directory fixture staged is writable");
 	QProcess directoryUpdate;
-	directoryUpdate.setProgram(helper);
+	directoryUpdate.setProgram(m_helper);
 	directoryUpdate.setArguments({"--parent-pid", "0", "--current", currentDir, "--staged", stagedDir,
-		"--backup", backupDir, "--launch", QCoreApplication::applicationFilePath()});
+		"--backup", backupDir, "--launch", m_application});
 	directoryUpdate.setWorkingDirectory(currentDir);
 	directoryUpdate.start();
 	directoryUpdate.waitForFinished();
-	ok &= expect(directoryUpdate.exitStatus() == QProcess::NormalExit
-			&& directoryUpdate.exitCode() == 0,
-		"helper installs a staged directory");
-	ok &= expect(readFile(QDir(currentDir).filePath("marker")) == QByteArray("new"),
-		"new directory is active after helper success");
-
-	const auto scenarioRoot = [&temp](const char* name) {
-		const QString root = QDir(temp.path()).filePath(name);
-		QDir().mkpath(root);
-		return root;
-	};
-	ok &= testEarlyFailureRollsBack(helper, probe, scenarioRoot("early-failure"));
-	ok &= testRunningVersionIsInstalled(helper, probe, scenarioRoot("running"));
-	ok &= testCleanQuickExitIsInstalled(helper, probe, scenarioRoot("quick-exit"));
-	ok &= testRenameIsRetried(helper, probe, scenarioRoot("rename-retried"));
-	ok &= testRenameKeepsFailing(helper, probe, scenarioRoot("rename-fails"));
-	ok &= testUnwritableRecordStillRollsBack(helper, probe, scenarioRoot("unwritable-record"));
-	ok &= testNoRecordWithoutValidOptions(helper, probe, temp.path());
-	ok &= testInstallerRunsThenApplicationStarts(helper, probe, scenarioRoot("installer"));
-	ok &= testFailedInstallerStartsApplication(helper, probe, temp.path());
-	ok &= testMissingInstaller(helper, probe, scenarioRoot("installer-missing"));
-	ok &= testInstallerSucceedsButApplicationDoesNotStart(helper, probe, scenarioRoot("installer-without-application"));
-	ok &= testInstallerOptionsExcludeTheTransaction(helper, probe, temp.path());
-#if defined(Q_OS_WIN)
-	const QString dllProbe = QString::fromLocal8Bit(argv[3]);
-	const QString dll = QString::fromLocal8Bit(argv[4]);
-	ok &= testCrashRollsBack(helper, probe, scenarioRoot("crash"));
-	ok &= testMissingDllRollsBack(helper, dllProbe, dll, scenarioRoot("missing-dll"));
-#endif
-	return ok ? 0 : 1;
+	// The helper installs a staged directory.
+	QCOMPARE(directoryUpdate.exitStatus(), QProcess::NormalExit);
+	QCOMPARE(directoryUpdate.exitCode(), 0);
+	// The new directory is active after helper success.
+	QCOMPARE(readFile(QDir(currentDir).filePath("marker")), QByteArray("new"));
 }
+
+// A new version that exits with a failure code is replaced by the previous installation, and the record
+// that the update was applied, which the new version found at its start, by the record of the rollback.
+void TestUpdateHelper::earlyFailureRollsBack() {
+	const QString root = scenarioRoot("early-failure");
+	const QString log = QDir(root).filePath("log.txt");
+	// The early failure fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log,
+		QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root)));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log,
+		QStringLiteral("mode=exit\ncode=3\nrecord=") + recordPath(root)));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper fails when the new version exits with an error.
+	QCOMPARE_NE(run.exitCode, 0);
+	QCOMPARE_NE(run.exitCode, -1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "early failure restores the previous installation");
+	QVERIFY2(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")), "early failure consumes the backup");
+#if !defined(Q_OS_WIN)
+	// On Windows a scanner can hold the crashed files, so the best-effort removal may lag.
+	QVERIFY2(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old.failed")),
+		"early failure removes the failed installation");
+#endif
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "early failure starts the previous version again",
+		kLogWaitMs);
+	QVERIFY2(logLines(log).contains("new sees record"), "the new version finds a record at its start");
+	recordIsWritten(recordPath(root));
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder is removed after a rollback");
+	const QString install = QDir(root).filePath("install");
+	QVERIFY2(ranIn(log, "new", install), "the new version starts in the installation directory");
+	QVERIFY2(ranIn(log, "old", install), "the restored version starts in the installation directory");
+	const QStringList lines = logLines(log);
+	// The new version ran before the previous one.
+	QCOMPARE_GE(lines.indexOf("new started"), 0);
+	QCOMPARE_LT(lines.indexOf("new started"), lines.indexOf("old started"));
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the restored version has ended", kLogWaitMs);
+#endif
+}
+
+// A new version that keeps running is installed, finds the record that the update was applied at its
+// start, and the helper ends after the observation window.
+void TestUpdateHelper::runningVersionIsInstalled() {
+	const QString root = scenarioRoot("running");
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 1500;
+	// The running version fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log,
+		QStringLiteral("mode=sleep\nms=6000\nrecord=") + recordPath(root)));
+	const HelperRun run = runHelper(m_helper, root, observeMs, recordArguments(root));
+	// The helper succeeds while the new version keeps running.
+	QCOMPARE(run.exitCode, 0);
+	// The helper watches the new version for the whole window.
+	QCOMPARE_GE(run.milliseconds, observeMs - 100);
+	// The helper does not wait for the new version to end.
+	QCOMPARE_LT(run.milliseconds, observeMs + 4000);
+	QVERIFY2(installationIs(root, "install", "label=new"), "running version stays installed");
+	QVERIFY2(installationIs(root, "install.egtrain-old", "label=old"), "running version keeps the backup");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("new done"), "running version finishes", kLogWaitMs);
+	QVERIFY2(ranIn(log, "new", QDir(root).filePath("install")), "running version starts in the installation directory");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder is removed after the observation window");
+	QVERIFY2(!logLines(log).contains("old started"), "previous version is not started again");
+	QVERIFY2(logLines(log).contains("new sees record"), "the record exists before the new version starts");
+	recordIsWritten(recordPath(root), UpdateOutcome::Applied);
+#if defined(Q_OS_WIN)
+	if (QTest::currentTestFailed())
+		return;
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the new version has ended", kLogWaitMs);
+#endif
+}
+
+// A new version that exits with code 0 right away counts as started and ends the helper early.
+void TestUpdateHelper::cleanQuickExitIsInstalled() {
+	const QString root = scenarioRoot("quick-exit");
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 6000;
+	// The quick exit fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=0"));
+	const HelperRun run = runHelper(m_helper, root, observeMs, recordArguments(root));
+	// The helper succeeds when the new version exits cleanly.
+	QCOMPARE(run.exitCode, 0);
+	// The helper does not sit out the window after a clean exit.
+	QCOMPARE_LT(run.milliseconds, observeMs - 500);
+	QVERIFY2(installationIs(root, "install", "label=new"), "clean exit stays installed");
+	QVERIFY2(installationIs(root, "install.egtrain-old", "label=old"), "clean exit keeps the backup");
+	QVERIFY2(!logLines(log).contains("old started"), "previous version is not started after a clean exit");
+	recordIsWritten(recordPath(root), UpdateOutcome::Applied);
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(ranIn(log, "new", QDir(root).filePath("install")), "clean exit starts in the installation directory");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder is removed after a clean exit");
+}
+
+// A first rename that fails for a while is tried again, and the update ends installed.
+void TestUpdateHelper::renameIsRetried() {
+	const QString root = scenarioRoot("rename-retried");
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 6000;
+	const int delayMs = 600;
+	// The retry fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=0"));
+	const HelperRun run = runHelper(m_helper, root, observeMs,
+		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root), delayMs,
+		[&root]() { QDir().mkpath(QDir(root).filePath("unavailable")); });
+	// The helper succeeds when the first rename works after a few attempts.
+	QCOMPARE(run.exitCode, 0);
+	// The helper waited for the rename instead of giving up.
+	QCOMPARE_GE(run.milliseconds, delayMs - 100);
+	QVERIFY2(installationIs(root, "install", "label=new"), "the new version is installed after the retries");
+	QVERIFY2(readFile(unavailableBackup(root) + "/behavior.txt").contains("label=old"),
+		"the previous installation is kept as the backup");
+	QVERIFY2(!logLines(log).contains("old started"), "the previous version is not started");
+	recordIsWritten(recordPath(root), UpdateOutcome::Applied);
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder is removed after the retries");
+}
+
+// A first rename that keeps failing leaves the previous installation as it was and starts it.
+void TestUpdateHelper::renameKeepsFailing() {
+	const QString root = scenarioRoot("rename-fails");
+	const QString log = QDir(root).filePath("log.txt");
+	// The failing rename fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log,
+		QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root)));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=0"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs,
+		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root));
+	// The helper ends with code 1 when the installation cannot be renamed.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "the previous installation stays in place");
+	QVERIFY2(!QFileInfo::exists(QDir(root).filePath("unavailable")), "no backup is made");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started", kLogWaitMs);
+	QVERIFY2(!logLines(log).contains("new started"), "the new version is not started");
+	recordIsWritten(recordPath(root), UpdateOutcome::NotApplied);
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder of the failed attempt is removed");
+	QVERIFY2(ranIn(log, "old", QDir(root).filePath("install")), "the previous version starts in the installation directory");
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// A crash at startup is detected and does not leave an error dialog open.
+void TestUpdateHelper::crashRollsBack() {
+#if defined(Q_OS_WIN)
+	const QString root = scenarioRoot("crash");
+	const QString log = QDir(root).filePath("log.txt");
+	// The crash fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=crash"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper fails when the new version crashes.
+	QCOMPARE_NE(run.exitCode, 0);
+	QCOMPARE_NE(run.exitCode, -1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "crash restores the previous installation");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "crash starts the previous version again", kLogWaitMs);
+	recordIsWritten(recordPath(root));
+	if (QTest::currentTestFailed())
+		return;
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#else
+	QSKIP("The probe crashes only on Windows.");
+#endif
+}
+
+// A package without an imported DLL fails in the loader and is replaced by the previous installation.
+void TestUpdateHelper::missingDllRollsBack() {
+#if defined(Q_OS_WIN)
+	const QString root = scenarioRoot("missing-dll");
+	const QDir directory(root);
+	const QString dllName = QFileInfo(m_dll).fileName();
+	// The missing DLL fixtures are writable.
+	QVERIFY(QDir().mkpath(directory.filePath("install")));
+	QVERIFY(QDir().mkpath(stagePath(root)));
+	QVERIFY(QFile::copy(m_dllProbe, directory.filePath("install/app.exe")));
+	QVERIFY(QFile::copy(m_dll, directory.filePath("install/" + dllName)));
+	QVERIFY(QFile::copy(m_dllProbe, QDir(stagePath(root)).filePath("app.exe")));
+	QVERIFY(writeFile(QDir(stagePath(root)).filePath("new-marker"), "new"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper fails when the new version cannot load a DLL.
+	QCOMPARE_NE(run.exitCode, 0);
+	QCOMPARE_NE(run.exitCode, -1);
+	QVERIFY2(QFileInfo::exists(directory.filePath("install/" + dllName)), "loader failure restores the previous installation");
+	QVERIFY2(!QFileInfo::exists(directory.filePath("install/new-marker")), "loader failure removes the new installation");
+	QVERIFY2(!QFileInfo::exists(directory.filePath("install.egtrain-old")), "loader failure consumes the backup");
+	recordIsWritten(recordPath(root));
+	if (QTest::currentTestFailed())
+		return;
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#else
+	QSKIP("Only the loader of Windows is covered.");
+#endif
+}
+
+// A record that cannot be written changes nothing else. The path lies below a regular file, so the
+// helper cannot create its folder; it must still restore the previous version and end normally.
+void TestUpdateHelper::unwritableRecordStillRollsBack() {
+	const QString root = scenarioRoot("unwritable-record");
+	const QString log = QDir(root).filePath("log.txt");
+	const QString blocker = QDir(root).filePath("blocker");
+	// The unwritable record fixtures are writable.
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=3"));
+	QVERIFY(writeFile(blocker, "file"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs,
+		updateRecordArguments(kUpdatedVersion, QDir(blocker).filePath("record.txt")));
+	// The helper ends normally with code 1 when the record cannot be written.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "the previous installation is restored without a record");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started without a record",
+		kLogWaitMs);
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// Options that are missing or not accepted write no record, and the helper rolls back as before.
+// Every case runs the early failure fixtures in a root of its own.
+void TestUpdateHelper::noRecordWithoutValidOptions_data() {
+	// The root of the case and the options that follow --observe-ms.
+	QTest::addColumn<QString>("root");
+	QTest::addColumn<QStringList>("arguments");
+	int number = 0;
+	const auto add = [this, &number](const char* label, QStringList (*arguments)(const QString& record)) {
+		const QString root = QDir(m_temp.path()).filePath(QStringLiteral("no-record-%1").arg(++number));
+		QTest::newRow(label) << root << arguments(recordPath(root));
+	};
+	add("no options", [](const QString&) { return QStringList(); });
+	add("only --record", [](const QString& record) { return QStringList{"--record", record}; });
+	add("a version with a letter",
+		[](const QString& record) { return QStringList{"--version", "1.2.x", "--record", record}; });
+	add("an empty version", [](const QString& record) { return QStringList{"--version", "", "--record", record}; });
+	add("a version of 33 digits",
+		[](const QString& record) { return QStringList{"--version", QString(33, QLatin1Char('9')), "--record", record}; });
+	add("a relative record path",
+		[](const QString&) { return QStringList{"--version", "9.8.7", "--record", "rel.txt"}; });
+	add("a relative record path in a folder",
+		[](const QString&) { return QStringList{"--version", "9.8.7", "--record", "rel/record.txt"}; });
+}
+
+void TestUpdateHelper::noRecordWithoutValidOptions() {
+	QFETCH(QString, root);
+	QFETCH(QStringList, arguments);
+	const QString log = QDir(root).filePath("log.txt");
+	// The fixtures are writable.
+	QVERIFY(QDir().mkpath(root));
+	QVERIFY(writeInstallation(QDir(root).filePath("install"), m_probe, "old", log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=3"));
+	const HelperRun run = runHelper(m_helper, root, kFailureObserveMs, arguments);
+	// The helper ends with code 1.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(installationIs(root, "install", "label=old"), "the previous installation is restored");
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("old started"), "the previous version is started", kLogWaitMs);
+	// No record is written. The helper works in the parent of the installation, which is root, so a relative
+	// path would end up here.
+	QVERIFY(!QFileInfo::exists(recordPath(root)));
+	QVERIFY(!QFileInfo::exists(QDir(root).filePath("rel.txt")));
+	QVERIFY(!QFileInfo::exists(QDir(root).filePath("rel")));
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the previous version has ended", kLogWaitMs);
+#endif
+}
+
+// An installer that exits with 0 runs with its arguments and before the application, which finds the
+// record. The helper replaces no file and clears the staging folder.
+void TestUpdateHelper::installerRunsThenApplicationStarts() {
+	const QString root = scenarioRoot("installer");
+	const QString log = QDir(root).filePath("log.txt");
+	QVERIFY2(writeInstallerFixtures(root, m_probe, log, "mode=exit\ncode=0"), "installer fixtures are writable");
+	QStringList extraArguments = {"--installer-args", "/VERYSILENT /NORESTART"};
+	extraArguments += recordArguments(root);
+	const HelperRun run = runInstallerHelper(m_helper, root, kFailureObserveMs, extraArguments);
+	// The helper succeeds when the installer exits with 0.
+	QCOMPARE(run.exitCode, 0);
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("app started"), "the application starts after the installer",
+		kLogWaitMs);
+	const QStringList lines = logLines(log);
+	QVERIFY2(lines.contains("setup args /VERYSILENT|/NORESTART"), "the installer gets its arguments");
+	QVERIFY2(lines.contains("setup sees no record"), "the record is written after the installer has ended");
+	QVERIFY2(applicationStartedOnceWithRecord(log), "the application starts once, after the record is written");
+	// The installer ran before the application.
+	QCOMPARE_GE(lines.indexOf("setup started"), 0);
+	QCOMPARE_LT(lines.indexOf("setup started"), lines.indexOf("app started"));
+	installerRecordIs(recordPath(root), "installer-succeeded", QString());
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(ranIn(log, "app", QDir(root).filePath("install")), "the application starts in the installation directory");
+	QVERIFY2(ranIn(log, "setup", root), "the installer runs in the parent of the installation");
+	QVERIFY2(installationIsUntouched(root), "the helper replaces no file of the installation");
+	QVERIFY2(stagingIsCleared(root, m_helper), "the staging folder is removed after the application has started");
+}
+
+// Any installer exit code other than 0 is a failure. The helper starts the application anyway and
+// records the failure with the exit code. Every code runs in a root of its own.
+void TestUpdateHelper::failedInstallerStartsApplication_data() {
+	QTest::addColumn<int>("code");
+	QTest::newRow("installer exit code 1") << 1;
+	QTest::newRow("installer exit code 8") << 8;
+}
+
+void TestUpdateHelper::failedInstallerStartsApplication() {
+	QFETCH(int, code);
+	const QString root = QDir(m_temp.path()).filePath(QStringLiteral("installer-failed-%1").arg(code));
+	const QString log = QDir(root).filePath("log.txt");
+	// The fixtures are writable.
+	QVERIFY(QDir().mkpath(root));
+	QVERIFY(writeInstallerFixtures(root, m_probe, log, QStringLiteral("mode=exit\ncode=%1").arg(code)));
+	const HelperRun run = runInstallerHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper ends with code 1.
+	QCOMPARE(run.exitCode, 1);
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("app started"), "the application is started", kLogWaitMs);
+	QVERIFY2(applicationStartedOnceWithRecord(log), "the application starts once, after the record is written");
+	installerRecordIs(recordPath(root), "installer-failed", QStringLiteral("exit-code=%1\n").arg(code));
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(installationIsUntouched(root), "the helper replaces no file of the installation");
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the application has ended", kLogWaitMs);
+#endif
+}
+
+// An installer that is not there cannot fail with a code: the record has none.
+void TestUpdateHelper::missingInstaller() {
+	const QString root = scenarioRoot("installer-missing");
+	const QString log = QDir(root).filePath("log.txt");
+	// The missing installer fixtures are writable.
+	QVERIFY(writeInstallerFixtures(root, m_probe, log, "mode=exit\ncode=0"));
+	QVERIFY(QFile::remove(installerPath(root)));
+	const HelperRun run = runInstallerHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper ends with code 1 when the installer is missing.
+	QCOMPARE(run.exitCode, 1);
+	QTRY_VERIFY2_WITH_TIMEOUT(logLines(log).contains("app started"), "the application is started when the installer is missing",
+		kLogWaitMs);
+	QVERIFY2(applicationStartedOnceWithRecord(log), "the application starts once, after the record is written");
+	installerRecordIs(recordPath(root), "installer-failed", QString());
+	if (QTest::currentTestFailed())
+		return;
+	QVERIFY2(!logLines(log).contains("setup started"), "no installer ran");
+	QVERIFY2(installationIsUntouched(root), "the helper replaces no file of the installation");
+#if defined(Q_OS_WIN)
+	QTRY_VERIFY2_WITH_TIMEOUT(startedVersionHasEnded(root), "the application has ended", kLogWaitMs);
+#endif
+}
+
+// The installer has done its work but the application cannot be started: the helper reports that by
+// its exit code, and the record still says that the installer succeeded.
+void TestUpdateHelper::installerSucceedsButApplicationDoesNotStart() {
+	const QString root = scenarioRoot("installer-without-application");
+	const QString log = QDir(root).filePath("log.txt");
+	// The missing application fixtures are writable.
+	QVERIFY(writeInstallerFixtures(root, m_probe, log, "mode=exit\ncode=0"));
+	QVERIFY(QFile::remove(QDir(root).filePath("install/app" + kProbeSuffix)));
+	const HelperRun run = runInstallerHelper(m_helper, root, kFailureObserveMs, recordArguments(root));
+	// The helper ends with code 1 when the application cannot be started.
+	QCOMPARE(run.exitCode, 1);
+	QVERIFY2(logLines(log).contains("setup started"), "the installer ran");
+	installerRecordIs(recordPath(root), "installer-succeeded", QString());
+}
+
+// Installer mode never replaces files, so the options of the transaction are not accepted with it, and
+// the options of the installer are not accepted without it. The helper then does nothing.
+void TestUpdateHelper::installerOptionsExcludeTheTransaction_data() {
+	// The root of the case and the options that follow --launch.
+	QTest::addColumn<QString>("root");
+	QTest::addColumn<QStringList>("arguments");
+	int number = 0;
+	const auto add = [this, &number](const char* label, QStringList (*arguments)(const QString& root)) {
+		const QString root = QDir(m_temp.path()).filePath(QStringLiteral("installer-exclusive-%1").arg(++number));
+		QTest::newRow(label) << root << arguments(root);
+	};
+	add("an installer with the options of the transaction", [](const QString& root) {
+		QStringList arguments = {"--installer", installerPath(root)};
+		arguments += transactionArguments(root);
+		return arguments;
+	});
+	add("installer arguments without an installer", [](const QString& root) {
+		QStringList arguments = {"--installer-args", "/VERYSILENT"};
+		arguments += transactionArguments(root);
+		return arguments;
+	});
+}
+
+void TestUpdateHelper::installerOptionsExcludeTheTransaction() {
+	QFETCH(QString, root);
+	QFETCH(QStringList, arguments);
+	const QString log = QDir(root).filePath("log.txt");
+	// The fixtures are writable.
+	QVERIFY(QDir().mkpath(root));
+	QVERIFY(writeInstallerFixtures(root, m_probe, log, "mode=exit\ncode=0"));
+	QVERIFY(writeInstallation(stagePath(root), m_probe, "new", log, "mode=exit\ncode=3"));
+	QStringList helperArguments = {"--parent-pid", "0", "--launch", QDir(root).filePath("install/app" + kProbeSuffix)};
+	helperArguments += arguments;
+	const HelperRun run = runHelperProcess(m_helper, root, helperArguments);
+	// The helper ends with the usage code.
+	QCOMPARE(run.exitCode, 2);
+	QVERIFY2(logLines(log).isEmpty(), "nothing is started");
+	// No file is replaced.
+	QVERIFY(QFileInfo::exists(stagePath(root)));
+	QVERIFY(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")));
+	QVERIFY(readFile(QDir(root).filePath("install/behavior.txt")).contains("label=app"));
+}
+
+QTEST_GUILESS_MAIN(TestUpdateHelper)
+#include "test_updatehelper.moc"

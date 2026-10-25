@@ -17,21 +17,14 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTemporaryDir>
+#include <QTest>
 #include <QTimer>
-
-#include <iostream>
 
 // Drives SelfUpdater for an installed Windows copy against a server on the loopback address. The test
 // hook of SelfUpdater replaces the capability of the running copy, so every run happens in a folder
 // of this test. The installer is never run: the helper that restart() starts is the update probe.
 
 static constexpr int kGuardMs = 20000;
-
-static bool expect(bool condition, const char* message) {
-	if (!condition)
-		std::cerr << "failed: " << message << "\n";
-	return condition;
-}
 
 static bool writeFile(const QString& path, const QByteArray& contents) {
 	QFile file(path);
@@ -314,88 +307,138 @@ public:
 	bool prepared = false;
 };
 
-// A good update downloads the manifest and the installer, checks the installer against the manifest,
-// stages only that file and extracts nothing.
-static bool testDownload(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("download"), helper);
-	scenario.serveGoodRelease();
-	SelfUpdater updater;
-	bool ok = expect(scenario.prepared && scenario.server.listening, "the scenario is prepared");
-	ok &= expect(updater.canSelfUpdate(scenario.release()), "a release with the installer can be installed");
-
-	const Outcome outcome = runUpdate(updater, scenario.release());
-	ok &= expect(outcome.finishedCount == 1 && outcome.success && outcome.error.isEmpty(), "the update finishes with success");
-	ok &= expect(outcome.preparing == QStringList({kVersion}), "the preparation names the version");
-	ok &= expect(outcome.lastReceived == scenario.package.size() && outcome.lastTotal == scenario.package.size(),
-		"the progress ends at the size of the installer");
-	ok &= expect(scenario.server.requests(kManifestPath) == 1 && scenario.server.requests(kPackagePath) == 1
-			&& scenario.server.totalRequests() == 2,
-		"the manifest and the installer are requested once");
-	ok &= expect(!updater.isBusy(), "the updater is not busy after the download");
-
-	const QStringList folders = stagingFolders(scenario.root);
-	ok &= expect(folders.size() == 1, "one staging folder is next to the installation");
-	const QString staging = folders.isEmpty() ? QString() : QDir(scenario.root).filePath(folders.first());
-	ok &= expect(readFile(staging + QStringLiteral("/") + kInstallerName) == scenario.package,
-		"the staging folder holds the installer as it was served");
-	ok &= expect(QDir(staging).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden) == QStringList({kInstallerName}),
-		"nothing is extracted and nothing else is staged");
-	ok &= expect(scenario.installationUnchanged(), "the installation is not touched by the download");
-	return ok;
-}
-
 static bool setModificationTime(const QString& path, const QDateTime& time) {
 	QFile file(path);
 	return file.open(QIODevice::ReadWrite | QIODevice::ExistingOnly) && file.setFileTime(time, QFileDevice::FileModificationTime);
 }
 
+class TestSelfUpdater : public QObject {
+	Q_OBJECT
+
+private slots:
+	void initTestCase();
+	void downloadsInstaller();
+	void removesEarlierAttempts();
+	void restartStartsInstallerMode();
+	void restartWithoutHelper();
+	void rejectsManifest_data();
+	void rejectsManifest();
+	void rejectsMissingManifest();
+	void rejectsPackageWithOtherHash();
+	void rejectsLargerPackage();
+	void rejectsSmallerPackage();
+	void failsTruncatedDownload();
+	void failsMissingPackage();
+	void refusesUntrustedPackageUrl();
+	void cancelsDownload();
+	void cancelsWhileManifestIsAwaited();
+	void reportsUnsupportedCopy();
+	void refusesReleaseWithoutInstaller();
+	void keyChoosesPackage();
+	void removesBackup();
+	void choosesPackageForDistribution();
+
+private:
+	QTemporaryDir m_temp;
+	// The update probe, which stands in for the helper.
+	QString m_probe;
+};
+
+void TestSelfUpdater::initTestCase() {
+	QStandardPaths::setTestModeEnabled(true);
+	QVERIFY(m_temp.isValid());
+	m_probe = QFileInfo(QStringLiteral(EGTRAIN_UPDATE_PROBE)).absoluteFilePath();
+	QVERIFY2(QFileInfo(m_probe).isFile(), "the update probe exists");
+}
+
+// A good update downloads the manifest and the installer, checks the installer against the manifest,
+// stages only that file and extracts nothing.
+void TestSelfUpdater::downloadsInstaller() {
+	Scenario scenario(m_temp.path(), QStringLiteral("download"), m_probe);
+	scenario.serveGoodRelease();
+	SelfUpdater updater;
+	// The scenario is prepared.
+	QVERIFY(scenario.prepared);
+	QVERIFY(scenario.server.listening);
+	QVERIFY2(updater.canSelfUpdate(scenario.release()), "a release with the installer can be installed");
+
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// The update finishes with success.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(outcome.success);
+	QVERIFY(outcome.error.isEmpty());
+	// The preparation names the version.
+	QCOMPARE(outcome.preparing, QStringList({kVersion}));
+	// The progress ends at the size of the installer.
+	QCOMPARE(outcome.lastReceived, scenario.package.size());
+	QCOMPARE(outcome.lastTotal, scenario.package.size());
+	// The manifest and the installer are requested once.
+	QCOMPARE(scenario.server.requests(kManifestPath), 1);
+	QCOMPARE(scenario.server.requests(kPackagePath), 1);
+	QCOMPARE(scenario.server.totalRequests(), 2);
+	QVERIFY2(!updater.isBusy(), "the updater is not busy after the download");
+
+	const QStringList folders = stagingFolders(scenario.root);
+	// One staging folder is next to the installation.
+	QCOMPARE(folders.size(), 1);
+	const QString staging = QDir(scenario.root).filePath(folders.first());
+	// The staging folder holds the installer as it was served.
+	QCOMPARE(readFile(staging + QStringLiteral("/") + kInstallerName), scenario.package);
+	// Nothing is extracted and nothing else is staged.
+	QCOMPARE(QDir(staging).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden), QStringList({kInstallerName}));
+	QVERIFY2(scenario.installationUnchanged(), "the installation is not touched by the download");
+}
+
 // The folders that earlier attempts left are removed when a new update starts, unless something in
 // them changed lately. The folder of the new update is not touched.
-static bool testEarlierAttemptsRemoved(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("earlier"), helper);
+void TestSelfUpdater::removesEarlierAttempts() {
+	Scenario scenario(m_temp.path(), QStringLiteral("earlier"), m_probe);
 	scenario.serveGoodRelease();
 	const QString stale = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-stale"));
 	const QString recent = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-recent"));
 	const QString zip = stale + QStringLiteral("/") + kInstallerName;
-	bool ok = expect(scenario.prepared && QDir().mkpath(stale) && writeFile(zip, "zip") && QDir().mkpath(recent) && writeFile(recent + QStringLiteral("/") + kInstallerName, "zip"),
-		"the folders of earlier attempts are written");
+	// The folders of earlier attempts are written.
+	QVERIFY(scenario.prepared);
+	QVERIFY(QDir().mkpath(stale));
+	QVERIFY(writeFile(zip, "zip"));
+	QVERIFY(QDir().mkpath(recent));
+	QVERIFY(writeFile(recent + QStringLiteral("/") + kInstallerName, "zip"));
 	const QDateTime twoHoursAgo = QDateTime::currentDateTime().addSecs(-2 * 3600);
-	ok &= expect(setModificationTime(zip, twoHoursAgo),
+	QVERIFY2(setModificationTime(zip, twoHoursAgo),
 		"the folder of the earlier attempt is dated");
 
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, scenario.release());
-	ok &= expect(outcome.success, "the update is ready");
-	ok &= expect(!QFileInfo::exists(stale), "the folder of an earlier attempt is removed when an update starts");
-	ok &= expect(QFileInfo::exists(recent), "a folder that changed lately is kept");
+	QVERIFY2(outcome.success, "the update is ready");
+	QVERIFY2(!QFileInfo::exists(stale), "the folder of an earlier attempt is removed when an update starts");
+	QVERIFY2(QFileInfo::exists(recent), "a folder that changed lately is kept");
 	const QStringList folders = stagingFolders(scenario.root);
-	ok &= expect(folders.size() == 2 && folders.contains(QStringLiteral(".qegtrain-update-recent")),
-		"the folder of the new update is next to the one that was kept");
-	const QString current = folders.size() == 2 ? QDir(scenario.root).filePath(folders.first() == QStringLiteral(".qegtrain-update-recent") ? folders.last() : folders.first()) : QString();
-	ok &= expect(readFile(current + QStringLiteral("/") + kInstallerName) == scenario.package,
-		"the folder of the new update holds its download");
-	return ok;
+	// The folder of the new update is next to the one that was kept.
+	QCOMPARE(folders.size(), 2);
+	QVERIFY(folders.contains(QStringLiteral(".qegtrain-update-recent")));
+	const QString current = QDir(scenario.root).filePath(folders.first() == QStringLiteral(".qegtrain-update-recent") ? folders.last() : folders.first());
+	// The folder of the new update holds its download.
+	QCOMPARE(readFile(current + QStringLiteral("/") + kInstallerName), scenario.package);
 }
 
 // restart() starts the helper in installer mode with the installer, the silent options, the
 // application to start and the record. The helper here is the update probe.
-static bool testRestartStartsInstallerMode(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("restart"), helper);
+void TestSelfUpdater::restartStartsInstallerMode() {
+	Scenario scenario(m_temp.path(), QStringLiteral("restart"), m_probe);
 	scenario.serveGoodRelease();
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, scenario.release());
-	bool ok = expect(outcome.success, "the update is ready");
+	QVERIFY2(outcome.success, "the update is ready");
 	const QStringList folders = stagingFolders(scenario.root);
-	ok &= expect(folders.size() == 1, "one staging folder is next to the installation");
-	if (!ok)
-		return false;
+	// One staging folder is next to the installation.
+	QCOMPARE(folders.size(), 1);
 	const QString staging = QDir(scenario.root).filePath(folders.first());
 	const QString log = QDir(scenario.root).filePath(QStringLiteral("helper.log"));
-	ok &= expect(writeFile(staging + QStringLiteral("/behavior.txt"),
-					 QStringLiteral("label=helper\nlog=%1\nmode=exit\ncode=0\n").arg(log).toUtf8()),
+	QVERIFY2(writeFile(staging + QStringLiteral("/behavior.txt"),
+				 QStringLiteral("label=helper\nlog=%1\nmode=exit\ncode=0\n").arg(log).toUtf8()),
 		"the behavior of the probe is written");
 
-	ok &= expect(updater.restart(), "the helper starts");
+	QVERIFY2(updater.restart(), "the helper starts");
 	const QString arguments = waitForLine(log, QStringLiteral("helper args "));
 	QStringList expected = {
 		QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
@@ -403,341 +446,363 @@ static bool testRestartStartsInstallerMode(const QString& base, const QString& h
 		QStringLiteral("--installer-args"), QStringLiteral("/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"),
 		QStringLiteral("--launch"), scenario.install + QStringLiteral("/QEGTRAIN.exe")};
 	expected += updateRecordArguments(SemanticVersion{1, 2, 3}, updateRecordPath());
-	ok &= expect(arguments == QStringLiteral("helper args ") + expected.join(QStringLiteral("|")),
-		"the helper gets the installer mode options and none of the options of a file replacement");
-	ok &= expect(!waitForLine(log, QStringLiteral("helper started")).isEmpty(), "the helper runs");
-	ok &= expect(scenario.installationUnchanged(), "the updater replaces no file of the installation");
-	return ok;
+	// The helper gets the installer mode options and none of the options of a file replacement.
+	QCOMPARE(arguments, QStringLiteral("helper args ") + expected.join(QStringLiteral("|")));
+	QVERIFY2(!waitForLine(log, QStringLiteral("helper started")).isEmpty(), "the helper runs");
+	QVERIFY2(scenario.installationUnchanged(), "the updater replaces no file of the installation");
 }
 
 // A helper that cannot be started leaves the installation as it is and removes the download.
-static bool testRestartWithoutHelper(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("restart-failure"), helper);
+void TestSelfUpdater::restartWithoutHelper() {
+	Scenario scenario(m_temp.path(), QStringLiteral("restart-failure"), m_probe);
 	scenario.capability.helperPath = scenario.root + QStringLiteral("/no-such-helper");
 	scenario.useCapability(scenario.capability);
 	scenario.serveGoodRelease();
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, scenario.release());
-	bool ok = expect(outcome.success && stagingFolders(scenario.root).size() == 1, "the update is ready and staged");
-	ok &= expect(!updater.restart(), "restart reports that the helper did not start");
-	ok &= expect(scenario.endedCleanly(updater), "the staging folder is removed and the installation is as it was");
-	ok &= expect(!updater.restart(), "nothing is left to restart");
-	return ok;
+	// The update is ready and staged.
+	QVERIFY(outcome.success);
+	QCOMPARE(stagingFolders(scenario.root).size(), 1);
+	QVERIFY2(!updater.restart(), "restart reports that the helper did not start");
+	QVERIFY2(scenario.endedCleanly(updater), "the staging folder is removed and the installation is as it was");
+	QVERIFY2(!updater.restart(), "nothing is left to restart");
 }
 
-struct ManifestCase {
-	const char* label;
-	QByteArray manifest;
-	// The text of the error, or an empty string when any error will do.
-	QString error;
-};
-
 // A manifest that cannot be used ends the update before the installer is requested.
-static bool testManifestRejected(const QString& base, const QString& helper) {
+void TestSelfUpdater::rejectsManifest_data() {
 	const QByteArray package = packageBytes();
 	const QString hash = sha256Of(package);
 	const QString noPackage = QStringLiteral("Update manifest has no valid package for this platform.");
 	const auto manifestFor = [&](const QString& key, const QString& name) {
 		return manifestJson(kVersion, key, name, hash, package.size());
 	};
-	const ManifestCase cases[] = {
-		{"a manifest that is no JSON", "this is not a manifest", QStringLiteral("Invalid update manifest JSON.")},
-		{"a manifest without the installer entry", manifestFor(QStringLiteral("windows-x64"), kPortableName), noPackage},
-		{"an installer entry that names the portable archive", manifestFor(kInstallerKey, kPortableName), noPackage},
-		{"an installer entry with the name of another version", manifestFor(kInstallerKey, QStringLiteral("EGTRAIN-Setup-1.2.4-x64.exe")), noPackage},
-		{"a manifest of another version", manifestJson(QStringLiteral("1.2.4"), kInstallerKey, kInstallerName, hash, package.size()),
-			QStringLiteral("Update manifest version does not match the release tag.")},
-		{"a hash that is no SHA-256", manifestJson(kVersion, kInstallerKey, kInstallerName, QStringLiteral("not-a-hash"), package.size()),
-			QStringLiteral("Update manifest has an invalid SHA-256.")},
-		{"a size of zero", manifestJson(kVersion, kInstallerKey, kInstallerName, hash, 0),
-			QStringLiteral("Update manifest has an invalid package size.")},
-		{"a manifest of more than 128 KiB", QByteArray(129 * 1024, ' '), QStringLiteral("The update manifest is too large.")}};
-	bool ok = true;
+	// The folder of the scenario, the manifest that the server sends and the text of the error, or an empty string
+	// when any error will do.
+	QTest::addColumn<QString>("folder");
+	QTest::addColumn<QByteArray>("manifest");
+	QTest::addColumn<QString>("error");
 	int index = 0;
-	for (const ManifestCase& entry : cases) {
-		Scenario scenario(base, QStringLiteral("manifest-%1").arg(index++), helper);
-		scenario.serveRelease(entry.manifest, package);
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success, entry.label);
-		ok &= expect(entry.error.isEmpty() ? !outcome.error.isEmpty() : outcome.error == entry.error, entry.label);
-		ok &= expect(scenario.server.requests(kPackagePath) == 0, "no installer is requested after an unusable manifest");
-		ok &= expect(scenario.endedCleanly(updater), entry.label);
-	}
+	const auto add = [&index](const char* label, const QByteArray& manifest, const QString& error) {
+		QTest::newRow(label) << QStringLiteral("manifest-%1").arg(index++) << manifest << error;
+	};
+	add("a manifest that is no JSON", "this is not a manifest", QStringLiteral("Invalid update manifest JSON."));
+	add("a manifest without the installer entry", manifestFor(QStringLiteral("windows-x64"), kPortableName), noPackage);
+	add("an installer entry that names the portable archive", manifestFor(kInstallerKey, kPortableName), noPackage);
+	add("an installer entry with the name of another version", manifestFor(kInstallerKey, QStringLiteral("EGTRAIN-Setup-1.2.4-x64.exe")), noPackage);
+	add("a manifest of another version", manifestJson(QStringLiteral("1.2.4"), kInstallerKey, kInstallerName, hash, package.size()),
+		QStringLiteral("Update manifest version does not match the release tag."));
+	add("a hash that is no SHA-256", manifestJson(kVersion, kInstallerKey, kInstallerName, QStringLiteral("not-a-hash"), package.size()),
+		QStringLiteral("Update manifest has an invalid SHA-256."));
+	add("a size of zero", manifestJson(kVersion, kInstallerKey, kInstallerName, hash, 0),
+		QStringLiteral("Update manifest has an invalid package size."));
+	add("a manifest of more than 128 KiB", QByteArray(129 * 1024, ' '), QStringLiteral("The update manifest is too large."));
+}
 
-	Scenario missing(base, QStringLiteral("manifest-missing"), helper);
+void TestSelfUpdater::rejectsManifest() {
+	QFETCH(QString, folder);
+	QFETCH(QByteArray, manifest);
+	QFETCH(QString, error);
+	Scenario scenario(m_temp.path(), folder, m_probe);
+	scenario.serveRelease(manifest, scenario.package);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// The update fails; the name of the row says which manifest.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	if (error.isEmpty())
+		QVERIFY(!outcome.error.isEmpty());
+	else
+		QCOMPARE(outcome.error, error);
+	// No installer is requested after an unusable manifest.
+	QCOMPARE(scenario.server.requests(kPackagePath), 0);
+	QVERIFY2(scenario.endedCleanly(updater), "an unusable manifest leaves nothing behind");
+}
+
+void TestSelfUpdater::rejectsMissingManifest() {
+	Scenario missing(m_temp.path(), QStringLiteral("manifest-missing"), m_probe);
 	missing.server.serve(kManifestPath, Route{"404 Not Found", "gone", -1, false});
 	SelfUpdater updater;
 	const Outcome outcome = runUpdate(updater, missing.release());
-	ok &= expect(outcome.finishedCount == 1 && !outcome.success && !outcome.error.isEmpty(), "a manifest that the server does not have");
-	ok &= expect(missing.endedCleanly(updater), "a missing manifest leaves nothing behind");
-	return ok;
+	// A manifest that the server does not have.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QVERIFY(!outcome.error.isEmpty());
+	QVERIFY2(missing.endedCleanly(updater), "a missing manifest leaves nothing behind");
 }
 
 // A download that does not match the manifest is removed and never staged.
-static bool testPackageRejected(const QString& base, const QString& helper) {
-	bool ok = true;
+void TestSelfUpdater::rejectsPackageWithOtherHash() {
+	Scenario scenario(m_temp.path(), QStringLiteral("hash"), m_probe);
+	QByteArray other = scenario.package;
+	other[1000] = static_cast<char>(other.at(1000) + 1);
+	scenario.serveRelease(goodManifest(other), scenario.package);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// An installer that differs from the manifest is rejected.
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The downloaded update failed its SHA-256 check."));
+	// The installer was downloaded before it was rejected.
+	QCOMPARE(scenario.server.requests(kPackagePath), 1);
+	QVERIFY2(scenario.endedCleanly(updater), "a failed hash leaves nothing behind");
+}
 
-	{
-		Scenario scenario(base, QStringLiteral("hash"), helper);
-		QByteArray other = scenario.package;
-		other[1000] = static_cast<char>(other.at(1000) + 1);
-		scenario.serveRelease(goodManifest(other), scenario.package);
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(!outcome.success && outcome.error == QStringLiteral("The downloaded update failed its SHA-256 check."),
-			"an installer that differs from the manifest is rejected");
-		ok &= expect(scenario.server.requests(kPackagePath) == 1, "the installer was downloaded before it was rejected");
-		ok &= expect(scenario.endedCleanly(updater), "a failed hash leaves nothing behind");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("larger"), helper);
-		scenario.serveRelease(manifestJson(kVersion, kInstallerKey, kInstallerName, sha256Of(scenario.package), scenario.package.size() - 10),
-			scenario.package);
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(!outcome.success && outcome.error == QStringLiteral("The update package is larger than the release manifest."),
-			"an installer larger than the manifest says is rejected");
-		ok &= expect(scenario.endedCleanly(updater), "an installer that is too large leaves nothing behind");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("smaller"), helper);
-		scenario.serveRelease(manifestJson(kVersion, kInstallerKey, kInstallerName, sha256Of(scenario.package), scenario.package.size() + 10),
-			scenario.package);
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(!outcome.success && outcome.error == QStringLiteral("The update package size does not match the release manifest."),
-			"an installer smaller than the manifest says is rejected");
-		ok &= expect(scenario.endedCleanly(updater), "an installer that is too small leaves nothing behind");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("truncated"), helper);
-		scenario.serveGoodRelease();
-		Route cut;
-		cut.body = scenario.package.left(scenario.package.size() / 2);
-		cut.announced = scenario.package.size();
-		scenario.server.serve(kPackagePath, cut);
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success && !outcome.error.isEmpty(),
-			"a download that the server cuts short fails");
-		ok &= expect(scenario.endedCleanly(updater), "a truncated download leaves nothing behind");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("package-missing"), helper);
-		scenario.serveGoodRelease();
-		scenario.server.serve(kPackagePath, Route{"404 Not Found", "gone", -1, false});
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success && !outcome.error.isEmpty(),
-			"an installer that the server does not have fails");
-		ok &= expect(scenario.endedCleanly(updater), "a missing installer leaves nothing behind");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("untrusted"), helper);
-		scenario.serveGoodRelease();
-		SelfUpdater updater;
-		const Outcome outcome = runUpdate(updater, scenario.release(kInstallerName, scenario.server.base() + QStringLiteral("/elsewhere")));
-		ok &= expect(!outcome.success && outcome.error == QStringLiteral("The release package URL is not trusted."),
-			"an installer outside the folder of the release is not downloaded");
-		ok &= expect(scenario.server.requests(kPackagePath) == 0 && stagingFolders(scenario.root).isEmpty(),
-			"no request and no staging folder for an untrusted URL");
-	}
-	return ok;
+void TestSelfUpdater::rejectsLargerPackage() {
+	Scenario scenario(m_temp.path(), QStringLiteral("larger"), m_probe);
+	scenario.serveRelease(manifestJson(kVersion, kInstallerKey, kInstallerName, sha256Of(scenario.package), scenario.package.size() - 10),
+		scenario.package);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// An installer larger than the manifest says is rejected.
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The update package is larger than the release manifest."));
+	QVERIFY2(scenario.endedCleanly(updater), "an installer that is too large leaves nothing behind");
+}
+
+void TestSelfUpdater::rejectsSmallerPackage() {
+	Scenario scenario(m_temp.path(), QStringLiteral("smaller"), m_probe);
+	scenario.serveRelease(manifestJson(kVersion, kInstallerKey, kInstallerName, sha256Of(scenario.package), scenario.package.size() + 10),
+		scenario.package);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// An installer smaller than the manifest says is rejected.
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The update package size does not match the release manifest."));
+	QVERIFY2(scenario.endedCleanly(updater), "an installer that is too small leaves nothing behind");
+}
+
+void TestSelfUpdater::failsTruncatedDownload() {
+	Scenario scenario(m_temp.path(), QStringLiteral("truncated"), m_probe);
+	scenario.serveGoodRelease();
+	Route cut;
+	cut.body = scenario.package.left(scenario.package.size() / 2);
+	cut.announced = scenario.package.size();
+	scenario.server.serve(kPackagePath, cut);
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// A download that the server cuts short fails.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QVERIFY(!outcome.error.isEmpty());
+	QVERIFY2(scenario.endedCleanly(updater), "a truncated download leaves nothing behind");
+}
+
+void TestSelfUpdater::failsMissingPackage() {
+	Scenario scenario(m_temp.path(), QStringLiteral("package-missing"), m_probe);
+	scenario.serveGoodRelease();
+	scenario.server.serve(kPackagePath, Route{"404 Not Found", "gone", -1, false});
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// An installer that the server does not have fails.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QVERIFY(!outcome.error.isEmpty());
+	QVERIFY2(scenario.endedCleanly(updater), "a missing installer leaves nothing behind");
+}
+
+void TestSelfUpdater::refusesUntrustedPackageUrl() {
+	Scenario scenario(m_temp.path(), QStringLiteral("untrusted"), m_probe);
+	scenario.serveGoodRelease();
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release(kInstallerName, scenario.server.base() + QStringLiteral("/elsewhere")));
+	// An installer outside the folder of the release is not downloaded.
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("The release package URL is not trusted."));
+	// No request and no staging folder for an untrusted URL.
+	QCOMPARE(scenario.server.requests(kPackagePath), 0);
+	QVERIFY(stagingFolders(scenario.root).isEmpty());
 }
 
 // Cancel ends the update at any time before the preparation and removes what was downloaded.
-static bool testCancel(const QString& base, const QString& helper) {
-	bool ok = true;
-	{
-		Scenario scenario(base, QStringLiteral("cancel-package"), helper);
-		scenario.serveGoodRelease();
-		Route partial;
-		partial.body = scenario.package.left(4096);
-		partial.announced = scenario.package.size();
-		partial.keepOpen = true;
-		scenario.server.serve(kPackagePath, partial);
-		SelfUpdater updater;
-		// The cancel comes a little after the server has seen the request for the installer.
-		QStringList stagedAtCancel;
-		bool requested = false;
-		QTimer watcher;
-		watcher.setInterval(20);
-		QObject::connect(&watcher, &QTimer::timeout, &updater, [&]() {
-			if (requested || scenario.server.requests(kPackagePath) == 0)
-				return;
-			requested = true;
-			QTimer::singleShot(300, &updater, [&]() {
-				stagedAtCancel = stagingFolders(scenario.root);
-				updater.cancel();
-			});
+void TestSelfUpdater::cancelsDownload() {
+	Scenario scenario(m_temp.path(), QStringLiteral("cancel-package"), m_probe);
+	scenario.serveGoodRelease();
+	Route partial;
+	partial.body = scenario.package.left(4096);
+	partial.announced = scenario.package.size();
+	partial.keepOpen = true;
+	scenario.server.serve(kPackagePath, partial);
+	SelfUpdater updater;
+	// The cancel comes a little after the server has seen the request for the installer.
+	QStringList stagedAtCancel;
+	bool requested = false;
+	QTimer watcher;
+	watcher.setInterval(20);
+	QObject::connect(&watcher, &QTimer::timeout, &updater, [&]() {
+		if (requested || scenario.server.requests(kPackagePath) == 0)
+			return;
+		requested = true;
+		QTimer::singleShot(300, &updater, [&]() {
+			stagedAtCancel = stagingFolders(scenario.root);
+			updater.cancel();
 		});
-		watcher.start();
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		watcher.stop();
-		ok &= expect(requested && stagedAtCancel.size() == 1, "the download was under way and staged when it was cancelled");
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success && outcome.error == QStringLiteral("Update cancelled."),
-			"a cancel during the download ends the update");
-		ok &= expect(scenario.endedCleanly(updater), "a cancel during the download removes the partial file");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("cancel-manifest"), helper);
-		scenario.serveGoodRelease();
-		Route silent;
-		silent.announced = 100;
-		silent.keepOpen = true;
-		scenario.server.serve(kManifestPath, silent);
-		SelfUpdater updater;
-		QTimer::singleShot(150, &updater, [&updater]() { updater.cancel(); });
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success && outcome.error == QStringLiteral("Update cancelled."),
-			"a cancel while the manifest is awaited ends the update");
-		ok &= expect(scenario.server.requests(kPackagePath) == 0, "no installer is requested after the cancel");
-		ok &= expect(scenario.endedCleanly(updater), "a cancel before the download leaves nothing behind");
-	}
-	return ok;
+	});
+	watcher.start();
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	watcher.stop();
+	// The download was under way and staged when it was cancelled.
+	QVERIFY(requested);
+	QCOMPARE(stagedAtCancel.size(), 1);
+	// A cancel during the download ends the update.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("Update cancelled."));
+	QVERIFY2(scenario.endedCleanly(updater), "a cancel during the download removes the partial file");
+}
+
+void TestSelfUpdater::cancelsWhileManifestIsAwaited() {
+	Scenario scenario(m_temp.path(), QStringLiteral("cancel-manifest"), m_probe);
+	scenario.serveGoodRelease();
+	Route silent;
+	silent.announced = 100;
+	silent.keepOpen = true;
+	scenario.server.serve(kManifestPath, silent);
+	SelfUpdater updater;
+	QTimer::singleShot(150, &updater, [&updater]() { updater.cancel(); });
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// A cancel while the manifest is awaited ends the update.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("Update cancelled."));
+	// No installer is requested after the cancel.
+	QCOMPARE(scenario.server.requests(kPackagePath), 0);
+	QVERIFY2(scenario.endedCleanly(updater), "a cancel before the download leaves nothing behind");
 }
 
 // An update that cannot go on says why before it asks the server anything.
-static bool testNotPossible(const QString& base, const QString& helper) {
-	bool ok = true;
-	{
-		Scenario scenario(base, QStringLiteral("unsupported"), helper);
-		scenario.serveGoodRelease();
-		SelfUpdateCapability unsupported = scenario.capability;
-		unsupported.supported = false;
-		unsupported.reason = QStringLiteral("The packaged installation is not writable.");
-		scenario.useCapability(unsupported);
-		SelfUpdater updater;
-		ok &= expect(!updater.canSelfUpdate(scenario.release()), "a copy that cannot update is not offered the update");
-		const Outcome outcome = runUpdate(updater, scenario.release());
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success && outcome.error == unsupported.reason,
-			"the reason of the capability is reported");
-		ok &= expect(scenario.server.totalRequests() == 0 && scenario.endedCleanly(updater), "nothing is requested and nothing is staged");
-	}
-	{
-		Scenario scenario(base, QStringLiteral("no-package"), helper);
-		scenario.serveGoodRelease();
-		StableRelease manifestOnly = scenario.release();
-		manifestOnly.assets.removeLast();
-		SelfUpdater updater;
-		ok &= expect(!updater.canSelfUpdate(manifestOnly), "a release without the installer is not offered");
-		const Outcome outcome = runUpdate(updater, manifestOnly);
-		ok &= expect(outcome.finishedCount == 1 && !outcome.success
-				&& outcome.error == QStringLiteral("This release does not provide a verified update package."),
-			"a release without the installer cannot be installed");
-		ok &= expect(scenario.server.totalRequests() == 0, "nothing is requested for a release without the installer");
-	}
-	return ok;
+void TestSelfUpdater::reportsUnsupportedCopy() {
+	Scenario scenario(m_temp.path(), QStringLiteral("unsupported"), m_probe);
+	scenario.serveGoodRelease();
+	SelfUpdateCapability unsupported = scenario.capability;
+	unsupported.supported = false;
+	unsupported.reason = QStringLiteral("The packaged installation is not writable.");
+	scenario.useCapability(unsupported);
+	SelfUpdater updater;
+	QVERIFY2(!updater.canSelfUpdate(scenario.release()), "a copy that cannot update is not offered the update");
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	// The reason of the capability is reported.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, unsupported.reason);
+	// Nothing is requested and nothing is staged.
+	QCOMPARE(scenario.server.totalRequests(), 0);
+	QVERIFY(scenario.endedCleanly(updater));
+}
+
+void TestSelfUpdater::refusesReleaseWithoutInstaller() {
+	Scenario scenario(m_temp.path(), QStringLiteral("no-package"), m_probe);
+	scenario.serveGoodRelease();
+	StableRelease manifestOnly = scenario.release();
+	manifestOnly.assets.removeLast();
+	SelfUpdater updater;
+	QVERIFY2(!updater.canSelfUpdate(manifestOnly), "a release without the installer is not offered");
+	const Outcome outcome = runUpdate(updater, manifestOnly);
+	// A release without the installer cannot be installed.
+	QCOMPARE(outcome.finishedCount, 1);
+	QVERIFY(!outcome.success);
+	QCOMPARE(outcome.error, QStringLiteral("This release does not provide a verified update package."));
+	// Nothing is requested for a release without the installer.
+	QCOMPARE(scenario.server.totalRequests(), 0);
 }
 
 // The capability decides which package of a release is the one of this copy.
-static bool testKeyChoosesPackage(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("key"), helper);
+void TestSelfUpdater::keyChoosesPackage() {
+	Scenario scenario(m_temp.path(), QStringLiteral("key"), m_probe);
 	SelfUpdater updater;
 	const StableRelease withInstaller = scenario.release(kInstallerName);
 	const StableRelease withArchive = scenario.release(kPortableName);
-	bool ok = expect(updater.canSelfUpdate(withInstaller) && !updater.canSelfUpdate(withArchive),
-		"an installed copy takes the installer and not the portable archive");
+	// An installed copy takes the installer and not the portable archive.
+	QVERIFY(updater.canSelfUpdate(withInstaller));
+	QVERIFY(!updater.canSelfUpdate(withArchive));
 
 	SelfUpdateCapability portable = scenario.capability;
 	portable.usesInstaller = false;
 	portable.manifestKey = QStringLiteral("windows-x64");
 	scenario.useCapability(portable);
-	ok &= expect(updater.canSelfUpdate(withArchive) && !updater.canSelfUpdate(withInstaller),
-		"a portable copy takes the archive and not the installer");
-	return ok;
+	// A portable copy takes the archive and not the installer.
+	QVERIFY(updater.canSelfUpdate(withArchive));
+	QVERIFY(!updater.canSelfUpdate(withInstaller));
 }
 
 // The second sweep after the start removes the backup that an update in place kept: the folder or the file
 // named like the installation plus .egtrain-old. The sweep at the start leaves it, because the update helper
 // may still need it. A symbolic link of that name stays, and so does the backup while a staging folder is next
 // to the installation. A copy that updates with the installer has no backup, so nothing is removed for it.
-static bool testBackupRemoved(const QString& base, const QString& helper) {
-	Scenario scenario(base, QStringLiteral("backup"), helper);
+void TestSelfUpdater::removesBackup() {
+	Scenario scenario(m_temp.path(), QStringLiteral("backup"), m_probe);
 	const SelfUpdateCapability installed = scenario.capability;
 	SelfUpdateCapability portable = scenario.capability;
 	portable.usesInstaller = false;
 	portable.manifestKey = QStringLiteral("windows-x64");
 	scenario.useCapability(portable);
 	const QString backup = scenario.install + QStringLiteral(".egtrain-old");
-	bool ok = expect(scenario.prepared && QDir().mkpath(backup) && writeFile(backup + QStringLiteral("/QEGTRAIN.exe"), "old"),
-		"the backup folder is written");
+	// The backup folder is written.
+	QVERIFY(scenario.prepared);
+	QVERIFY(QDir().mkpath(backup));
+	QVERIFY(writeFile(backup + QStringLiteral("/QEGTRAIN.exe"), "old"));
 	SelfUpdater::cleanupStaleStaging();
-	ok &= expect(QFileInfo::exists(backup + QStringLiteral("/QEGTRAIN.exe")), "the sweep of stale staging folders keeps the backup");
+	QVERIFY2(QFileInfo::exists(backup + QStringLiteral("/QEGTRAIN.exe")), "the sweep of stale staging folders keeps the backup");
 	SelfUpdater::removeUpdateBackup();
-	ok &= expect(!QFileInfo::exists(backup), "a backup folder is removed");
-	ok &= expect(scenario.installationUnchanged(), "the installation is not touched");
+	QVERIFY2(!QFileInfo::exists(backup), "a backup folder is removed");
+	QVERIFY2(scenario.installationUnchanged(), "the installation is not touched");
 
-	ok &= expect(writeFile(backup, "old"), "the backup file is written");
+	QVERIFY2(writeFile(backup, "old"), "the backup file is written");
 	SelfUpdater::removeUpdateBackup();
-	ok &= expect(!QFileInfo::exists(backup), "a backup file is removed");
+	QVERIFY2(!QFileInfo::exists(backup), "a backup file is removed");
 
 	const QString staging = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-running"));
-	ok &= expect(QDir().mkpath(staging) && writeFile(backup, "old"), "a staging folder and the backup are written");
+	// A staging folder and the backup are written.
+	QVERIFY(QDir().mkpath(staging));
+	QVERIFY(writeFile(backup, "old"));
 	SelfUpdater::removeUpdateBackup();
-	ok &= expect(QFileInfo::exists(backup), "the backup stays while a staging folder is next to the installation");
-	ok &= expect(QDir(staging).removeRecursively(), "the staging folder is removed");
+	QVERIFY2(QFileInfo::exists(backup), "the backup stays while a staging folder is next to the installation");
+	QVERIFY2(QDir(staging).removeRecursively(), "the staging folder is removed");
 
 	scenario.useCapability(installed);
 	SelfUpdater::removeUpdateBackup();
-	ok &= expect(QFileInfo::exists(backup), "nothing is removed for a copy that updates with the installer");
-	ok &= expect(QFile::remove(backup), "the backup file of the installed copy is removed");
+	QVERIFY2(QFileInfo::exists(backup), "nothing is removed for a copy that updates with the installer");
+	QVERIFY2(QFile::remove(backup), "the backup file of the installed copy is removed");
 	scenario.useCapability(portable);
 
 // QFile::link makes a shortcut file on Windows, so a symbolic link is only covered elsewhere.
 #if !defined(Q_OS_WIN)
 	const QString target = QDir(scenario.root).filePath(QStringLiteral("elsewhere"));
-	ok &= expect(QDir().mkpath(target) && writeFile(target + QStringLiteral("/kept"), "kept") && QFile::link(target, backup),
-		"a symbolic link named like the backup is made");
+	// A symbolic link named like the backup is made.
+	QVERIFY(QDir().mkpath(target));
+	QVERIFY(writeFile(target + QStringLiteral("/kept"), "kept"));
+	QVERIFY(QFile::link(target, backup));
 	SelfUpdater::removeUpdateBackup();
-	ok &= expect(QFileInfo(backup).isSymLink() && QFileInfo::exists(target + QStringLiteral("/kept")),
-		"a symbolic link named like the backup and its target stay");
+	// A symbolic link named like the backup and its target stay.
+	QVERIFY(QFileInfo(backup).isSymLink());
+	QVERIFY(QFileInfo::exists(target + QStringLiteral("/kept")));
 #endif
-	return ok;
 }
 
 // The kind of copy decides whether the installer or the archive of the platform is its package.
-static bool testPackageForDistribution() {
+void TestSelfUpdater::choosesPackageForDistribution() {
 	const QString platform = QStringLiteral("windows-x64");
 	const UpdatePackage installed = updatePackageFor(Distribution::WindowsInstalled, platform);
-	bool ok = expect(installed.usesInstaller && installed.manifestKey == kInstallerKey, "an installed Windows copy takes the installer");
+	// An installed Windows copy takes the installer.
+	QVERIFY(installed.usesInstaller);
+	QCOMPARE(installed.manifestKey, kInstallerKey);
 	const UpdatePackage portable = updatePackageFor(Distribution::WindowsPortable, platform);
-	ok &= expect(!portable.usesInstaller && portable.manifestKey == platform, "a portable Windows copy keeps the archive");
+	// A portable Windows copy keeps the archive.
+	QVERIFY(!portable.usesInstaller);
+	QCOMPARE(portable.manifestKey, platform);
 	const UpdatePackage macApp = updatePackageFor(Distribution::MacApp, QStringLiteral("macos-arm64"));
-	ok &= expect(!macApp.usesInstaller && macApp.manifestKey == QStringLiteral("macos-arm64"), "a macOS app keeps its package");
+	// A macOS app keeps its package.
+	QVERIFY(!macApp.usesInstaller);
+	QCOMPARE(macApp.manifestKey, QStringLiteral("macos-arm64"));
 	const UpdatePackage appImage = updatePackageFor(Distribution::LinuxAppImage, QStringLiteral("linux-x86_64"));
-	ok &= expect(!appImage.usesInstaller && appImage.manifestKey == QStringLiteral("linux-x86_64"), "a Linux AppImage keeps its package");
+	// A Linux AppImage keeps its package.
+	QVERIFY(!appImage.usesInstaller);
+	QCOMPARE(appImage.manifestKey, QStringLiteral("linux-x86_64"));
 	const UpdatePackage unsupported = updatePackageFor(Distribution::Unsupported, QString());
-	ok &= expect(!unsupported.usesInstaller && unsupported.manifestKey.isEmpty(), "an unsupported platform has no package");
-	ok &= expect(updatePackageFor(Distribution::WindowsInstalled, QString()).manifestKey.isEmpty(),
+	// An unsupported platform has no package.
+	QVERIFY(!unsupported.usesInstaller);
+	QVERIFY(unsupported.manifestKey.isEmpty());
+	QVERIFY2(updatePackageFor(Distribution::WindowsInstalled, QString()).manifestKey.isEmpty(),
 		"an installed copy of a platform without a manifest entry has no package");
-	return ok;
 }
 
-int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
-	QStandardPaths::setTestModeEnabled(true);
-	if (argc < 2) {
-		std::cerr << "usage: test_selfupdater UPDATE_PROBE\n";
-		return 2;
-	}
-	QTemporaryDir temp;
-	if (!temp.isValid())
-		return 1;
-	const QString probe = QFileInfo(QString::fromLocal8Bit(argv[1])).absoluteFilePath();
-
-	bool ok = expect(QFileInfo(probe).isFile(), "the update probe exists");
-	ok &= testDownload(temp.path(), probe);
-	ok &= testEarlierAttemptsRemoved(temp.path(), probe);
-	ok &= testRestartStartsInstallerMode(temp.path(), probe);
-	ok &= testRestartWithoutHelper(temp.path(), probe);
-	ok &= testManifestRejected(temp.path(), probe);
-	ok &= testPackageRejected(temp.path(), probe);
-	ok &= testCancel(temp.path(), probe);
-	ok &= testNotPossible(temp.path(), probe);
-	ok &= testKeyChoosesPackage(temp.path(), probe);
-	ok &= testBackupRemoved(temp.path(), probe);
-	ok &= testPackageForDistribution();
-	return ok ? 0 : 1;
-}
+QTEST_GUILESS_MAIN(TestSelfUpdater)
+#include "test_selfupdater.moc"
