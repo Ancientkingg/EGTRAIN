@@ -355,6 +355,7 @@ static TEST_NOINLINE void poisonStack(double value) {
 	volatile double junk[6000];
 	for (int index = 0; index < 6000; ++index)
 		junk[index] = value;
+	(void)junk;
 }
 
 static bool brakingTargetAdmissible(Train& train, double head, double speed, double targetSpeed, Section* sections, int count) {
@@ -790,7 +791,7 @@ static bool forwardBrakingTests() {
 	std::vector<std::vector<Section>> routes;
 	for (double gradient : {0.0, 0.005, -0.005})
 		routes.push_back(brakingRoute(0, 10, gradient));
-	for (const auto gradients : {std::pair<double, double>{0, 0.005}, {0.005, 0}, {0, -0.005}, {-0.005, 0}}) {
+	for (const auto& gradients : {std::pair<double, double>{0, 0.005}, {0.005, 0}, {0, -0.005}, {-0.005, 0}}) {
 		auto route = brakingRouteOfTwoArcs(4.99, 10, gradients.first, gradients.second);
 		routes.push_back(route);
 		route[0].arcs_in_signalling_block_section[0].curvature = 500;
@@ -1015,8 +1016,8 @@ static bool brakingPhaseTests() {
 	if (hasErrors(infrastructure) || hasErrors(operations) || defaultRun().numTrains != 1)
 		return expect(false, "phase fixture prepares native train");
 	Train& train = defaultRun().trains[0];
-	Route& route = defaultRun().infra.routes[train.indexOfRoute];
-	route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].speedInBraking = 10;
+	Route& phaseRoute = defaultRun().infra.routes[train.indexOfRoute];
+	phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].speedInBraking = 10;
 	train.CanEnter = true;
 	train.departure_time = 0;
 	train.instant_spatial_position[0] = 690;
@@ -1030,12 +1031,12 @@ static bool brakingPhaseTests() {
 	ok &= expect(train.instant_train_speed[1] == 10 && train.instant_spatial_position[1] == 700,
 		"cruising does not rewrite its prior speed or position");
 	// A sudden current-arc restriction cannot be met by rewriting either endpoint speed.
-	route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].signalSpeedLimit = 5;
+	phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].signalSpeedLimit = 5;
 	train.instant_spatial_position[1] = 700;
 	train.instant_train_speed[1] = 10;
 	train.counter = 0;
-	const Arc& arc = route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
-	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, arc.gradient, arc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
+	const Arc& phaseArc = phaseRoute.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
+	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, phaseArc.gradient, phaseArc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
 	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 	ok &= expect(train.instant_train_speed[1] == 10 && near(train.instant_train_speed[2], minimumSpeed) && train.Eq[2] == 54
 			&& near(train.instant_spatial_position[2], 700 + (10 + minimumSpeed) / 2 * timestep),
@@ -1217,7 +1218,7 @@ static bool brakingPhaseTests() {
 		cached.Xobmin = 2000;
 		cached.Vobmin = 0;
 		std::vector<double> positions, speeds;
-		double end;
+		double end = 0;
 		const bool drawn = cached.DrawBrakingCurve(10, 0, 2000, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
 		const bool predicted = drawn && cached.predictBraking(cached.Sbrak[0], cached.Vbrak[0], 0, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, end, &positions, &speeds);
 		ok &= expect(predicted && near(end, 1999.998) && positions.size() > 3, "boundary fixture has a complete actual-start cached stop");
@@ -1533,7 +1534,7 @@ static bool brakingPhaseTests() {
 			}
 			const Section baseSection = section;
 			for (double ceiling : {0.0, 8.0}) {
-				double lowerEnd, proposalEnd;
+				double lowerEnd = 0.0, proposalEnd = 0.0;
 				const double minimum = cached.brakingCurveSpeed(speed, baseSection.arcs_in_signalling_block_section[0]);
 				const bool bracket = cached.predictBraking(head + minimum * timestep, minimum, ceiling, nativeRoute.sequence_of_block_sections.data(), 1, lowerEnd)
 					&& cached.predictBraking(cached.Sbrak[1], cached.Vbrak[1], ceiling, nativeRoute.sequence_of_block_sections.data(), 1, proposalEnd);
@@ -3749,7 +3750,7 @@ int main() {
 			&& defaultRun().passengers.size() == previousReversePassengerCount,
 		"native preflight rejects reverse passenger legs before state publication");
 	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
-	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
+	legacyReversePassengerLeg.importReport.push_back({"legacy_root", ""});
 	const auto legacyReverseInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), legacyReversePassengerLeg);
 	const auto legacyReverseDiagnostics = buildOperationsFromScene(defaultRun(),
 		legacyReversePassengerLeg, "scenario.base", onlySecond);
@@ -4271,7 +4272,7 @@ int main() {
 		// low or one high: the timetable point reports the same arrival and departure each time.
 		const double stoppingPoint = 46181.0;
 		const double exact = stoppingPoint - kStopHoldbackM;
-		const int savedTimes = defaultRun().settings.times;
+		const double savedTimes = defaultRun().settings.times;
 		defaultRun().settings.times = 60;
 		for (const double parked : {exact, std::nextafter(exact, 0.0),
 				 std::nextafter(exact, std::numeric_limits<double>::infinity())}) {

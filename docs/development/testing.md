@@ -45,9 +45,9 @@ changes the scene format. After it is published, download one of its bundles fro
 the release and copy it unchanged into `tests/fixtures/scene-versions`. Add an
 entry to `manifest.json` with the release in `origin` and the other keys of an
 existing entry (`counts` come from the loaded model). If the bundle is meant to
-run, add a `test_scene_version_run_*` test next to the existing ones in the root
-`CMakeLists.txt`, with the same `TIMEOUT`, and add its name to the `integration`
-list of `egtrain_label_tests`. The next raise of a number then finds a fixture of
+run, add a `test_scene_version_run_*` test next to the existing ones in
+`EGTRAIN/QEGTRAIN/tests/CMakeLists.txt`, with the same `TIMEOUT` and the label
+`integration`. The next raise of a number then finds a fixture of
 the current one.
 
 `scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
@@ -168,15 +168,16 @@ of it.
 ### Test labels
 
 Every test has exactly one of `unit` or `integration`. Configuration fails
-when a test has neither or both.
+when a test has neither or both, or a label that this page does not describe.
 
 - `unit`: runs in-process or is a static check. It starts no QEGTRAIN,
   `scene_tool`, update helper, or socket server.
 - `integration`: starts or inspects a built program (`QEGTRAIN`, `scene_tool`,
   `egtrain_update_helper`, or a test that starts its own executable as a child)
   or talks to a loopback server.
-- `gui`: needs a Qt platform plugin (the tests use `offscreen`) or launches
-  QEGTRAIN in GUI mode. Combine it with either of the labels above.
+- `gui`: needs a Qt platform plugin or launches QEGTRAIN in GUI mode. The label
+  sets `QT_QPA_PLATFORM=offscreen`, apart from `test_widgetstyle` on Windows,
+  which needs the windows platform. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.
 - `network`: sends a request to a server on the internet. It is registered only
   with `-DEGTRAIN_NETWORK_TESTS=ON`, so no other test run needs the internet.
@@ -281,9 +282,9 @@ the directory of the test executables as the two arguments of
 build with `EGTRAIN_ENABLE_SANITIZERS=ON`: the time limits of their scripts are set
 for an uninstrumented build.
 
-A build with sanitizers runs several times slower than the time limits in `CMakeLists.txt` allow.
-`-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies the limit of every test that the top-level
-`CMakeLists.txt` registers by N; the default 1 leaves the limits as they are. The characterization
+A build with sanitizers runs several times slower than the time limits in `EGTRAIN/QEGTRAIN/tests/CMakeLists.txt` allow.
+`-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies the limit of every test that `egtrain_add_test`
+registers by N; the default 1 leaves the limits as they are. The characterization
 tests that run committed scenes have a limit of their own, `-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS`
 (default 300), which the scale does not change. Waits inside the tests follow the same settings:
 `startup_launch_contract.py` multiplies its 60 second launch wait by the scale, and the fresh process

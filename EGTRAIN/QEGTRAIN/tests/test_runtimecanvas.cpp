@@ -393,7 +393,7 @@ static int markItems(QGraphicsScene& scene) {
 	const QList<QGraphicsItem*> items = scene.items();
 	for (QGraphicsItem* item : items)
 		item->setData(kSeen, true);
-	return items.size();
+	return static_cast<int>(items.size());
 }
 
 struct ItemChanges {
@@ -407,7 +407,7 @@ static ItemChanges itemChanges(QGraphicsScene& scene, int marked) {
 	for (const QGraphicsItem* item : scene.items())
 		if (!item->data(kSeen).isValid())
 			++changes.added;
-	changes.removed = marked - (scene.items().size() - changes.added);
+	changes.removed = marked - (static_cast<int>(scene.items().size()) - changes.added);
 	return changes;
 }
 
@@ -538,7 +538,7 @@ int main(int argc, char* argv[]) {
 		ok &= expect(none.isEmpty(), "a train on a route that the source does not have has no shape");
 
 		if (cycle == 0)
-			drawnItems = scene.items().size();
+			drawnItems = static_cast<int>(scene.items().size());
 		else
 			ok &= expect(scene.items().size() == drawnItems + 1, "the passengers add only the counter of the platform");
 		presenter.clear();
@@ -1716,7 +1716,7 @@ int main(int argc, char* argv[]) {
 			ok &= expect(presenter.trainPaxInfoItem && presenter.m_inspectedSignal && presenter.effect
 					&& (!source->passengers || presenter.paxIconInfoItem),
 				"the selection is on the canvas before it is cleared");
-			itemsAtEnd[round % 2] = round < 2 ? scene.items().size() : itemsAtEnd[round % 2];
+			itemsAtEnd[round % 2] = round < 2 ? static_cast<int>(scene.items().size()) : itemsAtEnd[round % 2];
 			ok &= expect(scene.items().size() == itemsAtEnd[round % 2], "a round draws as many items as the first round of its kind");
 
 			presenter.clear();

@@ -117,6 +117,17 @@ def step_block(job: str, name: str) -> str:
     return next((block for block in job.split("\n      - ") if block.startswith(f"name: {name}\n")), "")
 
 
+def test_registration(cmake: str, name: str) -> str:
+    """The egtrain_add_test call that registers the test, or an empty string."""
+    found = re.search(rf"^\s*egtrain_add_test\({re.escape(name)}\b.*?\)$", cmake, re.MULTILINE | re.DOTALL)
+    return found.group(0) if found else ""
+
+
+def test_labels(registration: str) -> list[str]:
+    found = re.search(r"\bLABELS((?:\s+[a-z][\w-]*)+)", registration)
+    return found.group(1).split() if found else []
+
+
 def filter_regex(pattern: str) -> "re.Pattern[str]":
     regex = ""
     index = 0
@@ -281,7 +292,8 @@ def main() -> None:
 
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
-    gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
+    tests_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/CMakeLists.txt").read_text(encoding="utf-8")
+    gui_smoke =(ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = release_pipeline_text()
     release_only = workflow_text("release.yml")
     package_only = workflow_text("package.yml")
@@ -360,7 +372,7 @@ def main() -> None:
     built_targets = sanitizer_targets.group(1).split() if sanitizer_targets else []
     if (
         not {"test_networkpresenter", "test_runtimecanvas"} <= set(canvas_names)
-        or any(f"add_test(NAME {name} COMMAND {name})" not in cmake or name not in built_targets for name in canvas_names)
+        or any(not test_registration(tests_cmake, name) or name not in built_targets for name in canvas_names)
         or "--output-log \"$RUNNER_TEMP/leak-check/" not in canvas_step
     ):
         missing.append("leak check canvas runs of registered presenter tests built with the sanitizers")
@@ -371,9 +383,9 @@ def main() -> None:
         or "path: ${{ runner.temp }}/leak-check\n" not in leak_upload
     ):
         missing.append("leak check logs uploaded after a failure")
-    if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
+    if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_gui_autostart_smoke")):
         missing.append("GUI smoke CTest timeout")
-    if "set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 420)" not in cmake:
+    if not re.search(r"\sTIMEOUT 420\b", test_registration(tests_cmake, "test_package_contents_smoke")):
         missing.append("package smoke CTest timeout")
     if "DEFAULT_HORIZON = 200" not in gui_smoke:
         missing.append("bounded GUI smoke horizon")
@@ -492,7 +504,7 @@ def main() -> None:
     ):
         missing.append("production sanitizer job that runs CTest in parallel with a scaled test time limit")
     if (
-        'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' not in cmake
+        'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' not in tests_cmake
         or "set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING" not in characterization_cmake
         or "EGTRAIN_TEST_TIMEOUT_SCALE" in workflow
         or "EGTRAIN_TEST_TIMEOUT_SCALE" in job_block(release_only, "validation")
@@ -504,11 +516,13 @@ def main() -> None:
         missing.append("release publication validation gates")
     if "if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))" not in publish_condition:
         missing.append("publication restricted to production and tag pushes")
-    if not re.search(
-        r"if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\).*?"
-        r"add_test\(NAME test_updatepreparation COMMAND test_updatepreparation\)",
-        cmake, re.DOTALL,
-    ) or release_workflow.count("'^test_update(helper|preparation)$'") != 3:
+    # The root file includes the tests file in a packaged build, which registers the tests above the line that ends it
+    # without EGTRAIN_BUILD_TESTS.
+    packaged_tests = re.search(r"^if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\)\n(.*?)^endif\(\)", cmake, re.MULTILINE | re.DOTALL)
+    packaged_tests_text = tests_cmake.split("\nif(NOT EGTRAIN_BUILD_TESTS)\n\treturn()\nendif()\n", 1)[0]
+    if not packaged_tests or "include(${SRC_DIR}/tests/CMakeLists.txt)" not in packaged_tests.group(1) or packaged_tests_text == tests_cmake:
+        packaged_tests_text = ""
+    if not test_registration(packaged_tests_text, "test_updatepreparation") or release_workflow.count("'^test_update(helper|preparation)$'") != 3:
         missing.append("real update preparation tests in all platform packages")
     if 'tag="main-' in release_workflow or 'name="EGTRAIN main build' in release_workflow:
         missing.append("stale main release metadata")
@@ -609,7 +623,7 @@ def main() -> None:
         or "          fail_on_unmatched_files: true\n" not in prepare_step
     ):
         missing.append("release published from the files of the output directory, failing when none matches")
-    if "foreach(egtrain_case 1 2 3 4 5 7)" not in cmake or "tools/e2e/headless_smoke.py ${egtrain_case}" not in cmake:
+    if "foreach(egtrain_case 1 2 3 4 5 7)" not in tests_cmake or "tools/e2e/headless_smoke.py ${egtrain_case}" not in tests_cmake:
         missing.append("headless smoke of all six canonical scenes in CTest")
     if "        run: python3 tools/docs/check_docs.py\n" not in job_block(workflow, "docs") or "    if:" in job_block(workflow, "docs"):
         missing.append("documentation check on every pull request")
@@ -738,20 +752,18 @@ def main() -> None:
         missing.append("parallel CTest run with the jobs of the matrix")
     if "cmake --build build --config Release" not in build_step:
         missing.append("multi-config build configuration")
-    if "COMMAND python3" in cmake or "Python3_EXECUTABLE" not in cmake:
+    if "COMMAND python3" in cmake + tests_cmake or "Python3_EXECUTABLE" not in tests_cmake:
         missing.append("CTest uses the configured Python interpreter")
-    for bash_command in re.finditer(r"COMMAND bash", cmake):
-        guards = re.findall(
-            r"^\s*(if\(.*\)|else\(\)|elseif\(.*\)|endif\(\))\s*$",
-            cmake[: bash_command.start()],
-            re.MULTILINE,
-        )
-        if not guards or guards[-1] not in ("if(UNIX)", "if(APPLE)"):
-            missing.append("bash CTest commands only on UNIX")
-            break
+    bash_guards = [
+        re.findall(r"^\s*(if\(.*\)|else\(\)|elseif\(.*\)|endif\(\))\s*$", text[: bash_command.start()], re.MULTILINE)
+        for text in (cmake, tests_cmake)
+        for bash_command in re.finditer(r"COMMAND bash", text)
+    ]
+    if any(not guards or guards[-1] not in ("if(UNIX)", "if(APPLE)") for guards in bash_guards):
+        missing.append("bash CTest commands only on UNIX")
     if not re.search(
         r"if\(WIN32\)(?:(?!endif\(\)).)*?pe_image_size\.py(?:(?!endif\(\)).)*?--max-bytes",
-        cmake,
+        tests_cmake,
         re.DOTALL,
     ):
         missing.append("Windows image size CTest")
@@ -792,23 +804,24 @@ def main() -> None:
     https_probe = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_updatetransport_https.cpp").read_text(encoding="utf-8")
     https_skip = re.search(r"^constexpr int kExitSkipped = (\d+);$", https_probe, re.MULTILINE)
     https_registered = re.search(
-        r"\n    if\(EGTRAIN_NETWORK_TESTS\)\n        add_test\(NAME test_updatetransport_https COMMAND test_updatetransport_https\)\n"
-        r"        set_tests_properties\(test_updatetransport_https PROPERTIES TIMEOUT \d+ SKIP_RETURN_CODE (\d+)\)\n    endif\(\)\n",
-        cmake,
+        r"\nif\(EGTRAIN_NETWORK_TESTS\)\n"
+        r"\tegtrain_add_test\(test_updatetransport_https LABELS integration network TIMEOUT \d+ SKIP_RETURN_CODE (\d+)\)\nendif\(\)\n",
+        tests_cmake,
     )
-    packaged_tests = re.search(r"^if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\)\n(.*?)^endif\(\)", cmake, re.MULTILINE | re.DOTALL)
-    if not packaged_tests or "add_executable(test_updatetransport_https " not in packaged_tests.group(1):
+    if "add_executable(test_updatetransport_https " not in packaged_tests_text:
         missing.append("HTTPS probe program built in a packaged build")
     if (
         'option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)\n' not in cmake
         or not https_registered
         or not https_skip
         or https_registered.group(1) != https_skip.group(1)
-        or "egtrain_label_tests(network test_updatetransport_https)\n" not in cmake
-        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_updatetransport_https\b", cmake)
     ):
         missing.append("HTTPS probe test registered only with EGTRAIN_NETWORK_TESTS, labelled network, skipped on the code that the program returns")
-    if not re.search(r"add_test\(NAME test_updatetransport_https_cases COMMAND \$\{Python3_EXECUTABLE\}\n[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\)", cmake):
+    if not re.search(
+        r"\negtrain_add_test\(test_updatetransport_https_cases\n\tCOMMAND \$\{Python3_EXECUTABLE\}\n"
+        r"[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\n",
+        tests_cmake,
+    ):
         missing.append("HTTPS probe answers test registered for every platform")
     https_step = step_block(build_job, "Check HTTPS (Windows)")
     if (
@@ -1201,10 +1214,10 @@ def main() -> None:
     if (
         any(part not in verify_test for part in ("New-SelfSignedCertificate -Type CodeSigningCert", "Set-AuthenticodeSignature", "'SHA1'"))
         or any(part in verify_test for part in ("Export-", ".pfx", "Import-Certificate", "Cert:\\CurrentUser\\Root", "Cert:\\LocalMachine"))
-        or "\tif(WIN32)\n\t\tfind_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)\n" not in cmake
-        or "-File ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_verify_signatures.ps1" not in cmake
-        or "-SceneTool $<TARGET_FILE:scene_tool>" not in cmake
-        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_verify_signatures\b", cmake)
+        or "\nif(WIN32)\n\tfind_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)\n" not in tests_cmake
+        or "-File ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_verify_signatures.ps1" not in test_registration(tests_cmake, "test_verify_signatures")
+        or "-SceneTool $<TARGET_FILE:scene_tool>" not in test_registration(tests_cmake, "test_verify_signatures")
+        or "integration" not in test_labels(test_registration(tests_cmake, "test_verify_signatures"))
     ):
         missing.append("signature check test with a throwaway certificate that is never exported, registered for Windows only")
     # The finalize job builds the installer and the portable archive from the payload that the Windows package job uploaded,
@@ -1744,9 +1757,9 @@ def main() -> None:
     if bypassing:
         missing.append("no step that removes the quarantine attribute or turns Gatekeeper off, found in " + ", ".join(bypassing))
     if (
-        "\t\tadd_test(NAME test_sign_macos\n\t\t\tCOMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh)\n"
-        not in cmake.split("\tif(APPLE)\n\t\tadd_test(NAME test_package_contents_smoke", 1)[-1].split("\tendif()", 1)[0]
-        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_sign_macos\b", cmake)
+        "\tegtrain_add_test(test_sign_macos\n\t\tCOMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh\n"
+        not in tests_cmake.split("\nif(APPLE)\n\tegtrain_add_test(test_package_contents_smoke", 1)[-1].split("\nendif()", 1)[0]
+        or "integration" not in test_labels(test_registration(tests_cmake, "test_sign_macos"))
     ):
         missing.append("signing script test registered in CTest on macOS only, with the integration label")
     package_check_trigger = trigger_block(package_check)
@@ -1836,9 +1849,9 @@ def main() -> None:
     if not assets_job or any(word in assets_job for word in ("upload-artifact", "permissions:", "if:")):
         missing.append("package check release assets job without an upload, a permissions block or a condition")
     if (
-        "add_test(NAME test_release_assets\n"
-        "\t\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py)\n" not in cmake
-        or not re.search(r"egtrain_label_tests\(unit\b[^)]*\btest_release_assets\b", cmake)
+        "egtrain_add_test(test_release_assets\n"
+        "\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py\n" not in tests_cmake
+        or test_labels(test_registration(tests_cmake, "test_release_assets")) != ["unit"]
     ):
         missing.append("release assets unit test registered in CTest with the unit label")
     # The Linux package job extracts the AppImage that it built into a directory under RUNNER_TEMP and starts it through its
@@ -1944,9 +1957,9 @@ def main() -> None:
     if "linux-rehearsal-evidence" in release_artifacts or "rehearse-linux" in release_only or "rehearse-linux" in package_check:
         missing.append("Linux rehearsal evidence that is no release asset and a job that only the package workflow names")
     if (
-        "add_test(NAME test_linux_rehearsal\n"
-        "\t\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_linux_rehearsal.py)\n" not in cmake
-        or not re.search(r"egtrain_label_tests\(unit\b[^)]*\btest_linux_rehearsal\b", cmake)
+        "egtrain_add_test(test_linux_rehearsal\n"
+        "\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_linux_rehearsal.py\n" not in tests_cmake
+        or test_labels(test_registration(tests_cmake, "test_linux_rehearsal")) != ["unit"]
     ):
         missing.append("Linux rehearsal unit test registered in CTest with the unit label")
     publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit")
