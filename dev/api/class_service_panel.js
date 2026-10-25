@@ -30,7 +30,6 @@ var class_service_panel =
     [ "duplicateService", "class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9", null ],
     [ "emptyStateLabel", "class_service_panel.html#a0cd98db81f333e7dcd693440e1af9058", null ],
     [ "entryTimeSecondsEdit", "class_service_panel.html#aa1a35f187229fb66c584d3bda623a615", null ],
-    [ "generatedServiceLabel", "class_service_panel.html#a66b1c3c067b02d797d3989cc5225626a", null ],
     [ "hasEntryTimeCheck", "class_service_panel.html#af870aff608e87286c3353a2415ce19a2", null ],
     [ "hasMaximumSpeedCheck", "class_service_panel.html#a11f0b47b499831b3c1a24652f4c66a29", null ],
     [ "hasOperatingCodeStepCheck", "class_service_panel.html#a24192a4f3cdccba23cf5d088efff94d6", null ],

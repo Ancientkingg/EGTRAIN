@@ -16,6 +16,7 @@ var class_timetable_stops_panel =
     [ "removeButton", "class_timetable_stops_panel.html#ae052389bf31485a772808a6ee2a5053b", null ],
     [ "removeStop", "class_timetable_stops_panel.html#adbe65ae4cf89dcb8e76a42d1258731d8", null ],
     [ "setDocument", "class_timetable_stops_panel.html#a9282f4307dbca9d8104829d06d838d40", null ],
+    [ "setPrompts", "class_timetable_stops_panel.html#aa7e4d949a5b2828ee2784f3f46ab1360", null ],
     [ "setServiceId", "class_timetable_stops_panel.html#a9e7af14d3391c5d88892fb8e08f160a8", null ],
     [ "table", "class_timetable_stops_panel.html#a35f1db92b1086f255af7ebb8a811854d", null ],
     [ "timeBaseLabel", "class_timetable_stops_panel.html#af82a45b0574b57cf9dda6c0cdf7dd157", null ],

@@ -6,7 +6,7 @@
 <area shape="poly" id="edge46_Node000001_Node000003" title=" " alt="" coords="101,375,119,337,146,288,183,237,229,195,269,169,304,151,337,139,370,131,440,123,528,114,606,98,670,84,700,81,731,85,764,95,800,115,814,126,823,138,831,164,836,191,849,222,886,275,922,319,918,323,881,278,844,225,831,193,826,165,818,140,810,130,797,119,762,100,730,90,700,87,671,89,607,104,528,120,440,128,371,136,339,144,306,156,271,174,232,199,187,241,151,291,123,339,106,377"/>
 <area shape="rect" id="Node000007" href="$class_inspector_panel.html#a9def868a85f375bc122f6d86f6a42cb3" title="Shows the form of a connection of the run, with the positions of its nodes in metres." alt="" coords="528,491,799,516"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="183,411,528,477,577,486,576,491,528,482,182,417"/>
-<area shape="rect" id="Node000008" href="$class_inspector_panel.html#a15c7d92113eb29ee3e8a93ed16f6a21d" title="Shows the form of a node of the run, with its coordinates in metres." alt="" coords="548,540,779,566"/>
+<area shape="rect" id="Node000008" href="$class_inspector_panel.html#adea140a5ddedf1a4d403e2d2cc34acba" title="Shows the form of a node of the run, with its coordinates in metres." alt="" coords="548,540,779,566"/>
 <area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="126,415,174,444,232,470,308,494,387,513,534,538,533,543,386,518,307,500,230,475,172,449,123,419"/>
 <area shape="rect" id="Node000009" href="$class_inspector_panel.html#a9314119dab81cb034a25ba76406e5edb" title="Hides the dock and shows the information of the passenger on the canvas instead." alt="" coords="532,130,795,155"/>
 <area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="108,375,158,318,192,286,229,259,305,220,387,190,467,169,540,155,541,160,468,174,388,196,308,225,232,263,195,290,162,321,112,379"/>
@@ -14,7 +14,7 @@
 <area shape="poly" id="edge17_Node000001_Node000010" title=" " alt="" coords="183,389,217,387,217,392,183,394"/>
 <area shape="rect" id="Node000014" href="$class_inspector_panel.html#a1d3af9cc3aaa238887b6a9d3ced84b0c" title="Shows the form of a signal of the run, with its position and the length of the section ahead in metre..." alt="" coords="533,719,794,744"/>
 <area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="101,417,113,470,137,540,154,577,176,613,202,645,232,672,266,693,303,710,382,732,462,741,536,742,536,747,461,747,381,737,302,715,264,698,229,676,198,649,171,616,150,580,132,542,108,471,96,418"/>
-<area shape="rect" id="Node000019" href="$class_inspector_panel.html#a3cdc32714b92ead207f9aeb2267f80cf" title="Shows the form of a station node of the run and selects its station." alt="" coords="554,590,773,630"/>
+<area shape="rect" id="Node000019" href="$class_inspector_panel.html#a4e30dca28588f3f2432afc4ae119ee31" title="Shows the form of a station node of the run and selects its station." alt="" coords="554,590,773,630"/>
 <area shape="poly" id="edge35_Node000001_Node000019" title=" " alt="" coords="110,415,159,476,193,508,232,535,308,566,388,588,468,601,540,607,540,612,467,606,387,593,306,571,229,539,190,512,155,480,106,419"/>
 <area shape="rect" id="Node000020" href="$class_inspector_panel.html#a94b73d93204564c7ebd6754649bb1a87" title="Shows the train and follows it." alt="" coords="241,636,469,662"/>
 <area shape="poly" id="edge39_Node000001_Node000020" title=" " alt="" coords="105,416,122,457,149,509,186,562,208,587,232,608,273,629,270,634,229,612,204,590,182,565,145,511,117,459,100,418"/>

@@ -144,7 +144,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb968dbe3f40db2f385af2b032ac32f9" id="r_acb968dbe3f40db2f385af2b032ac32f9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb968dbe3f40db2f385af2b032ac32f9">refresh</a> () override</td></tr>
 <tr class="memdesc:acb968dbe3f40db2f385af2b032ac32f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current state of the document.  <br /></td></tr>
 <tr class="memitem:a50a48c015c7022a049f7f5d636841d4d" id="r_a50a48c015c7022a049f7f5d636841d4d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a50a48c015c7022a049f7f5d636841d4d">commitPendingEditors</a> () override</td></tr>
-<tr class="memdesc:a50a48c015c7022a049f7f5d636841d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of a field that is being edited into the document, as if the user had left the field.  <br /></td></tr>
+<tr class="memdesc:a50a48c015c7022a049f7f5d636841d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Commits the text fields and the number field with the focus.  <br /></td></tr>
 <tr class="memitem:a98fc2e3ca7e313d5fd05fe3cfd172d09" id="r_a98fc2e3ca7e313d5fd05fe3cfd172d09"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98fc2e3ca7e313d5fd05fe3cfd172d09">commit</a> ()</td></tr>
 <tr class="memitem:adf7a9af461fd8312d03f90db5890eae2" id="r_adf7a9af461fd8312d03f90db5890eae2"><td class="memItemLeft">QLineEdit *&#160;</td><td class="memItemRight"><a class="el" href="#adf7a9af461fd8312d03f90db5890eae2">nameEdit</a> () const</td></tr>
 <tr class="memdesc:adf7a9af461fd8312d03f90db5890eae2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The field of the scene name.  <br /></td></tr>
@@ -191,7 +191,7 @@ Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_ab626149c6737ccedf70c13e9e5a2722a_cgraph.svg" width="674" height="304"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_ab626149c6737ccedf70c13e9e5a2722a_cgraph.svg" width="867" height="348"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -318,12 +318,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Takes the values of the fields into the document, when one differs from the model, as one change "Edit case
-settings". The fields call it when editing finishes. A duration, buffer or recovery value that is set this way counts as given in the scene from then on. </p>
+<p>Takes the values of the fields into the document, when one differs from what the field shows of the model, as one change "Edit case settings". The fields call it when editing finishes. A stored number outside the range of its field, which the field shows at the nearest limit, stays as it is until the user edits it. A duration, buffer or recovery value that is set this way counts as given in the scene from then on. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_a98fc2e3ca7e313d5fd05fe3cfd172d09_cgraph.svg" width="407" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_a98fc2e3ca7e313d5fd05fe3cfd172d09_cgraph.svg" width="407" height="175"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -351,13 +350,13 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Takes the text of a field that is being edited into the document, as if the user had left the field. </p>
+<p>Commits the text fields and the number field with the focus. </p>
 
 <p>Implements <a class="el" href="class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34">SceneEditorPanel</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_a50a48c015c7022a049f7f5d636841d4d_cgraph.svg" width="624" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_case_settings_panel_a50a48c015c7022a049f7f5d636841d4d_cgraph.svg" width="624" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

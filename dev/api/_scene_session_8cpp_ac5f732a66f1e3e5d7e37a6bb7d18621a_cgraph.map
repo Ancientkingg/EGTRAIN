@@ -1,4 +1,7 @@
 <map id="firstDiagnosticMessage" name="firstDiagnosticMessage">
 <area shape="rect" id="Node000001" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="5,29,180,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,31,58,21,61,11,73,5,93,3,117,6,127,15,123,19,114,11,93,8,74,10,65,15,63,20,68,28"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="61,31,54,21,58,11,71,5,93,3,119,6,130,15,127,19,117,11,93,8,72,10,62,15,59,20,65,28"/>
+<area shape="rect" id="Node000002" href="$_editor_helpers_8h.html#a09e73f87cbcd282d2bcc9f19ada160f9" title="The first error among the diagnostics, else the first diagnostic, else null." alt="" coords="228,29,344,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,39,214,39,214,45,180,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="254,31,248,21,251,11,264,5,286,3,312,6,323,15,320,19,310,11,286,8,266,10,255,15,253,20,259,28"/>
 </map>

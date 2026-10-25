@@ -1,5 +1,13 @@
 var NAVTREEINDEX21 =
 {
+"struct_gui_passenger_state.html#af7224fa2b2a8f3cb98fedb304d520b08":[2,0,89,2],
+"struct_gui_platform_state.html":[2,0,90],
+"struct_gui_platform_state.html#a3089f0bef4d91a80eadb62f7a8167a6d":[2,0,90,2],
+"struct_gui_platform_state.html#a70333a52c9b1f35749b82d5b7081a585":[2,0,90,1],
+"struct_gui_platform_state.html#aa3a4f93004bf9dbaf0800aa72fdeb919":[2,0,90,3],
+"struct_gui_platform_state.html#ae8537a3c580e02c7a1a29972cd14c15d":[2,0,90,0],
+"struct_gui_section_state.html":[2,0,92],
+"struct_gui_section_state.html#abe1770c07637dbaca47ff807aed75f57":[2,0,92,0],
 "struct_gui_section_state.html#ac7d180ca2d3abbf923cbe171f5d25415":[2,0,92,1],
 "struct_gui_section_state.html#ae1e692046034cc52a332dc90d8313eb2":[2,0,92,2],
 "struct_gui_signal_state.html":[2,0,93],
@@ -241,13 +249,5 @@ var NAVTREEINDEX21 =
 "struct_replay_coverage.html#a58fd4f4fa552a6b183fa7ebf94828648":[2,0,163,1],
 "struct_replay_coverage.html#a5a7e59a18a3c7ce8f6ba2537962550f4":[2,0,163,0],
 "struct_replay_coverage.html#a7ea81a7ad32b7c6e2d6808e1b1563a1e":[2,0,163,3],
-"struct_replay_coverage.html#afcca23e33187863e2e84432e4766599d":[2,0,163,2],
-"struct_report_builder.html":[2,0,164],
-"struct_report_builder.html#a53209906bc123c7ba8b53a0110d826f8":[2,0,164,4],
-"struct_report_builder.html#a60e70f928ea8243be9aa012a1e8a6535":[2,0,164,1],
-"struct_report_builder.html#a6142f482775f632842507809c6659b86":[2,0,164,5],
-"struct_report_builder.html#a697a600292838993657d858261933b62":[2,0,164,2],
-"struct_report_builder.html#a76e4d41646f8e36b251fd32128639f29":[2,0,164,3],
-"struct_report_builder.html#aafbbe9519cfc95d5ea9cea330b63ae49":[2,0,164,0],
-"struct_report_builder.html#abf581cde615d68295dea8a117839a9c3":[2,0,164,6]
+"struct_replay_coverage.html#afcca23e33187863e2e84432e4766599d":[2,0,163,2]
 };

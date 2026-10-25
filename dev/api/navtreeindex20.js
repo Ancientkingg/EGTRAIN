@@ -1,5 +1,13 @@
 var NAVTREEINDEX20 =
 {
+"struct_capacity_compression_row.html#af3a1facf97b4cc0b36da0cb14adc3b90":[2,0,35,6],
+"struct_capacity_compression_row.html#afcee103d483279183a6c5f6002bff36a":[2,0,35,2],
+"struct_capacity_compression_row.html#afe5a1c37cc6774f6cf179ad5a46a7d44":[2,0,35,3],
+"struct_capacity_critical_block.html":[2,0,36],
+"struct_capacity_critical_block.html#a219e48075922aef361e8d912a62d4004":[2,0,36,2],
+"struct_capacity_critical_block.html#a271d8aced75dd49c47d7e388577f16c5":[2,0,36,3],
+"struct_capacity_critical_block.html#a88191021b6f7f5975bb96bc7a297ca2d":[2,0,36,4],
+"struct_capacity_critical_block.html#aa38987fe0a92b8e0f24b0da9f89aa26f":[2,0,36,0],
 "struct_capacity_critical_block.html#ac2fa393e8cde127b7e539d207351b21b":[2,0,36,1],
 "struct_capacity_headway_evidence.html":[2,0,37],
 "struct_capacity_headway_evidence.html#a04ad614dac0072a6b2d9f44b9ee7493b":[2,0,37,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "struct_gui_passenger_state.html#a529585fda3ee68d602cbc76861b5fe95":[2,0,89,3],
 "struct_gui_passenger_state.html#aa0f23c144621eb569a946c612bde2581":[2,0,89,0],
 "struct_gui_passenger_state.html#aaebb2840e3e3ba17db1a80e49ea26b68":[2,0,89,4],
-"struct_gui_passenger_state.html#ac3e50e4ace86294a5d737da101ce8cab":[2,0,89,1],
-"struct_gui_passenger_state.html#af7224fa2b2a8f3cb98fedb304d520b08":[2,0,89,2],
-"struct_gui_platform_state.html":[2,0,90],
-"struct_gui_platform_state.html#a3089f0bef4d91a80eadb62f7a8167a6d":[2,0,90,2],
-"struct_gui_platform_state.html#a70333a52c9b1f35749b82d5b7081a585":[2,0,90,1],
-"struct_gui_platform_state.html#aa3a4f93004bf9dbaf0800aa72fdeb919":[2,0,90,3],
-"struct_gui_platform_state.html#ae8537a3c580e02c7a1a29972cd14c15d":[2,0,90,0],
-"struct_gui_section_state.html":[2,0,92],
-"struct_gui_section_state.html#abe1770c07637dbaca47ff807aed75f57":[2,0,92,0]
+"struct_gui_passenger_state.html#ac3e50e4ace86294a5d737da101ce8cab":[2,0,89,1]
 };

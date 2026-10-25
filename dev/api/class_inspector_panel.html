@@ -134,10 +134,10 @@ Classes</h2></td></tr>
 Public Slots</h2></td></tr>
 <tr class="memitem:a86ad792c418b9b49fd790e9ff05e27df" id="r_a86ad792c418b9b49fd790e9ff05e27df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a86ad792c418b9b49fd790e9ff05e27df">handleCloseInfoDockWidget</a> ()</td></tr>
 <tr class="memitem:a8a9e6e714c6f2d156223355a4b198652" id="r_a8a9e6e714c6f2d156223355a4b198652"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8a9e6e714c6f2d156223355a4b198652">displayPreviewInfo</a> (QGraphicsItem *item)</td></tr>
-<tr class="memitem:a15c7d92113eb29ee3e8a93ed16f6a21d" id="r_a15c7d92113eb29ee3e8a93ed16f6a21d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a15c7d92113eb29ee3e8a93ed16f6a21d">displayNodeInfo</a> (<a class="el" href="class_node_item.html">NodeItem</a> *el)</td></tr>
-<tr class="memdesc:a15c7d92113eb29ee3e8a93ed16f6a21d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the form of a node of the run, with its coordinates in metres.  <br /></td></tr>
-<tr class="memitem:a3cdc32714b92ead207f9aeb2267f80cf" id="r_a3cdc32714b92ead207f9aeb2267f80cf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cdc32714b92ead207f9aeb2267f80cf">displayStationNodeInfo</a> (<a class="el" href="class_station_node_item.html">StationNodeItem</a> *re)</td></tr>
-<tr class="memdesc:a3cdc32714b92ead207f9aeb2267f80cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the form of a station node of the run and selects its station.  <br /></td></tr>
+<tr class="memitem:adea140a5ddedf1a4d403e2d2cc34acba" id="r_adea140a5ddedf1a4d403e2d2cc34acba"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adea140a5ddedf1a4d403e2d2cc34acba">displayNodeInfo</a> (<a class="el" href="class_node_item.html">NodeItem</a> *nodeItem)</td></tr>
+<tr class="memdesc:adea140a5ddedf1a4d403e2d2cc34acba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the form of a node of the run, with its coordinates in metres.  <br /></td></tr>
+<tr class="memitem:a4e30dca28588f3f2432afc4ae119ee31" id="r_a4e30dca28588f3f2432afc4ae119ee31"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4e30dca28588f3f2432afc4ae119ee31">displayStationNodeInfo</a> (<a class="el" href="class_station_node_item.html">StationNodeItem</a> *stationItem)</td></tr>
+<tr class="memdesc:a4e30dca28588f3f2432afc4ae119ee31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the form of a station node of the run and selects its station.  <br /></td></tr>
 <tr class="memitem:a096e2ad882e7ee8d8f9f690ae6efdf76" id="r_a096e2ad882e7ee8d8f9f690ae6efdf76"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a096e2ad882e7ee8d8f9f690ae6efdf76">displayArcInfo</a> (<a class="el" href="class_track_line_item.html">TrackLineItem</a> *line)</td></tr>
 <tr class="memitem:a9def868a85f375bc122f6d86f6a42cb3" id="r_a9def868a85f375bc122f6d86f6a42cb3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9def868a85f375bc122f6d86f6a42cb3">displayConnectionInfo</a> (<a class="el" href="class_connection_item.html">ConnectionItem</a> *line)</td></tr>
 <tr class="memdesc:a9def868a85f375bc122f6d86f6a42cb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the form of a connection of the run, with the positions of its nodes in metres.  <br /></td></tr>
@@ -352,8 +352,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a15c7d92113eb29ee3e8a93ed16f6a21d" name="a15c7d92113eb29ee3e8a93ed16f6a21d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15c7d92113eb29ee3e8a93ed16f6a21d">&#9670;&#160;</a></span>displayNodeInfo</h2>
+<a id="adea140a5ddedf1a4d403e2d2cc34acba" name="adea140a5ddedf1a4d403e2d2cc34acba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adea140a5ddedf1a4d403e2d2cc34acba">&#9670;&#160;</a></span>displayNodeInfo</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -364,7 +364,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void InspectorPanel::displayNodeInfo </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_node_item.html">NodeItem</a> *</td>          <td class="paramname"><span class="paramname"><em>el</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="class_node_item.html">NodeItem</a> *</td>          <td class="paramname"><span class="paramname"><em>nodeItem</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -379,7 +379,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_a15c7d92113eb29ee3e8a93ed16f6a21d_cgraph.svg" width="495" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_adea140a5ddedf1a4d403e2d2cc34acba_cgraph.svg" width="495" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -479,8 +479,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a3cdc32714b92ead207f9aeb2267f80cf" name="a3cdc32714b92ead207f9aeb2267f80cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3cdc32714b92ead207f9aeb2267f80cf">&#9670;&#160;</a></span>displayStationNodeInfo</h2>
+<a id="a4e30dca28588f3f2432afc4ae119ee31" name="a4e30dca28588f3f2432afc4ae119ee31"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e30dca28588f3f2432afc4ae119ee31">&#9670;&#160;</a></span>displayStationNodeInfo</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -491,7 +491,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void InspectorPanel::displayStationNodeInfo </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="class_station_node_item.html">StationNodeItem</a> *</td>          <td class="paramname"><span class="paramname"><em>re</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="class_station_node_item.html">StationNodeItem</a> *</td>          <td class="paramname"><span class="paramname"><em>stationItem</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -506,7 +506,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_a3cdc32714b92ead207f9aeb2267f80cf_cgraph.svg" width="483" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_inspector_panel_a4e30dca28588f3f2432afc4ae119ee31_cgraph.svg" width="483" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

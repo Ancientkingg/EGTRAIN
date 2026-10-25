@@ -1,5 +1,13 @@
 var NAVTREEINDEX19 =
 {
+"namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f":[1,0,13,25],
+"namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121":[1,0,13,18],
+"namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a0cc0a0507cf3d31e5089f420a4cf8b4b":[1,0,13,18,1],
+"namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a504db8f41efafec3537f62fc00418af0":[1,0,13,18,0],
+"namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121ab20daea8bfacec3891fcf5b7be4adca0":[1,0,13,18,2],
+"namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121af8fd4f1b5b05c6b1cc6a661141fd4f54":[1,0,13,18,3],
+"namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea":[1,0,13,32],
+"namespacetelemetry.html#a8ec2d53909f0fb677857ec071723bd0b":[1,0,13,27],
 "namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f":[1,0,13,21],
 "namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90":[1,0,13,21,0],
 "namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4":[1,0,13,21,1],
@@ -241,13 +249,5 @@ var NAVTREEINDEX19 =
 "struct_capacity_compression_row.html#a2e99f2183287474db05159a35d6eaaac":[2,0,35,1],
 "struct_capacity_compression_row.html#a4f1bf04877b31bc3aae20ff34e2c3687":[2,0,35,5],
 "struct_capacity_compression_row.html#a9010787f73c96a2b350deef7b8b14773":[2,0,35,4],
-"struct_capacity_compression_row.html#ae651bb162734353a1c86f6adc243cdac":[2,0,35,0],
-"struct_capacity_compression_row.html#af3a1facf97b4cc0b36da0cb14adc3b90":[2,0,35,6],
-"struct_capacity_compression_row.html#afcee103d483279183a6c5f6002bff36a":[2,0,35,2],
-"struct_capacity_compression_row.html#afe5a1c37cc6774f6cf179ad5a46a7d44":[2,0,35,3],
-"struct_capacity_critical_block.html":[2,0,36],
-"struct_capacity_critical_block.html#a219e48075922aef361e8d912a62d4004":[2,0,36,2],
-"struct_capacity_critical_block.html#a271d8aced75dd49c47d7e388577f16c5":[2,0,36,3],
-"struct_capacity_critical_block.html#a88191021b6f7f5975bb96bc7a297ca2d":[2,0,36,4],
-"struct_capacity_critical_block.html#aa38987fe0a92b8e0f24b0da9f89aa26f":[2,0,36,0]
+"struct_capacity_compression_row.html#ae651bb162734353a1c86f6adc243cdac":[2,0,35,0]
 };

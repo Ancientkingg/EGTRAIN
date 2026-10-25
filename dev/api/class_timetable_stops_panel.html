@@ -139,6 +139,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a3630bb0390a301edcf926b5626349f98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document and a service are set.  <br /></td></tr>
 <tr class="memitem:a9282f4307dbca9d8104829d06d838d40" id="r_a9282f4307dbca9d8104829d06d838d40"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9282f4307dbca9d8104829d06d838d40">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
 <tr class="memdesc:a9282f4307dbca9d8104829d06d838d40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
+<tr class="memitem:aa7e4d949a5b2828ee2784f3f46ab1360" id="r_aa7e4d949a5b2828ee2784f3f46ab1360"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa7e4d949a5b2828ee2784f3f46ab1360">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
 <tr class="memitem:a9e7af14d3391c5d88892fb8e08f160a8" id="r_a9e7af14d3391c5d88892fb8e08f160a8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9e7af14d3391c5d88892fb8e08f160a8">setServiceId</a> (const QString &amp;serviceId)</td></tr>
 <tr class="memdesc:a9e7af14d3391c5d88892fb8e08f160a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the stops of the service with this id, or none when the id is empty or no service has it.  <br /></td></tr>
 <tr class="memitem:aea56081d583a2c4d0bc6f42ac12fee1f" id="r_aea56081d583a2c4d0bc6f42ac12fee1f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aea56081d583a2c4d0bc6f42ac12fee1f">refresh</a> () override</td></tr>
@@ -615,6 +616,24 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_timetable_stops_panel_a9282f4307dbca9d8104829d06d838d40_cgraph.svg" width="1412" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="aa7e4d949a5b2828ee2784f3f46ab1360" name="aa7e4d949a5b2828ee2784f3f46ab1360"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7e4d949a5b2828ee2784f3f46ab1360">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TimetableStopsPanel::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The messages go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
 
 </div>
 </div>

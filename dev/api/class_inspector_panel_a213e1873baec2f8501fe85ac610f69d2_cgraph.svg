@@ -177,7 +177,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_inspector_panel.html#a15c7d92113eb29ee3e8a93ed16f6a21d" target="_top" xlink:title="Shows the form of a node of the run, with its coordinates in metres.">
+<g id="a_Node000011"><a xlink:href="class_inspector_panel.html#adea140a5ddedf1a4d403e2d2cc34acba" target="_top" xlink:title="Shows the form of a node of the run, with its coordinates in metres.">
 <polygon fill="white" stroke="#666666" points="766,-152 593,-152 593,-133 766,-133 766,-152"/>
 <text text-anchor="middle" x="679.5" y="-140" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::displayNodeInfo</text>
 </a>
@@ -249,7 +249,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="class_inspector_panel.html#a3cdc32714b92ead207f9aeb2267f80cf" target="_top" xlink:title="Shows the form of a station node of the run and selects its station.">
+<g id="a_Node000022"><a xlink:href="class_inspector_panel.html#a4e30dca28588f3f2432afc4ae119ee31" target="_top" xlink:title="Shows the form of a station node of the run and selects its station.">
 <polygon fill="white" stroke="#666666" points="761.5,-237.5 597.5,-237.5 597.5,-207.5 761.5,-207.5 761.5,-237.5"/>
 <text text-anchor="start" x="605.5" y="-225.5" font-family="Helvetica,sans-Serif" font-size="10.00">InspectorPanel::displayStation</text>
 <text text-anchor="middle" x="679.5" y="-214.5" font-family="Helvetica,sans-Serif" font-size="10.00">NodeInfo</text>

@@ -1,11 +1,13 @@
 <map id="TrainUnitPanel::commitPendingEditors" name="TrainUnitPanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,182,231,222"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,207,231,247"/>
 <area shape="rect" id="Node000002" href="$class_train_unit_panel.html#abaeb9f53a0036ab1c856a439e64cc4d5" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="287,136,497,161"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,179,312,161,313,167,222,185"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,205,278,174,323,162,324,167,279,179,180,210"/>
 <area shape="rect" id="Node000007" href="$class_train_unit_panel.html#a882a356aa1d9d93d9489e4f1e9c716bf" title=" " alt="" coords="279,189,505,215"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="231,199,265,199,265,205,231,205"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="231,214,265,211,265,216,231,220"/>
 <area shape="rect" id="Node000008" href="$class_train_unit_panel.html#adccbd5933efd9680fed732f1ac2f4f24" title="Takes the parameter and traction source references from their fields." alt="" coords="280,239,504,264"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="230,219,308,234,307,239,229,225"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="231,235,266,238,266,243,231,240"/>
+<area shape="rect" id="Node000010" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="332,312,452,337"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="176,245,343,305,341,310,175,250"/>
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="575,193,773,219"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,159,598,188,597,193,455,164"/>
 <area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" title="Rewrites the train unit id in the units of compositions." alt="" coords="553,79,795,104"/>
@@ -19,4 +21,5 @@
 <area shape="poly" id="edge10_Node000008_Node000003" title=" " alt="" coords="471,236,581,218,582,223,472,241"/>
 <area shape="rect" id="Node000009" href="$class_train_unit_panel.html#a81b8d3b868fda0a3cdfd526e4d25da86" title="The references to the source files of the shown unit have changed." alt="" coords="555,243,793,283"/>
 <area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="504,253,541,255,541,260,504,259"/>
+<area shape="poly" id="edge13_Node000010_Node000010" title=" " alt="" coords="348,314,339,304,344,294,362,287,392,285,431,289,442,294,445,300,441,303,438,298,430,295,392,291,363,293,347,298,344,303,352,310"/>
 </map>
