@@ -7,7 +7,6 @@
 #include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 #include <filesystem>
-#include <fstream>
 #include <locale>
 #include <sstream>
 #include <unordered_set>
@@ -174,10 +173,8 @@ static bool utf16ToUtf8(const std::u16string& in, std::string& out) {
 // Reads a file as UTF-8. A file that starts with the UTF-16 LE byte order mark is converted; an odd byte count or an
 // unpaired surrogate fails the read and leaves content empty.
 static bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream f(path, std::ios::binary);
-	if (!f.good())
+	if (!readFileBytes(path, content))
 		return false;
-	content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 	if (content.size() >= 2
 		&& static_cast<unsigned char>(content[0]) == 0xff
 		&& static_cast<unsigned char>(content[1]) == 0xfe) {
@@ -213,27 +210,6 @@ static std::string trim(const std::string& s) {
 		start++;
 	std::string res = s.substr(start);
 	return trimRight(res);
-}
-
-static fs::path comparablePath(const fs::path& path) {
-	std::error_code ec;
-	fs::path resolved = fs::weakly_canonical(path, ec);
-	if (!ec)
-		return resolved;
-	resolved = fs::absolute(path, ec);
-	return ec ? path.lexically_normal() : resolved.lexically_normal();
-}
-
-static bool containsPath(const fs::path& parent, const fs::path& child) {
-	if (parent == child)
-		return true;
-	auto parentIt = parent.begin();
-	auto childIt = child.begin();
-	for (; parentIt != parent.end() && childIt != child.end(); ++parentIt, ++childIt) {
-		if (*parentIt != *childIt)
-			return false;
-	}
-	return parentIt == parent.end();
 }
 
 struct ReportBuilder {
@@ -313,11 +289,13 @@ static std::vector<std::string> splitCsvNaive(const std::string& line) {
 	return values;
 }
 
+// Reads a whole token as a finite number. std::stod also reads "nan" and "inf", which a scene file cannot hold, so they
+// are refused like any other malformed number.
 static bool parseDoubleToken(const std::string& token, double& value) {
 	try {
 		std::size_t used = 0;
 		value = std::stod(token, &used);
-		return used == token.size();
+		return used == token.size() && std::isfinite(value);
 	} catch (...) {
 		return false;
 	}
@@ -357,7 +335,7 @@ SceneTrainPhysicalSourceResult parseTrainPhysicalSourceFile(const std::string& p
 	}
 	for (std::size_t index = 0; index < tokens.size(); ++index) {
 		double& value = result.physical.*kSceneTrainPhysicalFields[index].member;
-		if (!parseDoubleToken(tokens[index], value) || !std::isfinite(value)) {
+		if (!parseDoubleToken(tokens[index], value)) {
 			result.error = "The physical source contains a non-finite or malformed value";
 			return result;
 		}
@@ -389,7 +367,7 @@ SceneTrainTractionSourceResult parseTrainTractionSourceFile(const std::string& p
 		}
 		std::array<double, 5> row{};
 		for (std::size_t index = 0; index < row.size(); ++index) {
-			if (!parseDoubleToken(tokens[index], row[index]) || !std::isfinite(row[index])) {
+			if (!parseDoubleToken(tokens[index], row[index])) {
 				result.error = "Traction row " + std::to_string(rowNumber)
 					+ " contains a non-finite or malformed value";
 				return result;
@@ -493,7 +471,7 @@ static std::string baseTimeForCase(const std::string& sceneName, const fs::path&
 
 static bool passengerTimeWindow(const std::string& token, std::pair<double, double>& result) {
 	double value = 0.0;
-	if (!parseDoubleToken(token, value) || !std::isfinite(value) || value < 0.0)
+	if (!parseDoubleToken(token, value) || value < 0.0)
 		return false;
 	const double hour = std::floor(value);
 	const double fraction = value - hour;
@@ -1208,7 +1186,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				const auto tokens = readTokens(line);
 				double ignoredIdentity = 0.0, length = 0.0;
 				if (tokens.size() < 2 || !parseDoubleToken(tokens[0], ignoredIdentity)
-					|| !parseDoubleToken(tokens[1], length) || !std::isfinite(length)) {
+					|| !parseDoubleToken(tokens[1], length)) {
 					report.skipped("infrastructure.blocks", blockSource);
 					addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed block row " + std::to_string(rowIndex), blocksPath.u8string());
 					++rowIndex;
@@ -1557,7 +1535,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			bool valid = fields.size() >= 5 && fields.size() <= 6;
 			double latitude = 0.0;
 			double longitude = 0.0;
-			if (valid && (!parseDoubleToken(fields[1], latitude) || !parseDoubleToken(fields[2], longitude) || !std::isfinite(latitude) || !std::isfinite(longitude)))
+			if (valid && (!parseDoubleToken(fields[1], latitude) || !parseDoubleToken(fields[2], longitude)))
 				valid = false;
 			const auto regionFields = valid ? splitCsvNaive(fields[3]) : std::vector<std::string>();
 			const auto positionFields = valid ? splitCsvNaive(fields[4]) : std::vector<std::string>();
@@ -1569,7 +1547,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				for (std::size_t index = 0; index < regionFields.size(); ++index) {
 					int region = 0;
 					double position = 0.0;
-					if (!parseIntegerToken(regionFields[index], region) || region < 0 || !parseDoubleToken(positionFields[index], position) || !std::isfinite(position) || !regionIds.insert(region).second) {
+					if (!parseIntegerToken(regionFields[index], region) || region < 0 || !parseDoubleToken(positionFields[index], position) || !regionIds.insert(region).second) {
 						valid = false;
 						break;
 					}
@@ -1709,7 +1687,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		relation.timetablePath = tokens[6];
 		relation.entryTime = entryTime;
 		relation.headway = headway;
-		relation.hasRepeat = headway < 99999999.0;
+		relation.hasRepeat = headway < kLegacyNoRepeatHeadwaySeconds;
 		relation.routeIndex = routeIndex;
 		relations.push_back(relation);
 		report.converted("rolling_stock.manifest", manifestSource);
@@ -2178,7 +2156,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			std::array<double, 5> row{};
 			bool valid = true;
 			for (std::size_t i = 0; i < row.size(); ++i) {
-				if (!parseDoubleToken(tokens[i], row[i]) || !std::isfinite(row[i])) valid = false;
+				if (!parseDoubleToken(tokens[i], row[i])) valid = false;
 			}
 			if (!valid) {
 				report.skipped("rolling_stock.traction", tractionSource);
@@ -2320,9 +2298,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			continue;
 		}
 		for (const auto& relation : relations) {
-			int occurrences = 1;
-			if (relation.hasRepeat && relation.headway > 0.0)
-				occurrences = std::max(1, static_cast<int>(std::ceil(settings.durationSeconds / relation.headway)));
+			// Counted from the relation, because a relation whose timetable is missing has no service.
+			SceneService repeat;
+			repeat.hasRepeat = relation.hasRepeat;
+			repeat.headwaySeconds = relation.headway;
+			const int occurrences = sceneServiceOccurrenceCount(repeat, settings.durationSeconds);
 			for (int occurrence = 1; occurrence <= occurrences; ++occurrence) {
 				report.source("scenarios.rollouts", source);
 				if (valueIndex >= values.size()) {
@@ -2375,8 +2355,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	report.append(passengerImport.report);
 	result.diagnostics.insert(result.diagnostics.end(), passengerImport.diagnostics.begin(),
 		passengerImport.diagnostics.end());
-	const bool hasDas = passengerImport.sources.hasDas;
-	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
 	scene.schemaVersion = kCurrentSceneSchemaVersion;
 	scene.name = sceneName;
@@ -2385,52 +2363,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	scene.importReport = report.rows;
 	scene.passengers = passengerImport.passengers;
 
-	// Preserve atomic staging/publish semantics: no destination is touched while
-	// parsing or validation can still fail.
+	// No destination is touched while parsing or validation can still fail.
 	if (hasErrors(result.diagnostics)) return result;
-	std::error_code ec;
-	fs::path sceneParent = scenePath.parent_path();
-	if (sceneParent.empty()) sceneParent = ".";
-	fs::create_directories(sceneParent, ec);
-	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create case parent directory: " + ec.message(), scenePath.u8string());
-		return result;
-	}
-	std::string directoryName = scenePath.filename().u8string();
-	if (directoryName.empty()) directoryName = "scene";
-	StagedDirectory staged;
-	ec = createStagedDirectory(sceneParent, directoryName + ".staging-", false, staged);
-	if (ec) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot create staging directory: " + ec.message(), scenePath.u8string());
-		return result;
-	}
-	bool allWritten = true;
-	auto writeJson = [&](const std::string& filename, const json& value) {
-		std::ofstream output(staged.path / filename);
-		if (!output) {
-			addDiag(SceneSeverity::Error, "scene.import.write", "Failed to write " + filename, (scenePath / filename).u8string());
-			allWritten = false;
-			return;
-		}
-		output << value.dump(4) << "\n";
-		if (!output.good()) {
-			addDiag(SceneSeverity::Error, "scene.import.write", "Failed to write " + filename, (scenePath / filename).u8string());
-			allWritten = false;
-		}
-	};
-	writeJson("scene.json", encodeSceneMetadata(scene));
-	writeJson("infrastructure.json", encodeInfrastructure(scene));
-	writeJson("stations.json", encodeStations(scene));
-	writeJson("signalling.json", encodeSignalling(scene));
-	writeJson("rolling_stock.json", encodeRollingStock(scene));
-	writeJson("services.json", encodeServices(scene));
-	writeJson("scenarios.json", encodeScenarios(scene));
-	if (!scene.trackViews.empty() || !scene.stationViews.empty()) writeJson("views.json", encodeViews(scene));
-	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(scene.passengers));
-	if (!allWritten) return result;
-
-	if (hasErrors(result.diagnostics)) return result;
-
 	if (!areaSidecar.empty()) {
 		// Existing historical imports retain their current policy outside area metadata.
 		const auto appendAreaDiagnostics = [&](const std::vector<SceneDiagnostic>& diagnostics) {
@@ -2441,44 +2375,22 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 		};
 		appendAreaDiagnostics(areaDiagnostics);
-		if (hasErrors(result.diagnostics)) return result;
-		const auto loaded = loadScene(staged.path.u8string());
-		appendAreaDiagnostics(loaded.diagnostics);
-		if (hasErrors(result.diagnostics)) return result;
-		appendAreaDiagnostics(validateRunnableScene(loaded.scene));
+		appendAreaDiagnostics(validateRunnableScene(scene));
 		if (hasErrors(result.diagnostics)) return result;
 	}
 
-	std::error_code destinationEc;
-	const bool destinationExists = fs::exists(scenePath, destinationEc);
-	if (destinationEc) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect case destination: " + destinationEc.message(), scenePath.u8string());
-		return result;
+	// The writer loads the staged files back and publishes them only when they load. The caller loads the published
+	// scene and reports its warnings, so of that load only the errors and the rows of the area sidecar are kept here.
+	SceneSaveResult saved = replaceSceneDirectory(scene, sceneDir);
+	for (SceneDiagnostic& diagnostic : saved.diagnostics) {
+		const bool areaRow = diagnostic.file == "signalling.json" && diagnostic.path.rfind("signalling_areas", 0) == 0;
+		if (areaRow && !areaSidecar.empty())
+			diagnostic.file = areaSidecar.u8string();
+		else if (diagnostic.severity != SceneSeverity::Error && diagnostic.code.rfind("scene.save.", 0) != 0)
+			continue;
+		result.diagnostics.push_back(std::move(diagnostic));
 	}
-	fs::path backupPath;
-	if (destinationExists) {
-		const std::error_code backupEc = uniqueSiblingPath(sceneParent, directoryName + ".backup-", backupPath);
-		if (backupEc) {
-			addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot inspect case destination: " + backupEc.message(), scenePath.u8string());
-			return result;
-		}
-	}
-	const StagedPublishResult published = publishStagedDirectory(staged, scenePath, backupPath);
-	if (published.step == StagedPublishStep::MoveToBackup) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot move existing case to backup: " + published.error.message(), scenePath.u8string());
-		return result;
-	}
-	if (published.step == StagedPublishStep::Rename) {
-		addDiag(SceneSeverity::Error, "scene.import.missing", "Cannot publish case destination: " + published.error.message(), scenePath.u8string());
-		if (published.restoreError)
-			addDiag(SceneSeverity::Error, "scene.import.missing",
-				"Cannot restore existing case: " + published.restoreError.message(), backupPath.u8string());
-		return result;
-	}
-	if (published.removeBackupError)
-		addDiag(SceneSeverity::Warning, "scene.import.cleanup",
-			"Could not remove import backup: " + published.removeBackupError.message(), backupPath.u8string());
-	result.wroteScene = true;
+	result.wroteScene = saved.success();
 	return result;
 }
 

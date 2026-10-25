@@ -1,4 +1,5 @@
 #include "scene/SceneExporter.h"
+#include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include <cctype>
 #include <algorithm>
@@ -826,6 +827,68 @@ int main() {
 		const fs::path missing = fs::path(emptyDir.dir) / "missing";
 		ok &= expect(!exportLegacyScene(sceneDir.dir, missing.string()).success() && fs::is_empty(emptyDir.dir),
 			"A failed export into a new folder creates nothing");
+	}
+
+	// A re-export into a used folder writes its own copy of every file that it writes, so the folder has the station name
+	// and the node coordinate of the scene as it is now.
+	{
+		TempDir sceneDir, outDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		writeAreaScene(scene, "");
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Old","platforms":[{"id":"p","nodes":["n1"]}]}]})" << "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && readText(out / "TrackLines/Stations.txt") == "1\tOld\n"
+				&& readText(out / "TrackLines/B0/NodiCumPari.txt") == "0\t0\t0\n1\t1\t0\n",
+			"A scene with a station exports");
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"New","platforms":[{"id":"p","nodes":["n1"]}]}]})" << "\n";
+		std::string infrastructure = readText(scene / "infrastructure.json");
+		infrastructure.replace(infrastructure.find(R"("x_km":1)"), 8, R"("x_km":2)");
+		std::ofstream(scene / "infrastructure.json") << infrastructure;
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && readText(out / "TrackLines/Stations.txt") == "2\tNew\n"
+				&& readText(out / "TrackLines/B0/NodiCumPari.txt") == "0\t0\t0\n1\t2\t0\n"
+				&& readText(out / "GUI/StationsCoord.txt").rfind("New\t", 0) == 0,
+			"A re-export into the same folder writes the new station name and node coordinate");
+	}
+
+	// A re-export into a used folder removes the inputs of the importer that the earlier export wrote and this one does
+	// not, so the folder imports as the new scene. The files and folders that the importer does not read stay.
+	{
+		TempDir sceneDir, outDir, importDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		const fs::path rollout = fs::path("TimeTable") / "Scenarios_Entrance_Delays" / "Rollout_1.txt";
+		writeAreaScene(scene, "");
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[{"id":"p","nodes":["n1"]}]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"],"corridor":"North"}]})" << "\n";
+		fs::create_directories((scene / "legacy" / rollout).parent_path());
+		std::ofstream(scene / "legacy" / rollout) << "60\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && fs::is_directory(out / "TrackLines/B7")
+				&& fs::is_regular_file(out / "GUI/caseStudyRouteCorridors.txt") && fs::is_regular_file(out / rollout),
+			"A scene with two tracks, a route corridor and a rollout exports");
+		std::ofstream(out / "notes.txt") << "mine\n";
+		std::ofstream(out / "TrackLines/B0/notes.txt") << "mine\n";
+		fs::create_directories(out / "Extra");
+		std::ofstream(out / "Extra/data.txt") << "mine\n";
+
+		fs::remove_all(scene / "legacy");
+		std::ofstream(scene / "infrastructure.json")
+			<< R"({"tracks":[{"id":"main"}],"nodes":[{"id":"n0","track":"main","x_km":0,"y_km":0},{"id":"n1","track":"main","x_km":1,"y_km":0}],"arcs":[],"blocks":[{"id":"block.a","track":"main","length_km":1}]})"
+			<< "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"]}]})" << "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && !fs::exists(out / "TrackLines/B7")
+				&& !fs::exists(out / "GUI/caseStudyRouteCorridors.txt") && !fs::exists(out / rollout),
+			"A re-export of a smaller scene removes the old track folder, corridor file and rollout");
+		ok &= expect(readText(out / "notes.txt") == "mine\n" && readText(out / "TrackLines/B0/notes.txt") == "mine\n"
+				&& readText(out / "Extra/data.txt") == "mine\n",
+			"A re-export keeps the files and folders that the importer does not read");
+
+		const fs::path imported = fs::path(importDir.dir) / "case";
+		const SceneImportResult importResult = importLegacyScene(outDir.dir, imported.string(), "Smaller");
+		const SceneLoadResult loaded = loadScene(imported.string());
+		printErrors(importResult.diagnostics, "Re-export import");
+		ok &= expect(importResult.success() && loaded.scene.tracks.size() == 1
+				&& std::none_of(loaded.scene.routes.begin(), loaded.scene.routes.end(), [](const SceneRoute& route) { return route.hasCorridor; })
+				&& std::none_of(loaded.scene.scenarios.begin(), loaded.scene.scenarios.end(),
+					[](const SceneScenario& scenario) { return scenario.id == "rollout_1"; }),
+			"The folder of a re-export imports as the smaller scene");
 	}
 
 	// A scene directory, an export destination, the legacy data below the scene and the source files of a train unit,

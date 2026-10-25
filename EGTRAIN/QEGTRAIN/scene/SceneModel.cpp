@@ -1,13 +1,13 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneFieldReader.h"
 #include "scene/SceneFields.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <cctype>
 #include <climits>
 #include <filesystem>
-#include <fstream>
 #include <nlohmann/json.hpp>
 #include <cmath>
 #include <limits>
@@ -19,21 +19,6 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 
 namespace {
-
-bool readFile(const fs::path& path, std::string& content) {
-	std::ifstream input(path, std::ios::binary);
-	if (!input)
-		return false;
-	content.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-	return true;
-}
-
-bool canonicalSnapshotFile(const std::string& file) {
-	return file == "scene.json" || file == "infrastructure.json" || file == "stations.json"
-		|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
-		|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json"
-		|| file == "views.json";
-}
 
 SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile,
 	int parsedCount, const std::string& status) {
@@ -99,16 +84,15 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	}
 
 	std::vector<std::pair<std::string, std::string>> files;
-	const auto read = [&](const char* name, bool required) {
+	const auto read = [&](const char* name) {
 		const fs::path path = directory / name;
 		ec.clear();
 		if (!fs::is_regular_file(path, ec) || ec) {
-			if (required)
-				result.reason = std::string("required scene input is missing or unreadable: ") + name;
-			return !required;
+			result.reason = std::string("required scene input is missing or unreadable: ") + name;
+			return false;
 		}
 		std::string content;
-		if (!readFile(path, content)) {
+		if (!readFileBytes(path, content)) {
 			result.reason = std::string("scene input is missing or unreadable: ") + name;
 			return false;
 		}
@@ -124,26 +108,14 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 		return false;
 	};
 
-	for (const char* name : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			 "rolling_stock.json", "services.json"}) {
-		if (!read(name, true))
+	// An optional file counts when it exists, and then it has to be readable like a required one.
+	for (const SceneFile& file : kSceneFiles) {
+		bool present = file.required;
+		if (!file.required && !exists(file.name, present))
+			return result;
+		if (present && !read(file.name))
 			return result;
 	}
-	bool scenariosPresent = false;
-	bool incidentsPresent = false;
-	if (!exists("scenarios.json", scenariosPresent) || !exists("incidents.json", incidentsPresent))
-		return result;
-	if (scenariosPresent && !read("scenarios.json", true))
-		return result;
-	if (incidentsPresent && !read("incidents.json", true))
-		return result;
-	bool passengersPresent = false;
-	if (!exists("passengers.json", passengersPresent)
-		|| (passengersPresent && !read("passengers.json", true)))
-		return result;
-	bool viewsPresent = false;
-	if (!exists("views.json", viewsPresent) || (viewsPresent && !read("views.json", true)))
-		return result;
 
 	result.bytes = buildSceneDirectorySnapshot(files);
 	return result;
@@ -752,19 +724,33 @@ void refreshLoadedDataDiagnostics(SceneModel& scene, const std::vector<SceneDiag
 	}
 }
 
+bool isSceneFileName(const std::string& name) {
+	return std::any_of(kSceneFiles.begin(), kSceneFiles.end(), [&name](const SceneFile& file) {
+		return name == file.name;
+	});
+}
+
+bool sceneFileWritten(const SceneFile& file, const SceneModel& scene) {
+	switch (file.write) {
+		case SceneFileWrite::Always:
+			return true;
+		case SceneFileWrite::WithViews:
+			return !scene.trackViews.empty() || !scene.stationViews.empty();
+		case SceneFileWrite::WithPassengers:
+			return !scene.passengers.empty();
+		case SceneFileWrite::Never:
+			return false;
+	}
+	return false;
+}
+
 void refreshSavedSceneMetadata(SceneModel& scene) {
-	for (const char* file : {"scene.json", "infrastructure.json", "stations.json", "signalling.json",
-			 "rolling_stock.json", "services.json", "scenarios.json"})
-		scene.sourceFiles.insert(file);
-	scene.sourceFiles.erase("incidents.json");
-	if (scene.passengers.empty())
-		scene.sourceFiles.erase("passengers.json");
-	else
-		scene.sourceFiles.insert("passengers.json");
-	if (scene.trackViews.empty() && scene.stationViews.empty())
-		scene.sourceFiles.erase("views.json");
-	else
-		scene.sourceFiles.insert("views.json");
+	for (const SceneFile& file : kSceneFiles) {
+		if (sceneFileWritten(file, scene))
+			scene.sourceFiles.insert(file.name);
+		else
+			scene.sourceFiles.erase(file.name);
+	}
 	refreshLoadedDataSummary(scene);
 }
 
@@ -803,12 +789,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	std::vector<std::pair<std::string, std::string>> inputFiles;
 	auto parseObject = [&](const std::string& file, json& value, bool required, bool parseValue = true) {
 		std::string content;
-		if (!readFile(directory / file, content)) {
+		if (!readFileBytes(directory / file, content)) {
 			if (required)
 				addError("scene.file.missing", file, "Required file is missing");
 			return false;
 		}
-		if (canonicalSnapshotFile(file))
+		if (isSceneFileName(file))
 			inputFiles.emplace_back(file, content);
 		if (!parseValue)
 			return true;

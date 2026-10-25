@@ -474,6 +474,41 @@ std::vector<SceneSignal>& sceneSignals(SceneModel& scene);
 /// The signals of the scene, read-only.
 const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene);
 
+/// When saveScene writes a file of a scene directory.
+enum class SceneFileWrite {
+	Always,			///< On every save.
+	WithViews,		///< When the scene has track or station views.
+	WithPassengers, ///< When the scene has passengers.
+	Never,			///< Never; the loader still reads it from an older scene.
+};
+
+/// A file of a scene directory.
+struct SceneFile {
+	const char* name;	  ///< The file name.
+	bool required;		  ///< True when loadScene cannot load a directory without it.
+	SceneFileWrite write; ///< When saveScene writes it.
+};
+
+/// Every file of a scene directory, in the order in which saveScene writes them. The snapshot of a directory holds all of
+/// them. A bundle holds the files that saveScene writes, and those that it always writes are required there.
+inline constexpr std::array<SceneFile, 10> kSceneFiles{{
+	{"scene.json", true, SceneFileWrite::Always},
+	{"infrastructure.json", true, SceneFileWrite::Always},
+	{"stations.json", true, SceneFileWrite::Always},
+	{"signalling.json", true, SceneFileWrite::Always},
+	{"rolling_stock.json", true, SceneFileWrite::Always},
+	{"services.json", true, SceneFileWrite::Always},
+	{"scenarios.json", false, SceneFileWrite::Always},
+	{"views.json", false, SceneFileWrite::WithViews},
+	{"passengers.json", false, SceneFileWrite::WithPassengers},
+	{"incidents.json", false, SceneFileWrite::Never},
+}};
+
+/// True when name is the name of a file in kSceneFiles.
+bool isSceneFileName(const std::string& name);
+/// True when saveScene writes file for scene.
+bool sceneFileWritten(const SceneFile& file, const SceneModel& scene);
+
 /// The result of loading a scene directory or bundle.
 struct SceneLoadResult {
 	SceneModel scene;						  ///< The scene; partial on structural failure.

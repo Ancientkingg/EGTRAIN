@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+/// The headway in seconds that a legacy Trains file gives a service that does not repeat. The importer reads a smaller
+/// headway as a repeat, and the exporter writes this one for a service without a repeat.
+inline constexpr double kLegacyNoRepeatHeadwaySeconds = 99999999.0;
+
 /// The result of importing a legacy case.
 struct SceneImportResult {
 	bool wroteScene = false;				  ///< True when the scene directory was published.

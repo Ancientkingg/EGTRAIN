@@ -2,11 +2,10 @@
 
 #include "io/third_party/miniz/miniz.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
 #include <algorithm>
-#include <array>
-#include <chrono>
 #include <cctype>
 #include <climits>
 #include <cstdint>
@@ -36,29 +35,6 @@ constexpr mz_uint64 kMaxEntrySize = 16ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxTotalSize = 64ULL * 1024ULL * 1024ULL;
 constexpr mz_uint64 kMaxCompressionRatio = 1000;
 constexpr mz_uint kMaxEntries = 16;
-
-const std::array<const char*, 7> kRequiredEntries = {
-	"scene.json",
-	"infrastructure.json",
-	"stations.json",
-	"signalling.json",
-	"rolling_stock.json",
-	"services.json",
-	"scenarios.json",
-};
-
-struct TempDirectory {
-	fs::path path;
-
-	~TempDirectory() {
-		if (path.empty())
-			return;
-		std::error_code error;
-		fs::remove_all(path, error);
-	}
-
-	void release() { path.clear(); }
-};
 
 struct ZipReader {
 	mz_zip_archive zip{};
@@ -150,36 +126,16 @@ static bool specialArchiveFile(const mz_zip_archive_file_stat& stat) {
 	return (stat.m_external_attr & (0x008U | 0x010U | 0x040U | 0x400U)) != 0;
 }
 
-static bool createUniqueDirectory(const fs::path& parent, const std::string& prefix, fs::path& result,
-	bool* writeAttempted = nullptr) {
-	std::error_code ec;
-	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
-		ec.clear();
-		if (writeAttempted) *writeAttempted = true;
-		if (fs::create_directory(candidate, ec)) {
-			ec.clear();
-			fs::permissions(candidate, fs::perms::owner_all, fs::perm_options::replace, ec);
-			if (ec) {
-				std::error_code removeError;
-				fs::remove_all(candidate, removeError);
-				return false;
-			}
-			result = candidate;
-			return true;
-		}
-		if (ec && ec != std::errc::file_exists)
-			return false;
-	}
-	return false;
-}
-
-static bool makeTempDirectory(TempDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
+static bool makeTempDirectory(StagedDirectory& temp, std::vector<SceneDiagnostic>& diagnostics,
 	bool* writeAttempted = nullptr) {
 	std::error_code ec;
 	const fs::path root = fs::temp_directory_path(ec);
-	if (ec || root.empty() || !createUniqueDirectory(root, "egscene-", temp.path, writeAttempted)) {
+	if (!ec && !root.empty()) {
+		if (writeAttempted)
+			*writeAttempted = true;
+		ec = createStagedDirectory(root, "egscene-", true, temp);
+	}
+	if (ec || root.empty()) {
 		addDiagnostic(diagnostics, "scene.bundle.temp", "Cannot create a private temporary directory");
 		return false;
 	}
@@ -249,7 +205,24 @@ static bool readArchiveFile(const fs::path& path, std::string& contents,
 	return true;
 }
 
-static bool canonicalEntryName(const std::string& name);
+// A bundle holds the files that saveScene writes.
+static bool canonicalEntryName(const std::string& name) {
+	return std::any_of(kSceneFiles.begin(), kSceneFiles.end(), [&name](const SceneFile& file) {
+		return file.write != SceneFileWrite::Never && name == file.name;
+	});
+}
+
+// The first file that saveScene always writes and that entries lacks, or null when entries holds them all.
+static const char* missingRequiredEntry(const std::vector<ArchiveEntry>& entries) {
+	for (const SceneFile& file : kSceneFiles) {
+		if (file.write == SceneFileWrite::Always
+			&& std::none_of(entries.begin(), entries.end(), [&file](const ArchiveEntry& entry) {
+				   return entry.name == file.name;
+			   }))
+			return file.name;
+	}
+	return nullptr;
+}
 
 static bool inspectBundle(const fs::path& path, const std::string& archiveBytes, ZipReader& reader,
 	std::vector<ArchiveEntry>& entries, BundleManifest& manifest,
@@ -356,12 +329,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	std::string manifestText(static_cast<std::size_t>(manifestEntry->stat.m_uncomp_size), '\0');
 	if (!mz_zip_reader_extract_to_mem(&reader.zip, manifestEntry->index,
 			manifestText.empty() ? nullptr : manifestText.data(), manifestText.size(), 0)) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired)
 			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", "scene.json");
 		else
@@ -405,12 +373,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 			manifest.savedWithAppVersion = manifestJson["saved_with_app_version"].get<std::string>();
 		}
 	} catch (const json::exception& error) {
-		const bool allRequired = std::all_of(kRequiredEntries.begin(), kRequiredEntries.end(),
-			[&entries](const char* required) {
-				return std::any_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				});
-			});
+		const bool allRequired = missingRequiredEntry(entries) == nullptr;
 		if (!allRequired) {
 			const auto unknown = std::find_if(entries.begin(), entries.end(), [](const ArchiveEntry& entry) {
 				return !canonicalEntryName(entry.name);
@@ -427,21 +390,14 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	}
 	if (*manifest.bundleVersion == kCurrentSceneBundleVersion) {
 		for (const auto& entry : entries) {
-			if (entry.name != "passengers.json" && entry.name != "views.json"
-				&& std::none_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&entry](const char* required) {
-					   return entry.name == required;
-				   })) {
+			if (!canonicalEntryName(entry.name)) {
 				addDiagnostic(diagnostics, "scene.bundle.entry", "Unknown ZIP entry is not allowed in v1", entry.name);
 				return false;
 			}
 		}
-		for (const char* required : kRequiredEntries) {
-			if (std::none_of(entries.begin(), entries.end(), [required](const ArchiveEntry& entry) {
-					return entry.name == required;
-				})) {
-				addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", required);
-				return false;
-			}
+		if (const char* missing = missingRequiredEntry(entries)) {
+			addDiagnostic(diagnostics, "scene.bundle.required", "Required ZIP entry is missing", missing);
+			return false;
 		}
 	}
 	if (!mz_zip_validate_archive(&reader.zip, 0)) {
@@ -470,13 +426,6 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 		}
 	}
 	return true;
-}
-
-static bool canonicalEntryName(const std::string& name) {
-	return name == "passengers.json" || name == "views.json"
-		|| std::any_of(kRequiredEntries.begin(), kRequiredEntries.end(), [&name](const char* required) {
-			   return name == required;
-		   });
 }
 
 static bool publishPath(const fs::path& staging, const fs::path& target,
@@ -595,7 +544,7 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics))
 		return result;
 	if (!extractEntries(reader, entries, temp.path, result.diagnostics))
@@ -630,7 +579,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		return result;
 	}
 
-	TempDirectory temp;
+	StagedDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
 	SceneSaveResult directoryResult = saveScene(scene, temp.path.u8string());
@@ -668,15 +617,11 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	}
 
 	std::vector<std::string> names;
-	for (const char* required : kRequiredEntries)
-		names.emplace_back(required);
-	std::error_code ec;
-	if (fs::is_regular_file(temp.path / "passengers.json", ec))
-		names.emplace_back("passengers.json");
-	ec.clear();
-	if (fs::is_regular_file(temp.path / "views.json", ec))
-		names.emplace_back("views.json");
+	for (const SceneFile& file : kSceneFiles)
+		if (sceneFileWritten(file, scene))
+			names.emplace_back(file.name);
 	std::sort(names.begin(), names.end());
+	std::error_code ec;
 
 	fs::path parent = target.parent_path().empty() ? fs::path(".") : target.parent_path();
 	fs::create_directories(parent, ec);
@@ -710,8 +655,8 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		totalSize += size;
 	}
 
-	TempDirectory stagingContainer;
-	if (!createUniqueDirectory(parent, target.filename().u8string() + ".staging-", stagingContainer.path)) {
+	StagedDirectory stagingContainer;
+	if (createStagedDirectory(parent, target.filename().u8string() + ".staging-", true, stagingContainer)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create a private bundle staging directory",
 			target.u8string());
 		return result;
@@ -802,8 +747,8 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 		return result;
 	}
 
-	TempDirectory staging;
-	if (!createUniqueDirectory(parent, destination.filename().u8string() + ".staging-", staging.path)) {
+	StagedDirectory staging;
+	if (createStagedDirectory(parent, destination.filename().u8string() + ".staging-", true, staging)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Cannot create extraction staging directory",
 			destinationDirectory);
 		return result;
