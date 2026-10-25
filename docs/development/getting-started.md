@@ -128,7 +128,7 @@ of folders, the libraries and the renames.
 | To find | Look in |
 | --- | --- |
 | Start of the program, the command line | `app/main.cpp` |
-| The main window, menus, docks and the glue between them | `app/MainWindow.cpp`, `app/MainWindow.h` |
+| The main window, menus, docks and the glue between them | `app/MainWindow.cpp`, `app/MainWindow.h`; the editor docks and the wiring of their panels in `app/EditorDocks.cpp` |
 | The scene editor panels and the open scene with its unsaved state | `editors/` (`SceneDocument`, `*Panel`, `infrastructure/`) |
 | Loading, validating, saving, bundling, importing and exporting scenes | `scene/` (`SceneModel`, `SceneBundle`, `SceneValidator`, `SceneWriter`, `SceneImporter`, `SceneExporter`) |
 | Turning a scene into a runnable simulation | `simulation/builders/` (`InfrastructureBuilder`, `OperationsBuilder`) and `app/DispatchController.cpp` |
