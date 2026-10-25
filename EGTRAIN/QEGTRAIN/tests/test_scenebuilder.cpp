@@ -54,7 +54,7 @@ static SceneModel tinyScene() {
 		{"station.tiny", 1.0, 0.1, {{2, 1.0}}, {"corridor.tiny"}},
 		{"station.end", 1.0, 0.2, {{2, 2.0}}, {"corridor.tiny"}},
 	};
-	scene.signals.push_back({"block.a"});
+	scene.signals.push_back({"block.a", ""});
 	SceneRoute route;
 	route.id = "route.tiny";
 	route.blocks = {"block.a", "block.b"};
@@ -215,7 +215,7 @@ static bool runTinyBuilderChecks() {
 	segmentedRegionRoute.blocks.push_back({"region.block.2", "region.track", 0.5});
 	segmentedRegionRoute.routes[0].blocks = {
 		"block.a", "block.b", "region.block.2", "region.block.1"};
-	segmentedRegionRoute.importReport.push_back({"legacy_root"});
+	segmentedRegionRoute.importReport.push_back({"legacy_root", ""});
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), segmentedRegionRoute);
 	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& defaultRun().infra.numRoutes == 1 && defaultRun().infra.routes.size() == 1 && !defaultRun().infra.routes[0].reversed_direction,
@@ -312,7 +312,7 @@ static bool runTinyBuilderChecks() {
 		else if (section.sourceConnectionId == "b-to-c")
 			bToC = section.id;
 	}
-	derivedUTurn.importReport.push_back({"legacy_root"});
+	derivedUTurn.importReport.push_back({"legacy_root", ""});
 	derivedUTurn.routes.push_back({"switch-u-turn", {aToB, bToC, aToB}, false, {}, false});
 	const int blocksBeforeDerivedUTurn = defaultRun().infra.numBlocks;
 	const std::string firstSectionBeforeDerivedUTurn = defaultRun().infra.sections[0].ID;
@@ -345,7 +345,7 @@ static bool runTinyBuilderChecks() {
 		else if (section.sourceConnectionId == "a-to-c")
 			cToA = section.id;
 	}
-	legacyFork.importReport.push_back({"legacy_root"});
+	legacyFork.importReport.push_back({"legacy_root", ""});
 	legacyFork.routes.push_back({"legacy-fork", {bToA, cToA}, false, {}, false});
 	const int blocksBeforeLegacyFork = defaultRun().infra.numBlocks;
 	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), legacyFork);

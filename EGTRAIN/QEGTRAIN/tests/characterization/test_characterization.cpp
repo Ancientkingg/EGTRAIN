@@ -237,7 +237,7 @@ struct CaseSpec {
 	// The border has to lie on a section edge.
 	double borderKm = kNoBorder;
 	int secondLevel = kNoSignallingArea;
-	std::string passengers;
+	std::string passengers = "";
 	bool paxGui = false;
 	int capacity = 0;
 	// Writes the capacity lines of the two trains of the case. They are written only when both trains run on one route
@@ -342,7 +342,7 @@ std::vector<CaseSpec> buildCaseTable() {
 	// Both trains approach an interior restriction at line speed. Asymmetric entries exercise each winner and a
 	// follower that commits while its leader still holds the stretch.
 	for (int level = 0; level <= 5; ++level) {
-		for (const std::string& variant : {"tie", "forward-first", "reverse-first", "follower"}) {
+		for (const std::string variant : {"tie", "forward-first", "reverse-first", "follower"}) {
 			CaseSpec spec{"running-" + variant + "-level-" + std::to_string(level), "baseline",
 				variant == "follower" ? std::vector<std::string>{"S1", "F2", "R1"} : std::vector<std::string>{"S1", "R1"}, level, "", true};
 			spec.restriction = {"3-B0", "4-B0", "2-B0", "5-B0"};
@@ -393,7 +393,7 @@ std::vector<CaseSpec> buildCaseTable() {
 		spec.secondLevel = border.east;
 		cases.push_back(spec);
 	}
-	for (const std::string& set : {"board", "full", "transfer"}) {
+	for (const std::string set : {"board", "full", "transfer"}) {
 		for (bool gui : {false, true}) {
 			CaseSpec spec{"pax-" + set + "-gui" + (gui ? "1" : "0"), "baseline",
 				set == "transfer" ? std::vector<std::string>{"Q1", "Q2", "Q3"} : std::vector<std::string>{"Q1"}, kNoSignallingArea, ""};
@@ -1697,7 +1697,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 							integerField("delay", trip.totalArrivalDelay)});
 			}
 		}
-		for (const std::string& name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
+		for (const std::string name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
 			std::ifstream in(outputDir + "/PassengerStatus/" + name);
 			if (!in) {
 				outcome.error = "the run wrote no PassengerStatus/" + name + "\n";

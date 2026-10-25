@@ -161,12 +161,13 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 	// Read each completed step before the next movement can rewrite a stored speed while capping to
 	// an arc limit. Physical checks must use the speed actually reported at the previous step.
 	std::vector<Trajectory> observed(simulation.run().numTrains);
+	const auto steps = static_cast<std::size_t>(initial_variables.times);
 	for (Trajectory& trajectory : observed) {
-		trajectory.position.resize(initial_variables.times);
-		trajectory.speed.resize(initial_variables.times);
-		trajectory.deceleration.resize(initial_variables.times);
-		trajectory.acceleration.resize(initial_variables.times);
-		trajectory.bookkeeping.resize(initial_variables.times);
+		trajectory.position.resize(steps);
+		trajectory.speed.resize(steps);
+		trajectory.deceleration.resize(steps);
+		trajectory.acceleration.resize(steps);
+		trajectory.bookkeeping.resize(steps);
 	}
 	simulation.setSnapshotsEnabled(true);
 	const auto connection = QObject::connect(&simulation, &DispatchController::snapshotAvailable, [&] {

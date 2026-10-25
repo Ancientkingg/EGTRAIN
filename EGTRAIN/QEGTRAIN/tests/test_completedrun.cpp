@@ -36,7 +36,6 @@
 #include <QFont>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
@@ -1559,7 +1558,7 @@ void testFullTableImage() {
 	QTableWidget table;
 	const QStringList headers = {"Train", "Operating code", "Start time (hh:mm:ss)", "Energy consumed (kWh)",
 		"Energy consumed with regenerative braking (kWh)", "Substation request (kWh)", "Substation request with regenerative braking (kWh)"};
-	table.setColumnCount(headers.size());
+	table.setColumnCount(static_cast<int>(headers.size()));
 	table.setHorizontalHeaderLabels(headers);
 	table.setRowCount(30);
 	for (int row = 0; row < table.rowCount(); ++row)
@@ -1709,17 +1708,6 @@ bool askCapacityScope(const CompletedRunData& run, CapacityAnalysisScope& scope,
 			dialog->reject();
 	});
 	return chooseCapacityAnalysisScope(nullptr, run, scope);
-}
-
-// A refusal is shown in the dialog. A message box that opens over it is closed and counted as a failure.
-void forbidMessageBox() {
-	QTimer::singleShot(0, []() {
-		auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
-		if (!box)
-			return;
-		check(false, "a refusal opens no message box");
-		box->accept();
-	});
 }
 
 // The three choosers of a run of Paimpol name the blocks of route0 by their labels, with the short ids of the section strip as tooltips.

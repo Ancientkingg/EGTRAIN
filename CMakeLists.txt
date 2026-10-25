@@ -430,7 +430,8 @@ egtrain_target_warnings(egtrain_dispatch)
 #                                   with the flags, test_updatetelemetrycontroller builds UpdateTelemetryController.cpp
 #                                   with them, test_guardedapplication builds GuardedApplication.cpp with them and
 #                                   test_settingsdialog builds SettingsDialog.cpp with them
-# A test executable that uses the simulation has no flags either.
+# The test executables are strict. EGTRAIN/QEGTRAIN/tests/CMakeLists.txt makes the headers below SRC_DIR system headers
+# for the tests that include the simulation headers, so the warnings of those headers do not count there.
 
 # --- Sources ---
 set(EGTRAIN_SOURCES

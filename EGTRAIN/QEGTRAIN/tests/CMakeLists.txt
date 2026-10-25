@@ -14,13 +14,15 @@ if(WIN32)
 	file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
 endif()
 
-# egtrain_add_test(<name> LABELS <label>... [SOURCES <file>... [LIBS <library>...] [DEFINITIONS <definition>...] [STRICT]]
+# egtrain_add_test(<name> LABELS <label>...
+#                  [SOURCES <file>... [LIBS <library>...] [DEFINITIONS <definition>...] [SIMULATION_HEADERS]]
 #                  [COMMAND <program> <argument>...] [ENVIRONMENT <variable>=<value>...] [TIMEOUT <seconds>] [COST <cost>]
 #                  [SKIP_RETURN_CODE <code>] [PASS_REGULAR_EXPRESSION <expression>...]
 #                  [OWN_SETTINGS] [OWN_OUTPUT] [WINDOWS_PLATFORM])
-# registers the CTest test <name>. SOURCES builds the executable <name>, which links LIBS and compiles with DEFINITIONS;
-# STRICT gives it the warning flags of a strict target. COMMAND is the command line of the test, by default the
-# executable <name>. The labels:
+# registers the CTest test <name>. SOURCES builds the executable <name>, which links LIBS, compiles with DEFINITIONS and
+# is a strict target. The simulation headers still give warnings (#453, #454, #482), so for a test with
+# SIMULATION_HEADERS, which includes them, the headers below SRC_DIR are system headers and their warnings do not count.
+# COMMAND is the command line of the test, by default the executable <name>. The labels:
 #   unit           runs in-process or is a static check
 #   integration    starts or inspects a built program (QEGTRAIN, scene_tool, the update helper or a copy of itself), or
 #                  talks to a loopback server
@@ -35,7 +37,7 @@ endif()
 # sharing or changing the settings of the user. OWN_OUTPUT gives it an output folder of its own; without one the
 # application writes its run output below the application data directory of the user.
 function(egtrain_add_test name)
-	cmake_parse_arguments(ARG "STRICT;OWN_SETTINGS;OWN_OUTPUT;WINDOWS_PLATFORM" "TIMEOUT;COST;SKIP_RETURN_CODE"
+	cmake_parse_arguments(ARG "SIMULATION_HEADERS;OWN_SETTINGS;OWN_OUTPUT;WINDOWS_PLATFORM" "TIMEOUT;COST;SKIP_RETURN_CODE"
 		"SOURCES;LIBS;DEFINITIONS;COMMAND;LABELS;ENVIRONMENT;PASS_REGULAR_EXPRESSION" ${ARGN})
 	if(ARG_UNPARSED_ARGUMENTS)
 		message(FATAL_ERROR "egtrain_add_test(${name}) does not know the arguments ${ARG_UNPARSED_ARGUMENTS}")
@@ -58,9 +60,10 @@ function(egtrain_add_test name)
 		if(ARG_DEFINITIONS)
 			target_compile_definitions(${name} PRIVATE ${ARG_DEFINITIONS})
 		endif()
-		if(ARG_STRICT)
-			egtrain_target_warnings(${name} STRICT)
+		if(ARG_SIMULATION_HEADERS)
+			target_include_directories(${name} SYSTEM PRIVATE ${SRC_DIR})
 		endif()
+		egtrain_target_warnings(${name} STRICT)
 	endif()
 	if(NOT ARG_COMMAND)
 		set(ARG_COMMAND ${name})
@@ -99,7 +102,7 @@ function(egtrain_add_test name)
 	endforeach()
 endfunction()
 
-egtrain_add_test(test_updatepreparation STRICT
+egtrain_add_test(test_updatepreparation
 	SOURCES ${SRC_DIR}/tests/test_updatepreparation.cpp
 	LIBS egtrain_update Qt::Core
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
@@ -107,11 +110,14 @@ egtrain_add_test(test_updatepreparation STRICT
 
 # Stand-ins for an installed application, which the update helper test installs and relaunches.
 add_executable(egtrain_update_probe ${SRC_DIR}/tests/update_probe.cpp)
+egtrain_target_warnings(egtrain_update_probe STRICT)
 set(UPDATEHELPER_TEST_ARGS $<TARGET_FILE:egtrain_update_helper> $<TARGET_FILE:egtrain_update_probe>)
 if(WIN32)
 	add_library(egtrain_update_probe_dll SHARED ${SRC_DIR}/tests/update_probe_dll.cpp)
 	add_executable(egtrain_update_dllprobe ${SRC_DIR}/tests/update_dllprobe.cpp)
 	target_link_libraries(egtrain_update_dllprobe PRIVATE egtrain_update_probe_dll)
+	egtrain_target_warnings(egtrain_update_probe_dll STRICT)
+	egtrain_target_warnings(egtrain_update_dllprobe STRICT)
 	list(APPEND UPDATEHELPER_TEST_ARGS
 		$<TARGET_FILE:egtrain_update_dllprobe> $<TARGET_FILE:egtrain_update_probe_dll>)
 endif()
@@ -124,7 +130,7 @@ if(MSVC)
 		endif()
 	endforeach()
 endif()
-egtrain_add_test(test_updatehelper STRICT
+egtrain_add_test(test_updatehelper
 	SOURCES ${SRC_DIR}/tests/test_updatehelper.cpp
 	LIBS egtrain_update Qt::Core
 	COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS}
@@ -144,39 +150,39 @@ endif()
 
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
 message(STATUS "Python3: ${Python3_EXECUTABLE}")
-egtrain_add_test(test_timeformat STRICT
+egtrain_add_test(test_timeformat
 	SOURCES ${SRC_DIR}/tests/test_timeformat.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_version STRICT
+egtrain_add_test(test_version
 	SOURCES ${SRC_DIR}/tests/test_version.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_log STRICT
+egtrain_add_test(test_log
 	SOURCES ${SRC_DIR}/tests/test_log.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
 # The telemetry tests link egtrain_telemetry_hooks, which defines the test hooks for them.
 # The dialog is compiled here, with all hooks, and in the application, without the consent hook.
-egtrain_add_test(test_telemetryconsent STRICT
+egtrain_add_test(test_telemetryconsent
 	SOURCES ${SRC_DIR}/tests/test_telemetryconsent.cpp ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
 	LIBS egtrain_telemetry_hooks egtrain_update Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_telemetryqueue STRICT
+egtrain_add_test(test_telemetryqueue
 	SOURCES ${SRC_DIR}/tests/test_telemetryqueue.cpp
 	LIBS egtrain_telemetry_hooks Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_telemetrysender STRICT
+egtrain_add_test(test_telemetrysender
 	SOURCES ${SRC_DIR}/tests/test_telemetrysender.cpp
 	LIBS egtrain_telemetry_hooks Qt::Core Qt::Gui Qt::Network
 	LABELS unit)
 
-egtrain_add_test(test_telemetryoperations STRICT
+egtrain_add_test(test_telemetryoperations
 	SOURCES ${SRC_DIR}/tests/test_telemetryoperations.cpp
 	LIBS egtrain_telemetry_hooks Qt::Widgets Qt::Network
 	LABELS unit gui)
@@ -201,7 +207,7 @@ endforeach()
 set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
 
 # The controller is compiled here with the dialogs and the self updater that the application alone uses.
-egtrain_add_test(test_updatetelemetrycontroller STRICT
+egtrain_add_test(test_updatetelemetrycontroller
 	SOURCES
 		${SRC_DIR}/tests/test_updatetelemetrycontroller.cpp
 		${SRC_DIR}/app/UpdateTelemetryController.cpp
@@ -211,12 +217,12 @@ egtrain_add_test(test_updatetelemetrycontroller STRICT
 	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1
 	LABELS unit gui)
 
-egtrain_add_test(test_updatechecker STRICT
+egtrain_add_test(test_updatechecker
 	SOURCES ${SRC_DIR}/tests/test_updatechecker.cpp
 	LIBS egtrain_update egtrain_util Qt::Core Qt::Network
 	LABELS unit)
 
-egtrain_add_test(test_httptransport STRICT
+egtrain_add_test(test_httptransport
 	SOURCES ${SRC_DIR}/tests/test_httptransport.cpp
 	LIBS egtrain_update Qt::Core Qt::Network
 	LABELS integration
@@ -236,7 +242,7 @@ endif()
 
 # SelfUpdater is compiled here with its test hook, which points it at a server on the loopback
 # address and at folders of the test. The update probe stands in for the helper.
-egtrain_add_test(test_selfupdater STRICT
+egtrain_add_test(test_selfupdater
 	SOURCES ${SRC_DIR}/tests/test_selfupdater.cpp ${SRC_DIR}/update/SelfUpdater.cpp
 	LIBS egtrain_update Qt::Core Qt::Network
 	DEFINITIONS EGTRAIN_UPDATE_TEST_HOOK=1
@@ -244,22 +250,22 @@ egtrain_add_test(test_selfupdater STRICT
 	LABELS integration
 	TIMEOUT 120)
 
-egtrain_add_test(test_updatestaging STRICT
+egtrain_add_test(test_updatestaging
 	SOURCES ${SRC_DIR}/tests/test_updatestaging.cpp
 	LIBS Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_updaterecord STRICT
+egtrain_add_test(test_updaterecord
 	SOURCES ${SRC_DIR}/tests/test_updaterecord.cpp
 	LIBS egtrain_update Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_distribution STRICT
+egtrain_add_test(test_distribution
 	SOURCES ${SRC_DIR}/tests/test_distribution.cpp
 	LIBS egtrain_update Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_recoverystore STRICT
+egtrain_add_test(test_recoverystore
 	SOURCES ${SRC_DIR}/tests/test_recoverystore.cpp
 	LIBS egtrain_recovery Qt::Core
 	LABELS unit)
@@ -269,31 +275,31 @@ egtrain_add_test(test_recoverystore_process
 	LABELS integration
 	TIMEOUT 120)
 
-egtrain_add_test(test_recoverycontroller STRICT
+egtrain_add_test(test_recoverycontroller
 	SOURCES ${SRC_DIR}/tests/test_recoverycontroller.cpp
 	LIBS egtrain_recovery Qt::Core
 	LABELS unit
 	TIMEOUT 120)
 
 # Starts itself as a child that crashes on purpose; the system may keep a crash report of each child.
-egtrain_add_test(test_crashnote STRICT
+egtrain_add_test(test_crashnote
 	SOURCES ${SRC_DIR}/tests/test_crashnote.cpp ${SRC_DIR}/app/CrashNote.cpp
 	LIBS Qt::Core Threads::Threads
 	LABELS integration
 	TIMEOUT 300)
 
-egtrain_add_test(test_recoveryprompt STRICT
+egtrain_add_test(test_recoveryprompt
 	SOURCES ${SRC_DIR}/tests/test_recoveryprompt.cpp
 	LIBS egtrain_recovery Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_guisimulationsnapshot
+egtrain_add_test(test_guisimulationsnapshot SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp
 	LIBS egtrain_dispatch
 	LABELS unit)
 
 # Runs the line fixture in this process and compares the live frames of its snapshots with the golden files.
-egtrain_add_test(test_liveframe
+egtrain_add_test(test_liveframe SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_liveframe.cpp
 	LIBS egtrain_live egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
 	COMMAND test_liveframe
@@ -305,7 +311,7 @@ egtrain_add_test(test_liveframe
 	TIMEOUT 120)
 
 # Checks the requests of the command socket and the event frame that reports a command. No socket, thread or run.
-egtrain_add_test(test_livecommand STRICT
+egtrain_add_test(test_livecommand
 	SOURCES ${SRC_DIR}/tests/test_livecommand.cpp
 	LIBS egtrain_live nlohmann_json::nlohmann_json
 	LABELS unit
@@ -313,7 +319,7 @@ egtrain_add_test(test_livecommand STRICT
 
 # Replays the commands of a live client against the line fixture in this process, and compares the results with
 # those of a run without commands.
-egtrain_add_test(test_livereplay
+egtrain_add_test(test_livereplay SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_livereplay.cpp
 	LIBS egtrain_live egtrain_dispatch egtrain_sim cppzmq Qt::Core Qt::Gui Qt::Widgets
 	COMMAND test_livereplay
@@ -324,7 +330,7 @@ egtrain_add_test(test_livereplay
 	TIMEOUT 180)
 
 # Starts the live server in this process and talks to it through ZeroMQ sockets on the loopback address.
-egtrain_add_test(test_liveserver STRICT
+egtrain_add_test(test_liveserver
 	SOURCES ${SRC_DIR}/tests/test_liveserver.cpp
 	LIBS egtrain_live cppzmq nlohmann_json::nlohmann_json Threads::Threads
 	LABELS unit
@@ -335,133 +341,133 @@ add_executable(live_client ${SRC_DIR}/tests/live_client.cpp)
 target_link_libraries(live_client PRIVATE cppzmq nlohmann_json::nlohmann_json)
 egtrain_target_warnings(live_client STRICT)
 
-egtrain_add_test(test_followavailability STRICT
+egtrain_add_test(test_followavailability
 	SOURCES ${SRC_DIR}/tests/test_followavailability.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_replaycoverage STRICT
+egtrain_add_test(test_replaycoverage
 	SOURCES ${SRC_DIR}/tests/test_replaycoverage.cpp
 	LIBS egtrain_dispatch egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_trackpreview STRICT
+egtrain_add_test(test_trackpreview
 	SOURCES ${SRC_DIR}/tests/test_trackpreview.cpp
 	LIBS egtrain_scene
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_speedformat STRICT
+egtrain_add_test(test_speedformat
 	SOURCES ${SRC_DIR}/tests/test_speedformat.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_trajectory STRICT
+egtrain_add_test(test_trajectory
 	SOURCES ${SRC_DIR}/tests/test_trajectory.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_runresults
+egtrain_add_test(test_runresults SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_runresults.cpp
 	LIBS egtrain_diagrams egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	LABELS unit)
 
-egtrain_add_test(test_delayanalysis STRICT
+egtrain_add_test(test_delayanalysis
 	SOURCES ${SRC_DIR}/tests/test_delayanalysis.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_delayanalysiswindow STRICT
+egtrain_add_test(test_delayanalysiswindow
 	SOURCES ${SRC_DIR}/tests/test_delayanalysiswindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_simulationworker
+egtrain_add_test(test_simulationworker SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationworker.cpp
 	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
 	LABELS unit)
 
-egtrain_add_test(test_blockingtimediagram STRICT
+egtrain_add_test(test_blockingtimediagram
 	SOURCES ${SRC_DIR}/tests/test_blockingtimediagram.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_capacityanalysis STRICT
+egtrain_add_test(test_capacityanalysis
 	SOURCES ${SRC_DIR}/tests/test_capacityanalysis.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_areacapacity STRICT
+egtrain_add_test(test_areacapacity
 	SOURCES ${SRC_DIR}/tests/test_areacapacity.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_areacapacitywindow STRICT
+egtrain_add_test(test_areacapacitywindow
 	SOURCES ${SRC_DIR}/tests/test_areacapacitywindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_capacitywindow STRICT
+egtrain_add_test(test_capacitywindow
 	SOURCES ${SRC_DIR}/tests/test_capacitywindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_routediagramcoordinates STRICT
+egtrain_add_test(test_routediagramcoordinates
 	SOURCES ${SRC_DIR}/tests/test_routediagramcoordinates.cpp
 	LIBS egtrain_diagrams egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_positionscale STRICT
+egtrain_add_test(test_positionscale
 	SOURCES ${SRC_DIR}/tests/test_positionscale.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_traincolours STRICT
+egtrain_add_test(test_traincolours
 	SOURCES ${SRC_DIR}/tests/test_traincolours.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_routegeo
+egtrain_add_test(test_routegeo SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_routegeo.cpp
 	LIBS egtrain_diagrams egtrain_sim
 	COMMAND test_routegeo ${SRC_DIR}/Scenes
 	LABELS unit)
 
-egtrain_add_test(test_diagramwindow STRICT
+egtrain_add_test(test_diagramwindow
 	SOURCES ${SRC_DIR}/tests/test_diagramwindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_timetabletablewindow STRICT
+egtrain_add_test(test_timetabletablewindow
 	SOURCES ${SRC_DIR}/tests/test_timetabletablewindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_visualpolish STRICT
+egtrain_add_test(test_visualpolish
 	SOURCES ${SRC_DIR}/tests/test_visualpolish.cpp
 	LIBS egtrain_graphics Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_networklegend STRICT
+egtrain_add_test(test_networklegend
 	SOURCES ${SRC_DIR}/tests/test_networklegend.cpp
 	LIBS egtrain_widgets egtrain_graphics Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_stationoverlay STRICT
+egtrain_add_test(test_stationoverlay
 	SOURCES ${SRC_DIR}/tests/test_stationoverlay.cpp
 	LIBS egtrain_graphics Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_networkscene_selection STRICT
+egtrain_add_test(test_networkscene_selection
 	SOURCES ${SRC_DIR}/tests/test_networkscene_selection.cpp
 	LIBS egtrain_graphics Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_playbackprofiler STRICT
+egtrain_add_test(test_playbackprofiler
 	SOURCES ${SRC_DIR}/tests/test_playbackprofiler.cpp
 	LIBS egtrain_util
 	LABELS unit)
@@ -469,216 +475,216 @@ egtrain_add_test(test_playback_profile
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py
 	LABELS unit)
 
-egtrain_add_test(test_networkview STRICT
+egtrain_add_test(test_networkview
 	SOURCES ${SRC_DIR}/tests/test_networkview.cpp
 	LIBS egtrain_graphics egtrain_util Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_networkpresenter STRICT
+egtrain_add_test(test_networkpresenter
 	SOURCES ${SRC_DIR}/tests/test_networkpresenter.cpp
 	LIBS egtrain_graphics Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_inspectorpanel
+egtrain_add_test(test_inspectorpanel SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_inspectorpanel.cpp
 	LIBS egtrain_widgets egtrain_graphics egtrain_sim Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_runtimecanvas
+egtrain_add_test(test_runtimecanvas SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_runtimecanvas.cpp
 	LIBS egtrain_graphics egtrain_sim Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_followcamera STRICT
+egtrain_add_test(test_followcamera
 	SOURCES ${SRC_DIR}/tests/test_followcamera.cpp
 	LIBS egtrain_graphics egtrain_util Qt::Core Qt::Gui Qt::Widgets cppzmq nlohmann_json::nlohmann_json
 	LABELS unit gui)
 
-egtrain_add_test(test_compactdoublespinbox STRICT
+egtrain_add_test(test_compactdoublespinbox
 	SOURCES ${SRC_DIR}/tests/test_compactdoublespinbox.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_lightpalette STRICT
+egtrain_add_test(test_lightpalette
 	SOURCES ${SRC_DIR}/tests/test_lightpalette.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
 # On Windows the test needs the style that the windows platform gives.
-egtrain_add_test(test_widgetstyle STRICT
+egtrain_add_test(test_widgetstyle
 	SOURCES ${SRC_DIR}/tests/test_widgetstyle.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui
 	WINDOWS_PLATFORM)
 
-egtrain_add_test(test_colorchoicebutton STRICT
+egtrain_add_test(test_colorchoicebutton
 	SOURCES ${SRC_DIR}/tests/test_colorchoicebutton.cpp
 	LIBS egtrain_widgets Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_aboutdialog STRICT
+egtrain_add_test(test_aboutdialog
 	SOURCES ${SRC_DIR}/tests/test_aboutdialog.cpp
 	LIBS egtrain_widgets Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
 # The Settings window uses the update and telemetry libraries, so it is compiled here and in the application.
-egtrain_add_test(test_settingsdialog STRICT
+egtrain_add_test(test_settingsdialog
 	SOURCES ${SRC_DIR}/tests/test_settingsdialog.cpp ${SRC_DIR}/widgets/SettingsDialog.cpp
 	LIBS egtrain_telemetry egtrain_update Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_manualwindow STRICT
+egtrain_add_test(test_manualwindow
 	SOURCES ${SRC_DIR}/tests/test_manualwindow.cpp
 	LIBS egtrain_widgets Qt::Core Qt::Gui Qt::Widgets Qt::Help
 	DEFINITIONS EGTRAIN_QHELPGENERATOR="$<TARGET_FILE:Qt6::qhelpgenerator>"
 	LABELS unit gui)
 
-egtrain_add_test(test_dialoglayout STRICT
+egtrain_add_test(test_dialoglayout
 	SOURCES ${SRC_DIR}/tests/test_dialoglayout.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_casechooserdialog STRICT
+egtrain_add_test(test_casechooserdialog
 	SOURCES ${SRC_DIR}/tests/test_casechooserdialog.cpp
 	LIBS egtrain_widgets Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_choicecombo STRICT
+egtrain_add_test(test_choicecombo
 	SOURCES ${SRC_DIR}/tests/test_choicecombo.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_userprompts STRICT
+egtrain_add_test(test_userprompts
 	SOURCES ${SRC_DIR}/tests/test_userprompts.cpp
 	LIBS egtrain_util Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_guardedapplication STRICT
+egtrain_add_test(test_guardedapplication
 	SOURCES ${SRC_DIR}/tests/test_guardedapplication.cpp ${SRC_DIR}/app/GuardedApplication.cpp
 	LIBS egtrain_util Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui
 	SKIP_RETURN_CODE 77)
 
-egtrain_add_test(test_editor_casesettings STRICT
+egtrain_add_test(test_editor_casesettings
 	SOURCES ${SRC_DIR}/tests/test_editor_casesettings.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_composition STRICT
+egtrain_add_test(test_editor_composition
 	SOURCES ${SRC_DIR}/tests/test_editor_composition.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_trainunit STRICT
+egtrain_add_test(test_editor_trainunit
 	SOURCES ${SRC_DIR}/tests/test_editor_trainunit.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_trainunitsourcelinker STRICT
+egtrain_add_test(test_trainunitsourcelinker
 	SOURCES ${SRC_DIR}/tests/test_trainunitsourcelinker.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_passenger STRICT
+egtrain_add_test(test_editor_passenger
 	SOURCES ${SRC_DIR}/tests/test_editor_passenger.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_service STRICT
+egtrain_add_test(test_editor_service
 	SOURCES ${SRC_DIR}/tests/test_editor_service.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_timetablestops STRICT
+egtrain_add_test(test_editor_timetablestops
 	SOURCES ${SRC_DIR}/tests/test_editor_timetablestops.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_scenario STRICT
+egtrain_add_test(test_editor_scenario
 	SOURCES ${SRC_DIR}/tests/test_editor_scenario.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_validation STRICT
+egtrain_add_test(test_editor_validation
 	SOURCES ${SRC_DIR}/tests/test_editor_validation.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_incident STRICT
+egtrain_add_test(test_editor_incident
 	SOURCES ${SRC_DIR}/tests/test_editor_incident.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_entrancedelay STRICT
+egtrain_add_test(test_editor_entrancedelay
 	SOURCES ${SRC_DIR}/tests/test_editor_entrancedelay.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_infrastructure STRICT
+egtrain_add_test(test_editor_infrastructure
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_infrastructure_blocks STRICT
+egtrain_add_test(test_editor_infrastructure_blocks
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure_blocks.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_infrastructure_signals STRICT
+egtrain_add_test(test_editor_infrastructure_signals
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure_signals.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_infrastructure_stations STRICT
+egtrain_add_test(test_editor_infrastructure_stations
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure_stations.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_editor_infrastructure_topology STRICT
+egtrain_add_test(test_editor_infrastructure_topology
 	SOURCES ${SRC_DIR}/tests/test_editor_infrastructure_topology.cpp
 	LIBS egtrain_editors Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_infrastructureguidance STRICT
+egtrain_add_test(test_infrastructureguidance
 	SOURCES ${SRC_DIR}/tests/test_infrastructureguidance.cpp
 	LIBS egtrain_editors Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_editorlayout STRICT
+egtrain_add_test(test_editorlayout
 	SOURCES ${SRC_DIR}/tests/test_editorlayout.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
-egtrain_add_test(test_elidedlabel STRICT
+egtrain_add_test(test_elidedlabel
 	SOURCES ${SRC_DIR}/tests/test_elidedlabel.cpp
 	LIBS Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_timeprogressbar STRICT
+egtrain_add_test(test_timeprogressbar
 	SOURCES ${SRC_DIR}/tests/test_timeprogressbar.cpp
 	LIBS egtrain_widgets egtrain_util Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_highlighteffect STRICT
+egtrain_add_test(test_highlighteffect
 	SOURCES ${SRC_DIR}/tests/test_highlighteffect.cpp
 	LIBS egtrain_graphics Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_csvwriter STRICT
+egtrain_add_test(test_csvwriter
 	SOURCES ${SRC_DIR}/tests/test_csvwriter.cpp
 	LIBS egtrain_util
 	LABELS unit)
 
-egtrain_add_test(test_tractioncurve STRICT
+egtrain_add_test(test_tractioncurve
 	SOURCES ${SRC_DIR}/tests/test_tractioncurve.cpp
 	LIBS egtrain_diagrams
 	LABELS unit)
 
-egtrain_add_test(test_consolestream STRICT
+egtrain_add_test(test_consolestream
 	SOURCES ${SRC_DIR}/tests/test_consolestream.cpp
 	LIBS egtrain_widgets Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit)
@@ -701,151 +707,151 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/docs/check_docs.py --root ${CMAKE_SOURCE_DIR}
 		LABELS unit)
 endif()
-egtrain_add_test(test_qt_resource_images STRICT
+egtrain_add_test(test_qt_resource_images
 	SOURCES ${SRC_DIR}/tests/test_qt_resource_images.cpp ${EGTRAIN_RESOURCES}
 	LIBS Qt::Core Qt::Gui Qt::Svg
 	LABELS unit gui)
 
-egtrain_add_test(test_routestations STRICT
+egtrain_add_test(test_routestations
 	SOURCES ${SRC_DIR}/tests/test_routestations.cpp
 	LIBS egtrain_scene
 	COMMAND test_routestations ${SRC_DIR}/Scenes
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_routereferencechoice STRICT
+egtrain_add_test(test_routereferencechoice
 	SOURCES ${SRC_DIR}/tests/test_routereferencechoice.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene Qt::Network Qt::Core Qt::Gui Qt::Widgets
 	COMMAND test_routereferencechoice ${SRC_DIR}/Scenes
 	LABELS unit gui)
 
-egtrain_add_test(test_scenevalidator STRICT
+egtrain_add_test(test_scenevalidator
 	SOURCES ${SRC_DIR}/tests/test_scenevalidator.cpp
 	LIBS egtrain_scene
 	COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_stopinsertion STRICT
+egtrain_add_test(test_stopinsertion
 	SOURCES ${SRC_DIR}/tests/test_stopinsertion.cpp
 	LIBS egtrain_scene
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_scenereferences STRICT
+egtrain_add_test(test_scenereferences
 	SOURCES ${SRC_DIR}/tests/test_scenereferences.cpp
 	LIBS egtrain_scene
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_scenedocument STRICT
+egtrain_add_test(test_scenedocument
 	SOURCES ${SRC_DIR}/tests/test_scenedocument.cpp
 	LIBS egtrain_editors
 	LABELS unit)
 
-egtrain_add_test(test_runselection STRICT
+egtrain_add_test(test_runselection
 	SOURCES ${SRC_DIR}/tests/test_runselection.cpp
 	LIBS egtrain_runselection
 	LABELS unit)
 
-egtrain_add_test(test_sceneimporter STRICT
+egtrain_add_test(test_sceneimporter
 	SOURCES ${SRC_DIR}/tests/test_sceneimporter.cpp
 	LIBS egtrain_scene
 	LABELS legacy-compat unit)
 
-egtrain_add_test(test_scenesavepolicy STRICT
+egtrain_add_test(test_scenesavepolicy
 	SOURCES ${SRC_DIR}/tests/test_scenesavepolicy.cpp
 	LIBS Qt::Core
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_dialogfolders STRICT
+egtrain_add_test(test_dialogfolders
 	SOURCES ${SRC_DIR}/tests/test_dialogfolders.cpp
 	LIBS Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_cannotopenmessage STRICT
+egtrain_add_test(test_cannotopenmessage
 	SOURCES ${SRC_DIR}/tests/test_cannotopenmessage.cpp
 	LIBS Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_pathmessages STRICT
+egtrain_add_test(test_pathmessages
 	SOURCES ${SRC_DIR}/tests/test_pathmessages.cpp
 	LIBS Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_updateprompttext STRICT
+egtrain_add_test(test_updateprompttext
 	SOURCES ${SRC_DIR}/tests/test_updateprompttext.cpp
 	LIBS Qt::Core
 	LABELS unit)
 
-egtrain_add_test(test_releasenotes STRICT
+egtrain_add_test(test_releasenotes
 	SOURCES ${SRC_DIR}/tests/test_releasenotes.cpp
 	LIBS egtrain_update Qt::Core Qt::Gui Qt::Widgets
 	LABELS unit gui)
 
-egtrain_add_test(test_scenewriter STRICT
+egtrain_add_test(test_scenewriter
 	SOURCES ${SRC_DIR}/tests/test_scenewriter.cpp
 	LIBS egtrain_scene
 	COMMAND test_scenewriter ${SRC_DIR}/Scenes
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_sceneexporter STRICT
+egtrain_add_test(test_sceneexporter
 	SOURCES ${SRC_DIR}/tests/test_sceneexporter.cpp
 	LIBS egtrain_scene
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS legacy-compat unit)
 
-egtrain_add_test(test_scenebundle STRICT
+egtrain_add_test(test_scenebundle
 	SOURCES ${SRC_DIR}/tests/test_scenebundle.cpp
 	LIBS egtrain_scene
 	COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal
 	LABELS scene-v2 unit)
 
-egtrain_add_test(test_scenehistory STRICT
+egtrain_add_test(test_scenehistory
 	SOURCES ${SRC_DIR}/tests/test_scenehistory.cpp
 	LIBS egtrain_scene
 	COMMAND test_scenehistory ${SRC_DIR}/Scenes
 	LABELS unit)
 
-egtrain_add_test(test_sceneopenrequest STRICT
+egtrain_add_test(test_sceneopenrequest
 	SOURCES ${SRC_DIR}/tests/test_sceneopenrequest.cpp
 	LIBS egtrain_sceneopen Qt::Core
 	LABELS unit)
 
 # The test starts copies of itself as the second process.
-egtrain_add_test(test_openrequestrelay STRICT
+egtrain_add_test(test_openrequestrelay
 	SOURCES ${SRC_DIR}/tests/test_openrequestrelay.cpp
 	LIBS egtrain_openrelay Qt::Core Qt::Network
 	LABELS integration
 	TIMEOUT 120)
 
-egtrain_add_test(test_scenecompatibility STRICT
+egtrain_add_test(test_scenecompatibility
 	SOURCES ${SRC_DIR}/tests/test_scenecompatibility.cpp
 	LIBS egtrain_scene
 	COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal
 	LABELS scene-v2 unit)
 
-egtrain_add_test(test_sceneversions STRICT
+egtrain_add_test(test_sceneversions
 	SOURCES ${SRC_DIR}/tests/test_sceneversions.cpp
 	LIBS egtrain_scene
 	COMMAND test_sceneversions ${SRC_DIR}/tests/fixtures/scene-versions
 	LABELS scene-v2 unit)
 
-egtrain_add_test(test_scenebuilder
+egtrain_add_test(test_scenebuilder SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_scenebuilder.cpp
 	LIBS egtrain_sim
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_stopdwell
+egtrain_add_test(test_stopdwell SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_stopdwell.cpp
 	LIBS egtrain_sim
 	COMMAND test_stopdwell ${SRC_DIR}/tests/fixtures/scenes/crossovers
 	LABELS scene-v1 unit)
 
-egtrain_add_test(test_operationsbuilder
+egtrain_add_test(test_operationsbuilder SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_operationsbuilder.cpp
 	LIBS egtrain_diagrams egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	DEFINITIONS EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests"
 	LABELS scene-v1 unit)
 
 # Runs three committed scenes in this process, like the characterization tests.
-egtrain_add_test(test_completedrun
+egtrain_add_test(test_completedrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_completedrun.cpp
 	LIBS egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_sim Qt::Core Qt::Gui Qt::Widgets Qt::Charts
 	COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol ${SRC_DIR}/Scenes/Milano_Brescia
@@ -853,7 +859,7 @@ egtrain_add_test(test_completedrun
 	TIMEOUT 300)
 
 # Runs a line fixture and Paimpol in this process, in the order that the test explains.
-egtrain_add_test(test_simulationrun
+egtrain_add_test(test_simulationrun SIMULATION_HEADERS
 	SOURCES ${SRC_DIR}/tests/test_simulationrun.cpp
 	LIBS egtrain_dispatch egtrain_sim Qt::Core Qt::Gui Qt::Widgets
 	COMMAND test_simulationrun ${SRC_DIR}/tests/fixtures/scenes/line ${SRC_DIR}/Scenes/Paimpol
@@ -861,8 +867,13 @@ egtrain_add_test(test_simulationrun
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 	TIMEOUT 120)
 
-# Behaviour characterization of the simulation core (see tests/characterization).
+# Behaviour characterization of the simulation core (see tests/characterization). Its programs include the simulation
+# headers and build like a test with SIMULATION_HEADERS.
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/characterization)
+foreach(egtrain_test test_characterization test_crossover_chain test_signalling_aspects)
+	target_include_directories(${egtrain_test} SYSTEM PRIVATE ${SRC_DIR})
+	egtrain_target_warnings(${egtrain_test} STRICT)
+endforeach()
 
 # Scripted GUI runs, compiled into QEGTRAIN when tests are built.
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/e2e)
