@@ -1,5 +1,6 @@
 #include "editors/ServicePanel.h"
 
+#include "editors/EditorHelpers.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
@@ -10,7 +11,6 @@
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 
-#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -41,27 +41,6 @@
 namespace {
 
 constexpr int kMaxOccurrences = RuntimeLimits::kMaxExpandedTrains;
-
-bool hasEditorFocus(QWidget* editor) {
-	QWidget* focus = QApplication::focusWidget();
-	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-}
-
-// The value that a field shows for a stored value. A stored value outside the range is shown at the nearest limit, and
-// committing it from an untouched field is not an edit.
-double shownValue(const QDoubleSpinBox* edit, double stored) {
-	return std::clamp(stored, edit->minimum(), edit->maximum());
-}
-
-// A field of seconds that keeps the fractions of a stored time.
-CompactDoubleSpinBox* secondsEdit(const char* objectName, QWidget* parent) {
-	auto* edit = new CompactDoubleSpinBox(parent);
-	edit->setObjectName(objectName);
-	edit->setRange(0.0, std::numeric_limits<double>::max());
-	edit->setDecimals(std::numeric_limits<double>::max_digits10);
-	edit->setKeyboardTracking(false);
-	return edit;
-}
 
 // A speed field that shows the stored value as it is and does not round it to the number of decimals.
 class ServiceSpeedSpinBox : public CompactDoubleSpinBox {
@@ -187,12 +166,12 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	m_hasEntryTimeCheck = new QCheckBox("Entry time (s)", detailPane);
 	m_hasEntryTimeCheck->setObjectName("serviceHasEntryTimeCheck");
-	m_entryTimeSecondsEdit = secondsEdit("serviceEntryTimeSecondsEdit", detailPane);
+	m_entryTimeSecondsEdit = exactNumberEdit("serviceEntryTimeSecondsEdit", detailPane);
 	form->addRow(m_hasEntryTimeCheck, m_entryTimeSecondsEdit);
 
 	m_hasRepeatCheck = new QCheckBox("Repeat every (s)", detailPane);
 	m_hasRepeatCheck->setObjectName("serviceHasRepeatCheck");
-	m_headwaySecondsEdit = secondsEdit("serviceHeadwaySecondsEdit", detailPane);
+	m_headwaySecondsEdit = exactNumberEdit("serviceHeadwaySecondsEdit", detailPane);
 	form->addRow(m_hasRepeatCheck, m_headwaySecondsEdit);
 
 	m_hasRepeatCountCheck = new QCheckBox("Repeat count", detailPane);
@@ -537,16 +516,6 @@ void ServicePanel::updateDetail() {
 
 	// the timetable is part of the service detail, so it follows the selected service
 	emit selectedServiceChanged(service ? QString::fromStdString(service->id) : QString());
-}
-
-QString ServicePanel::generatedServiceLabel(const SceneService& service, int occurrence) {
-	const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
-	const double entry = sceneServiceScheduledEntry(service, occurrence);
-	const QString entryText = std::isfinite(entry)
-		? QString("+%1 s").arg(QString::number(entry, 'g', 12))
-		: QStringLiteral("no entry time");
-	return QString("%1 (route %2, %3)")
-		.arg(QString::fromStdString(code.empty() ? service.id : code), QString::fromStdString(service.route), entryText);
 }
 
 QString ServicePanel::occurrenceSummaryText(int total, int selected, int selectedInPeriod, int shown) {

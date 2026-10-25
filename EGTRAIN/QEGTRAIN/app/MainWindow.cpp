@@ -1756,6 +1756,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_passengerPanel, &PassengerPanel::changed, this, &MainWindow::refreshValidationPanel);
 
 	m_servicePanel->setPrompts(m_userPrompts.get());
+	m_timetableStopsPanel->setPrompts(m_userPrompts.get());
 	m_servicePanel->setRunSelection(&m_runSelection);
 	m_servicePanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel, &TimetableStopsPanel::setServiceId);

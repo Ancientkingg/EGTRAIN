@@ -16,6 +16,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPoint>
 #include <QProxyStyle>
 #include <QPushButton>
@@ -150,6 +151,35 @@ static QStringList itemTexts(const QComboBox* combo) {
 	for (int index = 0; index < combo->count(); ++index)
 		result << combo->itemText(index);
 	return result;
+}
+
+// Records the messages of the panel, without a dialog.
+class FakePrompts : public UserPrompts {
+public:
+	int infoCount = 0;
+	QString infoTitle;
+	QString infoMessage;
+
+	void showInfo(QWidget*, const QString& title, const QString& message) override {
+		++infoCount;
+		infoTitle = title;
+		infoMessage = message;
+	}
+};
+
+// Closes each message box that opens while `action` runs, and returns how many did.
+static int messageBoxesDuring(const std::function<void()>& action) {
+	int shown = 0;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			++shown;
+			box->accept();
+		}
+	});
+	timer.start(0);
+	action();
+	return shown;
 }
 
 // What the test did to the stop dialog.
@@ -554,6 +584,26 @@ int main(int argc, char** argv) {
 		document.replace(lineScene(), false);
 		ok &= expect(panel.table()->rowCount() == 0 && document.revision() == revisionDetached + 1,
 			"a detached panel does not follow the document");
+	}
+
+	{
+		// A service whose route cannot be followed has no position with a station to add.
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		FakePrompts prompts;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		SceneModel scene = lineScene();
+		scene.services[0].route = "route-missing";
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		const quint64 revision = document.revision();
+		const int boxes = messageBoxesDuring([&] { panel.addStop(); });
+		ok &= expect(prompts.infoCount == 1 && prompts.infoTitle == "No Reachable Stop"
+				&& prompts.infoMessage == "No station on the route is left to stop at. Check the route and the stop order.",
+			"Add Stop without a reachable station says so through the prompts of the panel");
+		ok &= expect(boxes == 0 && !panel.findChild<QDialog*>("stopEditorDialog") && document.revision() == revision,
+			"Add Stop without a reachable station opens no box and no dialog and changes nothing");
 	}
 
 	{

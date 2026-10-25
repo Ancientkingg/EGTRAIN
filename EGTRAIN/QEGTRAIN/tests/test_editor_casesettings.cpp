@@ -1,4 +1,6 @@
 #include "editors/CaseSettingsPanel.h"
+#include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 #include "widgets/FocusWheel.h"
 
 #include <QApplication>
@@ -8,6 +10,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -51,9 +54,87 @@ static void typeAndLeave(QLineEdit* edit, const QString& text) {
 	emit edit->editingFinished();
 }
 
+// The text field of a number field.
+static QLineEdit* spinText(QDoubleSpinBox* edit) {
+	return edit->findChild<QLineEdit*>();
+}
+
+// Gives a field of a shown panel the focus, as a click does.
+static bool giveFocus(QWidget* edit) {
+	edit->setFocus();
+	QApplication::processEvents();
+	if (!edit->hasFocus())
+		std::cerr << "failed: " << edit->objectName().toStdString() << " did not get the focus\n";
+	return edit->hasFocus();
+}
+
+static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(), [&code](const SceneDiagnostic& diagnostic) { return diagnostic.code == code; });
+}
+
+// Save, Undo and validation commit the field that is being edited. A stored number that a field shows at a limit of its
+// range reaches the saved file and the validation as it is while the user does not edit it, even when the field has the
+// focus or another field is edited, and a number that the user types is stored as typed.
+static bool keepsUntouchedNumbers() {
+	bool ok = true;
+	SceneModel scene = caseScene("Case F", "08:00:00");
+	scene.settings.durationSeconds = -60.0;
+	scene.settings.hasBufferTime = true;
+	scene.settings.bufferTimeSeconds = -5.0;
+	scene.settings.hasRecoveryTime = true;
+	scene.settings.recoveryTimePercent = -2.5;
+	SceneDocument document;
+	CaseSettingsPanel panel;
+	panel.setDocument(&document);
+	document.replace(scene, false);
+	Events events(panel, document);
+	ok &= expect(panel.durationSecondsEdit()->value() == 0.0 && panel.bufferSecondsEdit()->value() == 0.0
+			&& panel.recoveryPercentEdit()->value() == 0.0,
+		"a negative duration, buffer and recovery are shown at 0");
+
+	const nlohmann::json saved = encodeSceneMetadata(document.model());
+	const quint64 revision = document.revision();
+	panel.commitPendingEditors();
+	panel.show();
+	panel.activateWindow();
+	for (QDoubleSpinBox* field : {panel.durationSecondsEdit(), panel.bufferSecondsEdit(), panel.recoveryPercentEdit()}) {
+		ok &= giveFocus(field);
+		panel.commitPendingEditors();
+	}
+	ok &= giveFocus(panel.nameEdit());
+	panel.commit();
+	const SceneSimulationSettings& kept = document.model().settings;
+	ok &= expect(kept.durationSeconds == -60.0 && kept.bufferTimeSeconds == -5.0 && kept.recoveryTimePercent == -2.5
+			&& encodeSceneMetadata(document.model()) == saved,
+		"a duration of -60 s, a buffer of -5 s and a recovery of -2.5 % are saved as stored");
+	ok &= expect(events.log.empty() && document.revision() == revision && !document.isDirty(),
+		"visiting the number fields and committing them adds no Undo step");
+	const std::vector<SceneDiagnostic> diagnostics = validateScene(document.model());
+	ok &= expect(hasCode(diagnostics, "scene.duration.invalid") && hasCode(diagnostics, "scene.buffer.invalid")
+			&& hasCode(diagnostics, "scene.recovery.invalid"),
+		"the validation still reports the stored values");
+
+	typeAndLeave(panel.nameEdit(), "Renamed");
+	ok &= expect(kept.durationSeconds == -60.0 && kept.bufferTimeSeconds == -5.0 && kept.recoveryTimePercent == -2.5
+			&& document.model().name == "Renamed" && document.revision() == revision + 1,
+		"a name edit leaves the number fields as they are stored");
+	ok &= giveFocus(panel.bufferSecondsEdit());
+	spinText(panel.bufferSecondsEdit())->setText("12.5");
+	panel.commitPendingEditors();
+	ok &= expect(kept.bufferTimeSeconds == 12.5 && kept.durationSeconds == -60.0 && kept.recoveryTimePercent == -2.5
+			&& document.revision() == revision + 2,
+		"a buffer that is being typed is stored, and the other fields keep their values");
+	panel.recoveryPercentEdit()->setValue(3.0);
+	ok &= expect(kept.recoveryTimePercent == 3.0 && kept.durationSeconds == -60.0 && document.revision() == revision + 3,
+		"a recovery edit is stored, and the duration keeps its value");
+	panel.hide();
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	bool ok = true;
+	ok &= keepsUntouchedNumbers();
 
 	{
 		CaseSettingsPanel panel;
@@ -137,18 +218,25 @@ int main(int argc, char** argv) {
 		ok &= expect(events.log == Log({"documentChanged", "panelChanged", "documentChanged", "panelChanged", "documentChanged", "panelChanged"}),
 			"each number edit is one document change");
 
-		// pending edits
+		// pending edits: a number field commits the text in it only while it has the focus
 		const quint64 revisionBeforePending = document.revision();
 		events.log.clear();
+		panel.show();
+		panel.activateWindow();
 		panel.descriptionEdit()->setText("typed, not finished");
-		panel.bufferSecondsEdit()->findChild<QLineEdit*>()->setText("60");
+		spinText(panel.durationSecondsEdit())->setText("90");
+		ok &= giveFocus(panel.bufferSecondsEdit());
+		spinText(panel.bufferSecondsEdit())->setText("60");
 		ok &= expect(document.model().description == "About Case A" && document.revision() == revisionBeforePending,
 			"text that is still being typed is not in the document");
 		panel.commitPendingEditors();
 		ok &= expect(document.model().description == "typed, not finished" && document.model().settings.bufferTimeSeconds == 60.0,
-			"committing the pending editors writes the text of text fields and of number fields");
+			"committing the pending editors writes the text of text fields and of the number field with the focus");
+		ok &= expect(document.model().settings.durationSeconds == 7200.0,
+			"committing the pending editors does not take a number in a field without the focus");
 		ok &= expect(document.revision() == revisionBeforePending + 1 && events.log == Log({"documentChanged", "panelChanged"}),
 			"the pending values of all fields are one change");
+		panel.hide();
 
 		// cancel: text that was typed and not finished is dropped when the fields are refreshed
 		document.markSaved();

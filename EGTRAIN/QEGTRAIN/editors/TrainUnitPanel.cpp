@@ -1,5 +1,6 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "editors/EditorHelpers.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
@@ -33,11 +34,6 @@ namespace {
 
 static_assert(static_cast<std::size_t>(TrainUnitPanel::PhysicalFieldCount) == kSceneTrainPhysicalFields.size(),
 	"one range for each physical field");
-
-bool hasEditorFocus(const QWidget* editor) {
-	const QWidget* focus = QApplication::focusWidget();
-	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-}
 
 // Edits a number of the traction table in a CompactDoubleSpinBox with the range of its column. A cell shows its number as
 // such a field shows it without the focus.

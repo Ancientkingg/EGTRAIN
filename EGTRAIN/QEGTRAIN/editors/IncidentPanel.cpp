@@ -1,6 +1,6 @@
 #include "editors/IncidentPanel.h"
 
-#include "editors/ServicePanel.h"
+#include "editors/EditorHelpers.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneIds.h"
 #include "scene/SectionInventory.h"
@@ -8,7 +8,6 @@
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
 
-#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -64,31 +63,10 @@ QString signalFailureTargetText(const SceneModel& sceneModel, const SceneSection
 	return QString::fromStdString(labels.label(target));
 }
 
-bool hasEditorFocus(QWidget* editor) {
-	QWidget* focus = QApplication::focusWidget();
-	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-}
-
-// The value that a field shows for a stored value. A stored value outside the range is shown at the nearest limit, and
-// committing it from an untouched field is not an edit.
-double shownValue(const QDoubleSpinBox* edit, double stored) {
-	return std::clamp(stored, edit->minimum(), edit->maximum());
-}
-
 // The speed cap that the field shows: the stored one, or 40 km/h to start from when none is stored.
 double shownReducedSpeed(const QDoubleSpinBox* edit, const SceneIncident* incident) {
 	const bool stored = incident && std::isfinite(incident->reducedSpeedKmh) && incident->reducedSpeedKmh > 0.0;
 	return shownValue(edit, stored ? incident->reducedSpeedKmh : 40.0);
-}
-
-// A field of seconds that keeps the fractions of a stored time.
-CompactDoubleSpinBox* secondsEdit(const char* objectName, QWidget* parent) {
-	auto* edit = new CompactDoubleSpinBox(parent);
-	edit->setObjectName(objectName);
-	edit->setRange(0.0, std::numeric_limits<double>::max());
-	edit->setDecimals(std::numeric_limits<double>::max_digits10);
-	edit->setKeyboardTracking(false);
-	return edit;
 }
 
 // The name of an incident type on screen; a type that is none of the two shows as it is stored.
@@ -187,12 +165,12 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	targetLayout->addWidget(m_targetCombo, 1);
 	targetLayout->addWidget(m_pickTargetButton);
 	detailLayout->addRow(targetLabel, targetLayout);
-	m_startSecondsEdit = secondsEdit("incidentStartSecondsEdit", detailPane);
+	m_startSecondsEdit = exactNumberEdit("incidentStartSecondsEdit", detailPane);
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
 	m_hasEndSecondsCheck = new QCheckBox("End (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_hasEndSecondsCheck->setToolTip("Leave off to keep a slowed train slow until its destination.");
-	m_endSecondsEdit = secondsEdit("incidentEndSecondsEdit", detailPane);
+	m_endSecondsEdit = exactNumberEdit("incidentEndSecondsEdit", detailPane);
 	m_endSecondsEdit->setAccessibleName("End (s)");
 	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
 	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed", detailPane);
@@ -490,7 +468,7 @@ void IncidentPanel::refreshTargets() {
 			for (const SceneService& service : model.services) {
 				const int count = std::max(0, sceneServiceOccurrenceCount(service, occurrenceDuration()));
 				for (int occurrence = 1; occurrence <= count && shown < RuntimeLimits::kMaxExpandedTrains; ++occurrence, ++shown) {
-					m_targetCombo->addItem(ServicePanel::generatedServiceLabel(service, occurrence), QString::fromStdString(service.id));
+					m_targetCombo->addItem(generatedServiceLabel(service, occurrence), QString::fromStdString(service.id));
 					const int index = m_targetCombo->count() - 1;
 					m_targetCombo->setItemData(index, occurrence, Qt::UserRole + 1);
 					if (singular && service.id == incident->target && occurrence == incident->occurrence) {
@@ -508,7 +486,7 @@ void IncidentPanel::refreshTargets() {
 					const int count = std::max(0, sceneServiceOccurrenceCount(service, occurrenceDuration()));
 					if (incident->occurrence < 1 || incident->occurrence > count)
 						break;
-					m_targetCombo->addItem(ServicePanel::generatedServiceLabel(service, incident->occurrence),
+					m_targetCombo->addItem(generatedServiceLabel(service, incident->occurrence),
 						QString::fromStdString(service.id));
 					current = m_targetCombo->count() - 1;
 					m_targetCombo->setItemData(current, incident->occurrence, Qt::UserRole + 1);

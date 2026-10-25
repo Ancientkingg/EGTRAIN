@@ -23,6 +23,7 @@
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
+#include "scene/RuntimeLimits.h"
 #include "scene/TrackPreview.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/PlainToolTip.h"
@@ -45,6 +46,10 @@
 #include <vector>
 
 namespace {
+
+// The tracks of a run and the connections at one of its nodes that the arrays of the run hold.
+constexpr int kMaxTracks = static_cast<int>(RuntimeLimits::kNativeMaxTracks);
+constexpr int kMaxNodeConnections = static_cast<int>(RuntimeLimits::kNativeMaxNodeConnections);
 
 // Shows text in the field, and in its tooltip the text with tip, such as the id behind a label, under it. The other
 // fields get their text as tooltip from the textChanged hook of the constructor; this sets the tooltip after that.
@@ -342,15 +347,7 @@ void InspectorPanel::clearPreviewInspection() {
 	if (m_host.showingTrackPreview()) {
 		handleCloseInfoDockWidget();
 		infoDockWidget->hide();
-		for (auto* field : {nodeIDText, nodeXText, nodeYText, nodeTrackIDText,
-				 nodeStationNameText, nodeRegionText, nodeConnectedTracksText, nodeSignalledText,
-				 arcIDText, arcFirstNodeIDText, arcSecondNodeIDText, arcTrackIDText,
-				 arcLengthText, arcCurvatureText, arcGradientText, arcSpeedLimitText,
-				 arcOperationalStateText, arcConnectedSignalsText, connectionFirstTrackIDText,
-				 connectionSecondTrackIDText, connectionXFirstNodeText, connectionXSecondNodeText,
-				 signallingTrackIDText, signallingXText, signallingAspectText,
-				 signallingProtectedSectionText, signallingNextTrackText,
-				 signallingIDSectionAheadText, signallingLengthSectionAheadText})
+		for (auto* field : infoDockWidget->findChildren<QLineEdit*>())
 			field->clear();
 		signallingGroupDetails->clear();
 	}
@@ -541,16 +538,16 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 }
 
 // shows Node info on dock widget
-void InspectorPanel::displayNodeInfo(NodeItem* el) {
-	if (!el || !el->node)
+void InspectorPanel::displayNodeInfo(NodeItem* nodeItem) {
+	if (!nodeItem || !nodeItem->node)
 		return;
 	handleCloseInfoDockWidget();
 
 	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(el->node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * el->node->Y, 2))); // km to m
-	setTrackText(nodeTrackIDText, *m_presenter, {el->track});
+	nodeIDText->setText(QString::fromStdString(to_string_precision(nodeItem->node->ID, 0)));
+	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * nodeItem->node->X, 2))); // km to m
+	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * nodeItem->node->Y, 2))); // km to m
+	setTrackText(nodeTrackIDText, *m_presenter, {nodeItem->track});
 	nodeStationNameText->clear();
 	nodeRegionText->clear();
 	nodeConnectedTracksText->clear();
@@ -573,18 +570,18 @@ void InspectorPanel::displayNodeInfo(NodeItem* el) {
 	if (!m_presenter->effect) {
 		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	el->setGraphicsEffect(m_presenter->effect);
+	nodeItem->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows station Node info on dock widget
-void InspectorPanel::displayStationNodeInfo(StationNodeItem* re) {
-	if (!re || !re->node)
+void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
+	if (!stationItem || !stationItem->node)
 		return;
 	handleCloseInfoDockWidget();
-	m_selectedStationName = QString::fromStdString(re->node->stationName);
+	m_selectedStationName = QString::fromStdString(stationItem->node->stationName);
 	m_hasSelectedStationIdentity = true;
-	m_selectedStationNodeId = re->node->ID;
-	m_selectedStationTrack = re->track;
+	m_selectedStationNodeId = stationItem->node->ID;
+	m_selectedStationTrack = stationItem->track;
 	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->setSelected(overlay->hasSourceIdentity()
@@ -593,27 +590,27 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* re) {
 	m_host.inspectionChanged();
 
 	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(re->node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * re->node->Y, 2))); // km to m
-	setTrackText(nodeTrackIDText, *m_presenter, {re->track});
-	nodeStationNameText->setText(QString::fromStdString(re->node->stationName));
-	if (re->track >= 0 && re->track < 268)
-		nodeRegionText->setText(QString::number(m_host.regionOfTrack(re->track)));
+	nodeIDText->setText(QString::fromStdString(to_string_precision(stationItem->node->ID, 0)));
+	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * stationItem->node->X, 2))); // km to m
+	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * stationItem->node->Y, 2))); // km to m
+	setTrackText(nodeTrackIDText, *m_presenter, {stationItem->track});
+	nodeStationNameText->setText(QString::fromStdString(stationItem->node->stationName));
+	if (stationItem->track >= 0 && stationItem->track < kMaxTracks)
+		nodeRegionText->setText(QString::number(m_host.regionOfTrack(stationItem->track)));
 	else
 		nodeRegionText->setText("None");
 	std::vector<int> connectedTracks;
-	if (re->track >= 0 && re->track < 268)
-		connectedTracks.push_back(re->track);
-	const int connectionCount = std::max(0, std::min(re->node->numConnections, 6));
+	if (stationItem->track >= 0 && stationItem->track < kMaxTracks)
+		connectedTracks.push_back(stationItem->track);
+	const int connectionCount = std::max(0, std::min(stationItem->node->numConnections, kMaxNodeConnections));
 	for (int i = 0; i < connectionCount; ++i) {
-		const int connectedTrack = re->node->connectIdBlockSet[i];
-		if (connectedTrack >= 0 && connectedTrack < 268
+		const int connectedTrack = stationItem->node->connectIdBlockSet[i];
+		if (connectedTrack >= 0 && connectedTrack < kMaxTracks
 			&& std::find(connectedTracks.begin(), connectedTracks.end(), connectedTrack) == connectedTracks.end())
 			connectedTracks.push_back(connectedTrack);
 	}
 	setTrackText(nodeConnectedTracksText, *m_presenter, connectedTracks);
-	nodeSignalledText->setText(re->node->isSignalled ? "Yes" : "No");
+	nodeSignalledText->setText(stationItem->node->isSignalled ? "Yes" : "No");
 
 	// hide other widgets
 	arcInfoWidget->hide();
@@ -632,7 +629,7 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* re) {
 	if (!m_presenter->effect) {
 		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	re->setGraphicsEffect(m_presenter->effect);
+	stationItem->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows Arc info on dock widget

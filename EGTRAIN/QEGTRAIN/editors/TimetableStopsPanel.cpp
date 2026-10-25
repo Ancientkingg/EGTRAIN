@@ -20,7 +20,6 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QShortcut>
@@ -205,6 +204,10 @@ void TimetableStopsPanel::setDocument(SceneDocument* document) {
 	if (m_document)
 		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &TimetableStopsPanel::refresh);
 	refresh();
+}
+
+void TimetableStopsPanel::setPrompts(UserPrompts* prompts) {
+	m_prompts = prompts ? prompts : &m_ownPrompts;
 }
 
 void TimetableStopsPanel::setServiceId(const QString& serviceId) {
@@ -775,7 +778,7 @@ void TimetableStopsPanel::addStop() {
 			return;
 		}
 	}
-	QMessageBox::information(this, "No Reachable Stop", "No station on the route is left to stop at. Check the route and the stop order.");
+	m_prompts->showInfo(this, "No Reachable Stop", "No station on the route is left to stop at. Check the route and the stop order.");
 }
 
 void TimetableStopsPanel::insertStopAfterSelected() {

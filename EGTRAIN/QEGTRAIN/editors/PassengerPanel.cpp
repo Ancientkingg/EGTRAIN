@@ -1,6 +1,7 @@
 #include "editors/PassengerPanel.h"
 
 #include "editors/CountText.h"
+#include "editors/EditorHelpers.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
@@ -10,7 +11,6 @@
 #include "widgets/DisplayPath.h"
 #include "widgets/EditorLayout.h"
 
-#include <QApplication>
 #include <QComboBox>
 #include <QDir>
 #include <QFileDialog>
@@ -105,17 +105,6 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 							: QStringLiteral("Service %1 is not in this case.").arg(QString::fromStdString(current)));
 	}
 	combo->setCurrentIndex(selected);
-}
-
-// The message and the fix of the first error, else of the first diagnostic, for a dialog.
-QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
-	for (const auto& d : diagnostics) {
-		if (d.severity == SceneSeverity::Error)
-			return QString::fromStdString(toDialogText(d));
-	}
-	if (!diagnostics.empty())
-		return QString::fromStdString(toDialogText(diagnostics.front()));
-	return QString();
 }
 
 // The row that stays selected when a list is rebuilt with `count` entries.
@@ -620,10 +609,6 @@ void PassengerPanel::updateLegDetail() {
 }
 
 void PassengerPanel::commitPendingEditors() {
-	const auto hasEditorFocus = [](QWidget* editor) {
-		QWidget* focus = QApplication::focusWidget();
-		return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-	};
 	commitPassengerId();
 	commitJourneyId();
 	commitJourneyActivity();
@@ -968,7 +953,7 @@ void PassengerPanel::importPassengers() {
 		if (imported.rows.empty())
 			addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
 				QStringLiteral("Could not read the DAS and RouteChoice files"));
-		QString message = firstDiagnosticMessage(imported.diagnostics);
+		QString message = firstDiagnosticDialogText(imported.diagnostics);
 		if (message.isEmpty())
 			message = QStringLiteral("Passenger import reported errors.");
 		m_prompts->showError(this, "Passenger Import Failed", message, true);

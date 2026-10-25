@@ -1,11 +1,10 @@
 #include "editors/EntranceDelayPanel.h"
 
-#include "editors/ServicePanel.h"
+#include "editors/EditorHelpers.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
 
-#include <QApplication>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -23,11 +22,6 @@
 #include <string>
 
 namespace {
-
-bool hasEditorFocus(QWidget* editor) {
-	QWidget* focus = QApplication::focusWidget();
-	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-}
 
 // The first stop at which a train of the service plans to depart, which is where it can be held, or null.
 const SceneStop* firstDepartureStop(const SceneService& service) {
@@ -225,7 +219,7 @@ void EntranceDelayPanel::updateDetail() {
 		const QSignalBlocker blocker(m_serviceCombo);
 		m_serviceCombo->clear();
 		for (const SceneService& candidate : model.services)
-			m_serviceCombo->addItem(ServicePanel::generatedServiceLabel(candidate, 1), QString::fromStdString(candidate.id));
+			m_serviceCombo->addItem(generatedServiceLabel(candidate, 1), QString::fromStdString(candidate.id));
 		if (delay) {
 			int index = m_serviceCombo->findData(QString::fromStdString(delay->serviceId));
 			if (index < 0) {
@@ -255,7 +249,7 @@ void EntranceDelayPanel::updateDetail() {
 	}
 	DialogLayout::setHelp(m_emptyStateLabel, emptyState);
 	// The train of the chosen occurrence; the service combo names the first one.
-	m_occurrenceContextLabel->setText(delay && service ? ServicePanel::generatedServiceLabel(*service, delay->occurrence) : QString());
+	m_occurrenceContextLabel->setText(delay && service ? generatedServiceLabel(*service, delay->occurrence) : QString());
 
 	{
 		const QSignalBlocker blocker(m_stationCombo);

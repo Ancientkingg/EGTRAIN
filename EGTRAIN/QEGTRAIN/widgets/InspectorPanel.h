@@ -125,9 +125,9 @@ public slots:
 	/// or while the canvas shows a run.
 	void displayPreviewInfo(QGraphicsItem* item);
 	/// Shows the form of a node of the run, with its coordinates in metres.
-	void displayNodeInfo(NodeItem* el);
+	void displayNodeInfo(NodeItem* nodeItem);
 	/// Shows the form of a station node of the run and selects its station.
-	void displayStationNodeInfo(StationNodeItem* re);
+	void displayStationNodeInfo(StationNodeItem* stationItem);
 	/// Shows the form of an arc of the run: length in metres, curvature radius in metres, gradient as rise per length and
 	/// speed limit in m/s.
 	void displayArcInfo(TrackLineItem* line);
