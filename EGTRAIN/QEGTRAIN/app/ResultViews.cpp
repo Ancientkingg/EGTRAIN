@@ -1,10 +1,8 @@
 // RunController.h brings in SceneModel.h in the way that the member named signals needs, before the other Qt headers do.
 #include "app/RunController.h"
 #include "app/ResultViews.h"
-#include "app/DialogFolders.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
-#include "app/PathMessages.h"
 #include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/BlockingTimeScope.h"
@@ -25,8 +23,6 @@
 #include "util/TrajectoryUtil.h"
 #include "widgets/UserPrompts.h"
 #include <QDialog>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScreen>
@@ -49,10 +45,7 @@
 namespace {
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
-	window->setProvenanceWriter([provenance = std::move(provenance)](
-									const QString& path, const char* kind, const std::string& bytes) {
-		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
-	});
+	window->setProvenanceWriter(runProvenanceWriter(std::move(provenance)));
 }
 
 // The layer of the outlines of the blocks.
@@ -255,23 +248,16 @@ QStringList blockingTimeTrainIds(const std::vector<BlockingTimeDiagramSegment>& 
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 	const telemetry::OperationObservation& operation, const std::function<std::string()>& provider,
 	const std::function<bool(const QString&, const std::string&)>& artifactWriter) {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(parent);
 	const std::string content = provider();
 	if (content.empty()) {
+		// The window comes back in front once the message closes.
+		const KeepInFront front(parent);
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(parent, "Export Data", dialog_folders::suggestedPath(suggestedName), "CSV File (*.csv)");
-	if (path.isEmpty())
-		return;
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = artifactWriter(path, content);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written) {
-		QMessageBox::warning(parent, "Export failed", path_message::writeFailed("save the data to", path));
-	}
+	const auto csv = [&content]() -> const std::string& { return content; };
+	const auto write = [&artifactWriter](const QString& path, const char*, const std::string& bytes) { return artifactWriter(path, bytes); };
+	saveExportInteractive(parent, telemetry::ExportKind::Csv, "Export Data", suggestedName, operation, csv, write);
 }
 
 ResultViews::ResultViews(QWidget* window, RunController* runController, Host& host)

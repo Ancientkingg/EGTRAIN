@@ -7,11 +7,16 @@
 #include <QVector>
 #include <QWidget>
 
+#include <functional>
+#include <optional>
+#include <string>
+
 class QDialog;
 class QDialogButtonBox;
 class QEvent;
 class QFrame;
 class QHBoxLayout;
+class QImage;
 class QLabel;
 class QResizeEvent;
 class QShowEvent;
@@ -19,6 +24,10 @@ class QSplitter;
 class QToolButton;
 class QVBoxLayout;
 struct RunProvenance;
+namespace telemetry {
+enum class ExportKind;
+class OperationObservation;
+} // namespace telemetry
 
 /// The side panel of a result window: titled sections in a column that scrolls when it is taller than the window,
 /// with a rule between the sections that are shown, and a cursor readout below the column.
@@ -152,6 +161,27 @@ public:
 private:
 	QPointer<QWidget> m_widget;
 };
+
+/// Writes the content of an export to `path` as a file of the kind `suffix` names, "csv" or "png", and returns whether
+/// it did, such as writeRunArtifactWithProvenance.
+using ExportWriter = std::function<bool(const QString& path, const char* suffix, const std::string& bytes)>;
+
+/// Exports a CSV file or a PNG image, as `kind` says, through the save dialog of `parent`: titled `title`, starting at
+/// `suggestedName` in the folder of dialog_folders::suggestedPath, with a filter for the kind. A path without the suffix
+/// of the kind gets it. After the dialog `bytes` gives the content, or nothing when it cannot be made, which reports an
+/// internal failure of the export. `write` writes the content, or else it is written atomically without provenance;
+/// empty content is not written. A failed write reports a failed export. Either failure shows "Export failed" with the
+/// path as the person reads it. The window of `parent` stays in front (KeepInFront). Returns the path that was written,
+/// or an empty string when the dialog was cancelled or nothing was written.
+QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>()>& bytes,
+	const ExportWriter& write = {});
+
+/// The content of a PNG export of `image`, for saveExportInteractive; nothing when the image cannot be encoded.
+std::optional<std::string> pngBytes(const QImage& image);
+
+/// The writer of the exports of a run: writeRunArtifactWithProvenance with `provenance`, which it keeps.
+ExportWriter runProvenanceWriter(RunProvenance provenance);
 
 /// The run of a result window named by its case and scenario, for its header and for messages: "case / scenario", one of
 /// the two when the other is empty, or "(none)" when both are.

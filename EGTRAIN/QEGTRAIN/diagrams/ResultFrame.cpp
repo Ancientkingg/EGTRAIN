@@ -1,25 +1,36 @@
 #include "diagrams/ResultFrame.h"
 
+#include "app/DialogFolders.h"
+#include "app/PathMessages.h"
 #include "diagrams/RunResults.h"
+#include "telemetry/TelemetryOperation.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/ElidedLabel.h"
 #include "widgets/PlainToolTip.h"
 
+#include <QBuffer>
+#include <QByteArray>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QEvent>
 #include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QFont>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QImage>
 #include <QLabel>
+#include <QMessageBox>
+#include <QSaveFile>
 #include <QSplitter>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <utility>
 
 namespace {
 // The width of the panel, and the narrower width of the panel while the window is narrower than kNarrowWindow.
@@ -28,6 +39,14 @@ constexpr int kNarrowPanelWidth = 200;
 constexpr int kNarrowWindow = 1000;
 // The value of a key figure is this much larger than the text of the panel.
 constexpr qreal kFigureScale = 1.45;
+
+bool writeAtomically(const QString& path, const std::string& bytes) {
+	QSaveFile file(path);
+	if (!file.open(QIODevice::WriteOnly))
+		return false;
+	const QByteArray data = QByteArray::fromStdString(bytes);
+	return file.write(data) == data.size() && file.commit();
+}
 } // namespace
 
 ResultPanel::ResultPanel(QWidget* parent)
@@ -296,6 +315,49 @@ KeepInFront::~KeepInFront() {
 	QWidget* window = m_widget->window();
 	window->raise();
 	window->activateWindow();
+}
+
+QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,
+	const telemetry::OperationObservation& operation, const std::function<std::optional<std::string>()>& bytes,
+	const ExportWriter& write) {
+	// The window comes back in front once the save dialog and its messages close.
+	const KeepInFront front(parent);
+	const bool image = kind == telemetry::ExportKind::Png;
+	const char* suffix = image ? "png" : "csv";
+	const QString failed = image ? QStringLiteral("save the image to") : QStringLiteral("save the data to");
+	QString path = QFileDialog::getSaveFileName(parent, title, dialog_folders::suggestedPath(suggestedName),
+		image ? QStringLiteral("PNG Image (*.png)") : QStringLiteral("CSV File (*.csv)"));
+	if (path.isEmpty())
+		return QString(); // cancelled: no file is written
+	if (QFileInfo(path).suffix().compare(QLatin1String(suffix), Qt::CaseInsensitive) != 0)
+		path += QLatin1Char('.') + QLatin1String(suffix);
+	const std::optional<std::string> content = bytes();
+	if (!content) {
+		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
+		QMessageBox::warning(parent, "Export failed", path_message::writeFailed(failed, path));
+		return QString();
+	}
+	const bool written = !content->empty() && (write ? write(path, suffix, *content) : writeAtomically(path, *content));
+	operation.exportFinished(kind, written, true, telemetry::Error::IoFailure);
+	if (!written) {
+		QMessageBox::warning(parent, "Export failed", path_message::writeFailed(failed, path));
+		return QString();
+	}
+	return path;
+}
+
+std::optional<std::string> pngBytes(const QImage& image) {
+	QByteArray png;
+	QBuffer buffer(&png);
+	if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG"))
+		return std::nullopt;
+	return std::string(png.constData(), static_cast<std::size_t>(png.size()));
+}
+
+ExportWriter runProvenanceWriter(RunProvenance provenance) {
+	return [provenance = std::move(provenance)](const QString& path, const char* suffix, const std::string& bytes) {
+		return writeRunArtifactWithProvenance(path.toStdString(), suffix, bytes, provenance);
+	};
 }
 
 QString runContextText(const RunProvenance& provenance) {

@@ -84,6 +84,7 @@ private:
 	void fillBaseline();
 	void updateExport();
 	std::string currentCsv() const;
+	bool writeCsv(const QString& path, const std::string& content) const;
 	void exportCsv();
 	QString histogramToolTip(int index) const;
 

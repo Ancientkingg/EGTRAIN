@@ -1,5 +1,4 @@
 #include "diagrams/DiagramWindow.h"
-#include "app/DialogFolders.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
@@ -17,7 +16,6 @@
 #include <QTextDocument>
 #include <QSet>
 #include <QFontMetricsF>
-#include <QBuffer>
 #include <QWheelEvent>
 #include <QNativeGestureEvent>
 #include <QGestureEvent>
@@ -31,7 +29,6 @@
 #include <algorithm>
 #include <QColor>
 #include <QDir>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -41,7 +38,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
-#include <QSaveFile>
 #include <QTreeWidget>
 #include <QScreen>
 #include <QVariant>
@@ -70,14 +66,6 @@ QPen mutedPen(const QPen& base, const QColor& background) {
 	QPen pen = base;
 	pen.setColor(mutedColour(base.color(), background));
 	return pen;
-}
-
-bool writeArtifact(const QString& path, const std::string& bytes) {
-	QSaveFile file(path);
-	if (!file.open(QIODevice::WriteOnly))
-		return false;
-	const QByteArray data = QByteArray::fromStdString(bytes);
-	return file.write(data) == data.size() && file.commit();
 }
 
 // Clip a stroke to the visible plot before hit-testing. The returned fractions
@@ -2052,63 +2040,31 @@ void DiagramWindow::resetZoom() {
 }
 
 void DiagramWindow::exportPng() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	const QString suggested = !m_figureFileName.isEmpty() ? m_figureFileName
 		: m_csvSuggestedName.isEmpty()					  ? QString("diagram.png")
 														  : QFileInfo(m_csvSuggestedName).completeBaseName() + ".png";
-	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath(suggested), "PNG Image (*.png)");
-	if (path.isEmpty())
-		return; // cancelled: no file is written
-	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
-		path += ".png";
-	const QImage figure = exportedFigure();
-	QByteArray png;
-	QBuffer buffer(&png);
-	if (!buffer.open(QIODevice::WriteOnly) || !figure.save(&buffer, "PNG")) {
-		operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
-		return;
-	}
-	const std::string bytes(png.constData(), static_cast<std::size_t>(png.size()));
-	const bool written = m_provenanceWriter
-		? m_provenanceWriter(path, "png", bytes)
-		: writeArtifact(path, bytes);
-	operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the image to:\n%1").arg(path));
+	const auto png = [this] { return pngBytes(exportedFigure()); };
+	saveExportInteractive(this, telemetry::ExportKind::Png, "Export Diagram", suggested, operation, png, m_provenanceWriter);
 }
 
 void DiagramWindow::exportCsv() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
 	const std::string content = csvContent();
 	if (content.empty()) {
+		// The window comes back in front once the message closes.
+		const KeepInFront front(this);
 		QMessageBox::information(this, "Nothing to export",
 			"There is no data to export for the visible trains.");
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggested), "CSV File (*.csv)");
+	const auto csv = [&content]() -> const std::string& { return content; };
+	const QString path = saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", suggested, operation, csv, m_provenanceWriter);
 	if (path.isEmpty())
-		return; // cancelled: no file is written
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = m_provenanceWriter
-		? m_provenanceWriter(path, "csv", content)
-		: writeArtifact(path, content);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written) {
-		QMessageBox::warning(this, "Export failed",
-			QString("Could not save the data to:\n%1").arg(path));
 		return;
-	}
 	// The window has no status line of its own, so the main window names the saved file.
 	if (auto* mainWindow = qobject_cast<QMainWindow*>(parentWidget()))
 		mainWindow->statusBar()->showMessage(QStringLiteral("Saved %1").arg(QDir::toNativeSeparators(path)), 8000);

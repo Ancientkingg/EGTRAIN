@@ -1,6 +1,5 @@
 #include "diagrams/DelayAnalysisWindow.h"
 
-#include "app/DialogFolders.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/TrainFilterButton.h"
@@ -12,13 +11,10 @@
 #include <QCursor>
 #include <QEvent>
 #include <QDialogButtonBox>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QFont>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPalette>
 #include <QPen>
 #include <QPushButton>
@@ -925,7 +921,11 @@ QString DelayAnalysisWindow::suggestedFileName() const {
 }
 
 bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
-	const std::string content = currentCsv();
+	return writeCsv(path, currentCsv());
+}
+
+// The Against baseline tab writes the provenance of both runs, the other tabs that of the run.
+bool DelayAnalysisWindow::writeCsv(const QString& path, const std::string& content) const {
 	if (content.empty())
 		return false;
 	if (m_tabs->currentIndex() == kBaselineTab && m_baseline)
@@ -934,16 +934,8 @@ bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
 }
 
 void DelayAnalysisWindow::exportCsv() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggestedFileName()), "CSV File (*.csv)");
-	if (path.isEmpty())
-		return;
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = exportCsvTo(path);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed", QString("Could not save the data to:\n%1").arg(path));
+	const auto csv = [this] { return currentCsv(); };
+	const auto write = [this](const QString& path, const char*, const std::string& content) { return writeCsv(path, content); };
+	saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", suggestedFileName(), operation, csv, write);
 }

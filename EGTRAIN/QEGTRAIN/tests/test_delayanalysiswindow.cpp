@@ -2,12 +2,13 @@
 // The numbers of the line fixture are copied from tests/characterization/expected as in test_delayanalysis.cpp:
 // follow-level-0 and the pairs for no signalling level, levels 0 and 3 and level 5. Every expected figure was
 // worked out by hand from those rows. Times and delays are in seconds, shares in percent. kNone marks a time that
-// does not exist. The test shows no message box, and opens the file chooser only to check that the window stays in
-// front after it.
+// does not exist. The test opens the file chooser to check that the window stays in front after it and what the export
+// asks for, and closes the warning of an export that fails itself.
 
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainFilterButton.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -21,9 +22,11 @@
 #include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -1105,6 +1108,76 @@ bool exerciseExportKeepsWindowInFront() {
 	return ok;
 }
 
+// What the save dialog of an export showed, and the texts of the warnings after it.
+struct ExportDialog {
+	QString title;
+	QStringList filters;
+	QString suggested;
+	QStringList warnings;
+};
+
+// Clicks `button`, answers the save dialog with `path`, or cancels it for an empty path, and closes the messages that
+// follow. A dialog that stays open after the answer is cancelled.
+ExportDialog answerExport(QPushButton* button, const QString& path) {
+	ExportDialog shown;
+	bool answered = false;
+	QTimer timer;
+	QObject::connect(&timer, &QTimer::timeout, [&shown, &answered, &path] {
+		if (auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) {
+			if (box->icon() == QMessageBox::Warning)
+				shown.warnings << box->text();
+			box->accept();
+			return;
+		}
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* dialog = qobject_cast<QFileDialog*>(widget); dialog && dialog->isVisible()) {
+				if (answered) {
+					dialog->reject();
+					continue;
+				}
+				answered = true;
+				shown.title = dialog->windowTitle();
+				shown.filters = dialog->nameFilters();
+				shown.suggested = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+				auto* name = dialog->findChild<QLineEdit*>("fileNameEdit");
+				if (path.isEmpty() || !name) {
+					dialog->reject();
+					continue;
+				}
+				// The whole path in the name field, which also takes a folder that does not exist.
+				name->setText(path);
+				// Through QDialog, as QFileDialog::accept is protected.
+				static_cast<QDialog*>(dialog)->accept();
+			}
+	});
+	timer.start(0);
+	if (button) button->click();
+	return shown;
+}
+
+// The export asks for a CSV file under the name delay_analysis.csv. A write that fails says so with the path as the
+// person reads it, here in the Windows form.
+bool exerciseExportDialog() {
+	QTemporaryDir directory;
+	DelayAnalysisWindow window(lineSnapshot("follow-level-0", kFollowLevel0), std::nullopt);
+	window.show();
+	QPushButton* button = exportButton(window);
+	bool ok = expect(directory.isValid() && button && button->isEnabled(), "the window has its export");
+	if (!ok)
+		return false;
+	const QChar separator = display_path::separator();
+	display_path::separator() = QLatin1Char('\\');
+	const QString path = QDir(directory.path()).filePath("missing/delays.csv");
+	const ExportDialog shown = answerExport(button, path);
+	const QString expected = "Could not save the data to:\n" + display_path::format(path);
+	display_path::separator() = separator;
+	ok &= expect(shown.title == "Export Data" && shown.filters == QStringList("CSV File (*.csv)") && shown.suggested == "delay_analysis.csv",
+		qPrintable("the export asks for a CSV file: " + shown.title + ", " + shown.filters.join(", ") + ", " + shown.suggested));
+	ok &= expect(shown.warnings == QStringList(expected),
+		qPrintable("a file that cannot be written is named as the person reads it: " + shown.warnings.join(" | ")));
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1126,6 +1199,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseWords();
 	ok &= exerciseExport();
 	ok &= exerciseExportKeepsWindowInFront();
+	ok &= exerciseExportDialog();
 	if (ok)
 		std::cout << "all DelayAnalysisWindow tests passed\n";
 	return ok ? 0 : 1;

@@ -1,6 +1,5 @@
 #include "diagrams/AreaCapacityWindow.h"
 
-#include "app/DialogFolders.h"
 #include "diagrams/CapacityWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunExports.h"
@@ -11,14 +10,11 @@
 
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
-#include <QFileDialog>
-#include <QFileInfo>
 #include <QFormLayout>
 #include <QFont>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QTabWidget>
@@ -797,18 +793,10 @@ bool AreaCapacityWindow::exportCsvTo(const QString& path) const {
 }
 
 void AreaCapacityWindow::exportCsv() {
-	// The window comes back in front once the save dialog and its messages close.
-	const KeepInFront front(this);
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("area_capacity.csv"), "CSV File (*.csv)");
-	if (path.isEmpty())
-		return;
-	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
-		path += ".csv";
-	const bool written = exportCsvTo(path);
-	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
-	if (!written)
-		QMessageBox::warning(this, "Export failed", QString("Could not save the data to:\n%1").arg(path));
+	const auto csv = [this] { return areaCapacityCsv(m_result, m_areaLabel); };
+	saveExportInteractive(this, telemetry::ExportKind::Csv, "Export Data", "area_capacity.csv", operation, csv,
+		runProvenanceWriter(m_provenance));
 }
 
 AreaCapacityWindow* openAreaCapacityWindow(QWidget* parent, const CompletedRunData& data, telemetry::CaptureOperation capture) {
