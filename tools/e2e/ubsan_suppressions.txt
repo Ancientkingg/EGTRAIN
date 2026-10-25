@@ -1,0 +1,17 @@
+# Known reports for the nightly sanitizer job of .github/workflows/cmake.yml.
+# See "Nightly sanitizer runs" in docs/development/smoke-tests.md.
+#
+# A rule is a line "CHECK:PATTERN", where CHECK is the name of the check in -fsanitize, such as vptr.
+# UndefinedBehaviorSanitizer ignores a report of that check when PATTERN is part of the source file name,
+# the function name or the library name of the place it reports.
+#
+# Add one rule for each known report, and put a comment above it with the cause and the change that
+# removes the rule.
+
+# When the main window is destroyed, ~QWidget hides the incident dock, and the slot that the MainWindow
+# constructor connects to its visibilityChanged signal still runs, although the MainWindow part of the
+# window is gone: "member access within address ... which does not point to an object of type
+# 'MainWindow'" at MainWindow.cpp:1662. test_creator_acceptance_smoke, test_dialog_presentation_contract
+# and test_editor_smoke stop on it. The rule goes when the slot no longer runs while the window is
+# destroyed.
+vptr:MainWindow.cpp

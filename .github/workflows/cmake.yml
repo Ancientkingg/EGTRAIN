@@ -358,7 +358,136 @@ jobs:
           path: ${{ runner.temp }}/leak-check
           if-no-files-found: ignore
 
-  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  # The whole suite with AddressSanitizer and UndefinedBehaviorSanitizer, in the configuration of the Sanitizers job of
+  # release.yml, which runs it on macOS before a release. This job runs it on Linux every night, so that a finding shows
+  # the day after the change. Only the nightly and manual runs start it, and the result job does not wait for it, so it
+  # never decides a pull request.
+  sanitizers:
+    name: sanitizers (Linux)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+      PYTHONUTF8: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
+      - name: Lower address space randomization
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
+
+      # The options of the Sanitizers job of release.yml, with the Linux prefix path.
+      - name: Configure with sanitizers
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON
+          -DEGTRAIN_TEST_TIMEOUT_SCALE=10 -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=5400
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+
+      - name: Build with sanitizers
+        run: cmake --build build
+
+      # The environment of the release job. Leak detection and the fake stack for returned frames are off by default on
+      # macOS and on by default on Linux, so they are turned off here; the leak check above owns the leaks. The known
+      # reports of UndefinedBehaviorSanitizer are listed in a suppressions file. A test without a time limit of its own
+      # stops after 1500 seconds, so that a hang shows in the log instead of ending the job.
+      - name: Test with sanitizers
+        env:
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1:suppressions=${{ github.workspace }}/tools/e2e/ubsan_suppressions.txt
+          ASAN_OPTIONS: abort_on_error=1:halt_on_error=1:detect_leaks=0:detect_stack_use_after_return=0
+          QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"
+          QEGTRAIN_GUI_SMOKE_SECONDS: "30"
+        run: ctest --test-dir build --parallel 4 --timeout 1500 --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: |
+            ${{ runner.temp }}/ctest-sanitizer.log
+            ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
+          if-no-files-found: ignore
+
+  # ThreadSanitizer finds data races in the parts that run on more than one thread: the recovery writer, the telemetry
+  # sender, the live server and the simulation worker. Qt is not instrumented, so the job runs the tests of those parts and
+  # not the windows. Only the nightly and manual runs start it, and the result job does not wait for it.
+  thread-sanitizer:
+    name: thread sanitizer (Linux)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+      PYTHONUTF8: "1"
+      # Qt, libzmq and the C library are not instrumented, so the accesses they make themselves are ignored. The
+      # suppressions file lists the known reports.
+      TSAN_OPTIONS: second_deadlock_stack=1:ignore_noninstrumented_modules=1:suppressions=${{ github.workspace }}/tools/e2e/tsan_suppressions.txt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Route temp files to runner.temp
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          modules: qtcharts
+          cache: true
+
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      # With the default setting, ThreadSanitizer stops at start on the kernel of the runner.
+      - name: Lower address space randomization
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
+
+      - name: Configure with ThreadSanitizer
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON
+          -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread -DEGTRAIN_TEST_TIMEOUT_SCALE=10
+          -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+
+      - name: Build with ThreadSanitizer
+        run: >
+          cmake --build build --target test_recoverycontroller test_telemetrysender test_liveserver test_livereplay
+          test_simulationworker
+
+      - name: Test the threaded parts
+        run: >
+          ctest --test-dir build --no-tests=error --output-on-failure --output-log "$RUNNER_TEMP/ctest-thread-sanitizer.log"
+          -R '^(test_recoverycontroller|test_telemetrysender|test_liveserver|test_livereplay|test_simulationworker)$'
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-diagnostics
+          path: ${{ runner.temp }}/ctest-thread-sanitizer.log
+          if-no-files-found: ignore
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped. The nightly sanitizer
+  # jobs are not part of it.
   result:
     name: CMake result
     if: always()

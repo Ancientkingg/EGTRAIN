@@ -1,0 +1,21 @@
+# Known reports for the thread sanitizer job of .github/workflows/cmake.yml.
+# See "Nightly sanitizer runs" in docs/development/smoke-tests.md.
+#
+# A rule is a line "race:PATTERN". ThreadSanitizer ignores a data race when PATTERN is part of a function
+# name, a source file name or a library name in a stack of the report, which includes the stack that
+# started each thread of the race.
+#
+# Add one rule for each known report, and put a comment above it with the cause and the change that
+# removes the rule. A race in the code of the application is fixed, not listed here.
+
+# test_telemetrysender: in these tests a callback of TelemetrySender::TestOptions runs on the thread of
+# the sender, changes a value of the test and releases a QSemaphore, and the test reads the value after
+# it acquires the semaphore. QSemaphore waits on a futex inside the Qt library, which is not
+# instrumented, so ThreadSanitizer does not see the order and reports a race on the value. The rules go
+# when the tests hand these values over through std::atomic or a mutex.
+race:testInteractiveSessions
+race:testSessionAttemptLoss
+race:testTimeoutAndExceptions
+race:testFollowerTakeover
+race:testRetirementWithQueuedWork
+race:testSplitRetainsIds
