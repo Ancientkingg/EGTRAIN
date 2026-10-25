@@ -7,7 +7,9 @@
 #include <QJsonDocument>
 #include <QSaveFile>
 #include <QJsonObject>
+#include <QStringList>
 #include <QTemporaryDir>
+#include <algorithm>
 #ifdef NDEBUG
 #undef NDEBUG
 #endif
@@ -109,6 +111,96 @@ static void testControlTimestampTypes() {
 	}
 }
 
+// The bytes that each enqueue leaves in usage.json and diagnostics.json, up to and past the limit of 512 events.
+static void testStoredBytes() {
+	const auto base = QDateTime::fromString(QStringLiteral("2026-04-01T12:00:00Z"), Qt::ISODate);
+	const QString endpoint = QStringLiteral("https://a.example/collect");
+	const QString installation = QStringLiteral("12345678-1234-4234-8234-123456789abc");
+	constexpr int kEvents = 516;
+	// In each group of four the last two events occur before the first two, and the two of a pair at the same time.
+	// The last event occurs before every other one.
+	const auto occurred = [&](int i) {
+		return i == kEvents - 1 ? base.addMSecs(-1) : base.addMSecs((i / 4) * 2 + (i % 4 < 2 ? 1 : 0));
+	};
+	const auto id = [](int i) { return QStringLiteral("00000000-0000-4000-8000-%1").arg(i, 12, 10, QLatin1Char('0')); };
+	const auto usageInput = [](int i) {
+		TelemetryEventInput input;
+		if (i % 3 == 1) {
+			input.name = Name::SceneOpened;
+			input.sceneKind = SceneKind::Local;
+		} else if (i % 3 == 2) {
+			input.name = Name::ExportCompleted;
+			input.exportKind = ExportKind::Csv;
+		}
+		return input;
+	};
+	TelemetryEventInput diagnosticInput;
+	diagnosticInput.name = Name::OperationFailed;
+	diagnosticInput.operation = Operation::Export;
+	diagnosticInput.error = Error::IoFailure;
+	const QString usageRecords[] = {
+		QStringLiteral(R"({"event":{"event_id":"%1","name":"session.started","occurred_at":"%2","properties":{}},)"
+					   R"("stamp":"12345678-1234-4234-8234-123456789abc"})"),
+		QStringLiteral(R"({"event":{"event_id":"%1","name":"scene.opened","occurred_at":"%2","properties":{"scene_kind":"local"}},)"
+					   R"("stamp":"12345678-1234-4234-8234-123456789abc"})"),
+		QStringLiteral(R"({"event":{"event_id":"%1","name":"export.completed","occurred_at":"%2","properties":{"export_kind":"csv"}},)"
+					   R"("stamp":"12345678-1234-4234-8234-123456789abc"})")};
+	const QString diagnosticRecord = QStringLiteral(
+		R"({"event":{"event_id":"%1","name":"operation.failed","occurred_at":"%2","properties":{"error_code":"io_failure","operation_code":"export"}},"stamp":"7"})");
+	// The newest 512 of the first count events, the oldest first and events of the same time in the order of enqueueing.
+	const auto expected = [&](Category category, int count) {
+		QVector<int> order;
+		for (int i = 0; i < count; ++i) order.append(i);
+		std::stable_sort(order.begin(), order.end(), [&](int left, int right) { return occurred(left) < occurred(right); });
+		QStringList records;
+		for (int k = std::max(0, count - 512); k < count; ++k) {
+			const int i = order[k];
+			const QString& record = category == Category::Usage ? usageRecords[i % 3] : diagnosticRecord;
+			records.append(record.arg(id(i), occurred(i).toString(Qt::ISODateWithMs)));
+		}
+		return (QStringLiteral(R"({"endpoint":"https://a.example/collect","events":[)") + records.join(QLatin1Char(','))
+			+ QStringLiteral(R"(],"format":1,"terms":"1"})"))
+			.toUtf8();
+	};
+	QTemporaryDir directory;
+	TelemetryQueue queue;
+	assert(queue.open(directory.path(), endpoint, QStringLiteral("1"), base) == TelemetryQueue::OpenResult::Owner);
+	const auto stored = [&](const QString& name) {
+		QFile file(directory.filePath(name));
+		assert(file.open(QIODevice::ReadOnly));
+		return file.readAll();
+	};
+	for (int i = 0; i < kEvents; ++i) {
+		assert(queue.enqueueUsage({{usageInput(i), id(i), occurred(i)}, installation}, base.addSecs(1)));
+		assert(stored(QStringLiteral("usage.json")) == expected(Category::Usage, i + 1));
+		assert(queue.enqueueDiagnostic({{diagnosticInput, id(i), occurred(i)}, 7}, base.addSecs(1)));
+		assert(stored(QStringLiteral("diagnostics.json")) == expected(Category::Diagnostics, i + 1));
+		if (i == 1)
+			assert(stored(QStringLiteral("diagnostics.json"))
+				== QByteArray(R"({"endpoint":"https://a.example/collect","events":[)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000000","name":"operation.failed",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.001Z","properties":{"error_code":"io_failure","operation_code":"export"}},"stamp":"7"},)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000001","name":"operation.failed",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.001Z","properties":{"error_code":"io_failure","operation_code":"export"}},"stamp":"7"})"
+							  R"(],"format":1,"terms":"1"})"));
+		if (i == 3)
+			assert(stored(QStringLiteral("usage.json"))
+				== QByteArray(R"({"endpoint":"https://a.example/collect","events":[)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000002","name":"export.completed",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.000Z","properties":{"export_kind":"csv"}},"stamp":"12345678-1234-4234-8234-123456789abc"},)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000003","name":"session.started",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.000Z","properties":{}},"stamp":"12345678-1234-4234-8234-123456789abc"},)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000000","name":"session.started",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.001Z","properties":{}},"stamp":"12345678-1234-4234-8234-123456789abc"},)"
+							  R"({"event":{"event_id":"00000000-0000-4000-8000-000000000001","name":"scene.opened",)"
+							  R"("occurred_at":"2026-04-01T12:00:00.001Z","properties":{"scene_kind":"local"}},"stamp":"12345678-1234-4234-8234-123456789abc"})"
+							  R"(],"format":1,"terms":"1"})"));
+	}
+	// The event that occurred first gave way at once, and the oldest kept is the second of the first pair.
+	assert(stored(QStringLiteral("usage.json")).startsWith(R"({"endpoint":"https://a.example/collect","events":[{"event":{"event_id":"00000000-0000-4000-8000-000000000001",)"));
+	queue.close();
+}
+
 int main(int argc, char** argv) {
 	QCoreApplication app(argc, argv);
 	if (argc == 2) {
@@ -124,6 +216,7 @@ int main(int argc, char** argv) {
 	testDisabledRecovery();
 	testTemporaryBudget();
 	testControlTimestampTypes();
+	testStoredBytes();
 	QTemporaryDir directory;
 	assert(directory.isValid());
 	const auto now = QDateTime::fromString(QStringLiteral("2026-04-01T12:00:00Z"), Qt::ISODate);
