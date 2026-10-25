@@ -48,7 +48,6 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
-#include <QMovie>
 #include <QPainter>
 #include <QPen>
 #include <QPixmap>
@@ -380,8 +379,6 @@ bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& rig
 		&& left.collectionSizes == right.collectionSizes;
 }
 
-constexpr int kOverlayMargin = 12;
-
 bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
 		if (row[1] < row[0])
@@ -486,14 +483,6 @@ double computeHorizon(const SceneModel& scene) {
 // The text of a tooltip followed by the shortcut of the action as the platform writes it, with the Command key on macOS.
 QString withShortcut(const QString& text, const QAction* action) {
 	return QStringLiteral("%1 (%2)").arg(text, action->shortcut().toString(QKeySequence::NativeText));
-}
-
-int countTrackLineDirs(const QString& inputDir) {
-	QDir trackLinesDir(inputDir + "/TrackLines");
-	if (!trackLinesDir.exists())
-		return 0;
-	QFileInfoList entries = trackLinesDir.entryInfoList(QStringList("B*"), QDir::Dirs | QDir::NoDotAndDotDot | QDir::CaseSensitive);
-	return entries.size();
 }
 
 // A dock floated with its button or a double click opens inside the screen area, as wide and high as its content asks where

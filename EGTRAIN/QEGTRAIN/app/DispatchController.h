@@ -89,10 +89,6 @@ public:
 	/// stopped, and main after its run.
 	void printLastTrainServicePathDiagram();
 
-	/// Gives the per-step vectors of every train vec_size entries of 0 and sets their End_Time to vec_size - 1. Nothing in the
-	/// program calls it; the operations builder sizes the vectors.
-	void setVectorSizesFromInput(int vec_size);
-
 	/// Takes the newest snapshot that a step published, or nullptr when none waits. The GUI thread calls it after
 	/// snapshotAvailable.
 	std::shared_ptr<const GuiSimulationSnapshot> takeSimulationSnapshot();
@@ -133,12 +129,8 @@ public:
 	std::string liveEndpoint() const;
 
 signals:
-	/// Nothing emits this signal.
-	void iterationFinished(int timestep);
 	/// A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot.
 	void snapshotAvailable();
-	/// Nothing emits this signal. SimulationWorker::simulationFinished marks the end of a run in the window.
-	void simulationFinished();
 	/// Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains.
 	void executionRejected();
 	/// Execution-thread observation: runSimulation starts the run.

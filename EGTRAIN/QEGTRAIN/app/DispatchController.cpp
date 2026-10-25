@@ -794,11 +794,3 @@ void DispatchController::printLastTrainServicePathDiagram() {
 		}
 	}
 }
-
-void DispatchController::setVectorSizesFromInput(int vec_size) {
-	SimulationRun& run = mutableRun();
-	for (int i = 0; i < run.numTrains; i++) {
-		// define vector sizes with length of simulation from user input
-		run.trains[i].setTrainVectorSizesFromInput(vec_size);
-	}
-}

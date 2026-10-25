@@ -67,7 +67,6 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QMenu;
-class QMovie;
 class QPoint;
 class QPointF;
 class QProgressDialog;
@@ -171,17 +170,6 @@ public:
 	/// Shows the window maximized, at most eight ninths of the screen when restored, and fits the view.
 	void openGUI();
 
-	/// Declared but not defined; nothing calls it.
-	void orderTracks();
-
-	/// Declared but not defined; nothing calls it.
-	void setLoadingGIF();
-	/// Declared but not defined; nothing calls it.
-	void showLoadingGIF();
-	/// Declared but not defined; nothing calls it.
-	void stopLoadingGIF();
-
-
 	/// Fits the canvas to the network, or to the preview bounds while a preview shows.
 	void fitView();
 
@@ -252,10 +240,6 @@ private:
 
 	// progess bar
 	TimeProgressBar* progressBar;
-
-	// loading
-	QLabel* loadingLabel;
-	QMovie* loadingMovie;
 
 	// The inspector dock: the form of the selected item
 	InspectorPanel* m_inspector = nullptr;
