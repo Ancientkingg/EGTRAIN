@@ -1,4 +1,5 @@
 #include "editors/CaseSettingsPanel.h"
+#include "editors/EditorHelpers.h"
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 
@@ -349,7 +350,7 @@ int main(int argc, char** argv) {
 			"the summary names the occurrences in the run period only when they differ from the selected ones");
 		ok &= expect(panel.occurrenceTable()->item(0, 3)->toolTip() == "100 (route r1, +0 s)\nService s1, run 1",
 			"a row names the generated service in its tooltip");
-		ok &= expect(ServicePanel::generatedServiceLabel(document.model().services[1], 2) == "s2-2 (route r2, +1200 s)",
+		ok &= expect(generatedServiceLabel(document.model().services[1], 2) == "s2-2 (route r2, +1200 s)",
 			"a generated service is named by its code, route and scheduled entry");
 
 		// the preview: leave an occurrence out

@@ -104,9 +104,6 @@ public:
 	/// Leaves every occurrence out of the next run. Nothing happens when there are more occurrences than the table lists.
 	void selectNoneOccurrences();
 
-	/// What a generated service is called in lists: its operating code, or the service id when it has none, its route and
-	/// its scheduled entry in seconds from the base time, such as "1723 (route r1, +600 s)". `occurrence` counts from 1.
-	static QString generatedServiceLabel(const SceneService& service, int occurrence);
 	/// The summary above the occurrence table, such as "3 of 5 selected, 2 in the run period". The run period part is left
 	/// out when every selected occurrence is in the period. When the table shows only the first `shown` of the `total`
 	/// occurrences, a second line says so.

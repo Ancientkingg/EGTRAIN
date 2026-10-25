@@ -1,6 +1,7 @@
 #include "app/SceneSession.h"
 // This header brings in SceneModel.h in the way that the member named signals needs, before the other scene headers do.
 #include "editors/CountText.h"
+#include "editors/EditorHelpers.h"
 #include "editors/SceneDocument.h"
 #include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
@@ -100,13 +101,8 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 } // namespace
 
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
-	for (const auto& d : diagnostics) {
-		if (d.severity == SceneSeverity::Error)
-			return QString::fromStdString(d.message);
-	}
-	if (!diagnostics.empty())
-		return QString::fromStdString(diagnostics.front().message);
-	return QString();
+	const SceneDiagnostic* diagnostic = firstDiagnostic(diagnostics);
+	return diagnostic ? QString::fromStdString(diagnostic->message) : QString();
 }
 
 SceneSession::SceneSession(QMainWindow* window, SceneDocument* document, Host& host)

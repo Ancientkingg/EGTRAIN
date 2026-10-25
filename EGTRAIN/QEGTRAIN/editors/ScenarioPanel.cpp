@@ -2,6 +2,7 @@
 
 #include "app/DialogFolders.h"
 #include "editors/CountText.h"
+#include "editors/EditorHelpers.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "scene/SceneValidator.h"
@@ -24,21 +25,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-namespace {
-
-// The message and the fix of the first error, else of the first diagnostic, for a dialog.
-QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
-	for (const auto& diagnostic : diagnostics) {
-		if (diagnostic.severity == SceneSeverity::Error)
-			return QString::fromStdString(toDialogText(diagnostic));
-	}
-	if (!diagnostics.empty())
-		return QString::fromStdString(toDialogText(diagnostics.front()));
-	return QString();
-}
-
-} // namespace
 
 ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("scenarioPanel");
@@ -380,7 +366,7 @@ void ScenarioPanel::exportScenario() {
 	if (!result.success()) {
 		if (reportFailure)
 			reportFailure(result.diagnostics);
-		m_prompts->showError(this, "Scenario Export Failed", firstDiagnosticMessage(result.diagnostics), true);
+		m_prompts->showError(this, "Scenario Export Failed", firstDiagnosticDialogText(result.diagnostics), true);
 		return;
 	}
 	emit statusMessage(QString("Exported scenario %1").arg(scenarioContext()), 4000);
@@ -396,7 +382,7 @@ void ScenarioPanel::importScenario() {
 		return;
 	const ScenarioLoadResult loaded = loadScenarioJson(path.toStdString());
 	if (!loaded.success()) {
-		m_prompts->showError(this, "Scenario Import Failed", firstDiagnosticMessage(loaded.diagnostics), true);
+		m_prompts->showError(this, "Scenario Import Failed", firstDiagnosticDialogText(loaded.diagnostics), true);
 		return;
 	}
 	SceneModel& model = m_document->mutableModel();

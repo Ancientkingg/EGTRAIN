@@ -1,5 +1,6 @@
 #include "editors/infrastructure/StationFacets.h"
 
+#include "editors/EditorHelpers.h"
 #include "editors/infrastructure/ListFacet.h"
 #include "editors/infrastructure/SectionRowsFacet.h"
 #include "scene/SceneIds.h"
@@ -7,7 +8,6 @@
 #include "widgets/CompactDoubleSpinBox.h"
 
 #include <QAbstractSpinBox>
-#include <QApplication>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QObject>
@@ -293,10 +293,6 @@ public:
 
 	// A number field that has been typed in and not left yet takes its value into the model.
 	void commitPendingEdits(InfrastructurePanel& panel) override {
-		const auto hasEditorFocus = [](QWidget* editor) {
-			QWidget* focus = QApplication::focusWidget();
-			return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
-		};
 		QTableWidget& table = *panel.table();
 		std::vector<std::tuple<int, int, double>> pending;
 		for (int row = 0; row < table.rowCount(); ++row) {
