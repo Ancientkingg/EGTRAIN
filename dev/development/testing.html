@@ -710,7 +710,10 @@ tests that run committed scenes have a limit of their own, <code class="docutils
 <code class="docutils literal notranslate"><span class="pre">startup_launch_contract.py</span></code> multiplies its 60 second launch wait by the scale, and the fresh process
 of one step in the <code class="docutils literal notranslate"><span class="pre">--repeat-files</span></code> tests may take five sixths of the scene limit. The <code class="docutils literal notranslate"><span class="pre">Sanitizers</span></code> job of <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> passes a scale
 of 10 and a scene limit of 5400 seconds, and runs <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--parallel</span> <span class="pre">3</span></code> like the macOS leg of the CMake
-workflow. The leak check passes only a scene limit of 1500 seconds.</p>
+workflow. The nightly <code class="docutils literal notranslate"><span class="pre">sanitizers</span> <span class="pre">(Linux)</span></code> job of the CMake workflow passes the same scale and scene limit,
+runs <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--parallel</span> <span class="pre">4</span></code> like the Linux leg, and stops a test without a limit of its own after 1500 seconds;
+the nightly <code class="docutils literal notranslate"><span class="pre">thread</span> <span class="pre">sanitizer</span> <span class="pre">(Linux)</span></code> job passes a scale of 10 (see <a class="reference internal" href="smoke-tests.html#nightly-sanitizer-runs"><span class="std std-ref">Nightly sanitizer runs</span></a>).
+The leak check passes only a scene limit of 1500 seconds.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code> runs <code class="docutils literal notranslate"><span class="pre">creator_acceptance_smoke.sh</span> <span class="pre">--dialog-contract</span></code>,
 which starts the creator acceptance run and then checks the case chooser and the Run
 simulation dialog in the built application, as <a class="reference internal" href="../architecture/dialog-presentation.html#checks"><span class="std std-ref">Dialog presentation</span></a>

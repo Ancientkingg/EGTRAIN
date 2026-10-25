@@ -307,8 +307,8 @@
         <article role="main" id="furo-main-content">
           <section id="smoke-tests">
 <h1>Smoke tests<a class="headerlink" href="#smoke-tests" title="Link to this heading">¶</a></h1>
-<p>This page describes the smoke tests that run the application end to end on the committed scenes, and the
-leak and memory checks. It ends with where the tests and runs write their output.</p>
+<p>This page describes the smoke tests that run the application end to end on the committed scenes, the
+leak and memory checks, and the nightly sanitizer runs. It ends with where the tests and runs write their output.</p>
 <section id="simulation-smoke-test">
 <h2>Simulation Smoke Test<a class="headerlink" href="#simulation-smoke-test" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tools/e2e/headless_smoke.py
@@ -385,6 +385,43 @@ simulation is fixed, not listed.</p>
 <p>On macOS, <code class="docutils literal notranslate"><span class="pre">leaks</span> <span class="pre">--atExit</span> <span class="pre">--</span> <span class="pre">COMMAND</span></code> lists the leaks of one run of a normal build. It exits with
 status 1 when it finds any.</p>
 </section>
+<section id="nightly-sanitizer-runs">
+<h2>Nightly sanitizer runs<a class="headerlink" href="#nightly-sanitizer-runs" title="Link to this heading">¶</a></h2>
+<p>Two more Linux jobs of the CMake workflow run only in the nightly and the manual run, like the leak
+check. The result job does not wait for them, so they never decide a pull request. They start by hand
+in the same way as the leak check. When a job fails, its artifact <code class="docutils literal notranslate"><span class="pre">sanitizers-diagnostics</span></code> or
+<code class="docutils literal notranslate"><span class="pre">thread-sanitizer-diagnostics</span></code> holds the CTest log.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sanitizers</span> <span class="pre">(Linux)</span></code> builds everything in a Debug configuration with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_ENABLE_SANITIZERS=ON</span></code>,
+which turns on AddressSanitizer and UndefinedBehaviorSanitizer, and runs all of CTest. It has the
+options and the test environment of the <code class="docutils literal notranslate"><span class="pre">Sanitizers</span></code> job of <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, which runs the same suite
+on macOS before a release, so that a finding shows the day after the change. Two options of
+<code class="docutils literal notranslate"><span class="pre">ASAN_OPTIONS</span></code> are off by default on macOS and on by default on Linux, and the job turns them off:
+<code class="docutils literal notranslate"><span class="pre">detect_leaks=0</span></code>, because the leak check owns the leaks, and <code class="docutils literal notranslate"><span class="pre">detect_stack_use_after_return=0</span></code>, which
+keeps the frames of returned functions on a fake stack. GCC 13 on Linux on ARM never frees those frames,
+which makes the scene tests hundreds of times slower there. A test without a time limit of its own stops
+after 1500 seconds. <code class="docutils literal notranslate"><span class="pre">tools/e2e/ubsan_suppressions.txt</span></code> lists the known reports of
+UndefinedBehaviorSanitizer, each with its cause and the change that removes it. Apart from these,
+<code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> fails when the options or the environment of the two jobs drift apart.</p>
+<p><code class="docutils literal notranslate"><span class="pre">thread</span> <span class="pre">sanitizer</span> <span class="pre">(Linux)</span></code> builds the tests of the parts that run on more than one thread with
+<code class="docutils literal notranslate"><span class="pre">-fsanitize=thread</span></code> and runs them: <code class="docutils literal notranslate"><span class="pre">test_recoverycontroller</span></code> for the recovery writer,
+<code class="docutils literal notranslate"><span class="pre">test_telemetrysender</span></code> for the telemetry sender, <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> and <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> for the live
+server, and <code class="docutils literal notranslate"><span class="pre">test_simulationworker</span></code> for the simulation worker. Qt, libzmq and the C library are not
+instrumented, so <code class="docutils literal notranslate"><span class="pre">TSAN_OPTIONS</span></code> ignores the accesses they make themselves
+(<code class="docutils literal notranslate"><span class="pre">ignore_noninstrumented_modules=1</span></code>), and <code class="docutils literal notranslate"><span class="pre">tools/e2e/tsan_suppressions.txt</span></code> lists the known reports,
+each with its cause. A race in the code of the application is fixed, not listed.</p>
+<p>To run the thread sanitizer tests yourself, in a build directory of its own:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-tsan<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DCMAKE_EXE_LINKER_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DEGTRAIN_TEST_TIMEOUT_SCALE<span class="o">=</span><span class="m">10</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>build-tsan<span class="w"> </span>--target<span class="w"> </span>test_recoverycontroller<span class="w"> </span>test_telemetrysender<span class="w"> </span>test_liveserver<span class="w"> </span>test_livereplay<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>test_simulationworker
+<span class="nv">TSAN_OPTIONS</span><span class="o">=</span><span class="nv">ignore_noninstrumented_modules</span><span class="o">=</span><span class="m">1</span>:suppressions<span class="o">=</span><span class="nv">$PWD</span>/tools/e2e/tsan_suppressions.txt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>--output-on-failure<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-R<span class="w"> </span><span class="s1">'^(test_recoverycontroller|test_telemetrysender|test_liveserver|test_livereplay|test_simulationworker)$'</span>
+</pre></div>
+</div>
+<p>On a kernel with more address space randomization than ThreadSanitizer supports, it stops at start;
+the job lowers it with <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">sysctl</span> <span class="pre">-w</span> <span class="pre">vm.mmap_rnd_bits=28</span></code>.</p>
+</section>
 <section id="scene-roundtrip-smoke-test">
 <h2>Scene Roundtrip Smoke Test<a class="headerlink" href="#scene-roundtrip-smoke-test" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tools/e2e/roundtrip_smoke.py
@@ -459,13 +496,15 @@ Assignment with a train breakdown and with a signal failure through <code class=
 <p>To add a case, add a line to a file in <code class="docutils literal notranslate"><span class="pre">tests/live/commands</span></code> and the events it should give to <code class="docutils literal notranslate"><span class="pre">testReplay</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/test_livereplay.cpp</span></code>.</p>
 <section id="threadsanitizer">
 <h3>ThreadSanitizer<a class="headerlink" href="#threadsanitizer" title="Link to this heading">¶</a></h3>
-<p>CI runs no ThreadSanitizer. Run the live code under it before a change to the threads of the stream (the server, the step loop in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> or <code class="docutils literal notranslate"><span class="pre">RunControl</span></code>), in a build directory of its own:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">thread</span> <span class="pre">sanitizer</span> <span class="pre">(Linux)</span></code> job runs <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> and <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> under ThreadSanitizer every night; see <a class="reference internal" href="#nightly-sanitizer-runs">Nightly sanitizer runs</a>. Before a change to the threads of the stream (the server, the step loop in <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> or <code class="docutils literal notranslate"><span class="pre">RunControl</span></code>), run the live code under it yourself, in a build directory of its own:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-tsan<span class="w"> </span>-DEGTRAIN_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-DCMAKE_CXX_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread<span class="w"> </span>-DCMAKE_EXE_LINKER_FLAGS<span class="o">=</span>-fsanitize<span class="o">=</span>thread
 cmake<span class="w"> </span>--build<span class="w"> </span>build-tsan<span class="w"> </span>--target<span class="w"> </span>QEGTRAIN<span class="w"> </span>live_client<span class="w"> </span>test_liveserver<span class="w"> </span>test_livecommand<span class="w"> </span>test_livereplay
-ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_live(server|command|replay)$'</span><span class="w"> </span>--output-on-failure
+<span class="nv">TSAN_OPTIONS</span><span class="o">=</span><span class="nv">ignore_noninstrumented_modules</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ctest<span class="w"> </span>--test-dir<span class="w"> </span>build-tsan<span class="w"> </span>-R<span class="w"> </span><span class="s1">'^test_live(server|command|replay)$'</span><span class="w"> </span>--output-on-failure
 </pre></div>
 </div>
+<p>Without <code class="docutils literal notranslate"><span class="pre">ignore_noninstrumented_modules=1</span></code>, ThreadSanitizer reports the messages that libzmq hands to its own I/O thread, because libzmq is not instrumented.</p>
 <p>Qt is not instrumented, so a window run reports data races in <code class="docutils literal notranslate"><span class="pre">ConsoleWidget</span></code> and in Qt’s queued calls. They do not involve the live code. A run under ThreadSanitizer takes far longer than the limits of <code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code>. The smoke test stretches its waits by <code class="docutils literal notranslate"><span class="pre">EGTRAIN_TEST_TIMEOUT_SCALE</span></code>, so configure with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_TEST_TIMEOUT_SCALE=100</span></code> before you run it, and put <code class="docutils literal notranslate"><span class="pre">log_path</span></code> in <code class="docutils literal notranslate"><span class="pre">TSAN_OPTIONS</span></code> to keep the reports.</p>
 </section>
 </section>
@@ -1020,6 +1059,7 @@ application; CTest and the smoke scripts set it themselves.</p>
 <li><a class="reference internal" href="#simulation-smoke-test">Simulation Smoke Test</a></li>
 <li><a class="reference internal" href="#peak-memory-measurement">Peak-memory measurement</a></li>
 <li><a class="reference internal" href="#leak-check">Leak check</a></li>
+<li><a class="reference internal" href="#nightly-sanitizer-runs">Nightly sanitizer runs</a></li>
 <li><a class="reference internal" href="#scene-roundtrip-smoke-test">Scene Roundtrip Smoke Test</a></li>
 <li><a class="reference internal" href="#live-stream-tests">Live stream tests</a><ul>
 <li><a class="reference internal" href="#threadsanitizer">ThreadSanitizer</a></li>

@@ -54,10 +54,10 @@ without `io/third_party`.
 | A size-changing `QList` call invalidates references to its elements | not countable by search | review |
 
 The warnings matter because CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON`
-([cmake.yml](../../.github/workflows/cmake.yml), lines 194 to 211) and the libraries other than the simulation, and
-most tests, are strict targets ([CMakeLists.txt](../../CMakeLists.txt), lines 413 to 417), so a warning in them fails a
-Qt 6 CI build. The `QEGTRAIN` target, which builds most of `app/`, and the tests that use the simulation get no warning
-flags (lines 421 to 430). The `qsizetype` count is a lower bound: it misses sizes passed as `int` arguments or returned
+([cmake.yml](../../.github/workflows/cmake.yml), lines 197 to 225) and the libraries other than the simulation, and
+the test executables, are strict targets ([CMakeLists.txt](../../CMakeLists.txt), lines 414 to 417, and `egtrain_add_test`
+in [tests/CMakeLists.txt](../../EGTRAIN/QEGTRAIN/tests/CMakeLists.txt)), so a warning in them fails a Qt 6 CI build. The
+`QEGTRAIN` target, which builds most of `app/`, gets no warning flags (lines 418 to 434). The `qsizetype` count is a lower bound: it misses sizes passed as `int` arguments or returned
 from `int` functions, which MSVC at `/W4` reports too. Clang and GCC do not warn about these conversions with `-Wall
 -Wextra`.
 

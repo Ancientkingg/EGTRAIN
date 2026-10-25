@@ -321,7 +321,7 @@ committed scenes (see <a class="reference internal" href="smoke-tests.html#simul
 <code class="docutils literal notranslate"><span class="pre">tools/docs/check_docs.py</span></code> on every pull request, documentation-only ones
 included. The same checks run on <code class="docutils literal notranslate"><span class="pre">main</span></code> once a night (02:17 UTC)
 and when started by hand from the Actions tab (<code class="docutils literal notranslate"><span class="pre">workflow_dispatch</span></code>); both
-always build, and both also start the <a class="reference internal" href="smoke-tests.html#leak-check"><span class="std std-ref">leak check</span></a> on Linux.
+always build, and both also start the <a class="reference internal" href="smoke-tests.html#leak-check"><span class="std std-ref">leak check</span></a> and the <a class="reference internal" href="smoke-tests.html#nightly-sanitizer-runs"><span class="std std-ref">nightly sanitizer runs</span></a> on Linux.
 A push to <code class="docutils literal notranslate"><span class="pre">main</span></code> starts no run. A scheduled workflow runs
 on the default branch only, and GitHub pauses schedules in a repository
 without activity for 60 days. The three legs run independently

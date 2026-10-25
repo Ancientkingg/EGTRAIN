@@ -632,8 +632,8 @@ minutes that way on one Apple silicon laptop and about one minute in one Linux c
 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">restore</span> <span class="pre">EGTRAIN/QEGTRAIN/tests/test_timeformat.cpp</span></code>.</p></li>
 </ol>
 <p>For a validation rule, follow the same steps with <code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>: build a model that
-breaks the rule and check the diagnostic with <code class="docutils literal notranslate"><span class="pre">hasCodeAndSeverity</span></code>. A new test needs an entry in the
-root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> and a label; <a class="reference internal" href="coding-guidelines.html#tests"><span class="std std-ref">Tests</span></a> shows how.</p>
+breaks the rule and check the diagnostic with <code class="docutils literal notranslate"><span class="pre">hasCodeAndSeverity</span></code>. A new test needs an <code class="docutils literal notranslate"><span class="pre">egtrain_add_test</span></code>
+entry with its labels in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/tests/CMakeLists.txt</span></code>; <a class="reference internal" href="coding-guidelines.html#tests"><span class="std std-ref">Tests</span></a> shows how.</p>
 </section>
 <section id="where-output-goes">
 <h2>Where output goes<a class="headerlink" href="#where-output-goes" title="Link to this heading">¶</a></h2>

@@ -1,7 +1,7 @@
 # Smoke tests
 
-This page describes the smoke tests that run the application end to end on the committed scenes, and the
-leak and memory checks. It ends with where the tests and runs write their output.
+This page describes the smoke tests that run the application end to end on the committed scenes, the
+leak and memory checks, and the nightly sanitizer runs. It ends with where the tests and runs write their output.
 
 ## Simulation Smoke Test
 
@@ -84,6 +84,48 @@ simulation is fixed, not listed.
 On macOS, `leaks --atExit -- COMMAND` lists the leaks of one run of a normal build. It exits with
 status 1 when it finds any.
 
+## Nightly sanitizer runs
+
+Two more Linux jobs of the CMake workflow run only in the nightly and the manual run, like the leak
+check. The result job does not wait for them, so they never decide a pull request. They start by hand
+in the same way as the leak check. When a job fails, its artifact `sanitizers-diagnostics` or
+`thread-sanitizer-diagnostics` holds the CTest log.
+
+`sanitizers (Linux)` builds everything in a Debug configuration with `-DEGTRAIN_ENABLE_SANITIZERS=ON`,
+which turns on AddressSanitizer and UndefinedBehaviorSanitizer, and runs all of CTest. It has the
+options and the test environment of the `Sanitizers` job of `release.yml`, which runs the same suite
+on macOS before a release, so that a finding shows the day after the change. Two options of
+`ASAN_OPTIONS` are off by default on macOS and on by default on Linux, and the job turns them off:
+`detect_leaks=0`, because the leak check owns the leaks, and `detect_stack_use_after_return=0`, which
+keeps the frames of returned functions on a fake stack. GCC 13 on Linux on ARM never frees those frames,
+which makes the scene tests hundreds of times slower there. A test without a time limit of its own stops
+after 1500 seconds. `tools/e2e/ubsan_suppressions.txt` lists the known reports of
+UndefinedBehaviorSanitizer, each with its cause and the change that removes it. Apart from these,
+`tools/e2e/test_ci_workflow.py` fails when the options or the environment of the two jobs drift apart.
+
+`thread sanitizer (Linux)` builds the tests of the parts that run on more than one thread with
+`-fsanitize=thread` and runs them: `test_recoverycontroller` for the recovery writer,
+`test_telemetrysender` for the telemetry sender, `test_liveserver` and `test_livereplay` for the live
+server, and `test_simulationworker` for the simulation worker. Qt, libzmq and the C library are not
+instrumented, so `TSAN_OPTIONS` ignores the accesses they make themselves
+(`ignore_noninstrumented_modules=1`), and `tools/e2e/tsan_suppressions.txt` lists the known reports,
+each with its cause. A race in the code of the application is fixed, not listed.
+
+To run the thread sanitizer tests yourself, in a build directory of its own:
+
+```bash
+cmake -S . -B build-tsan -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread -DEGTRAIN_TEST_TIMEOUT_SCALE=10
+cmake --build build-tsan --target test_recoverycontroller test_telemetrysender test_liveserver test_livereplay \
+  test_simulationworker
+TSAN_OPTIONS=ignore_noninstrumented_modules=1:suppressions=$PWD/tools/e2e/tsan_suppressions.txt \
+  ctest --test-dir build-tsan --output-on-failure \
+  -R '^(test_recoverycontroller|test_telemetrysender|test_liveserver|test_livereplay|test_simulationworker)$'
+```
+
+On a kernel with more address space randomization than ThreadSanitizer supports, it stops at start;
+the job lowers it with `sudo sysctl -w vm.mmap_rnd_bits=28`.
+
 ## Scene Roundtrip Smoke Test
 
 ```bash
@@ -139,14 +181,17 @@ To add a case, add a line to a file in `tests/live/commands` and the events it s
 
 ### ThreadSanitizer
 
-CI runs no ThreadSanitizer. Run the live code under it before a change to the threads of the stream (the server, the step loop in `DispatchController` or `RunControl`), in a build directory of its own:
+The `thread sanitizer (Linux)` job runs `test_liveserver` and `test_livereplay` under ThreadSanitizer every night; see [Nightly sanitizer runs](#nightly-sanitizer-runs). Before a change to the threads of the stream (the server, the step loop in `DispatchController` or `RunControl`), run the live code under it yourself, in a build directory of its own:
 
 ```bash
 cmake -S . -B build-tsan -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread
 cmake --build build-tsan --target QEGTRAIN live_client test_liveserver test_livecommand test_livereplay
-ctest --test-dir build-tsan -R '^test_live(server|command|replay)$' --output-on-failure
+TSAN_OPTIONS=ignore_noninstrumented_modules=1 \
+  ctest --test-dir build-tsan -R '^test_live(server|command|replay)$' --output-on-failure
 ```
+
+Without `ignore_noninstrumented_modules=1`, ThreadSanitizer reports the messages that libzmq hands to its own I/O thread, because libzmq is not instrumented.
 
 Qt is not instrumented, so a window run reports data races in `ConsoleWidget` and in Qt's queued calls. They do not involve the live code. A run under ThreadSanitizer takes far longer than the limits of `test_live_stream_smoke`. The smoke test stretches its waits by `EGTRAIN_TEST_TIMEOUT_SCALE`, so configure with `-DEGTRAIN_TEST_TIMEOUT_SCALE=100` before you run it, and put `log_path` in `TSAN_OPTIONS` to keep the reports.
 
