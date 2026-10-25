@@ -12,7 +12,8 @@ class CaseChooserDialog;
 class QDialog;
 
 // The friend of MainWindow for the scripted GUI runs. Each scenario member starts one scenario and is defined in
-// the source of that scenario in this folder. The hook members are what E2ERunner.cpp installs in MainWindowTestHooks.
+// the source of that scenario in this folder. The hook members are what E2ERunner.cpp installs in MainWindowTestHooks
+// and what connectRunSignals connects to the signals of the window's parts.
 class MainWindowTestAccess {
 public:
 	static void runVisualPolish(MainWindow& w);
@@ -43,6 +44,9 @@ public:
 
 	// The autostart and the checks of a run and of what follows it, defined in PostRun.cpp.
 	static void autostart(MainWindow& w);
+	// Connects runResultsRefreshed, runSettled and, for the telemetry smoke, telemetryRunStarting to the signals of the
+	// run controller and the Run Results dock.
+	static void connectRunSignals(MainWindow& w);
 	static void snapshotDelivered(MainWindow& w);
 	static void checkSignalHeads(MainWindow& w);
 	static void runResultsRefreshed(MainWindow& w);

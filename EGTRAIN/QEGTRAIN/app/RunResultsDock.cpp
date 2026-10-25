@@ -242,7 +242,7 @@ void RunResultsDock::refresh() {
 		const int half = (m_dock->height() + canvas->height()) / 2;
 		m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
 	}
-	m_host.runResultsRefreshed();
+	emit refreshed();
 }
 
 void RunResultsDock::refreshSummary() {

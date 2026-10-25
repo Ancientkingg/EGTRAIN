@@ -323,6 +323,15 @@ bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name
 
 } // namespace
 
+void MainWindowTestAccess::connectRunSignals(MainWindow& w) {
+	QObject::connect(w.m_runResultsPanel.get(), &RunResultsDock::refreshed, &w, [&w] { runResultsRefreshed(w); });
+	QObject::connect(w.m_runController, &RunController::runSettled, &w, [&w] { runSettled(w); });
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
+		QObject::connect(w.m_runController, &RunController::workerReady, &w, [&w] { telemetryRunStarting(w); });
+#endif
+}
+
 // Starts the run of the case 1.5 s after the first show when QEGTRAIN_AUTOSTART is set, unless the playback profiler starts
 // it. A run with QEGTRAIN_E2E_PAUSE_STEPS goes at almost full speed.
 void MainWindowTestAccess::autostart(MainWindow& w) {

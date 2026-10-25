@@ -30,7 +30,7 @@ QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics);
 /// with unsaved changes, keeps the list of recent scenes, takes a scene file that is dropped on the window and imports
 /// legacy cases. It knows where the scene came from or was last saved, and the diagnostics of its last validation.
 /// What replacing or saving a scene changes in the rest of the window, such as the editors, the canvas and the undo
-/// history, is done by the window, which the session tells through its Host.
+/// history, is done by the window, which the session tells through its signals and asks through its Host.
 class SceneSession : public QObject {
 	Q_OBJECT
 
@@ -55,7 +55,8 @@ public:
 		bool timingIdentityOk = true;
 	};
 
-	/// What the session asks of the window, and the points at which it tells the window that the scene changed.
+	/// What the session asks of the window. The points at which it tells the window that the scene changed are its
+	/// signals.
 	class Host {
 	public:
 		virtual ~Host() = default;
@@ -74,23 +75,14 @@ public:
 		virtual void bringToFront() = 0;
 		/// Starts a check for a newer version at the request of the user.
 		virtual void offerUpdateCheck() = 0;
-		/// What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed.
-		virtual void sceneActionsChanged() = 0;
 		/// The path of the file that a recovered scene is a copy of, or an empty string.
 		virtual QString recoveredSceneSource() const = 0;
 		/// Reads the scene at `path`. `identityOk` tells whether startup timing, when it is on, found the scene that it
 		/// expects; it is true when startup timing is off.
 		virtual SceneLoadResult readScene(const QString& path, bool& identityOk) = 0;
-
-		/// The scene in the document is about to be replaced by another. The run and what the canvas shows end.
-		virtual void sceneWillBeReplaced() = 0;
-		/// The document holds a new scene that has no file. The session has no scene folder and no diagnostics.
-		virtual void sceneCreated(const telemetry::OperationObservation& operation) = 0;
 		/// The document holds the scene that was read. Returns false when startup timing found that the scene changed,
 		/// which makes the open fail.
 		virtual bool sceneOpened(const OpenedScene& opened) = 0;
-		/// The scene was written. The session holds its new location and the record of what was written.
-		virtual void sceneSaved() = 0;
 	};
 
 	/// The session is a child of `window` and creates the Recent Cases menu as a child of it. It does not own
@@ -170,6 +162,16 @@ public:
 	void dragEnter(QDragEnterEvent* event);
 	/// Opens the scene file that was dropped, as dragEnter() describes.
 	void drop(QDropEvent* event);
+
+signals:
+	/// What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed.
+	void sceneActionsChanged();
+	/// The scene in the document is about to be replaced by another. The run and what the canvas shows end.
+	void sceneWillBeReplaced();
+	/// The document holds a new scene that has no file. The session has no scene folder and no diagnostics.
+	void sceneCreated(const telemetry::OperationObservation& operation);
+	/// The scene was written. The session holds its new location and the record of what was written.
+	void sceneSaved();
 
 private:
 	// The scripted runs in tests/e2e set the state of the session directly.

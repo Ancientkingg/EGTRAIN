@@ -420,7 +420,7 @@ A scenario reaches an editor panel or its dock through the getters of `MainWindo
 `servicePanel(w)` and `serviceDock(w)`, and the fields of a panel through the accessors of the panel
 (`servicePanel(w)->idEdit()`). Do not copy such a pointer into a member of the window for a scenario.
 `PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
-the hooks of `MainWindowTestHooks`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
+the hooks of `MainWindowTestHooks` and the signals of `RunController` and `RunResultsDock`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
 that a build without tests compiles must not name a `QEGTRAIN_E2E_` variable, print an `E2E_` marker or
 assert with `failures <<`: put such code in `tests/e2e` and give the window a hook.
 `tools/e2e/test_no_e2e_in_product.py` fails otherwise.

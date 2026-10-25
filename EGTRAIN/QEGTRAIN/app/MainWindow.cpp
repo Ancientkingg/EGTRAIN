@@ -550,6 +550,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_document = new SceneDocument(this);
 	m_session = new SceneSession(this, m_document, *this);
 	m_runController = new RunController(this, m_document, m_session, m_runSelection, *this);
+	connectSceneSession();
+	connectRunController();
 	startRecovery();
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	setupEditMenu();
@@ -1580,10 +1582,6 @@ void MainWindow::offerUpdateCheck() {
 	m_updateTelemetry->startUpdateCheck(true);
 }
 
-void MainWindow::sceneActionsChanged() {
-	updateSceneActions();
-}
-
 QString MainWindow::recoveredSceneSource() const {
 	return m_recoveredSourceHint;
 }
@@ -1599,6 +1597,13 @@ SceneLoadResult MainWindow::readScene(const QString& path, bool& identityOk) {
 			startupTimingNowNanoseconds() - loadStarted, QStringLiteral("scene_open"),
 			QStringLiteral("MainWindow::openSceneDirectory"), identityOk);
 	return result;
+}
+
+void MainWindow::connectSceneSession() {
+	connect(m_session, &SceneSession::sceneActionsChanged, this, &MainWindow::updateSceneActions);
+	connect(m_session, &SceneSession::sceneWillBeReplaced, this, &MainWindow::sceneWillBeReplaced);
+	connect(m_session, &SceneSession::sceneCreated, this, &MainWindow::sceneCreated);
+	connect(m_session, &SceneSession::sceneSaved, this, &MainWindow::sceneSaved);
 }
 
 void MainWindow::sceneWillBeReplaced() {
@@ -1708,6 +1713,22 @@ void MainWindow::showValidation() {
 	}
 }
 
+void MainWindow::connectRunController() {
+	connect(m_runController, &RunController::runPreparing, this, &MainWindow::runPreparing);
+	connect(m_runController, &RunController::sceneActionsChanged, this, &MainWindow::updateSceneActions);
+	connect(m_runController, &RunController::loadedDataChanged, this, [this] { m_validation->refreshLoadedData(); });
+	connect(m_runController, &RunController::caseLayersChanged, this, &MainWindow::updateCaseLayersPanel);
+	connect(m_runController, &RunController::runStarting, this, &MainWindow::runStarting);
+	connect(m_runController, &RunController::runPhaseChanged, this, &MainWindow::runPhaseChanged);
+	connect(m_runController, &RunController::runPanelsChanged, this, &MainWindow::runPanelsChanged);
+	connect(m_runController, &RunController::playbackEnded, this, [this] { m_presenter->clearOperationalTrackStates(); });
+	connect(m_runController, &RunController::resultsKept, this, &MainWindow::refreshRunResults);
+	connect(m_runController, &RunController::resultsDiscarded, this, &MainWindow::resultsDiscarded);
+	connect(m_runController, &RunController::runProgressEnded, this, [this] { progressBar->hide(); });
+	connect(m_runController, &RunController::runEnded, this, &MainWindow::runEnded);
+	connect(m_runController, &RunController::delayBaselineChanged, this, &MainWindow::delayBaselineChanged);
+}
+
 void MainWindow::runPreparing() {
 	statusBar()->showMessage("Preparing the run...");
 	if (!startupTimingEnabled())
@@ -1738,14 +1759,6 @@ std::vector<SceneDiagnostic> MainWindow::timedPreparation(
 	return diagnostics;
 }
 
-void MainWindow::loadedDataChanged() {
-	m_validation->refreshLoadedData();
-}
-
-void MainWindow::caseLayersChanged() {
-	updateCaseLayersPanel();
-}
-
 void MainWindow::buildRunCanvas() {
 	setupGUI();
 	fitView();
@@ -1768,11 +1781,6 @@ bool MainWindow::startupTimingHoldsRun(bool identityOk) {
 void MainWindow::runStarting() {
 	clearReplay();
 	progressBar->show();
-}
-
-void MainWindow::workerReady() {
-	if (const auto hook = mainWindowTestHooks().runStarting)
-		hook(*this);
 }
 
 void MainWindow::runPhaseChanged(RunController::RunPhase phase) {
@@ -1810,19 +1818,11 @@ void MainWindow::runPanelsChanged() {
 	updateInspectorIncidentAction();
 }
 
-void MainWindow::playbackEnded() {
-	m_presenter->clearOperationalTrackStates();
-}
-
 bool MainWindow::endFollowing() {
 	const bool hadFollowTarget = m_followTrainIndex >= 0
 		|| (m_followAction && m_followAction->isChecked());
 	setFollowTrain(-1);
 	return hadFollowTarget;
-}
-
-void MainWindow::resultsKept() {
-	refreshRunResults();
 }
 
 void MainWindow::resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) {
@@ -1840,10 +1840,6 @@ bool MainWindow::runFinished() {
 	return hook && hook(*this);
 }
 
-void MainWindow::runProgressEnded() {
-	progressBar->hide();
-}
-
 void MainWindow::replayReady(GuiReplayHistory history) {
 	m_completedReplay = std::move(history);
 	if (!m_completedReplay.empty() || m_completedReplay.oversize())
@@ -1855,11 +1851,6 @@ void MainWindow::runEnded() {
 	updateFollowAvailability();
 	runPanelsChanged();
 	m_editorDocks.trainUnitSourceLinker()->processChanges();
-}
-
-void MainWindow::runSettled() {
-	if (const auto hook = mainWindowTestHooks().runSettled)
-		hook(*this);
 }
 
 void MainWindow::delayBaselineChanged() {
@@ -2424,10 +2415,6 @@ double MainWindow::serviceOccurrenceDuration() const {
 
 int MainWindow::totalServiceOccurrences() const {
 	return m_document->isLoaded() ? sceneTotalOccurrences(m_document->model(), serviceOccurrenceDuration()) : 0;
-}
-
-int MainWindow::inPeriodServiceOccurrences() const {
-	return m_document->isLoaded() ? sceneInPeriodOccurrences(m_document->model(), serviceOccurrenceDuration()) : 0;
 }
 
 SceneScenario* MainWindow::selectedScenario() {
@@ -3550,11 +3537,6 @@ void MainWindow::refreshRunResults() {
 void MainWindow::refreshRunResultsSummary() {
 	if (m_runResultsPanel)
 		m_runResultsPanel->refreshSummary();
-}
-
-void MainWindow::runResultsRefreshed() {
-	if (const auto runResultsRefreshed = mainWindowTestHooks().runResultsRefreshed)
-		runResultsRefreshed(*this);
 }
 
 const SceneModel& MainWindow::sceneModel() const {

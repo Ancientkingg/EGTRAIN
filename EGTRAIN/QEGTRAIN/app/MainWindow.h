@@ -392,69 +392,64 @@ private:
 	TrackLineItem* resolveArcItem(double arcId, int track) const;
 	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
-	// SceneSession::Host: what the session asks of the window, and the points at which it tells the window that the scene
-	// changed. captureTelemetryOperation, dialogsSuppressed and sceneActionsChanged also serve RunController::Host.
+	// SceneSession::Host: what the session asks of the window. captureTelemetryOperation and dialogsSuppressed also serve
+	// RunController::Host.
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept override;
 	bool dialogsSuppressed() const override;
 	void commitPendingEdits() override;
 	bool afterRunStopped(std::function<void()> action) override;
 	void bringToFront() override;
 	void offerUpdateCheck() override;
-	void sceneActionsChanged() override;
 	QString recoveredSceneSource() const override;
 	SceneLoadResult readScene(const QString& path, bool& identityOk) override;
-	void sceneWillBeReplaced() override;
-	void sceneCreated(const telemetry::OperationObservation& operation) override;
 	bool sceneOpened(const SceneSession::OpenedScene& opened) override;
-	void sceneSaved() override;
+	// Connects the signals of the session to the slots below and to updateSceneActions.
+	void connectSceneSession();
+	void sceneWillBeReplaced();
+	void sceneCreated(const telemetry::OperationObservation& operation);
+	void sceneSaved();
 	// The steps that sceneCreated and sceneOpened share: the output folder, the delay baseline, the scenario of the next
 	// run, the history, the recovery source, the run results, the title, the actions and the editors follow the scene that
 	// has replaced the previous one. baselineNote says why a delay baseline is gone, saved marks the history as saved, and
 	// resetInfrastructureSelection clears the selection of the infrastructure editor.
 	void resetForNewScene(const QString& baselineNote, bool saved, const RecoverySource& recovery, bool resetInfrastructureSelection);
-	// RunController::Host: what the controller asks of the window, and the points at which it tells the window that the
-	// run changed.
+	// RunController::Host: what the controller asks of the window.
 	bool advancedDetailsEnabled() const override;
 	bool telemetryActive() const override;
 	int stepDelayMs() const override;
 	// The time in seconds over which the occurrences of a service are counted.
 	double serviceOccurrenceDuration() const override;
 	int totalServiceOccurrences() const override;
-	int inPeriodServiceOccurrences() const override;
 	const SceneScenario* selectedScenario() const override;
 	const std::vector<SceneIncident>& selectedScenarioIncidents() const override;
 	QString scenarioContext() const override;
 	void validateScene() override;
 	void showLoadedData() override;
 	void showValidation() override;
-	void runPreparing() override;
 	void teardownForRun() override;
 	void invalidateRunResults() override;
 	std::vector<SceneDiagnostic> timedPreparation(
 		const std::function<std::vector<SceneDiagnostic>()>& prepare, bool& identityOk) override;
-	void loadedDataChanged() override;
-	void caseLayersChanged() override;
 	void buildRunCanvas() override;
 	bool startupTimingHoldsRun(bool identityOk) override;
-	void setStartOffset(long long seconds) override;
-	void runStarting() override;
-	void workerReady() override;
-	void runPhaseChanged(RunController::RunPhase phase) override;
-	void runPanelsChanged() override;
-	void playbackEnded() override;
 	bool endFollowing() override;
-	void resultsKept() override;
-	void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) override;
 	bool runFinished() override;
-	void runProgressEnded() override;
 	void replayReady(GuiReplayHistory history) override;
-	void runEnded() override;
-	void runSettled() override;
-	void delayBaselineChanged() override;
+	// Connects the signals of the controller to the slots below and to the functions of the window that follow the run.
+	// workerReady and runSettled have no slot here; the scripted runs in tests/e2e connect to them.
+	void connectRunController();
+	void runPreparing();
+	void runStarting();
+	void runPhaseChanged(RunController::RunPhase phase);
+	void runPanelsChanged();
+	void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun);
+	void runEnded();
+	void delayBaselineChanged();
 	// EditorDocks::Host: what the editor docks ask of the window. The other functions that it names are declared above and
 	// below, marked override.
 	void infrastructureSelectionChanged() override;
 	void renameTractionDiagrams(const QString& oldId, const QString& newId) override;
+	void setStartOffset(long long seconds) override;
 
 	void registerEditorDock(QDockWidget* dock) override;
 	QMenu* createPopupMenu() override;
@@ -569,7 +564,6 @@ private:
 	// dialogsSuppressed and advancedDetailsEnabled also serve the hosts above.
 	const SceneModel& sceneModel() const override;
 	void resultMessage(const QString& text, int milliseconds) override;
-	void runResultsRefreshed() override;
 
 	// NetworkPresenter::FrameHost: the parts of a frame that the follow camera, the legend and the signal inspector take.
 	bool isTrainOverlayPromoted(int trainIndex) const override;

@@ -37,7 +37,7 @@ QString completedRunContext(const RunProvenance& provenance);
 /// status, the run as plain values, the delay baseline, and the clock time at which the run starts. It is the one place
 /// in the window that reads the settings of the process (initial_variables). What a run changes in the rest of the
 /// window, such as the canvas, the panels and the results dock, is done by the window, which the controller tells
-/// through its Host.
+/// through its signals and asks through its Host.
 class RunController : public QObject {
 	Q_OBJECT
 
@@ -70,7 +70,8 @@ public:
 		QString feedback;
 	};
 
-	/// What the controller asks of the window, and the points at which it tells the window that the run changed.
+	/// What the controller asks of the window. The points at which it tells the window that the run changed are its
+	/// signals.
 	class Host {
 	public:
 		virtual ~Host() = default;
@@ -91,9 +92,6 @@ public:
 		virtual double serviceOccurrenceDuration() const = 0;
 		/// How many service occurrences the scene has in all. 0 while no scene is loaded.
 		virtual int totalServiceOccurrences() const = 0;
-		/// How many service occurrences enter inside the period of serviceOccurrenceDuration(). 0 while no scene is
-		/// loaded.
-		virtual int inPeriodServiceOccurrences() const = 0;
 		/// The scenario that the editors show. Null when no scene is loaded or the scene has no scenario to select.
 		virtual const SceneScenario* selectedScenario() const = 0;
 		/// The incidents of selectedScenario(), or an empty list without one.
@@ -107,8 +105,6 @@ public:
 		virtual void showLoadedData() = 0;
 		/// The run review dialog sends the user to the validation messages.
 		virtual void showValidation() = 0;
-		/// The scene is about to be prepared. The window shows that and lets the events through.
-		virtual void runPreparing() = 0;
 		/// The scene is about to be run: the canvas shows the preview or an earlier run, and ends that.
 		virtual void teardownForRun() = 0;
 		/// The results and the status of the earlier run are discarded, and the window shows that.
@@ -118,49 +114,18 @@ public:
 		/// startup timing is off.
 		virtual std::vector<SceneDiagnostic> timedPreparation(
 			const std::function<std::vector<SceneDiagnostic>()>& prepare, bool& identityOk) = 0;
-		/// What the actions of the window enable depends on the scene or on the run, and one of them changed.
-		virtual void sceneActionsChanged() = 0;
-		/// The loaded data tree shows the status of the run.
-		virtual void loadedDataChanged() = 0;
-		/// The case layers panel shows the case name and the clock time.
-		virtual void caseLayersChanged() = 0;
 		/// The window builds the canvas of the prepared run and fits the view.
 		virtual void buildRunCanvas() = 0;
 		/// Startup timing, when it is on, takes the prepared run over: it returns true, and the run does not start. It
 		/// returns false when startup timing is off.
 		virtual bool startupTimingHoldsRun(bool identityOk) = 0;
-		/// Sets the clock time at which the simulation starts, in seconds since midnight, and shows it in the train list.
-		virtual void setStartOffset(long long seconds) = 0;
-
-		/// The run starts: the window ends the replay of an earlier run and shows the progress.
-		virtual void runStarting() = 0;
-		/// The worker is set up and its thread starts next.
-		virtual void workerReady() = 0;
-		/// Pause and Stop mean something while a run exists, and Output Folder only while none does.
-		virtual void runPhaseChanged(RunPhase phase) = 0;
-		/// The editors, the infrastructure dock and the actions follow the run state.
-		virtual void runPanelsChanged() = 0;
-		/// The worker is gone, so the transient states of the canvas end.
-		virtual void playbackEnded() = 0;
 		/// Stops following a train. Returns whether a train was followed.
 		virtual bool endFollowing() = 0;
-		/// The run kept results, which the Run Results dock shows.
-		virtual void resultsKept() = 0;
-		/// The run kept no results. The Run Results dock says why and hides.
-		virtual void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) = 0;
 		/// The run is over and its results are kept or discarded. Returns true when a scripted run has ended the run for
 		/// the window, which then does nothing more.
 		virtual bool runFinished() = 0;
-		/// The progress of the run is no longer shown.
-		virtual void runProgressEnded() = 0;
-		/// The history of the finished run, which the window can replay.
+		/// The history of the finished run, which the window takes over and can replay.
 		virtual void replayReady(GuiReplayHistory history) = 0;
-		/// The window follows the trains of the finished run again and enables what the run disabled.
-		virtual void runEnded() = 0;
-		/// The window has done everything for the run.
-		virtual void runSettled() = 0;
-		/// The delay baseline changed, so the Run Results dock and the diagram actions follow.
-		virtual void delayBaselineChanged() = 0;
 	};
 
 	/// The controller is a child of `window`. It does not own `document`, `session`, `selection` or `host`, which have
@@ -258,6 +223,38 @@ public:
 	bool deferUntilRunStopped(std::function<void()> action);
 	/// The results of the run are kept or discarded, and the window follows.
 	void onSimulationFinished();
+
+signals:
+	/// The scene is about to be prepared. The window shows that and lets the events through.
+	void runPreparing();
+	/// What the actions of the window enable depends on the scene or on the run, and one of them changed.
+	void sceneActionsChanged();
+	/// The loaded data shows the state of the run.
+	void loadedDataChanged();
+	/// The case layers panel shows the case name and the clock time.
+	void caseLayersChanged();
+	/// The run starts: the window ends the replay of an earlier run and shows the progress.
+	void runStarting();
+	/// The worker is set up and its thread starts next.
+	void workerReady();
+	/// Pause and Stop mean something while a run exists, and Output Folder only while none does.
+	void runPhaseChanged(RunController::RunPhase phase);
+	/// The editors, the infrastructure dock and the actions follow the run state.
+	void runPanelsChanged();
+	/// The worker is gone, so the transient states of the canvas end.
+	void playbackEnded();
+	/// The run kept results, which the Run Results dock shows.
+	void resultsKept();
+	/// The run kept no results. The Run Results dock says why and hides.
+	void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun);
+	/// The progress of the run is no longer shown.
+	void runProgressEnded();
+	/// The window follows the trains of the finished run again and enables what the run disabled.
+	void runEnded();
+	/// The window has done everything for the run.
+	void runSettled();
+	/// The delay baseline changed, so the Run Results dock and the diagram actions follow.
+	void delayBaselineChanged();
 
 public slots:
 	/// Runs the scene that the window holds, if it is not running already.

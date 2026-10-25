@@ -163,14 +163,15 @@ void SceneSession::newScene() {
 }
 
 void SceneSession::createNewScene(const telemetry::OperationObservation& operation) {
-	m_host.sceneWillBeReplaced();
+	// The window ends the run and the canvas of the scene that goes before the document replaces it.
+	emit sceneWillBeReplaced();
 	m_sceneDir.clear();
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
 	m_sceneIsBundle = false;
 	m_sceneBundleVersion.reset();
 	m_sceneDiagnostics.clear();
-	m_host.sceneCreated(operation);
+	emit sceneCreated(operation);
 }
 
 void SceneSession::openSceneDialog() {
@@ -346,7 +347,8 @@ bool SceneSession::openSceneDirectory(const QString& dir, const telemetry::Opera
 		return false;
 	}
 
-	m_host.sceneWillBeReplaced();
+	// As in createNewScene(), the window has ended the run of the scene that goes when this returns.
+	emit sceneWillBeReplaced();
 	m_sceneDir = recovered ? QString() : scenePath;
 	m_document->replace(result.scene, recovered);
 	m_sceneIsBundle = sceneIsBundle && !recovered;
@@ -391,7 +393,7 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	// A saved folder case may carry a new name, which Recent Cases shows.
 	rebuildRecentScenesMenu();
-	m_host.sceneSaved();
+	emit sceneSaved();
 	return true;
 }
 
@@ -588,7 +590,7 @@ void SceneSession::addRecentScene(const QString& path) {
 		recent.removeLast();
 	settings.setValue(kRecentScenesKey, recent);
 	rebuildRecentScenesMenu();
-	m_host.sceneActionsChanged();
+	emit sceneActionsChanged();
 }
 
 void SceneSession::rebuildRecentScenesMenu() {
@@ -643,7 +645,7 @@ void SceneSession::rebuildRecentScenesMenu() {
 		QAction* emptyAction = m_recentScenesMenu->addAction("No Recent Cases");
 		emptyAction->setEnabled(false);
 	}
-	m_host.sceneActionsChanged();
+	emit sceneActionsChanged();
 }
 
 void SceneSession::refreshRecentSceneAvailability() {

@@ -36,13 +36,9 @@ struct MainWindowTestHooks {
 	void (*snapshotDelivered)(MainWindow& window) = nullptr;
 	/// Called after each live snapshot is drawn and kept as the last one drawn.
 	void (*snapshotDrawn)(MainWindow& window) = nullptr;
-	/// Called when the Run Results table of a completed run has been written.
-	void (*runResultsRefreshed)(MainWindow& window) = nullptr;
 	/// Called when a run is over and its results are kept and shown, before the window does the rest for the run.
 	/// It returns true when it has ended the run for the window, which then does nothing more.
 	bool (*runFinished)(MainWindow& window) = nullptr;
-	/// Called at the end of that work, when the window has done everything for the run.
-	void (*runSettled)(MainWindow& window) = nullptr;
 	/// Called with the context that the privacy dialog is built for and whether it is the first prompt, which it may change.
 	/// It returns true when the dialog is only a preview, which has no sender and sends nothing.
 	std::function<bool(TelemetryContext& context, bool& initialPrompt)> privacyPreview;
@@ -52,8 +48,6 @@ struct MainWindowTestHooks {
 	/// Called before each of the four steps that install the telemetry observation of a run, with the number of the step.
 	/// A hook that throws makes the step fail.
 	void (*observationStep)(int step) = nullptr;
-	/// Called when the worker of a run is set up and before its thread starts.
-	void (*runStarting)(MainWindow& window) = nullptr;
 	/// Called each time the window has been raised and activated so that a question in front of it is seen.
 	std::function<void(MainWindow& window)> windowBroughtToFront;
 	/// Called at the end of the destructor of the window.
