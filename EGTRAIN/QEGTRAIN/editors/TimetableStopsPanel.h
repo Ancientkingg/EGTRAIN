@@ -2,6 +2,7 @@
 #define TIMETABLESTOPSPANEL_H
 
 #include "editors/SceneEditorPanel.h"
+#include "widgets/UserPrompts.h"
 
 #include <QMetaObject>
 #include <QPointer>
@@ -31,6 +32,9 @@ public:
 
 	/// Refreshes when the document is replaced.
 	void setDocument(SceneDocument* document) override;
+	/// The messages go through these prompts. The panel uses its own until it is given others; null brings its own back.
+	/// The prompts must outlive the panel.
+	void setPrompts(UserPrompts* prompts);
 	/// Shows the stops of the service with this id, or none when the id is empty or no service has it.
 	void setServiceId(const QString& serviceId);
 	/// Lists the stops of the service again.
@@ -90,6 +94,8 @@ private:
 
 	QPointer<SceneDocument> m_document;
 	QMetaObject::Connection m_replacedConnection;
+	UserPrompts m_ownPrompts;
+	UserPrompts* m_prompts = &m_ownPrompts;
 	std::string m_serviceId;
 	// Whether the planned times are shown as clock times rather than as elapsed seconds.
 	bool m_clockMode = false;
