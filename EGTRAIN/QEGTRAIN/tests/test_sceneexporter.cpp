@@ -828,6 +828,26 @@ int main() {
 			"A failed export into a new folder creates nothing");
 	}
 
+	// A re-export into a used folder writes its own copy of every file that it writes, so the folder has the station name
+	// and the node coordinate of the scene as it is now.
+	{
+		TempDir sceneDir, outDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		writeAreaScene(scene, "");
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Old","platforms":[{"id":"p","nodes":["n1"]}]}]})" << "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && readText(out / "TrackLines/Stations.txt") == "1\tOld\n"
+				&& readText(out / "TrackLines/B0/NodiCumPari.txt") == "0\t0\t0\n1\t1\t0\n",
+			"A scene with a station exports");
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"New","platforms":[{"id":"p","nodes":["n1"]}]}]})" << "\n";
+		std::string infrastructure = readText(scene / "infrastructure.json");
+		infrastructure.replace(infrastructure.find(R"("x_km":1)"), 8, R"("x_km":2)");
+		std::ofstream(scene / "infrastructure.json") << infrastructure;
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && readText(out / "TrackLines/Stations.txt") == "2\tNew\n"
+				&& readText(out / "TrackLines/B0/NodiCumPari.txt") == "0\t0\t0\n1\t2\t0\n"
+				&& readText(out / "GUI/StationsCoord.txt").rfind("New\t", 0) == 0,
+			"A re-export into the same folder writes the new station name and node coordinate");
+	}
+
 	// A scene directory, an export destination, the legacy data below the scene and the source files of a train unit,
 	// all with Unicode names.
 	{

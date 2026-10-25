@@ -312,10 +312,15 @@ files that the importer would read as part of the new case: every
 `Routes/Route<N>.txt`, `Incidents.txt`, `EGTRAINInitialParameters.json`, the
 area sidecar, and `TrackLines/AreasCaseStudy.txt` when the scene has no
 signalling areas, each in any letter case. It then moves the staged files over
-the files of the same name. The files that the exporter writes only when they
-are missing, such as the track line files, `Stations.txt`, `Connections.txt`,
-the GUI layout and the passenger files, stay as the destination has them, and so
-does every other file there.
+the files of the same name. Whether a file is still to be written is decided
+from the staging folder alone: the export copies the files of the legacy
+passthrough first and then writes the files that are still missing, such as the
+track line files, `Stations.txt`, `Connections.txt`, the GUI layout, the route
+corridors, the single-track limits, the station boundaries and the passenger
+files. Each file that the export writes therefore replaces the one of an earlier
+export. A file that this export does not write, such as the corridor file of a
+scene that no longer has corridors, stays as the destination has it, and so does
+every other file there.
 
 The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full

@@ -54,26 +54,20 @@ static bool isLegacyRouteFile(const fs::path& path) {
 		&& std::all_of(stem.begin() + 5, stem.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
 }
 
-/// An export is written to staging and moved to destination when it is complete. A file that destination already holds
-/// counts as present, because the export keeps it, unless it is stale: the publish removes the stale files first.
+/// An export is written to staging and moved to destination when it is complete. Whether a file still has to be written
+/// is decided from staging alone, so the export carries its own copy of every file that it writes and the publish
+/// replaces the file of the same name in destination.
 struct ExportFolders {
 	fs::path staging;			 ///< The folder the export writes.
 	fs::path destination;		 ///< The folder the export is published to.
 	std::vector<fs::path> stale; ///< Files of destination that the publish removes.
 
-	/// The file at relative in staging, else the kept file in destination, else an empty path. Sets ec when the
-	/// filesystem cannot tell.
+	/// The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell.
 	fs::path existing(const fs::path& relative, std::error_code& ec) const {
 		ec.clear();
 		const fs::path staged = staging / relative;
-		if (fs::exists(staged, ec) || ec)
-			return ec ? fs::path() : staged;
-		const fs::path kept = destination / relative;
-		const std::string key = lowerCopy(kept.lexically_normal().generic_u8string());
-		for (const fs::path& file : stale)
-			if (lowerCopy(file.lexically_normal().generic_u8string()) == key)
-				return fs::path();
-		return fs::exists(kept, ec) ? kept : fs::path();
+		const bool found = fs::exists(staged, ec);
+		return found && !ec ? staged : fs::path();
 	}
 
 	/// True when existing finds a file at relative.
@@ -904,17 +898,12 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 
 	std::map<int, std::vector<double>> tracklineNodes;
-	// The track folders of the kept and the staged output; a folder that both hold is read once.
-	for (const fs::path& tracklinesDir : {folders.destination / "TrackLines", folders.staging / "TrackLines"}) {
-		const bool staged = tracklinesDir == folders.staging / "TrackLines";
-		std::error_code dirEc;
-		if (!fs::is_directory(tracklinesDir, dirEc))
-			continue;
+	const fs::path tracklinesDir = folders.staging / "TrackLines";
+	std::error_code dirEc;
+	if (fs::is_directory(tracklinesDir, dirEc)) {
 		std::error_code ec;
 		for (const auto& entry : fs::directory_iterator(tracklinesDir, ec)) {
 			std::error_code dec;
-			if (staged && fs::exists(folders.destination / "TrackLines" / entry.path().filename(), dec))
-				continue;
 			if (entry.is_directory(dec) && !dec) {
 				std::string dirname = entry.path().filename().u8string();
 				if (dirname.size() > 1 && dirname[0] == 'B') {
