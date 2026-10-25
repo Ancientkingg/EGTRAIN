@@ -94,7 +94,8 @@ static void writeSmallLegacyCase(const fs::path& legacy) {
 
 static bool hasReadDiag(const std::vector<SceneDiagnostic>& diagnostics, const fs::path& file, SceneSeverity severity) {
 	for (const auto& diagnostic : diagnostics) {
-		if (diagnostic.code == "scene.import.read" && diagnostic.severity == severity && diagnostic.file == file.u8string())
+		if (diagnostic.code == "scene.import.read" && diagnostic.severity == severity
+			&& fs::u8path(diagnostic.file).lexically_normal() == file.lexically_normal())
 			return true;
 	}
 	return false;

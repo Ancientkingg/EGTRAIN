@@ -1471,14 +1471,17 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 		}
 	}
 
-	std::ofstream tnf(writeDir / "trainNames.txt");
-	if (tnf) {
-		for (const auto& tf : trainFiles) {
-			tnf << tf << "\n";
+	// The stream closes at the end of the block: Windows cannot move a staged file that is still open.
+	{
+		std::ofstream tnf(writeDir / "trainNames.txt");
+		if (tnf) {
+			for (const auto& tf : trainFiles) {
+				tnf << tf << "\n";
+			}
+		} else {
+			addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write trainNames.txt");
+			result.wroteAll = false;
 		}
-	} else {
-		addDiag(SceneSeverity::Error, "scene.export.write", "Failed to write trainNames.txt");
-		result.wroteAll = false;
 	}
 
 	const auto& incidents = defaultScenarioIncidents(scene);
