@@ -38,13 +38,72 @@ static bool isLegacyRouteFile(const fs::path& path) {
 		&& std::all_of(stem.begin() + 5, stem.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
 }
 
+static bool isLegacyTrackFolderName(const std::string& name) {
+	return name.size() > 1 && name[0] == 'b'
+		&& std::all_of(name.begin() + 1, name.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
+}
+
+/// What the importer accepts as an input of a legacy case.
+enum class LegacyInputKind {
+	Entry,	///< Any entry, which the importer opens by its name.
+	File,	///< A regular file in a folder that the importer lists.
+	Folder, ///< A track folder.
+	/// The area sidecar, which the publish removes first even when the export writes it again, so that an old sidecar
+	/// never decides the areas of new track files.
+	Sidecar
+};
+
+/// An input of the importer. The folder and the name are in lower case, because the importer finds them in any letter
+/// case.
+struct LegacyInput {
+	LegacyInputKind kind;					  ///< What the importer accepts.
+	const char* folder;						  ///< The folder that holds it, relative to the case folder.
+	bool (*matches)(const std::string& name); ///< True for the lower-case name of an input.
+};
+
+// Everything that importLegacyScene reads. The case folder holds the track folders, Stations.txt and the passenger
+// files when TrackLines or Passengers does not. A track folder holds NodiCumPari.txt, ArchiCumPari.txt and
+// BlockCumPari.txt. The train data and timetable files are read only through the paths in the train files that
+// trainNames.txt lists, and an export writes every file that its train files name, so they are not here.
+static const LegacyInput kLegacyInputs[] = {
+	{LegacyInputKind::Sidecar, "tracklines", [](const std::string& name) { return name == "egtrainsignallingareas.json"; }},
+	{LegacyInputKind::Entry, "",
+		[](const std::string& name) {
+			return name == "egtraininitialparameters.json" || name == "trainnames.txt" || name == "incidents.txt"
+				|| name == "stations.txt";
+		}},
+	{LegacyInputKind::File, "",
+		[](const std::string& name) { return name == "das_frenchcasestudy.csv" || name == "routechoicefc_eq1.csv"; }},
+	{LegacyInputKind::Folder, "", isLegacyTrackFolderName},
+	{LegacyInputKind::Folder, "tracklines", isLegacyTrackFolderName},
+	{LegacyInputKind::Entry, "tracklines",
+		[](const std::string& name) {
+			return name == "connections.txt" || name == "stations.txt" || name == "areascasestudy.txt";
+		}},
+	{LegacyInputKind::Entry, "gui",
+		[](const std::string& name) {
+			return name == "casestudytrackdata.txt" || name == "unusedtracks.txt" || name == "stationscoord.txt"
+				|| name == "casestudyroutecorridors.txt" || name == "singletracklimits.txt"
+				|| name == "stationboundarysections.txt";
+		}},
+	{LegacyInputKind::File, "trains",
+		[](const std::string& name) { return name != "trainnames.txt" && fs::path(name).extension() == ".txt"; }},
+	{LegacyInputKind::File, "routes", [](const std::string& name) { return isLegacyRouteFile(fs::path(name)); }},
+	{LegacyInputKind::Entry, "routestowrite", [](const std::string& name) { return name == "routestojoin.txt"; }},
+	{LegacyInputKind::File, "passengers",
+		[](const std::string& name) { return name == "das_frenchcasestudy.csv" || name == "routechoicefc_eq1.csv"; }},
+	{LegacyInputKind::File, "timetable/scenarios_entrance_delays",
+		[](const std::string& name) { return std::regex_match(name, std::regex("rollout_[0-9]+\\.txt")); }},
+};
+
 /// An export is written to staging and moved to destination when it is complete. Whether a file still has to be written
 /// is decided from staging alone, so the export carries its own copy of every file that it writes and the publish
 /// replaces the file of the same name in destination.
 struct ExportFolders {
-	fs::path staging;			 ///< The folder the export writes.
-	fs::path destination;		 ///< The folder the export is published to.
-	std::vector<fs::path> stale; ///< Files of destination that the publish removes.
+	fs::path staging;					///< The folder the export writes.
+	fs::path destination;				///< The folder the export is published to.
+	std::vector<fs::path> stale;		///< Files of destination that the publish removes.
+	std::vector<fs::path> staleFolders; ///< Folders of destination that the publish removes with their contents.
 
 	/// The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell.
 	fs::path existing(const fs::path& relative, std::error_code& ec) const {
@@ -60,6 +119,52 @@ struct ExportFolders {
 		return !existing(relative, ec).empty();
 	}
 };
+
+// Lists the inputs of the importer that destination holds and that staging does not: the files in stale and the track
+// folders in staleFolders. A folder in the place of an input file counts as not written, because a staged file cannot be
+// moved over it, and the area sidecar always counts as not written. The publish removes them before it moves the staged files in, so the published folder holds no input of
+// an earlier export that this export does not write. Everything else in destination stays, also the files in a track
+// folder that the export writes again. Returns false with ec set when destination cannot be read.
+static bool collectOldInputs(ExportFolders& folders, std::error_code& ec) {
+	const auto inLowerCase = [](const fs::directory_entry& entry) { return lowerCopy(entry.path().filename().u8string()); };
+	for (const LegacyInput& input : kLegacyInputs) {
+		std::vector<fs::path> parents{folders.destination};
+		for (const fs::path& component : fs::path(input.folder)) {
+			std::vector<fs::path> children;
+			for (const fs::path& parent : parents) {
+				for (fs::directory_iterator it(parent, ec), end; !ec && it != end; it.increment(ec)) {
+					std::error_code typeEc;
+					if (inLowerCase(*it) == component.u8string() && it->is_directory(typeEc))
+						children.push_back(it->path());
+				}
+				if (ec)
+					return false;
+			}
+			parents = std::move(children);
+		}
+		for (const fs::path& parent : parents) {
+			for (fs::directory_iterator it(parent, ec), end; !ec && it != end; it.increment(ec)) {
+				if (!input.matches(inLowerCase(*it)))
+					continue;
+				std::error_code typeEc;
+				const bool folder = it->is_directory(typeEc);
+				if ((input.kind == LegacyInputKind::Folder && !folder)
+					|| (input.kind == LegacyInputKind::File && !it->is_regular_file(typeEc)))
+					continue;
+				const bool written = input.kind != LegacyInputKind::Sidecar
+					&& fs::exists(folders.staging / it->path().lexically_relative(folders.destination), ec)
+					&& folder == (input.kind == LegacyInputKind::Folder);
+				if (ec)
+					return false;
+				if (!written)
+					(input.kind == LegacyInputKind::Folder ? folders.staleFolders : folders.stale).push_back(it->path());
+			}
+			if (ec)
+				return false;
+		}
+	}
+	return true;
+}
 
 static bool reconstructibleTrackNumber(const std::string& name, int& number) {
 	try {
@@ -1037,9 +1142,9 @@ static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_ma
 	}
 }
 
-// Publishes a complete export. A destination that does not exist becomes the staged folder. Otherwise the stale files are
-// removed and every staged file is moved over the file of the same name, so the files that the export did not write stay.
-// When a move fails, the destination keeps the files moved before it.
+// Publishes a complete export. A destination that does not exist becomes the staged folder. Otherwise the stale files and
+// folders are removed and every staged file is moved over the file of the same name, so the other files that the export
+// did not write stay. When a move fails, the destination keeps the files moved before it.
 static bool publishExport(StagedDirectory& staging, const ExportFolders& folders, bool destinationExists,
 	SceneExportResult& result) {
 	const auto fail = [&](const std::string& message, const fs::path& file, const std::error_code& ec) {
@@ -1061,6 +1166,11 @@ static bool publishExport(StagedDirectory& staging, const ExportFolders& folders
 		fs::remove(file, ec);
 		if (ec)
 			return fail("Cannot remove the old export file", file, ec);
+	}
+	for (const fs::path& folder : folders.staleFolders) {
+		fs::remove_all(folder, ec);
+		if (ec)
+			return fail("Cannot remove the old export folder", folder, ec);
 	}
 	std::vector<fs::path> entries;
 	for (fs::recursive_directory_iterator it(staging.path, ec), end; !ec && it != end; it.increment(ec))
@@ -1139,35 +1249,13 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	const auto legacyTrackIds = buildLegacyTrackIds(scene);
 	const auto legacyBlockIds = buildLegacyBlockIds(scene, legacyTrackIds);
 
-	// The export is staged next to the destination and published when it is complete. Import resolves these paths
-	// case-insensitively. The publish removes the old files that the importer would read as part of the new export:
-	// every recognised area sidecar, the settings sidecar, Incidents.txt, the route files, because the importer reads all
-	// of them, and AreasCaseStudy.txt when the scene has no areas. Never copy a sidecar from legacy passthrough.
+	// The export is staged next to the destination and published when it is complete. The publish removes the inputs of
+	// the importer that the destination holds from an earlier export and this export does not write (collectOldInputs).
+	// Never copy a sidecar from legacy passthrough.
 	ExportFolders folders;
 	folders.destination = outputDir.has_filename() ? outputDir : outputDir.parent_path();
 	std::error_code cleanupEc;
 	const bool destinationExists = fs::exists(folders.destination, cleanupEc);
-	if (destinationExists) {
-		fs::directory_iterator roots(folders.destination, cleanupEc), end;
-		while (!cleanupEc && roots != end) {
-			const std::string rootName = lowerCopy(roots->path().filename().u8string());
-			if (rootName == "egtraininitialparameters.json" || rootName == "incidents.txt")
-				folders.stale.push_back(roots->path());
-			if ((rootName == "tracklines" || rootName == "routes") && roots->is_directory(cleanupEc)) {
-				fs::directory_iterator files(roots->path(), cleanupEc);
-				while (!cleanupEc && files != end) {
-					const std::string name = lowerCopy(files->path().filename().u8string());
-					const bool stale = rootName == "routes"
-						? isLegacyRouteFile(files->path()) && files->is_regular_file(cleanupEc)
-						: name == "egtrainsignallingareas.json" || (scene.signallingAreas.empty() && name == "areascasestudy.txt");
-					if (stale)
-						folders.stale.push_back(files->path());
-					if (!cleanupEc) files.increment(cleanupEc);
-				}
-			}
-			if (!cleanupEc) roots.increment(cleanupEc);
-		}
-	}
 	if (cleanupEc) {
 		addDiag(SceneSeverity::Error, "scene.export.path", "Cannot inspect export destination: " + cleanupEc.message(), outDir);
 		return result;
@@ -1604,6 +1692,8 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	for (SceneDiagnostic& diagnostic : result.diagnostics)
 		if (diagnostic.file.compare(0, stagedDir.size(), stagedDir) == 0)
 			diagnostic.file = folders.destination.u8string() + diagnostic.file.substr(stagedDir.size());
+	if (result.success() && destinationExists && !collectOldInputs(folders, cleanupEc))
+		addDiag(SceneSeverity::Error, "scene.export.path", "Cannot inspect export destination: " + cleanupEc.message(), outDir);
 	if (result.success() && !publishExport(staging, folders, destinationExists, result))
 		result.wroteAll = false;
 	return result;

@@ -307,20 +307,30 @@ an unreadable rollout adds no scenario.
 `SceneExporter` writes a legacy case into a staging folder next to the
 destination and publishes it only when the export is complete, so a failed
 export leaves the destination as it was. A new destination is the staging
-folder renamed. In an existing destination the publish first removes the old
-files that the importer would read as part of the new case: every
-`Routes/Route<N>.txt`, `Incidents.txt`, `EGTRAINInitialParameters.json`, the
-area sidecar, and `TrackLines/AreasCaseStudy.txt` when the scene has no
-signalling areas, each in any letter case. It then moves the staged files over
-the files of the same name. Whether a file is still to be written is decided
-from the staging folder alone: the export copies the files of the legacy
-passthrough first and then writes the files that are still missing, such as the
-track line files, `Stations.txt`, `Connections.txt`, the GUI layout, the route
-corridors, the single-track limits, the station boundaries and the passenger
-files. Each file that the export writes therefore replaces the one of an earlier
-export. A file that this export does not write, such as the corridor file of a
-scene that no longer has corridors, stays as the destination has it, and so does
-every other file there.
+folder renamed. Whether a file is still to be written is decided from the
+staging folder alone: the export copies the files of the legacy passthrough
+first and then writes the files that are still missing, such as the track line
+files, `Stations.txt`, `Connections.txt`, the GUI layout, the route corridors,
+the single-track limits, the station boundaries and the passenger files. In an
+existing destination the publish first removes every input of the importer that
+the destination holds and the staging folder does not, and then moves the staged
+files over the files of the same name. `kLegacyInputs` in `SceneExporter.cpp`
+names these inputs, in any letter case: the track folders `B<n>` in `TrackLines`
+or in the case folder, `Connections.txt`, `Stations.txt`, `AreasCaseStudy.txt`
+and the area sidecar in `TrackLines`, `Stations.txt`,
+`EGTRAINInitialParameters.json`, `trainNames.txt` and `Incidents.txt` in the
+case folder, the files `Route<N>.*` in `Routes`, the `.txt` files in `Trains`,
+the six GUI files, `RoutesToWrite/RoutesToJoin.txt`, the two passenger files in
+`Passengers` or in the case folder, and the files `Rollout_<N>.txt` in
+`TimeTable/Scenarios_Entrance_Delays`. A track folder goes with everything in
+it. The area sidecar goes first, also when the export writes it again, so that a
+publish that fails part way never leaves an old sidecar beside new track files.
+So the published folder imports as the new scene: a scene with fewer tracks,
+without corridors or without passengers leaves no old track folder, corridor
+file or passenger file behind. The train data and timetable files are read only
+through the paths in the train files, which name only files of this export, so
+they are not removed. Every other file and folder in the destination stays, and
+so do the files in a track folder that the export writes again.
 
 The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
