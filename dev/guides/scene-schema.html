@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -374,7 +374,7 @@ nested ZIP entries are excluded; see
 <p>Required keys:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: integer <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: non-empty string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: string, which may be empty.</p></li>
 </ul>
 <p>Optional keys:</p>
 <ul class="simple">
@@ -418,10 +418,10 @@ which is reserved as the separator in connection-derived section identities.</p>
 </section>
 <section id="stations-json">
 <h2><code class="docutils literal notranslate"><span class="pre">stations.json</span></code><a class="headerlink" href="#stations-json" title="Link to this heading">¶</a></h2>
-<p>The root key is <code class="docutils literal notranslate"><span class="pre">stations</span></code>. Each station has required string <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code>,
-optional numeric <code class="docutils literal notranslate"><span class="pre">position_km</span></code>, and optional <code class="docutils literal notranslate"><span class="pre">platforms</span></code>. A platform has an
-<code class="docutils literal notranslate"><span class="pre">id</span></code>, an optional <code class="docutils literal notranslate"><span class="pre">nodes</span></code> array of node IDs, and optional positive finite
-<code class="docutils literal notranslate"><span class="pre">length_m</span></code> and <code class="docutils literal notranslate"><span class="pre">width_m</span></code> values. Missing dimensions retain the V1 compatibility
+<p>The root key is <code class="docutils literal notranslate"><span class="pre">stations</span></code>. Each station has required string <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code>
+(<code class="docutils literal notranslate"><span class="pre">name</span></code> may be empty), optional numeric <code class="docutils literal notranslate"><span class="pre">position_km</span></code>, and optional
+<code class="docutils literal notranslate"><span class="pre">platforms</span></code>. A platform has an <code class="docutils literal notranslate"><span class="pre">id</span></code>, an optional <code class="docutils literal notranslate"><span class="pre">nodes</span></code> array of node IDs,
+and optional positive finite <code class="docutils literal notranslate"><span class="pre">length_m</span></code> and <code class="docutils literal notranslate"><span class="pre">width_m</span></code> values. Missing dimensions retain the V1 compatibility
 defaults of 100 m by 2.5 m. The passenger runtime derives integer platform
 capacity from the effective dimensions and rejects values that produce less
 than one passenger or exceed its integer capacity field.</p>
@@ -663,8 +663,9 @@ physical running-time predictions.</p>
 <section id="scenarios-json">
 <h2><code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code><a class="headerlink" href="#scenarios-json" title="Link to this heading">¶</a></h2>
 <p>The preferred root keys are <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code> and <code class="docutils literal notranslate"><span class="pre">scenarios</span></code>. The default
-ID selects one named scenario. Each scenario has required <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">incidents</span></code> array; it may have <code class="docutils literal notranslate"><span class="pre">description</span></code> and <code class="docutils literal notranslate"><span class="pre">entrance_delays</span></code>.</p>
+ID selects one named scenario. Each scenario has required <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> (which
+may be empty), and <code class="docutils literal notranslate"><span class="pre">incidents</span></code> array; it may have <code class="docutils literal notranslate"><span class="pre">description</span></code> and
+<code class="docutils literal notranslate"><span class="pre">entrance_delays</span></code>.</p>
 <p>Each incident is concrete input with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">signal_failure</span></code> or
 <code class="docutils literal notranslate"><span class="pre">train_breakdown</span></code>), <code class="docutils literal notranslate"><span class="pre">target</span></code>, and finite non-negative <code class="docutils literal notranslate"><span class="pre">start_seconds</span></code>.
 <code class="docutils literal notranslate"><span class="pre">end_seconds</span></code> is explicitly optional in the JSON shape, but is required for
@@ -988,6 +989,14 @@ In particular, a timetable
 sentinel of <code class="docutils literal notranslate"><span class="pre">-1</span></code> means the corresponding planned arrival or departure is
 absent; the importer neither synthesizes a result nor changes an inconsistent
 source time.</p>
+<p>A legacy file that cannot be opened, or is not valid UTF-16, is reported as
+unreadable (<code class="docutils literal notranslate"><span class="pre">scene.import.read</span></code>) or missing. For most files that is a warning:
+the file counts as skipped and none of its rows is imported. For <code class="docutils literal notranslate"><span class="pre">Stations.txt</span></code>
+and the train, train data, traction, timetable and route files of the trains, it
+is an error, and an import with an error writes no case. The two passenger files
+count only together: when one of them is missing, the other is skipped with the
+warning <code class="docutils literal notranslate"><span class="pre">scene.import.passengers</span></code>, and when both exist but one cannot be read,
+that is an error. A number written as <code class="docutils literal notranslate"><span class="pre">nan</span></code> or <code class="docutils literal notranslate"><span class="pre">inf</span></code> counts as malformed.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">TrackLines/AreasCaseStudy.txt</span></code> is reported in <code class="docutils literal notranslate"><span class="pre">import_report</span></code> and in a
 warning, but its rows are not converted: add the signalling areas in
 Infrastructure &gt; Signalling area.</p>

@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -374,7 +374,7 @@ without guessing.</p>
 </tr>
 <tr class="row-even"><td><p>Copenhagen <code class="docutils literal notranslate"><span class="pre">5-B6</span></code> dependency exception</p></td>
 <td><p>dead/inert</p></td>
-<td><p>The hard-coded target names track <code class="docutils literal notranslate"><span class="pre">B30</span></code>, but the switch at <code class="docutils literal notranslate"><span class="pre">4.592/4.620</span></code> is generated from <code class="docutils literal notranslate"><span class="pre">B31</span></code> and <code class="docutils literal notranslate"><span class="pre">B7</span></code>. No runtime section has the hard-coded ID, so occupancy and node-connection scans never resolve it. V1 does not turn that stale string into an active dependency or guess a replacement by coordinates.</p></td>
+<td><p>The hard-coded target named track <code class="docutils literal notranslate"><span class="pre">B30</span></code>, but the switch at <code class="docutils literal notranslate"><span class="pre">4.592/4.620</span></code> is generated from <code class="docutils literal notranslate"><span class="pre">B31</span></code> and <code class="docutils literal notranslate"><span class="pre">B7</span></code>, so no runtime section had that ID. The code that held the exception is gone, and V1 does not recreate it or guess a replacement by coordinates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GUI/singleTrackLimits.txt</span></code></p></td>
 <td><p>canonical</p></td>
@@ -402,7 +402,7 @@ without guessing.</p>
 </tr>
 <tr class="row-odd"><td><p>planned timetable arrival, departure, dwell, repetition</p></td>
 <td><p>canonical</p></td>
-<td><p>Native operations expands repeats as <code class="docutils literal notranslate"><span class="pre">ceil(duration/headway)</span></code> when <code class="docutils literal notranslate"><span class="pre">repeat.count</span></code> is omitted, or as the explicit positive total count (including the base). Entry and stop offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence-1)*headway</span></code>; absent arrival/departure values remain runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code>, including repeats. Finite negative planned values remain valid for pre-horizon timetable rows; route-external rows remain inert without an invented platform. A nonzero <code class="docutils literal notranslate"><span class="pre">operating_code_step</span></code> requires a decimal base and yields stepped occurrence codes; without one, repeated codes use a readable base-plus-occurrence form. <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> is a derived compatibility value from the existing hourly-retiming algorithm; it is not canonical input.</p></td>
+<td><p>Native operations expands repeats as <code class="docutils literal notranslate"><span class="pre">ceil(duration/headway)</span></code> when <code class="docutils literal notranslate"><span class="pre">repeat.count</span></code> is omitted, or as the explicit positive total count (including the base). Entry and stop offsets remain <code class="docutils literal notranslate"><span class="pre">(occurrence-1)*headway</span></code>; absent arrival/departure values remain runtime <code class="docutils literal notranslate"><span class="pre">-1</span></code>, including repeats. Finite negative planned values remain valid for pre-horizon timetable rows; route-external rows remain inert without an invented platform. A nonzero <code class="docutils literal notranslate"><span class="pre">operating_code_step</span></code> requires a decimal base and yields stepped occurrence codes; without one, repeated codes use a readable base-plus-occurrence form. <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> is set to the scheduled entry time of the occurrence; it is not canonical input.</p></td>
 </tr>
 <tr class="row-even"><td><p>service performance and speed controls</p></td>
 <td><p>canonical</p></td>
@@ -450,7 +450,7 @@ without guessing.</p>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EGTRAINOutput</span></code>, ROMA/TDS artifacts, <code class="docutils literal notranslate"><span class="pre">FolderEGTRAIN</span></code>, <code class="docutils literal notranslate"><span class="pre">OL_LastEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">ScheduledOrder</span></code></p></td>
 <td><p>output/interoperability</p></td>
-<td><p>Simulation and integration code write these artifacts. They are not case input.</p></td>
+<td><p>Earlier simulation and integration code wrote these artifacts. The current program writes and reads none of them; <code class="docutils literal notranslate"><span class="pre">Computing_Times.txt</span></code> keeps a <code class="docutils literal notranslate"><span class="pre">TOT_Comp_Time_ROMA</span></code> column, which is always 0. They are not case input.</p></td>
 </tr>
 <tr class="row-even"><td><p>Other GUI coordinate/display files</p></td>
 <td><p>derived/output</p></td>

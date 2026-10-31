@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -386,7 +386,7 @@
 <ol class="arabic">
 <li><p>Occupations exist only for sections of level 0, 2, 3 and 4 (<code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingAreas</span></code>). A section of level 1 or 5, or without a level, gives none. A case gives input only for the sections that a signalling area of level 0, 2, 3 or 4 contains. <a class="reference internal" href="signalling-levels.html#the-bundled-cases"><span class="std std-ref">The bundled cases</span></a> lists the areas of each bundled case. At levels 3 and 4 the run builds occupations per infrastructure element, and the line fixture of the characterization tests lists none at those levels; <a class="reference internal" href="signalling-levels.html#what-is-not-established"><span class="std std-ref">What is not established</span></a> says so.</p></li>
 <li><p>An occupation is used only when it is complete, has a block id, has finite times and positions, starts at 0 or later, ends after it starts and has positions of 0 or more (<code class="docutils literal notranslate"><span class="pre">validBlockingTimeDiagramInput</span></code>). The window leaves other records out without a message.</p></li>
-<li><p>The setup time, the sight reaction time and the release time are not inputs of the window. The run passes fixed values and two settings of the case to the occupation routines (the call of <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingForAllTrains</span></code> in <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>): a setup time of 5 s, a release time of 3 s plus the buffer time, a sight reaction time of 0.5 s, a safety margin of 50 that the routines of levels 0 and 2 do not take, an absolute running-time supplement of 0 and the recovery percentage. For a section of level 0 or 2, <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimeForSingleLocation</span></code> sets:</p>
+<li><p>The setup time, the sight reaction time and the release time are not inputs of the window. The run passes fixed values and two settings of the case to the occupation routines (the call of <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimesInMixedSignallingForAllTrains</span></code> in <code class="docutils literal notranslate"><span class="pre">runSimulationPostprocessing</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>): a setup time of 5 s, a release time of 3 s plus the buffer time, a sight reaction time of 0.5 s, a safety margin of 50 that the routines of levels 0 and 2 do not take, an absolute running-time supplement of 0 and the recovery percentage. For a section of level 0 or 2, <code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimeForSingleLocation</span></code> sets:</p>
 <ul class="simple">
 <li><p>the start of the occupation to the start of the approach minus the setup time and the sight reaction time. For the first block of the route the approach starts at the start run time and both times are 0;</p></li>
 <li><p>the end of the occupation to the end of clearing plus the release time. For the last block of the route the clearing ends when the head of the train leaves the block;</p></li>

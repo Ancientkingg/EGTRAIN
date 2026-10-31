@@ -14,9 +14,10 @@ A run writes text files to its output folder ([Output folder](command-line.md#ou
 | `TrainTrajectories/Computing_Times.txt` | At the end of the run. Replaces an existing file | A header line with `TOT_Comp_Time_EGTRAIN[s]`, `TOT_Comp_Time_ROMA` and `TOT_COMP_TIME`, and one row with the three values |
 | `PassengerStatus/PassengerStatus.txt` | Once, after the last time step that ran, at the end of a completed or stopped run. Replaces an existing file. A run stopped before its first step writes nothing and leaves an earlier file in the same folder as it is | A header line that names the columns, then one row per passenger who is in the network at that step. The file shows that step only |
 | `PassengerStatus/JourneyDelays.txt` | At the end of the run. Replaces an existing file | A header line with `PaxID`, `JourneyID` and `TotalArrivalDelay[s]`, then one row per journey of every passenger; the delay is `Journey_not_yet_completed` for a journey that is not completed |
-| `Rescheduling/EGTRAINOutput.txt` | Preparation removes an existing file. Each arrival at the last station appends one row. A run without such an arrival leaves no file | No header line. Each row has the values `egtrain`, the station name, `arr`, the line id, the index of the train and the time step, separated by commas |
 
 `TrainTrajectories/RoutesGenerated` is created empty. Nothing writes into it.
+
+Earlier versions also wrote `Rescheduling/EGTRAINOutput.txt`. A run no longer writes or removes it, so an output folder that an earlier version used can still hold an old copy.
 
 ## Detailed trajectories
 

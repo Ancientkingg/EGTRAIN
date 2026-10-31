@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -385,7 +385,8 @@ section different levels shows them. The editor shows the labels of the levels
 </div>
 <section id="what-happens-in-a-step">
 <h3>What happens in a step<a class="headerlink" href="#what-happens-in-a-step" title="Link to this heading">¶</a></h3>
-<p>The order is fixed in <a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController</span></code></a>.</p>
+<p>The order is fixed in <code class="docutils literal notranslate"><span class="pre">runSimulationStep</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>), which
+<a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController</span></code></a> calls for every step.</p>
 <ol class="arabic simple">
 <li><p>Every train moves. It reads the codes and speed limits that the previous
 step wrote.</p></li>
@@ -457,7 +458,7 @@ internally.</p>
 section disagree, it shows the most restrictive code, in the order 0, 751, 75,
 180, 270. A copy without a level never replaces one with a level. The snapshot
 also carries the level and a failed flag for each signal
-(<code class="docutils literal notranslate"><span class="pre">app/GuiSimulationSnapshot.h</span></code>). A head whose section has no level, and a head
+(<code class="docutils literal notranslate"><span class="pre">simulation/GuiSimulationSnapshot.h</span></code>). A head whose section has no level, and a head
 that no route passes in its direction, is a grey ring with a short grey bar. The head of a
 failed signal is a red lamp with a white cross for as long as the failure
 lasts. The marks are drawn when a head is at least 6 pixels wide.</p>
@@ -757,8 +758,8 @@ speed is 11.111 m/s because the next section has that limit.
 <li><p><strong>Signal failure.</strong> The chain of aspects is written behind the failed section.
 In <code class="docutils literal notranslate"><span class="pre">sf-forward-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">F1</span></code> slows to 11.111 m/s and stops at 10000 m from
 854 s to 1002 s.</p></li>
-<li><p><strong>Blocking times.</strong> Computed (“Conventional”). The approach of a section starts
-when the head of the train enters the section before it
+<li><p><strong>Blocking times.</strong> Computed (<code class="docutils literal notranslate"><span class="pre">BlockingTimeMethod::Conventional</span></code>). The approach
+of a section starts when the head of the train enters the section before it
 (<code class="docutils literal notranslate"><span class="pre">ComputeBlockingTimeForSingleLocation</span></code>).</p></li>
 <li><p><strong>Single-track restriction.</strong> Has an effect. In <code class="docutils literal notranslate"><span class="pre">single-track-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">R1</span></code>
 waits 41 s in front of the stretch. In <code class="docutils literal notranslate"><span class="pre">stub-departure-first-level-0</span></code>, <code class="docutils literal notranslate"><span class="pre">U1</span></code>
@@ -787,9 +788,10 @@ occupied one is 0.</p></li>
 <a class="reference internal" href="#common-behaviour">Common behaviour</a>.</p></li>
 <li><p><strong>Signal failure.</strong> As at level 0, without the speed limit. <code class="docutils literal notranslate"><span class="pre">F1</span></code> stops at
 10000 m in <code class="docutils literal notranslate"><span class="pre">sf-forward-level-1</span></code> and <code class="docutils literal notranslate"><span class="pre">sf-forward-level-2</span></code>.</p></li>
-<li><p><strong>Blocking times.</strong> Level 1: none. Level 2: computed (“ETCS2”). The approach
-of a section starts when the position of the train plus <code class="docutils literal notranslate"><span class="pre">v^2</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">a)</span></code> reaches
-the start of the section, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is the maximum deceleration.</p></li>
+<li><p><strong>Blocking times.</strong> Level 1: none. Level 2: computed
+(<code class="docutils literal notranslate"><span class="pre">BlockingTimeMethod::Etcs2</span></code>). The approach of a section starts when the
+position of the train plus <code class="docutils literal notranslate"><span class="pre">v^2</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">a)</span></code> reaches the start of the section,
+where <code class="docutils literal notranslate"><span class="pre">a</span></code> is the maximum deceleration.</p></li>
 <li><p><strong>Single-track restriction.</strong> Has an effect. In <code class="docutils literal notranslate"><span class="pre">single-track-level-1</span></code> and
 <code class="docutils literal notranslate"><span class="pre">single-track-level-2</span></code>, <code class="docutils literal notranslate"><span class="pre">R1</span></code> waits 161 s.</p></li>
 <li><p><strong>Window.</strong> Red, yellow, green, green, as at level 0.</p></li>
@@ -1063,7 +1065,9 @@ missing-level warning does not name them.</p></li>
 </tbody>
 </table>
 </div>
-<p>Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_scenebuilder.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">runAreaMappingChecks</span></code>),
+<p>Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_scenebuilder.cpp</span></code> (<code class="docutils literal notranslate"><span class="pre">routeSectionsCarrySectionLevels</span></code>,
+<code class="docutils literal notranslate"><span class="pre">areaLevelsOfLineSections</span></code>, <code class="docutils literal notranslate"><span class="pre">trackScopedAreaOverridesOwnTrack</span></code>,
+<code class="docutils literal notranslate"><span class="pre">reversedRouteKeepsSectionLevels</span></code> and <code class="docutils literal notranslate"><span class="pre">levelWarningAgreesWithBuild</span></code>),
 <code class="docutils literal notranslate"><span class="pre">tests/test_scenevalidator.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/test_scenebundle.cpp</span></code>.</p>
 </section>
 <section id="signalling-areas-block-sections-and-capacity-areas">

@@ -367,9 +367,9 @@ Notes on the update rows:
   one source, like R9; record its tag. It shows that the scenes released
   before still open in the candidate. If the candidate changes the scene
   format, add one of its own bundles to the scene fixtures once the release is
-  published, as [Unit Tests](testing.md#unit-tests) says. Mark R12 not
-  applicable, with the reason, when no earlier stable release with bundles
-  exists.
+  published, as [Scene-version fixtures](testing.md#scene-version-fixtures)
+  says. Mark R12 not applicable, with the reason, when no earlier stable
+  release with bundles exists.
 - R9 installs the latest published stable release, not the candidate. It shows
   the update path of the installed version and says nothing about the contents
   of a manual candidate.

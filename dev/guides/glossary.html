@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -371,7 +371,7 @@
 </section>
 <section id="results">
 <h3>Results<a class="headerlink" href="#results" title="Link to this heading">¶</a></h3>
-<p>Results are what a completed run leaves in memory: the dock <strong>Run Results</strong> (one row per train and a last row <strong>Network total</strong>, with the buttons <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong>, <strong>Set delay baseline</strong> and <strong>Compare delays</strong>) and the result windows, which open from the <strong>Diagrams</strong> menu or from <strong>Open result view…</strong>. The line <code class="docutils literal notranslate"><span class="pre">Occurrences</span></code> at the top of the dock counts the ticked occurrences against all configured ones, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected</span></code>. When some ticked occurrences enter outside the run period, it adds the number that are inside, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected,</span> <span class="pre">185</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">run</span> <span class="pre">period</span></code>; that number is the <strong>Trains</strong> of the dialog <strong>Run simulation</strong>. The entries that open them stay disabled until a run has completed. Results are not part of the case, so saving the case does not save them; any edit of the case, creating or opening a case and selecting another scenario discard them, and only a new run rebuilds them. A run also writes text files to the output folder (<a class="reference internal" href="scenarios.html"><span class="std std-doc">scenario library and student loop</span></a>, <a class="reference internal" href="delay-analysis.html#what-this-guide-covers"><span class="std std-ref">what this guide covers</span></a>).</p>
+<p>Results are what a completed run leaves in memory: the dock <strong>Run Results</strong> (one row per train and a last row <strong>Network total</strong>, with the buttons <strong>Open result view…</strong>, <strong>Export CSV…</strong>, <strong>Export PNG…</strong>, <strong>Set delay baseline</strong> and <strong>Compare delays</strong>) and the result windows, which open from the <strong>Diagrams</strong> menu or from <strong>Open result view…</strong>. The line <code class="docutils literal notranslate"><span class="pre">Occurrences</span></code> at the top of the dock counts the ticked occurrences against all configured ones, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected</span></code>. When some ticked occurrences enter outside the run period, it adds the number that are inside, as in <code class="docutils literal notranslate"><span class="pre">Occurrences:</span> <span class="pre">196/196</span> <span class="pre">selected,</span> <span class="pre">185</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">run</span> <span class="pre">period</span></code>; that number is the <strong>Trains</strong> of the dialog <strong>Run simulation</strong>. The entries that open them stay disabled until a run has completed. Results are not part of the case, so saving the case does not save them; any edit of the case, creating or opening a case and selecting another scenario discard them, and only a new run rebuilds them. Creating or opening another case closes the result windows and the traction curve windows. A run also writes text files to the output folder (<a class="reference internal" href="scenarios.html"><span class="std std-doc">scenario library and student loop</span></a>, <a class="reference internal" href="delay-analysis.html#what-this-guide-covers"><span class="std std-ref">what this guide covers</span></a>).</p>
 </section>
 <section id="normal-mode-and-advanced-mode">
 <h3>Normal mode and advanced mode<a class="headerlink" href="#normal-mode-and-advanced-mode" title="Link to this heading">¶</a></h3>

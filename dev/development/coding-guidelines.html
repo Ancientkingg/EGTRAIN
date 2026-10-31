@@ -236,7 +236,6 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -383,7 +383,7 @@ cannot see how Qt owns objects.</p>
 <td><p>Products of small values, such as milliseconds per second</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-unchecked-string-to-number-conversion</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">atof</span></code> on legacy text fields in <code class="docutils literal notranslate"><span class="pre">simulation/Simulation.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atof</span></code> on legacy text fields in <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">scene/SceneExporter.cpp</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bugprone-nondeterministic-pointer-iteration-order</span></code></p></td>
 <td><p>Vectors of pointers that are sorted by a field, not by address</p></td>
@@ -788,11 +788,10 @@ exactly one of <code class="docutils literal notranslate"><span class="pre">unit
 the arguments or runs a script instead, and options such as <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code> and <code class="docutils literal notranslate"><span class="pre">ENVIRONMENT</span></code> set the
 test properties; the comment above the function lists them all.</p>
 <ul class="simple">
-<li><p>The tests are moving to Qt Test. A converted file is one test class, as
-<a class="reference internal" href="testing.html#writing-a-test"><span class="std std-ref">Writing a test</span></a> describes (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>). A file that
-is not converted yet is a plain program with a <code class="docutils literal notranslate"><span class="pre">main()</span></code>; most define a local
-<code class="docutils literal notranslate"><span class="pre">expect(bool,</span> <span class="pre">const</span> <span class="pre">char*)</span></code> that prints <code class="docutils literal notranslate"><span class="pre">failed:</span> <span class="pre">&lt;message&gt;</span></code>, combine results with
-<code class="docutils literal notranslate"><span class="pre">ok</span> <span class="pre">&amp;=</span> <span class="pre">expect(...)</span></code> and return a non-zero exit code on failure.</p></li>
+<li><p>The tests use Qt Test. A test file is one test class, as
+<a class="reference internal" href="testing.html#writing-a-test"><span class="std std-ref">Writing a test</span></a> describes (<code class="docutils literal notranslate"><span class="pre">tests/test_timeformat.cpp</span></code>).
+<code class="docutils literal notranslate"><span class="pre">tests/test_updatetransport_https.cpp</span></code> and the three programs in <code class="docutils literal notranslate"><span class="pre">tests/characterization/</span></code> are
+plain programs with a <code class="docutils literal notranslate"><span class="pre">main()</span></code>.</p></li>
 <li><p>Checks must still run in a Release build, the default, so a test does not use <code class="docutils literal notranslate"><span class="pre">assert</span></code>, which
 <code class="docutils literal notranslate"><span class="pre">NDEBUG</span></code> removes there.</p></li>
 <li><p>A logic change comes with the smallest test that fails without it. For a validation rule,

@@ -236,7 +236,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/coding-guidelines.html">Coding guidelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/error-handling.html">Error handling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/documentation-decision.html">Documentation decision</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/code-documentation-investigation.html">Code documentation investigation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/readable-ids-decision.html">Readable ids decision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/source-layout.html">QEGTRAIN source layout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/scene-model.html">V1 Scene Model</a></li>
@@ -251,7 +250,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../architecture/historical-track-comparison.html">Historical track presentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/playback-profiling.html">Playback profiling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/memory-baselines.html">Peak-memory baselines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../development/qt6-migration-study.html">Qt 6 migration study</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Release</span></p>
 <ul>
@@ -267,6 +265,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../development/records/release-rehearsal-2026-10-17.html">Release rehearsal 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/dialog-sheet-2026-10-17.html">Dialog sheet 2026-10-17</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/records/feature-status-2026-10-17.html">Feature status 2026-10-17</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/qt6-migration-study.html">Qt 6 migration study</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/records/code-documentation-investigation.html">Code documentation investigation</a></li>
 </ul>
 
 </div>
@@ -357,14 +357,11 @@
 <td><p>At the end of the run. Replaces an existing file</p></td>
 <td><p>A header line with <code class="docutils literal notranslate"><span class="pre">PaxID</span></code>, <code class="docutils literal notranslate"><span class="pre">JourneyID</span></code> and <code class="docutils literal notranslate"><span class="pre">TotalArrivalDelay[s]</span></code>, then one row per journey of every passenger; the delay is <code class="docutils literal notranslate"><span class="pre">Journey_not_yet_completed</span></code> for a journey that is not completed</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Rescheduling/EGTRAINOutput.txt</span></code></p></td>
-<td><p>Preparation removes an existing file. Each arrival at the last station appends one row. A run without such an arrival leaves no file</p></td>
-<td><p>No header line. Each row has the values <code class="docutils literal notranslate"><span class="pre">egtrain</span></code>, the station name, <code class="docutils literal notranslate"><span class="pre">arr</span></code>, the line id, the index of the train and the time step, separated by commas</p></td>
-</tr>
 </tbody>
 </table>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">TrainTrajectories/RoutesGenerated</span></code> is created empty. Nothing writes into it.</p>
+<p>Earlier versions also wrote <code class="docutils literal notranslate"><span class="pre">Rescheduling/EGTRAINOutput.txt</span></code>. A run no longer writes or removes it, so an output folder that an earlier version used can still hold an old copy.</p>
 <section id="detailed-trajectories">
 <h2>Detailed trajectories<a class="headerlink" href="#detailed-trajectories" title="Link to this heading">¶</a></h2>
 <p>Two more files are written only when the application is started with <code class="docutils literal notranslate"><span class="pre">--detailed-trajectories</span></code>:</p>
