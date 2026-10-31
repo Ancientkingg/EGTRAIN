@@ -37,6 +37,13 @@ std::size_t heapBytes() {
 }
 }
 #else
+// GCC 15 follows the header arithmetic and the free of the replaced operators into its callers and reports an access
+// before an array and a mismatched free, although every pointer here comes from the operator new below.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wmismatched-new-delete"
+#endif
 namespace {
 std::size_t liveHeapBytes = 0;
 constexpr std::size_t headerBytes = 16;
@@ -66,6 +73,9 @@ void operator delete(void* pointer) noexcept {
 void operator delete(void* pointer, std::size_t) noexcept {
 	operator delete(pointer);
 }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #endif
 
 namespace {
