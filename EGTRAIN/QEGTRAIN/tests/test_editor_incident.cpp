@@ -21,6 +21,7 @@
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScopeGuard>
+#include <QSignalSpy>
 #include <QString>
 #include <QStringList>
 #include <QTest>
@@ -917,6 +918,7 @@ void TestIncidentPanel::targetsFollowDocument() {
 // Text that is still being typed stays when the infrastructure panel adds a track, which shows the incidents again: the
 // panel takes the text into the document first, as edits of its own after the other one. The labels and kinds of the
 // changes are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+// Picking a target ends with a signal that the window hears, also when the taken text ends it.
 void TestIncidentPanel::keepsTypedTextWhenTrackIsAdded() {
 	SceneDocument document;
 	Log labels;
@@ -963,6 +965,23 @@ void TestIncidentPanel::keepsTypedTextWhenTrackIsAdded() {
 	// The fields show the typed values.
 	QCOMPARE(panel.idEdit()->text(), "i1_typed");
 	QCOMPARE(spinText(panel.startSecondsEdit())->text(), "77");
+
+	panel.listWidget()->setCurrentRow(1);
+	QVERIFY(giveFocus(panel.reducedSpeedKmhEdit()));
+	spinText(panel.reducedSpeedKmhEdit())->setText("45");
+	// A click on the pick button leaves the focus in the field.
+	panel.pickTargetButton()->click();
+	QVERIFY(panel.isPickingTarget());
+	QSignalSpy picks(&panel, &IncidentPanel::targetPickToggled);
+	labels.clear();
+	infrastructure.addButton()->click();
+	// The typed speed is taken in after the track. Taking it shows the incidents again, which ends picking a target, and
+	// the window hears that once.
+	QCOMPARE_EQ(document.model().scenarios[0].incidents[1].reducedSpeedKmh, 45.0);
+	QCOMPARE(labels, Log({"Add track", "Change incident reduced speed"}));
+	QVERIFY(!panel.isPickingTarget());
+	QCOMPARE(picks.count(), 1);
+	QCOMPARE(picks.at(0).at(0).toBool(), false);
 }
 
 void TestIncidentPanel::forgetsDeletedDocument() {

@@ -193,8 +193,10 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 void IncidentPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
 	// The occurrences that a breakdown can have as its target depend on the duration of the case and on the services, and
 	// the signals and blocks of a signal failure on the infrastructure. The panel does not edit the infrastructure, and the
-	// targets leave the other fields as they are.
+	// targets leave the other fields as they are. The pick ends before the text is taken, while the window still hears
+	// of it: a taken speed shows the incidents again, which ends the pick with the signals of the panel blocked.
 	if (kinds.testFlag(SceneDocument::Infrastructure)) {
+		endTargetPick();
 		takePendingText();
 		refresh();
 	} else if (kinds & (SceneDocument::CaseSettings | SceneDocument::Services)) {
