@@ -33,8 +33,9 @@ The kinds of finding are:
                 stop other than ... is a list heading and a key such as Ctrl+F, Esc or F1 is not a name, so both are skipped. The
                 pages leave out the colon of a label, since a bold term with a colon is a list heading, so a string may
                 add one. They keep the ... of a menu entry, which the source may add to a name as the Diagrams menu
-                does. The script lists the texts that Qt gives its standard buttons and the names of macOS and Windows
-                that the pages use.
+                does. The script lists the texts that Qt gives its standard buttons, the names of macOS and Windows
+                that the pages use, and in MANUAL_TERMS the terms that the manual may set in bold although the
+                application does not show them.
 
 The heading check skips .github/, whose issue templates start with front matter.
 
@@ -101,6 +102,8 @@ SYSTEM_NAMES = {
     "Get Info", "Kind", "More info", "Move to Trash", "Open Anyway", "Open With", "Open with", "Privacy & Security",
     "Run anyway", "Security", "System Settings",
 }
+# Terms that the manual may set in bold although the application does not show them.
+MANUAL_TERMS = set()
 VERSION = re.compile(r'^set\(EGTRAIN_VERSION "(\d+)\.(\d+)\.\d+"', re.MULTILINE)
 
 Finding = namedtuple("Finding", "path line kind message")
@@ -445,7 +448,7 @@ def source_strings(root, listed) -> set:
 
 
 def check_ui_names(root, listed, documents: dict) -> list:
-    strings = source_strings(root, listed) | QT_BUTTON_NAMES | SYSTEM_NAMES
+    strings = source_strings(root, listed) | QT_BUTTON_NAMES | SYSTEM_NAMES | MANUAL_TERMS
     findings = []
     for path, document in documents.items():
         if not path.startswith(MANUAL[0]):
