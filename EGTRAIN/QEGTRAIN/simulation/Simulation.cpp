@@ -572,6 +572,9 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 	if (t % kProgressEverySteps == 0) {
 		EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
 	}
+	// Within the step the trains reuse the results that their TrainStepCache holds of this step and the step before
+	for (Train& train : run.trains)
+		train.stepCache.beginStep(t);
 
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
@@ -653,6 +656,8 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order) {
 		run.blocksOccupied.clear();	 // Clear the list of the occupied blocks
 		run.blocksConnected.clear(); // Clear the list of the connected blocks
 	}
+	for (Train& train : run.trains)
+		train.stepCache.endStep();
 
 	clock_t endEGTRAIN = clock();																	// variable that sets the time in which EGTRAIN ends
 	run.compTimeEgtrain = run.compTimeEgtrain + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN

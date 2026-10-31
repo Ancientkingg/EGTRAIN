@@ -100,6 +100,8 @@ private slots:
 	void waitingPassengersAreListedByDeparture();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
+	void brakingStartCacheMatchesComputation();
+	void brakingStartCacheBelongsToOneTrain();
 	void drawsBrakingCurveThatReachesSpeed();
 	void brakingWithoutReachingSpeed_data();
 	void brakingWithoutReachingSpeed();
@@ -2042,6 +2044,140 @@ static std::vector<Section> brakingRouteOfTwoArcs(double splitKm, double endKm, 
 	section.arcs_in_signalling_block_section[1].gradient = secondGradient;
 	section.arcs_in_signalling_block_section[1].curvature = 0.0;
 	return route;
+}
+
+// Within a step of a run BrakDist_Block answers from the cache of the train with the result of the computation, for the
+// results of that step and of the step before.
+void TestOperationsBuilder::brakingStartCacheMatchesComputation() {
+	const double inf = std::numeric_limits<double>::infinity();
+	const auto same = [](double a, double b) { return std::memcmp(&a, &b, sizeof(double)) == 0; };
+	Train train = brakingTrain(1.0);
+	std::vector<Section> route = brakingRouteOfTwoArcs(4.9, 10.0, 0.02, -0.01);
+	std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
+	struct Query {
+		double from, to, target, cutoff;
+	};
+	std::vector<Query> queries;
+	for (double from : {0.0, 5.0, 12.5, 30.0, 36.1})
+		for (double to : {0.0, 10.0, 20.0})
+			for (double target : {100.0, 2500.0, 4900.0, 7000.0})
+				for (double cutoff : {inf, 0.0, 3000.0})
+					queries.push_back({from, to, target, cutoff});
+	// Without braking the target comes back as it is, so 0 and -0 are two queries.
+	queries.push_back({10.0, 10.0, 0.0, inf});
+	queries.push_back({10.0, 10.0, -0.0, inf});
+	const int all = static_cast<int>(queries.size());
+	// Every call gives the result of the computation, bit for bit.
+	const auto matches = [&](Train& probe, std::vector<Section>& sections) {
+		return std::all_of(queries.begin(), queries.end(), [&](const Query& q) {
+			const double start = probe.BrakDist_Block(q.from, q.to, q.target, sections.data(), 1, q.cutoff);
+			return same(start, probe.uncachedBrakDistBlock(q.from, q.to, q.target, sections.data(), 1, q.cutoff));
+		});
+	};
+	// The number of queries that the cache answers now.
+	const auto held = [&](Train& probe, std::vector<Section>& sections) {
+		return static_cast<int>(std::count_if(queries.begin(), queries.end(), [&](const Query& q) {
+			double start = 0.0;
+			return probe.stepCache.findBrakingStart({sections.data(), 1, q.from, q.to, q.target, q.cutoff}, start);
+		}));
+	};
+
+	// Outside a step every call is computed and nothing is kept.
+	QVERIFY(matches(train, route));
+	train.stepCache.beginStep(1);
+	QCOMPARE(held(train, route), 0);
+	// Within a step the calls are kept, and a repeated call is answered from the cache.
+	QVERIFY(matches(train, route));
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	// The results belong to the sections of the call.
+	QCOMPARE(held(train, flat), 0);
+	QVERIFY(matches(train, flat));
+	train.stepCache.endStep();
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	// The next step answers with the results of the step before.
+	train.stepCache.beginStep(2);
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// A step without calls leaves nothing for the step after it.
+	train.stepCache.beginStep(3);
+	train.stepCache.endStep();
+	train.stepCache.beginStep(4);
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// A run starts at step 0, so a step that does not follow the last one drops the results. A change of the arcs, which only
+	// the builders make, is then seen.
+	const double before = train.uncachedBrakDistBlock(30.0, 0.0, 7000.0, route.data(), 1, inf);
+	route[0].arcs_in_signalling_block_section[1].gradient = 0.03;
+	QVERIFY(!same(before, train.uncachedBrakDistBlock(30.0, 0.0, 7000.0, route.data(), 1, inf)));
+	train.stepCache.beginStep(0);
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// The result does not depend on the values that the signalling writes on the sections in every step, so the results of the
+	// step before still hold after a change of them.
+	for (Section& section : route) {
+		section.code = 0;
+		section.state = SignalState::Red;
+		section.Occupied = true;
+		section.exit_speed = 2.0;
+		for (int k = 0; k < section.total_arcs; ++k) {
+			Arc& arc = section.arcs_in_signalling_block_section[k];
+			arc.speedInBraking = 3.0;
+			arc.signalSpeedLimit = 4.0;
+			arc.endNode.arcSpeedLimit = 5.0;
+		}
+	}
+	train.stepCache.beginStep(1);
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+}
+
+// The braking-start cache of one train never answers for another train.
+void TestOperationsBuilder::brakingStartCacheBelongsToOneTrain() {
+	const double inf = std::numeric_limits<double>::infinity();
+	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+	const TrainStepCache::BrakingQuery query{route.data(), 1, 30.0, 0.0, 5000.0, inf};
+	Train strong = brakingTrain(1.0), weak = brakingTrain(0.5);
+	strong.stepCache.beginStep(1);
+	weak.stepCache.beginStep(1);
+	const double strongStart = strong.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1);
+	const double weakStart = weak.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1);
+	// Two trains with the same query get the results of their own braking.
+	QVERIFY(strongStart != weakStart);
+	QCOMPARE_EQ(strongStart, strong.uncachedBrakDistBlock(30.0, 0.0, 5000.0, route.data(), 1, inf));
+	QCOMPARE_EQ(weakStart, weak.uncachedBrakDistBlock(30.0, 0.0, 5000.0, route.data(), 1, inf));
+	// A copy starts empty and outside a step, so a copy with another deceleration computes its own result.
+	Train copy = strong;
+	double start = 0.0;
+	QVERIFY(!copy.stepCache.findBrakingStart(query, start));
+	copy.max_train_decelaration = 0.5;
+	copy.stepCache.beginStep(2);
+	QVERIFY(!copy.stepCache.findBrakingStart(query, start));
+	QCOMPARE_EQ(copy.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), weakStart);
+	// An assignment empties the cache too.
+	weak = strong;
+	weak.max_train_decelaration = 0.5;
+	weak.stepCache.beginStep(2);
+	QVERIFY(!weak.stepCache.findBrakingStart(query, start));
+	QCOMPARE_EQ(weak.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), weakStart);
+	// Within a step an override of BrakDist_Block still takes the call.
+	struct CountingLookup : Train {
+		int calls = 0;
+		double BrakDist_Block(double, double, double, Section*, int, double) override {
+			++calls;
+			return -1;
+		}
+	} counting;
+	static_cast<Train&>(counting) = strong;
+	counting.max_train_speed = 30.0;
+	counting.stepCache.beginStep(1);
+	QVERIFY(counting.needsSingleTrackReservation(1000.0, 10.0, 4000.0, route.data(), 1));
+	QCOMPARE(counting.calls, 1);
 }
 
 struct BrakingRun {

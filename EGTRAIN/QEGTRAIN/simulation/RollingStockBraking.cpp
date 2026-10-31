@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <list>
 #include <string>
@@ -16,6 +17,16 @@ namespace {
 
 // A braking curve ends this far (m) before its target, so that a train that brakes along it stays short of the target.
 constexpr double kBrakingCurveEndMarginM = 0.002;
+
+// True when the two values have the same bits, so that 0.0 and -0.0 differ and a NaN matches itself.
+bool sameBits(double a, double b) {
+	return std::memcmp(&a, &b, sizeof(double)) == 0;
+}
+
+bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::BrakingQuery& b) {
+	return a.sections == b.sections && a.count == b.count && sameBits(a.fromSpeed, b.fromSpeed) && sameBits(a.toSpeed, b.toSpeed)
+		&& sameBits(a.target, b.target) && sameBits(a.cutoff, b.cutoff);
+}
 
 } // namespace
 
@@ -356,7 +367,63 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 	return false;
 }
 
+TrainStepCache::TrainStepCache(const TrainStepCache&) {}
+
+TrainStepCache& TrainStepCache::operator=(const TrainStepCache&) {
+	m_brakingStarts.clear();
+	m_previousBrakingStarts.clear();
+	m_step = 0;
+	m_inStep = m_hasStep = false;
+	return *this;
+}
+
+void TrainStepCache::beginStep(int step) {
+	if (m_hasStep && step == m_step + 1)
+		m_previousBrakingStarts.swap(m_brakingStarts);
+	else
+		m_previousBrakingStarts.clear();
+	m_brakingStarts.clear();
+	m_step = step;
+	m_inStep = m_hasStep = true;
+}
+
+void TrainStepCache::endStep() {
+	m_inStep = false;
+}
+
+bool TrainStepCache::findBrakingStart(const BrakingQuery& query, double& start) {
+	if (!m_inStep)
+		return false;
+	for (const BrakingEntry& entry : m_brakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			return true;
+		}
+	for (const BrakingEntry& entry : m_previousBrakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			m_brakingStarts.push_back(entry); // so that the next step finds it too
+			return true;
+		}
+	return false;
+}
+
+void TrainStepCache::storeBrakingStart(const BrakingQuery& query, double start) {
+	if (m_inStep)
+		m_brakingStarts.push_back({query, start});
+}
+
 double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
+	const TrainStepCache::BrakingQuery query{BS, Blocks, V1, V2, X0, cutoff};
+	double start = 0.0;
+	if (stepCache.findBrakingStart(query, start))
+		return start;
+	start = uncachedBrakDistBlock(V1, V2, X0, BS, Blocks, cutoff);
+	stepCache.storeBrakingStart(query, start);
+	return start;
+}
+
+double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
 	if (V1 <= V2)
 		return X0;
 	double nextHead = X0 - kBrakingCurveEndMarginM, nextSpeed = V2;

@@ -205,6 +205,50 @@ enum class TrajectoryBranch : int {
 	FollowLeader = 1002,	///< Follows the leader of its virtual coupling.
 };
 
+/// What one train reuses within the steps of a run: the results of Train::BrakDist_Block of the current step and of the step
+/// before. Such a result depends on the arguments, on the rolling stock values of the train and on the arcs of the sections (their
+/// X, gradient and curvature), which only the builders write. The cache answers only between beginStep and endStep, which
+/// runSimulationStep calls for every train around each step, and keeps the results of a step only for the step that follows it.
+/// A copy starts empty and outside a step, so a result never passes to another train or run.
+class TrainStepCache {
+public:
+	/// The arguments of one Train::BrakDist_Block call. The doubles are compared bit for bit.
+	struct BrakingQuery {
+		Section* sections = nullptr; ///< The sections of the call, BS.
+		int count = 0;				 ///< Their number, Blocks.
+		double fromSpeed = 0.0;		 ///< V1 in m/s.
+		double toSpeed = 0.0;		 ///< V2 in m/s.
+		double target = 0.0;		 ///< X0 in metres.
+		double cutoff = 0.0;		 ///< cutoff in metres.
+	};
+
+	/// An empty cache outside a step.
+	TrainStepCache() = default;
+	/// An empty cache outside a step, whatever the other one holds.
+	TrainStepCache(const TrainStepCache&);
+	/// Empties the cache and leaves the step, whatever the other one holds.
+	TrainStepCache& operator=(const TrainStepCache&);
+
+	/// Starts step `step` of the run. The results of the step that ended become those of the step before when `step` follows it,
+	/// and are dropped otherwise.
+	void beginStep(int step);
+	/// Ends the step. Until the next beginStep the cache finds nothing and keeps nothing.
+	void endStep();
+	/// True when query was answered in this step or in the step before; start receives that answer.
+	bool findBrakingStart(const BrakingQuery& query, double& start);
+	/// Keeps start as the answer to query in this step. Does nothing outside a step.
+	void storeBrakingStart(const BrakingQuery& query, double start);
+
+private:
+	struct BrakingEntry {
+		BrakingQuery query;
+		double start = 0.0;
+	};
+	std::vector<BrakingEntry> m_brakingStarts, m_previousBrakingStarts;
+	int m_step = 0;
+	bool m_inStep = false, m_hasStep = false;
+};
+
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -563,9 +607,15 @@ public:
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
 	/// When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead.
-	/// Virtual so that a test can make the lookup fail.
+	/// Within a step the result can come from stepCache. Virtual so that a test can make the lookup fail.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks,
 		double cutoff = std::numeric_limits<double>::infinity());
+
+	/// BrakDist_Block without stepCache.
+	double uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff);
+
+	/// The results that the train reuses within the steps of a run.
+	TrainStepCache stepCache;
 
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
 	/// movement could pass the last point where it can still brake for the entry.
