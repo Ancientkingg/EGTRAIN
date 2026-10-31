@@ -2677,8 +2677,11 @@ void markSectionIds(const RunInfrastructure& infra, std::list<std::string>::cons
 	}
 }
 
-// Sets flags[h] to the mark of the ID of section h of route routeIndex.
+// Sets flags[h] to the mark of the ID of section h of route routeIndex. The routes must be numbered since they last changed.
 void setRouteFlags(const RunInfrastructure& infra, int routeIndex, const std::vector<char>& marks, std::vector<char>& flags) {
+	assert(static_cast<std::size_t>(routeIndex) < infra.routeSectionNumbers.size()
+		&& infra.routeSectionNumbers[static_cast<std::size_t>(routeIndex)].size()
+			== static_cast<std::size_t>(infra.routes[static_cast<std::size_t>(routeIndex)].N_Block_Sections));
 	const std::vector<int>& numbers = infra.routeSectionNumbers[static_cast<std::size_t>(routeIndex)];
 	flags.resize(numbers.size());
 	for (std::size_t h = 0; h < numbers.size(); ++h)
