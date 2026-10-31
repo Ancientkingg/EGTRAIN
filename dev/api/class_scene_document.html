@@ -168,6 +168,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ae81e4460eb27933960887d597c5cd54c"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while a run uses the model.  <br /></td></tr>
 <tr class="memitem:a5f258ce51748d9eab4961ef605f4ad74" id="r_a5f258ce51748d9eab4961ef605f4ad74"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a5f258ce51748d9eab4961ef605f4ad74">revision</a> () const</td></tr>
 <tr class="memdesc:a5f258ce51748d9eab4961ef605f4ad74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Grows by one with every <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a> and <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, never otherwise.  <br /></td></tr>
+<tr class="memitem:a44806ad0038de63b65a9aa0634c4f709" id="r_a44806ad0038de63b65a9aa0634c4f709"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#a44806ad0038de63b65a9aa0634c4f709">modelGeneration</a> () const</td></tr>
 <tr class="memitem:a277eb15f126e421527334bc3de106810" id="r_a277eb15f126e421527334bc3de106810"><td class="memItemLeft">const QString &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a277eb15f126e421527334bc3de106810">lastChangeLabel</a> () const</td></tr>
 <tr class="memdesc:a277eb15f126e421527334bc3de106810"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the latest <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a>, such as "Edit case settings"; empty before the first one.  <br /></td></tr>
 <tr class="memitem:aa29cf748032512bdadf3efa930a589b4" id="r_aa29cf748032512bdadf3efa930a589b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa29cf748032512bdadf3efa930a589b4">replace</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> newModel, bool dirty)</td></tr>
@@ -563,6 +564,32 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a44806ad0038de63b65a9aa0634c4f709" name="a44806ad0038de63b65a9aa0634c4f709"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44806ad0038de63b65a9aa0634c4f709">&#9670;&#160;</a></span>modelGeneration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">quint64 SceneDocument::modelGeneration </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Grows with every <a class="el" href="#aa29cf748032512bdadf3efa930a589b4" title="Takes another model: a scene that is opened or created. dirty tells whether it differs from what is s...">replace()</a>, <a class="el" href="#a5c44c66b76b64e0bd5fd4f95f2017385">restore()</a>, <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> and <a class="el" href="#a6b9805cf3a1c8f692acbf4aa6b4650ae">mutableModel()</a>, so it changes whenever the model can have changed, also by a write that is not an edit. A result computed from the model, such as the validation that <a class="el" href="class_validation_panel.html">ValidationPanel</a> shows, is current while this stays the same. </p>
+
+</div>
+</div>
 <a id="a6b9805cf3a1c8f692acbf4aa6b4650ae" name="a6b9805cf3a1c8f692acbf4aa6b4650ae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6b9805cf3a1c8f692acbf4aa6b4650ae">&#9670;&#160;</a></span>mutableModel()</h2>
 
@@ -585,7 +612,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The scene for a write that is not an edit by a panel: the loaded data that <a class="el" href="class_validation_panel.html">ValidationPanel</a> derives, the units that <a class="el" href="class_train_unit_source_linker.html">TrainUnitSourceLinker</a> reloads from their files, what <a class="el" href="class_scene_session.html">SceneSession</a> records when it saves, the default scenario that the window sets when it opens a scene without one, and the setup of tests, such as the historical incident scopes of tests/e2e/EditorSmoke.cpp, which no panel can make. A panel, and the infrastructure facets through <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a>, edit through <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a>. A caller that changes what the user authored calls <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> afterwards. </p>
+<p>The scene for a write that is not an edit by a panel: the units that <a class="el" href="class_train_unit_source_linker.html">TrainUnitSourceLinker</a> reloads from their files, what <a class="el" href="class_scene_session.html">SceneSession</a> records when it saves, the default scenario that the window sets when it opens a scene without one, and the setup of tests, such as the historical incident scopes of tests/e2e/EditorSmoke.cpp, which no panel can make. A panel, and the infrastructure facets through <a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a>, edit through <a class="el" href="#a19d593b9d99483a0468c0c17409cb2c8">edit()</a>. A caller that changes what the user authored calls <a class="el" href="#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">markChanged()</a> afterwards. Every call counts as a change for <a class="el" href="#a44806ad0038de63b65a9aa0634c4f709">modelGeneration()</a>, so a caller uses the reference for the write at hand and does not keep it. </p>
 
 </div>
 </div>

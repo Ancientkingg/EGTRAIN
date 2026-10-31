@@ -1,47 +1,51 @@
 <map id="IncidentPanel::refreshTargets" name="IncidentPanel::refreshTargets">
-<area shape="rect" id="Node000001" title="Lists the choices of targets of the selected incident again." alt="" coords="5,195,215,222"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="274,55,464,82"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,192,329,88,327,93,139,196"/>
-<area shape="rect" id="Node000004" href="$class_incident_panel.html#a4a9dda1a9168404be9f1d7b5d91358c0" title=" " alt="" coords="265,156,472,184"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,192,259,185,254,188,208,196"/>
-<area shape="rect" id="Node000005" href="$_editor_rules_8cpp.html#af6beae9f638abee866f8d5e82e649a6e" title=" " alt="" coords="287,232,451,260"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="210,220,274,231,269,233,211,226"/>
-<area shape="rect" id="Node000017" href="$class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce" title="The time in seconds over which the occurrences of a service are counted. The panel must have a docume..." alt="" coords="263,284,475,328"/>
-<area shape="poly" id="edge28_Node000001_Node000017" title=" " alt="" coords="144,220,264,269,284,278,279,278,262,274,144,226"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="530,29,734,57"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="463,57,518,53,513,56,465,62"/>
-<area shape="poly" id="edge17_Node000005_Node000005" title=" " alt="" coords="324,231,318,223,323,213,341,207,369,205,399,208,417,216,412,217,398,213,369,211,342,213,327,217,323,223,330,232"/>
-<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="531,105,733,133"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="407,229,440,213,473,193,487,180,496,168,506,156,522,144,539,138,534,140,524,148,510,159,500,171,491,184,477,197,443,218,409,234"/>
-<area shape="rect" id="Node000009" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="547,181,717,209"/>
-<area shape="poly" id="edge11_Node000005_Node000009" title=" " alt="" coords="444,229,544,212,539,213,445,234"/>
-<area shape="rect" id="Node000012" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="558,257,707,285"/>
-<area shape="poly" id="edge18_Node000005_Node000012" title=" " alt="" coords="451,251,545,262,539,263,452,256"/>
-<area shape="rect" id="Node000014" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="523,333,741,361"/>
-<area shape="poly" id="edge22_Node000005_Node000014" title=" " alt="" coords="440,258,476,269,501,281,524,294,588,327,583,326,522,299,498,285,474,274,440,263"/>
-<area shape="rect" id="Node000015" href="$_editor_rules_8cpp.html#a49605e4d111fa3fd34c0b7164d44f69b" title="The signals and then the blocks of the scene, each id once: what a signal failure can have as its tar..." alt="" coords="557,409,707,437"/>
-<area shape="poly" id="edge24_Node000005_Node000015" title=" " alt="" coords="452,255,477,269,489,281,496,294,503,320,509,345,525,371,546,388,572,404,567,403,543,392,521,374,504,347,498,321,491,296,485,285,473,273,451,260"/>
-<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="587,104,580,96,586,87,604,81,632,79,663,81,681,90,676,90,662,86,632,84,605,86,589,91,586,96,592,105"/>
+<area shape="rect" id="Node000001" title="Lists the choices of targets of the selected incident again." alt="" coords="5,299,215,326"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="274,127,464,154"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,296,334,161,333,166,134,300"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#a4a9dda1a9168404be9f1d7b5d91358c0" title=" " alt="" coords="265,260,472,288"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,296,259,289,254,292,208,300"/>
+<area shape="rect" id="Node000005" href="$_editor_rules_8cpp.html#af6beae9f638abee866f8d5e82e649a6e" title=" " alt="" coords="287,336,451,364"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="210,324,274,335,269,337,211,330"/>
+<area shape="rect" id="Node000019" href="$class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce" title="The time in seconds over which the occurrences of a service are counted. The panel must have a docume..." alt="" coords="263,388,475,432"/>
+<area shape="poly" id="edge30_Node000001_Node000019" title=" " alt="" coords="144,324,264,373,284,382,279,382,262,378,144,330"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="530,81,734,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="452,124,535,111,530,114,454,128"/>
+<area shape="poly" id="edge18_Node000005_Node000005" title=" " alt="" coords="324,335,318,327,323,317,341,311,369,309,399,312,417,320,412,321,398,317,369,315,342,317,327,321,323,327,330,336"/>
+<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="531,157,733,185"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="404,333,474,297,600,197,604,194,476,301,407,338"/>
+<area shape="rect" id="Node000010" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="547,297,717,325"/>
+<area shape="poly" id="edge12_Node000005_Node000010" title=" " alt="" coords="451,335,534,325,529,327,452,340"/>
+<area shape="rect" id="Node000013" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="558,373,707,401"/>
+<area shape="poly" id="edge19_Node000005_Node000013" title=" " alt="" coords="451,359,545,374,539,375,452,364"/>
+<area shape="rect" id="Node000016" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="523,449,741,477"/>
+<area shape="poly" id="edge24_Node000005_Node000016" title=" " alt="" coords="447,362,476,373,501,391,524,410,584,443,579,443,522,415,498,395,474,378,446,367"/>
+<area shape="rect" id="Node000017" href="$_editor_rules_8cpp.html#a49605e4d111fa3fd34c0b7164d44f69b" title="The signals and then the blocks of the scene, each id once: what a signal failure can have as its tar..." alt="" coords="557,525,707,553"/>
+<area shape="poly" id="edge26_Node000005_Node000017" title=" " alt="" coords="452,358,477,373,490,387,497,401,503,430,508,458,514,472,525,487,545,503,570,519,565,518,542,508,521,490,509,475,503,460,498,431,492,403,485,390,473,377,451,364"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="587,156,580,148,586,139,604,133,632,131,663,133,681,142,676,142,662,138,632,136,605,138,589,143,586,148,592,157"/>
 <area shape="rect" id="Node000007" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="816,29,1040,57"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="673,102,789,67,831,60,826,62,790,72,675,107"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="672,154,706,139,740,118,754,105,762,92,772,80,788,68,806,62,801,64,791,72,776,83,767,96,758,109,743,123,708,143,674,159"/>
 <area shape="rect" id="Node000008" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="845,105,1011,133"/>
-<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="734,117,832,119,827,120,734,122"/>
+<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="714,154,832,135,827,137,716,159"/>
+<area shape="rect" id="Node000009" href="$class_scene_section_list.html#aa7bb45c2146551ee4791962c90e58acb" title="An empty list." alt="" coords="803,157,1053,185"/>
+<area shape="poly" id="edge11_Node000006_Node000009" title=" " alt="" coords="733,169,790,170,785,172,735,174"/>
 <area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="878,28,870,20,876,11,896,5,928,3,963,5,983,14,978,15,962,10,928,8,897,10,879,15,875,20,883,29"/>
-<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="878,104,870,96,876,87,896,81,928,79,963,81,983,90,978,90,962,86,928,84,897,86,879,91,875,96,883,105"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="587,180,580,172,586,163,604,157,632,155,663,157,681,166,676,166,662,162,632,160,605,162,589,167,586,172,592,181"/>
-<area shape="rect" id="Node000010" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="789,181,1067,209"/>
-<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="718,193,776,195,771,196,718,198"/>
-<area shape="rect" id="Node000011" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="824,257,1032,285"/>
-<area shape="poly" id="edge15_Node000009_Node000011" title=" " alt="" coords="693,207,742,219,861,253,856,253,741,224,693,212"/>
-<area shape="poly" id="edge14_Node000010_Node000010" title=" " alt="" coords="878,180,870,172,876,163,896,157,928,155,963,157,983,167,978,166,962,162,928,160,897,162,879,167,875,172,883,181"/>
-<area shape="poly" id="edge16_Node000011_Node000011" title=" " alt="" coords="878,256,870,248,876,239,896,233,928,231,963,233,983,243,978,242,962,238,928,236,897,238,879,243,875,248,883,258"/>
-<area shape="poly" id="edge21_Node000012_Node000012" title=" " alt="" coords="587,256,580,248,586,239,604,233,632,231,663,233,681,242,676,242,662,238,632,236,605,238,589,243,586,248,592,258"/>
-<area shape="rect" id="Node000013" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="857,333,999,361"/>
-<area shape="poly" id="edge19_Node000012_Node000013" title=" " alt="" coords="693,283,742,295,861,329,856,329,741,300,693,288"/>
-<area shape="poly" id="edge20_Node000013_Node000013" title=" " alt="" coords="878,332,870,324,876,315,896,309,928,307,963,309,983,319,978,318,962,314,928,312,897,314,879,319,875,324,883,334"/>
-<area shape="poly" id="edge23_Node000014_Node000014" title=" " alt="" coords="587,332,580,324,586,315,604,309,632,307,663,309,681,318,676,318,662,314,632,312,605,314,589,319,586,324,592,334"/>
-<area shape="poly" id="edge27_Node000015_Node000015" title=" " alt="" coords="587,408,580,400,586,391,604,385,632,383,663,385,681,394,676,394,662,390,632,388,605,390,589,395,586,400,592,410"/>
-<area shape="rect" id="Node000016" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="875,409,981,437"/>
-<area shape="poly" id="edge25_Node000015_Node000016" title=" " alt="" coords="708,421,862,423,857,423,708,426"/>
-<area shape="poly" id="edge26_Node000016_Node000016" title=" " alt="" coords="878,408,870,400,876,391,896,385,928,383,963,385,983,395,978,394,962,390,928,388,897,390,879,395,875,400,883,410"/>
+<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="878,104,870,96,876,87,896,81,928,79,963,81,983,90,978,91,962,86,928,84,897,86,879,91,875,96,883,105"/>
+<area shape="poly" id="edge13_Node000010_Node000010" title=" " alt="" coords="587,296,580,288,586,279,604,273,632,271,663,273,681,282,676,282,662,278,632,276,605,278,589,283,586,288,592,297"/>
+<area shape="rect" id="Node000011" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="789,233,1067,261"/>
+<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="690,294,789,271,837,264,832,265,790,276,692,299"/>
+<area shape="rect" id="Node000012" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="824,309,1032,337"/>
+<area shape="poly" id="edge16_Node000010_Node000012" title=" " alt="" coords="718,312,811,318,806,319,718,317"/>
+<area shape="poly" id="edge15_Node000011_Node000011" title=" " alt="" coords="878,232,870,224,876,215,896,209,928,207,963,209,983,218,978,218,962,214,928,212,897,214,879,219,875,224,883,233"/>
+<area shape="poly" id="edge17_Node000012_Node000012" title=" " alt="" coords="878,308,870,300,876,291,896,285,928,283,963,285,983,295,978,294,962,290,928,288,897,290,879,295,875,300,883,310"/>
+<area shape="poly" id="edge22_Node000013_Node000013" title=" " alt="" coords="587,372,580,364,586,355,604,349,632,347,663,349,681,358,676,358,662,354,632,352,605,354,589,359,586,364,592,374"/>
+<area shape="rect" id="Node000014" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="857,385,999,413"/>
+<area shape="poly" id="edge20_Node000013_Node000014" title=" " alt="" coords="707,388,844,395,838,396,708,393"/>
+<area shape="rect" id="Node000015" href="$class_scene_section_list.html#aa2d8f5ad8f64cb9731f30d5711d503e2" title="Number of sections." alt="" coords="845,437,1011,465"/>
+<area shape="poly" id="edge23_Node000013_Node000015" title=" " alt="" coords="691,399,790,422,837,434,832,434,789,427,691,404"/>
+<area shape="poly" id="edge21_Node000014_Node000014" title=" " alt="" coords="878,384,870,376,876,367,896,361,928,359,963,361,983,371,978,370,962,366,928,364,897,366,879,371,875,376,883,386"/>
+<area shape="poly" id="edge25_Node000016_Node000016" title=" " alt="" coords="587,448,580,440,586,431,604,425,632,423,663,425,681,434,676,434,662,430,632,428,605,430,589,435,586,440,592,450"/>
+<area shape="poly" id="edge29_Node000017_Node000017" title=" " alt="" coords="587,524,580,516,586,507,604,501,632,499,663,501,681,510,676,510,662,506,632,504,605,506,589,511,586,516,592,526"/>
+<area shape="rect" id="Node000018" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="875,525,981,553"/>
+<area shape="poly" id="edge27_Node000017_Node000018" title=" " alt="" coords="708,537,862,539,857,539,708,542"/>
+<area shape="poly" id="edge28_Node000018_Node000018" title=" " alt="" coords="878,524,870,516,876,507,896,501,928,499,963,501,983,511,978,510,962,506,928,504,897,506,879,511,875,516,883,526"/>
 </map>

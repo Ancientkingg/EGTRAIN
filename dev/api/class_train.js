@@ -1,6 +1,7 @@
 var class_train =
 [
     [ "BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", "struct_train_1_1_braking_arc_cursor" ],
+    [ "BackwardBrakingArcCursor", "struct_train_1_1_backward_braking_arc_cursor.html", "struct_train_1_1_backward_braking_arc_cursor" ],
     [ "AuthorityTarget", "struct_train_1_1_authority_target.html", "struct_train_1_1_authority_target" ],
     [ "Train", "class_train.html#aa05ce5a8ff68dea76d457f4ff2d0d1ba", null ],
     [ "~Train", "class_train.html#aa6129d2e460d7abdfb98939484357f09", null ],
@@ -46,7 +47,7 @@ var class_train =
     [ "fullBrakingStep", "class_train.html#a9ed1da2ac786a644ff5e8fd001c8d4e1", null ],
     [ "gradient_resistances", "class_train.html#adbe28d64621aaaba05c0c29d9617bfd9", null ],
     [ "Initialise_Gibson_Dwell_Time_Parameters", "class_train.html#a46531a8208482388ffc89a5d56a72e10", null ],
-    [ "inverseBrakingStep", "class_train.html#a2683359b1354760a2ec1e27a63a00f8c", null ],
+    [ "inverseBrakingStep", "class_train.html#a445980e7edb09908b9e165d7b934459b", null ],
     [ "isAspectRestrictive", "class_train.html#a6cca849cac9ee24c1670648f588bd5b1", null ],
     [ "isFirstSectionFailed", "class_train.html#a469fabb03f7d48a3748c3bbb8fbe7ba3", null ],
     [ "isStopArc", "class_train.html#a7e2990e6f543460759cde3d36dd6adc3", null ],
@@ -87,6 +88,8 @@ var class_train =
     [ "trainXPosition", "class_train.html#a30e47997e3c286ecf68dc457f1b99a67", null ],
     [ "trajectoryComputationIncludingMovingBlock", "class_train.html#a09e55bf615f21184e4a57367932d4a61", null ],
     [ "trajectorySize", "class_train.html#a35281388c1449d2ffe98bcd5313f2326", null ],
+    [ "uncachedBrakDistBlock", "class_train.html#a6f9098733d2c43d0f6f645ef766ac289", null ],
+    [ "uncachedStationRoutePositionMeters", "class_train.html#a0b3a7a8f412e3936ce21373d135fc1b5", null ],
     [ "updateVirtualCoupling", "class_train.html#a8450b5fe823c45a22d0c6d37700292d4", null ],
     [ "wagons_resistances", "class_train.html#adc2f8f8003ca203b515b9e1e497464b8", null ],
     [ "appliedMaximumSpeedKmh", "class_train.html#a447a44399085cf33d3d4810257462546", null ],
@@ -179,6 +182,7 @@ var class_train =
     [ "StationDisturbance", "class_train.html#ae46c67dc9f9756139a4c4ebedccb41eb", null ],
     [ "stationPlatformNumber", "class_train.html#a88432893996154985b5453c72737a644", null ],
     [ "Stations", "class_train.html#a1a86c435a7d8d57b1741197aec1e5049", null ],
+    [ "stepCache", "class_train.html#a9421f5a0678320b9e7098a1c3239359c", null ],
     [ "stop", "class_train.html#add33181aceefcc5f3dc329c526899545", null ],
     [ "StoppedForServiceStop", "class_train.html#a33ecab227d3ecbbd569baf008f1be225", null ],
     [ "temp", "class_train.html#a7a645c0416337b21b0212cf2a994f2f4", null ],

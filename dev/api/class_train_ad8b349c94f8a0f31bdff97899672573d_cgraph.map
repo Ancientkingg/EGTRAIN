@@ -1,70 +1,78 @@
 <map id="Train::europeanVitalComputerWithListsImproved" name="Train::europeanVitalComputerWithListsImproved">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,159,221,204"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a86fe06b963d9fe57ec35dae0764265aa" title=" " alt="" coords="754,117,914,145"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,165,268,160,524,142,741,133,736,135,524,147,269,165,222,170"/>
-<area shape="rect" id="Node000015" href="$class_train.html#a9af946ff334ff93ba3b214da13ae0050" title=" " alt="" coords="1022,13,1178,41"/>
-<area shape="poly" id="edge43_Node000001_Node000015" title=" " alt="" coords="183,156,268,133,474,96,679,66,1009,33,1004,35,680,72,475,101,269,139,185,161"/>
-<area shape="rect" id="Node000017" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="989,306,1210,334"/>
-<area shape="poly" id="edge27_Node000001_Node000017" title=" " alt="" coords="221,177,413,175,635,177,830,186,899,194,940,204,958,219,966,235,974,252,988,269,1013,285,1041,300,1036,300,1010,289,985,273,970,255,962,238,954,222,937,209,898,199,830,191,635,183,412,181,222,182"/>
-<area shape="rect" id="Node000018" href="$class_train.html#a0b81efa472d1b11149ad5cf4d2588f60" title=" " alt="" coords="269,244,474,271"/>
-<area shape="poly" id="edge31_Node000001_Node000018" title=" " alt="" coords="191,202,309,237,305,240,191,207"/>
-<area shape="rect" id="Node000025" href="$class_train.html#a7e2990e6f543460759cde3d36dd6adc3" title=" " alt="" coords="311,296,432,323"/>
-<area shape="poly" id="edge42_Node000001_Node000025" title=" " alt="" coords="143,202,201,242,270,280,299,293,293,293,268,285,198,246,143,207"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="998,232,1202,259"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="898,142,940,160,955,172,965,184,974,195,988,206,1028,226,1023,226,985,210,970,199,961,187,951,176,937,165,898,148"/>
-<area shape="rect" id="Node000012" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="987,169,1213,197"/>
-<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="909,143,1013,165,1008,165,909,148"/>
-<area shape="rect" id="Node000014" href="$class_train.html#a2683359b1354760a2ec1e27a63a00f8c" title=" " alt="" coords="1006,117,1194,145"/>
-<area shape="poly" id="edge17_Node000002_Node000014" title=" " alt="" coords="914,128,993,130,988,131,915,133"/>
-<area shape="poly" id="edge21_Node000002_Node000015" title=" " alt="" coords="858,114,915,82,986,51,1015,44,1010,46,988,56,917,87,860,119"/>
-<area shape="rect" id="Node000016" href="$class_train.html#a518c09b45fe8dd0df01a9ce6be22c2c7" title=" " alt="" coords="1004,65,1196,93"/>
-<area shape="poly" id="edge24_Node000002_Node000016" title=" " alt="" coords="908,114,1013,95,1008,97,909,119"/>
-<area shape="rect" id="Node000004" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="1290,166,1420,194"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1157,228,1280,199,1285,198,1158,233"/>
-<area shape="rect" id="Node000006" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="1519,208,1647,253"/>
-<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="1202,248,1320,251,1448,247,1506,243,1501,244,1449,252,1320,256,1202,253"/>
-<area shape="rect" id="Node000011" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="1282,318,1427,346"/>
-<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="1143,257,1299,313,1294,312,1142,262"/>
-<area shape="rect" id="Node000005" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="1496,6,1670,50"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1376,163,1533,60,1538,58,1378,168"/>
-<area shape="rect" id="Node000007" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="1718,134,1921,162"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1634,205,1717,172,1741,167,1746,166,1719,177,1635,210"/>
-<area shape="rect" id="Node000008" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="1722,186,1917,214"/>
-<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="1647,220,1704,215,1709,214,1647,225"/>
-<area shape="rect" id="Node000009" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="1748,238,1890,282"/>
-<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="1647,236,1735,249,1730,249,1647,241"/>
-<area shape="rect" id="Node000010" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="1724,306,1915,334"/>
-<area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="1627,251,1719,292,1741,302,1736,301,1717,297,1626,256"/>
-<area shape="poly" id="edge12_Node000012_Node000004" title=" " alt="" coords="1213,179,1277,181,1271,181,1214,184"/>
-<area shape="poly" id="edge15_Node000012_Node000006" title=" " alt="" coords="1196,194,1261,203,1507,226,1501,226,1261,208,1196,200"/>
-<area shape="poly" id="edge16_Node000012_Node000011" title=" " alt="" coords="1157,194,1214,218,1279,261,1331,308,1325,307,1275,265,1212,222,1156,200"/>
-<area shape="rect" id="Node000013" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="1261,65,1448,93"/>
-<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="1174,166,1212,154,1269,127,1317,102,1322,100,1271,132,1214,159,1175,171"/>
-<area shape="poly" id="edge14_Node000013_Node000006" title=" " alt="" coords="1410,90,1450,108,1507,150,1554,197,1549,196,1503,155,1447,113,1409,96"/>
-<area shape="poly" id="edge18_Node000014_Node000004" title=" " alt="" coords="1175,142,1277,164,1272,165,1175,148"/>
-<area shape="poly" id="edge20_Node000014_Node000006" title=" " alt="" coords="1194,123,1317,128,1384,137,1449,152,1497,172,1541,200,1536,199,1495,177,1448,157,1383,142,1316,133,1194,129"/>
-<area shape="poly" id="edge19_Node000014_Node000013" title=" " alt="" coords="1171,114,1271,96,1266,97,1172,119"/>
-<area shape="poly" id="edge23_Node000015_Node000005" title=" " alt="" coords="1177,14,1261,7,1355,3,1449,7,1484,12,1478,13,1448,12,1355,8,1261,12,1178,19"/>
-<area shape="poly" id="edge22_Node000015_Node000013" title=" " alt="" coords="1171,39,1271,61,1266,61,1171,44"/>
-<area shape="poly" id="edge26_Node000016_Node000005" title=" " alt="" coords="1184,62,1261,51,1483,33,1478,35,1261,56,1185,67"/>
-<area shape="poly" id="edge25_Node000016_Node000013" title=" " alt="" coords="1196,76,1248,78,1242,79,1197,81"/>
-<area shape="poly" id="edge29_Node000017_Node000006" title=" " alt="" coords="1137,332,1198,352,1277,368,1320,373,1363,373,1406,367,1447,355,1480,337,1509,314,1555,266,1560,264,1513,318,1483,342,1449,360,1407,372,1364,378,1319,378,1276,374,1197,357,1136,337"/>
-<area shape="poly" id="edge30_Node000017_Node000011" title=" " alt="" coords="1211,323,1269,328,1264,328,1211,328"/>
-<area shape="poly" id="edge28_Node000017_Node000013" title=" " alt="" coords="1154,303,1184,289,1211,269,1230,241,1237,214,1242,185,1259,153,1286,123,1315,103,1320,100,1290,127,1263,156,1247,187,1242,215,1235,243,1215,273,1187,294,1156,308"/>
-<area shape="rect" id="Node000019" href="$class_train.html#a93dc18f9c8625c62958099e9dda4931b" title=" " alt="" coords="522,218,681,246"/>
-<area shape="poly" id="edge32_Node000018_Node000019" title=" " alt="" coords="474,243,509,242,504,243,475,249"/>
-<area shape="rect" id="Node000022" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="526,346,677,374"/>
-<area shape="poly" id="edge37_Node000018_Node000022" title=" " alt="" coords="439,269,475,282,568,338,563,337,473,286,438,274"/>
-<area shape="rect" id="Node000023" href="$class_node.html#ad7a34779cad45d997bfd6d3d8043c75f" title="Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to &#45;1." alt="" coords="553,398,650,426"/>
-<area shape="poly" id="edge40_Node000018_Node000023" title=" " alt="" coords="454,269,476,282,488,295,495,308,501,334,507,359,513,371,524,383,542,397,536,396,520,387,509,374,502,361,496,335,490,310,483,298,472,286,453,274"/>
-<area shape="rect" id="Node000024" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="522,270,681,298"/>
-<area shape="poly" id="edge41_Node000018_Node000024" title=" " alt="" coords="474,267,509,273,504,273,475,272"/>
-<area shape="poly" id="edge34_Node000019_Node000002" title=" " alt="" coords="634,215,784,152,789,150,636,220"/>
-<area shape="rect" id="Node000020" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title="Position in metres of the authority on the route of this train, for an authority on section." alt="" coords="729,218,939,246"/>
-<area shape="poly" id="edge33_Node000019_Node000020" title=" " alt="" coords="681,229,717,232,711,232,682,235"/>
-<area shape="rect" id="Node000021" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="789,320,879,347"/>
-<area shape="poly" id="edge35_Node000019_Node000021" title=" " alt="" coords="649,244,682,256,796,312,790,312,680,261,648,249"/>
-<area shape="poly" id="edge36_Node000021_Node000021" title=" " alt="" coords="794,318,788,311,793,301,809,295,834,293,861,295,878,305,872,304,860,301,834,298,810,300,796,305,793,310,799,320"/>
-<area shape="poly" id="edge39_Node000022_Node000021" title=" " alt="" coords="677,349,771,340,776,340,678,354"/>
-<area shape="poly" id="edge38_Node000022_Node000022" title=" " alt="" coords="562,345,556,337,561,328,576,322,602,320,629,322,645,331,640,331,627,327,602,325,578,327,564,332,561,337,567,347"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a86fe06b963d9fe57ec35dae0764265aa" title=" " alt="" coords="754,222,914,250"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,179,434,185,558,192,682,204,757,218,752,219,681,209,558,198,434,190,222,184"/>
+<area shape="rect" id="Node000019" href="$class_train.html#a9af946ff334ff93ba3b214da13ae0050" title=" " alt="" coords="1284,13,1440,41"/>
+<area shape="poly" id="edge47_Node000001_Node000019" title=" " alt="" coords="164,156,247,124,354,90,475,62,538,54,600,51,835,51,1070,44,1272,34,1266,35,1070,50,835,56,600,56,539,59,476,67,355,95,248,129,167,161"/>
+<area shape="rect" id="Node000021" href="$class_train.html#a384f38f04a720e0a4f01338d6465ac84" title=" " alt="" coords="1252,117,1473,145"/>
+<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="220,161,398,139,499,131,600,128,835,128,1238,130,1233,132,835,134,600,134,500,137,399,145,222,166"/>
+<area shape="rect" id="Node000022" href="$class_train.html#a0b81efa472d1b11149ad5cf4d2588f60" title=" " alt="" coords="269,244,474,271"/>
+<area shape="poly" id="edge35_Node000001_Node000022" title=" " alt="" coords="191,202,309,237,305,240,192,207"/>
+<area shape="rect" id="Node000029" href="$class_train.html#a7e2990e6f543460759cde3d36dd6adc3" title=" " alt="" coords="311,296,432,323"/>
+<area shape="poly" id="edge46_Node000001_Node000029" title=" " alt="" coords="143,202,201,242,270,280,299,293,293,293,268,285,198,247,143,207"/>
+<area shape="rect" id="Node000003" href="$class_train_step_cache.html#a90e8de533bccf16dc6cef5e131c07b34" title="True when query was answered in this step or in the step before; start receives that answer." alt="" coords="992,219,1196,264"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="914,235,979,239,974,239,914,240"/>
+<area shape="rect" id="Node000004" href="$class_train_step_cache.html#a3431b36757ff461b975e5cc7482cddac" title="Keeps start as the answer to query in this step. Does nothing outside a step." alt="" coords="988,289,1200,333"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="893,248,939,260,1010,283,1005,283,938,265,893,253"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a6f9098733d2c43d0f6f645ef766ac289" title="BrakDist_Block without stepCache." alt="" coords="987,168,1201,195"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="903,219,1012,198,1007,200,904,224"/>
+<area shape="rect" id="Node000006" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="1260,221,1464,249"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1167,193,1277,217,1271,217,1167,199"/>
+<area shape="rect" id="Node000015" href="$class_train.html#a34b9e3944d6a89b3ce1310cfa1e07633" title=" " alt="" coords="1249,169,1475,197"/>
+<area shape="poly" id="edge14_Node000005_Node000015" title=" " alt="" coords="1201,179,1236,182,1231,183,1202,185"/>
+<area shape="rect" id="Node000017" href="$class_train.html#a445980e7edb09908b9e165d7b934459b" title=" " alt="" coords="1268,273,1456,301"/>
+<area shape="poly" id="edge20_Node000005_Node000017" title=" " alt="" coords="1178,193,1202,205,1218,218,1227,232,1236,246,1250,258,1265,267,1260,267,1248,262,1232,249,1223,235,1214,222,1200,209,1177,199"/>
+<area shape="poly" id="edge25_Node000005_Node000019" title=" " alt="" coords="1107,165,1164,110,1204,78,1248,51,1267,46,1272,44,1250,56,1207,82,1167,114,1109,169"/>
+<area shape="rect" id="Node000020" href="$class_train.html#a518c09b45fe8dd0df01a9ce6be22c2c7" title=" " alt="" coords="1266,65,1458,93"/>
+<area shape="poly" id="edge28_Node000005_Node000020" title=" " alt="" coords="1119,165,1177,134,1248,103,1273,98,1278,96,1250,108,1179,139,1121,170"/>
+<area shape="rect" id="Node000007" href="$class_train.html#a57f7e9d2d2b854fa1214fda170635bbc" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="1556,269,1686,297"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1441,247,1543,268,1538,268,1441,252"/>
+<area shape="rect" id="Node000009" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="1790,158,1917,203"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="1447,247,1477,259,1492,271,1501,284,1510,296,1525,306,1577,324,1621,330,1665,324,1718,306,1750,288,1780,264,1826,216,1830,214,1784,268,1753,292,1720,311,1666,329,1621,335,1576,329,1522,311,1506,300,1497,288,1488,275,1474,264,1446,252"/>
+<area shape="rect" id="Node000014" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="1548,217,1694,245"/>
+<area shape="poly" id="edge13_Node000006_Node000014" title=" " alt="" coords="1465,231,1536,232,1530,232,1465,236"/>
+<area shape="rect" id="Node000008" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="1767,6,1940,51"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1686,271,1717,254,1737,229,1745,204,1751,177,1764,144,1793,100,1822,64,1826,61,1797,103,1769,147,1756,178,1750,206,1742,232,1720,258,1687,276"/>
+<area shape="rect" id="Node000010" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="1988,84,2191,111"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1904,155,1987,122,2011,117,2016,115,1989,127,1905,160"/>
+<area shape="rect" id="Node000011" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="1992,136,2187,163"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="1917,169,1979,164,1974,165,1918,175"/>
+<area shape="rect" id="Node000012" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="2018,187,2161,232"/>
+<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="1917,185,2006,199,2000,199,1917,191"/>
+<area shape="rect" id="Node000013" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="1994,256,2185,283"/>
+<area shape="poly" id="edge12_Node000009_Node000013" title=" " alt="" coords="1897,201,1989,242,2011,251,2006,251,1987,247,1897,206"/>
+<area shape="poly" id="edge15_Node000015_Node000007" title=" " alt="" coords="1447,195,1477,207,1492,219,1502,231,1511,243,1525,254,1544,265,1539,265,1522,258,1507,247,1497,234,1488,223,1474,212,1446,200"/>
+<area shape="poly" id="edge18_Node000015_Node000009" title=" " alt="" coords="1475,180,1777,180,1772,181,1476,185"/>
+<area shape="poly" id="edge19_Node000015_Node000014" title=" " alt="" coords="1441,195,1536,215,1530,215,1441,200"/>
+<area shape="rect" id="Node000016" href="$class_train.html#ab5547152846ad249a7121a1678375531" title=" " alt="" coords="1527,65,1715,93"/>
+<area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="1435,166,1474,154,1533,127,1582,102,1587,100,1535,132,1476,159,1437,171"/>
+<area shape="poly" id="edge17_Node000016_Node000009" title=" " alt="" coords="1671,91,1720,108,1801,150,1796,150,1718,113,1671,96"/>
+<area shape="poly" id="edge21_Node000017_Node000007" title=" " alt="" coords="1456,283,1543,284,1537,284,1457,288"/>
+<area shape="poly" id="edge24_Node000017_Node000009" title=" " alt="" coords="1393,299,1455,324,1537,347,1583,354,1629,355,1674,349,1718,335,1755,311,1786,280,1812,246,1832,217,1836,214,1817,249,1790,283,1758,315,1720,340,1676,355,1629,361,1582,359,1536,352,1453,329,1392,304"/>
+<area shape="poly" id="edge22_Node000017_Node000016" title=" " alt="" coords="1449,270,1474,258,1524,197,1597,106,1602,104,1529,201,1477,262,1451,275"/>
+<area shape="rect" id="Node000018" href="$struct_train_1_1_backward_braking_arc_cursor.html#a613d11bd1a71875136978b58f68829f8" title="The arc under head, or null." alt="" coords="1523,422,1719,467"/>
+<area shape="poly" id="edge23_Node000017_Node000018" title=" " alt="" coords="1381,299,1443,347,1525,401,1550,416,1544,415,1522,405,1440,351,1380,304"/>
+<area shape="poly" id="edge27_Node000019_Node000008" title=" " alt="" coords="1440,14,1523,7,1621,3,1719,7,1754,12,1749,13,1718,12,1621,8,1524,12,1441,19"/>
+<area shape="poly" id="edge26_Node000019_Node000016" title=" " alt="" coords="1435,39,1536,61,1531,61,1435,44"/>
+<area shape="poly" id="edge30_Node000020_Node000008" title=" " alt="" coords="1446,62,1523,51,1753,33,1748,34,1524,56,1447,67"/>
+<area shape="poly" id="edge29_Node000020_Node000016" title=" " alt="" coords="1459,76,1514,78,1509,79,1459,82"/>
+<area shape="poly" id="edge33_Node000021_Node000009" title=" " alt="" coords="1473,137,1719,160,1777,169,1772,170,1718,166,1473,142"/>
+<area shape="poly" id="edge34_Node000021_Node000014" title=" " alt="" coords="1435,143,1476,155,1534,180,1586,210,1580,209,1532,185,1474,160,1435,148"/>
+<area shape="poly" id="edge32_Node000021_Node000016" title=" " alt="" coords="1434,114,1536,96,1531,97,1435,119"/>
+<area shape="rect" id="Node000023" href="$class_train.html#a93dc18f9c8625c62958099e9dda4931b" title=" " alt="" coords="522,270,681,298"/>
+<area shape="poly" id="edge36_Node000022_Node000023" title=" " alt="" coords="474,267,509,273,504,274,475,272"/>
+<area shape="rect" id="Node000026" href="$_signalling_level_8h.html#ab08ef98cad36a5df962e8d6d677a2c9a" title=" " alt="" coords="526,398,677,426"/>
+<area shape="poly" id="edge41_Node000022_Node000026" title=" " alt="" coords="452,269,476,282,493,301,502,320,509,339,524,360,561,391,556,390,520,363,505,342,497,322,489,304,472,286,452,275"/>
+<area shape="rect" id="Node000027" href="$class_node.html#ad7a34779cad45d997bfd6d3d8043c75f" title="Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to &#45;1." alt="" coords="553,322,650,350"/>
+<area shape="poly" id="edge44_Node000022_Node000027" title=" " alt="" coords="437,269,475,282,499,294,523,307,542,317,537,317,521,312,497,299,473,287,437,275"/>
+<area shape="rect" id="Node000028" href="$class_train.html#a5fc5143e0d84fee869df7af936bc20aa" title=" " alt="" coords="522,218,681,246"/>
+<area shape="poly" id="edge45_Node000022_Node000028" title=" " alt="" coords="474,244,509,242,504,243,475,249"/>
+<area shape="poly" id="edge38_Node000023_Node000002" title=" " alt="" coords="671,267,751,253,746,254,673,272"/>
+<area shape="rect" id="Node000024" href="$class_train.html#a82dd6ebdc170d20a58e48ce77c2f22df" title="Position in metres of the authority on the route of this train, for an authority on section." alt="" coords="729,274,939,302"/>
+<area shape="poly" id="edge37_Node000023_Node000024" title=" " alt="" coords="681,283,717,286,711,286,682,288"/>
+<area shape="rect" id="Node000025" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="789,374,879,402"/>
+<area shape="poly" id="edge39_Node000023_Node000025" title=" " alt="" coords="649,296,682,308,797,367,792,366,680,313,649,301"/>
+<area shape="poly" id="edge40_Node000025_Node000025" title=" " alt="" coords="794,373,788,365,793,356,809,350,834,348,861,350,878,359,872,359,860,355,834,353,810,355,796,360,793,365,799,375"/>
+<area shape="poly" id="edge43_Node000026_Node000025" title=" " alt="" coords="677,402,771,395,776,394,678,407"/>
+<area shape="poly" id="edge42_Node000026_Node000026" title=" " alt="" coords="562,397,556,389,561,380,576,374,602,372,629,374,645,383,640,383,627,379,602,377,578,379,564,384,561,389,567,399"/>
 </map>

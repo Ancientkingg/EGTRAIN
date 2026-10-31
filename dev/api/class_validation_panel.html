@@ -156,6 +156,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2f3b49690f7763b6f127ebe949918514" id="r_a2f3b49690f7763b6f127ebe949918514"><td class="memItemLeft">QLabel *&#160;</td><td class="memItemRight"><a class="el" href="#a2f3b49690f7763b6f127ebe949918514">statusLabel</a> () const</td></tr>
 <tr class="memdesc:a2f3b49690f7763b6f127ebe949918514"><td class="mdescLeft">&#160;</td><td class="mdescRight">The summary of the diagnostics for the status bar (see setAdvancedDetails); empty when there is nothing to report.  <br /></td></tr>
 <tr class="memitem:aa32685c968df1b6ac1a6b3f6a08fac51" id="r_aa32685c968df1b6ac1a6b3f6a08fac51"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa32685c968df1b6ac1a6b3f6a08fac51">refresh</a> ()</td></tr>
+<tr class="memitem:a576f3a8e763d5ebfe82c968dc8fc1ff3" id="r_a576f3a8e763d5ebfe82c968dc8fc1ff3"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a576f3a8e763d5ebfe82c968dc8fc1ff3">validationCount</a> () const</td></tr>
+<tr class="memdesc:a576f3a8e763d5ebfe82c968dc8fc1ff3"><td class="mdescLeft">&#160;</td><td class="mdescRight">How often <a class="el" href="#aa32685c968df1b6ac1a6b3f6a08fac51">refresh()</a> has validated the scene. Tests read it to tell a validation from a refresh that reused one.  <br /></td></tr>
 <tr class="memitem:a7829b14276bac3ef68a052d0b58637c2" id="r_a7829b14276bac3ef68a052d0b58637c2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7829b14276bac3ef68a052d0b58637c2">refreshLoadedData</a> ()</td></tr>
 <tr class="memdesc:a7829b14276bac3ef68a052d0b58637c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds the loaded data summary of the scene with the diagnostics again and writes the tree.  <br /></td></tr>
 <tr class="memitem:a0d0c549b58d1239e173dfaff5bb0b16e" id="r_a0d0c549b58d1239e173dfaff5bb0b16e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0d0c549b58d1239e173dfaff5bb0b16e">updateStatus</a> ()</td></tr>
@@ -250,7 +252,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Validates the scene of the document, shows the diagnostics and the loaded data, and says so with <a class="el" href="#a0276d0961cd849d8dbae4fda9b247df1" title="refresh() has written the table, the status and the tree. What depends on the diagnostics follows.">refreshed()</a>. With no scene it clears them. </p>
+<p>Validates the scene of the document, shows the diagnostics and the loaded data, and says so with <a class="el" href="#a0276d0961cd849d8dbae4fda9b247df1" title="refresh() has written the table, the status and the tree. What depends on the diagnostics follows.">refreshed()</a>. With no scene it clears them. The scene is validated again only when its model (<a class="el" href="class_scene_document.html#a44806ad0038de63b65a9aa0634c4f709">SceneDocument::modelGeneration()</a>) or the duration override has changed since the panel last validated it; otherwise the diagnostics of that validation are shown again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -615,6 +617,33 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_validation_panel_a0d0c549b58d1239e173dfaff5bb0b16e_cgraph.svg" width="1159" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a576f3a8e763d5ebfe82c968dc8fc1ff3" name="a576f3a8e763d5ebfe82c968dc8fc1ff3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a576f3a8e763d5ebfe82c968dc8fc1ff3">&#9670;&#160;</a></span>validationCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ValidationPanel::validationCount </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>How often <a class="el" href="#aa32685c968df1b6ac1a6b3f6a08fac51">refresh()</a> has validated the scene. Tests read it to tell a validation from a refresh that reused one. </p>
 
 </div>
 </div>

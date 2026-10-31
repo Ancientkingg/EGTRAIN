@@ -1,0 +1,19 @@
+<map id="TrainStepCache::operator=" name="TrainStepCache::operator=">
+<area shape="rect" id="Node000001" title="Empties the cache and leaves the step, whatever the other one holds." alt="" coords="5,152,201,180"/>
+<area shape="rect" id="Node000002" href="$class_train_step_cache.html#aa35b9e9b22830f8dda1e3399babdca58" title="An empty cache outside a step." alt="" coords="249,144,438,188"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,172,236,174,231,176,202,177"/>
+<area shape="poly" id="edge6_Node000002_Node000001" title=" " alt="" coords="246,158,217,159,215,154,251,156"/>
+<area shape="poly" id="edge9_Node000002_Node000002" title=" " alt="" coords="298,142,296,133,304,124,320,119,343,117,369,119,386,128,381,129,368,125,343,122,321,124,307,129,301,135,303,144"/>
+<area shape="rect" id="Node000003" href="$class_train_step_cache.html#aa470540d6e99c42625b861109a03ff1c" title=" " alt="" coords="495,5,689,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="363,141,415,92,449,66,485,43,505,37,500,40,487,48,452,70,418,96,367,145"/>
+<area shape="rect" id="Node000004" href="$class_train_step_cache.html#a0455f9dc8fac1861851cdd58ff4351d7" title="Ends the step. Until the next beginStep the cache finds nothing and keeps nothing." alt="" coords="501,57,683,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="384,141,432,117,485,94,510,88,505,91,487,99,434,121,386,145"/>
+<area shape="rect" id="Node000005" href="$class_train_step_cache.html#a90e8de533bccf16dc6cef5e131c07b34" title="True when query was answered in this step or in the step before; start receives that answer." alt="" coords="490,109,694,154"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="438,150,478,147,473,148,439,155"/>
+<area shape="rect" id="Node000006" href="$class_train_step_cache.html#a3b0825f380aaf58e61f8c66b725992d9" title="True when a route position (m) of stop stop was kept for the route index route and the stop X x (km);..." alt="" coords="492,178,692,223"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="438,176,480,184,474,185,439,182"/>
+<area shape="rect" id="Node000007" href="$class_train_step_cache.html#a3431b36757ff461b975e5cc7482cddac" title="Keeps start as the answer to query in this step. Does nothing outside a step." alt="" coords="486,248,698,292"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="388,186,487,233,505,242,500,242,485,238,387,191"/>
+<area shape="rect" id="Node000008" href="$class_train_step_cache.html#a031dddb25bd61070a0574be2ca2755bb" title=" " alt="" coords="488,317,696,362"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="363,186,416,244,450,275,487,302,498,310,493,309,485,307,447,279,412,248,361,191"/>
+</map>

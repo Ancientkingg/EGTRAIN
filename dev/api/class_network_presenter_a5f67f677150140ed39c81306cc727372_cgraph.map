@@ -1,36 +1,35 @@
 <map id="NetworkPresenter::showPreview" name="NetworkPresenter::showPreview">
-<area shape="rect" id="Node000001" title="The same, with the selection of the infrastructure panel of options." alt="" coords="5,241,238,269"/>
-<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" title="The preview of the visible tracks of the scene, before normalization." alt="" coords="342,165,477,193"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,238,285,203,329,195,324,197,286,208,168,243"/>
-<area shape="rect" id="Node000012" href="$_track_preview_8cpp.html#a409628b58940d3e2e3bb6e8f9dea9788" title=" " alt="" coords="323,241,496,269"/>
-<area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="238,253,310,254,305,256,238,258"/>
-<area shape="rect" id="Node000013" href="$class_network_presenter.html#a1bdb6293c1982c3cb74603bb6d4263ea" title="Forgets the fit and the selection of the last preview; the preview itself stays." alt="" coords="286,293,533,321"/>
-<area shape="poly" id="edge21_Node000001_Node000013" title=" " alt="" coords="202,267,316,289,311,291,202,272"/>
-<area shape="poly" id="edge9_Node000002_Node000002" title=" " alt="" coords="363,164,356,156,362,147,380,141,409,139,441,141,460,150,455,150,440,146,409,144,381,146,365,151,361,156,368,165"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="581,71,783,98"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,162,505,135,580,107,606,102,601,104,582,112,507,140,443,167"/>
-<area shape="rect" id="Node000006" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="607,122,757,167"/>
-<area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="477,168,594,155,589,157,478,173"/>
-<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="597,192,767,236"/>
-<area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="477,185,584,201,579,202,478,190"/>
-<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="608,309,757,337"/>
-<area shape="poly" id="edge15_Node000002_Node000010" title=" " alt="" coords="477,185,507,192,534,204,560,223,583,247,651,300,646,300,579,250,556,227,532,208,505,197,478,190"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="638,70,631,62,636,52,654,46,682,44,713,46,731,55,725,55,711,52,682,49,655,51,640,56,636,61,643,71"/>
-<area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="831,29,1055,57"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="773,67,839,59,834,61,774,73"/>
-<area shape="rect" id="Node000005" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="1103,131,1268,158"/>
-<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="784,92,1055,123,1090,130,1085,130,1054,128,784,97"/>
-<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="901,28,895,20,900,11,917,5,943,3,971,5,988,14,983,14,970,10,943,8,918,10,904,15,900,20,907,30"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="1144,129,1137,122,1143,112,1159,106,1185,104,1214,107,1231,116,1225,115,1212,112,1185,109,1160,111,1146,116,1143,121,1149,131"/>
-<area shape="poly" id="edge14_Node000007_Node000005" title=" " alt="" coords="749,188,831,167,964,150,1090,145,1084,146,965,155,832,172,750,193"/>
-<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="858,182,1028,227"/>
-<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="767,208,845,208,840,208,768,213"/>
-<area shape="rect" id="Node000009" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="858,252,1028,296"/>
-<area shape="poly" id="edge13_Node000007_Node000009" title=" " alt="" coords="768,231,845,251,840,251,768,236"/>
-<area shape="poly" id="edge12_Node000008_Node000005" title=" " alt="" coords="1028,181,1109,163,1114,162,1029,186"/>
-<area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="638,308,631,300,636,291,654,285,682,283,713,285,731,294,725,294,711,290,682,288,655,290,640,295,636,300,643,310"/>
-<area shape="rect" id="Node000011" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="872,344,1014,372"/>
-<area shape="poly" id="edge16_Node000010_Node000011" title=" " alt="" coords="758,330,859,346,854,346,757,336"/>
-<area shape="poly" id="edge17_Node000011_Node000011" title=" " alt="" coords="902,342,895,335,900,325,917,319,943,317,971,320,988,329,983,328,970,325,943,323,918,325,904,329,900,335,906,345"/>
-<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="363,240,356,232,362,223,380,217,409,215,441,217,460,226,455,226,440,222,409,220,381,222,365,227,361,232,368,241"/>
+<area shape="rect" id="Node000001" title="The same, with the selection of the infrastructure panel of options." alt="" coords="5,276,238,304"/>
+<area shape="rect" id="Node000002" href="$_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" title="The preview of the visible tracks of the scene, before normalization." alt="" coords="342,200,477,228"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,273,285,238,329,230,324,232,286,243,168,278"/>
+<area shape="rect" id="Node000012" href="$_track_preview_8cpp.html#a409628b58940d3e2e3bb6e8f9dea9788" title=" " alt="" coords="323,276,496,304"/>
+<area shape="poly" id="edge18_Node000001_Node000012" title=" " alt="" coords="238,287,310,289,305,290,238,292"/>
+<area shape="rect" id="Node000013" href="$class_network_presenter.html#a1bdb6293c1982c3cb74603bb6d4263ea" title="Forgets the fit and the selection of the last preview; the preview itself stays." alt="" coords="286,328,533,356"/>
+<area shape="poly" id="edge20_Node000001_Node000013" title=" " alt="" coords="202,302,316,324,311,325,202,307"/>
+<area shape="poly" id="edge10_Node000002_Node000002" title=" " alt="" coords="363,199,356,191,362,181,380,175,409,173,441,176,460,185,455,185,440,181,409,179,381,181,365,186,361,191,368,200"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="581,105,783,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,197,505,170,580,142,606,137,601,139,582,147,507,175,443,202"/>
+<area shape="rect" id="Node000007" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="607,157,757,202"/>
+<area shape="poly" id="edge9_Node000002_Node000007" title=" " alt="" coords="477,203,594,190,589,191,478,208"/>
+<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="597,226,767,271"/>
+<area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="477,220,584,235,579,236,477,225"/>
+<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="608,319,757,346"/>
+<area shape="poly" id="edge13_Node000002_Node000010" title=" " alt="" coords="478,219,507,227,534,238,550,248,560,259,583,281,635,312,630,311,579,285,556,263,546,252,532,243,505,232,477,225"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="636,104,628,96,634,87,653,81,682,79,714,81,733,90,728,90,713,86,682,84,654,86,638,91,634,96,641,105"/>
+<area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="844,29,1068,57"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="722,102,831,67,869,60,864,62,832,72,724,107"/>
+<area shape="rect" id="Node000005" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="873,105,1039,133"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="783,117,861,119,855,120,784,122"/>
+<area shape="rect" id="Node000006" href="$class_scene_section_list.html#aa7bb45c2146551ee4791962c90e58acb" title="An empty list." alt="" coords="831,157,1081,185"/>
+<area shape="poly" id="edge8_Node000003_Node000006" title=" " alt="" coords="759,131,867,154,862,154,759,136"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="909,28,902,20,908,11,926,5,956,3,988,5,1007,14,1002,14,987,10,956,8,927,10,911,15,907,20,914,29"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="909,104,902,96,908,87,926,81,956,79,988,81,1007,90,1002,90,987,86,956,84,927,86,911,91,907,96,914,106"/>
+<area shape="rect" id="Node000009" href="$class_scene_section_list.html#aa2d8f5ad8f64cb9731f30d5711d503e2" title="Number of sections." alt="" coords="873,239,1039,266"/>
+<area shape="poly" id="edge12_Node000008_Node000009" title=" " alt="" coords="768,247,860,251,855,251,768,252"/>
+<area shape="poly" id="edge17_Node000010_Node000009" title=" " alt="" coords="723,315,831,281,875,271,880,270,832,286,725,321"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="636,317,628,310,634,300,653,294,682,292,714,294,733,304,728,303,713,300,682,297,654,299,638,304,634,309,641,319"/>
+<area shape="rect" id="Node000011" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="885,319,1027,346"/>
+<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="757,330,872,332,867,333,757,335"/>
+<area shape="poly" id="edge15_Node000011_Node000011" title=" " alt="" coords="909,317,902,310,908,300,926,294,956,292,988,294,1007,304,1002,303,987,300,956,297,927,299,911,304,907,309,914,319"/>
+<area shape="poly" id="edge19_Node000012_Node000012" title=" " alt="" coords="363,275,356,267,362,257,380,251,409,249,441,252,460,261,455,261,440,257,409,255,381,257,365,262,361,267,368,276"/>
 </map>

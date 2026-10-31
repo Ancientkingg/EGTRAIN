@@ -1,0 +1,7 @@
+<map id="Train::uncachedStationRoutePositionMeters" name="Train::uncachedStationRoutePositionMeters">
+<area shape="rect" id="Node000001" title="stationRoutePositionMeters without stepCache." alt="" coords="5,28,212,72"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a22255939ce42a6ec89ecefebac067afc" title="True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty." alt="" coords="277,5,450,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,35,264,31,259,32,213,40"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="260,57,467,102"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,59,247,65,241,66,212,64"/>
+</map>

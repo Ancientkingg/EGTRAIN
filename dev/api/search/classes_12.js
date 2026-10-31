@@ -32,11 +32,12 @@ var searchData=
   ['trainkeylist_29',['TrainKeyList',['../class_train_key_list.html',1,'']]],
   ['trainmovementorder_30',['TrainMovementOrder',['../struct_train_movement_order.html',1,'']]],
   ['trainrunresult_31',['TrainRunResult',['../struct_train_run_result.html',1,'']]],
-  ['trainunitpanel_32',['TrainUnitPanel',['../class_train_unit_panel.html',1,'']]],
-  ['trainunitsourcelinker_33',['TrainUnitSourceLinker',['../class_train_unit_source_linker.html',1,'']]],
-  ['trainvisual_34',['TrainVisual',['../struct_train_visual.html',1,'']]],
-  ['trajectorychartresult_35',['TrajectoryChartResult',['../struct_trajectory_chart_result.html',1,'']]],
-  ['trajectoryendtimeoverride_36',['TrajectoryEndTimeOverride',['../class_trajectory_end_time_override.html',1,'']]],
-  ['trajectorysegment_37',['TrajectorySegment',['../struct_trajectory_segment.html',1,'']]],
-  ['trip_38',['Trip',['../class_trip.html',1,'']]]
+  ['trainstepcache_32',['TrainStepCache',['../class_train_step_cache.html',1,'']]],
+  ['trainunitpanel_33',['TrainUnitPanel',['../class_train_unit_panel.html',1,'']]],
+  ['trainunitsourcelinker_34',['TrainUnitSourceLinker',['../class_train_unit_source_linker.html',1,'']]],
+  ['trainvisual_35',['TrainVisual',['../struct_train_visual.html',1,'']]],
+  ['trajectorychartresult_36',['TrajectoryChartResult',['../struct_trajectory_chart_result.html',1,'']]],
+  ['trajectoryendtimeoverride_37',['TrajectoryEndTimeOverride',['../class_trajectory_end_time_override.html',1,'']]],
+  ['trajectorysegment_38',['TrajectorySegment',['../struct_trajectory_segment.html',1,'']]],
+  ['trip_39',['Trip',['../class_trip.html',1,'']]]
 ];

@@ -1,7 +1,13 @@
 <map id="Train::stationRoutePositionMeters" name="Train::stationRoutePositionMeters">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,28,201,72"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a22255939ce42a6ec89ecefebac067afc" title="True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty." alt="" coords="266,5,438,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,35,253,31,248,32,202,40"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="249,57,456,102"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,59,236,65,231,65,201,64"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,75,201,119"/>
+<area shape="rect" id="Node000002" href="$class_train_step_cache.html#a3b0825f380aaf58e61f8c66b725992d9" title="True when a route position (m) of stop stop was kept for the route index route and the stop X x (km);..." alt="" coords="253,5,452,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,72,257,53,253,56,187,76"/>
+<area shape="rect" id="Node000003" href="$class_train_step_cache.html#a031dddb25bd61070a0574be2ca2755bb" title=" " alt="" coords="249,75,457,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,94,236,96,231,98,202,100"/>
+<area shape="rect" id="Node000004" href="$class_train.html#a0b3a7a8f412e3936ce21373d135fc1b5" title="stationRoutePositionMeters without stepCache." alt="" coords="250,144,456,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,117,258,139,252,140,186,123"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a22255939ce42a6ec89ecefebac067afc" title="True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty." alt="" coords="522,122,695,150"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="456,151,510,147,504,148,457,157"/>
+<area shape="rect" id="Node000006" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="505,173,712,218"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="456,176,492,182,487,182,456,181"/>
 </map>

@@ -77,7 +77,7 @@ var searchData=
   ['copyof_74',['copyOf',['../struct_train_colour_input.html#ab91bf4346578941cc371ff4dff2e469e',1,'TrainColourInput']]],
   ['corridor_75',['corridor',['../struct_blocking_time_scope_choices_1_1_route.html#aa6cd05f89c5ed22c119b26b56de7e429',1,'BlockingTimeScopeChoices::Route::corridor'],['../struct_completed_route.html#a9b370de0a822e6e13dbe59bd27acfbfa',1,'CompletedRoute::corridor'],['../struct_scene_route.html#a28d105306073eaaf2e61ba844bcf54d8',1,'SceneRoute::corridor'],['../class_route.html#a7e8d54350d689d09e1cceebed3aefb18',1,'Route::corridor']]],
   ['corridors_76',['corridors',['../struct_scene_station_view.html#a0f4da49013ca3113be9f80ff9b9d690c',1,'SceneStationView::corridors'],['../class_stations.html#a9ff06b777f35ef27c7a4fb9aa1f9f5c5',1,'Stations::corridors']]],
-  ['count_77',['count',['../struct_waiting_at_platform.html#a94d8ee65b662aeea8639bb828ededb4e',1,'WaitingAtPlatform::count'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#ab68fd49969bfc0a4d19d8bfbe11a1049',1,'telemetry::TelemetrySender::Shared::count']]],
+  ['count_77',['count',['../struct_train_step_cache_1_1_braking_query.html#acae3bbb1832d91f46e3a6e9f5784b22e',1,'TrainStepCache::BrakingQuery::count'],['../struct_waiting_at_platform.html#a94d8ee65b662aeea8639bb828ededb4e',1,'WaitingAtPlatform::count'],['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#ab68fd49969bfc0a4d19d8bfbe11a1049',1,'telemetry::TelemetrySender::Shared::count']]],
   ['counter_78',['counter',['../class_train.html#afaa3d7513ca2f21af3652b3353bd85ec',1,'Train']]],
   ['counter2_79',['counter2',['../class_train.html#af5aea0a65179c794839e21c74507d9ce',1,'Train']]],
   ['counterfollowingmode_80',['CounterFollowingMode',['../class_train.html#ad7046526cf2637a627f141a4ac054321',1,'Train']]],
@@ -109,8 +109,9 @@ var searchData=
   ['currentstatus_106',['CurrentStatus',['../class_passenger.html#a1619e21c1d94aa6f3645c0f788e95edd',1,'Passenger']]],
   ['curvature_107',['curvature',['../class_arc.html#aee2dfaf5d286bc771fbaf167865bf933',1,'Arc']]],
   ['curvatureradiusm_108',['curvatureRadiusM',['../struct_scene_arc.html#a41083882cd3d8f6f34fd735a2c19c293',1,'SceneArc']]],
-  ['cycleendidentity_109',['cycleEndIdentity',['../struct_area_capacity_input.html#aa7c06c8ec8bca026bbf6ce735b2ae336',1,'AreaCapacityInput::cycleEndIdentity'],['../struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca',1,'CapacityAnalysisResult::cycleEndIdentity']]],
-  ['cycleendoccurrenceid_110',['cycleEndOccurrenceId',['../struct_area_capacity_scope.html#a1495549f4a43d548ae815bde4c87e636',1,'AreaCapacityScope::cycleEndOccurrenceId'],['../struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e',1,'CapacityAnalysisScope::cycleEndOccurrenceId']]],
-  ['cyclepercentage_111',['cyclePercentage',['../struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1',1,'CapacityAnalysisResult']]],
-  ['cycletime_112',['cycleTime',['../struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a',1,'CapacityAnalysisResult']]]
+  ['cutoff_109',['cutoff',['../struct_train_step_cache_1_1_braking_query.html#ab758ae96686b9195dc122dfa15b361ec',1,'TrainStepCache::BrakingQuery']]],
+  ['cycleendidentity_110',['cycleEndIdentity',['../struct_area_capacity_input.html#aa7c06c8ec8bca026bbf6ce735b2ae336',1,'AreaCapacityInput::cycleEndIdentity'],['../struct_capacity_analysis_result.html#ab2bb1531833a9af99bbb185f58d04cca',1,'CapacityAnalysisResult::cycleEndIdentity']]],
+  ['cycleendoccurrenceid_111',['cycleEndOccurrenceId',['../struct_area_capacity_scope.html#a1495549f4a43d548ae815bde4c87e636',1,'AreaCapacityScope::cycleEndOccurrenceId'],['../struct_capacity_analysis_scope.html#ab9f9b770bf1b0a49e5785b511b520e3e',1,'CapacityAnalysisScope::cycleEndOccurrenceId']]],
+  ['cyclepercentage_112',['cyclePercentage',['../struct_capacity_analysis_result.html#a958b3aedd20b9a9fab709c0dc8b744c1',1,'CapacityAnalysisResult']]],
+  ['cycletime_113',['cycleTime',['../struct_capacity_analysis_result.html#aee07229ba2471103406f4c2e87c8882a',1,'CapacityAnalysisResult']]]
 ];

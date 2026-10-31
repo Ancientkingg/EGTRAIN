@@ -83,19 +83,19 @@ var NAVTREEINDEX =
 "class_network_view.html#ad2058481034183e0dc4f6de02c2d1f57",
 "class_result_panel.html#a6e83119b05deb18527df27a9715bbfcc",
 "class_scene_document.html",
-"class_service_panel.html#aa6d1c548a7085e8438dd3e02db14fdab",
-"class_timetable_stops_panel.html#a941b09af5dd90dde75763d75499de31f",
-"class_train_badge_item.html#a79f78c32e9b5c346117bbe19f2f21fa1",
-"classtelemetry_1_1_operation_observation.html#a1fbcf102d04809e8db0b28d075bf6010",
-"functions_func_~.html",
-"namespaceeglog.html",
-"struct_blocking_time_diagram_segment.html#ad18ae100c7c8cf6c983ac38ec5ebcfa0",
-"struct_delay_statistics.html#a8bd62919da301912c0df391d1834a640",
-"struct_network_legend_entry.html#a8346e12d5b870d079927fc339d4c69fa",
-"struct_run_results.html#ac66389ca2da883fde4099d00e4fa0310",
-"struct_scene_route_visit.html",
-"struct_signal_visual.html#a984f5e8fbe8f5abc89e4584d731482a9",
-"struct_train_run_result.html#aa91cf11788218087e5ef699f2f1d5863"
+"class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085",
+"class_time_progress_bar.html#a56ba7072d1a5f2dfae6f6b19ab6a8308",
+"class_train_badge_item.html#a15161bda9d67909b1050b6de7e7f794b",
+"class_validation_panel.html#af865cff10dca3de09804499268e7bde5",
+"functions_func.html",
+"namespace_windows_staging.html#af8fe5bc4930c40af47e2754779c28e07",
+"struct_blocking_time_diagram_input.html#aba3bc68a7bc70098aa3de132c2d202b6",
+"struct_delay_run_snapshot.html",
+"struct_main_window_test_hooks.html#a55e996b61c2bcaa3045854d3f7295d07",
+"struct_run_occurrence_provenance.html#aac5f4f78396d3c9d440998d64b136c1e",
+"struct_scene_passenger_leg.html#a8ec921eadb4f3416d23d87c41b98ab62",
+"struct_semantic_version.html#a363dc8163219b4e5634e4eae71853d2a",
+"struct_train_colour_input.html#a912bb61cf5316a2906d98743559acc3d"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

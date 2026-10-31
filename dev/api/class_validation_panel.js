@@ -19,6 +19,7 @@ var class_validation_panel =
     [ "targetActivated", "class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6", null ],
     [ "tree", "class_validation_panel.html#a37dfe514f08ea3bf6200f013b3e1c840", null ],
     [ "updateStatus", "class_validation_panel.html#a0d0c549b58d1239e173dfaff5bb0b16e", null ],
+    [ "validationCount", "class_validation_panel.html#a576f3a8e763d5ebfe82c968dc8fc1ff3", null ],
     [ "kFileRole", "class_validation_panel.html#a5b3420b159c5af238ca5301657656e58", null ],
     [ "kTargetTypeRole", "class_validation_panel.html#a0b77ddaed7546541308878eddf19968b", null ],
     [ "kTreeTextColumnWidth", "class_validation_panel.html#ab6efcf29fbd25f3899852f857b9b310a", null ]

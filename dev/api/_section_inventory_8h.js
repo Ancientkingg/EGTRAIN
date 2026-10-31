@@ -1,6 +1,7 @@
 var _section_inventory_8h =
 [
     [ "SceneSectionDescriptor", "struct_scene_section_descriptor.html", "struct_scene_section_descriptor" ],
+    [ "SceneSectionList", "class_scene_section_list.html", "class_scene_section_list" ],
     [ "SceneSectionInventory", "struct_scene_section_inventory.html", "struct_scene_section_inventory" ],
     [ "SceneSectionTransition", "struct_scene_section_transition.html", "struct_scene_section_transition" ],
     [ "SceneRouteVisit", "struct_scene_route_visit.html", "struct_scene_route_visit" ],

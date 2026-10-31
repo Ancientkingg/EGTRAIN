@@ -1,0 +1,5 @@
+<map id="SceneSectionInventory::exact" name="SceneSectionInventory::exact">
+<area shape="rect" id="Node000001" title="The one section with this runtime id; null when none or several have it." alt="" coords="5,5,176,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_section_list.html#a5f086fdc312a79eed9063b2287bc9da3" title="The positions of the sections with this runtime id, in order; null when there is none." alt="" coords="224,14,403,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,25,211,27,206,28,176,30"/>
+</map>

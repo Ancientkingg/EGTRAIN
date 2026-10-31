@@ -631,12 +631,15 @@ makes. After the worker has joined, <code class="docutils literal notranslate"><
 The infrastructure and the routes are <code class="docutils literal notranslate"><span class="pre">SimulationRun::infra</span></code>, a <code class="docutils literal notranslate"><span class="pre">RunInfrastructure</span></code>: the
 tracks, connections and stations (<code class="docutils literal notranslate"><span class="pre">blockSets</span></code>, <code class="docutils literal notranslate"><span class="pre">connections</span></code> and <code class="docutils literal notranslate"><span class="pre">stations</span></code>, vectors with
 a fixed number of elements that nothing resizes), the block sections, the detection sections,
-the single-track data, with the zones that <code class="docutils literal notranslate"><span class="pre">singleTrackZone</span></code> derives from it, and the routes.
+the single-track data, with the zones that <code class="docutils literal notranslate"><span class="pre">singleTrackZone</span></code> derives from it, and the routes,
+with a number for each section ID by which the signalling step finds the occupied sections.
 The scene builder replaces them and the previous ones
 stay until then, so <code class="docutils literal notranslate"><span class="pre">resetInfrastructure()</span></code> is a separate call, and a build that fails puts the
 earlier infrastructure back as it was. The canvas keeps <code class="docutils literal notranslate"><span class="pre">Node*</span></code>, <code class="docutils literal notranslate"><span class="pre">Arc*</span></code> and <code class="docutils literal notranslate"><span class="pre">Connections*</span></code> into
 the arrays, so <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> removes its items before a reset or a build. A new member of the
-infrastructure needs a line in <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::reset()</span></code>.
+infrastructure needs a line in <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::reset()</span></code>. <code class="docutils literal notranslate"><span class="pre">setUpRoutesFromScene</span></code> numbers the
+section IDs of the routes with <code class="docutils literal notranslate"><span class="pre">RunInfrastructure::numberRouteSections()</span></code>, and code that changes
+the routes afterwards, as some tests do, calls it again.
 <code class="docutils literal notranslate"><span class="pre">SimulationRun::trains</span></code> is the <code class="docutils literal notranslate"><span class="pre">std::vector&lt;Train&gt;</span></code> of the run, created with the
 number of trains of the scene; <code class="docutils literal notranslate"><span class="pre">Max_N_Reg</span></code> is
 only the limit that validation and the editor enforce on that number. A <code class="docutils literal notranslate"><span class="pre">Train</span></code> keeps

@@ -2,8 +2,11 @@ var _rolling_stock_8h =
 [
     [ "BlockingTimes", "class_blocking_times.html", "class_blocking_times" ],
     [ "BlockingTimeList", "class_blocking_time_list.html", "class_blocking_time_list" ],
+    [ "TrainStepCache", "class_train_step_cache.html", "class_train_step_cache" ],
+    [ "TrainStepCache::BrakingQuery", "struct_train_step_cache_1_1_braking_query.html", "struct_train_step_cache_1_1_braking_query" ],
     [ "Train", "class_train.html", "class_train" ],
     [ "Train::BrakingArcCursor", "struct_train_1_1_braking_arc_cursor.html", "struct_train_1_1_braking_arc_cursor" ],
+    [ "Train::BackwardBrakingArcCursor", "struct_train_1_1_backward_braking_arc_cursor.html", "struct_train_1_1_backward_braking_arc_cursor" ],
     [ "Train::AuthorityTarget", "struct_train_1_1_authority_target.html", "struct_train_1_1_authority_target" ],
     [ "Regional", "_rolling_stock_8h.html#ad3908848dc3f7bfe83edaa7a99358aae", null ],
     [ "BlockingTimeMethod", "_rolling_stock_8h.html#a42eb24b9fabf18008862f9854d5f9f23", [

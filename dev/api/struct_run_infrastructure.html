@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_inf
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:aeb6fae11263ff8a82c7885258c6e6551" id="r_aeb6fae11263ff8a82c7885258c6e6551"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aeb6fae11263ff8a82c7885258c6e6551">numberRouteSections</a> ()</td></tr>
 <tr class="memitem:ab02b49f237201f2f52c106335b33a17c" id="r_ab02b49f237201f2f52c106335b33a17c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab02b49f237201f2f52c106335b33a17c">reset</a> ()</td></tr>
 <tr class="memdesc:ab02b49f237201f2f52c106335b33a17c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every member to the state of a new object.  <br /></td></tr>
 </table><table class="memberdecls">
@@ -162,11 +163,32 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a0cb8232a9dcda2b336d6e4d630db2d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes of the scene, in the order of the scene.  <br /></td></tr>
 <tr class="memitem:adfd0b2d7067ca014bcc1477e97931632" id="r_adfd0b2d7067ca014bcc1477e97931632"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adfd0b2d7067ca014bcc1477e97931632">numRoutes</a> = 0</td></tr>
 <tr class="memdesc:adfd0b2d7067ca014bcc1477e97931632"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of routes.  <br /></td></tr>
+<tr class="memitem:a76b810832fd59bc94f46a7c046819acc" id="r_a76b810832fd59bc94f46a7c046819acc"><td class="memItemLeft">std::unordered_map&lt; std::string, int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a76b810832fd59bc94f46a7c046819acc">sectionIdNumbers</a></td></tr>
+<tr class="memitem:adb224cc455a449a0066cf77dc138b316" id="r_adb224cc455a449a0066cf77dc138b316"><td class="memItemLeft">std::vector&lt; std::vector&lt; int &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adb224cc455a449a0066cf77dc138b316">routeSectionNumbers</a></td></tr>
+<tr class="memdesc:adb224cc455a449a0066cf77dc138b316"><td class="mdescLeft">&#160;</td><td class="mdescRight">For each route, the number of the ID of each of its sections. <a class="el" href="#aeb6fae11263ff8a82c7885258c6e6551">numberRouteSections()</a> fills it.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The infrastructure and the routes that the scene builder makes: the tracks, connections and stations of the network, its block sections and detection sections, the single-track data and the routes of the trains.</p>
 <p>The arrays of tracks, connections and stations have a fixed number of elements that nothing resizes, so the elements of a built infrastructure and the buffers that they hold stay where they are until the infrastructure is reset or replaced. A build that fails puts the earlier infrastructure back as it was. The canvas keeps Node* and Arc* into the tracks and Connections* into the connections, a section keeps TDS* into the detection sections, and the station boundaries keep Section* into the sections. These pointers are valid until the next reset or build, so the window removes its items first. </p>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="aeb6fae11263ff8a82c7885258c6e6551" name="aeb6fae11263ff8a82c7885258c6e6551"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb6fae11263ff8a82c7885258c6e6551">&#9670;&#160;</a></span>numberRouteSections()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunInfrastructure::numberRouteSections </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Numbers the section IDs of the routes again. setUpRoutesFromScene calls it once the routes are built. Code that changes the routes or the ID of a route section afterwards calls it before the next signalling step, so the numbers never describe other routes. </p>
+
+</div>
+</div>
 <a id="ab02b49f237201f2f52c106335b33a17c" name="ab02b49f237201f2f52c106335b33a17c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab02b49f237201f2f52c106335b33a17c">&#9670;&#160;</a></span>reset()</h2>
 
@@ -365,6 +387,37 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The routes of the scene, in the order of the scene. </p>
+
+</div>
+</div>
+<a id="adb224cc455a449a0066cf77dc138b316" name="adb224cc455a449a0066cf77dc138b316"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb224cc455a449a0066cf77dc138b316">&#9670;&#160;</a></span>routeSectionNumbers</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::vector&lt;int&gt; &gt; RunInfrastructure::routeSectionNumbers</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>For each route, the number of the ID of each of its sections. <a class="el" href="#aeb6fae11263ff8a82c7885258c6e6551">numberRouteSections()</a> fills it. </p>
+
+</div>
+</div>
+<a id="a76b810832fd59bc94f46a7c046819acc" name="a76b810832fd59bc94f46a7c046819acc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76b810832fd59bc94f46a7c046819acc">&#9670;&#160;</a></span>sectionIdNumbers</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;std::string, int&gt; RunInfrastructure::sectionIdNumbers</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A number for each distinct section ID of the routes, counted from 0, so that the signalling step marks the occupied and connected sections by number and reads the marks of each route by number. <a class="el" href="#aeb6fae11263ff8a82c7885258c6e6551">numberRouteSections()</a> fills it. </p>
 
 </div>
 </div>

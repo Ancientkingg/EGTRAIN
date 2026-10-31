@@ -23,6 +23,7 @@ var class_scene_document =
     [ "markChanged", "class_scene_document.html#aad2a9b2a6152f239fd50148f7bd6da57", null ],
     [ "markSaved", "class_scene_document.html#ab6ec69f4fb6838a63b144f306e2bd164", null ],
     [ "model", "class_scene_document.html#afb8e17c314a99ffcbcd850b5eaa65b64", null ],
+    [ "modelGeneration", "class_scene_document.html#a44806ad0038de63b65a9aa0634c4f709", null ],
     [ "mutableModel", "class_scene_document.html#a6b9805cf3a1c8f692acbf4aa6b4650ae", null ],
     [ "replace", "class_scene_document.html#aa29cf748032512bdadf3efa930a589b4", null ],
     [ "replaced", "class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2", null ],

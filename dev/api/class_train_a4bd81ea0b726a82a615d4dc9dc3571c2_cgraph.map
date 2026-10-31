@@ -1,19 +1,25 @@
 <map id="Train::Determine_Actual_Station_Arrivals" name="Train::Determine_Actual_Station_Arrivals">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,183,144"/>
-<area shape="rect" id="Node000002" href="$class_train.html#a0d6cd4ebf34919bba10e689f614e7ee0" title=" " alt="" coords="233,13,428,58"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,97,230,67,252,62,247,64,232,72,155,101"/>
-<area shape="rect" id="Node000005" href="$class_train.html#ab6f07eedb95d755447484b05016ee360" title=" " alt="" coords="231,81,431,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="182,109,218,107,213,109,184,114"/>
-<area shape="rect" id="Node000006" href="$class_train.html#a30e47997e3c286ecf68dc457f1b99a67" title=" " alt="" coords="255,133,406,161"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="183,129,242,137,237,138,183,134"/>
-<area shape="rect" id="Node000008" href="$class_train.html#a35281388c1449d2ffe98bcd5313f2326" title="Number of trajectory samples, one per step." alt="" coords="256,185,406,213"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="153,142,231,170,261,181,255,181,230,175,152,147"/>
-<area shape="rect" id="Node000003" href="$class_train.html#a22255939ce42a6ec89ecefebac067afc" title="True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty." alt="" coords="496,5,669,33"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,26,484,25,479,26,429,32"/>
-<area shape="rect" id="Node000004" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="479,57,686,102"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="429,50,466,58,461,59,429,55"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="431,86,466,86,461,87,432,91"/>
-<area shape="rect" id="Node000007" href="$_rolling_stock_8cpp.html#aaa8fab90207fc1867bf5c1f51e8c0e17" title=" " alt="" coords="519,149,646,177"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="407,149,506,158,501,158,407,155"/>
-<area shape="poly" id="edge8_Node000007_Node000007" title=" " alt="" coords="540,148,533,140,538,131,555,125,583,123,612,125,630,134,624,134,611,130,583,128,556,130,542,135,538,140,545,150"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,231,183,275"/>
+<area shape="rect" id="Node000002" href="$class_train.html#a0d6cd4ebf34919bba10e689f614e7ee0" title=" " alt="" coords="233,109,428,154"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,228,273,159,271,164,141,232"/>
+<area shape="rect" id="Node000008" href="$class_train.html#ab6f07eedb95d755447484b05016ee360" title=" " alt="" coords="231,212,431,240"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="182,240,218,238,213,240,184,246"/>
+<area shape="rect" id="Node000009" href="$class_train.html#a30e47997e3c286ecf68dc457f1b99a67" title=" " alt="" coords="255,264,406,292"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="183,260,242,268,237,269,183,265"/>
+<area shape="rect" id="Node000011" href="$class_train.html#a35281388c1449d2ffe98bcd5313f2326" title="Number of trajectory samples, one per step." alt="" coords="256,316,406,344"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="153,273,231,301,261,312,255,312,230,306,152,279"/>
+<area shape="rect" id="Node000003" href="$class_train_step_cache.html#a3b0825f380aaf58e61f8c66b725992d9" title="True when a route position (m) of stop stop was kept for the route index route and the stop X x (km);..." alt="" coords="484,5,683,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="376,106,478,60,498,55,493,57,480,65,378,111"/>
+<area shape="rect" id="Node000004" href="$class_train_step_cache.html#a031dddb25bd61070a0574be2ca2755bb" title=" " alt="" coords="479,75,687,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="428,116,466,113,461,114,430,121"/>
+<area shape="rect" id="Node000005" href="$class_train.html#a0b3a7a8f412e3936ce21373d135fc1b5" title="stationRoutePositionMeters without stepCache." alt="" coords="480,144,686,189"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="429,142,467,150,462,151,429,148"/>
+<area shape="rect" id="Node000006" href="$class_train.html#a22255939ce42a6ec89ecefebac067afc" title="True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty." alt="" coords="753,152,925,180"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="686,164,740,166,735,167,687,169"/>
+<area shape="rect" id="Node000007" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="735,204,943,249"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="681,187,729,200,723,200,681,192"/>
+<area shape="poly" id="edge8_Node000008_Node000007" title=" " alt="" coords="431,224,722,225,717,227,432,229"/>
+<area shape="rect" id="Node000010" href="$_rolling_stock_8cpp.html#aaa8fab90207fc1867bf5c1f51e8c0e17" title=" " alt="" coords="520,287,647,315"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="407,282,507,294,501,294,407,288"/>
+<area shape="poly" id="edge11_Node000010_Node000010" title=" " alt="" coords="540,286,533,278,539,268,556,263,583,261,613,263,630,272,625,272,611,268,583,266,557,268,542,273,539,278,545,288"/>
 </map>

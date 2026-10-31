@@ -1,45 +1,49 @@
 <map id="captureCompletedRun" name="captureCompletedRun">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,296,172,324"/>
-<area shape="poly" id="edge22_Node000001_Node000001" title=" " alt="" coords="48,296,42,287,47,277,63,271,89,269,116,272,132,280,127,282,114,277,88,275,64,277,51,281,48,287,54,295"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,364,172,392"/>
+<area shape="poly" id="edge23_Node000001_Node000001" title=" " alt="" coords="48,364,42,355,47,345,63,339,89,337,116,340,132,348,127,350,114,345,88,343,64,345,51,349,48,355,54,363"/>
 <area shape="rect" id="Node000002" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="220,105,422,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,294,112,263,140,222,175,180,218,144,232,138,228,142,221,148,179,183,144,225,117,266,99,297"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,363,105,320,130,261,167,198,191,169,218,144,230,138,226,142,221,148,195,172,171,201,135,263,110,322,96,365"/>
 <area shape="rect" id="Node000003" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="258,181,384,209"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="105,294,154,257,219,219,245,211,241,214,221,224,157,261,109,297"/>
-<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="220,257,422,285"/>
-<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="171,294,221,287,217,290,173,298"/>
-<area shape="rect" id="Node000011" href="$_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f" title=" " alt="" coords="237,333,404,361"/>
-<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="172,321,224,330,219,332,173,326"/>
-<area shape="rect" id="Node000013" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title="The route as the nodes of its path, with the stations of the scene when it is given." alt="" coords="251,409,390,437"/>
-<area shape="poly" id="edge23_Node000001_Node000013" title=" " alt="" coords="119,322,279,401,275,404,118,327"/>
-<area shape="rect" id="Node000014" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="246,485,396,513"/>
-<area shape="poly" id="edge25_Node000001_Node000014" title=" " alt="" coords="101,321,151,380,184,415,221,446,273,478,268,478,218,451,181,419,147,384,100,327"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="106,362,290,216,289,221,110,365"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="220,325,422,353"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="171,362,221,355,217,358,173,366"/>
+<area shape="rect" id="Node000012" href="$_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f" title=" " alt="" coords="237,401,404,429"/>
+<area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="171,389,224,398,219,400,173,394"/>
+<area shape="rect" id="Node000014" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title="The route as the nodes of its path, with the stations of the scene when it is given." alt="" coords="251,477,390,505"/>
+<area shape="poly" id="edge24_Node000001_Node000014" title=" " alt="" coords="119,390,279,469,275,472,119,395"/>
+<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="246,553,396,581"/>
+<area shape="poly" id="edge26_Node000001_Node000015" title=" " alt="" coords="101,389,151,448,184,483,221,514,273,546,268,547,218,519,181,487,147,452,100,395"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="281,105,275,96,280,87,295,81,321,79,348,81,364,89,359,91,347,86,321,84,297,86,283,91,280,96,286,105"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="281,181,275,172,280,163,295,157,321,155,348,157,364,165,359,167,347,162,321,160,297,162,283,167,280,172,286,181"/>
-<area shape="rect" id="Node000004" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="526,29,637,57"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="361,178,392,163,420,143,435,124,442,105,451,86,468,68,488,56,513,50,509,53,491,61,472,72,455,89,447,107,440,126,424,146,394,168,364,183"/>
-<area shape="rect" id="Node000005" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="496,105,667,133"/>
-<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="361,178,469,143,504,136,500,138,471,148,363,183"/>
-<area shape="rect" id="Node000006" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="490,181,673,209"/>
-<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="384,193,477,194,472,196,385,198"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="539,29,532,20,538,11,555,5,582,3,611,5,628,14,623,14,609,10,582,8,556,10,541,15,538,20,544,29"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="539,104,532,96,538,87,555,81,582,79,611,81,628,90,623,90,609,86,582,84,556,86,541,91,538,96,544,105"/>
-<area shape="poly" id="edge12_Node000006_Node000006" title=" " alt="" coords="539,180,532,172,538,163,555,157,582,155,611,157,628,166,623,166,609,162,582,160,556,162,541,167,538,172,544,181"/>
-<area shape="rect" id="Node000007" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="741,181,919,209"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="673,193,728,195,723,196,674,198"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="787,180,781,172,786,163,803,157,830,155,859,157,876,166,871,166,858,162,830,160,804,162,790,167,786,172,793,181"/>
-<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="281,257,275,248,280,239,295,233,321,231,348,233,364,242,359,242,347,238,321,236,297,238,283,243,280,248,286,257"/>
-<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="470,257,693,285"/>
-<area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="422,269,457,270,452,272,423,274"/>
-<area shape="rect" id="Node000010" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="499,333,664,361"/>
-<area shape="poly" id="edge17_Node000008_Node000010" title=" " alt="" coords="378,283,423,295,524,328,519,329,421,300,378,288"/>
-<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="539,256,532,248,538,239,555,233,582,231,611,233,628,242,623,242,609,238,582,236,556,238,541,243,538,248,544,257"/>
-<area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="539,332,532,324,538,315,555,309,582,307,611,309,628,318,623,318,609,314,582,312,556,314,541,319,538,324,544,334"/>
-<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="281,332,275,324,280,315,295,309,321,307,348,309,364,318,359,318,347,314,321,312,297,314,283,319,280,324,286,333"/>
-<area shape="rect" id="Node000012" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="478,385,685,430"/>
-<area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="384,359,470,380,464,381,384,364"/>
-<area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="281,408,275,400,280,391,295,385,321,383,348,385,364,394,359,394,347,390,321,388,297,390,283,395,280,400,286,409"/>
-<area shape="poly" id="edge28_Node000014_Node000014" title=" " alt="" coords="281,484,275,476,280,467,295,461,321,459,348,461,364,470,359,470,347,466,321,464,297,466,283,471,280,476,286,486"/>
-<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="510,485,653,513"/>
-<area shape="poly" id="edge26_Node000014_Node000015" title=" " alt="" coords="396,497,497,499,492,499,396,502"/>
-<area shape="poly" id="edge27_Node000015_Node000015" title=" " alt="" coords="539,484,532,476,538,467,555,461,582,459,611,461,628,470,623,470,609,466,582,464,556,466,541,471,538,476,544,486"/>
+<area shape="rect" id="Node000004" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="539,29,650,57"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="360,179,392,163,420,143,435,124,442,105,451,86,468,68,495,54,526,47,522,50,497,59,472,72,455,89,447,107,440,126,424,146,394,168,364,183"/>
+<area shape="rect" id="Node000005" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="509,105,680,133"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="360,178,469,143,507,136,503,138,471,148,363,183"/>
+<area shape="rect" id="Node000006" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="504,181,686,209"/>
+<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="384,193,490,194,485,196,385,198"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="550,29,543,20,549,11,566,5,595,3,625,5,643,13,638,15,624,10,595,8,567,10,552,15,548,20,555,29"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="550,105,543,96,549,87,566,81,595,79,625,81,643,90,638,91,624,86,595,84,567,86,552,91,548,96,555,105"/>
+<area shape="poly" id="edge12_Node000006_Node000006" title=" " alt="" coords="550,181,543,172,549,163,566,157,595,155,625,157,643,166,638,166,624,162,595,160,567,162,552,167,548,172,555,181"/>
+<area shape="rect" id="Node000007" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="767,181,945,209"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="686,193,755,194,750,196,687,198"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="811,180,804,172,810,163,828,157,856,155,887,157,905,166,899,166,885,162,856,160,829,162,813,167,810,172,817,181"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="281,325,275,316,280,307,295,301,321,299,348,301,364,310,359,311,347,306,321,304,297,306,283,311,280,316,286,325"/>
+<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="483,257,706,285"/>
+<area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="370,322,469,295,511,288,506,290,471,300,372,327"/>
+<area shape="rect" id="Node000010" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="512,333,677,361"/>
+<area shape="poly" id="edge17_Node000008_Node000010" title=" " alt="" coords="422,340,499,343,494,345,423,345"/>
+<area shape="rect" id="Node000011" href="$class_scene_section_list.html#aa7bb45c2146551ee4791962c90e58acb" title="An empty list." alt="" coords="470,385,719,413"/>
+<area shape="poly" id="edge19_Node000008_Node000011" title=" " alt="" coords="386,351,471,370,514,381,509,382,469,375,386,356"/>
+<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="550,256,543,248,549,239,566,233,595,231,625,233,643,242,638,242,624,238,595,236,567,238,552,243,548,248,555,257"/>
+<area shape="poly" id="edge18_Node000010_Node000010" title=" " alt="" coords="550,332,543,324,549,315,566,309,595,307,625,309,643,318,638,318,624,314,595,312,567,314,552,319,548,324,555,333"/>
+<area shape="poly" id="edge21_Node000012_Node000012" title=" " alt="" coords="281,401,275,392,280,383,295,377,321,375,348,377,364,386,359,386,347,382,321,380,297,382,283,387,280,392,286,401"/>
+<area shape="rect" id="Node000013" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="491,437,698,482"/>
+<area shape="poly" id="edge22_Node000012_Node000013" title=" " alt="" coords="405,426,478,439,473,441,405,431"/>
+<area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="281,476,275,468,280,459,295,453,321,451,348,453,364,462,359,462,347,458,321,456,297,458,283,463,280,468,286,477"/>
+<area shape="poly" id="edge29_Node000015_Node000015" title=" " alt="" coords="281,552,275,544,280,535,295,529,321,527,348,529,364,538,359,538,347,534,321,532,297,534,283,539,280,544,286,554"/>
+<area shape="rect" id="Node000016" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="524,545,666,573"/>
+<area shape="poly" id="edge27_Node000015_Node000016" title=" " alt="" coords="396,562,510,561,505,562,396,568"/>
+<area shape="rect" id="Node000017" href="$class_scene_section_list.html#aa2d8f5ad8f64cb9731f30d5711d503e2" title="Number of sections." alt="" coords="512,597,677,625"/>
+<area shape="poly" id="edge30_Node000015_Node000017" title=" " alt="" coords="396,576,499,595,494,596,396,582"/>
+<area shape="poly" id="edge28_Node000016_Node000016" title=" " alt="" coords="550,544,543,536,549,527,566,521,595,519,625,521,643,530,638,530,624,526,595,524,567,526,552,531,548,536,555,546"/>
 </map>

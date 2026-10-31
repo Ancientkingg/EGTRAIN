@@ -142,7 +142,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9ea4d87189b93a9919aef32f1027a530" id="r_a9ea4d87189b93a9919aef32f1027a530"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="#a9ea4d87189b93a9919aef32f1027a530">scenarioContext</a> () const =0</td></tr>
 <tr class="memdesc:a9ea4d87189b93a9919aef32f1027a530"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the scenario of the latest run, else of the selected scenario, else "(none)".  <br /></td></tr>
 <tr class="memitem:ae120e2e986823c7807d71a4ad8c67702" id="r_ae120e2e986823c7807d71a4ad8c67702"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#ae120e2e986823c7807d71a4ad8c67702">validateScene</a> ()=0</td></tr>
-<tr class="memdesc:ae120e2e986823c7807d71a4ad8c67702"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of the fields that are being edited into the document, then validates the scene.  <br /></td></tr>
 <tr class="memitem:a2cb2d90e2b0fe81c786f327267856175" id="r_a2cb2d90e2b0fe81c786f327267856175"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2cb2d90e2b0fe81c786f327267856175">showLoadedData</a> ()=0</td></tr>
 <tr class="memdesc:a2cb2d90e2b0fe81c786f327267856175"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run review dialog sends the user to the loaded data.  <br /></td></tr>
 <tr class="memitem:a81400b4011c764073f0902d8636a423a" id="r_a81400b4011c764073f0902d8636a423a"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a81400b4011c764073f0902d8636a423a">showValidation</a> ()=0</td></tr>
@@ -846,8 +845,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Takes the text of the fields that are being edited into the document, then validates the scene. </p>
+<p>Takes the text of the fields that are being edited into the document, then refreshes the validation of the scene, which validates it again only when the scene or the duration override changed since its last validation. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

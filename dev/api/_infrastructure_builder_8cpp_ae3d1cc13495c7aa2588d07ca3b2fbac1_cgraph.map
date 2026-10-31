@@ -1,7 +1,9 @@
 <map id="setUpRoutesFromScene" name="setUpRoutesFromScene">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,182,57"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="56,29,50,20,55,11,70,5,94,3,119,5,135,14,129,14,118,10,93,8,71,10,58,15,55,20,61,29"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#ab00806a0045da2b4b6998b99161f76be" title="Forgets the held directions and the derived zones. Call it whenever the limits or the routes change." alt="" coords="230,29,395,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,41,217,43,212,43,182,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="275,28,269,20,274,11,288,5,312,3,338,5,353,14,348,14,337,10,312,8,290,10,277,15,274,20,280,30"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,56,182,84"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="56,56,50,48,55,38,70,32,94,30,119,32,135,41,129,42,118,37,93,35,71,37,58,42,55,47,61,56"/>
+<area shape="rect" id="Node000002" href="$struct_run_infrastructure.html#aeb6fae11263ff8a82c7885258c6e6551" title=" " alt="" coords="230,5,394,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,53,217,46,212,48,169,58"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#ab00806a0045da2b4b6998b99161f76be" title="Forgets the held directions and the derived zones. Call it whenever the limits or the routes change." alt="" coords="230,98,395,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,82,223,94,218,95,170,87"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="275,96,269,89,274,79,288,73,312,71,338,74,353,83,348,82,337,79,312,76,290,78,277,83,274,89,280,98"/>
 </map>

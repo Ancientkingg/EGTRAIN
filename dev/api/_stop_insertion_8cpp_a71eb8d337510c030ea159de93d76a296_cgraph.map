@@ -1,22 +1,24 @@
 <map id="insertSceneStop" name="insertSceneStop">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,68,132,96"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="32,68,27,59,32,49,46,43,69,41,93,44,108,52,102,53,92,49,68,47,47,49,35,53,32,59,38,67"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="32,68,27,59,32,49,46,43,69,41,93,44,108,52,102,54,92,49,68,47,47,49,35,53,32,59,38,67"/>
 <area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#af454f6ad805e4782da5b9ee9d8a43dbe" title=" " alt="" coords="180,29,372,57"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="131,68,185,59,181,62,133,73"/>
 <area shape="rect" id="Node000003" href="$_stop_insertion_8cpp.html#aae8ae02ee8c37ce93108e5fae52bf3ea" title=" " alt="" coords="193,105,359,133"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="132,90,183,101,178,103,132,96"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="240,28,234,20,239,11,253,5,276,3,300,5,315,14,310,14,299,10,276,8,254,10,243,15,240,20,245,29"/>
-<area shape="poly" id="edge13_Node000003_Node000003" title=" " alt="" coords="240,104,234,96,239,87,253,81,276,79,300,81,315,90,310,90,299,86,276,84,254,86,243,91,240,96,245,106"/>
+<area shape="poly" id="edge14_Node000003_Node000003" title=" " alt="" coords="240,104,234,96,239,87,253,81,276,79,300,81,315,90,310,90,299,86,276,84,254,86,243,91,240,96,245,106"/>
 <area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="420,105,609,133"/>
 <area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="359,117,407,119,402,119,359,122"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="474,104,467,96,473,87,489,81,515,79,543,81,559,90,554,90,541,86,515,84,490,86,476,91,473,96,479,106"/>
 <area shape="rect" id="Node000005" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="657,105,860,133"/>
 <area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="610,117,644,119,639,119,610,122"/>
 <area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="717,104,710,96,716,87,732,81,759,79,787,81,804,90,799,90,786,86,758,84,733,86,719,91,715,96,722,106"/>
-<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="908,67,1131,94"/>
-<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="856,102,903,98,909,97,857,107"/>
-<area shape="rect" id="Node000007" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="937,143,1102,170"/>
-<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="860,131,924,143,919,142,860,136"/>
-<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="975,65,968,58,974,48,991,42,1019,40,1050,42,1068,52,1063,51,1049,48,1019,45,992,47,977,52,973,57,980,67"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="975,141,968,134,974,124,991,118,1019,116,1050,118,1068,128,1063,127,1049,124,1019,121,992,123,977,128,973,133,980,143"/>
+<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="921,29,1144,57"/>
+<area shape="poly" id="edge9_Node000005_Node000006" title=" " alt="" coords="798,102,907,67,940,62,945,61,908,72,800,107"/>
+<area shape="rect" id="Node000007" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="950,105,1115,133"/>
+<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="860,117,937,119,932,119,860,122"/>
+<area shape="rect" id="Node000008" href="$class_scene_section_list.html#aa7bb45c2146551ee4791962c90e58acb" title="An empty list." alt="" coords="908,157,1157,185"/>
+<area shape="poly" id="edge13_Node000005_Node000008" title=" " alt="" coords="836,131,943,154,938,154,835,136"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="986,28,978,20,984,11,1003,5,1032,3,1064,5,1083,14,1078,14,1063,10,1032,8,1004,10,988,15,984,20,991,30"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="986,104,978,96,984,87,1003,81,1032,79,1064,81,1083,90,1078,90,1063,86,1032,84,1004,86,988,91,984,96,991,106"/>
 </map>

@@ -46,8 +46,9 @@ var searchData=
   ['framerendered_43',['frameRendered',['../struct_main_window_test_hooks.html#a88f0f3027155ccf07e52459ef09298d8',1,'MainWindowTestHooks']]],
   ['fromnodeid_44',['fromNodeId',['../struct_scene_arc.html#a54120fcd4cc2bf4d4c4a0587748b669b',1,'SceneArc::fromNodeId'],['../struct_scene_connection.html#aa95e28f290c65def8995bdfca13f20f5',1,'SceneConnection::fromNodeId']]],
   ['fromseconds_45',['fromSeconds',['../struct_delay_histogram_class.html#ab795e511235a73cf68cd03e5e29e7e26',1,'DelayHistogramClass']]],
-  ['fromversion_46',['fromVersion',['../struct_scene_migration_step.html#a8a0aa594f3f9a96e2e3f50fd2e407c37',1,'SceneMigrationStep']]],
-  ['frontal_5farea_5fm2_47',['frontal_area_m2',['../struct_scene_train_physical.html#a9ff9445696e925913f49bbd5e136a9f6',1,'SceneTrainPhysical']]],
-  ['frontal_5fwagon_5farea_48',['frontal_wagon_area',['../class_train.html#a5e7cf985e5e6bba1a7bbcdde37fd0ed6',1,'Train']]],
-  ['fs_49',['fs',['../class_arc.html#ae483819071b3305505e054422b7d4c83',1,'Arc']]]
+  ['fromspeed_46',['fromSpeed',['../struct_train_step_cache_1_1_braking_query.html#a32030e416c2a73e583e8422e302a7a99',1,'TrainStepCache::BrakingQuery']]],
+  ['fromversion_47',['fromVersion',['../struct_scene_migration_step.html#a8a0aa594f3f9a96e2e3f50fd2e407c37',1,'SceneMigrationStep']]],
+  ['frontal_5farea_5fm2_48',['frontal_area_m2',['../struct_scene_train_physical.html#a9ff9445696e925913f49bbd5e136a9f6',1,'SceneTrainPhysical']]],
+  ['frontal_5fwagon_5farea_49',['frontal_wagon_area',['../class_train.html#a5e7cf985e5e6bba1a7bbcdde37fd0ed6',1,'Train']]],
+  ['fs_50',['fs',['../class_arc.html#ae483819071b3305505e054422b7d4c83',1,'Arc']]]
 ];
