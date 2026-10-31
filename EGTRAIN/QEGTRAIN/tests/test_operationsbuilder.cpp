@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -100,6 +101,8 @@ private slots:
 	void waitingPassengersAreListedByDeparture();
 	void boardingWithoutPassengerGuiKeepsPlatformList();
 	void brakingPointSearch();
+	void brakingStartCacheMatchesComputation();
+	void brakingStartCacheBelongsToOneTrain();
 	void drawsBrakingCurveThatReachesSpeed();
 	void brakingWithoutReachingSpeed_data();
 	void brakingWithoutReachingSpeed();
@@ -113,6 +116,7 @@ private slots:
 	void linearInverseSolvesActualStartStep();
 	void nonMonotoneInverseRecovers();
 	void brakingLookupMatchesLinearReference();
+	void backwardBrakingCursorMatchesLookup();
 	void parkedTrainIsNotShortOfBrakingPoint();
 	void timetablePointOfStopIgnoresLastPlace();
 	void brakingPhase();
@@ -129,6 +133,7 @@ private slots:
 	void unsetLevelTakesNoChainOfLevel0();
 	void trainStorageHoldsLastBuild();
 	void singleTrackLocks();
+	void signallingFindsSectionsById();
 	void rollingStockMessages();
 	void aspectIsRestrictive_data();
 	void aspectIsRestrictive();
@@ -2044,6 +2049,140 @@ static std::vector<Section> brakingRouteOfTwoArcs(double splitKm, double endKm, 
 	return route;
 }
 
+// Within a step of a run BrakDist_Block answers from the cache of the train with the result of the computation, for the
+// results of that step and of the step before.
+void TestOperationsBuilder::brakingStartCacheMatchesComputation() {
+	const double inf = std::numeric_limits<double>::infinity();
+	const auto same = [](double a, double b) { return std::memcmp(&a, &b, sizeof(double)) == 0; };
+	Train train = brakingTrain(1.0);
+	std::vector<Section> route = brakingRouteOfTwoArcs(4.9, 10.0, 0.02, -0.01);
+	std::vector<Section> flat = brakingRoute(0.0, 10.0, 0.0);
+	struct Query {
+		double from, to, target, cutoff;
+	};
+	std::vector<Query> queries;
+	for (double from : {0.0, 5.0, 12.5, 30.0, 36.1})
+		for (double to : {0.0, 10.0, 20.0})
+			for (double target : {100.0, 2500.0, 4900.0, 7000.0})
+				for (double cutoff : {inf, 0.0, 3000.0})
+					queries.push_back({from, to, target, cutoff});
+	// Without braking the target comes back as it is, so 0 and -0 are two queries.
+	queries.push_back({10.0, 10.0, 0.0, inf});
+	queries.push_back({10.0, 10.0, -0.0, inf});
+	const int all = static_cast<int>(queries.size());
+	// Every call gives the result of the computation, bit for bit.
+	const auto matches = [&](Train& probe, std::vector<Section>& sections) {
+		return std::all_of(queries.begin(), queries.end(), [&](const Query& q) {
+			const double start = probe.BrakDist_Block(q.from, q.to, q.target, sections.data(), 1, q.cutoff);
+			return same(start, probe.uncachedBrakDistBlock(q.from, q.to, q.target, sections.data(), 1, q.cutoff));
+		});
+	};
+	// The number of queries that the cache answers now.
+	const auto held = [&](Train& probe, std::vector<Section>& sections) {
+		return static_cast<int>(std::count_if(queries.begin(), queries.end(), [&](const Query& q) {
+			double start = 0.0;
+			return probe.stepCache.findBrakingStart({sections.data(), 1, q.from, q.to, q.target, q.cutoff}, start);
+		}));
+	};
+
+	// Outside a step every call is computed and nothing is kept.
+	QVERIFY(matches(train, route));
+	train.stepCache.beginStep(1);
+	QCOMPARE(held(train, route), 0);
+	// Within a step the calls are kept, and a repeated call is answered from the cache.
+	QVERIFY(matches(train, route));
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	// The results belong to the sections of the call.
+	QCOMPARE(held(train, flat), 0);
+	QVERIFY(matches(train, flat));
+	train.stepCache.endStep();
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	// The next step answers with the results of the step before.
+	train.stepCache.beginStep(2);
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// A step without calls leaves nothing for the step after it.
+	train.stepCache.beginStep(3);
+	train.stepCache.endStep();
+	train.stepCache.beginStep(4);
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// A run starts at step 0, so a step that does not follow the last one drops the results. A change of the arcs, which only
+	// the builders make, is then seen.
+	const double before = train.uncachedBrakDistBlock(30.0, 0.0, 7000.0, route.data(), 1, inf);
+	route[0].arcs_in_signalling_block_section[1].gradient = 0.03;
+	QVERIFY(!same(before, train.uncachedBrakDistBlock(30.0, 0.0, 7000.0, route.data(), 1, inf)));
+	train.stepCache.beginStep(0);
+	QCOMPARE(held(train, route), 0);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+	// The result does not depend on the values that the signalling writes on the sections in every step, so the results of the
+	// step before still hold after a change of them.
+	for (Section& section : route) {
+		section.code = 0;
+		section.state = SignalState::Red;
+		section.Occupied = true;
+		section.exit_speed = 2.0;
+		for (int k = 0; k < section.total_arcs; ++k) {
+			Arc& arc = section.arcs_in_signalling_block_section[k];
+			arc.speedInBraking = 3.0;
+			arc.signalSpeedLimit = 4.0;
+			arc.endNode.arcSpeedLimit = 5.0;
+		}
+	}
+	train.stepCache.beginStep(1);
+	QCOMPARE(held(train, route), all);
+	QVERIFY(matches(train, route));
+	train.stepCache.endStep();
+}
+
+// The braking-start cache of one train never answers for another train.
+void TestOperationsBuilder::brakingStartCacheBelongsToOneTrain() {
+	const double inf = std::numeric_limits<double>::infinity();
+	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
+	const TrainStepCache::BrakingQuery query{route.data(), 1, 30.0, 0.0, 5000.0, inf};
+	Train strong = brakingTrain(1.0), weak = brakingTrain(0.5);
+	strong.stepCache.beginStep(1);
+	weak.stepCache.beginStep(1);
+	const double strongStart = strong.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1);
+	const double weakStart = weak.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1);
+	// Two trains with the same query get the results of their own braking.
+	QVERIFY(strongStart != weakStart);
+	QCOMPARE_EQ(strongStart, strong.uncachedBrakDistBlock(30.0, 0.0, 5000.0, route.data(), 1, inf));
+	QCOMPARE_EQ(weakStart, weak.uncachedBrakDistBlock(30.0, 0.0, 5000.0, route.data(), 1, inf));
+	// A copy starts empty and outside a step, so a copy with another deceleration computes its own result.
+	Train copy = strong;
+	double start = 0.0;
+	QVERIFY(!copy.stepCache.findBrakingStart(query, start));
+	copy.max_train_decelaration = 0.5;
+	copy.stepCache.beginStep(2);
+	QVERIFY(!copy.stepCache.findBrakingStart(query, start));
+	QCOMPARE_EQ(copy.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), weakStart);
+	// An assignment empties the cache too.
+	weak = strong;
+	weak.max_train_decelaration = 0.5;
+	weak.stepCache.beginStep(2);
+	QVERIFY(!weak.stepCache.findBrakingStart(query, start));
+	QCOMPARE_EQ(weak.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), weakStart);
+	// Within a step an override of BrakDist_Block still takes the call.
+	struct CountingLookup : Train {
+		int calls = 0;
+		double BrakDist_Block(double, double, double, Section*, int, double) override {
+			++calls;
+			return -1;
+		}
+	} counting;
+	static_cast<Train&>(counting) = strong;
+	counting.max_train_speed = 30.0;
+	counting.stepCache.beginStep(1);
+	QVERIFY(counting.needsSingleTrackReservation(1000.0, 10.0, 4000.0, route.data(), 1));
+	QCOMPARE(counting.calls, 1);
+}
+
 struct BrakingRun {
 	std::vector<double> position, speed;
 	std::vector<int> eq;
@@ -2709,6 +2848,107 @@ void TestOperationsBuilder::brakingLookupMatchesLinearReference() {
 	QVERIFY(predicted);
 	QVERIFY(below);
 	QVERIFY(recovered);
+}
+
+// The backward cursor of the inverse braking walk finds the arc of brakingArc for every position, on both routes of a scene and
+// on routes whose arcs overlap, leave gaps, are listed out of order or hold empty and invalid intervals.
+void TestOperationsBuilder::backwardBrakingCursorMatchesLookup() {
+	const double inf = std::numeric_limits<double>::infinity(), nan = std::numeric_limits<double>::quiet_NaN();
+	const auto same = [](double a, double b) { return std::memcmp(&a, &b, sizeof(double)) == 0; };
+	Train train = brakingTrain(1.0);
+	// Looks up the heads in their order with cursor; true when every lookup gives the arc of brakingArc.
+	const auto walk = [&train](Train::BackwardBrakingArcCursor& cursor, Section* sections, int count, const std::vector<double>& heads) {
+		return std::all_of(heads.begin(), heads.end(), [&](double head) {
+			return cursor.find(head, sections, count) == train.brakingArc(head, sections, count);
+		});
+	};
+	// Every arc boundary (m) of the sections with its neighbours, and positions `spacing` m apart from 50 m beyond the highest
+	// boundary to 50 m before the lowest, from high to low.
+	const auto descendingHeads = [inf](const Section* sections, int count, double spacing) {
+		std::vector<double> heads;
+		for (int i = 0; i < count; ++i)
+			for (int k = 0; k < sections[i].total_arcs; ++k) {
+				const Arc& arc = sections[i].arcs_in_signalling_block_section[k];
+				for (double boundary : {arc.startNode.X * 1000, arc.endNode.X * 1000})
+					heads.insert(heads.end(), {std::nextafter(boundary, -inf), boundary, std::nextafter(boundary, inf)});
+			}
+		const double low = *std::min_element(heads.begin(), heads.end()), high = *std::max_element(heads.begin(), heads.end());
+		const int positions = static_cast<int>((high - low + 100) / spacing);
+		for (int k = 0; k <= positions; ++k)
+			heads.push_back(high + 50 - k * spacing);
+		std::sort(heads.begin(), heads.end(), std::greater<>());
+		return heads;
+	};
+
+	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
+	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
+		QFAIL("crossover scene builds");
+	Train& native = defaultRun().trains[0];
+	// The scene has a route in each direction of travel.
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t{2});
+	for (Route& route : defaultRun().infra.routes) {
+		Section* sections = route.sequence_of_block_sections.data();
+		const int count = route.N_Block_Sections;
+		QVERIFY(count > 1);
+		Train::BackwardBrakingArcCursor cursor;
+		QVERIFY(walk(cursor, sections, count, descendingHeads(sections, count, 0.25)));
+		// The arcs of the route are ordered, so the cursor moved back over them.
+		QVERIFY(cursor.ordered);
+		// The inverse braking walk with a cursor takes the steps of the walk without one, from standstill at the end of the route
+		// until it leaves the route. The speed starts again from standstill above 30 m/s.
+		Train::BackwardBrakingArcCursor stepCursor;
+		double nextHead = route.x_of_end_node * 1000 - 10, nextSpeed = 0;
+		int steps = 0;
+		for (bool inside = true; inside; ++steps) {
+			double head = -1, speed = -1, plainHead = -2, plainSpeed = -2;
+			inside = native.inverseBrakingStep(nextHead, nextSpeed, sections, count, head, speed, &stepCursor);
+			QCOMPARE(native.inverseBrakingStep(nextHead, nextSpeed, sections, count, plainHead, plainSpeed), inside);
+			QVERIFY(same(head, plainHead));
+			if (inside) {
+				QVERIFY(same(speed, plainSpeed));
+				nextHead = head;
+				nextSpeed = speed > 30 ? 0 : speed;
+			}
+			QVERIFY(steps < 100000);
+		}
+		QVERIFY(steps > 10);
+		QVERIFY(nextHead < sections[0].start_node.X * 1000 + 30);
+	}
+
+	auto overlap = brakingRouteOfTwoArcs(0.06, 0.1, 0.02, -0.005);
+	overlap[0].arcs_in_signalling_block_section[0].startNode.X = 0.03;
+	overlap[0].arcs_in_signalling_block_section[1].startNode.X = 0;
+	auto gap = brakingRouteOfTwoArcs(0.03, 0.1, 0.02, -0.005);
+	gap[0].arcs_in_signalling_block_section[1].startNode.X = 0.04;
+	std::vector<Section> unordered{brakingRoute(0.10, 0.12, 0.02)[0], brakingRoute(0.13, 0.125, 0.02)[0],
+		brakingRoute(0, 0.01, -0.005)[0], Section{}, brakingRoute(0.01, 0.02, 0.02)[0], brakingRoute(0.02, 0.04, -0.005)[0],
+		brakingRoute(0.05, 0.08, 0.02)[0], brakingRoute(0.08, 0.16, -0.005)[0]};
+	unordered[3].total_arcs = 0;
+	std::vector<Section> crossSection{brakingRoute(0.03, 0.06, 0.02)[0], brakingRoute(0, 0.1, -0.005)[0]};
+	// The arc from 60 m back to 40 m holds nothing, but the arc after it overlaps the first one.
+	std::vector<Section> inverted{brakingRoute(0, 0.05, 0)[0], brakingRoute(0.06, 0.04, 0)[0], brakingRoute(0.04, 0.07, 0)[0]};
+	// Ordered, with an empty section, an arc of no length and gaps.
+	std::vector<Section> ordered{brakingRoute(0, 0.01, 0)[0], Section{}, brakingRoute(0.01, 0.02, 0)[0],
+		brakingRoute(0.03, 0.03, 0)[0], brakingRoute(0.03, 0.05, 0)[0], brakingRoute(0.06, 0.08, 0)[0]};
+	ordered[1].total_arcs = 0;
+	// Ordered up to the second arc, with a later arc over the gap before it or before the first arc.
+	std::vector<Section> coveredGap{brakingRoute(0, 0.01, 0)[0], brakingRoute(0.02, 0.03, 0)[0], brakingRoute(0.005, 0.025, 0)[0]};
+	std::vector<Section> laterStart{brakingRoute(0.01, 0.02, 0)[0], brakingRoute(0.03, 0.04, 0)[0], brakingRoute(0, 0.005, 0)[0]};
+	std::vector<Section> shortArcs;
+	for (int k = 0; k < 80; ++k)
+		shortArcs.push_back(brakingRoute(k * 0.002, (k + 1) * 0.002, 0)[0]);
+	for (std::vector<Section>* route :
+		{&overlap, &gap, &unordered, &crossSection, &inverted, &ordered, &coveredGap, &laterStart, &shortArcs}) {
+		Section* sections = route->data();
+		const int count = static_cast<int>(route->size());
+		Train::BackwardBrakingArcCursor cursor;
+		QVERIFY(walk(cursor, sections, count, descendingHeads(sections, count, 0.5)));
+		// Moves forward, NaN and infinities between moves back.
+		QVERIFY(walk(cursor, sections, count, {150, 70, 75, 30, nan, 25, 45, 5, 60, -inf, 55, inf, 10, 9, 70, 65, 45, 35, 3}));
+	}
 }
 
 void TestOperationsBuilder::parkedTrainIsNotShortOfBrakingPoint() {
@@ -4070,6 +4310,7 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 	defaultRun().infra.routes[0].N_Block_Sections = 8;
 	defaultRun().infra.routes[0].sequence_of_block_sections = std::move(sections);
 	defaultRun().infra.numRoutes = 1;
+	defaultRun().infra.numberRouteSections();
 	defaultRun().blocksOccupied = {defaultRun().infra.routes[0].sequence_of_block_sections[tail].ID,
 		defaultRun().infra.routes[0].sequence_of_block_sections[tail + 1].ID};
 	activateMixedSignallingSystem(defaultRun());
@@ -4077,6 +4318,7 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 	defaultRun().blocksOccupied = savedOccupied;
 	defaultRun().infra.numRoutes = savedRouteCount;
 	defaultRun().infra.routes.swap(savedRoutes);
+	defaultRun().infra.numberRouteSections();
 	return sections;
 }
 
@@ -4293,6 +4535,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 		defaultRun().infra.numRoutes = savedRouteCount;
 		resetSingleTrackLocks(defaultRun());
 		defaultRun().infra.routes.swap(savedRoutes);
+		defaultRun().infra.numberRouteSections();
 	});
 	defaultRun().signallingDelay = 0.0;
 
@@ -4313,6 +4556,7 @@ void TestOperationsBuilder::singleTrackLocks() {
 			arc.gradient = arc.curvature = 0.0;
 		}
 	}
+	defaultRun().infra.numberRouteSections();
 	defaultRun().infra.singleTrackLimits.clear();
 	defaultRun().infra.singleTrackLimits.emplace_back("lock.1", "lock.4", "lock.0", "lock.5");
 	resetSingleTrackLocks(defaultRun());
@@ -4773,6 +5017,113 @@ void TestOperationsBuilder::singleTrackLocks() {
 	QVERIFY(singleTrackZone(defaultRun(), 0, 1).intervals.empty());
 	QCOMPARE(singleTrackZone(defaultRun(), 0, 0).intervals.size(), std::size_t(3));
 	resetSingleTrackLocks(defaultRun());
+}
+
+static bool listHas(const std::list<std::string>& ids, const std::string& id) {
+	return std::find(ids.begin(), ids.end(), id) != ids.end();
+}
+
+// True when every route section has the number of its ID and different IDs have different numbers.
+static bool numbersFollowIds(const RunInfrastructure& infra) {
+	if (infra.routeSectionNumbers.size() != infra.routes.size())
+		return false;
+	std::vector<std::string> idOfNumber(infra.sectionIdNumbers.size());
+	for (const auto& [id, number] : infra.sectionIdNumbers) {
+		const auto index = static_cast<std::size_t>(number);
+		if (number < 0 || index >= idOfNumber.size() || !idOfNumber[index].empty())
+			return false;
+		idOfNumber[index] = id;
+	}
+	for (std::size_t r = 0; r < infra.routes.size(); ++r) {
+		const Route& route = infra.routes[r];
+		const std::vector<int>& numbers = infra.routeSectionNumbers[r];
+		if (numbers.size() != static_cast<std::size_t>(route.N_Block_Sections))
+			return false;
+		for (std::size_t h = 0; h < numbers.size(); ++h) {
+			const auto index = static_cast<std::size_t>(numbers[h]);
+			if (numbers[h] < 0 || index >= idOfNumber.size() || idOfNumber[index] != route.sequence_of_block_sections[h].ID)
+				return false;
+		}
+	}
+	return true;
+}
+
+// The signalling step finds the occupied and the connected sections of each route by the number of their ID. Two routes share
+// a section with a third, and the route against the holder of a single-track limit treats the zone as occupied for itself only.
+// Each route sees exactly the sections whose ID is in the lists, as a comparison of the IDs gives them.
+void TestOperationsBuilder::signallingFindsSectionsById() {
+	// The builder numbers the routes that it builds.
+	const auto built = std::make_unique<SimulationRun>();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(*built, throughScene())));
+	QVERIFY(!built->infra.routes.empty());
+	QVERIFY(numbersFollowIds(built->infra));
+
+	// Sections of level 3, where the activation gives code 0 to the sections that the route sees as occupied and nothing else.
+	const auto makeRoute = [](const std::vector<std::string>& ids, bool reversed) {
+		Route route;
+		route.N_Block_Sections = static_cast<int>(ids.size());
+		route.reversed_direction = reversed;
+		route.sequence_of_block_sections = boundarySections(route.N_Block_Sections);
+		for (std::size_t b = 0; b < ids.size(); ++b) {
+			Section& section = route.sequence_of_block_sections[b];
+			section.ID = ids[b];
+			section.SignallingLevel = 3;
+			section.code = 270;
+		}
+		return route;
+	};
+	const auto run = std::make_unique<SimulationRun>();
+	RunInfrastructure& infra = run->infra;
+	// Route 1 runs against the holder of the limit over z1 and z2, route 2 after it runs with the holder.
+	infra.routes = {makeRoute({"a", "shared", "b"}, false), makeRoute({"shared", "z1", "z2", "c"}, true),
+		makeRoute({"d", "z1", "z2", "shared", "e"}, false)};
+	infra.numRoutes = 3;
+	infra.numberRouteSections();
+	QVERIFY(numbersFollowIds(infra));
+	// One number for an ID that several routes have.
+	QCOMPARE(infra.sectionIdNumbers.size(), std::size_t(8));
+	QCOMPARE(infra.routeSectionNumbers[1][0], infra.routeSectionNumbers[0][1]);
+	QCOMPARE(infra.routeSectionNumbers[2][3], infra.routeSectionNumbers[0][1]);
+	infra.singleTrackLimits.emplace_back("z1", "z2", "z1", "z2");
+	resetSingleTrackLocks(*run);
+	infra.singleTrackHeld = {1};
+
+	// A train of route 0 occupies the shared section. An ID that no route has changes nothing.
+	const std::list<std::string> occupied = {"shared", "elsewhere"};
+	run->blocksOccupied = occupied;
+	activateMixedSignallingSystem(*run);
+	// The sections that route 1 added for itself are gone from the list again.
+	QVERIFY(run->blocksOccupied == occupied);
+	for (int r = 0; r < infra.numRoutes; ++r) {
+		const Route& route = infra.routes[r];
+		const std::vector<std::string>& zone = singleTrackZone(*run, 0, r).sectionIDs;
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			const std::string& id = route.sequence_of_block_sections[h].ID;
+			const bool expected = listHas(occupied, id)
+				|| (route.reversed_direction && std::find(zone.begin(), zone.end(), id) != zone.end());
+			QVERIFY2((route.sequence_of_block_sections[h].code == 0) == expected,
+				("route " + std::to_string(r) + " sees " + id + (expected ? " as occupied" : " as free")).c_str());
+		}
+	}
+
+	// The release clears a connected section and the four sections before it on every route that has it.
+	for (Route& route : infra.routes)
+		for (Section& section : route.sequence_of_block_sections)
+			section.code = 5;
+	const std::list<std::string> connected = {"shared", "elsewhere"};
+	run->blocksConnected = connected;
+	releaseMixedSignallingSystem(*run);
+	QVERIFY(run->blocksConnected == connected);
+	for (int r = 0; r < infra.numRoutes; ++r) {
+		const Route& route = infra.routes[r];
+		for (int h = 0; h < route.N_Block_Sections; ++h) {
+			bool expected = false;
+			for (int k = h; k < route.N_Block_Sections && k <= h + 4; ++k)
+				expected = expected || listHas(connected, route.sequence_of_block_sections[k].ID);
+			QVERIFY2((route.sequence_of_block_sections[h].code == 270) == expected,
+				("route " + std::to_string(r) + " releases " + route.sequence_of_block_sections[h].ID + ": " + (expected ? "yes" : "no")).c_str());
+		}
+	}
 }
 
 // The messages of the rolling stock, passenger and run settings code are messages of the logging core. A sink collects them, because

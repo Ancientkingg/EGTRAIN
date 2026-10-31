@@ -6,6 +6,7 @@
 #include <filesystem>
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
+#include "scene/SectionReference.h"
 #include "simulation/Signalling.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
@@ -30,6 +31,8 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 // The builders write the run of the process. The slots run in the order of their declaration, as the groups of checks did
@@ -56,6 +59,10 @@ private slots:
 	void labelWithIdNamesIdOnce();
 	void ambiguousReferenceKeepsId();
 	void labelsExactlyResolvableReferences();
+	void resolvesReferencesFromIndex_data();
+	void resolvesReferencesFromIndex();
+	void indexAnswersLikeScan();
+	void replacedInventoryAnswersForNewSections();
 	void routeSectionsCarrySectionLevels();
 	void areaLevelsOfLineSections_data();
 	void areaLevelsOfLineSections();
@@ -2631,6 +2638,163 @@ void TestSceneBuilder::labelsExactlyResolvableReferences() {
 				QVERIFY2((sceneLabels.byReference.count(reference) != 0) == (inventory.resolve(reference) != nullptr),
 					("the labels name the sections that resolve() finds: " + scene.name + " " + reference).c_str());
 	}
+}
+
+// Sections whose ids and source blocks overlap in each way that resolve() tells apart.
+static SceneSectionInventory overlappingInventory() {
+	const std::pair<const char*, const char*> idsAndBlocks[] = {
+		// 0: a unique id, and the alias of its block and of its wrapped id.
+		{"@unique@", "unique"},
+		// 1 and 2: one id for two sections, each with its own block.
+		{"@twin@", "twin-a"},
+		{"@twin@", "twin-b"},
+		// 3: an alias only as a wrapped id.
+		{"@alias@", ""},
+		// 4 and 5: the id of the one is the alias of the other.
+		{"plain", ""},
+		{"@plain@", "plain"},
+		// 6: the id is also the block.
+		{"self", "self"},
+		// 7: a switch section.
+		{"@a@-1.000000/@b@-2.000000", ""},
+		// 8: a block whose id has a slash.
+		{"S8", "p/q"},
+	};
+	std::vector<SceneSectionDescriptor> sections;
+	for (const auto& [id, block] : idsAndBlocks) {
+		SceneSectionDescriptor section;
+		section.id = id;
+		section.sourceBlockId = block;
+		sections.push_back(std::move(section));
+	}
+	return {SceneSectionList(std::move(sections))};
+}
+
+void TestSceneBuilder::resolvesReferencesFromIndex_data() {
+	QTest::addColumn<QString>("reference");
+	QTest::addColumn<int>("resolved");
+	QTest::addColumn<int>("exactPosition");
+	QTest::addColumn<bool>("severalMatch");
+	QTest::newRow("unique id") << "@unique@" << 0 << 0 << false;
+	QTest::newRow("block and wrapped id of one section") << "unique" << 0 << -1 << false;
+	QTest::newRow("two sections with one id") << "@twin@" << -1 << -1 << true;
+	QTest::newRow("block of one of them") << "twin-a" << 1 << -1 << false;
+	QTest::newRow("wrapped id of both") << "twin" << -1 << -1 << true;
+	QTest::newRow("wrapped id of one section") << "alias" << 3 << -1 << false;
+	QTest::newRow("id and block of one section") << "self" << 6 << 6 << false;
+	QTest::newRow("id of one section, block of another") << "plain" << -1 << 4 << true;
+	QTest::newRow("switch section") << "@a@-1.000000/@b@-2.000000" << 7 << 7 << false;
+	QTest::newRow("unknown switch section") << "@a@-1.000000/@c@-2.000000" << -1 << -1 << false;
+	// A reference with a slash is only an id, also when it is the id of a block.
+	QTest::newRow("block id with slash") << "p/q" << -1 << -1 << false;
+	// The empty reference resolves to nothing, and it names the sections without a block.
+	QTest::newRow("empty") << "" << -1 << -1 << true;
+	QTest::newRow("unknown") << "nowhere" << -1 << -1 << false;
+}
+
+// resolve(), exact() and ambiguous() give the position the row expects, -1 for none.
+void TestSceneBuilder::resolvesReferencesFromIndex() {
+	QFETCH(QString, reference);
+	QFETCH(int, resolved);
+	QFETCH(int, exactPosition);
+	QFETCH(bool, severalMatch);
+	const SceneSectionInventory inventory = overlappingInventory();
+	const auto position = [&inventory](const SceneSectionDescriptor* section) {
+		return section == nullptr ? -1 : static_cast<int>(section - &inventory.sections[0]);
+	};
+	const std::string id = reference.toStdString();
+	QCOMPARE(position(inventory.resolve(id)), resolved);
+	QCOMPARE(position(inventory.exact(id)), exactPosition);
+	QCOMPARE(inventory.ambiguous(id), severalMatch);
+}
+
+// The scans that the index replaced, as they were: each compares every section with the reference.
+static const SceneSectionDescriptor* scannedExact(const SceneSectionInventory& inventory, const std::string& runtimeId) {
+	const SceneSectionDescriptor* result = nullptr;
+	for (const auto& section : inventory.sections) {
+		if (section.id != runtimeId)
+			continue;
+		if (result != nullptr)
+			return nullptr;
+		result = &section;
+	}
+	return result;
+}
+
+static bool scannedAmbiguous(const SceneSectionInventory& inventory, const std::string& reference) {
+	std::size_t count = 0;
+	const std::string wrapped = nativeRuntimeBlockId(reference);
+	for (const auto& section : inventory.sections) {
+		const bool exactMatch = section.id == reference;
+		const bool baseAlias = reference.find('/') == std::string::npos
+			&& (section.sourceBlockId == reference || section.id == wrapped);
+		if (exactMatch || baseAlias)
+			++count;
+	}
+	return count > 1;
+}
+
+static const SceneSectionDescriptor* scannedResolve(const SceneSectionInventory& inventory, const std::string& reference) {
+	if (reference.empty() || scannedAmbiguous(inventory, reference))
+		return nullptr;
+	if (const auto* section = scannedExact(inventory, reference))
+		return section;
+	if (reference.find('/') != std::string::npos)
+		return nullptr;
+	const std::string wrapped = nativeRuntimeBlockId(reference);
+	const SceneSectionDescriptor* result = nullptr;
+	for (const auto& section : inventory.sections) {
+		if (section.sourceBlockId == reference || section.id == wrapped) {
+			if (result != nullptr)
+				return nullptr;
+			result = &section;
+		}
+	}
+	return result;
+}
+
+// The index answers as the scans did, for the references that name the sections in every way and for some that name none.
+void TestSceneBuilder::indexAnswersLikeScan() {
+	SceneModel wrapped = twoLineScene(1);
+	wrapped.blocks.back().id = "@a.b.0@";
+	std::vector<SceneSectionInventory> inventories = {overlappingInventory()};
+	for (const SceneModel& scene : {stableConnectionScene(), switchChainScene(), shortBlocksScene(), sameIdScene(), wrapped})
+		inventories.push_back(buildSceneSectionInventory(scene));
+	for (const SceneSectionInventory& inventory : inventories) {
+		std::vector<std::string> references = {"", "@", "@@", "/", "nowhere", "@nowhere@"};
+		for (const SceneSectionDescriptor& section : inventory.sections) {
+			const std::string unwrapped = section.id.size() > 2 ? section.id.substr(1, section.id.size() - 2) : section.id;
+			for (const std::string& reference : {section.id, section.sourceBlockId, unwrapped, "@" + section.id + "@",
+					 section.firstBlockId, section.secondBlockId, section.id + "/"})
+				references.push_back(reference);
+		}
+		for (const std::string& reference : references) {
+			QVERIFY2(inventory.resolve(reference) == scannedResolve(inventory, reference), reference.c_str());
+			QVERIFY2(inventory.exact(reference) == scannedExact(inventory, reference), reference.c_str());
+			QVERIFY2(inventory.ambiguous(reference) == scannedAmbiguous(inventory, reference), reference.c_str());
+		}
+	}
+}
+
+// The sections of an inventory cannot change, so its index cannot go stale. An assignment replaces the sections and the index
+// together, and a copy answers with its own sections.
+void TestSceneBuilder::replacedInventoryAnswersForNewSections() {
+	static_assert(!std::is_assignable_v<decltype(SceneSectionInventory().sections[0]), SceneSectionDescriptor>);
+	static_assert(!std::is_assignable_v<decltype(*SceneSectionInventory().sections.begin()), SceneSectionDescriptor>);
+	SceneSectionInventory inventory = buildSceneSectionInventory(stableConnectionScene());
+	QVERIFY(inventory.resolve("alpha.block") != nullptr);
+	inventory = buildSceneSectionInventory(switchChainScene());
+	// The assigned inventory knows its own blocks and no longer those of the first.
+	QVERIFY(inventory.resolve("alpha.block") == nullptr);
+	const SceneSectionDescriptor* block = inventory.resolve("b.block");
+	QVERIFY(block != nullptr);
+	QCOMPARE(block->id, std::string("@b.block@"));
+	QVERIFY(block >= &inventory.sections[0] && block < &inventory.sections[0] + inventory.sections.size());
+	const SceneSectionInventory copy = inventory;
+	const SceneSectionDescriptor* copied = copy.resolve("b.block");
+	QVERIFY(copied != nullptr);
+	QVERIFY(copied >= &copy.sections[0] && copied < &copy.sections[0] + copy.sections.size());
+	QCOMPARE(copied->id, block->id);
 }
 
 // At level 3 the two edges of a diverging switch get one blocking time. A train runs over two crossovers, and the end of the

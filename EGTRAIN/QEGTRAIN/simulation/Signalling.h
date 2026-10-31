@@ -328,7 +328,8 @@ public:
 
 /// Replaces run.infra.routes by the routes of the scene, built from their block IDs. routeDirections[i] above 0 builds route i
 /// forward, below 0 reversed (Route::reversed_direction), and 0 or a missing entry builds it forward when it has one block or
-/// its first block starts at a lower X than its last. A route that the scene marks as reversed also gets reversed_direction.
+/// its first block starts at a lower X than its last. A route that the scene marks as reversed also gets reversed_direction. Then
+/// numbers the section IDs of the routes (RunInfrastructure::numberRouteSections).
 void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
 

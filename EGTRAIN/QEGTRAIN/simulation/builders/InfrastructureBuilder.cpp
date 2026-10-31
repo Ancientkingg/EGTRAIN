@@ -37,6 +37,7 @@ void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std
 			run.infra.routes[i].OriginalRefReversedRoute = run.infra.routes[i].x_of_end_node * 1000.0;
 		}
 	}
+	run.infra.numberRouteSections();
 	EG_LOG(SimSetup, Info) << "\n";
 }
 

@@ -40,9 +40,42 @@ struct SceneSectionDescriptor {
 	bool connectionDerived = false; ///< True for a switch section.
 };
 
+/// The sections of an inventory in their order, read-only. The list indexes them by runtime id and by source block id when it
+/// is made, and since the sections cannot change afterwards, the index always describes them. A copy or an assignment takes
+/// the index with the sections.
+class SceneSectionList {
+public:
+	/// An empty list.
+	SceneSectionList() = default;
+	/// Takes the sections and indexes them.
+	explicit SceneSectionList(std::vector<SceneSectionDescriptor> sections);
+
+	/// The first section.
+	std::vector<SceneSectionDescriptor>::const_iterator begin() const { return m_sections.begin(); }
+	/// Past the last section.
+	std::vector<SceneSectionDescriptor>::const_iterator end() const { return m_sections.end(); }
+	/// Number of sections.
+	std::size_t size() const { return m_sections.size(); }
+	/// True when there is no section.
+	bool empty() const { return m_sections.empty(); }
+	/// The section at a position.
+	const SceneSectionDescriptor& operator[](std::size_t index) const { return m_sections[index]; }
+
+	/// The positions of the sections with this runtime id, in order; null when there is none.
+	const std::vector<std::size_t>* withId(const std::string& id) const;
+	/// The positions of the sections with this source block id, in order; null when there is none. The empty id gives the
+	/// sections without a source block, the switch sections among them.
+	const std::vector<std::size_t>* withSourceBlock(const std::string& blockId) const;
+
+private:
+	std::vector<SceneSectionDescriptor> m_sections;
+	std::unordered_map<std::string, std::vector<std::size_t>> m_byId;
+	std::unordered_map<std::string, std::vector<std::size_t>> m_bySourceBlock;
+};
+
 /// The sections the native builder makes from a scene.
 struct SceneSectionInventory {
-	std::vector<SceneSectionDescriptor> sections; ///< Block sections by track, then switch sections.
+	SceneSectionList sections; ///< Block sections by track, then switch sections.
 
 	/// Resolve one exact runtime ID or an unwrapped base-block alias. Compound
 	/// references are accepted only when they are exact catalog IDs. Null when nothing or more than one

@@ -75,8 +75,12 @@ public:
 	QLabel* statusLabel() const { return m_statusLabel; }
 
 	/// Validates the scene of the document, shows the diagnostics and the loaded data, and says so with refreshed(). With no
-	/// scene it clears them.
+	/// scene it clears them. The scene is validated again only when its model (SceneDocument::modelGeneration()) or the
+	/// duration override has changed since the panel last validated it; otherwise the diagnostics of that validation are
+	/// shown again.
 	void refresh();
+	/// How often refresh() has validated the scene. Tests read it to tell a validation from a refresh that reused one.
+	int validationCount() const { return m_validationCount; }
 	/// Builds the loaded data summary of the scene with the diagnostics again and writes the tree.
 	void refreshLoadedData();
 	/// Writes the status from the diagnostics again, and shows the table and the tree as advanced details now say.
@@ -102,7 +106,17 @@ private:
 	// Shows the code, file and path columns of the table only with advanced details.
 	void showAdvancedColumns();
 
+	// The latest validation of the scene and what it was computed from.
+	struct Validation {
+		quint64 modelGeneration = 0;
+		std::optional<double> durationOverride;
+		std::vector<SceneDiagnostic> diagnostics;
+	};
+
 	QPointer<SceneDocument> m_document;
+	// Empty until refresh() validates the scene of the document.
+	std::optional<Validation> m_lastValidation;
+	int m_validationCount = 0;
 	std::vector<SceneDiagnostic> m_ownDiagnostics;
 	std::vector<SceneDiagnostic>* m_diagnostics = &m_ownDiagnostics;
 	std::function<bool()> m_advancedDetails;

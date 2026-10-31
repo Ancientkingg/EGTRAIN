@@ -147,6 +147,7 @@ ValidationPanel::ValidationPanel(QWidget* parent) : QObject(parent) {
 
 void ValidationPanel::setDocument(SceneDocument* document) {
 	m_document = document;
+	m_lastValidation.reset();
 }
 
 void ValidationPanel::setDiagnostics(std::vector<SceneDiagnostic>* diagnostics) {
@@ -211,7 +212,16 @@ void ValidationPanel::refresh() {
 	}
 
 	const std::optional<double> effectiveDurationOverride = m_durationOverride ? m_durationOverride() : std::nullopt;
-	*m_diagnostics = validateRunnableScene(m_document->model(), {}, effectiveDurationOverride);
+	// validateRunnableScene reads only the model and its arguments, so its result holds while the model and the override
+	// stay the same.
+	const quint64 generation = m_document->modelGeneration();
+	if (!m_lastValidation || m_lastValidation->modelGeneration != generation
+		|| m_lastValidation->durationOverride != effectiveDurationOverride) {
+		m_lastValidation = Validation{generation, effectiveDurationOverride,
+			validateRunnableScene(m_document->model(), {}, effectiveDurationOverride)};
+		++m_validationCount;
+	}
+	*m_diagnostics = m_lastValidation->diagnostics;
 
 	std::vector<SceneDiagnostic> ordered = *m_diagnostics;
 	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {

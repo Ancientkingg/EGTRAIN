@@ -116,6 +116,7 @@ public:
 	~SavedRunState() {
 		defaultRun().infra.routes = std::move(m_routes);
 		defaultRun().infra.numRoutes = m_routeCount;
+		defaultRun().infra.numberRouteSections();
 		defaultRun().blocksOccupied = m_occupied;
 		defaultRun().blocksConnected = m_connected;
 		defaultRun().infra.singleTrackLimits = m_limits;
@@ -138,6 +139,7 @@ private:
 void setRoutes(std::vector<Route>&& routes) {
 	defaultRun().infra.routes = std::move(routes);
 	defaultRun().infra.numRoutes = static_cast<int>(defaultRun().infra.routes.size());
+	defaultRun().infra.numberRouteSections();
 }
 
 const std::vector<Section>& sectionsOf(std::size_t route) {

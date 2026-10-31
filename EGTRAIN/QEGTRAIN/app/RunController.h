@@ -99,7 +99,8 @@ public:
 		/// The name of the scenario of the latest run, else of the selected scenario, else "(none)".
 		virtual QString scenarioContext() const = 0;
 
-		/// Takes the text of the fields that are being edited into the document, then validates the scene.
+		/// Takes the text of the fields that are being edited into the document, then refreshes the validation of the scene,
+		/// which validates it again only when the scene or the duration override changed since its last validation.
 		virtual void validateScene() = 0;
 		/// The run review dialog sends the user to the loaded data.
 		virtual void showLoadedData() = 0;

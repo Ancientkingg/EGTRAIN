@@ -205,6 +205,65 @@ enum class TrajectoryBranch : int {
 	FollowLeader = 1002,	///< Follows the leader of its virtual coupling.
 };
 
+/// What one train reuses within the steps of a run: the results of Train::BrakDist_Block of the current step and of the step
+/// before, and the route positions of its stops. A braking result depends on the arguments, on the rolling stock values of the
+/// train and on the arcs of the sections (their X, gradient and curvature), which only the builders write. A route position
+/// depends on the route index and the X of the stop, which are part of its key, and on the route, the stops and the stations of
+/// the run, which only the builders write. The cache answers only between beginStep and endStep, which runSimulationStep calls
+/// for every train around each step. It keeps the braking results of a step only for the step that follows it, and the route
+/// positions while each step follows the one before. A copy starts empty and outside a step, so a result never passes to another
+/// train or run.
+class TrainStepCache {
+public:
+	/// The arguments of one Train::BrakDist_Block call. The doubles are compared bit for bit.
+	struct BrakingQuery {
+		Section* sections = nullptr; ///< The sections of the call, BS.
+		int count = 0;				 ///< Their number, Blocks.
+		double fromSpeed = 0.0;		 ///< V1 in m/s.
+		double toSpeed = 0.0;		 ///< V2 in m/s.
+		double target = 0.0;		 ///< X0 in metres.
+		double cutoff = 0.0;		 ///< cutoff in metres.
+	};
+
+	/// An empty cache outside a step.
+	TrainStepCache() = default;
+	/// An empty cache outside a step, whatever the other one holds.
+	TrainStepCache(const TrainStepCache&);
+	/// Empties the cache and leaves the step, whatever the other one holds.
+	TrainStepCache& operator=(const TrainStepCache&);
+
+	/// Starts step `step` of the run. The results of the step that ended become those of the step before when `step` follows it,
+	/// and are dropped otherwise.
+	void beginStep(int step);
+	/// Ends the step. Until the next beginStep the cache finds nothing and keeps nothing.
+	void endStep();
+	/// True when query was answered in this step or in the step before; start receives that answer.
+	bool findBrakingStart(const BrakingQuery& query, double& start);
+	/// Keeps start as the answer to query in this step. Does nothing outside a step.
+	void storeBrakingStart(const BrakingQuery& query, double start);
+	/// True when a route position (m) of stop `stop` was kept for the route index route and the stop X x (km); position receives it.
+	bool findStationPosition(int stop, int route, double x, double& position) const;
+	/// Keeps position (m) as the route position of stop `stop` for the route index route and the stop X x (km). Does nothing outside
+	/// a step.
+	void storeStationPosition(int stop, int route, double x, double position);
+
+private:
+	struct BrakingEntry {
+		BrakingQuery query;
+		double start = 0.0;
+	};
+	struct StationEntry {
+		bool kept = false;
+		int route = 0;
+		double x = 0.0;
+		double position = 0.0;
+	};
+	std::vector<BrakingEntry> m_brakingStarts, m_previousBrakingStarts;
+	std::vector<StationEntry> m_stationPositions; // by stop
+	int m_step = 0;
+	bool m_inStep = false, m_hasStep = false;
+};
+
 /// A train: one occurrence of a service, with its rolling stock, its timetable, and its state and results during the run.
 /// The vectors such as instant_train_speed hold one sample per step and are indexed by the step t, which is seconds from
 /// the start of the run (see timestep). Positions on the route are metres, speeds m/s, forces N, power W and energy MJ.
@@ -524,6 +583,23 @@ public:
 	/// The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.
 	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const;
 
+	/// Finds the arc of the route under a head position in metres for a walk against the direction of travel, continuing from
+	/// the previous lookup, with the result of brakingArc.
+	///
+	/// The scan of brakingArc returns the first arc that holds the head. While the arcs up to the arc of the last lookup are
+	/// ordered (each starts at or after the end of the one before it and does not end before it starts), that is the only arc of
+	/// them that holds the head, so the cursor moves back over them. Otherwise, and when none of them holds the head, it scans
+	/// from the first section again.
+	struct BackwardBrakingArcCursor {
+		const Arc* arc = nullptr; ///< Arc of the last lookup; null when there is none.
+		int section = 0;		  ///< Index of the section of the last lookup.
+		int arcIndex = 0;		  ///< Index of the arc within that section.
+		bool ordered = false;	  ///< True when the arcs up to and including arc are ordered.
+
+		/// The arc under head, or null.
+		const Arc* find(double head, Section* sections, int count);
+	};
+
 	/// Speed (m/s) after one full braking step from speed (m/s) on arc. Every curve step samples force at the actual start and uses
 	/// the right endpoint for distance.
 	double brakingCurveSpeed(double speed, const Arc& arc) {
@@ -533,8 +609,9 @@ public:
 	/// The state one full braking step before nextHead (m) and nextSpeed (m/s); head and speed receive it. The resistance is
 	/// quadratic in speed, and only the root on the increasing branch of v - dt a(v) counts, so false when there is no unique one.
 	/// For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the entire saturated preimage of max(0, q(v)); smaller terminal
-	/// speeds are valid forward states.
-	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed);
+	/// speeds are valid forward states. cursor, when given, finds the arc in place of brakingArc.
+	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed,
+		BackwardBrakingArcCursor* cursor = nullptr);
 
 	/// Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m).
 	/// False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every
@@ -563,9 +640,15 @@ public:
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
 	/// When that result is -1 or not below cutoff (m), a position not below cutoff can come back instead.
-	/// Virtual so that a test can make the lookup fail.
+	/// Within a step the result can come from stepCache. Virtual so that a test can make the lookup fail.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks,
 		double cutoff = std::numeric_limits<double>::infinity());
+
+	/// BrakDist_Block without stepCache.
+	double uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff);
+
+	/// The results that the train reuses within the steps of a run.
+	mutable TrainStepCache stepCache;
 
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
 	/// movement could pass the last point where it can still brake for the entry.
@@ -750,8 +833,12 @@ public:
 	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
 
 	/// The route position (m) of stop stationIndex from its geographic position, or -1 when the stop is not on the route. When no
-	/// section holds that position, the geographic position in metres.
+	/// section holds that position, the geographic position in metres. Within a step the result can come from stepCache, except
+	/// for a stop at X 0, whose position comes from its arrival name.
 	double stationRoutePositionMeters(int stationIndex) const;
+
+	/// stationRoutePositionMeters without stepCache.
+	double uncachedStationRoutePositionMeters(int stationIndex) const;
 
 	/// Records time_seconds * timestep as the arrival (s) at each stop without an arrival whose route position lies within 5 m of the
 	/// head's movement in this step.

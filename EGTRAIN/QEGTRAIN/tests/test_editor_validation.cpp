@@ -3,6 +3,7 @@
 
 #include <QAbstractItemView>
 #include <QApplication>
+#include <QByteArray>
 #include <QHeaderView>
 #include <QLabel>
 #include <QString>
@@ -35,6 +36,75 @@ static SceneDiagnostic diagnostic(SceneSeverity severity, const char* code, cons
 	result.message = message;
 	result.file = file;
 	return result;
+}
+
+// The smallest scene that validates without an error: a track with one block, a station with a platform on it, a train
+// unit, a composition, a route and a service that passes through.
+static SceneModel runnableScene() {
+	SceneModel scene = makeNewSceneModel();
+	scene.name = "Runnable";
+	scene.tracks.push_back(SceneTrack{"track"});
+	SceneNode first;
+	first.id = "node-1";
+	first.trackId = "track";
+	SceneNode second = first;
+	second.id = "node-2";
+	second.xKm = 1.0;
+	scene.nodes = {first, second};
+	SceneArc arc;
+	arc.id = "arc";
+	arc.trackId = "track";
+	arc.fromNodeId = first.id;
+	arc.toNodeId = second.id;
+	arc.speedLimitMs = 1.0;
+	scene.arcs.push_back(arc);
+	SceneBlock block;
+	block.id = "block";
+	block.trackId = "track";
+	block.lengthKm = 1.0;
+	scene.blocks.push_back(block);
+	ScenePlatform platform;
+	platform.id = "platform";
+	platform.nodeIds.push_back(first.id);
+	SceneStation station;
+	station.id = "station";
+	station.name = "Station";
+	station.platforms.push_back(platform);
+	scene.stations.push_back(station);
+	SceneTrainUnit unit;
+	unit.id = "unit";
+	unit.hasPhysical = true;
+	unit.tractionCurve.push_back({0.0, 1.0, 1.0, 0.0, 0.0});
+	scene.trainUnits.push_back(unit);
+	SceneComposition composition;
+	composition.id = "composition";
+	composition.units.push_back(unit.id);
+	scene.compositions.push_back(composition);
+	SceneRoute route;
+	route.id = "route";
+	route.blocks.push_back(block.id);
+	scene.routes.push_back(route);
+	SceneService service;
+	service.id = "service";
+	service.composition = composition.id;
+	service.route = route.id;
+	service.through = true;
+	scene.services.push_back(service);
+	return scene;
+}
+
+static bool hasCode(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(),
+		[&code](const SceneDiagnostic& diagnostic) { return diagnostic.code == code; });
+}
+
+// The codes of the errors, for the message of a failed check.
+static QByteArray errorCodes(const std::vector<SceneDiagnostic>& diagnostics) {
+	QStringList codes;
+	for (const SceneDiagnostic& diagnostic : diagnostics)
+		if (diagnostic.severity == SceneSeverity::Error)
+			codes << QString::fromStdString(diagnostic.code);
+	return codes.join(QStringLiteral(", ")).toUtf8();
 }
 
 // The first child of a tree row with this text in its first column.
@@ -71,6 +141,14 @@ private slots:
 	void activatesTargets();
 	void selectsDiagnosticOfFile();
 	void showsColumnsWithAdvancedDetails();
+	void reusesValidationWithoutChange();
+	void validatesAgainAfterEdit();
+	void validatesAgainAfterUndo();
+	void validatesAgainAfterWriteThatIsNoEdit();
+	void validatesAgainForDurationOverride();
+	void validatesAgainForNewScene();
+	void runValidatesAgainAfterEdit();
+	void runWithoutEditValidatesOnce();
 };
 
 void TestValidationPanel::clearsWithoutScene() {
@@ -503,6 +581,209 @@ void TestValidationPanel::showsColumnsWithAdvancedDetails() {
 	panel.updateStatus();
 	// The columns follow advanced details back.
 	QCOMPARE(shown(), QStringList({"Severity", "Message", "Fix"}));
+}
+
+// A refresh that finds the scene and the duration override as they were validated shows that validation again: the
+// diagnostics, the table, the status and the tree, and it says so as a refresh that validates does.
+void TestValidationPanel::reusesValidationWithoutChange() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(caseScene(), false);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 1);
+	const std::vector<SceneDiagnostic> validated = diagnostics;
+	QVERIFY(!validated.empty());
+
+	// The window clears the list when it opens a scene, and a scripted run writes its own diagnostics into it.
+	diagnostics.clear();
+	panel.table()->setRowCount(0);
+	panel.statusLabel()->clear();
+	panel.tree()->clear();
+	Events events(panel);
+	panel.refresh();
+	// The scene is not validated again.
+	QCOMPARE(panel.validationCount(), 1);
+	// The diagnostics of the validation are written and shown again.
+	QCOMPARE(diagnostics.size(), validated.size());
+	for (std::size_t index = 0; index < validated.size(); ++index)
+		QCOMPARE(diagnostics[index].code, validated[index].code);
+	QCOMPARE(panel.table()->rowCount(), static_cast<int>(validated.size()));
+	QVERIFY(panel.statusLabel()->text().startsWith("Cannot run: "));
+	QCOMPARE(panel.tree()->topLevelItemCount(), 1);
+	QCOMPARE(events.log, Log({"statusChanged", "refreshed"}));
+}
+
+// An edit validates again and shows the new diagnostics.
+void TestValidationPanel::validatesAgainAfterEdit() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(runnableScene(), false);
+	panel.refresh();
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+	QCOMPARE(panel.validationCount(), 1);
+
+	document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.baseTime.clear(); });
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY(hasCode(diagnostics, "scene.basetime.missing"));
+}
+
+// Undo puts an earlier scene back, which validates again and shows its diagnostics.
+void TestValidationPanel::validatesAgainAfterUndo() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	const SceneModel runnable = runnableScene();
+	document.replace(runnable, false);
+	document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.baseTime.clear(); });
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 1);
+	QVERIFY(hasCode(diagnostics, "scene.basetime.missing"));
+
+	document.restore(runnable, false);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+}
+
+// A write through mutableModel(), which is not an edit, validates again: the window sets a default scenario that way, a
+// save records the files, and the scripted runs set up their scenes.
+void TestValidationPanel::validatesAgainAfterWriteThatIsNoEdit() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(runnableScene(), false);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 1);
+
+	const quint64 revision = document.revision();
+	document.mutableModel().defaultScenarioId.clear();
+	// The write is no edit, so the revision stays.
+	QCOMPARE(document.revision(), revision);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY(hasCode(diagnostics, "scene.scenario.default.missing"));
+}
+
+// Another duration override validates again, and its result counts the occurrences of that duration.
+void TestValidationPanel::validatesAgainForDurationOverride() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	std::optional<double> durationOverride;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	panel.setDurationOverride([&durationOverride] { return durationOverride; });
+	SceneModel scene = runnableScene();
+	// Every minute: 60 runs in the hour of the scene, 1000 in a duration of 60000 s, more than a run holds.
+	scene.services.front().hasRepeat = true;
+	scene.services.front().headwaySeconds = 60.0;
+	document.replace(scene, false);
+	panel.refresh();
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+	QCOMPARE(panel.validationCount(), 1);
+
+	durationOverride = 60000.0;
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY(hasCode(diagnostics, "scene.capacity.runtime"));
+	panel.refresh();
+	// The same override does not validate again.
+	QCOMPARE(panel.validationCount(), 2);
+	durationOverride.reset();
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 3);
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+}
+
+// Another scene validates again and shows its own diagnostics.
+void TestValidationPanel::validatesAgainForNewScene() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(runnableScene(), false);
+	panel.refresh();
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+	QCOMPARE(panel.validationCount(), 1);
+
+	document.replace(caseScene(), false);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY(hasCode(diagnostics, "scene.services.none"));
+	// Another document, whose scene has changed as often as that of the first one.
+	SceneDocument other;
+	other.replace(caseScene(), false);
+	other.replace(runnableScene(), false);
+	QCOMPARE(other.modelGeneration(), document.modelGeneration());
+	panel.setDocument(&other);
+	panel.refresh();
+	// A panel that is given another document validates its scene.
+	QCOMPARE(panel.validationCount(), 3);
+	QVERIFY2(!hasErrors(diagnostics), errorCodes(diagnostics).constData());
+}
+
+// RunController::runScene asks the window to validate, which refreshes this panel, and refuses the run when the
+// diagnostics have an error. This is that step.
+static bool runAllowed(ValidationPanel& panel, const std::vector<SceneDiagnostic>& diagnostics) {
+	panel.refresh();
+	return !hasErrors(diagnostics);
+}
+
+// A Run after an edit validates the edited scene and refuses it when the edit made it invalid.
+void TestValidationPanel::runValidatesAgainAfterEdit() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(runnableScene(), false);
+	panel.refresh();
+	QVERIFY2(runAllowed(panel, diagnostics), errorCodes(diagnostics).constData());
+	QCOMPARE(panel.validationCount(), 1);
+
+	document.edit(SceneDocument::Services, "Delete service", [](SceneModel& model) { model.services.clear(); });
+	QVERIFY(!runAllowed(panel, diagnostics));
+	QCOMPARE(panel.validationCount(), 2);
+	QVERIFY(hasCode(diagnostics, "scene.services.none"));
+}
+
+// A Run with no edit since the last validation does not validate again, and still refuses a scene with errors.
+void TestValidationPanel::runWithoutEditValidatesOnce() {
+	QWidget host;
+	ValidationPanel panel(&host);
+	SceneDocument document;
+	std::vector<SceneDiagnostic> diagnostics;
+	panel.setDocument(&document);
+	panel.setDiagnostics(&diagnostics);
+	document.replace(caseScene(), false);
+	panel.refresh();
+	QCOMPARE(panel.validationCount(), 1);
+
+	QVERIFY(!runAllowed(panel, diagnostics));
+	QCOMPARE(panel.validationCount(), 1);
+	// After the refused run the window shows the validation again, still without validating.
+	QVERIFY(!runAllowed(panel, diagnostics));
+	QCOMPARE(panel.validationCount(), 1);
+	QVERIFY(hasCode(diagnostics, "scene.services.none"));
 }
 
 QTEST_MAIN(TestValidationPanel)

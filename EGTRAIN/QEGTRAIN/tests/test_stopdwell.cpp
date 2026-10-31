@@ -17,6 +17,8 @@
 #include <QTest>
 
 #include <cmath>
+#include <cstddef>
+#include <cstring>
 #include <list>
 #include <string>
 
@@ -101,6 +103,7 @@ private slots:
 	void stopLength_data();
 	void stopLength();
 	void morePassengersLengthenStop();
+	void stationPositionsCacheMatchesComputation();
 
 private:
 	// The dwell that one boarding passenger needs (25 s with the parameters of the builder), and planned dwells below and
@@ -162,6 +165,71 @@ void TestStopDwell::stopLength() {
 
 void TestStopDwell::morePassengersLengthenStop() {
 	QCOMPARE_GT(lengthOfStop(nativeTrain(), m_below, 8), m_needed);
+}
+
+// Within a step of a run the route position of a stop can come from the cache of the train. It equals the computation for every
+// stop on both routes of the scene, also after a change of the route, of the X of a stop or of the arrival name of a stop at X 0.
+void TestStopDwell::stationPositionsCacheMatchesComputation() {
+	Train train = nativeTrain();
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t{2});
+	// The first stop, A, lies at X 0, so the cache does not keep its position.
+	QCOMPARE(train.numStations, 3);
+	QCOMPARE_EQ(train.Stations[0].X, 0.0);
+	QVERIFY(train.Stations[1].X != 0 && train.Stations[2].X != 0);
+	// Every stop, and an index on either side, gives the result of the computation, bit for bit.
+	const auto matches = [&train] {
+		for (int stop = -1; stop <= train.numStations; ++stop) {
+			const double cached = train.stationRoutePositionMeters(stop);
+			const double computed = train.uncachedStationRoutePositionMeters(stop);
+			if (std::memcmp(&cached, &computed, sizeof(double)) != 0)
+				return false;
+		}
+		return true;
+	};
+	// The number of stops whose position the cache holds now.
+	const auto held = [&train] {
+		int count = 0;
+		for (int stop = 0; stop < train.numStations; ++stop) {
+			double position = 0.0;
+			count += train.stepCache.findStationPosition(stop, train.indexOfRoute, train.Stations[stop].X, position) ? 1 : 0;
+		}
+		return count;
+	};
+
+	int step = 1;
+	for (int route : {0, 1, 0}) {
+		// A run does not change the route of a train, but the route is part of the key.
+		train.indexOfRoute = route;
+		train.stepCache.beginStep(step++);
+		QCOMPARE(held(), 0);
+		QVERIFY(matches());
+		QCOMPARE(held(), 2);
+		train.stepCache.endStep();
+		// The positions are kept while each step follows the one before.
+		train.stepCache.beginStep(step++);
+		QCOMPARE(held(), 2);
+		QVERIFY(matches());
+		train.stepCache.endStep();
+	}
+	// The X of a stop is part of the key.
+	const double second = train.uncachedStationRoutePositionMeters(1);
+	train.Stations[1].X += 0.05;
+	QVERIFY(train.uncachedStationRoutePositionMeters(1) != second);
+	train.stepCache.beginStep(step++);
+	QCOMPARE(held(), 1);
+	QVERIFY(matches());
+	// A stop at X 0 takes its position from the stations of the run by its arrival name, which an arrival can change.
+	const double byName = train.uncachedStationRoutePositionMeters(0);
+	train.StationArrivalNames[0] = train.Stations[2].stationName;
+	QVERIFY(train.uncachedStationRoutePositionMeters(0) != byName);
+	QVERIFY(matches());
+	train.stepCache.endStep();
+	// Outside a step every position is computed, and a step that does not follow the last one starts empty.
+	QCOMPARE(held(), 0);
+	QVERIFY(matches());
+	train.stepCache.beginStep(0);
+	QCOMPARE(held(), 0);
+	train.stepCache.endStep();
 }
 
 QTEST_APPLESS_MAIN(TestStopDwell)

@@ -15,6 +15,7 @@ void SceneDocument::replace(SceneModel newModel, bool dirty) {
 	m_model = std::move(newModel);
 	m_loaded = true;
 	++m_revision;
+	++m_modelGeneration;
 	setDirty(dirty);
 	emit replaced();
 }
@@ -22,11 +23,13 @@ void SceneDocument::replace(SceneModel newModel, bool dirty) {
 void SceneDocument::restore(const SceneModel& snapshot, bool dirty) {
 	assignAuthoredScene(m_model, snapshot);
 	++m_revision;
+	++m_modelGeneration;
 	setDirty(dirty);
 }
 
 void SceneDocument::markChanged(ChangeKinds kinds, const QString& label) {
 	++m_revision;
+	++m_modelGeneration;
 	m_lastChangeLabel = label;
 	setDirty(true);
 	emit changed(kinds);

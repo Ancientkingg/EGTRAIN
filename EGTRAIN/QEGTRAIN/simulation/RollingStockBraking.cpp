@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <list>
 #include <string>
@@ -16,6 +17,16 @@ namespace {
 
 // A braking curve ends this far (m) before its target, so that a train that brakes along it stays short of the target.
 constexpr double kBrakingCurveEndMarginM = 0.002;
+
+// True when the two values have the same bits, so that 0.0 and -0.0 differ and a NaN matches itself.
+bool sameBits(double a, double b) {
+	return std::memcmp(&a, &b, sizeof(double)) == 0;
+}
+
+bool sameQuery(const TrainStepCache::BrakingQuery& a, const TrainStepCache::BrakingQuery& b) {
+	return a.sections == b.sections && a.count == b.count && sameBits(a.fromSpeed, b.fromSpeed) && sameBits(a.toSpeed, b.toSpeed)
+		&& sameBits(a.target, b.target) && sameBits(a.cutoff, b.cutoff);
+}
 
 } // namespace
 
@@ -172,9 +183,57 @@ const Arc* Train::brakingArc(double head, Section* sections, int count, double* 
 	return cursor.find(head, sections, count, safeUpper);
 }
 
-bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed) {
+const Arc* Train::BackwardBrakingArcCursor::find(double head, Section* sections, int count) {
+	if (arc && ordered) {
+		if (head >= arc->startNode.X * 1000) {
+			if (head < arc->endNode.X * 1000)
+				return arc;
+		} else {
+			// The first arc back from arc that starts at or before head is the only one up to arc that can hold it.
+			int s = section, a = arcIndex;
+			for (;;) {
+				if (--a < 0) {
+					--s;
+					while (s >= 0 && sections[s].total_arcs <= 0)
+						--s;
+					if (s < 0)
+						break;
+					a = sections[s].total_arcs - 1;
+				}
+				const Arc& candidate = sections[s].arcs_in_signalling_block_section[a];
+				if (head >= candidate.startNode.X * 1000) {
+					if (head < candidate.endNode.X * 1000) {
+						arc = &candidate;
+						section = s;
+						arcIndex = a;
+						return arc;
+					}
+					break;
+				}
+			}
+		}
+	}
+	arc = nullptr;
+	ordered = true;
+	double previousEnd = -std::numeric_limits<double>::infinity();
+	for (section = 0; section < count; ++section)
+		for (arcIndex = 0; arcIndex < sections[section].total_arcs; ++arcIndex) {
+			const Arc& candidate = sections[section].arcs_in_signalling_block_section[arcIndex];
+			const double start = candidate.startNode.X * 1000, end = candidate.endNode.X * 1000;
+			ordered = ordered && previousEnd <= start && start <= end;
+			previousEnd = end;
+			if (head >= start && head < end) {
+				arc = &candidate;
+				return arc;
+			}
+		}
+	return nullptr;
+}
+
+bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed,
+	BackwardBrakingArcCursor* cursor) {
 	head = nextHead - nextSpeed * timestep;
-	const Arc* arc = brakingArc(head, sections, count);
+	const Arc* arc = cursor ? cursor->find(head, sections, count) : brakingArc(head, sections, count);
 	if (!arc || total_train_mass <= 0 || massFactor <= 0 || timestep <= 0 || nextSpeed < 0)
 		return false;
 	const double mass = total_train_mass * massFactor;
@@ -356,13 +415,73 @@ bool Train::planPositiveBraking(double head, double speed, const Arc& arc, Secti
 	return false;
 }
 
+TrainStepCache::TrainStepCache(const TrainStepCache&) {}
+
+TrainStepCache& TrainStepCache::operator=(const TrainStepCache&) {
+	m_brakingStarts.clear();
+	m_previousBrakingStarts.clear();
+	m_stationPositions.clear();
+	m_step = 0;
+	m_inStep = m_hasStep = false;
+	return *this;
+}
+
+void TrainStepCache::beginStep(int step) {
+	if (m_hasStep && step == m_step + 1) {
+		m_previousBrakingStarts.swap(m_brakingStarts);
+	} else {
+		m_previousBrakingStarts.clear();
+		m_stationPositions.clear();
+	}
+	m_brakingStarts.clear();
+	m_step = step;
+	m_inStep = m_hasStep = true;
+}
+
+void TrainStepCache::endStep() {
+	m_inStep = false;
+}
+
+bool TrainStepCache::findBrakingStart(const BrakingQuery& query, double& start) {
+	if (!m_inStep)
+		return false;
+	for (const BrakingEntry& entry : m_brakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			return true;
+		}
+	for (const BrakingEntry& entry : m_previousBrakingStarts)
+		if (sameQuery(entry.query, query)) {
+			start = entry.start;
+			m_brakingStarts.push_back(entry); // so that the next step finds it too
+			return true;
+		}
+	return false;
+}
+
+void TrainStepCache::storeBrakingStart(const BrakingQuery& query, double start) {
+	if (m_inStep)
+		m_brakingStarts.push_back({query, start});
+}
+
 double Train::BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
+	const TrainStepCache::BrakingQuery query{BS, Blocks, V1, V2, X0, cutoff};
+	double start = 0.0;
+	if (stepCache.findBrakingStart(query, start))
+		return start;
+	start = uncachedBrakDistBlock(V1, V2, X0, BS, Blocks, cutoff);
+	stepCache.storeBrakingStart(query, start);
+	return start;
+}
+
+double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff) {
 	if (V1 <= V2)
 		return X0;
 	double nextHead = X0 - kBrakingCurveEndMarginM, nextSpeed = V2;
+	BackwardBrakingArcCursor cursor;
 	for (int step = 1; step < 2000; ++step) {
 		double head, speed;
-		if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed)) {
+		if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed, &cursor)) {
 			if (head < BS[0].start_node.X * 1000)
 				return head;
 			return -1;
@@ -783,9 +902,10 @@ bool Train::DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int B
 	BrakStep = -1;
 	if (V1 <= V2)
 		return false;
+	BackwardBrakingArcCursor cursor;
 	for (int step = 1; step < 2000; ++step) {
 		double head, speed;
-		if (!inverseBrakingStep(positions.back(), speeds.back(), BS, Blocks, head, speed))
+		if (!inverseBrakingStep(positions.back(), speeds.back(), BS, Blocks, head, speed, &cursor))
 			return false;
 		positions.push_back(head);
 		speeds.push_back(speed);
