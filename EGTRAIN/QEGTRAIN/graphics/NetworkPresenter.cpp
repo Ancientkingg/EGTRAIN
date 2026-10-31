@@ -1446,7 +1446,9 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		return;
 	m_runModel = &sceneModel;
 
-	// The layout of this run, which starts from the authored levels and regions of the source.
+	// The layout of this run, which starts from the authored levels and regions of the source. The track levels, the
+	// station layouts and the stations of each region are renewed together, so that nothing of an earlier call is left.
+	m_regionStations.clear();
 	m_trackLevels.clear();
 	for (int track = 0; track < m_source->trackCount(); ++track)
 		m_trackLevels.push_back(m_source->track(track).graphID);

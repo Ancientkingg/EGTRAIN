@@ -617,6 +617,7 @@ private slots:
 	void levelWithoutStationGeometryIsDrawnHigher();
 	void runPutsPicturesWherePreviewDoes();
 	void drawingLeavesSourceUnchanged();
+	void showingRunAgainLaysItOutAnew();
 };
 
 void TestRuntimeCanvas::initTestCase() {
@@ -2385,6 +2386,31 @@ void TestRuntimeCanvas::drawingLeavesSourceUnchanged() {
 	QCOMPARE(presenter.runTrains().size(), qsizetype(1));
 	QVERIFY2(canvasFields(*source) == before, "drawing a run leaves the canvas fields of its source as they were");
 	presenter.clear();
+}
+
+// A second showRuntime() without clear() lays the run out as one call does: the station names of the second call stand
+// where one call puts them, and a train has the same body.
+void TestRuntimeCanvas::showingRunAgainLaysItOutAnew() {
+	RunFixture once;
+	once.presenter.showRuntime(once.model);
+	RunFixture twice;
+	twice.presenter.showRuntime(twice.model);
+	twice.presenter.showRuntime(twice.model);
+	const QList<QGraphicsItem*>& onceLabels = PresenterAccess::stationLabels(once.presenter);
+	const QList<QGraphicsItem*>& twiceLabels = PresenterAccess::stationLabels(twice.presenter);
+	QCOMPARE(onceLabels.size(), qsizetype(2));
+	// The second call adds its own labels after those of the first.
+	QCOMPARE(twiceLabels.size(), qsizetype(4));
+	for (qsizetype label = 0; label < onceLabels.size(); ++label)
+		QCOMPARE(twiceLabels[label + 2]->pos(), onceLabels[label]->pos());
+	QPolygonF onceBody;
+	QPolygonF twiceBody;
+	once.presenter.getTrainPolygon(&onceBody, 0, trainAt(7.5));
+	twice.presenter.getTrainPolygon(&twiceBody, 0, trainAt(7.5));
+	QVERIFY(!onceBody.isEmpty());
+	QVERIFY2(twiceBody == onceBody, "a train has the body of one call after a second showRuntime()");
+	once.presenter.clear();
+	twice.presenter.clear();
 }
 
 QTEST_MAIN(TestRuntimeCanvas)
