@@ -1,6 +1,9 @@
 #include "editors/PassengerPanel.h"
+#include "editors/CompositionPanel.h"
 #include "editors/EditorRules.h"
+#include "editors/InfrastructurePanel.h"
 #include "editors/ServicePanel.h"
+#include "editors/infrastructure/TopologyFacets.h"
 
 #include "scene/SceneDiagnostic.h"
 #include "support/FakePrompts.h"
@@ -25,6 +28,8 @@
 #include <QTest>
 
 #include <algorithm>
+#include <cstddef>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -259,6 +264,7 @@ private slots:
 	void keepsSelectionOfReorderedScene();
 	void keepsTypedTextWhenServiceIsAdded();
 	void takesTypedTextQuietlyDuringOtherEdit();
+	void keepsTypedServiceAndPassengerWhenTrackIsAdded();
 	void forgetsDeletedDocument();
 	void importsPassengers();
 	void calloutsShowSelectedPassenger();
@@ -802,6 +808,66 @@ void TestPassengerPanel::takesTypedTextQuietlyDuringOtherEdit() {
 	QCOMPARE(serviceIds, std::vector<std::string>({"S1", "S2", "new_service"}));
 	QCOMPARE(f.document.model().passengers[0].id, "P1_typed");
 	QCOMPARE(f.labels, Log({"Delete service", "Rename passenger"}));
+}
+
+// Text that is still being typed in the service and passenger panels stays when the infrastructure panel adds a track,
+// which shows both again. The service panel follows the document first here, so the rename of the typed service, which
+// changes the passengers too, has the passenger panel take its text inside the take of the service panel. Then a
+// composition that is added has the service panel take its text again.
+void TestPassengerPanel::keepsTypedServiceAndPassengerWhenTrackIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	ServicePanel services;
+	PassengerPanel passengers;
+	InfrastructurePanel infrastructure;
+	CompositionPanel compositions;
+	services.setPrompts(&prompts);
+	passengers.setPrompts(&prompts);
+	infrastructure.setPrompts(&prompts);
+	compositions.setPrompts(&prompts);
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		infrastructure.setFacet(std::move(facet));
+	services.setDocument(&document);
+	passengers.setDocument(&document);
+	infrastructure.setDocument(&document);
+	compositions.setDocument(&document);
+	document.replace(passengerScene(), false);
+	// The window shows the infrastructure of a scene that it opens.
+	infrastructure.refresh();
+	infrastructure.facetCombo()->setCurrentIndex(infrastructure.facetCombo()->findData("tracks"));
+	services.idEdit()->setText("S1_typed");
+	passengers.passengerIdEdit()->setText("P1_typed");
+	infrastructure.addButton()->click();
+	// The track is added, then the typed service id, which the legs of P1 follow, and then the typed passenger id.
+	QCOMPARE(document.model().tracks.size(), std::size_t(1));
+	QCOMPARE(document.model().services[0].id, "S1_typed");
+	const ScenePassenger& passenger = document.model().passengers[0];
+	QCOMPARE(passenger.id, "P1_typed");
+	QCOMPARE(passenger.journeys[0].legs[0].serviceId, "S1_typed");
+	QCOMPARE(labels, Log({"Add track", "Rename service", "Rename passenger"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Services | SceneDocument::Scenarios | SceneDocument::Passengers));
+	QCOMPARE(kinds[2], SceneDocument::ChangeKinds(SceneDocument::Passengers));
+	// The fields and the lists show the typed ids.
+	QCOMPARE(services.idEdit()->text(), "S1_typed");
+	QCOMPARE(passengers.passengerIdEdit()->text(), "P1_typed");
+	QCOMPARE(items(services.listWidget()), std::vector<std::string>({"S1_typed", "S2", "S3"}));
+	QCOMPARE(items(passengers.passengerList()), std::vector<std::string>({"P1_typed", "P2"}));
+
+	labels.clear();
+	services.idEdit()->setText("S1_again");
+	compositions.addButton()->click();
+	// The composition is added, and the typed service id is taken in after it.
+	QCOMPARE(document.model().compositions.size(), std::size_t(1));
+	QCOMPARE(document.model().services[0].id, "S1_again");
+	QCOMPARE(labels, Log({"Add composition", "Rename service"}));
+	QCOMPARE(services.idEdit()->text(), "S1_again");
 }
 
 void TestPassengerPanel::forgetsDeletedDocument() {
