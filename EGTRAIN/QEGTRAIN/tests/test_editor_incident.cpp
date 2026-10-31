@@ -160,7 +160,6 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	return -1;
 }
 
-// The text field of a number field.
 // The texts of the entries of target choices.
 static QStringList texts(const IncidentTargetChoices& choices) {
 	QStringList result;
@@ -177,6 +176,7 @@ static QList<int> runs(const IncidentTargetChoices& choices) {
 	return result;
 }
 
+// The text field of a number field.
 static QLineEdit* spinText(QDoubleSpinBox* edit) {
 	return edit->findChild<QLineEdit*>();
 }

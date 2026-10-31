@@ -19,9 +19,10 @@ class InfrastructurePanel;
 /// table, the selection and the facets. A facet knows the columns of the table, the rows that show the entities of the
 /// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the
 /// model only through InfrastructurePanel::edit or InfrastructurePanel::editInPlace, which refuse while the document is
-/// not open for edits, and when it refuses an edit it calls InfrastructurePanel::refuseEdit. The panel calls a facet only
-/// while the scene is loaded and open for edits, except for fillRows; a widget that a facet puts in the table can still
-/// change while the scene is closed for edits.
+/// not open for edits, and when it refuses an edit it calls InfrastructurePanel::refuseEdit. The panel calls key(),
+/// capabilities(), columns(), fillRows(), selectionId() and commitPendingEdits() at any time, and commitCell(), add(),
+/// remove(), insert(), move(), addSection(), removeSection() and moveSection() only while the scene is loaded and open
+/// for edits. A widget that a facet puts in the table can still change while the scene is closed for edits.
 class InfrastructureFacet {
 public:
 	/// Makes the base of a facet, which holds nothing.
@@ -43,7 +44,7 @@ public:
 		/// moveSection().
 		RouteSections = 0x4,
 	};
-	/// A combination of Capability values.
+	// A combination of Capability values.
 	Q_DECLARE_FLAGS(Capabilities, Capability)
 
 	/// The value that the facet combo stores for this facet, such as "tracks".

@@ -104,7 +104,7 @@ is reported as available, but remains outside canonical input.
 
 ## Editor panels
 
-Each editor dock holds one panel from `editors/`, a [`SceneEditorPanel`]. A panel shows the model of the window's `SceneDocument` and changes it with `edit`, which takes the parts that it changes, a label and the change itself. While a run uses the scene `edit` refuses a change and leaves the model as it is, unless the change touches `OpenDuringRun`: the case settings, the rolling stock units and the compositions, which the guide keeps open during a run. The infrastructure facets change the model through `InfrastructurePanel::edit` and `editInPlace`, which call `edit` with the infrastructure, so a combo in their table that changes during a run changes nothing either. Data that the application derives or reloads is written through `mutableModel` as well. A panel also emits `changed`, which the window answers by running validation again. The window creates the docks, gives every panel the document, and connects the panels with each other and with the run. It holds no editing code of its own.
+Each editor dock holds one panel from `editors/`, a [`SceneEditorPanel`]. A panel shows the model of the window's `SceneDocument` and changes it with `edit`, which takes the parts that it changes, a label and the change itself. While a run uses the scene `edit` refuses a change and leaves the model as it is, unless the change touches `OpenDuringRun`: the case settings, the rolling stock units and the compositions, which the guide keeps open during a run. The infrastructure facets change the model through `InfrastructurePanel::edit` and `editInPlace`, which call `edit` with the infrastructure, so a combo in their table that changes during a run changes nothing either. Writes that are not an edit of a panel go through `mutableModel` instead: the loaded data that `ValidationPanel` derives, the units that `TrainUnitSourceLinker` reloads from their files, what `SceneSession` records when it saves, and the default scenario that the window sets when it opens a scene without one. A panel also emits `changed`, which the window answers by running validation again. The window creates the docks, gives every panel the document, and connects the panels with each other and with the run. It holds no editing code of its own.
 
 `SceneDocument` owns the `SceneModel`. It knows whether a scene is loaded, whether it differs from what was saved, whether a run lets it be edited, and how often it has changed. Its signal `changed` names the parts that changed, `replaced` follows the opening or creating of a scene, and `dirtyChanged` and `editableChanged` follow the two flags. The window answers `changed` by adding an Undo step and by clearing the run results and the delay baseline. A panel that shows data from another part of the scene, such as the targets of an incident, overrides `documentChanged` and refreshes itself for the kinds that it shows. Only `ScenarioPanel` also follows a kind that it edits itself: the incident and entrance delay panels edit the scenarios as well, and it answers a change of the scenarios by updating the labels of its list and its header, which leaves its fields as they are. `TrainUnitPanel` is refreshed through the `reloaded` signal of `TrainUnitSourceLinker` when a linked file changes the units. Undo and Redo put an earlier state back with `restore`, which emits no `changed`, so the window refreshes the panels itself.
 
@@ -195,9 +195,11 @@ the window takes the text that is still being typed in the other panels. On
 macOS a button does not take the focus, so a composition id typed without Enter
 would otherwise be taken when the dialog takes the focus, and its change of the
 service would keep the stop of the dialog out. Accept validates the focused fields and commits once; Cancel changes nothing,
-including when adding a stop. An accepted dialog changes nothing either when the
-scene was replaced or closed for edits, or the service changed, while it was
-open. The matrix and dialog offer Elapsed/Clock time
+including when adding a stop. An accepted dialog changes the service only while
+the scene can be edited and the first service with its id still equals the copy
+that the dialog started from, so a scene that replaced the open one with an equal
+service takes the stop. An added stop enters only when `insertSceneStop` takes it
+on the live model. Otherwise the dialog changes nothing and shows no message. The matrix and dialog offer Elapsed/Clock time
 with the canonical case base time shown. Blank arrival or departure means absent,
 not zero. Clock input uses `HH:MM:SS[.fraction]` and explicit `+Nd ` prefixes for
 later days; a clock before base is not silently interpreted as tomorrow.

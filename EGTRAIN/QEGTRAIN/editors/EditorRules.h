@@ -1,6 +1,7 @@
 #pragma once
 
-// SceneDocument.h first: it includes the scene model, which has a member named signals, before any Qt header.
+// SceneDocument.h first: it includes the scene model, which has a member named signals, with the signals keyword of Qt
+// undefined, so SceneImporter.h below finds the model included.
 #include "editors/SceneDocument.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneImporter.h"
@@ -12,7 +13,8 @@
 #include <vector>
 
 /// What an import of legacy passengers adds to a scene. A passenger is rejected when its id is empty or the scene or an
-/// earlier passenger of the import has it, or when a journey or leg id of it is empty, taken or repeated inside it.
+/// earlier accepted passenger of the import has it, or when a journey or leg id of it is empty, repeated inside it, or
+/// one that the scene or an earlier accepted passenger has. The ids of a rejected passenger stay free.
 struct PassengerImportMerge {
 	/// The passengers that are added, in the order of the import.
 	std::vector<ScenePassenger> accepted;

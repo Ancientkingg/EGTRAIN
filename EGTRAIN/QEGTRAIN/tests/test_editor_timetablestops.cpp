@@ -1330,14 +1330,15 @@ void TestTimetableStopsPanel::refusesStopThatInsertionRefuses() {
 }
 
 // A planned time without a checked box or without text is absent, and a time whose text still shows the stored value
-// keeps that value exactly.
+// keeps that value exactly. The clock time read back from that text would differ from it in the last digits.
 void TestTimetableStopsPanel::takesDraftWithAbsentPlannedTime() {
 	SceneModel scene = lineScene();
 	scene.services[0].stops[1].plannedDepartureSeconds = 90.123456789;
 	const SceneService& service = scene.services[0];
 	StopDraftFields fields = fieldsOf(service.stops[1]);
+	fields.clockMode = true;
 	fields.hasArrival = false;
-	fields.departureText = QString::fromStdString(formatPlannedTime(90.123456789, false, 8 * 3600));
+	fields.departureText = QString::fromStdString(formatPlannedTime(90.123456789, true, 8 * 3600));
 	fields.dwellText = " 35 ";
 	StopDraftCheck check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
 	QVERIFY(check.ok);
@@ -1391,7 +1392,8 @@ void TestTimetableStopsPanel::dialogGivesStopWithoutExec() {
 	QCOMPARE_EQ(addDialog.stop().dwellSeconds, 20.0);
 }
 
-// A scene that replaces the open one while the dialog is open keeps its stops when the dialog is accepted.
+// A scene that replaces the open one while the dialog is open, with a service of that id that differs from the copy that
+// the dialog started from, keeps its stops when the dialog is accepted. A service equal to the copy would take the stop.
 void TestTimetableStopsPanel::editAppliesNothingToReplacedScene() {
 	StopsFixture f;
 	f.panel.setServiceId("service-1");
