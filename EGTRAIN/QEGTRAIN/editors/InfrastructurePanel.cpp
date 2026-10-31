@@ -165,7 +165,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 		refreshTable();
 	});
 	connect(m_blockTrackFilterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
-		if (facetKey() == QStringLiteral("blocks")) {
+		if (currentFacetHas(InfrastructureFacet::TrackFilter)) {
 			m_selectionId.clear();
 			refreshTable();
 		}
@@ -202,6 +202,11 @@ InfrastructureFacet* InfrastructurePanel::facet(const QString& key) const {
 
 InfrastructureFacet* InfrastructurePanel::currentFacet() const {
 	return facet(facetKey());
+}
+
+bool InfrastructurePanel::currentFacetHas(InfrastructureFacet::Capability capability) const {
+	const InfrastructureFacet* current = currentFacet();
+	return current && current->capabilities().testFlag(capability);
 }
 
 QStringList InfrastructurePanel::facetKeys() {
@@ -253,7 +258,8 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const int previousRow = resetSelection ? -1 : m_table->currentRow();
 	const int previousColumn = resetSelection ? -1 : m_table->currentColumn();
 	const QString previousId = resetSelection ? QString() : m_selectionId;
-	if (key == QStringLiteral("blocks"))
+	const InfrastructureFacet::Capabilities capabilities = current ? current->capabilities() : InfrastructureFacet::Capabilities();
+	if (capabilities.testFlag(InfrastructureFacet::TrackFilter))
 		refreshBlockTrackFilter();
 	m_blockRowModelIndices.clear();
 	const QStringList headers = current ? current->columns() : QStringList();
@@ -306,13 +312,14 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	updateSelection();
 
-	const bool isBlocks = key == QStringLiteral("blocks");
-	m_blockTrackFilterCombo->setVisible(isBlocks);
-	m_insertBlockButton->setVisible(isBlocks);
-	m_moveBlockUpButton->setVisible(isBlocks);
-	m_moveBlockDownButton->setVisible(isBlocks);
+	const bool trackFilter = capabilities.testFlag(InfrastructureFacet::TrackFilter);
+	const bool insertAndMove = capabilities.testFlag(InfrastructureFacet::InsertAndMove);
+	m_blockTrackFilterCombo->setVisible(trackFilter);
+	m_insertBlockButton->setVisible(insertAndMove);
+	m_moveBlockUpButton->setVisible(insertAndMove);
+	m_moveBlockDownButton->setVisible(insertAndMove);
 	bool canAdd = editable;
-	if (isBlocks) {
+	if (trackFilter) {
 		const std::string selectedTrack = m_blockTrackFilterCombo->currentData().toString().toStdString();
 		const std::vector<SceneTrack>& tracks = model().tracks;
 		canAdd = canAdd && !selectedTrack.empty()
@@ -330,7 +337,8 @@ void InfrastructurePanel::updateSelection() {
 	emit selectionChanged(key, m_selectionId);
 	const bool hasRow = canEdit() && row >= 0;
 	m_deleteButton->setEnabled(hasRow);
-	m_insertBlockButton->setEnabled(hasRow && key == QStringLiteral("blocks"));
+	const bool insertAndMove = currentFacetHas(InfrastructureFacet::InsertAndMove);
+	m_insertBlockButton->setEnabled(hasRow && insertAndMove);
 	QString deleteHint;
 	if (!hasScene())
 		deleteHint = QStringLiteral("Open a case to delete infrastructure.");
@@ -341,7 +349,7 @@ void InfrastructurePanel::updateSelection() {
 	else
 		deleteHint = QStringLiteral("Delete the selected row.");
 	m_deleteButton->setToolTip(deleteHint);
-	if (key == QStringLiteral("blocks")) {
+	if (insertAndMove) {
 		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());
 		const bool editable = canEdit() && row >= 0 && row < blockRows;
 		m_moveBlockUpButton->setEnabled(editable && row > 0);
@@ -375,12 +383,12 @@ void InfrastructurePanel::refreshBlockTrackFilter() {
 	if (selected < 0 && m_blockTrackFilterCombo->count() > 0)
 		selected = 0;
 	m_blockTrackFilterCombo->setCurrentIndex(selected);
-	m_blockTrackFilterCombo->setVisible(facetKey() == QStringLiteral("blocks"));
+	m_blockTrackFilterCombo->setVisible(currentFacetHas(InfrastructureFacet::TrackFilter));
 	m_blockTrackFilterCombo->setEnabled(canEdit() && m_blockTrackFilterCombo->count() > 0);
 }
 
 void InfrastructurePanel::refreshRouteSectionPanel() {
-	if (facetKey() != QStringLiteral("routes")) {
+	if (!currentFacetHas(InfrastructureFacet::RouteSections)) {
 		m_routeSectionDetailWidget->setVisible(false);
 		return;
 	}
@@ -458,38 +466,28 @@ void InfrastructurePanel::deleteEntity() {
 }
 
 void InfrastructurePanel::insertEntity() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->insert(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+		currentFacet()->insert(*this);
 }
 
 void InfrastructurePanel::moveEntity(int offset) {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->move(*this, offset);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+		currentFacet()->move(*this, offset);
 }
 
 void InfrastructurePanel::addSection() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->addSection(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->addSection(*this);
 }
 
 void InfrastructurePanel::removeSection() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->removeSection(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->removeSection(*this);
 }
 
 void InfrastructurePanel::moveSection(int offset) {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->moveSection(*this, offset);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->moveSection(*this, offset);
 }
 
 void InfrastructurePanel::entityChanged(const QString& label) {

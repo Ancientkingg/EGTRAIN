@@ -24,10 +24,11 @@ struct SceneSectionLabels;
 /// (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that
 /// add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals,
 /// signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
-/// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. Blocks come with a filter on the
-/// track under the combo and buttons that insert and move a block. Routes come with the heading "Route sections" and the
-/// list of their sections and the buttons that change it, below the table in a splitter. The buttons call the facet that
-/// is chosen, and only while the scene can be edited.
+/// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. The facet also says which other
+/// controls it uses (InfrastructureFacet::capabilities): a filter on the track under the combo, which blocks use, buttons
+/// that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections
+/// of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons
+/// call the facet that is chosen, only when it has their capability and only while the scene can be edited.
 class InfrastructurePanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -162,6 +163,8 @@ private:
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
 	InfrastructureFacet* currentFacet() const;
+	// Whether the chosen facet has the capability; false without a facet.
+	bool currentFacetHas(InfrastructureFacet::Capability capability) const;
 
 	std::map<QString, std::unique_ptr<InfrastructureFacet>> m_facets;
 	QString m_selectionId;

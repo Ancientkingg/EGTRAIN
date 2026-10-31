@@ -26,6 +26,7 @@ namespace {
 class BlocksFacet final : public InfrastructureFacet {
 public:
 	QString key() const override { return QStringLiteral("blocks"); }
+	Capabilities capabilities() const override { return TrackFilter | InsertAndMove; }
 	QStringList columns() const override {
 		return {"ID", "Track ID", "Length (km)", "Order", "Start km", "End km", "Coverage"};
 	}
@@ -180,6 +181,7 @@ private:
 class RoutesFacet final : public ListFacet<SceneRoute> {
 public:
 	RoutesFacet() : ListFacet("routes", "route", &SceneModel::routes, {"ID", "Sections", "Has corridor", "Corridor", "Reversed"}) {}
+	Capabilities capabilities() const override { return RouteSections; }
 
 	void addSection(InfrastructurePanel& panel) override {
 		SceneRoute* route = selectedRoute(panel);

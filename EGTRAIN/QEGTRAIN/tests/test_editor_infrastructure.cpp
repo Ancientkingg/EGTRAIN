@@ -145,6 +145,7 @@ public:
 class BlockFacet : public InfrastructureFacet {
 public:
 	QString key() const override { return "blocks"; }
+	Capabilities capabilities() const override { return TrackFilter | InsertAndMove; }
 	QStringList columns() const override { return {"ID", "Track ID"}; }
 	void fillRows(InfrastructurePanel& panel) override {
 		QTableWidget& table = *panel.table();
@@ -170,6 +171,7 @@ public:
 class RouteFacet : public InfrastructureFacet {
 public:
 	QString key() const override { return "routes"; }
+	Capabilities capabilities() const override { return RouteSections; }
 	QStringList columns() const override { return {"ID"}; }
 	void fillRows(InfrastructurePanel& panel) override {
 		QTableWidget& table = *panel.table();
@@ -180,6 +182,51 @@ public:
 	void commitCell(InfrastructurePanel&, int, int) override {}
 	void add(InfrastructurePanel&) override {}
 	void remove(InfrastructurePanel&) override {}
+};
+
+// A facet with the key and the capabilities it is given. Like the blocks it lists the blocks on the track that the filter
+// names, and it counts what the buttons ask of it.
+class ControlFacet : public InfrastructureFacet {
+public:
+	ControlFacet(const char* key, Capabilities capabilities) : m_key(key), m_capabilities(capabilities) {}
+
+	int fillCount = 0;
+	int insertCount = 0;
+	std::vector<int> moves;
+	int addSectionCount = 0;
+	int removeSectionCount = 0;
+	std::vector<int> sectionMoves;
+
+	QString key() const override { return m_key; }
+	Capabilities capabilities() const override { return m_capabilities; }
+	QStringList columns() const override { return {"ID"}; }
+	void fillRows(InfrastructurePanel& panel) override {
+		++fillCount;
+		QTableWidget& table = *panel.table();
+		const QString track = panel.blockTrackFilterCombo()->currentData().toString();
+		table.setRowCount(0);
+		for (int index = 0; index < static_cast<int>(panel.model().blocks.size()); ++index) {
+			const SceneBlock& block = panel.model().blocks[static_cast<std::size_t>(index)];
+			if (QString::fromStdString(block.trackId) != track)
+				continue;
+			const int row = table.rowCount();
+			table.insertRow(row);
+			panel.blockRowModelIndices().push_back(index);
+			setCell(table, row, 0, QString::fromStdString(block.id));
+		}
+	}
+	void commitCell(InfrastructurePanel&, int, int) override {}
+	void add(InfrastructurePanel&) override {}
+	void remove(InfrastructurePanel&) override {}
+	void insert(InfrastructurePanel&) override { ++insertCount; }
+	void move(InfrastructurePanel&, int offset) override { moves.push_back(offset); }
+	void addSection(InfrastructurePanel&) override { ++addSectionCount; }
+	void removeSection(InfrastructurePanel&) override { ++removeSectionCount; }
+	void moveSection(InfrastructurePanel&, int offset) override { sectionMoves.push_back(offset); }
+
+private:
+	QString m_key;
+	Capabilities m_capabilities;
 };
 
 using Log = std::vector<std::string>;
@@ -252,6 +299,7 @@ private slots:
 	void editsAddsAndDeletesEntities();
 	void filtersAndMovesBlocks();
 	void showsRouteSections();
+	void controlsFollowCapabilities();
 	void laysOutControls();
 	void dropsEditorsOnFacetChange();
 	void returnAndAddLeaveNoEditor();
@@ -776,6 +824,71 @@ void TestInfrastructurePanel::showsRouteSections() {
 	labels.byReference[connection.id] = "T1 1.000, T2 0.000 km";
 	// A section of a connection is named by its label.
 	QCOMPARE(InfrastructurePanel::sectionLabel(labels, connection), "T1 1.000, T2 0.000 km");
+}
+
+// The facet decides the controls by its capabilities, not by its key: tracks with every capability get the filter, the
+// buttons of blocks and the sections of routes, and blocks without one get none of them.
+void TestInfrastructurePanel::controlsFollowCapabilities() {
+	SceneDocument document;
+	InfrastructurePanel panel;
+	panel.setFacet(std::make_unique<ControlFacet>("tracks",
+		InfrastructureFacet::TrackFilter | InfrastructureFacet::InsertAndMove | InfrastructureFacet::RouteSections));
+	panel.setFacet(std::make_unique<ControlFacet>("blocks", InfrastructureFacet::Capabilities()));
+	auto* capable = static_cast<ControlFacet*>(panel.facet("tracks"));
+	auto* bare = static_cast<ControlFacet*>(panel.facet("blocks"));
+	panel.setDocument(&document);
+	document.replace(infrastructureScene(), false);
+	panel.refresh();
+	QCOMPARE(panel.facetKey(), "tracks");
+	QVERIFY(!panel.blockTrackFilterCombo()->isHidden());
+	QVERIFY(!panel.insertBlockButton()->isHidden());
+	QVERIFY(!panel.moveBlockUpButton()->isHidden());
+	QVERIFY(!panel.moveBlockDownButton()->isHidden());
+	QVERIFY(!panel.routeSectionDetailWidget()->isHidden());
+	QCOMPARE(choices(panel.blockTrackFilterCombo()), QStringList({"T1", "T2", "ghost (missing)"}));
+	QCOMPARE(firstColumn(panel.table()), QStringList({"b1", "b2"}));
+
+	panel.table()->setCurrentCell(0, 0);
+	QVERIFY(panel.insertBlockButton()->isEnabled());
+	QVERIFY(panel.moveBlockDownButton()->isEnabled());
+	panel.insertBlockButton()->click();
+	panel.moveBlockDownButton()->click();
+	QCOMPARE(capable->insertCount, 1);
+	QCOMPARE(capable->moves, std::vector<int>({1}));
+	// The table row is the route whose sections are shown.
+	QCOMPARE(panel.routeSectionListWidget()->count(), 2);
+	QVERIFY(panel.addRouteSectionButton()->isEnabled());
+	panel.addRouteSectionButton()->click();
+	panel.removeRouteSectionButton()->click();
+	panel.moveRouteSectionDownButton()->click();
+	QCOMPARE(capable->addSectionCount, 1);
+	QCOMPARE(capable->removeSectionCount, 1);
+	QCOMPARE(capable->sectionMoves, std::vector<int>({1}));
+	const int fills = capable->fillCount;
+	panel.blockTrackFilterCombo()->setCurrentIndex(1);
+	QVERIFY2(capable->fillCount > fills, "choosing a track lists the rows of a facet with the filter again");
+	QCOMPARE(firstColumn(panel.table()), QStringList({"b3"}));
+
+	chooseFacet(panel, "blocks");
+	QVERIFY(panel.blockTrackFilterCombo()->isHidden());
+	QVERIFY(panel.insertBlockButton()->isHidden());
+	QVERIFY(panel.moveBlockUpButton()->isHidden());
+	QVERIFY(panel.moveBlockDownButton()->isHidden());
+	QVERIFY(panel.routeSectionDetailWidget()->isHidden());
+	const int bareFills = bare->fillCount;
+	panel.blockTrackFilterCombo()->setCurrentIndex(0);
+	QCOMPARE(bare->fillCount, bareFills);
+	panel.table()->setCurrentCell(0, 0);
+	panel.insertEntity();
+	panel.moveEntity(1);
+	panel.addSection();
+	panel.removeSection();
+	panel.moveSection(1);
+	QCOMPARE(bare->insertCount, 0);
+	QVERIFY(bare->moves.empty());
+	QCOMPARE(bare->addSectionCount, 0);
+	QCOMPARE(bare->removeSectionCount, 0);
+	QVERIFY(bare->sectionMoves.empty());
 }
 
 // The layout: the combo on top, the buttons under the table, and the sections of a route below it in a splitter.
