@@ -42,6 +42,34 @@
 #include <cmath>
 #include <exception>
 
+namespace {
+
+// Frees the storage of `samples`, which clear() keeps.
+template <typename T>
+void release(std::vector<T>& samples) {
+	std::vector<T>().swap(samples);
+}
+
+// Frees the samples that each train of `run` keeps for every step. The completed run holds what the result views need
+// as values, and the canvas and the replay hold their frames, so nothing reads the samples once the run has ended and
+// TrainServicePathDiagram.txt is written. The trains stay, for Follow and the canvas.
+void releaseTrainSamples(SimulationRun& run) {
+	for (Train& train : run.trains) {
+		release(train.instant_train_speed);
+		release(train.instant_spatial_position);
+		release(train.instant_block_section_occupied);
+		release(train.instant_train_power_consumption);
+		release(train.instant_train_tractive_effort);
+		release(train.instant_train_energy_consumption);
+		release(train.BX);
+		release(train.Xob);
+		release(train.Vob);
+		release(train.Eq);
+	}
+}
+
+} // namespace
+
 QString completedRunContext(const RunProvenance& provenance) {
 	return runContextText(provenance);
 }
@@ -145,10 +173,10 @@ bool RunController::hasRawRunResults() {
 	return false;
 }
 
-// Raw trajectories can survive a scene edit; the state of the run is the
-// ownership boundary for result actions.
+// The trains can survive a scene edit; the state of the run is the ownership boundary for result actions. The samples
+// of the trains are freed when the run ends, so the trains themselves stand for the run.
 bool RunController::hasRunResults() const {
-	return resultsAvailable() && m_completedRun && hasRawRunResults();
+	return resultsAvailable() && m_completedRun && simulation.run().numTrains > 0;
 }
 
 void RunController::showError(const QString& title, const QString& message) {
@@ -674,6 +702,7 @@ void RunController::onSimulationFinished() {
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
+	releaseTrainSamples(simulation.mutableRun());
 	if (resultsAvailable() && !outcome.stopped)
 		m_host.replayReady(simulation.takeReplayCandidate());
 	else

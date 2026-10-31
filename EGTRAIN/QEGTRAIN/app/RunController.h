@@ -174,7 +174,8 @@ public:
 	bool resultsAvailable() const { return m_state == RunState::Completed && !m_sceneChangedDuringRun; }
 	/// The finished run as values. Null while no run has completed.
 	const std::shared_ptr<const CompletedRunData>& completedRun() const { return m_completedRun; }
-	/// Results of a completed run exist and the simulation still holds the trajectories behind them.
+	/// Results of a completed run exist and the simulation still holds the trains behind them. The samples that the trains
+	/// keep for every step are freed when the run ends: completedRun() holds what the result views read.
 	bool hasRunResults() const;
 	/// How many service occurrences were selected for the last run.
 	int lastRunSelectedOccurrences() const { return m_lastRunSelectedOccurrences; }
@@ -223,7 +224,8 @@ public:
 	/// With a run going on: asks it to stop, shows the stopping state and keeps `action` for the moment its worker has
 	/// finished. The last request replaces an earlier one. Returns false without a run; the caller then acts at once.
 	bool deferUntilRunStopped(std::function<void()> action);
-	/// The results of the run are kept or discarded, and the window follows.
+	/// The results of the run are kept or discarded, and the window follows. Then the samples that the trains keep for
+	/// every step are freed, unless a scripted run or the playback profiler has ended the run for the window before.
 	void onSimulationFinished();
 
 signals:
