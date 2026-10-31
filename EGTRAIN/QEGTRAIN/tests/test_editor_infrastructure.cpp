@@ -16,6 +16,7 @@
 #include <QListWidget>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSplitter>
 #include <QString>
 #include <QStringList>
@@ -1112,6 +1113,8 @@ void TestInfrastructurePanel::returnAndAddLeaveNoEditor() {
 	document.replace(infrastructureScene(), false);
 	panel.refresh();
 	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	panel.activateWindow();
 	QApplication::processEvents();
 	QTableWidget* table = panel.table();
@@ -1169,6 +1172,8 @@ void TestInfrastructurePanel::commitsOpenCellEditor() {
 	panel.activateWindow();
 	QApplication::processEvents();
 	Events events(panel, document);
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QTableWidget* table = panel.table();
 	const SceneModel& model = document.model();
 	const auto openEditor = [table](int row) {
@@ -1251,6 +1256,8 @@ void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
 	panel.activateWindow();
 	QApplication::processEvents();
 	Events events(panel, document);
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
 	QObject::connect(&panel, &InfrastructurePanel::changed, &panel, [&panel] { panel.commitPendingEditors(); });
 	QTableWidget* table = panel.table();
 	table->editItem(table->item(0, 0));
