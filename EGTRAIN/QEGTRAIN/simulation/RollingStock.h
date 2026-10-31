@@ -656,8 +656,9 @@ public:
 	/// The virtual coupling of step time_seconds, once the speed and position of the step are set. The train couples to liveLeader,
 	/// the leader that currentFollowingAuthority found, when it is within 30 m of the predicted coupling point at nearly the speed
 	/// of the leader; a decoupling at diverging routes ends once its authority has come; and in following mode the step is counted,
-	/// and the mode ends when the leader at leaderHead (m) is more than 30 m ahead of head (m). Returns true when the train was in
-	/// following mode with no decoupling under way, the case in which the step may follow the leader.
+	/// and an unintentional decoupling starts (IsInUnintentionalDecoupling) when the leader at leaderHead (m) is more than 30 m
+	/// ahead of head (m). Returns true when the train was in following mode with no decoupling under way at the start of the
+	/// call, the case in which the step may follow the leader; that holds for the step in which the decoupling starts too.
 	bool updateVirtualCoupling(int time_seconds, const MovementAuthority* liveLeader, double leaderHead, double head);
 
 	/// Step time_seconds of a train that stood still in the step before, with its head at head (m) on arc As. It stays at, or
