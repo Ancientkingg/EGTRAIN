@@ -661,9 +661,75 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	return showPreview(sceneModel, PreviewOptions());
 }
 
+// What the stages of showPreview() share.
+struct NetworkPresenter::PreviewDrawing {
+	// The ids of the tracks that the infrastructure panel selects.
+	std::set<std::string> selectedTrackIds;
+	// The line of each track that has a drawable shape, by track id, with its display offset.
+	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
+	// The same lines in the order of the preview.
+	std::vector<const TrackPreviewLine*> drawnLines;
+	// The bounds of the points of the drawn lines and connections; empty until hasPreviewBounds.
+	QRectF previewBounds;
+	bool hasPreviewBounds = false;
+	// The item of each node and the platform bar of each station node, by node id.
+	std::map<std::string, QGraphicsItem*> nodeItems;
+	std::map<std::string, const PlatformItem*> platformBars;
+	// The station and the platform of each node, by node id.
+	std::map<std::string, PreviewStationMembership> memberships;
+
+	// Extends the bounds to point.
+	void includePreviewPoint(const QPointF& point) {
+		if (!hasPreviewBounds) {
+			previewBounds = QRectF(point, point);
+			hasPreviewBounds = true;
+			return;
+		}
+		previewBounds.setLeft(qMin(previewBounds.left(), point.x()));
+		previewBounds.setRight(qMax(previewBounds.right(), point.x()));
+		previewBounds.setTop(qMin(previewBounds.top(), point.y()));
+		previewBounds.setBottom(qMax(previewBounds.bottom(), point.y()));
+	}
+};
+
 NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel& sceneModel, const PreviewOptions& options) {
 	QGraphicsScene* const scene = m_scene;
 	resetPreviewFit();
+	PreviewDrawing drawing;
+	drawing.selectedTrackIds = previewSelectedTracks(sceneModel, options);
+	m_previewHasSelectedTrack = !drawing.selectedTrackIds.empty();
+	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
+	m_previewLinesById.clear();
+	for (const TrackPreviewLine& line : m_cachedTrackPreview.lines)
+		m_previewLinesById.emplace(line.id, &line);
+	if (m_cachedTrackPreview.lines.empty()) {
+		if (scene)
+			scene->setSceneRect(QRectF());
+		return {};
+	}
+
+	collectPreviewLines(drawing);
+	drawPreviewConnections(drawing);
+	drawPreviewTrackLines(sceneModel, drawing);
+	drawPreviewNodes(sceneModel, drawing);
+	// Selected-only editor emphasis is separate from structural boundary marks.
+	if (options.markSelection)
+		markPreviewSelection(sceneModel, options, drawing);
+	drawPreviewStations(sceneModel, drawing);
+	measureStationTrackSpacing();
+	drawPreviewSignals(sceneModel, drawing);
+	fitPreview(drawing);
+	// The scene queues every added item for polishing until the event loop runs, and deleting a queued item
+	// leaves an entry that each later deletion searches past. Previews drawn back to back would get slower with
+	// every call, so run the queued work now.
+	QCoreApplication::sendPostedEvents(scene, QEvent::MetaCall);
+	return {true, static_cast<int>(drawing.tracks.size()), drawing.hasPreviewBounds};
+}
+
+// The tracks of the row that the infrastructure panel selects: the track of a track, node, arc or block, the tracks of
+// the two nodes of a connection, the tracks of the platform nodes of a station or a platform, and the tracks of the blocks
+// of a route.
+std::set<std::string> NetworkPresenter::previewSelectedTracks(const SceneModel& sceneModel, const PreviewOptions& options) {
 	const std::string& selectedFacet = options.selectedFacet;
 	const std::string& selectedId = options.selectedId;
 	std::set<std::string> selectedTrackIds;
@@ -734,33 +800,13 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			}
 		}
 	}
-	m_previewHasSelectedTrack = !selectedTrackIds.empty();
-	m_cachedTrackPreview = normalizeTrackPreview(loadTrackPreview(sceneModel));
-	m_previewLinesById.clear();
-	for (const TrackPreviewLine& line : m_cachedTrackPreview.lines)
-		m_previewLinesById.emplace(line.id, &line);
-	const TrackPreviewResult& preview = m_cachedTrackPreview;
-	if (preview.lines.empty()) {
-		if (scene)
-			scene->setSceneRect(QRectF());
-		return {};
-	}
+	return selectedTrackIds;
+}
 
-	QRectF previewBounds;
-	bool hasPreviewBounds = false;
-	const auto includePreviewPoint = [&previewBounds, &hasPreviewBounds](const QPointF& point) {
-		if (!hasPreviewBounds) {
-			previewBounds = QRectF(point, point);
-			hasPreviewBounds = true;
-			return;
-		}
-		previewBounds.setLeft(qMin(previewBounds.left(), point.x()));
-		previewBounds.setRight(qMax(previewBounds.right(), point.x()));
-		previewBounds.setTop(qMin(previewBounds.top(), point.y()));
-		previewBounds.setBottom(qMax(previewBounds.bottom(), point.y()));
-	};
-	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
-	std::vector<const TrackPreviewLine*> drawnLines;
+// Takes the lines of the preview that have a drawable shape, at least two points and all of them finite, and the bounds
+// of their points.
+void NetworkPresenter::collectPreviewLines(PreviewDrawing& drawing) const {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
 		if (line.points.size() < 2 || std::any_of(line.points.begin(), line.points.end(), [](const auto& point) {
@@ -768,13 +814,17 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			}))
 			continue;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
-		tracks[line.id] = {&line, offset};
-		drawnLines.push_back(&line);
+		drawing.tracks[line.id] = {&line, offset};
+		drawing.drawnLines.push_back(&line);
 		for (const auto& point : line.points)
-			includePreviewPoint(QPointF(point.x, point.y + offset));
+			drawing.includePreviewPoint(QPointF(point.x, point.y + offset));
 	}
+}
 
-	for (const auto& connection : preview.connections) {
+// Draws the connections between two drawn lines, which extend the bounds.
+void NetworkPresenter::drawPreviewConnections(PreviewDrawing& drawing) {
+	const auto& tracks = drawing.tracks;
+	for (const auto& connection : m_cachedTrackPreview.connections) {
 		const auto first = tracks.find(connection.firstTrackId);
 		const auto second = tracks.find(connection.secondTrackId);
 		if (first == tracks.end() || second == tracks.end())
@@ -789,11 +839,16 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		auto* item = new ConnectionItem(QLineF(start, end));
 		item->setPen(connectionPen(line_width));
 		tagPreviewItem(item, "connection", connection.id);
-		scene->addItem(item);
-		includePreviewPoint(start);
-		includePreviewPoint(end);
+		m_scene->addItem(item);
+		drawing.includePreviewPoint(start);
+		drawing.includePreviewPoint(end);
 	}
+}
 
+// Draws the drawn lines arc by arc, in the colour and width of the speed limit of the arc, or with the selection pen on a
+// selected track.
+void NetworkPresenter::drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	const std::set<std::string>& selectedTrackIds = drawing.selectedTrackIds;
 	// The first arc of a track between two nodes, in either direction.
 	std::map<std::tuple<std::string_view, std::string_view, std::string_view>, const SceneArc*> arcsByNodes;
 	for (const SceneArc& arc : sceneModel.arcs) {
@@ -802,7 +857,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		arcsByNodes.emplace(std::make_tuple(std::string_view(arc.trackId), std::min(from, to), std::max(from, to)), &arc);
 	}
 	// A run adds the connections first and the track lines after them, so a track is drawn over a connection.
-	for (const TrackPreviewLine* drawn : drawnLines) {
+	for (const TrackPreviewLine* drawn : drawing.drawnLines) {
 		const auto& line = *drawn;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
@@ -821,20 +876,23 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 				line.points[point].x, line.points[point].y + offset));
 			item->setPen(pen);
 			tagPreviewItem(item, arc ? "arc" : "track", arc ? arc->id : line.id);
-			scene->addItem(item);
+			m_scene->addItem(item);
 		}
 	}
+}
 
-	const auto memberships = previewStationMemberships(sceneModel);
+// Draws the node at each point of a drawn line: the square of a station node, with the bar of its platform, or the dot
+// of another node.
+void NetworkPresenter::drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing) {
+	drawing.memberships = previewStationMemberships(sceneModel);
+	const auto& memberships = drawing.memberships;
 	std::map<std::string, int> connectionDegrees;
 	for (const auto& connection : sceneModel.connections) {
 		++connectionDegrees[connection.fromNodeId];
 		++connectionDegrees[connection.toNodeId];
 	}
-	std::map<std::string, QGraphicsItem*> nodeItems;
-	std::map<std::string, const PlatformItem*> platformBars;
-	for (const auto& line : preview.lines) {
-		if (!tracks.count(line.id))
+	for (const auto& line : m_cachedTrackPreview.lines) {
+		if (!drawing.tracks.count(line.id))
 			continue;
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, line.id);
 		for (std::size_t index = 0; index < line.points.size(); ++index) {
@@ -866,7 +924,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 					const auto pointAt = [&line](std::size_t at) {
 						return QPointF(line.points[at].x, line.points[at].y + line.displayOffset);
 					};
-					platformBars[point.nodeId] =
+					drawing.platformBars[point.nodeId] =
 						addPlatformBar(pointAt(index - 1), pointAt(index), lineEnd ? pointAt(index) : pointAt(index + 1), size);
 				}
 			} else {
@@ -878,68 +936,78 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			QPen pen = item->pen();
 			pen.setCosmetic(true);
 			item->setPen(pen);
-			scene->addItem(item);
-			nodeItems[point.nodeId] = item;
+			m_scene->addItem(item);
+			drawing.nodeItems[point.nodeId] = item;
+		}
+	}
+}
+
+// Marks the arc or the connection that the infrastructure panel selects with a line between its two ends.
+void NetworkPresenter::markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options,
+	const PreviewDrawing& drawing) {
+	const std::string& selectedFacet = options.selectedFacet;
+	const std::string& selectedId = options.selectedId;
+	const auto& tracks = drawing.tracks;
+	if (selectedFacet == "arcs") {
+		for (const auto& arc : sceneModel.arcs) {
+			if (arc.id != selectedId)
+				continue;
+			const auto track = tracks.find(arc.trackId);
+			if (track == tracks.end())
+				break;
+			QPointF start;
+			QPointF end;
+			if (!previewPointAtNode(*track->second.first, arc.fromNodeId, track->second.second, start)
+				|| !previewPointAtNode(*track->second.first, arc.toNodeId, track->second.second, end))
+				break;
+			addSelectionLine(start, end);
+			break;
 		}
 	}
 
-	// Selected-only editor emphasis is separate from structural boundary marks.
-	if (options.markSelection) {
-		if (selectedFacet == "arcs") {
-			for (const auto& arc : sceneModel.arcs) {
-				if (arc.id != selectedId)
-					continue;
-				const auto track = tracks.find(arc.trackId);
-				if (track == tracks.end())
-					break;
-				QPointF start;
-				QPointF end;
-				if (!previewPointAtNode(*track->second.first, arc.fromNodeId, track->second.second, start)
-					|| !previewPointAtNode(*track->second.first, arc.toNodeId, track->second.second, end))
-					break;
-				QPainterPath path(start);
-				path.lineTo(end);
-				QPen highlight(QColor(255, 110, 90));
-				highlight.setWidthF(6.0);
-				highlight.setCosmetic(true);
-				auto* item = scene->addPath(path, highlight);
-				item->setAcceptedMouseButtons(Qt::NoButton);
+	if (selectedFacet == "connections") {
+		for (const auto& connection : sceneModel.connections) {
+			if (connection.id != selectedId)
+				continue;
+			const auto fromNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
+				[&connection](const SceneNode& node) { return node.id == connection.fromNodeId; });
+			const auto toNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
+				[&connection](const SceneNode& node) { return node.id == connection.toNodeId; });
+			if (fromNode == sceneModel.nodes.end() || toNode == sceneModel.nodes.end())
 				break;
-			}
-		}
-
-		if (selectedFacet == "connections") {
-			for (const auto& connection : sceneModel.connections) {
-				if (connection.id != selectedId)
-					continue;
-				const auto fromNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
-					[&connection](const SceneNode& node) { return node.id == connection.fromNodeId; });
-				const auto toNode = std::find_if(sceneModel.nodes.begin(), sceneModel.nodes.end(),
-					[&connection](const SceneNode& node) { return node.id == connection.toNodeId; });
-				if (fromNode == sceneModel.nodes.end() || toNode == sceneModel.nodes.end())
-					break;
-				const auto first = tracks.find(fromNode->trackId);
-				const auto second = tracks.find(toNode->trackId);
-				if (first == tracks.end() || second == tracks.end())
-					break;
-				QPointF start;
-				QPointF end;
-				if (!previewPointAtNode(*first->second.first, fromNode->id, first->second.second, start)
-					|| !previewPointAtNode(*second->second.first, toNode->id, second->second.second, end))
-					break;
-				QPainterPath path(start);
-				path.lineTo(end);
-				QPen highlight(QColor(255, 110, 90));
-				highlight.setWidthF(6.0);
-				highlight.setCosmetic(true);
-				auto* item = scene->addPath(path, highlight);
-				item->setAcceptedMouseButtons(Qt::NoButton);
+			const auto first = tracks.find(fromNode->trackId);
+			const auto second = tracks.find(toNode->trackId);
+			if (first == tracks.end() || second == tracks.end())
 				break;
-			}
+			QPointF start;
+			QPointF end;
+			if (!previewPointAtNode(*first->second.first, fromNode->id, first->second.second, start)
+				|| !previewPointAtNode(*second->second.first, toNode->id, second->second.second, end))
+				break;
+			addSelectionLine(start, end);
+			break;
 		}
 	}
+}
 
-	// Station anchors: one fixed-size marker and name per canonical station.
+// Adds the mark of a selected arc or connection, a line from start to end that takes no mouse button.
+void NetworkPresenter::addSelectionLine(const QPointF& start, const QPointF& end) {
+	QPainterPath path(start);
+	path.lineTo(end);
+	QPen highlight(QColor(255, 110, 90));
+	highlight.setWidthF(6.0);
+	highlight.setCosmetic(true);
+	auto* item = m_scene->addPath(path, highlight);
+	item->setAcceptedMouseButtons(Qt::NoButton);
+}
+
+// Draws the station anchors: one fixed-size marker and name per canonical station.
+void NetworkPresenter::drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
+	const auto& tracks = drawing.tracks;
+	const auto& memberships = drawing.memberships;
+	const auto& nodeItems = drawing.nodeItems;
+	const auto& platformBars = drawing.platformBars;
 	for (const auto& station : preview.stations) {
 		if (station.name.find("virtual") != std::string::npos)
 			continue;
@@ -1012,10 +1080,13 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			break;
 		}
 	}
-	measureStationTrackSpacing();
+}
 
-	// Preview signals are derived from canonical block boundaries.  They stay
-	// in the existing decoration list so the layer toggle and teardown own them.
+// Draws the signals of the preview, which are derived from canonical block boundaries. They stay in the existing
+// decoration list so the layer toggle and teardown own them.
+void NetworkPresenter::drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing) {
+	const TrackPreviewResult& preview = m_cachedTrackPreview;
+	const auto& tracks = drawing.tracks;
 	std::map<std::string, QStringList> signalIdsBySection;
 	for (const SceneSignal& source : sceneSignals(sceneModel))
 		signalIdsBySection[source.protectedSection].append(QString::fromStdString(source.id));
@@ -1051,7 +1122,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			QPen white(Qt::white, line_width);
 			white.setCosmetic(true);
 			for (const QLineF& stroke : {base, post}) {
-				auto* line = scene->addLine(stroke, white);
+				auto* line = m_scene->addLine(stroke, white);
 				line->setData(kSignalDecorationRole, true);
 				line->setData(kSignalTrackRole, -1);
 				line->setData(kSignalBaseVisibleRole, true);
@@ -1083,7 +1154,7 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			glyph->setData(kSignalBaseVisibleRole, true);
 			glyph->setData(kSignalAnchorRole, head);
 			glyph->setAcceptedMouseButtons(Qt::NoButton);
-			scene->addItem(glyph);
+			m_scene->addItem(glyph);
 			m_signalDecorations.push_back(glyph);
 			glyph->setVisible(m_signalLayerVisible);
 		}
@@ -1091,49 +1162,49 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	m_previewHasSignals = !preview.previewSignals.empty()
 		&& std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
 			[](QGraphicsItem* item) { return qgraphicsitem_cast<SignalItem*>(item) != nullptr; });
+}
 
+// Fits the view to the bounds of what the preview drew, with margins, and keeps the point of the drawn lines nearest to
+// the centre of the bounds as the zoom focus. Does nothing without bounds.
+void NetworkPresenter::fitPreview(PreviewDrawing& drawing) {
+	if (!drawing.hasPreviewBounds)
+		return;
 	// Fit the drawn geometry directly; the generic fitView minimum-scale clamp
 	// is tuned for case-study coordinates and crops these kilometre-scale paths.
-	if (hasPreviewBounds) {
-		const QPointF target = previewBounds.center();
-		qreal bestDistance = std::numeric_limits<qreal>::max();
-		for (const auto& track : tracks) {
-			const auto& line = *track.second.first;
-			const qreal offset = track.second.second;
-			for (std::size_t index = 1; index < line.points.size(); ++index) {
-				const QPointF first(line.points[index - 1].x, line.points[index - 1].y + offset);
-				const QPointF second(line.points[index].x, line.points[index].y + offset);
-				const QPointF segment = second - first;
-				const qreal lengthSquared = QPointF::dotProduct(segment, segment);
-				const qreal ratio = lengthSquared > 0.0
-					? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment) / lengthSquared, 1.0)
-					: 0.0;
-				const QPointF candidate = first + ratio * segment;
-				const QPointF delta = candidate - target;
-				const qreal distance = QPointF::dotProduct(delta, delta);
-				if (distance < bestDistance) {
-					bestDistance = distance;
-					m_previewZoomFocus = candidate;
-				}
+	QRectF& previewBounds = drawing.previewBounds;
+	const QPointF target = previewBounds.center();
+	qreal bestDistance = std::numeric_limits<qreal>::max();
+	for (const auto& track : drawing.tracks) {
+		const auto& line = *track.second.first;
+		const qreal offset = track.second.second;
+		for (std::size_t index = 1; index < line.points.size(); ++index) {
+			const QPointF first(line.points[index - 1].x, line.points[index - 1].y + offset);
+			const QPointF second(line.points[index].x, line.points[index].y + offset);
+			const QPointF segment = second - first;
+			const qreal lengthSquared = QPointF::dotProduct(segment, segment);
+			const qreal ratio = lengthSquared > 0.0
+				? qBound<qreal>(0.0, QPointF::dotProduct(target - first, segment) / lengthSquared, 1.0)
+				: 0.0;
+			const QPointF candidate = first + ratio * segment;
+			const QPointF delta = candidate - target;
+			const qreal distance = QPointF::dotProduct(delta, delta);
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				m_previewZoomFocus = candidate;
 			}
 		}
-		if (previewBounds.height() < previewBounds.width() * 0.2) {
-			const qreal grow = previewBounds.width() * 0.2 - previewBounds.height();
-			previewBounds.adjust(0, -grow / 2.0, 0, grow / 2.0);
-		}
-		const qreal marginX = previewBounds.width() * 0.05;
-		const qreal marginY = previewBounds.height() * 0.1;
-		previewBounds.adjust(-marginX, -marginY, marginX, marginY);
-		m_previewFitBounds = previewBounds;
-		scene->setSceneRect(previewBounds);
-		if (m_view)
-			m_view->fitToBounds(previewBounds);
 	}
-	// The scene queues every added item for polishing until the event loop runs, and deleting a queued item
-	// leaves an entry that each later deletion searches past. Previews drawn back to back would get slower with
-	// every call, so run the queued work now.
-	QCoreApplication::sendPostedEvents(scene, QEvent::MetaCall);
-	return {true, static_cast<int>(tracks.size()), hasPreviewBounds};
+	if (previewBounds.height() < previewBounds.width() * 0.2) {
+		const qreal grow = previewBounds.width() * 0.2 - previewBounds.height();
+		previewBounds.adjust(0, -grow / 2.0, 0, grow / 2.0);
+	}
+	const qreal marginX = previewBounds.width() * 0.05;
+	const qreal marginY = previewBounds.height() * 0.1;
+	previewBounds.adjust(-marginX, -marginY, marginX, marginY);
+	m_previewFitBounds = previewBounds;
+	m_scene->setSceneRect(previewBounds);
+	if (m_view)
+		m_view->fitToBounds(previewBounds);
 }
 
 // Keep native font/pixmap metrics and scale their scene-space presentation. The
