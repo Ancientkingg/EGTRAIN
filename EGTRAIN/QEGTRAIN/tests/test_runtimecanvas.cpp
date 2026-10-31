@@ -9,6 +9,7 @@
 #include "graphics/NetworkView.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
+#include "graphics/items/ConnectionItem.h"
 #include "graphics/items/HighlightEffect.h"
 #include "graphics/items/NodeItem.h"
 #include "graphics/items/PassengerItem.h"
@@ -143,6 +144,14 @@ public:
 		m_connections[0].xSecondNode = 6.0;
 	}
 
+	// Adds a station with this name at X and Y in kilometres, after the stations A and B.
+	void addStation(const std::string& name, double xKm, double yKm) {
+		Stations& added = m_stations.emplace_back();
+		added.stationName = name;
+		added.X = xKm;
+		added.Y = yKm;
+	}
+
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
 	const BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
 	// The track line with this index, for a test to set up.
@@ -209,6 +218,14 @@ static GuiTrainState trainAt(double headKm) {
 
 static bool near(double left, double right) {
 	return std::fabs(left - right) < 1e-6;
+}
+
+// Whether point lies within 1e-9 scene units of expected; prints both when it does not.
+static bool samePoint(const QPointF& point, const QPointF& expected) {
+	if (std::fabs(point.x() - expected.x()) < 1e-9 && std::fabs(point.y() - expected.y()) < 1e-9)
+		return true;
+	qWarning("drawn at %.12f, %.12f instead of %.12f, %.12f", point.x(), point.y(), expected.x(), expected.y());
+	return false;
 }
 
 // The body of the train is the rectangle of 100 m along the track and twice 0.1 of the track separation across it.
@@ -616,7 +633,7 @@ private slots:
 	void platformLiesAlongDiagonalTrack();
 	void levelWithoutStationGeometryIsDrawnHigher();
 	void runPutsPicturesWherePreviewDoes();
-	void drawingLeavesSourceUnchanged();
+	void drawsRunAlongBendOfStations();
 	void showingRunAgainLaysItOutAnew();
 };
 
@@ -2366,25 +2383,84 @@ void TestRuntimeCanvas::runPutsPicturesWherePreviewDoes() {
 	QVERIFY2(same, "a run with the preview puts the station pictures of a higher schematic level where the preview put them");
 }
 
-// Drawing a run with a connection and a station lower down, and a train on it, leaves the source as it was: the presenter
-// keeps the places it works out for the canvas to itself.
-void TestRuntimeCanvas::drawingLeavesSourceUnchanged() {
+// A run on the tracks T and U of a crossover, whose stations A, M and B bend at M, with a train over the end of the
+// connection on U. U is one level above T. The connection, the two arcs of U and two corners of the body of the train lie
+// where the layout rules put them, worked out here, the body has a shape, and drawing leaves the source as it was.
+void TestRuntimeCanvas::drawsRunAlongBendOfStations() {
 	RunFixture f;
 	NetworkPresenter& presenter = f.presenter;
 	FakeGeometry* const source = f.source;
 	source->makeCrossover();
 	source->addCrossoverConnection();
-	source->station(1).Y = 5.0;
+	source->station(1).Y = 1.0;
+	source->addStation("M", 5.0, 2.0);
 	const std::vector<double> before = canvasFields(*source);
 	presenter.showRuntime(f.model);
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
-	snapshot.trains = {trainAt(5.0)};
+	snapshot.trains = {trainAt(6.05)};
 	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
 	// The run draws the arcs of both tracks and the train.
 	QCOMPARE(PresenterAccess::allArcs(presenter).size(), qsizetype(4));
 	QCOMPARE(presenter.runTrains().size(), qsizetype(1));
 	QVERIFY2(canvasFields(*source) == before, "drawing a run leaves the canvas fields of its source as they were");
+
+	const auto unit = [](const QPointF& vector) { return vector / std::hypot(vector.x(), vector.y()); };
+	// The bisector at corner of the angle that turns clockwise on the screen from the direction towards from to the
+	// direction towards to. That angle is below half a turn at every corner here, so the bisector is the sum of the two
+	// directions.
+	const auto bisector = [&unit](const QPointF& from, const QPointF& corner, const QPointF& to) {
+		return unit(unit(from - corner) + unit(to - corner));
+	};
+	const double separation = presenter.track_separation;
+	// The stations stand at their X and Y in metres. In a region of three stations the first two shift the levels along
+	// the bisector at the middle one, and the last takes the shift of the one before it.
+	const QPointF a(0.0, 0.0);
+	const QPointF m(5000.0, 2000.0);
+	const QPointF b(10000.0, 1000.0);
+	const QPointF shift = bisector(a, m, b);
+	// The point at xKm on the track of this level: on the line between the shifted stations on both sides of it.
+	const auto onLevel = [&](double xKm, int level) {
+		const QPointF offset = shift * (level * separation);
+		if (xKm < 5.0)
+			return a + offset + (m - a) * (xKm / 5.0);
+		return m + offset + (b - m) * ((xKm - 5.0) / 5.0);
+	};
+
+	// The connection runs from T at 4 km to U at 6 km.
+	const ConnectionItem* drawnConnection = nullptr;
+	for (QGraphicsItem* item : f.scene.items())
+		if (auto* candidate = qgraphicsitem_cast<ConnectionItem*>(item))
+			drawnConnection = candidate;
+	QVERIFY(drawnConnection);
+	const QPointF connectionStart = onLevel(4.0, 0);
+	const QPointF connectionEnd = onLevel(6.0, 1);
+	QVERIFY2(samePoint(drawnConnection->line().p1(), connectionStart), "the connection starts on T at 4 km");
+	QVERIFY2(samePoint(drawnConnection->line().p2(), connectionEnd), "the connection ends on U at 6 km");
+	// The arcs of U run from 0 to 5 km and from 5 to 10 km.
+	const QLineF firstArc = drawnArc(presenter, source->track(1).member[0]);
+	const QLineF secondArc = drawnArc(presenter, source->track(1).member[1]);
+	QVERIFY2(samePoint(firstArc.p1(), onLevel(0.0, 1)) && samePoint(firstArc.p2(), onLevel(5.0, 1)),
+		"the first arc of U runs one level up from A to M");
+	QVERIFY2(samePoint(secondArc.p1(), onLevel(5.0, 1)) && samePoint(secondArc.p2(), onLevel(10.0, 1)),
+		"the second arc of U runs one level up from M to B");
+
+	// The body runs along one side from the head on U at 6.05 km over the end of the connection to the tail inside the
+	// connection, and back along the other side.
+	const TrainBodyItem* body = presenter.runTrains()[0]->trainPolygonItemList->at(0);
+	const QPolygonF corners = body->mapToScene(body->polygon());
+	QVERIFY2(!corners.isEmpty(), "the train has a body");
+	QCOMPARE(corners.size(), qsizetype(6));
+	// At the head the body lies 0.1 track separation to the side of the track, against the normal along which the
+	// signals of B stand: the direction from M to B turned a quarter counterclockwise on the screen.
+	const QPointF towardsB = unit(b - m);
+	const QPointF signalNormal(towardsB.y(), -towardsB.x());
+	QVERIFY2(samePoint(corners[0], onLevel(6.05, 1) - signalNormal * (0.10 * separation)),
+		"the head of the body lies beside U against the signal normal of B");
+	// At the end of the connection it turns along the bisector of the angle there between the connection and U.
+	const QPointF connectionEndShift = bisector(connectionStart, connectionEnd, onLevel(10.0, 1));
+	QVERIFY2(samePoint(corners[1], connectionEnd - connectionEndShift * (0.10 * separation)),
+		"the body turns at the end of the connection along the bisector there");
 	presenter.clear();
 }
 
