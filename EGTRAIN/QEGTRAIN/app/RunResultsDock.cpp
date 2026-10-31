@@ -5,7 +5,7 @@
 #include "app/MainWindowSupport.h"
 #include "app/PathMessages.h"
 #include "app/ResultViews.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RunResults.h"
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
@@ -19,6 +19,7 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QImage>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
