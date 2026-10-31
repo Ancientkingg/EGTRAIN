@@ -113,7 +113,7 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const st
 	}
 }
 
-void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement) {
+void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement) {
 
 	BlockTime[N_BlockSections].BlockID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID;
 	BlockTime[N_BlockSections].length = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].length;
@@ -141,12 +141,12 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string Sign
 		}
 
 		if (IndexCurrentBS > 0) {
-			if (SignallingType == "Conventional") {
+			if (method == BlockingTimeMethod::Conventional) {
 				if ((instant_spatial_position[p - 1] <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000) && (instant_spatial_position[p] > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000)) {
 					BlockTime[N_BlockSections].StartApproachTime = p - 1;
 				}
 
-			} else if (SignallingType == "ETCS2") {
+			} else if (method == BlockingTimeMethod::Etcs2) {
 				if (FoundApprTimeETCS2 == 0) {																															   // if the startApproach time of ETCS level 2 has not been fund yet
 					double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);																   // Computing the braking curve from the speed instant_train_speed[p]
 					if (instant_spatial_position[p] + BrakingDistance > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) { // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
@@ -820,9 +820,9 @@ void Train::ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double 
 		for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
 			const int level = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].SignallingLevel;
 			if (level == levelValue(SignallingLevel::Atb)) { // if block sections have Signalling level 0 then we must apply the conventional signalling rules
-				this->ComputeBlockingTimeForSingleLocation(i, "Conventional", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
+				this->ComputeBlockingTimeForSingleLocation(i, BlockingTimeMethod::Conventional, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel2)) { // if Signalling level is 2 apply ETCS Level 2 rules
-				this->ComputeBlockingTimeForSingleLocation(i, "ETCS2", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
+				this->ComputeBlockingTimeForSingleLocation(i, BlockingTimeMethod::Etcs2, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel3)) { // if Signalling Level is 3 Apply ETCS Level 3 rules
 				this->ComputeBlockTime_ETCSLevel_3_ForSection(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::VirtualCoupling)) {

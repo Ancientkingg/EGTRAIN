@@ -428,28 +428,7 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 											// Set first of all that the next trip has started
 											nexttrip->IsTripStarted = true;
 											// Then check the difference in number of platforms between the one where the passenger got off and the one where theu will need to board the train
-
-											int N_Platform_Difference = 0;
-
-											// Code to remove the text "Platform_" from the string containing the Platform Number of the alighting and boarding platforms
-											string CurrentPlatformNumber, PlannedDepPlatformNumber, text_to_remove;
-											CurrentPlatformNumber = p->Current_WaitingStationPlatformID;
-											PlannedDepPlatformNumber = nexttrip->Dep_Station_Platform_ID;
-											text_to_remove = "Platform_"; // This removes the "Platform_" from the string of the station platform name
-											size_t index1 = CurrentPlatformNumber.find(text_to_remove);
-											size_t index2 = PlannedDepPlatformNumber.find(text_to_remove);
-											if (index1 != string::npos) {
-												CurrentPlatformNumber.erase(index1, text_to_remove.length());
-											}
-											if (index2 != string::npos) {
-												PlannedDepPlatformNumber.erase(index2, text_to_remove.length());
-											}
-
-											// Code to conver the obtained platform numbers into integer and compute the difference in number of platforms between the alighting and boarding platforms at the connecting arrival station
-											int CurrentPlatform = (int)atof((char*)CurrentPlatformNumber.c_str());
-											int PlannedDepPlatform = (int)atof((char*)PlannedDepPlatformNumber.c_str());
-
-											N_Platform_Difference = abs(CurrentPlatform - PlannedDepPlatform);
+											const int N_Platform_Difference = abs(T.currentServiceStopPlatformNumber - nexttrip->depPlatformNumber);
 											double Walkingtime = 0; // this variable is the walking time for the passenger to walk between platforms at a transfer station
 											if (N_Platform_Difference <= 1) {
 												nexttrip->Actual_Departure_Time = t + SimulationStartingTime; // probably needs also to be added the overall simulation starting time

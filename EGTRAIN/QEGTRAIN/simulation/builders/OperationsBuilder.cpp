@@ -254,6 +254,7 @@ void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Train&
 		train.Stations[index] = plan.stops[index].node;
 		train.Stations[index].stationName = plan.stops[index].stationName;
 		train.Stations[index].stationPlatformId = plan.stops[index].platformId;
+		train.stationPlatformNumber[index] = platformNumber(plan.stops[index].platformId);
 		train.Stations[index].dwellTime = plan.stops[index].dwellSeconds;
 		train.Stations[index].StopTime = plan.stops[index].dwellSeconds / timestep;
 		train.StationArrivalNames[index] = plan.stops[index].stationName;
@@ -1193,6 +1194,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const 
 				trip.Dep_Station_ID = originStop->stationName;
 				trip.Arr_Station_ID = destinationStop->stationName;
 				trip.Dep_Station_Platform_ID = originStop->platformId;
+				trip.depPlatformNumber = platformNumber(originStop->platformId);
 				trip.Arr_Station_Platform_ID = destinationStop->platformId;
 				trip.TrainServiceDescription = trains[trainIt->second].trainDescription;
 				journey.Trips.push_back(std::move(trip));

@@ -63,6 +63,8 @@ private slots:
 	void recordedDrawsOfFixedSeeds_data();
 	void recordedDrawsOfFixedSeeds();
 	void generatorAdvancesAndLimitsDraws();
+	void platformNumberOfId_data();
+	void platformNumberOfId();
 	void copiedBlockingTimeKeepsOwnTimes();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
@@ -347,6 +349,34 @@ void TestOperationsBuilder::generatorAdvancesAndLimitsDraws() {
 	defaultRun().numberGenerator.getUniformFloat();
 	defaultRun().numberGenerator = NumberGenerator(kSeedA);
 	QVERIFY2(close(defaultRun().numberGenerator.getUniformFloat(), firstRunDraw, 1e-15), "restarting the run generator repeats its draws");
+}
+
+void TestOperationsBuilder::platformNumberOfId_data() {
+	QTest::addColumn<QString>("id");
+	QTest::addColumn<int>("number");
+	QTest::newRow("label") << "Platform_4" << 4;
+	QTest::newRow("two digits") << "Platform_12" << 12;
+	QTest::newRow("number alone") << "3" << 3;
+	QTest::newRow("truncated") << "2.9" << 2;
+	QTest::newRow("trailing text") << "Platform_2a" << 2;
+	QTest::newRow("exponent") << "Platform_1e2" << 100;
+	QTest::newRow("negative") << "Platform_-2" << -2;
+	QTest::newRow("leading space") << " Platform_5" << 5;
+	QTest::newRow("number before the label") << "7_Platform_1" << 7;
+	QTest::newRow("text before the label") << "x_Platform_7" << 0;
+	QTest::newRow("label twice") << "Platform_Platform_3" << 0;
+	QTest::newRow("label alone") << "Platform_" << 0;
+	QTest::newRow("lower case") << "platform_6" << 0;
+	QTest::newRow("scene id") << "B.platform.1" << 0;
+	QTest::newRow("short id") << "P1" << 0;
+	QTest::newRow("no platform") << "None" << 0;
+	QTest::newRow("empty") << "" << 0;
+}
+
+void TestOperationsBuilder::platformNumberOfId() {
+	QFETCH(QString, id);
+	QFETCH(int, number);
+	QCOMPARE(platformNumber(id.toStdString()), number);
 }
 
 void TestOperationsBuilder::copiedBlockingTimeKeepsOwnTimes() {
@@ -3513,6 +3543,20 @@ void TestOperationsBuilder::level4Transitions() {
 		QCOMPARE_EQ(live.Xob[2], 10000.0);
 		QVERIFY(!live.BrakingForEoA);
 		arc.speedInBraking = stock.max_train_speed;
+	}
+	{
+		Train live = actual(1000, 20);
+		defaultRun().etcsMa.clear();
+		live.IsTrainInFollowingMode = true;
+		live.LeadingTrainInFollowingMode = "FRONT";
+		live.Predicted_MA_To_DecoupleAt = authority(1500, "FRONT");
+		bool continueCached = false;
+		live.europeanVitalComputerWithListsImproved(1000, 20, 1, route.sequence_of_block_sections.data(), 1, continueCached);
+		// A stored decoupling authority is a stop target, and the train in following mode that brakes for it is decoupling.
+		QCOMPARE_EQ(live.Xobmin, 1500.0);
+		QCOMPARE_EQ(live.Vobmin, 0.0);
+		QVERIFY(live.BrakingForEoA);
+		QVERIFY(live.IsTrainDecoupling);
 	}
 	{
 		Train live = actual(1000, 10);

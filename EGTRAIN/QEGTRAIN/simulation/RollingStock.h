@@ -124,6 +124,12 @@ public:
 	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(const std::string& TrainName, const std::list<InfraEvent>& ListAllInfraEvents);
 };
 
+/// The rule that finds the start of the approach to a block section at a fixed-block level.
+enum class BlockingTimeMethod {
+	Conventional, ///< Level 0: the approach starts when the head enters the section before.
+	Etcs2,		  ///< Level 2: the approach starts when the braking distance of the train first reaches the start of the section.
+};
+
 /// Blocking times of one train, indexed like an array. Indexing a non-const list
 /// past the end grows it with default-constructed entries; growing never moves
 /// existing entries. Indexing a const list never grows it.
@@ -309,6 +315,8 @@ public:
 	int stationBlockSection[kMaxTimetableStations] = {};
 	/// Index of the arc of each stop within its section; -1 when not on the route.
 	int stationArc[kMaxTimetableStations] = {};
+	/// platformNumber of the platform of each stop, which the operations builder sets.
+	int stationPlatformNumber[kMaxTimetableStations] = {};
 	bool StoppedForServiceStop = false; ///< True while the train stands at a stop for its dwell.
 	/// Name of the station of the stop while StoppedForServiceStop is true; empty before the first stop and "None" after
 	/// the train has left a stop.
@@ -316,6 +324,8 @@ public:
 	/// Platform ID of that stop; "None" before the first stop and after the train has left a stop, except at a node with
 	/// respectOrder, where it keeps the last platform.
 	std::string CurrentServiceStopPlatform;
+	/// platformNumber of that platform; 0 when CurrentServiceStopPlatform is "None".
+	int currentServiceStopPlatformNumber = 0;
 
 	/// Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.
 	double StationArrivals[kMaxTimetableStations];
@@ -689,10 +699,10 @@ public:
 	/// ETCS3SafetyMargin (m) as "Tale", the head plus the margin as "Front", and the locks of the switches it covers.
 	void ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3SafetyMargin);
 
-	/// Appends the blocking time of route section IndexCurrentBS at a fixed-block level; SignallingType "Conventional" or "ETCS2" picks
-	/// the approach rule. Times are simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and
-	/// reaction times are seconds. AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
-	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
+	/// Appends the blocking time of route section IndexCurrentBS at a fixed-block level; method picks the approach rule. Times are
+	/// simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and reaction times are seconds.
+	/// AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
+	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, BlockingTimeMethod method, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
 
 	/// Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation)
 	void ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
@@ -707,7 +717,7 @@ public:
 	void ConnectBlockTimesOfSwitchesForTrainCentricSignalling();
 
 	/// Computes the blocking times of the route section by section with the rule of the section's level: per section at levels 0
-	/// ("Conventional") and 2 ("ETCS2"), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get
+	/// (BlockingTimeMethod::Conventional) and 2 (BlockingTimeMethod::Etcs2), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get
 	/// none. The search starts at Det_Run_Start_Time; the arguments are those of ComputeBlockingTimeForSingleLocation, SafetyMargin in m.
 	void ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsRTSupp, double PercRTSupp);
 

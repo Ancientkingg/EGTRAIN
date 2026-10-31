@@ -22,6 +22,7 @@ public:
 	std::string JourneyID; ///< this is the ID of the journey the trip belongs to
 	/// ID of the platform where the passenger boards.
 	std::string Dep_Station_Platform_ID, Arr_Station_Platform_ID; ///< ID of the platform where the passenger alights.
+	int depPlatformNumber;										  ///< platformNumber of Dep_Station_Platform_ID, which the operations builder sets; 0 until then.
 	std::string TrainServiceDescription;						  ///< trainDescription of the train of the leg.
 	/// Planned departure; set on the first leg of a journey only, to the departure the journey drew from its window.
 	int Planned_Departure_Time, Planned_Arrival_Time, Actual_Departure_Time, Actual_Arrival_Time;
@@ -40,6 +41,7 @@ public:
 	Trip() {
 		this->TripID = Dep_Station_ID = Arr_Station_ID = Trip_Activity_Type = TrainServiceDescription = "None";
 		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
+		this->depPlatformNumber = 0;
 		this->Planned_Arrival_Time = Planned_Departure_Time = Actual_Departure_Time = Actual_Arrival_Time = totalArrivalDelay = -9999;
 		IsTripCompleted = IsTripStarted = false;
 	}
@@ -182,5 +184,10 @@ private:
 void printCurrentPassengerStatus(int t, int StartSimulationTime, const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
 void printPassengerTotalJourneyDelay(const std::list<Passenger>& ALLPAX, std::string MainFolder);
+
+/// The number of a platform, which the walking time of a transfer compares: the first "Platform_" in platformId is cut out and what is
+/// left is read as a number with atof and truncated. "Platform_4" gives 4 and "2" gives 2. An ID that does not then start with a
+/// number, such as "None", "P1" or "B.platform.1", gives 0.
+int platformNumber(const std::string& platformId);
 
 #endif

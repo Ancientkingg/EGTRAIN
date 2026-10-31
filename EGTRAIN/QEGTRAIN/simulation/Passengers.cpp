@@ -97,6 +97,15 @@ void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainF
 	OutputFile.close();
 }
 
+int platformNumber(const string& platformId) {
+	const string prefix = "Platform_";
+	string number = platformId;
+	const size_t index = number.find(prefix);
+	if (index != string::npos)
+		number.erase(index, prefix.length());
+	return static_cast<int>(atof(number.c_str()));
+}
+
 // When using this function it is necessary that the list of passengers is ordered by entrance time on the network, i.e. by the starting time of the currently selected journey
 
 void Passenger::checkJourneyStart(int t) {

@@ -807,6 +807,7 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 		if (Stations[s].stationName == As.endNode.stationName) {
 			this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
 			this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
+			this->currentServiceStopPlatformNumber = stationPlatformNumber[s];
 			recordCurrentServiceStopArrival(time_seconds);
 
 			EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
@@ -854,6 +855,7 @@ void Train::serviceStopStep(int time_seconds, const Arc& As, double head, bool a
 			this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
 			this->CurrentServiceStop = "None";	 // This states that the train is no longer stopping at the service station
 			this->CurrentServiceStopPlatform = "None";
+			this->currentServiceStopPlatformNumber = 0;
 			BrakingForEoA = false; // setting the variable Braking for EoA to false since the train is starting to move again
 		}
 	}
