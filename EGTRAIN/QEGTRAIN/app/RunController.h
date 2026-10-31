@@ -147,8 +147,9 @@ public:
 	/// The next run writes to the folder of the scene `sceneName`, unless the user chose a folder.
 	void selectSceneOutputFolder(const std::string& sceneName);
 
-	/// A worker exists, from the moment that the run starts until its worker has finished. The state is Running a little
-	/// longer: from just before the worker starts, and after a worker that clearSimulationWorker ends early.
+	/// A worker exists, from the moment that the run starts until its worker has finished. The state differs at both
+	/// ends: it is Running just before the worker starts and after a worker that clearSimulationWorker ends early, and
+	/// it is already Completed, Stopped or Failed while onSimulationFinished still holds the worker.
 	bool running() const { return !m_worker.isNull(); }
 	/// The worker of the run. Qt deletes it when its thread has finished; null while no run exists.
 	SimulationWorker* worker() const { return m_worker.data(); }
