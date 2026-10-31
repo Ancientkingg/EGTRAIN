@@ -139,6 +139,11 @@ void TestChartTicks::roundTickStepsCutToThirtyOneBits() {
 	const auto twenty = roundTickPlan(150, 250);
 	QVERIFY(twenty.has_value());
 	QCOMPARE_EQ(twenty->interval, 20.0);
+	// A span of 0.01 takes a step of 0.002 = 1.024 * 2^-9, whose 31st and 32nd significant bits are both 1, so a cut to 30
+	// or to 32 bits gives another interval than floor(0.002 * 2^39) * 2^-39.
+	const auto twoThousandths = roundTickPlan(0, 0.01);
+	QVERIFY(twoThousandths.has_value());
+	QCOMPARE_EQ(twoThousandths->interval, 1099511627.0 / std::ldexp(1.0, 39));
 }
 
 void TestChartTicks::anchorIsZeroAcrossZero() {

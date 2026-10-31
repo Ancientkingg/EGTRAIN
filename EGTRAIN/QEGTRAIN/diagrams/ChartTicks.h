@@ -25,7 +25,8 @@ struct StationTick {
 	int calls = 0;		   ///< Calls of the trains of the chart at the station
 };
 
-/// The width of a text on a chart, in pixels.
+/// The pixels that a text on a chart takes along the axis that places it: its width on a horizontal axis and its height
+/// on a vertical one.
 using ChartTextWidth = std::function<double(const QString& text)>;
 
 /// The step of the ticks of an axis over `span`: the smallest of 1, 2 or 5 times a power of ten that divides `span` into

@@ -1408,7 +1408,6 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	crowdedLabels.byReference = {{"@section-n0@", "T 0.000 to 0.250 km"}};
 	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
 	QApplication::processEvents();
-	view->grab(); // paints the strip
 	hover(QPointF(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5));
 	const auto* crowdedStrip = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	// the strip names a section by its id, and the hover by its id and label
@@ -2395,7 +2394,6 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 
 	click(QPointF(3, 40), outlineA);
 	auto* outline = chart->findChild<QGraphicsObject*>("diagramSelectionOutline");
-	view->grab();
 	const QRectF box(chart->mapToPosition(QPointF(2, 60), outlineA), chart->mapToPosition(QPointF(4, 20), outlineA));
 	const QRectF drawn = outline ? outline->property("outline").toRectF() : QRectF();
 	// a click inside a blocking time draws an outline just around its box
@@ -2404,6 +2402,32 @@ void TestDiagramWindow::selectsTrainsAndBoxes() {
 	QVERIFY(outline->isVisible());
 	QVERIFY(drawn.contains(box.normalized()));
 	QVERIFY(std::abs(drawn.width() - box.normalized().width() - 3) < 0.5);
+	// The outline paints along the edge of its rectangle, which lies inside the plot: there a grab with the outline hidden
+	// differs from one with it shown.
+	QVERIFY(chart->plotArea().contains(drawn));
+	const QImage withOutline = view->grab().toImage();
+	outline->hide();
+	const QImage withoutOutline = view->grab().toImage();
+	outline->show();
+	const qreal ratio = withOutline.devicePixelRatio();
+	const auto changedAt = [&](double atX, double atY) {
+		const QPoint at = view->mapFromScene(chart->mapToScene(QPointF(atX, atY)));
+		const QPoint pixel(qRound(at.x() * ratio), qRound(at.y() * ratio));
+		return withOutline.rect().contains(pixel) && withOutline.pixel(pixel) != withoutOutline.pixel(pixel);
+	};
+	const int across = qFloor(drawn.width()), down = qFloor(drawn.height());
+	int edgePoints = 0, changed = 0;
+	for (int step = 0; step <= across; ++step)
+		for (const double edgeY : {drawn.top(), drawn.bottom()}) {
+			++edgePoints;
+			if (changedAt(drawn.left() + step, edgeY)) ++changed;
+		}
+	for (int step = 0; step <= down; ++step)
+		for (const double edgeX : {drawn.left(), drawn.right()}) {
+			++edgePoints;
+			if (changedAt(edgeX, drawn.top() + step)) ++changed;
+		}
+	QVERIFY2(changed > edgePoints / 2, qPrintable(QString("the outline paints along its edge: %1 of %2 points").arg(changed).arg(edgePoints)));
 	QVERIFY2(title->text() == "A", qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
 	QVERIFY2(lines->text().split('\n').contains("Block: Blocking time"), qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
 	QVERIFY2(lines->text().split('\n').contains("Blocked 20 to 60 s"), qPrintable("Selected shows the lines of the blocking time, one fact per line, and its train is selected: " + lines->text()));
@@ -3686,7 +3710,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 		QChart* chart = showBlockingWindow(window, extents, width, height);
 		*idPx = QFontMetricsF(window.font()).horizontalAdvance("70-B0") + 6;
 		auto* view = window.findChild<QChartView*>();
-		(void)view->grab(); // paints the strip
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const auto bounds = blockSectionBounds(extents).value();
 		*cellPx = 0.3 * chart->plotArea().width() / (bounds.second - bounds.first);
@@ -3751,7 +3774,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 	{
 		DiagramWindow window("Blocking time");
 		QChart* chart = showBlockingWindow(window, crowded, 1200, 750, crowdedMarks);
-		(void)window.findChild<QChartView*>()->grab();
 		const QStringList ids = chart->findChild<QGraphicsObject*>("blockSectionOverlay")->property("stripLabels").toStringList();
 		QVERIFY2(ids.contains("third-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
 		QVERIFY2(ids.contains("first-B0"), qPrintable("the strip keeps the critical, first and last ids: " + ids.join(", ")));
@@ -3775,7 +3797,6 @@ void TestDiagramWindow::namesSectionsInStrip() {
 		}
 		DiagramWindow window("Blocking time");
 		QChart* chart = showBlockingWindow(window, chainOf(0.75 * (chainIdWidth + 6) * 10 / plotWidth), 1200, 750);
-		(void)window.findChild<QChartView*>()->grab();
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const QStringList ids = overlay->property("stripLabels").toStringList();
 		QVERIFY2(overlay->property("stripRows").toInt() == 2, qPrintable("two rows name the five sections in route order: " + ids.join(", ")));
