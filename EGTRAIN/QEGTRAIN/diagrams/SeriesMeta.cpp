@@ -19,8 +19,11 @@ void describeSeries(QAbstractSeries* series, const SeriesMeta& meta) {
 	series->setProperty(kMetaProperty, QVariant::fromValue(meta));
 }
 
+// The property is read into a named variant: on a temporary, Qt 6.6 and later move the value out, and GCC 13 then reports
+// a false array-bounds error in a release build.
 SeriesMeta seriesMeta(const QAbstractSeries* series) {
-	return series->property(kMetaProperty).value<SeriesMeta>();
+	const QVariant meta = series->property(kMetaProperty);
+	return meta.value<SeriesMeta>();
 }
 
 void describeAxis(QAbstractAxis* axis, const AxisMeta& meta) {
@@ -28,5 +31,6 @@ void describeAxis(QAbstractAxis* axis, const AxisMeta& meta) {
 }
 
 AxisMeta axisMeta(const QAbstractAxis* axis) {
-	return axis->property(kMetaProperty).value<AxisMeta>();
+	const QVariant meta = axis->property(kMetaProperty);
+	return meta.value<AxisMeta>();
 }
