@@ -174,7 +174,7 @@ void TestTelemetryNetwork::sendsOverLoopbackTls() {
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::Application metadata{QStringLiteral("1.0.0"), {}, {}};
 	telemetry::TelemetrySender sender(m_context, metadata, storage, options); // The real transport: post unset.
-	// A published usage permit is not a completed initial category-observation poll.
+	// An open usage gate is not a completed initial category-observation poll.
 	// Wait for startup and durable queueing before making this a transport test.
 	QVERIFY(until(app, [&] { return polled.available() > 0; }));
 	QVERIFY(until(app, [&] { return sender.tryEnqueue({telemetry::Name::SessionStarted}); }));

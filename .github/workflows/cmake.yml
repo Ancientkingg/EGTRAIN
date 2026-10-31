@@ -8,6 +8,9 @@ on:
     - cron: '17 2 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 # A newer push to the same pull request replaces its running checks. A scheduled or manual run has
 # a group of its own and no other run cancels it.
 concurrency:
@@ -29,26 +32,11 @@ jobs:
         with:
           fetch-depth: 2
 
-      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job, and an
-      # empty list of files builds.
+      # The merge commit of a pull request has the base branch as its first parent. The rule is the cmake entry of the
+      # script. A failure here fails the job, and an empty list of files builds.
       - name: Select the build from the changed files
         id: select
-        run: |
-          build=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
-            build=false
-            while IFS= read -r file; do
-              case "$file" in
-                *.md) ;;
-                docs/*) ;;
-                LICENSE) ;;
-                .github/ISSUE_TEMPLATE/*) ;;
-                *) build=true ;;
-              esac
-            done <<< "$files"
-          fi
-          echo "build=$build" >> "$GITHUB_OUTPUT"
+        run: python3 tools/ci/changed_files.py cmake HEAD^1 HEAD --event "$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"
 
   # CTest runs the same check, but the build job skips CTest for a pull request that changes only documentation.
   docs:
@@ -119,54 +107,33 @@ jobs:
           "TEMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           "TMP=$env:RUNNER_TEMP" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
-      - name: Install Qt 6
+      # Qt 6.8.3, and the libraries from Homebrew on macOS and from apt on Linux. On Windows the MSVC environment; the
+      # configure step installs the libraries of the vcpkg manifest.
+      - name: Set up the dependencies
         if: needs.changes.outputs.build == 'true'
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
+        uses: ./.github/actions/setup-deps
 
-      - name: Install dependencies (macOS)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
-        run: brew install zeromq cppzmq nlohmann-json
-
-      - name: Install dependencies (Linux)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
-
-      - name: Set up MSVC environment
+      # The packages and the builtin-baseline of the vcpkg manifest, for the key of the vcpkg binary cache.
+      - name: Read the vcpkg manifest
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        id: vcpkg-manifest
+        shell: pwsh
+        run: |
+          $manifest = Get-Content tools/vcpkg/vcpkg.json -Raw | ConvertFrom-Json
+          "key=$($manifest.dependencies -join '-')-$($manifest.'builtin-baseline')" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
 
       # vcpkg names an archive by an ABI hash that covers its own checkout, its CMake and the compiler. A runner image with
       # another vcpkg commit restores no archive from an older entry, so the key has the image version and a new image
-      # writes a new entry. Raise v1 to start over.
+      # writes a new entry. The key also has the packages and the baseline of the manifest, so a change to the manifest
+      # writes a new entry as well. Raise v1 to start over. The configure step installs the packages, and the save step
+      # follows it.
       - name: Restore vcpkg binary cache
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         id: vcpkg-cache
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
-
-      - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $cache = "$env:RUNNER_TEMP/vcpkg-binary-cache"
-          New-Item -ItemType Directory -Force -Path $cache | Out-Null
-          $env:VCPKG_DEFAULT_BINARY_CACHE = $cache
-          vcpkg install zeromq cppzmq nlohmann-json --triplet x64-windows
-
-      - name: Save vcpkg binary cache
-        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
+          key: vcpkg-x64-windows-${{ steps.vcpkg-manifest.outputs.key }}-${{ steps.image.outputs.id }}-v1
 
       # The tests find the vcpkg and Qt DLLs here, so the build copies none next to each executable.
       - name: Add runtime DLL directories to PATH (Windows)
@@ -190,15 +157,16 @@ jobs:
           restore-keys: |
             ${{ matrix.name }}
 
-      # The pull request checks build without interprocedural optimization (-DEGTRAIN_IPO=OFF). Linking with it generates the code of
-      # the whole program again for every test executable, which a compiler cache cannot store. The package and release workflows
-      # still build with it, so the shipped binaries and the package checks use it.
+      # The ci presets of CMakePresets.json hold the options of all three legs: a Release build with the tests, warnings as
+      # errors and no interprocedural optimization (EGTRAIN_IPO=OFF), in build/. Linking with interprocedural optimization
+      # generates the code of the whole program again for every test executable, which a compiler cache cannot store. The
+      # package and release workflows still build with it, so the shipped binaries and the package checks use it.
       # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked Homebrew Qt. Qt 6.8.3
       # links the AGL framework, which the macOS 26 SDK no longer has, so the OpenGL framework stands in for it.
       - name: Configure (macOS)
         if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF
+          cmake --preset ci-macos
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix zeromq);$(brew --prefix cppzmq);$(brew --prefix nlohmann-json)"
           -DWrapOpenGL_AGL="$(xcrun --show-sdk-path)/System/Library/Frameworks/OpenGL.framework"
@@ -206,24 +174,34 @@ jobs:
       - name: Configure (Linux)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --preset ci-linux
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
-      # The Visual Studio generator ignores a compiler launcher, so this leg builds with Ninja in the MSVC environment set
-      # up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release configuration
-      # adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
+      # The Visual Studio generator ignores a compiler launcher, so the ci-windows preset builds with Ninja in the MSVC
+      # environment set up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release
+      # configuration adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
+      # The preset also turns on the network tests of this leg, and installs the packages of the manifest
+      # tools/vcpkg/vcpkg.json with the vcpkg of the runner image.
+      # The image clones vcpkg in full and a new image updates the clone, so it holds the builtin-baseline commit of the
+      # manifest. The packages go into the installed folder of that vcpkg, where the DLL steps of this job read them, and
+      # their archives go into the folder of the binary cache.
       - name: Configure (Windows)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         shell: pwsh
+        env:
+          VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite"
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON -DEGTRAIN_IPO=OFF
-          -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+          cmake --preset ci-windows
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
-          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-          -DVCPKG_TARGET_TRIPLET=x64-windows
-          -DVCPKG_APPLOCAL_DEPS=OFF
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      - name: Save vcpkg binary cache
+        if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-binary-cache
+          key: vcpkg-x64-windows-${{ steps.vcpkg-manifest.outputs.key }}-${{ steps.image.outputs.id }}-v1
 
       - name: Build
         if: needs.changes.outputs.build == 'true'
@@ -264,6 +242,8 @@ jobs:
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
           python tools/release/package_start_smoke.py $dist --exports
 
+      # A shell smoke that fails keeps the folder of its run, qegtrain-<smoke>-e2e.<random> below TMPDIR. The headless
+      # smoke writes the log of each case into build/smoke-logs.
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -273,7 +253,8 @@ jobs:
             ${{ runner.temp }}/ctest.log
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
             ${{ runner.temp }}/qegtrain-incident-*.log
-            tools/e2e/headless_case_*.log
+            ${{ runner.temp }}/qegtrain-*-e2e.*/
+            build/smoke-logs/headless_case_*.log
           if-no-files-found: ignore
 
   # LeakSanitizer finds the leaks and double frees that a normal run does not show. It does not run on
@@ -294,17 +275,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
       - name: Lower address space randomization
@@ -378,17 +350,8 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
       - name: Lower address space randomization
@@ -447,17 +410,8 @@ jobs:
       - name: Route temp files to runner.temp
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.3'
-          modules: qtcharts
-          cache: true
-
-      - name: Install dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libzmq3-dev cppzmq-dev nlohmann-json3-dev
+      - name: Set up the dependencies
+        uses: ./.github/actions/setup-deps
 
       # With the default setting, ThreadSanitizer stops at start on the kernel of the runner.
       - name: Lower address space randomization

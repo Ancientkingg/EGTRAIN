@@ -324,15 +324,16 @@ flag and the revision of the scene stay as they were.
 The smoke passes when the application exits with status 0, prints
 `E2E_EDITOR_SMOKE_OK` and prints the marker of every facet, the last being
 `E2E_EDITOR_UNTOUCHED_OK`. The application output goes to
-`${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log`. On a failure the script prints
+`qegtrain-editor-smoke-e2e.log` in a folder of the run's own below `${TMPDIR:-/tmp}` (see
+[Smoke artifacts](#smoke-artifacts)). On a failure the script prints
 the end of that log, which holds `E2E_EDITOR_SMOKE_FAIL: <facet>: <message>`
 when the application reported the failure.
 
 CTest runs the script as `test_editor_smoke` on macOS and Linux with
 `QT_QPA_PLATFORM=offscreen`. Run it alone with
 `ctest --test-dir build -R test_editor_smoke --output-on-failure`. The script
-takes the application from `QEGTRAIN_APP`. The release workflow also runs it as
-a step of its own.
+takes the application from `QEGTRAIN_APP`. The release workflow runs it through
+CTest too.
 
 ## Recovery Smoke Test
 
@@ -386,8 +387,8 @@ tools/e2e/visual_polish_smoke.sh
 
 Run this after UI or rendering changes. The script runs in phases, one after another, and
 runs only the phases named on its command line, for example
-`tools/e2e/visual_polish_smoke.sh signals stations`. Each phase writes file names of its own below
-`${TMPDIR:-/tmp}`, so phases do not disturb each other. On macOS CTest runs the phases as five
+`tools/e2e/visual_polish_smoke.sh signals stations`. Each run writes into a folder of its own below
+`${TMPDIR:-/tmp}`, so runs do not disturb each other. On macOS CTest runs the phases as five
 tests that can run side by side, and `ctest --test-dir build -R test_visual_polish_smoke
 --output-on-failure` starts all five:
 
@@ -410,8 +411,7 @@ and `test_route_diagram_smoke` (see [Platform coverage](testing.md#platform-cove
 `ctest --test-dir build -R <name> --output-on-failure` starts one. CTest gives these
 tests and the five visual tests a settings folder below `build/settings` and an output
 folder below `build/output`; `visual_polish_smoke.sh` replaces the settings folder with a
-temporary one. The release workflow also runs `scene_render_smoke.sh`, `track_preview_smoke.sh` and
-`visual_polish_smoke.sh` as steps of their own. The scripts need an application built with
+temporary one. The release workflow runs these tests through CTest too. The scripts need an application built with
 `EGTRAIN_BUILD_TESTS=ON`, because only that build starts a scenario from its variable at the first
 show of the window and redirects the settings.
 
@@ -567,17 +567,27 @@ Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
 the temporary directory comes from `TEMP` and `TMP`. GitHub Actions routes
 `TMPDIR` (macOS, Linux) or `TEMP` and `TMP` (Windows) to `$RUNNER_TEMP`
 (`runner.temp`) for CI diagnostics.
-The visual and render smoke artifacts include:
 
-- `qegtrain-visual-polish-e2e.png` and `qegtrain-visual-polish-e2e.log`
-- `qegtrain-scene-render-e2e.png` and `qegtrain-scene-render-e2e.log`
-- `ctest.log`, `qegtrain-editor-smoke-e2e.log`, and
-  `qegtrain-gui-autostart-smoke.log`
+Each run of a Bash smoke with a log writes its logs, screenshots and files into a folder of its own,
+`qegtrain-<smoke>-e2e.<random>`, so two build trees can run the same smoke at the same time. The
+script removes the folder when it passes. When it fails it keeps the folder and prints its name last:
 
-The failure artifact of the pull request check holds only `ctest.log` and the
-GUI autostart log, so the output of a failed smoke is what its script prints into
-`ctest.log`. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
-most of its checks, so run it locally to read its logs.
+| Script | Folder | Files |
+| --- | --- | --- |
+| `visual_polish_smoke.sh` | `qegtrain-visual-polish-e2e.<random>` | `qegtrain-visual-polish-e2e.log` and `.png`, and a log or screenshot of each other check |
+| `scene_render_smoke.sh` | `qegtrain-scene-render-e2e.<random>`, one for each scene | `qegtrain-scene-render-e2e.log` and `.png` |
+| `editor_smoke.sh` | `qegtrain-editor-smoke-e2e.<random>` | `qegtrain-editor-smoke-e2e.log` and the files of the check |
+| `track_preview_smoke.sh` | `qegtrain-track-preview-e2e.<random>` | `qegtrain-track-preview-e2e.log` and the copy of the scene |
+| `legacy_import_smoke.sh` | `qegtrain-legacy-import-e2e.<random>` | `qegtrain-legacy-import-e2e.log`, the legacy case and the imported scenes |
+| `csv_export_smoke.sh` | `qegtrain-csv-export-e2e.<random>` | The logs, exports and run output of the three runs |
+
+The Python smokes name their logs themselves: `qegtrain-gui-autostart-smoke.log` and
+`qegtrain-incident-<tag>.log` below the temporary directory, and `headless_case_<n>.log` as in
+[Where test and run output goes](#where-test-and-run-output-goes).
+
+The failure artifact of the pull request check holds `ctest.log`, those Python logs and the kept
+folders of the Bash smokes. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
+most of its checks, so read the log in its folder.
 
 ## Where test and run output goes
 
@@ -588,8 +598,8 @@ most of its checks, so run it locally to read its logs.
 | Messages of a run | Standard output and error, the **Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
-| Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
-| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test |
+| Logs and screenshots of the Bash smokes | A folder of each run's own below `${TMPDIR:-/tmp}`, kept only when the run fails; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
+| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>`, and `headless_case_<n>.log` in `build/smoke-logs` under CTest or in `tools/e2e` for a run by hand. Git ignores the source tree files. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test. `QEGTRAIN_SMOKE_LOG_DIR` names the log folder, and CTest sets it |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
 | Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
 

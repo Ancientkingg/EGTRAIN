@@ -271,9 +271,17 @@ def services_not_ended(timetable_text: str, trajectory_text: str, duration_secon
     return errors
 
 
+def case_log(case_id: int) -> Path:
+    """The log of a case, in the folder that QEGTRAIN_SMOKE_LOG_DIR names (CTest sets one in its build folder), else in
+    tools/e2e. The folder is created."""
+    folder = Path(os.environ.get("QEGTRAIN_SMOKE_LOG_DIR") or ROOT / "tools/e2e")
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder / f"headless_case_{case_id}.log"
+
+
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
     app = find_executable("QEGTRAIN", "QEGTRAIN_APP")
-    log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
+    log = case_log(case_id)
     try:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(out_base)

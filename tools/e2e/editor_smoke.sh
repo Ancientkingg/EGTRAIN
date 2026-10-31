@@ -4,31 +4,38 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
-OUT="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e"
-LOG="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log"
-SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-settings.XXXXXX")"
-cleanup() {
-	local exit_code=$?
-	trap - EXIT
-	rm -rf "$SETTINGS_DIR"
-	exit "$exit_code"
-}
-trap cleanup EXIT
-
 if [[ ! -x "$APP" ]]; then
 	echo "QEGTRAIN app not found or not executable: $APP" >&2
 	exit 1
 fi
 
+if [[ ! -d "$ALT_SCENE" ]]; then
+	echo "Alternate scene not found: $ALT_SCENE" >&2
+	exit 1
+fi
+
+# The log and the files that the check writes go into a folder of the run's own, which is kept when the check fails.
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.XXXXXX")"
+OUT="$WORK_DIR/qegtrain-editor-smoke-e2e"
+LOG="$WORK_DIR/qegtrain-editor-smoke-e2e.log"
+SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-settings.XXXXXX")"
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	rm -rf "$SETTINGS_DIR"
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$WORK_DIR"
+	else
+		echo "the log and the files of this run are in $WORK_DIR" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
+
 if [[ $# -gt 0 ]]; then
 	SCENE="$1"
 else
 	SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-fi
-
-if [[ ! -d "$ALT_SCENE" ]]; then
-	echo "Alternate scene not found: $ALT_SCENE" >&2
-	exit 1
 fi
 
 mkdir -p "$OUT"

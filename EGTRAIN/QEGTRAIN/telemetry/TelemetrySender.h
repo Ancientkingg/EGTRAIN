@@ -34,7 +34,6 @@ public:
 		friend class TelemetrySender;
 		std::weak_ptr<Shared> sender;
 		quint64 epoch[2] = {0, 0};
-		quint64 invalidation[2] = {0, 0};
 		bool eligible[2] = {false, false};
 	};
 #ifdef EGTRAIN_SENDER_TEST_HOOK
@@ -90,9 +89,11 @@ public:
 	/// Explicit interactive lifetime request, attempted once at first enabled usage: the worker then
 	/// stores one session.started event. Ignored when the context is not interactive.
 	void requestInteractiveSession() noexcept;
-	/// Closes the named categories at once, drops their waiting events and invalidates tokens taken
-	/// before; the worker purges their queued events and opens them again after its next consent read.
-	/// Connected directly to TelemetryConsent::revoked. Never waits.
+	/// Refuses the named categories at once and invalidates tokens taken before. The worker's next pump
+	/// drops every waiting event, not only those of the named categories, and purges the queued events
+	/// of the named categories. They open again at the first consent read after that pump that finds
+	/// them enabled while no revocation is pending. Connected directly to TelemetryConsent::revoked.
+	/// Never waits.
 	void invalidateConsent(bool usage, bool diagnostics) noexcept;
 	/// Invalidates both categories; the worker purges every queued event and exits, so it sends nothing
 	/// more in this run. Connected directly to TelemetryConsent::receiverChanged. Never waits.

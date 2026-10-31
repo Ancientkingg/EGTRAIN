@@ -85,14 +85,10 @@ jobs:
         with:
           name: ${{ github.job }}-diagnostics
           path: |
-            tools/e2e/headless_case_*.log
+            build/smoke-logs/headless_case_*.log
             ${{ runner.temp }}/ctest.log
-            ${{ runner.temp }}/qegtrain-editor-smoke-e2e.log
+            ${{ runner.temp }}/qegtrain-*-e2e.*/
             ${{ runner.temp }}/qegtrain-incident-*.log
-            ${{ runner.temp }}/qegtrain-scene-render-e2e.log
-            ${{ runner.temp }}/qegtrain-scene-render-e2e.png
-            ${{ runner.temp }}/qegtrain-visual-polish-e2e.log
-            ${{ runner.temp }}/qegtrain-visual-polish-e2e.png
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
           if-no-files-found: ignore
 

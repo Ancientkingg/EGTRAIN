@@ -91,13 +91,12 @@ What the jobs prove today:
   and QML frameworks, and the WebP and TIFF plugins with their libraries, from
   the app before the signature, and fails when one of them is in the app or when
   the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
-  The app holds `scene_tool`. `scene_tool` validates the Paimpol
-  scene of the app, and the app runs Paimpol without the GUI from
-  `Contents/Resources/Scenes` to `End of Simulation`. The job starts a copy of
-  the app with `tools/release/package_start_smoke.py` (step
+  The app holds `scene_tool`, which validates the Paimpol scene of the app. The
+  job starts a copy of the app with `tools/release/package_start_smoke.py` (step
   **Start the package**), which first checks that every dependency of the app is
   a system library or a file inside the app and that every library inside the
-  app is loaded by some file.
+  app is loaded by some file. The copy then runs Paimpol without the GUI from
+  `Contents/Resources/Scenes` to `End of Simulation`.
   The job prints the number of files and bytes of the app before and after the
   removal in its job summary. It also packs and validates the six bundles.
   Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the signed app,

@@ -29,8 +29,8 @@ scripts that build, sign and check the release packages.
   `main` that changes `EGTRAIN/QEGTRAIN/`, `.clang-format`, `.clang-format-ignore`,
   `tools/format.py` or `format.yml`, and when started by hand.
 - The tidy check (`tidy.yml`) runs `tools/tidy.py` for a pull request to `main` that
-  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py` or
-  `tidy.yml`. A pull request analyses the changed sources and the sources that include a
+  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py`,
+  `tidy.yml` or the setup action in `.github/actions/`. A pull request analyses the changed sources and the sources that include a
   changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
   run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
@@ -41,7 +41,8 @@ scripts that build, sign and check the release packages.
   and `latest/` after a successful release.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
-  `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
+  `package-check.yml`, `package.yml` and `release.yml`, the setup action in `.github/actions/`, `tools/release/`, the
+  vcpkg manifest in `tools/vcpkg/`,
   `installer/`, `Info.plist.in`, `EGTRAIN/QEGTRAIN/update/` and
   `EGTRAIN/QEGTRAIN/app/main.cpp`. The check also runs once a night on `main`
   and can be started by hand, which covers changes that reach the packages
@@ -94,6 +95,8 @@ scripts that build, sign and check the release packages.
   the app, runs `scene_tool` on the Paimpol scene of the app without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
+  The steps that fill, trim and check the app call `tools/release/package_macos.sh` (see
+  [macOS packaging script](#macos-packaging-script)).
   In a push to `production` or a `v*` tag it then notarizes and staples the app
   when the environment holds notarization credentials (see
   [macOS notarization script](#macos-notarization-script)). It builds
@@ -115,7 +118,10 @@ scripts that build, sign and check the release packages.
   made. The Linux package job extracts its AppImage and starts the extracted
   image with the same script on a virtual display, after the script has checked
   that every Qt and ZeroMQ library of the programs and plugins comes from the
-  image. The start in each of the three package jobs is the headless run and the
+  image. That job runs on `ubuntu-24.04`, not `ubuntu-latest`, because the
+  AppImage needs the glibc of the system that built it; the workflow test
+  requires a named Ubuntu release no newer than the one of the rehearsal job
+  `rehearse-linux`. The start in each of the three package jobs is the headless run and the
   window start, with no CSV or PNG export, because a release build has no test
   hooks to ask for one. The check does not show how the SVG icons look, typing
   into text fields, the native file dialogs, how Finder presents the disk
@@ -232,7 +238,7 @@ are not filtered by changed paths.
 
 ### Required checks on `main`
 
-Every pull request to `main` starts the CMake, Format and Package check
+Every pull request to `main` starts the CMake, Format, Tidy and Package check
 workflows; their triggers have no path filter. The first job of each, `changes`,
 compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:
@@ -243,6 +249,17 @@ real jobs skip when the rule selects nothing:
 - Format runs for the files of the format check, listed above.
 - Tidy runs for the files of the tidy check, listed above.
 - The package check runs its jobs for the packaging inputs, listed above.
+
+The CMake, Tidy and Package check workflows read their rule from `tools/ci/changed_files.py`, which holds one
+entry per workflow and prints the output line of the `changes` job. The Format workflow keeps the same patterns in a
+`case` statement of `format.yml`. To see what a branch selects:
+
+```sh
+python3 tools/ci/changed_files.py tidy origin/main HEAD
+```
+
+`tools/ci/test_changed_files.py` (CTest `test_changed_files`) checks the rules on sample paths and runs the script on
+the commits of a temporary repository.
 
 A nightly or manual run always does its jobs. The condition of a job is
 evaluated before its matrix is expanded, so a skipped `build` job would be
@@ -257,6 +274,37 @@ build when the documentation check finds nothing. `main` requires these four che
 merge automatically when they are green. Do not require the build legs, the
 format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.
+
+### Workflow test
+
+`tools/e2e/test_ci_workflow.py` (CTest `test_ci_workflow`) reads the workflows and checks the properties that every
+workflow keeps:
+
+- The result job of each required workflow is its last job, always runs, needs every job of a pull request and fails
+  when one of them failed or was cancelled. Each `changes` job runs `tools/ci/changed_files.py`.
+- Every job that does not call a reusable workflow has `timeout-minutes`. The macOS package job allows 150 minutes,
+  because its two notarization steps may wait an hour each.
+- The permissions at the top of a workflow only read. The permissions of a job are a mapping of scopes, not `write-all`,
+  and a job writes exactly the scopes that `WRITE_PERMISSIONS` in the test lists for it with the reason: `contents` in the
+  `publish` job of `docs.yml` and in the `release` job of `release.yml`.
+- A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
+  cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.
+- A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
+  that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
+  skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
+  such as `env`, `container` or `services`, reads one, except the `secrets` of a call of a workflow in this repository,
+  whose jobs this rule checks in turn. The top-level `env` of a workflow reads none either. A call of `package.yml`
+  passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.
+- The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
+  `tools/release/` is registered in CTest or run by a workflow.
+
+`KNOWN_GAPS` in the test lists the workflows that lack one of these properties, such as the job time limits of
+`release.yml`. The test fails when one of them gets the property, so the entry goes with the change. The test then
+checks the properties of the build, package and release jobs that this page describes. It finds a step by what the
+step runs, not by its name, so a step can be renamed or moved as long as the property holds. It reads the workflows
+with a small reader of the YAML that they use, which needs no package and stops at what it cannot read. The test runs
+a few cases of the reader every time; where PyYAML is installed, it also checks that the reader reads every workflow
+as PyYAML does.
 
 ### Release assets script
 
@@ -405,6 +453,51 @@ message for a missing tool, and the command lines, the link, the staged
 for `ditto` and `hdiutil`, and that the committed layout file names the app and
 the link. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
+
+### macOS packaging script
+
+`tools/release/package_macos.sh <step> <app>` runs one step of the macOS package job on the app in the build folder,
+`build/QEGTRAIN.app` in the job. Each step of the job is one call:
+
+| Step | Job step | What it does |
+| --- | --- | --- |
+| `bundle` | Bundle Qt and dependencies into the app | Runs `macdeployqt` from `$QT_ROOT_DIR` on the app and copies `egtrain_update_helper` of the build folder into `Contents/MacOS`. A Homebrew library can name a dependency as `@rpath/<name>`, which `macdeployqt` does not copy: the step copies it from the Homebrew prefix and points the reference at the copy, until nothing is missing. |
+| `add-files` | Add scene_tool and the licence files to the app | Copies `scene_tool` of the build folder into `Contents/MacOS`, and `LICENSE` and `THIRD_PARTY_NOTICES.md` into `Contents/Resources`. |
+| `trim` | Remove unused Qt modules and plugins | Removes the virtual keyboard and input context plugins, the Quick and QML frameworks, the WebP and TIFF plugins with their libraries and the database drivers other than SQLite, and prints the number of files and bytes of the app before and after. |
+| `thin` | Keep only the arm64 code of the Qt 6 libraries | Keeps the arm64 code of every universal file. |
+| `strip-paths` | Remove build machine paths | Runs `tools/release/macos_build_paths.py fix`. |
+| `min-version` | Set the minimum macOS version | Writes the minimum system version of the executable into `LSMinimumSystemVersion`. |
+| `verify-contents` | Verify the app is self-contained | Requires the Qt frameworks, the cocoa platform plugin, the SVG plugins, the macOS style, the SQLite driver, the icon and ZeroMQ, fails on a removed file and on a build machine path (`macos_build_paths.py check`), and runs `codesign --verify --deep --strict`. |
+| `verify-signature` | Verify the signature | Prints the identifier, the authority and the team, and requires an ad-hoc signature without `MACOS_SIGNING_IDENTITY` and a Developer ID Application authority, a team, the hardened runtime and a timestamp with it. |
+| `verify-package` | Verify the packaged app | Requires the three programs, the licence files, the manual and the Paimpol scene, and runs `scene_tool validate` on that scene. |
+
+The first six steps change the app, so they come before the signature, and the last three check the signed app. The app
+first runs in the next step, **Start the package**, from a copy. `bundle` and `add-files` take the programs from the
+folder that holds the app, which is the build folder. `bundle` needs `QT_ROOT_DIR` and Homebrew. `trim` and
+`min-version` also write their lines into the job summary when `GITHUB_STEP_SUMMARY` is set, so every step also runs
+outside a workflow. To package a local build, copy the app and the two programs into a new folder and run the steps in
+the order of the table, with `tools/release/sign_macos.sh` between `min-version` and `verify-contents`:
+
+```bash
+mkdir -p /tmp/package/build
+ditto build/QEGTRAIN.app /tmp/package/build/QEGTRAIN.app
+cp build/scene_tool build/egtrain_update_helper /tmp/package/build/
+QT_ROOT_DIR="$HOME/Qt/6.8.3/macos" bash tools/release/package_macos.sh bundle /tmp/package/build/QEGTRAIN.app
+```
+
+A build without the Sphinx environment of the manual has no `EGTRAIN.qch`, and `verify-package` then fails.
+
+The test is `tools/release/test_package_macos.sh`. It builds a fixture build folder whose app holds what `macdeployqt`
+leaves: frameworks, plugins and libraries, among them the files that `trim` removes, a universal program built for
+macOS 26 with a run path into the Homebrew Cellar, and a `scene_tool` that fails on request. It runs every step but
+`bundle` in the order of the job, signs the app ad hoc with `sign_macos.sh` in between, and checks the result of each:
+the copied files, the removed and the kept files, the size lines in a job summary and a run without one, the arm64
+program, the removed run path, the minimum version, and the three checks. Then it requires `verify-contents` to fail
+for a missing SVG icon engine, a missing Qt Svg framework, a WebP plugin, a run path into the Homebrew Cellar and a file
+changed after the signature, `verify-signature` to fail when an identity is set and the signature is ad hoc, and
+`verify-package` to fail for a missing manual and a scene that does not validate. It does not run `bundle`, which needs
+`macdeployqt`, Qt and Homebrew, or sign with an identity. Run it with
+`ctest --test-dir build -R test_package_macos --output-on-failure`.
 
 ### macOS signing script
 
@@ -666,18 +759,44 @@ The certificate is never exported or added to a trusted root, and the test
 removes it with its key. Run it by hand with
 `ctest --test-dir build -C Release -R test_verify_signatures --output-on-failure`.
 
+### Configure options
+
+The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
+`CMakePresets.json`. They inherit `ci-base`: a Release build with the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and
+`EGTRAIN_IPO=OFF`, in `build/`, where the later steps look. The configure step of each leg adds the compiler launcher of
+the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. A configure step names no
+generator and no variable that its preset sets. The leak check and the nightly sanitizer jobs keep configure lines of
+their own.
+
+`ci-windows` also holds Ninja, the `cl` compilers, `EGTRAIN_NETWORK_TESTS=ON` and the vcpkg options: the toolchain of the
+vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`), the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json`
+and no DLL copy after each link (`VCPKG_APPLOCAL_DEPS=OFF`; the job puts the DLL folders on `PATH`). The configure step
+installs the packages of the manifest at its `builtin-baseline`, into the `installed` folder of that vcpkg
+(`VCPKG_INSTALLED_DIR`), where the DLL steps of the job read them. The Windows package job of `package.yml` passes the
+same vcpkg options on its configure line. The
+runner image clones vcpkg in full and a new image updates the clone, so the checkout holds the baseline commit. A
+baseline newer than the checkout of the image fails the configure step, because vcpkg reads the port versions from that
+checkout.
+
 ### Dependency caches
+
+The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
+dependencies with the local action `.github/actions/setup-deps`. It installs Qt 6.8.3 with Qt Charts through
+`jurplel/install-qt-action`, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
+extra apt packages of its `apt-packages` input, and sets up the MSVC environment on Windows. The `validation` and
+`sanitizer` jobs of `release.yml` install the same Qt and Homebrew packages in steps of their own.
 
 Every leg caches the Qt install (through `jurplel/install-qt-action`, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg
-binary archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
+binary archives in `runner.temp/vcpkg-binary-cache`, which its configure step names in
+`VCPKG_BINARY_SOURCES`. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
-`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-<image>-v1`, where `<image>` is
-`ImageOS` and `ImageVersion` of the runner. A new image writes a new entry, and
-the save step runs when the restore found no entry with the exact key. To start
-over, for example after changing the vcpkg package list, raise the `-v1` suffix
-by hand in the restore and save steps. An existing key is never overwritten.
+`vcpkg-x64-windows-<packages>-<baseline>-<image>-v1`: the packages and the `builtin-baseline` of
+`tools/vcpkg/vcpkg.json`, which the step `Read the vcpkg manifest` reads, and `ImageOS` and `ImageVersion` of the
+runner. A new image or a change to the packages or the baseline writes a new entry. The save step follows the
+configure step, which installs the packages, and runs when the restore found no entry with the exact key. To start
+over, raise the `-v1` suffix by hand in the restore and save steps. An existing key is never overwritten.
 Homebrew and apt packages are not cached.
 
 All three legs also keep a compiler cache, set up by `hendrikmuhs/ccache-action`
@@ -695,7 +814,7 @@ cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
 and GitHub keeps 10 GB for the repository and removes the entries used least
 recently first.
 
-The three legs configure with `-DEGTRAIN_IPO=OFF`. A Release build links with
+The ci presets of the three legs set `EGTRAIN_IPO=OFF`. A Release build links with
 interprocedural optimization by default (link-time optimization, or LTCG with
 MSVC) when the toolchain supports it; with the option OFF the build skips it.
 The optimized link generates the code of the whole program again for every test

@@ -3,9 +3,25 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
-LOG="${TMPDIR:-/tmp}/qegtrain-legacy-import-e2e.log"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-legacy-import.XXXXXX")"
-trap 'rm -rf "$TMP_ROOT"' EXIT
+if [[ ! -x "$APP" ]]; then
+	echo "QEGTRAIN app not found or not executable: $APP" >&2
+	exit 1
+fi
+
+# The log, the legacy case and the imported scenes go into a folder of the run's own, which is kept when the check fails.
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-legacy-import-e2e.XXXXXX")"
+cleanup() {
+	local exit_code=$?
+	trap - EXIT
+	if [[ "$exit_code" -eq 0 ]]; then
+		rm -rf "$TMP_ROOT"
+	else
+		echo "the log and the files of this run are in $TMP_ROOT" >&2
+	fi
+	exit "$exit_code"
+}
+trap cleanup EXIT
+LOG="$TMP_ROOT/qegtrain-legacy-import-e2e.log"
 SOURCE="$TMP_ROOT/legacy"
 DEST="$TMP_ROOT/imported-scene"
 BAD_DEST="$TMP_ROOT/failed-scene"
@@ -15,11 +31,6 @@ printf '0\t0.5\t1\t0.5\n' >"$SOURCE/Connections.txt"
 printf '0\nFlatStart FlatEnd\n' >"$SOURCE/TrackandStations.txt"
 printf '1\t0\t0\n2\t1\t0\n' >"$SOURCE/B0/NodiCumPari.txt"
 SOURCE_HASH_BEFORE="$(cksum <"$SOURCE/Stations.txt")"
-
-if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app not found or not executable: $APP" >&2
-	exit 1
-fi
 
 set +e
 cd "$ROOT/EGTRAIN/QEGTRAIN"
