@@ -177,7 +177,9 @@ convention. Use this table to decide where a new file goes. Paths are relative t
   `main.cpp`, `util/portability.h` and `util/timeutil.hpp`.
 - Types: PascalCase (`UpdateChecker`, `SceneDiagnostic`). New enumerations are
   `enum class` with PascalCase values (`SceneSeverity::Warning`). Plain enums appear where
-  Qt expects integers, such as `enum { Type = UserType + N }` in `graphics/items/`.
+  Qt expects integers, such as `enum { Type = UserType + N }` in `graphics/items/`, and for the
+  columns of a CSV row, an `enum Column : std::size_t` with `k` values inside a namespace or a
+  function that indexes the row directly (`BlockingTimeCsv::Column`).
 - Functions, methods, variables and parameters: camelCase (`loadScene`,
   `classifyTrackSpeed`). Accessors have no `get` prefix (`stationName()`), setters start
   with `set`, and boolean queries start with `is` or `has` (`isChecking()`).

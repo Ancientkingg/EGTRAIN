@@ -5,7 +5,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,517,206,518,201,521,172,522"/>
 <area shape="rect" id="Node000003" href="$_main_window_support_8h.html#ace769cd9a3fb64ac5389f23f73b4f22d" title=" " alt="" coords="555,180,720,208"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,503,367,460,402,397,449,329,506,265,546,235,590,213,586,216,549,240,510,269,454,332,407,400,371,462,349,506"/>
-<area shape="rect" id="Node000011" href="$_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" title="The whole table as an image: every row and column at its natural size, with no scroll bars." alt="" coords="579,303,696,330"/>
+<area shape="rect" id="Node000011" href="$_result_frame_8cpp.html#af4427af0200906891a03bce3aff863b6" title="The whole table as an image: every row and column at the size that the table gives it,..." alt="" coords="579,303,696,330"/>
 <area shape="poly" id="edge19_Node000002_Node000011" title=" " alt="" coords="348,503,371,470,407,425,453,379,507,341,534,329,566,322,562,325,536,334,509,345,457,383,411,429,375,473,352,507"/>
 <area shape="rect" id="Node000012" href="$_result_views_8cpp.html#a49689422c78819ad5793da818378e387" title=" " alt="" coords="564,379,711,406"/>
 <area shape="poly" id="edge21_Node000002_Node000012" title=" " alt="" coords="360,503,424,463,507,422,552,409,547,412,509,427,427,468,363,507"/>
@@ -24,7 +24,7 @@
 <area shape="rect" id="Node000038" href="$_run_results_8cpp.html#a2da8b4613133af536cad7cc3a2703daa" title=" " alt="" coords="521,811,754,838"/>
 <area shape="poly" id="edge74_Node000002_Node000038" title=" " alt="" coords="347,531,369,578,404,642,451,711,479,743,510,772,536,789,567,805,562,805,534,794,506,776,475,747,447,714,399,645,364,580,345,536"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="591,179,584,171,590,161,608,155,638,153,669,156,688,164,683,165,668,161,638,159,609,161,593,166,590,171,597,179"/>
-<area shape="rect" id="Node000004" href="$_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" title="The CSV field of a value: the number, or an empty field when it is unavailable." alt="" coords="869,67,949,94"/>
+<area shape="rect" id="Node000004" href="$_run_csv_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" title="The CSV field of a value: the number, or an empty field when it is unavailable." alt="" coords="869,67,949,94"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="663,177,731,142,814,105,857,93,852,96,816,110,733,147,666,182"/>
 <area shape="rect" id="Node000005" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="1098,29,1238,57"/>
 <area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="646,178,671,145,709,103,758,61,785,43,814,29,851,17,888,10,965,6,1038,12,1102,25,1097,26,1037,17,965,11,889,15,852,22,816,34,788,47,761,65,713,106,675,148,650,181"/>

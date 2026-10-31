@@ -2,11 +2,11 @@ var searchData=
 [
   ['tenminutesormore_0',['TenMinutesOrMore',['../namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea0b40b4bfb2f70f2bd007b6e2672069bc',1,'telemetry']]],
   ['tick_1',['Tick',['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a0b3516a5bbb77566f904f9d3877f4710',1,'DiagramKeyEntry']]],
-  ['timedistance_2',['TimeDistance',['../_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5a249af15f429901f54cd4017dd9eb89ac',1,'ResultViews.h']]],
+  ['timedistance_2',['TimeDistance',['../_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5a249af15f429901f54cd4017dd9eb89ac',1,'RouteCharts.h']]],
   ['timestepdiffers_3',['TimestepDiffers',['../_delay_analysis_8h.html#ab222e5d6efd74d15502936212ee68f60a902eb3948ce1e3d657b553838d1451fe',1,'DelayAnalysis.h']]],
   ['track_4',['Track',['../_network_legend_widget_8h.html#a33fd463d91044936a5c3082d2d9c4549a92ea731d3af6677905303c88689f5d55',1,'NetworkLegendWidget.h']]],
   ['trackid_5',['TrackId',['../namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1fac7e417108a663b49bb208a4d46932618',1,'PreviewGraphics']]],
-  ['tractiveeffortdistance_6',['TractiveEffortDistance',['../_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5ae190d54334969f80ffabba252f521339',1,'ResultViews.h']]],
+  ['tractiveeffortdistance_6',['TractiveEffortDistance',['../_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5ae190d54334969f80ffabba252f521339',1,'RouteCharts.h']]],
   ['train_7',['Train',['../_network_legend_widget_8h.html#a33fd463d91044936a5c3082d2d9c4549ae41273f43af504714d85465294f1f369',1,'NetworkLegendWidget.h']]],
   ['trainunits_8',['TrainUnits',['../class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a627a1fbaf48d8fe8c04f974fa6e609aa',1,'SceneDocument']]],
   ['trajectory_9',['Trajectory',['../struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a2c1f43c429c5e00feaef7ba3327375dc',1,'RouteDiagramSeries']]],

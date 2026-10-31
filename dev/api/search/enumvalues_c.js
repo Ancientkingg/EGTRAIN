@@ -6,5 +6,6 @@ var searchData=
   ['marker_3',['Marker',['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a0235c996b43b3799573658df41ef82f2',1,'DiagramKeyEntry']]],
   ['mismatch_4',['Mismatch',['../class_telemetry_consent.html#a1dc506c16c4592007ac4207a5333b961a5b0a8637935072d1ec30e60bb2cae1e6',1,'TelemetryConsent']]],
   ['missing_5',['Missing',['../_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a2aee0be2678ee90fd327cc186826438e',1,'RecoveryStore.h']]],
-  ['movetobackup_6',['MoveToBackup',['../_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f',1,'StagedDirectory.h']]]
+  ['missingoptional_6',['MissingOptional',['../_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5a242ac1380247563b255e292a7c8fea5c',1,'LoadedDataSummary.h']]],
+  ['movetobackup_7',['MoveToBackup',['../_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f',1,'StagedDirectory.h']]]
 ];

@@ -114,7 +114,6 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_model_8
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="_scene_fields_8h_source.html">scene/SceneFields.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
@@ -125,12 +124,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_model_8
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
-<code>#include &lt;unordered_set&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneModel.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp__incl.svg" width="1998" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp__incl.svg" width="1731" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -162,15 +160,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a765f734ddc8d717d03dfb08048237303" id="r_a765f734ddc8d717d03dfb08048237303"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a765f734ddc8d717d03dfb08048237303">sceneSignals</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a47ec40739fdcf8b8b023d48cc1e371a4" id="r_a47ec40739fdcf8b8b023d48cc1e371a4"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a47ec40739fdcf8b8b023d48cc1e371a4">sceneSignals</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a47ec40739fdcf8b8b023d48cc1e371a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signals of the scene, read-only.  <br /></td></tr>
-<tr class="memitem:a0718b83b572768e7db46382d1ff2a3ce" id="r_a0718b83b572768e7db46382d1ff2a3ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0718b83b572768e7db46382d1ff2a3ce">refreshLoadedDataSummary</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
-<tr class="memdesc:a0718b83b572768e7db46382d1ff2a3ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rebuilds loadedData from the model and sourceFiles.  <br /></td></tr>
-<tr class="memitem:af50f126ec84573bc40322ddf0a48140d" id="r_af50f126ec84573bc40322ddf0a48140d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af50f126ec84573bc40322ddf0a48140d">refreshLoadedDataDiagnostics</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:af51b10f4dc5891e7440bf1e644e8fa26" id="r_af51b10f4dc5891e7440bf1e644e8fa26"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af51b10f4dc5891e7440bf1e644e8fa26">isSceneFileName</a> (const std::string &amp;name)</td></tr>
 <tr class="memdesc:af51b10f4dc5891e7440bf1e644e8fa26"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when name is the name of a file in kSceneFiles.  <br /></td></tr>
 <tr class="memitem:a69af3c8a54fe5e718e34066cf176e53c" id="r_a69af3c8a54fe5e718e34066cf176e53c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a69af3c8a54fe5e718e34066cf176e53c">sceneFileWritten</a> (const <a class="el" href="struct_scene_file.html">SceneFile</a> &amp;file, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memdesc:a69af3c8a54fe5e718e34066cf176e53c"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when saveScene writes file for scene.  <br /></td></tr>
 <tr class="memitem:ae3ce8bbd695e81b69906adede3343951" id="r_ae3ce8bbd695e81b69906adede3343951"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3ce8bbd695e81b69906adede3343951">refreshSavedSceneMetadata</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
-<tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes and rebuilds loadedData.  <br /></td></tr>
+<tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes.  <br /></td></tr>
 <tr class="memitem:aa2c6c115f657599ea4028c2b7a4bcbca" id="r_aa2c6c115f657599ea4028c2b7a4bcbca"><td class="memItemLeft"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2c6c115f657599ea4028c2b7a4bcbca">loadScene</a> (const std::string &amp;sceneDir)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -371,7 +366,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1134" height="1051"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1364" height="1138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -446,57 +441,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="af50f126ec84573bc40322ddf0a48140d" name="af50f126ec84573bc40322ddf0a48140d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af50f126ec84573bc40322ddf0a48140d">&#9670;&#160;</a></span>refreshLoadedDataDiagnostics()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void refreshLoadedDataDiagnostics </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>diagnostics</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Adds a validation row with the diagnostic counts below each top row of loadedData and marks the rows with errors or warnings. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_af50f126ec84573bc40322ddf0a48140d_cgraph.svg" width="904" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a0718b83b572768e7db46382d1ff2a3ce" name="a0718b83b572768e7db46382d1ff2a3ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0718b83b572768e7db46382d1ff2a3ce">&#9670;&#160;</a></span>refreshLoadedDataSummary()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void refreshLoadedDataSummary </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Rebuilds loadedData from the model and sourceFiles. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_a0718b83b572768e7db46382d1ff2a3ce_cgraph.svg" width="635" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="ae3ce8bbd695e81b69906adede3343951" name="ae3ce8bbd695e81b69906adede3343951"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3ce8bbd695e81b69906adede3343951">&#9670;&#160;</a></span>refreshSavedSceneMetadata()</h2>
 
@@ -512,11 +456,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Sets sourceFiles to the files that a save writes and rebuilds loadedData. </p>
+<p>Sets sourceFiles to the files that a save writes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="891" height="176"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8cpp_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="398" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -5,5 +5,5 @@ var searchData=
   ['trainbadgeshape_2',['TrainBadgeShape',['../_visual_polish_8h.html#a70e426fbeec6dc2d32748df8f51efe8d',1,'VisualPolish.h']]],
   ['trainvisualkind_3',['TrainVisualKind',['../_visual_polish_8h.html#aa3d69fc136eed55ed2a75c1c0d8a7f97',1,'VisualPolish.h']]],
   ['trajectorybranch_4',['TrajectoryBranch',['../_rolling_stock_8h.html#a6212850430c9d87a2b2518f5ea118b1c',1,'RollingStock.h']]],
-  ['trajectorychart_5',['TrajectoryChart',['../_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5',1,'ResultViews.h']]]
+  ['trajectorychart_5',['TrajectoryChart',['../_route_charts_8h.html#a0fa81893835a3036bb374d3a404d58a5',1,'RouteCharts.h']]]
 ];

@@ -35,7 +35,8 @@ var searchData=
   ['trainunitpanel_32',['TrainUnitPanel',['../class_train_unit_panel.html',1,'']]],
   ['trainunitsourcelinker_33',['TrainUnitSourceLinker',['../class_train_unit_source_linker.html',1,'']]],
   ['trainvisual_34',['TrainVisual',['../struct_train_visual.html',1,'']]],
-  ['trajectoryendtimeoverride_35',['TrajectoryEndTimeOverride',['../class_trajectory_end_time_override.html',1,'']]],
-  ['trajectorysegment_36',['TrajectorySegment',['../struct_trajectory_segment.html',1,'']]],
-  ['trip_37',['Trip',['../class_trip.html',1,'']]]
+  ['trajectorychartresult_35',['TrajectoryChartResult',['../struct_trajectory_chart_result.html',1,'']]],
+  ['trajectoryendtimeoverride_36',['TrajectoryEndTimeOverride',['../class_trajectory_end_time_override.html',1,'']]],
+  ['trajectorysegment_37',['TrajectorySegment',['../struct_trajectory_segment.html',1,'']]],
+  ['trip_38',['Trip',['../class_trip.html',1,'']]]
 ];

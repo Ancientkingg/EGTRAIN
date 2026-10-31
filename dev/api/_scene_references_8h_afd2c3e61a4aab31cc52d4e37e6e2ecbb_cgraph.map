@@ -1,4 +1,10 @@
 <map id="sceneBlockReferenceComponents" name="sceneBlockReferenceComponents">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,249,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="85,28,79,20,84,11,100,5,127,3,155,5,172,14,167,14,154,10,127,8,102,10,88,15,84,20,90,29"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,249,96"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="81,68,74,59,80,49,98,43,127,41,158,44,177,52,171,53,157,49,127,47,99,49,83,54,79,59,87,67"/>
+<area shape="rect" id="Node000002" href="$_section_reference_8cpp.html#a1d71dac238c8c6d608e7a4db2b0ed4b3" title=" " alt="" coords="297,29,493,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,65,284,59,279,60,228,70"/>
+<area shape="rect" id="Node000003" href="$_section_reference_8cpp.html#aa3af0e68a1582951722d703d51f27f36" title="The parts of reference between its &#39;/&#39;, in order, empty parts included." alt="" coords="312,105,478,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="231,94,299,105,293,106,231,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="349,28,342,20,348,11,366,5,395,3,426,5,445,14,439,14,425,10,395,8,367,10,351,15,347,20,354,30"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="349,104,342,96,348,87,366,81,395,79,426,81,445,90,439,90,425,86,395,84,367,86,351,91,347,96,354,106"/>
 </map>

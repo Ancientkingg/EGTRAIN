@@ -38,7 +38,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" target="_top" xlink:title="The whole table as an image: every row and column at its natural size, with no scroll bars.">
+<g id="a_Node000010"><a xlink:href="_result_frame_8cpp.html#af4427af0200906891a03bce3aff863b6" target="_top" xlink:title="The whole table as an image: every row and column at the size that the table gives it,...">
 <polygon fill="white" stroke="#666666" points="358.25,-401.75 270.25,-401.75 270.25,-381 358.25,-381 358.25,-401.75"/>
 <text xml:space="preserve" text-anchor="middle" x="314.25" y="-388.25" font-family="Helvetica,sans-Serif" font-size="10.00">fullTableImage</text>
 </a>
@@ -209,7 +209,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_run_exports_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title="The CSV field of a value: the number, or an empty field when it is unavailable.">
+<g id="a_Node000003"><a xlink:href="_run_csv_8cpp.html#a30420cc2f51f35b56508a87ebbf6fdc7" target="_top" xlink:title="The CSV field of a value: the number, or an empty field when it is unavailable.">
 <polygon fill="white" stroke="#666666" points="547.5,-578.75 488,-578.75 488,-558 547.5,-558 547.5,-578.75"/>
 <text xml:space="preserve" text-anchor="middle" x="517.75" y="-565.25" font-family="Helvetica,sans-Serif" font-size="10.00">csvValue</text>
 </a>

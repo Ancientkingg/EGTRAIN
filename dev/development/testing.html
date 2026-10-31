@@ -369,8 +369,7 @@ stay within them.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_scenedocument</span></code> checks <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code> without a window: the signals, the
 revision and the unsaved state of <code class="docutils literal notranslate"><span class="pre">replace</span></code>, <code class="docutils literal notranslate"><span class="pre">markChanged</span></code>, <code class="docutils literal notranslate"><span class="pre">markSaved</span></code> and
 <code class="docutils literal notranslate"><span class="pre">restore</span></code>, and that <code class="docutils literal notranslate"><span class="pre">assignAuthoredScene</span></code> takes every authored part of a
-snapshot and keeps the loaded data, the source files and the version that saved
-the scene.</p>
+snapshot and keeps the source files and the version that saved the scene.</p>
 <p>Each panel of <code class="docutils literal notranslate"><span class="pre">editors/</span></code> has a test, <code class="docutils literal notranslate"><span class="pre">test_editor_&lt;panel&gt;</span></code>, such as <code class="docutils literal notranslate"><span class="pre">test_editor_casesettings</span></code> and
 <code class="docutils literal notranslate"><span class="pre">test_editor_service</span></code> (labels <code class="docutils literal notranslate"><span class="pre">unit</span></code> and <code class="docutils literal notranslate"><span class="pre">gui</span></code>, run with the <code class="docutils literal notranslate"><span class="pre">offscreen</span></code> platform). It puts the panel over a
 <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code> and over a <code class="docutils literal notranslate"><span class="pre">UserPrompts</span></code> that records its questions, so that no dialog opens, and works the widgets of

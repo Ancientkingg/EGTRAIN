@@ -1,15 +1,18 @@
 <map id="SectionRowsFacet::fillRows" name="SectionRowsFacet::fillRows">
-<area shape="rect" id="Node000001" title="One row for each item, filled by fillRow() with the sections of the scene." alt="" coords="5,112,203,140"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="251,29,453,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,109,250,67,280,60,275,63,252,72,141,114"/>
-<area shape="rect" id="Node000004" href="$class_section_rows_facet.html#a8bee5e5d5040cb4fb00a8f9a6e4b188f" title="Puts the cells of the item in row. inventory holds the sections of the scene for the combos." alt="" coords="257,81,447,109"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="202,111,244,108,239,110,204,116"/>
-<area shape="rect" id="Node000005" href="$class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" title="The model of the document; an empty scene without one." alt="" coords="280,133,424,178"/>
-<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="203,135,267,144,262,146,204,140"/>
-<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title="The table that the facets fill; the panel owns it." alt="" coords="280,202,424,247"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="137,138,252,187,270,196,265,196,250,192,136,143"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="309,28,303,20,308,11,325,5,352,3,381,5,398,14,393,14,380,10,352,8,326,10,312,15,308,20,315,29"/>
+<area shape="rect" id="Node000001" title="One row for each item, filled by fillRow() with the sections of the scene." alt="" coords="5,149,203,177"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="251,67,453,94"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,146,250,105,280,98,275,100,252,110,141,151"/>
+<area shape="rect" id="Node000005" href="$class_section_rows_facet.html#a8bee5e5d5040cb4fb00a8f9a6e4b188f" title="Puts the cells of the item in row. inventory holds the sections of the scene for the combos." alt="" coords="257,119,447,146"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="202,148,244,145,239,147,204,153"/>
+<area shape="rect" id="Node000006" href="$class_infrastructure_panel.html#a82af8a411d19611929adaf6d8d328450" title="The model of the document; an empty scene without one." alt="" coords="280,170,424,215"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="203,172,267,181,262,183,204,178"/>
+<area shape="rect" id="Node000007" href="$class_infrastructure_panel.html#a73a2fc120255bc2db5c662b6d61de8ab" title="The table that the facets fill; the panel owns it." alt="" coords="280,240,424,284"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="137,175,252,225,270,234,265,234,250,230,136,180"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="309,66,303,58,308,48,325,42,352,40,381,42,398,51,393,52,380,48,352,45,326,47,312,52,308,57,315,66"/>
 <area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="501,29,724,57"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="453,41,488,43,483,44,454,46"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="453,63,499,59,494,61,454,69"/>
+<area shape="rect" id="Node000004" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="530,105,695,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="449,92,518,104,513,105,450,98"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="568,28,561,20,567,11,584,5,613,3,643,5,661,14,656,14,642,10,613,8,585,10,570,15,566,20,573,29"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="568,104,561,96,567,87,584,81,613,79,643,81,661,90,656,90,642,86,613,84,585,86,570,91,566,96,573,106"/>
 </map>

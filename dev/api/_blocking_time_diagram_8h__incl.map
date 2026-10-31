@@ -1,15 +1,17 @@
 <map id="diagrams/BlockingTimeDiagram.h" name="diagrams/BlockingTimeDiagram.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,393,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="198,5,441,33"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,81,90,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,36,102,78,101,73,231,31"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="114,81,173,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,33,180,76,178,71,246,34"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="197,81,255,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="266,32,244,70,241,66,261,35"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="280,81,354,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="281,31,303,68,298,67,278,36"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="378,81,437,109"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="296,31,373,73,367,73,295,36"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="462,81,524,109"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="312,31,449,78,444,79,311,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="271,36,105,81,104,76,270,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="114,81,184,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="292,33,194,77,192,72,286,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="208,81,266,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="307,33,264,73,261,68,302,35"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="290,81,349,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="321,32,322,67,317,64,318,35"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="373,81,447,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="337,31,385,71,380,71,335,36"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="471,81,530,109"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="352,31,459,76,454,76,351,36"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="555,81,617,109"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="369,31,542,80,537,81,368,36"/>
 </map>

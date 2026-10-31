@@ -1,5 +1,36 @@
 var namespaces_dup =
 [
+    [ "BlockingTimeCsv", "namespace_blocking_time_csv.html", [
+      [ "Column", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647", [
+        [ "kTrain", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a286a80f06036374b540871928a079703", null ],
+        [ "kBlock", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647afea942b80563bfc046fa2f01c5b5241c", null ],
+        [ "kOccupationStart", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a08b52efa80dced005f5e454a05cc457e", null ],
+        [ "kOccupationEnd", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a3f9e4feaf7e3f5712faac54c1d5f37eb", null ],
+        [ "kPosition", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a72d483bb4dc7d3f3af18b4074dfca2e0", null ],
+        [ "kSegmentType", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a7d98fb6f97f5e73f375c966bb533d124", null ],
+        [ "kPlannedReference", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a9b52acfe69c0c736c6a7bbc4dd80ffd2", null ],
+        [ "kStation", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647afbbf5560dd49293d4bfee1fd9fa116d4", null ],
+        [ "kPlannedTime", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a7a967aeb4417640de96e878a9f652195", null ],
+        [ "kStartX", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647af5209011d9afc57ecff73b6394b9e2ec", null ],
+        [ "kEndX", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647aa315a51b0f078fd9b85483f7ddc6e713", null ],
+        [ "kOriginalStart", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a5514dc39d822eb9f72d3ffa40dde018f", null ],
+        [ "kOriginalEnd", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ac98f7db36e119699a03815985499e0a3", null ],
+        [ "kOriginalApproach", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ae14020671960707c9fb2b82313113885", null ],
+        [ "kOriginalRunStart", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647acf6ad4106e97c0e5eec2efbdf17a461b", null ],
+        [ "kOriginalRunEnd", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a04d8822afcb6754fad735b86da56c93d", null ],
+        [ "kOriginalClearance", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a8df9c439822a126c4b1b2b3e00387293", null ],
+        [ "kSetup", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a65f6b5bed5c80f06ba2d814cf06cd883", null ],
+        [ "kSightReaction", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647aee02b11a21118405bb2faa4db943ecf0", null ],
+        [ "kRelease", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ae83b7563c1195b3363055a7732686651", null ],
+        [ "kRunMargin", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a1f33af228c654ae0cf6bc486c53ca2ae", null ],
+        [ "kLayer", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647af0a980c13e6ced30f32b10c61365b54f", null ],
+        [ "kReferenceSection", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a9763eff51c64499267c41c7e0ad43eb6", null ],
+        [ "kGeoPosition", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a6dbb0aa47718fb3bc4855212043bffd2", null ],
+        [ "kStartGeoX", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a5ca5bd619d9dd487bb00dc53029e7e34", null ],
+        [ "kEndGeoX", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a93cd0dfa17e0c98ad2a1cf81ca497d7e", null ],
+        [ "kColumnCount", "namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ad73e7e2c9e7f6c171f125d139644ca4c", null ]
+      ] ]
+    ] ],
     [ "cannot_open", "namespacecannot__open.html", [
       [ "text", "namespacecannot__open.html#a205e5ea6c4bdc873c4200c4abbec104a", null ],
       [ "title", "namespacecannot__open.html#ad350e72b73b3fcd4d2710970f8bdfb0c", null ]

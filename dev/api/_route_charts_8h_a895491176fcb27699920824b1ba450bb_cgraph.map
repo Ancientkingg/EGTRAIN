@@ -1,0 +1,13 @@
+<map id="buildRouteDiagramChart" name="buildRouteDiagramChart">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,188,96"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="62,67,57,59,61,49,75,43,97,41,120,44,134,52,129,53,118,49,96,47,76,49,65,53,62,59,67,67"/>
+<area shape="rect" id="Node000002" href="$_route_charts_8cpp.html#a39493943e9bb003ef5adf6f98862370f" title=" " alt="" coords="237,29,351,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,65,224,56,219,58,171,70"/>
+<area shape="rect" id="Node000004" href="$_series_meta_8cpp.html#abba1d00aa26051bf0fc9e03f8969858c" title="Attaches meta to series, in the place of what it had." alt="" coords="236,105,352,133"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="173,94,224,105,218,106,173,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,28,254,20,259,11,272,5,294,3,317,5,331,14,326,14,316,10,294,8,273,10,262,15,260,20,265,30"/>
+<area shape="rect" id="Node000003" href="$_route_diagram_coordinates_8cpp.html#ab023643e75ca4ebc53bc4ae9ff14687e" title=" " alt="" coords="400,29,599,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="351,41,387,43,382,44,352,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="464,28,458,20,463,11,477,5,500,3,524,5,539,14,533,14,522,10,500,8,478,10,467,15,464,20,469,30"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="260,104,254,96,259,87,272,81,294,79,317,81,331,90,326,90,316,86,294,84,273,86,262,91,260,96,264,106"/>
+</map>

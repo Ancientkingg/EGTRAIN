@@ -1,7 +1,0 @@
-<map id="copenhagenCase" name="copenhagenCase">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,138,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,29,39,20,43,11,54,5,72,3,91,5,102,14,97,14,89,10,71,8,55,10,47,14,44,20,48,29"/>
-<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390" title=" " alt="" coords="186,29,276,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="138,41,173,43,168,43,138,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="203,28,198,20,202,11,213,5,231,3,250,5,261,14,256,14,248,10,231,8,215,10,206,14,204,20,208,30"/>
-</map>

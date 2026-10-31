@@ -1,0 +1,20 @@
+<map id="decodeStations" name="decodeStations">
+<area shape="rect" id="Node000001" title="Reads stations.json: the stations and their platforms." alt="" coords="5,65,127,93"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="28,66,22,57,27,47,42,41,66,39,92,41,108,49,103,51,91,46,66,44,43,46,30,51,27,56,33,64"/>
+<area shape="rect" id="Node000002" href="$class_scene_field_reader.html#a5c5c383343a40b1b6ddf0017b79651e6" title=" " alt="" coords="175,35,402,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,68,171,64,166,67,128,73"/>
+<area shape="rect" id="Node000004" href="$class_scene_field_reader.html#a140e1b0d5fdb2d21c65bd9c3bd7f1b26" title=" " alt="" coords="713,85,898,113"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="86,63,125,40,174,21,255,7,337,3,420,6,500,16,575,30,644,46,753,80,747,80,642,51,574,35,499,21,419,12,337,8,255,12,175,26,128,44,89,67"/>
+<area shape="rect" id="Node000005" href="$class_scene_field_reader.html#a932adc727f7c89d79dffd3087997ed7e" title=" " alt="" coords="191,86,386,131"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="126,85,178,93,173,95,127,90"/>
+<area shape="rect" id="Node000006" href="$class_scene_field_reader.html#a1001afd3bd09165d2eab058a8d63d147" title=" " alt="" coords="197,156,380,200"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="88,91,129,116,176,141,193,150,188,150,174,146,126,121,88,96"/>
+<area shape="rect" id="Node000003" href="$class_scene_field_reader.html#a38681a834cd04f10752c10054793098f" title=" " alt="" coords="450,136,665,164"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="365,60,403,71,466,98,522,129,516,128,463,103,401,76,365,66"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="402,56,666,82,700,88,695,88,665,87,402,62"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="628,133,717,117,722,116,629,138"/>
+<area shape="poly" id="edge7_Node000005_Node000003" title=" " alt="" coords="386,121,451,133,446,133,386,126"/>
+<area shape="poly" id="edge8_Node000005_Node000004" title=" " alt="" coords="386,104,700,100,696,102,387,110"/>
+<area shape="poly" id="edge11_Node000006_Node000003" title=" " alt="" coords="380,166,432,163,437,162,380,171"/>
+<area shape="poly" id="edge12_Node000006_Node000004" title=" " alt="" coords="380,187,444,191,516,192,591,186,665,173,723,149,770,123,775,122,725,154,666,178,592,192,516,197,444,196,380,192"/>
+</map>

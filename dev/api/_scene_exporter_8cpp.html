@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_exporte
 <code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;nlohmann/json.hpp&gt;</code><br />
 <code>#include &quot;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_reference_8h_source.html">scene/SectionReference.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
@@ -136,7 +137,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_exporte
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneExporter.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp__incl.svg" width="2983" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp__incl.svg" width="2994" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -161,8 +162,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a757d9d92c57ed0654216b0194409d237" id="r_a757d9d92c57ed0654216b0194409d237"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a757d9d92c57ed0654216b0194409d237">collectOldInputs</a> (<a class="el" href="struct_export_folders.html">ExportFolders</a> &amp;folders, std::error_code &amp;ec)</td></tr>
 <tr class="memitem:a1393407e37d7aa39d0099ecf50b1cf83" id="r_a1393407e37d7aa39d0099ecf50b1cf83"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a1393407e37d7aa39d0099ecf50b1cf83">reconstructibleTrackNumber</a> (const std::string &amp;name, int &amp;number)</td></tr>
 <tr class="memitem:ae554db1417a16a13af3c86146d0f6d93" id="r_ae554db1417a16a13af3c86146d0f6d93"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae554db1417a16a13af3c86146d0f6d93">sanitizeFilename</a> (const std::string &amp;name)</td></tr>
-<tr class="memitem:ad34cbffa47fce39ac04ede0196ff570f" id="r_ad34cbffa47fce39ac04ede0196ff570f"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad34cbffa47fce39ac04ede0196ff570f">isPositionedRouteEndpoint</a> (const std::string &amp;token)</td></tr>
-<tr class="memitem:aad950abdec606049de6ad0e476ccf2f1" id="r_aad950abdec606049de6ad0e476ccf2f1"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#aad950abdec606049de6ad0e476ccf2f1">isSwitchTransitionRouteEntry</a> (const std::string &amp;entry)</td></tr>
 <tr class="memitem:ae8c3edf6f68db27b367866bdc45f8441" id="r_ae8c3edf6f68db27b367866bdc45f8441"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae8c3edf6f68db27b367866bdc45f8441">formatNumber</a> (double val)</td></tr>
 <tr class="memitem:a4936e0d018814c6e7b32d572b2ebc4c3" id="r_a4936e0d018814c6e7b32d572b2ebc4c3"><td class="memItemLeft">static std::unordered_map&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4936e0d018814c6e7b32d572b2ebc4c3">buildLegacyTrackIds</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a4530c314faeed1ecb0bfab255b4b1627" id="r_a4530c314faeed1ecb0bfab255b4b1627"><td class="memItemLeft">static std::unordered_map&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4530c314faeed1ecb0bfab255b4b1627">buildLegacyBlockIds</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::unordered_map&lt; std::string, std::string &gt; &amp;trackIds)</td></tr>
@@ -339,7 +338,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a3c8e917e697fb1590f70c3894717040b_cgraph.svg" width="1256" height="2168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a3c8e917e697fb1590f70c3894717040b_cgraph.svg" width="1854" height="2236"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -434,66 +433,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ad34cbffa47fce39ac04ede0196ff570f" name="ad34cbffa47fce39ac04ede0196ff570f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad34cbffa47fce39ac04ede0196ff570f">&#9670;&#160;</a></span>isPositionedRouteEndpoint()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool isPositionedRouteEndpoint </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>token</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_ad34cbffa47fce39ac04ede0196ff570f_cgraph.svg" width="207" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="aad950abdec606049de6ad0e476ccf2f1" name="aad950abdec606049de6ad0e476ccf2f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad950abdec606049de6ad0e476ccf2f1">&#9670;&#160;</a></span>isSwitchTransitionRouteEntry()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool isSwitchTransitionRouteEntry </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>entry</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_aad950abdec606049de6ad0e476ccf2f1_cgraph.svg" width="464" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="a852c4c61a8d9505c440d48336336808b" name="a852c4c61a8d9505c440d48336336808b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a852c4c61a8d9505c440d48336336808b">&#9670;&#160;</a></span>legacyBoundaryToken()</h2>
 
@@ -519,7 +458,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a852c4c61a8d9505c440d48336336808b_cgraph.svg" width="676" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a852c4c61a8d9505c440d48336336808b_cgraph.svg" width="671" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -813,7 +752,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a2440ebe58c0970c3bb4735d631e68f3e_cgraph.svg" width="1003" height="343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_exporter_8cpp_a2440ebe58c0970c3bb4735d631e68f3e_cgraph.svg" width="998" height="343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1083,12 +1022,12 @@ Here is the call graph for this function:</div>
 <div class="line">    {<a class="code hl_enumvalue" href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a>, <span class="stringliteral">&quot;timetable/scenarios_entrance_delays&quot;</span>,</div>
 <div class="line">        [](<span class="keyword">const</span> std::string&amp; name) { <span class="keywordflow">return</span> std::regex_match(name, std::regex(<span class="stringliteral">&quot;rollout_[0-9]+\\.txt&quot;</span>)); }},</div>
 <div class="line">}</div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a></div><div class="ttdeci">@ File</div><div class="ttdoc">A regular file in a folder that the importer lists.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:49</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af">LegacyInputKind::Folder</a></div><div class="ttdeci">@ Folder</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:50</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a></div><div class="ttdeci">@ Entry</div><div class="ttdoc">Any entry, which the importer opens by its name.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:48</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062">LegacyInputKind::Sidecar</a></div><div class="ttdeci">@ Sidecar</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:53</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a803fd08886164f526fc725105c0266e9"><div class="ttname"><a href="#a803fd08886164f526fc725105c0266e9">isLegacyTrackFolderName</a></div><div class="ttdeci">static bool isLegacyTrackFolderName(const std::string &amp;name)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:41</div></div>
-<div class="ttc" id="a_scene_exporter_8cpp_html_a9c3144d5d9f799f08430e9081be7c26e"><div class="ttname"><a href="#a9c3144d5d9f799f08430e9081be7c26e">isLegacyRouteFile</a></div><div class="ttdeci">static bool isLegacyRouteFile(const fs::path &amp;path)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:35</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011a0b27918290ff5323bea1e3b78a9cf04e">LegacyInputKind::File</a></div><div class="ttdeci">@ File</div><div class="ttdoc">A regular file in a folder that the importer lists.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:50</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab0f2b97dc5d2b76b26e040408bb1d8af">LegacyInputKind::Folder</a></div><div class="ttdeci">@ Folder</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:51</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ab948e8a02a7f8dc9f098c89e8df9892c">LegacyInputKind::Entry</a></div><div class="ttdeci">@ Entry</div><div class="ttdoc">Any entry, which the importer opens by its name.</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:49</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062"><div class="ttname"><a href="#a47b93a8406e0fe3c7b80c9ca7e954011ada55f982393fc9ef26f75a21dc638062">LegacyInputKind::Sidecar</a></div><div class="ttdeci">@ Sidecar</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:54</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a803fd08886164f526fc725105c0266e9"><div class="ttname"><a href="#a803fd08886164f526fc725105c0266e9">isLegacyTrackFolderName</a></div><div class="ttdeci">static bool isLegacyTrackFolderName(const std::string &amp;name)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:42</div></div>
+<div class="ttc" id="a_scene_exporter_8cpp_html_a9c3144d5d9f799f08430e9081be7c26e"><div class="ttname"><a href="#a9c3144d5d9f799f08430e9081be7c26e">isLegacyRouteFile</a></div><div class="ttdeci">static bool isLegacyRouteFile(const fs::path &amp;path)</div><div class="ttdef"><b>Definition</b> SceneExporter.cpp:36</div></div>
 </div><!-- fragment -->
 </div>
 </div>

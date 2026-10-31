@@ -1,0 +1,21 @@
+<map id="DiagramWindow::setBlockSections" name="DiagramWindow::setBlockSections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,136,253,164"/>
+<area shape="rect" id="Node000002" href="$class_block_section_overlay.html#aaf14f50d83bd29aa7c6c7553e4978b28" title=" " alt="" coords="301,128,465,172"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,147,288,149,283,151,253,152"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#ae8cffc87793fbc3316aea9814a2cbb00" title=" " alt="" coords="537,29,689,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,125,459,95,512,67,536,61,531,63,514,72,462,100,416,129"/>
+<area shape="rect" id="Node000004" href="$_blocking_time_diagram_8cpp.html#a5b7b0dece0fb4ca52c834ceecb69afe3" title=" " alt="" coords="513,105,713,133"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="465,136,500,134,495,135,466,142"/>
+<area shape="rect" id="Node000007" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="538,157,688,202"/>
+<area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="465,158,525,167,520,168,465,163"/>
+<area shape="rect" id="Node000008" href="$class_block_section_overlay.html#a4c63445940353db95ce8dcff05399970" title="Follows the numeric axes that the chart has now, which replacing a time or position axis changes." alt="" coords="535,226,691,271"/>
+<area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="428,170,514,211,531,221,526,220,512,216,427,175"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="578,28,573,20,578,11,591,5,613,3,637,5,651,14,646,14,635,10,613,8,593,10,581,15,578,20,584,30"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="579,104,573,96,578,87,591,81,613,79,637,81,651,90,646,90,635,86,613,84,593,86,581,91,578,96,584,106"/>
+<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="761,105,864,133"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="714,117,748,119,743,119,714,122"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="780,104,775,96,779,87,792,81,813,79,835,81,848,90,843,90,833,86,812,84,793,86,783,91,780,96,785,106"/>
+<area shape="rect" id="Node000006" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="912,105,1090,133"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="864,117,899,119,893,119,864,122"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="968,104,963,96,967,87,980,81,1001,79,1023,81,1037,90,1031,90,1022,86,1001,84,981,86,971,91,968,96,973,106"/>
+</map>

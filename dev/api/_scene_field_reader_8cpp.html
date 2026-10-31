@@ -113,12 +113,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_field_r
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_scene_field_reader_8h_source.html">scene/SceneFieldReader.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_scene_fields_8h_source.html">scene/SceneFields.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
 <code>#include &lt;climits&gt;</code><br />
+<code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;unordered_set&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneFieldReader.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp__incl.svg" width="950" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp__incl.svg" width="1195" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -128,7 +133,21 @@ Functions</h2></td></tr>
 <tr class="memitem:a8b8d830ca64530da4f75e9cb213ecee0" id="r_a8b8d830ca64530da4f75e9cb213ecee0"><td class="memItemLeft"><a class="el" href="struct_scene_scenario.html">SceneScenario</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8b8d830ca64530da4f75e9cb213ecee0">decodeScenarioFile</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root)</td></tr>
 <tr class="memitem:a22f352e15a44e30e34ffc5fada47b2c7" id="r_a22f352e15a44e30e34ffc5fada47b2c7"><td class="memItemLeft"><a class="el" href="struct_scene_signalling_area.html">SceneSignallingArea</a>&#160;</td><td class="memItemRight"><a class="el" href="#a22f352e15a44e30e34ffc5fada47b2c7">decodeSignallingArea</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;value, const std::string &amp;path)</td></tr>
 <tr class="memitem:afa561e7999f935d64f6df4a47ee2122b" id="r_afa561e7999f935d64f6df4a47ee2122b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afa561e7999f935d64f6df4a47ee2122b">isSimulationResultField</a> (const std::string &amp;name)</td></tr>
-<tr class="memitem:a364e47c054c2bf34d250419347e3f19b" id="r_a364e47c054c2bf34d250419347e3f19b"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a364e47c054c2bf34d250419347e3f19b">decodePassengers</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root)</td></tr>
+<tr class="memitem:a3d5985400c896362620249db6001a8a1" id="r_a3d5985400c896362620249db6001a8a1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3d5985400c896362620249db6001a8a1">decodeSceneMetadata</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:af419ef10a2dd03b111aa9a4eec518999" id="r_af419ef10a2dd03b111aa9a4eec518999"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af419ef10a2dd03b111aa9a4eec518999">decodeInfrastructure</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:af419ef10a2dd03b111aa9a4eec518999"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads infrastructure.json: the tracks, nodes, arcs, blocks and connections.  <br /></td></tr>
+<tr class="memitem:ae995e2d1ed4839aa7bcda279b5ce4a90" id="r_ae995e2d1ed4839aa7bcda279b5ce4a90"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae995e2d1ed4839aa7bcda279b5ce4a90">decodeStations</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:ae995e2d1ed4839aa7bcda279b5ce4a90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads stations.json: the stations and their platforms.  <br /></td></tr>
+<tr class="memitem:ab8fa4dae702aa20786d9d6a08f022c6a" id="r_ab8fa4dae702aa20786d9d6a08f022c6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab8fa4dae702aa20786d9d6a08f022c6a">decodeViews</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:ac49956da6a1f7d53a334f40fb6488161" id="r_ac49956da6a1f7d53a334f40fb6488161"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac49956da6a1f7d53a334f40fb6488161">decodeSignalling</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a13e94dcf4f0e529d103384c445dfb1c9" id="r_a13e94dcf4f0e529d103384c445dfb1c9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a13e94dcf4f0e529d103384c445dfb1c9">decodeRollingStock</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a13e94dcf4f0e529d103384c445dfb1c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads rolling_stock.json: the train units and the compositions.  <br /></td></tr>
+<tr class="memitem:aee93ce2ced10a03807c9b9058011a379" id="r_aee93ce2ced10a03807c9b9058011a379"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aee93ce2ced10a03807c9b9058011a379">decodeServices</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:aee93ce2ced10a03807c9b9058011a379"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads services.json. A simulation result in a stop is an error.  <br /></td></tr>
+<tr class="memitem:a5e1fc056d43b741ce8c14bc31b7d57da" id="r_a5e1fc056d43b741ce8c14bc31b7d57da"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5e1fc056d43b741ce8c14bc31b7d57da">decodeScenarios</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a5e1fc056d43b741ce8c14bc31b7d57da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads scenarios.json: the default scenario id and the scenarios.  <br /></td></tr>
+<tr class="memitem:a0c7940d3e10f8282954056174a1be574" id="r_a0c7940d3e10f8282954056174a1be574"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0c7940d3e10f8282954056174a1be574">decodeHistoricalIncidents</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memitem:a18ed0940274623bee7e2fb3e1b32f8e2" id="r_a18ed0940274623bee7e2fb3e1b32f8e2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a18ed0940274623bee7e2fb3e1b32f8e2">decodePassengers</a> (const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;reader, const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;root, <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ac60780e99c26cc3fd43ad4aaaf9d1723" name="ac60780e99c26cc3fd43ad4aaaf9d1723"></a>
@@ -158,6 +177,38 @@ Functions</h2></td></tr>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_ac60780e99c26cc3fd43ad4aaaf9d1723_cgraph.svg" width="914" height="224"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a0c7940d3e10f8282954056174a1be574" name="a0c7940d3e10f8282954056174a1be574"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c7940d3e10f8282954056174a1be574">&#9670;&#160;</a></span>decodeHistoricalIncidents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeHistoricalIncidents </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reads incidents.json, the historical incidents file of a case without scenarios.json, into the default scenario of scene. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a0c7940d3e10f8282954056174a1be574_cgraph.svg" width="819" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -193,28 +244,100 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a364e47c054c2bf34d250419347e3f19b" name="a364e47c054c2bf34d250419347e3f19b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a364e47c054c2bf34d250419347e3f19b">&#9670;&#160;</a></span>decodePassengers()</h2>
+<a id="af419ef10a2dd03b111aa9a4eec518999" name="af419ef10a2dd03b111aa9a4eec518999"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af419ef10a2dd03b111aa9a4eec518999">&#9670;&#160;</a></span>decodeInfrastructure()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt; decodePassengers </td>
+          <td class="memname">void decodeInfrastructure </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Reads infrastructure.json: the tracks, nodes, arcs, blocks and connections. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a364e47c054c2bf34d250419347e3f19b_cgraph.svg" width="923" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_af419ef10a2dd03b111aa9a4eec518999_cgraph.svg" width="939" height="176"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a18ed0940274623bee7e2fb3e1b32f8e2" name="a18ed0940274623bee7e2fb3e1b32f8e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18ed0940274623bee7e2fb3e1b32f8e2">&#9670;&#160;</a></span>decodePassengers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodePassengers </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reads passengers.json. A journey needs both planned windows, a leg without an occurrence has occurrence 1, and a simulation result in the input is an error. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a18ed0940274623bee7e2fb3e1b32f8e2_cgraph.svg" width="923" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a13e94dcf4f0e529d103384c445dfb1c9" name="a13e94dcf4f0e529d103384c445dfb1c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13e94dcf4f0e529d103384c445dfb1c9">&#9670;&#160;</a></span>decodeRollingStock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeRollingStock </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads rolling_stock.json: the train units and the compositions. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a13e94dcf4f0e529d103384c445dfb1c9_cgraph.svg" width="931" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -241,6 +364,136 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a8b8d830ca64530da4f75e9cb213ecee0_cgraph.svg" width="1140" height="398"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5e1fc056d43b741ce8c14bc31b7d57da" name="a5e1fc056d43b741ce8c14bc31b7d57da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e1fc056d43b741ce8c14bc31b7d57da">&#9670;&#160;</a></span>decodeScenarios()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeScenarios </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads scenarios.json: the default scenario id and the scenarios. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a5e1fc056d43b741ce8c14bc31b7d57da_cgraph.svg" width="1124" height="278"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3d5985400c896362620249db6001a8a1" name="a3d5985400c896362620249db6001a8a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d5985400c896362620249db6001a8a1">&#9670;&#160;</a></span>decodeSceneMetadata()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeSceneMetadata </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reads scene.json: the schema version, the name, the description, the base time, the units, the simulation settings and the import report. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a3d5985400c896362620249db6001a8a1_cgraph.svg" width="951" height="352"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aee93ce2ced10a03807c9b9058011a379" name="aee93ce2ced10a03807c9b9058011a379"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee93ce2ced10a03807c9b9058011a379">&#9670;&#160;</a></span>decodeServices()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeServices </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads services.json. A simulation result in a stop is an error. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_aee93ce2ced10a03807c9b9058011a379_cgraph.svg" width="906" height="371"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac49956da6a1f7d53a334f40fb6488161" name="ac49956da6a1f7d53a334f40fb6488161"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac49956da6a1f7d53a334f40fb6488161">&#9670;&#160;</a></span>decodeSignalling()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeSignalling </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reads signalling.json: the signals, signalling areas, routes, block dependencies, single-track restrictions and station boundaries. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_ac49956da6a1f7d53a334f40fb6488161_cgraph.svg" width="1124" height="323"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -272,6 +525,71 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_a22f352e15a44e30e34ffc5fada47b2c7_cgraph.svg" width="912" height="224"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae995e2d1ed4839aa7bcda279b5ce4a90" name="ae995e2d1ed4839aa7bcda279b5ce4a90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae995e2d1ed4839aa7bcda279b5ce4a90">&#9670;&#160;</a></span>decodeStations()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeStations </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads stations.json: the stations and their platforms. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_ae995e2d1ed4839aa7bcda279b5ce4a90_cgraph.svg" width="903" height="206"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab8fa4dae702aa20786d9d6a08f022c6a" name="ab8fa4dae702aa20786d9d6a08f022c6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8fa4dae702aa20786d9d6a08f022c6a">&#9670;&#160;</a></span>decodeViews()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void decodeViews </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="class_scene_field_reader.html">SceneFieldReader</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>reader</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">nlohmann::json</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>root</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reads views.json. A display row that is invalid, or that names a track or a station that scene does not have, is skipped with a warning, so the tracks and the stations must be read first. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_field_reader_8cpp_ab8fa4dae702aa20786d9d6a08f022c6a_cgraph.svg" width="351" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

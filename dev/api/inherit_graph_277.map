@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structtelemetry_1_1_prepared_batch.html" title="A batch ready to post." alt="" coords="5,5,193,33"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,122,33"/>
+<area shape="rect" id="Node000001" href="$class_console_streambuf.html" title=" " alt="" coords="170,5,311,33"/>
+<area shape="poly" id="edge97_Node000000_Node000001" title=" " alt="" coords="137,17,172,19,166,19,137,22"/>
 </map>

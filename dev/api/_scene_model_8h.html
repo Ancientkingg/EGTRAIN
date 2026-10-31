@@ -128,7 +128,7 @@ Include dependency graph for SceneModel.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h__dep__incl.svg" width="6472" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h__dep__incl.svg" width="6934" height="359"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_scene_model_8h_source.html">Go to the source code of this file.</a></p>
@@ -191,8 +191,6 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A passenger with its journeys.  <a href="struct_scene_passenger.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneServiceStopPair" id="r_SceneServiceStopPair"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_service_stop_pair.html">SceneServiceStopPair</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stops of a service where a passenger leg boards and alights.  <a href="struct_scene_service_stop_pair.html#details">More...</a><br /></td></tr>
-<tr class="memitem:SceneLoadedData" id="r_SceneLoadedData"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_loaded_data.html">SceneLoadedData</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A row of the Loaded Data summary. It is derived from the model and never saved.  <a href="struct_scene_loaded_data.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneImportReportRow" id="r_SceneImportReportRow"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_import_report_row.html">SceneImportReportRow</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A row of import_report in scene.json. The counts describe the conversion source, not a run.  <a href="struct_scene_import_report_row.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneModel" id="r_SceneModel"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_model.html">SceneModel</a></td></tr>
@@ -252,11 +250,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a9b4d098f5d08e110343420ff55701cd5" id="r_a9b4d098f5d08e110343420ff55701cd5"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9b4d098f5d08e110343420ff55701cd5">buildSceneDirectorySnapshot</a> (const std::vector&lt; std::pair&lt; std::string, std::string &gt; &gt; &amp;files)</td></tr>
 <tr class="memitem:ab470a024de4ed1752b1d3e0f02ba84c1" id="r_ab470a024de4ed1752b1d3e0f02ba84c1"><td class="memItemLeft"><a class="el" href="struct_scene_input_snapshot.html">SceneInputSnapshot</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab470a024de4ed1752b1d3e0f02ba84c1">readSceneDirectorySnapshot</a> (const std::string &amp;sceneDir)</td></tr>
 <tr class="memitem:aa2c6c115f657599ea4028c2b7a4bcbca" id="r_aa2c6c115f657599ea4028c2b7a4bcbca"><td class="memItemLeft"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2c6c115f657599ea4028c2b7a4bcbca">loadScene</a> (const std::string &amp;sceneDir)</td></tr>
-<tr class="memitem:a0718b83b572768e7db46382d1ff2a3ce" id="r_a0718b83b572768e7db46382d1ff2a3ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0718b83b572768e7db46382d1ff2a3ce">refreshLoadedDataSummary</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
-<tr class="memdesc:a0718b83b572768e7db46382d1ff2a3ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rebuilds loadedData from the model and sourceFiles.  <br /></td></tr>
-<tr class="memitem:af50f126ec84573bc40322ddf0a48140d" id="r_af50f126ec84573bc40322ddf0a48140d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af50f126ec84573bc40322ddf0a48140d">refreshLoadedDataDiagnostics</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:ae3ce8bbd695e81b69906adede3343951" id="r_ae3ce8bbd695e81b69906adede3343951"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3ce8bbd695e81b69906adede3343951">refreshSavedSceneMetadata</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
-<tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes and rebuilds loadedData.  <br /></td></tr>
+<tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -521,7 +516,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1134" height="1051"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_aa2c6c115f657599ea4028c2b7a4bcbca_cgraph.svg" width="1364" height="1138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -596,57 +591,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="af50f126ec84573bc40322ddf0a48140d" name="af50f126ec84573bc40322ddf0a48140d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af50f126ec84573bc40322ddf0a48140d">&#9670;&#160;</a></span>refreshLoadedDataDiagnostics()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void refreshLoadedDataDiagnostics </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>diagnostics</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Adds a validation row with the diagnostic counts below each top row of loadedData and marks the rows with errors or warnings. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_af50f126ec84573bc40322ddf0a48140d_cgraph.svg" width="904" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a0718b83b572768e7db46382d1ff2a3ce" name="a0718b83b572768e7db46382d1ff2a3ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0718b83b572768e7db46382d1ff2a3ce">&#9670;&#160;</a></span>refreshLoadedDataSummary()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void refreshLoadedDataSummary </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_scene_model.html">SceneModel</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>scene</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Rebuilds loadedData from the model and sourceFiles. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_a0718b83b572768e7db46382d1ff2a3ce_cgraph.svg" width="635" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="ae3ce8bbd695e81b69906adede3343951" name="ae3ce8bbd695e81b69906adede3343951"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3ce8bbd695e81b69906adede3343951">&#9670;&#160;</a></span>refreshSavedSceneMetadata()</h2>
 
@@ -662,11 +606,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Sets sourceFiles to the files that a save writes and rebuilds loadedData. </p>
+<p>Sets sourceFiles to the files that a save writes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="891" height="176"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_model_8h_ae3ce8bbd695e81b69906adede3343951_cgraph.svg" width="398" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1188,10 +1132,10 @@ Here is the call graph for this function:</div>
 <div class="line">    {<span class="stringliteral">&quot;passengers.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a>},</div>
 <div class="line">    {<span class="stringliteral">&quot;incidents.json&quot;</span>, <span class="keyword">false</span>, <a class="code hl_enumvalue" href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a>},</div>
 <div class="line">}}</div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a></div><div class="ttdeci">@ Always</div><div class="ttdoc">On every save.</div><div class="ttdef"><b>Definition</b> SceneModel.h:479</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a></div><div class="ttdeci">@ Never</div><div class="ttdoc">Never; the loader still reads it from an older scene.</div><div class="ttdef"><b>Definition</b> SceneModel.h:482</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a></div><div class="ttdeci">@ WithViews</div><div class="ttdoc">When the scene has track or station views.</div><div class="ttdef"><b>Definition</b> SceneModel.h:480</div></div>
-<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a></div><div class="ttdeci">@ WithPassengers</div><div class="ttdoc">When the scene has passengers.</div><div class="ttdef"><b>Definition</b> SceneModel.h:481</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa68eec46437c384d8dad18d5464ebc35c">SceneFileWrite::Always</a></div><div class="ttdeci">@ Always</div><div class="ttdoc">On every save.</div><div class="ttdef"><b>Definition</b> SceneModel.h:464</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa6e7b34fa59e1bd229b207892956dc41c">SceneFileWrite::Never</a></div><div class="ttdeci">@ Never</div><div class="ttdoc">Never; the loader still reads it from an older scene.</div><div class="ttdef"><b>Definition</b> SceneModel.h:467</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfa8b5f87dca22aeabef40d6bcf6632dd9d">SceneFileWrite::WithViews</a></div><div class="ttdeci">@ WithViews</div><div class="ttdoc">When the scene has track or station views.</div><div class="ttdef"><b>Definition</b> SceneModel.h:465</div></div>
+<div class="ttc" id="a_scene_model_8h_html_a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539"><div class="ttname"><a href="#a2f0af6395a02c0c742ec145287c7bfdfaaf070742fd356f8df61ad321d678d539">SceneFileWrite::WithPassengers</a></div><div class="ttdeci">@ WithPassengers</div><div class="ttdoc">When the scene has passengers.</div><div class="ttdef"><b>Definition</b> SceneModel.h:466</div></div>
 </div><!-- fragment --><p>Every file of a scene directory, in the order in which saveScene writes them. The snapshot of a directory holds all of them. A bundle holds the files that saveScene writes, and those that it always writes are required there. </p>
 
 </div>

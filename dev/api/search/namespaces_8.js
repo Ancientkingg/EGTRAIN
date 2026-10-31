@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['ui_0',['Ui',['../namespace_ui.html',1,'']]],
-  ['update_5fprompt_1',['update_prompt',['../namespaceupdate__prompt.html',1,'']]]
+  ['telemetry_0',['telemetry',['../namespacetelemetry.html',1,'']]],
+  ['telemetry_5fsmoke_1',['telemetry_smoke',['../namespacetelemetry__smoke.html',1,'']]]
 ];

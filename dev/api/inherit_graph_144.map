@@ -1,41 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,213,83,241"/>
-<area shape="rect" id="Node000001" href="$class_color_choice_button.html" title=" " alt="" coords="144,5,286,33"/>
-<area shape="poly" id="edge77_Node000000_Node000001" title=" " alt="" coords="49,198,59,163,75,121,98,80,129,44,151,31,148,36,132,48,102,83,80,124,64,165,54,199"/>
-<area shape="rect" id="Node000002" href="$class_diagram_key.html" title=" " alt="" coords="165,57,266,85"/>
-<area shape="poly" id="edge78_Node000000_Node000002" title=" " alt="" coords="54,198,84,146,104,119,129,96,166,79,163,83,132,100,108,123,88,149,59,200"/>
-<area shape="rect" id="Node000003" href="$class_manual_window.html" title=" " alt="" coords="155,109,276,137"/>
-<area shape="poly" id="edge79_Node000000_Node000003" title=" " alt="" coords="65,201,94,173,129,148,159,136,156,140,132,152,98,177,70,203"/>
-<area shape="rect" id="Node000004" href="$class_network_legend_widget.html" title="The map key of the canvas: a &quot;Map key&quot; button that folds a list of rows, each a swatch and a label." alt="" coords="131,161,300,189"/>
-<area shape="poly" id="edge80_Node000000_Node000004" title=" " alt="" coords="96,209,169,187,166,192,99,213"/>
-<area shape="rect" id="Node000005" href="$class_result_figure.html" title=" " alt="" coords="164,213,266,241"/>
-<area shape="poly" id="edge81_Node000000_Node000005" title=" " alt="" coords="97,225,166,225,162,229,100,229"/>
-<area shape="rect" id="Node000006" href="$class_result_frame.html" title=" " alt="" coords="164,265,267,293"/>
-<area shape="poly" id="edge82_Node000000_Node000006" title=" " alt="" coords="96,241,169,263,165,266,98,246"/>
-<area shape="rect" id="Node000007" href="$class_result_panel.html" title=" " alt="" coords="167,317,264,345"/>
-<area shape="poly" id="edge83_Node000000_Node000007" title=" " alt="" coords="67,250,98,278,132,302,169,319,164,321,129,307,94,282,68,255"/>
-<area shape="rect" id="Node000008" href="$class_scene_editor_panel.html" title=" " alt="" coords="149,369,282,397"/>
-<area shape="poly" id="edge84_Node000000_Node000008" title=" " alt="" coords="57,253,88,305,108,332,132,354,155,368,150,370,129,359,104,335,84,308,57,258"/>
-<area shape="rect" id="Node000019" href="$class_train_key_list.html" title=" " alt="" coords="166,421,265,449"/>
-<area shape="poly" id="edge95_Node000000_Node000019" title=" " alt="" coords="51,253,64,290,80,331,102,371,132,407,148,417,168,426,163,428,146,422,129,410,98,374,75,333,59,292,51,258"/>
-<area shape="rect" id="Node000009" href="$class_case_settings_panel.html" title=" " alt="" coords="356,135,498,162"/>
-<area shape="poly" id="edge85_Node000008_Node000009" title=" " alt="" coords="293,359,298,355,314,333,321,311,322,266,322,220,330,197,346,173,366,161,362,165,350,177,334,199,327,221,327,266,326,312,319,335,302,358,297,363"/>
-<area shape="rect" id="Node000010" href="$class_composition_panel.html" title=" " alt="" coords="358,187,496,214"/>
-<area shape="poly" id="edge86_Node000008_Node000010" title=" " alt="" coords="293,359,298,355,311,339,317,324,322,292,326,259,333,242,346,225,368,213,364,217,350,229,337,245,331,260,327,292,323,325,315,342,302,358,297,363"/>
-<area shape="rect" id="Node000011" href="$class_entrance_delay_panel.html" title=" " alt="" coords="352,239,503,266"/>
-<area shape="poly" id="edge87_Node000008_Node000011" title=" " alt="" coords="290,360,298,355,314,336,322,317,329,297,346,277,371,265,367,269,350,281,334,300,327,319,319,339,302,358,294,364"/>
-<area shape="rect" id="Node000012" href="$class_incident_panel.html" title=" " alt="" coords="373,291,481,318"/>
-<area shape="poly" id="edge88_Node000008_Node000012" title=" " alt="" coords="279,362,299,354,347,329,382,318,377,320,349,334,301,359,282,366"/>
-<area shape="rect" id="Node000013" href="$class_infrastructure_panel.html" title=" " alt="" coords="355,343,499,370"/>
-<area shape="poly" id="edge89_Node000008_Node000013" title=" " alt="" coords="296,370,357,364,352,367,298,375"/>
-<area shape="rect" id="Node000014" href="$class_passenger_panel.html" title=" " alt="" coords="366,395,488,422"/>
-<area shape="poly" id="edge90_Node000008_Node000014" title=" " alt="" coords="296,390,368,400,363,402,297,396"/>
-<area shape="rect" id="Node000015" href="$class_scenario_panel.html" title=" " alt="" coords="371,447,483,474"/>
-<area shape="poly" id="edge91_Node000008_Node000015" title=" " alt="" coords="280,400,301,407,349,431,383,446,378,446,347,436,299,412,281,405"/>
-<area shape="rect" id="Node000016" href="$class_service_panel.html" title=" " alt="" coords="375,499,479,526"/>
-<area shape="poly" id="edge92_Node000008_Node000016" title=" " alt="" coords="292,402,302,408,319,427,327,447,334,466,350,484,377,501,372,500,346,488,329,468,322,449,314,430,298,412,292,407"/>
-<area shape="rect" id="Node000017" href="$class_timetable_stops_panel.html" title=" " alt="" coords="348,551,506,578"/>
-<area shape="poly" id="edge93_Node000008_Node000017" title=" " alt="" coords="295,403,302,408,315,424,323,441,327,473,331,505,338,521,350,536,368,551,363,550,346,540,333,523,326,507,322,474,317,442,311,427,298,412,295,408"/>
-<area shape="rect" id="Node000018" href="$class_train_unit_panel.html" title=" " alt="" coords="370,603,484,630"/>
-<area shape="poly" id="edge94_Node000008_Node000018" title=" " alt="" coords="295,403,302,408,319,431,326,454,327,500,327,544,334,566,350,588,372,605,367,604,346,592,330,568,322,545,322,500,321,455,314,434,298,412,295,408"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,106,33"/>
+<area shape="rect" id="Node000001" href="$class_train_filter_button.html" title=" " alt="" coords="154,5,282,33"/>
+<area shape="poly" id="edge77_Node000000_Node000001" title=" " alt="" coords="121,17,156,19,150,19,121,22"/>
 </map>

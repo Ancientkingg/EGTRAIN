@@ -113,25 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_l
 </div><!--header-->
 <div class="contents">
 
-<p>A row of the Loaded Data summary. It is derived from the model and never saved.  
+<p>A row of the Loaded Data summary. It is derived from the scene and never saved.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="_loaded_data_summary_8h_source.html">scene/LoadedDataSummary.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a715d451ae256bba8f66805077fd56a11" id="r_a715d451ae256bba8f66805077fd56a11"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a715d451ae256bba8f66805077fd56a11">category</a></td></tr>
 <tr class="memitem:a36deb9fd0a1ff950cf7cd57957a6b8b0" id="r_a36deb9fd0a1ff950cf7cd57957a6b8b0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a36deb9fd0a1ff950cf7cd57957a6b8b0">sourceFile</a></td></tr>
 <tr class="memitem:a4476e42c735cbf121120809a7b272fcd" id="r_a4476e42c735cbf121120809a7b272fcd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4476e42c735cbf121120809a7b272fcd">parsedCount</a> = 0</td></tr>
-<tr class="memitem:a838f6df4da8c598874394bc691c22ea0" id="r_a838f6df4da8c598874394bc691c22ea0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a838f6df4da8c598874394bc691c22ea0">status</a></td></tr>
-<tr class="memdesc:a838f6df4da8c598874394bc691c22ea0"><td class="mdescLeft">&#160;</td><td class="mdescRight">"Parsed", "Loaded", "Ready", "Warning", "Invalid" or "Missing optional".  <br /></td></tr>
+<tr class="memdesc:a4476e42c735cbf121120809a7b272fcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of objects counted.  <br /></td></tr>
+<tr class="memitem:abcd971fabb3e25dfb1fada7424944deb" id="r_abcd971fabb3e25dfb1fada7424944deb"><td class="memItemLeft"><a class="el" href="_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5">SceneLoadedStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#abcd971fabb3e25dfb1fada7424944deb">status</a> = <a class="el" href="_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5aaaa4968be664d00365ca44b0bf2eaf9c">SceneLoadedStatus::Parsed</a></td></tr>
 <tr class="memitem:ae2edb7c2c8e77d001a20738bf4663433" id="r_ae2edb7c2c8e77d001a20738bf4663433"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae2edb7c2c8e77d001a20738bf4663433">targetType</a></td></tr>
 <tr class="memdesc:ae2edb7c2c8e77d001a20738bf4663433"><td class="mdescLeft">&#160;</td><td class="mdescRight">What activating the row opens, such as "network", "service" or "validation"; empty for nothing.  <br /></td></tr>
 <tr class="memitem:a1d652719c83ff5d3a67b5318e1e1be80" id="r_a1d652719c83ff5d3a67b5318e1e1be80"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_loaded_data.html">SceneLoadedData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1d652719c83ff5d3a67b5318e1e1be80">children</a></td></tr>
 <tr class="memdesc:a1d652719c83ff5d3a67b5318e1e1be80"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rows below this one.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A row of the Loaded Data summary. It is derived from the model and never saved. </p>
+<div class="textblock"><p>A row of the Loaded Data summary. It is derived from the scene and never saved. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a715d451ae256bba8f66805077fd56a11" name="a715d451ae256bba8f66805077fd56a11"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a715d451ae256bba8f66805077fd56a11">&#9670;&#160;</a></span>category</h2>
@@ -175,6 +175,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
 <p>Number of objects counted. </p>
 
 </div>
@@ -194,19 +195,18 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a838f6df4da8c598874394bc691c22ea0" name="a838f6df4da8c598874394bc691c22ea0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a838f6df4da8c598874394bc691c22ea0">&#9670;&#160;</a></span>status</h2>
+<a id="abcd971fabb3e25dfb1fada7424944deb" name="abcd971fabb3e25dfb1fada7424944deb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abcd971fabb3e25dfb1fada7424944deb">&#9670;&#160;</a></span>status</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string SceneLoadedData::status</td>
+          <td class="memname"><a class="el" href="_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5">SceneLoadedStatus</a> SceneLoadedData::status = <a class="el" href="_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5aaaa4968be664d00365ca44b0bf2eaf9c">SceneLoadedStatus::Parsed</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>"Parsed", "Loaded", "Ready", "Warning", "Invalid" or "Missing optional". </p>
+<p>The state of what the row counts. </p>
 
 </div>
 </div>
@@ -227,7 +227,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>scene/<a class="el" href="_scene_model_8h_source.html">SceneModel.h</a></li>
+<li>scene/<a class="el" href="_loaded_data_summary_8h_source.html">LoadedDataSummary.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

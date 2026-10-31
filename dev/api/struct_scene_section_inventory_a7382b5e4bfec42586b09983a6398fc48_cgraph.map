@@ -1,0 +1,6 @@
+<map id="SceneSectionInventory::ambiguous" name="SceneSectionInventory::ambiguous">
+<area shape="rect" id="Node000001" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="5,21,176,66"/>
+<area shape="rect" id="Node000002" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="224,29,389,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,41,211,43,205,43,176,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="269,28,263,20,268,11,283,5,306,3,332,5,347,14,342,14,330,10,306,8,284,10,272,15,269,20,274,30"/>
+</map>

@@ -15,8 +15,6 @@ var _scene_exporter_8cpp =
     [ "formatNumber", "_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441", null ],
     [ "isLegacyRouteFile", "_scene_exporter_8cpp.html#a9c3144d5d9f799f08430e9081be7c26e", null ],
     [ "isLegacyTrackFolderName", "_scene_exporter_8cpp.html#a803fd08886164f526fc725105c0266e9", null ],
-    [ "isPositionedRouteEndpoint", "_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f", null ],
-    [ "isSwitchTransitionRouteEntry", "_scene_exporter_8cpp.html#aad950abdec606049de6ad0e476ccf2f1", null ],
     [ "legacyBoundaryToken", "_scene_exporter_8cpp.html#a852c4c61a8d9505c440d48336336808b", null ],
     [ "legacyStationName", "_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b", null ],
     [ "lowerCopy", "_scene_exporter_8cpp.html#a958a60e28b09996849ec7665c6206390", null ],

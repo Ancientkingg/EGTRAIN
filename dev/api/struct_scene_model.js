@@ -9,7 +9,6 @@ var struct_scene_model =
     [ "defaultScenarioId", "struct_scene_model.html#afd13c78a47d5300d63ee4af8c7d65815", null ],
     [ "description", "struct_scene_model.html#a3baca7cbee781c52cb522d3caa593f11", null ],
     [ "importReport", "struct_scene_model.html#a85d76e461292b9408d235aec9562b1c7", null ],
-    [ "loadedData", "struct_scene_model.html#acd60dd12f6f936cc7c28a077c4fa83fe", null ],
     [ "name", "struct_scene_model.html#a9e5a66f50070f2b1960b58820c6d6b83", null ],
     [ "nodes", "struct_scene_model.html#ad40a7ef540f0ddb31b4aed04e63a8491", null ],
     [ "passengers", "struct_scene_model.html#a9ae01ec7800ad2f8dd67333350b3012c", null ],

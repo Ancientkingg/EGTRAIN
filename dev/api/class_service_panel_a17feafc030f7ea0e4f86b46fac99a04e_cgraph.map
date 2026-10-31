@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,366,256,347,252,351,166,371"/>
 <area shape="rect" id="Node000003" href="$class_service_panel.html#ad6eca861c006bbbbb05317549b14f618" title="Lists the services again and shows the selected one." alt="" coords="257,369,415,397"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,381,243,382,239,385,191,386"/>
-<area shape="rect" id="Node000021" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="253,445,418,473"/>
-<area shape="poly" id="edge34_Node000001_Node000021" title=" " alt="" coords="144,395,278,439,273,442,144,400"/>
+<area shape="rect" id="Node000022" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="253,445,418,473"/>
+<area shape="poly" id="edge36_Node000001_Node000022" title=" " alt="" coords="144,395,278,439,273,442,144,400"/>
 <area shape="rect" id="Node000004" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="482,228,713,272"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="399,366,433,354,498,318,558,280,554,283,501,323,435,359,402,371"/>
 <area shape="rect" id="Node000012" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="550,369,645,397"/>
@@ -36,23 +36,26 @@
 <area shape="poly" id="edge19_Node000012_Node000012" title=" " alt="" coords="553,368,546,360,552,351,569,345,598,343,628,345,646,354,641,354,627,350,598,348,570,350,555,355,551,360,558,369"/>
 <area shape="rect" id="Node000014" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="769,507,972,534"/>
 <area shape="poly" id="edge21_Node000013_Node000014" title=" " alt="" coords="696,537,756,533,751,533,697,542"/>
-<area shape="rect" id="Node000016" href="$class_service_panel.html#a8a400164f094d35a68eff39d27d55480" title=" " alt="" coords="763,558,978,603"/>
-<area shape="poly" id="edge25_Node000013_Node000016" title=" " alt="" coords="696,558,750,567,745,567,696,564"/>
-<area shape="rect" id="Node000017" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="788,651,953,678"/>
-<area shape="poly" id="edge26_Node000013_Node000017" title=" " alt="" coords="633,562,824,644,818,644,632,567"/>
+<area shape="rect" id="Node000017" href="$class_service_panel.html#a8a400164f094d35a68eff39d27d55480" title=" " alt="" coords="763,558,978,603"/>
+<area shape="poly" id="edge27_Node000013_Node000017" title=" " alt="" coords="696,558,750,567,745,567,696,564"/>
+<area shape="rect" id="Node000018" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="788,651,953,678"/>
+<area shape="poly" id="edge28_Node000013_Node000018" title=" " alt="" coords="633,562,824,644,818,644,632,567"/>
 <area shape="poly" id="edge22_Node000014_Node000014" title=" " alt="" coords="824,505,817,498,823,488,841,482,871,480,902,482,921,492,916,491,901,488,870,485,842,487,826,492,822,497,829,507"/>
-<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1055,507,1278,534"/>
-<area shape="poly" id="edge23_Node000014_Node000015" title=" " alt="" coords="972,518,1041,520,1036,521,973,523"/>
-<area shape="poly" id="edge24_Node000015_Node000015" title=" " alt="" coords="1119,505,1112,498,1118,488,1136,482,1166,480,1199,482,1218,492,1212,491,1197,488,1166,485,1137,487,1121,492,1117,497,1124,507"/>
-<area shape="poly" id="edge27_Node000017_Node000017" title=" " alt="" coords="824,649,817,642,823,632,841,626,871,624,902,626,921,636,916,635,901,632,870,629,842,631,826,636,822,641,829,651"/>
-<area shape="rect" id="Node000018" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="1090,642,1242,687"/>
-<area shape="poly" id="edge28_Node000017_Node000018" title=" " alt="" coords="953,662,1077,664,1072,665,954,667"/>
-<area shape="poly" id="edge33_Node000018_Node000018" title=" " alt="" coords="1114,640,1112,632,1121,623,1139,617,1166,616,1196,618,1215,627,1210,626,1195,623,1166,621,1140,623,1124,628,1117,634,1119,643"/>
-<area shape="rect" id="Node000019" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="1353,642,1533,687"/>
-<area shape="poly" id="edge29_Node000018_Node000019" title=" " alt="" coords="1243,662,1340,664,1335,665,1243,667"/>
-<area shape="poly" id="edge30_Node000019_Node000019" title=" " alt="" coords="1403,640,1401,632,1408,623,1422,618,1443,616,1466,618,1482,628,1477,626,1465,623,1443,621,1423,623,1411,627,1406,633,1407,643"/>
-<area shape="rect" id="Node000020" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1581,642,1734,687"/>
-<area shape="poly" id="edge31_Node000019_Node000020" title=" " alt="" coords="1534,662,1569,664,1563,665,1534,667"/>
-<area shape="poly" id="edge32_Node000020_Node000020" title=" " alt="" coords="1617,640,1615,632,1622,623,1636,618,1658,616,1681,618,1696,628,1691,626,1679,623,1657,621,1638,623,1625,627,1620,633,1621,643"/>
-<area shape="poly" id="edge35_Node000021_Node000021" title=" " alt="" coords="295,445,289,436,294,427,310,421,336,419,364,421,380,430,375,430,362,426,336,424,311,426,297,431,294,436,300,445"/>
+<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1055,460,1278,488"/>
+<area shape="poly" id="edge23_Node000014_Node000015" title=" " alt="" coords="962,503,1062,490,1057,491,963,509"/>
+<area shape="rect" id="Node000016" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="1084,536,1249,564"/>
+<area shape="poly" id="edge25_Node000014_Node000016" title=" " alt="" coords="972,528,1071,540,1065,540,972,533"/>
+<area shape="poly" id="edge24_Node000015_Node000015" title=" " alt="" coords="1119,459,1112,451,1118,441,1136,435,1166,433,1199,436,1218,445,1212,444,1197,441,1166,439,1137,441,1121,446,1117,451,1124,460"/>
+<area shape="poly" id="edge26_Node000016_Node000016" title=" " alt="" coords="1119,535,1112,527,1118,517,1136,511,1166,509,1199,512,1218,521,1212,520,1197,517,1166,515,1137,517,1121,522,1117,527,1124,536"/>
+<area shape="poly" id="edge29_Node000018_Node000018" title=" " alt="" coords="824,649,817,642,823,632,841,626,871,624,902,626,921,636,916,635,901,632,870,629,842,631,826,636,822,641,829,651"/>
+<area shape="rect" id="Node000019" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="1090,642,1242,687"/>
+<area shape="poly" id="edge30_Node000018_Node000019" title=" " alt="" coords="953,662,1077,664,1072,665,954,667"/>
+<area shape="poly" id="edge35_Node000019_Node000019" title=" " alt="" coords="1114,640,1112,632,1121,623,1139,617,1166,616,1196,618,1215,627,1210,626,1195,623,1166,621,1140,623,1124,628,1117,634,1119,643"/>
+<area shape="rect" id="Node000020" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="1353,642,1533,687"/>
+<area shape="poly" id="edge31_Node000019_Node000020" title=" " alt="" coords="1243,662,1340,664,1335,665,1243,667"/>
+<area shape="poly" id="edge32_Node000020_Node000020" title=" " alt="" coords="1403,640,1401,632,1408,623,1422,618,1443,616,1466,618,1482,628,1477,626,1465,623,1443,621,1423,623,1411,627,1406,633,1407,643"/>
+<area shape="rect" id="Node000021" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1581,642,1734,687"/>
+<area shape="poly" id="edge33_Node000020_Node000021" title=" " alt="" coords="1534,662,1569,664,1563,665,1534,667"/>
+<area shape="poly" id="edge34_Node000021_Node000021" title=" " alt="" coords="1617,640,1615,632,1622,623,1636,618,1658,616,1681,618,1696,628,1691,626,1679,623,1657,621,1638,623,1625,627,1620,633,1621,643"/>
+<area shape="poly" id="edge37_Node000022_Node000022" title=" " alt="" coords="295,445,289,436,294,427,310,421,336,419,364,421,380,430,375,430,362,426,336,424,311,426,297,431,294,436,300,445"/>
 </map>

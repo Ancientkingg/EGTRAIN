@@ -1,7 +1,29 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,32,116,60"/>
-<area shape="rect" id="Node000001" href="$class_console_widget.html" title=" " alt="" coords="167,5,286,33"/>
-<area shape="poly" id="edge26_Node000000_Node000001" title=" " alt="" coords="131,32,169,28,164,30,132,37"/>
-<area shape="rect" id="Node000002" href="$class_info_dock_widget.html" title="The dock of the inspector, which tells when the user closes it." alt="" coords="164,57,289,85"/>
-<area shape="poly" id="edge27_Node000000_Node000002" title=" " alt="" coords="131,54,166,61,160,62,131,59"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,317,79,345"/>
+<area shape="rect" id="Node000001" href="$class_about_dialog.html" title="The &quot;About EGTRAIN&quot; dialog: the version, the authors and links to their pages and to the project." alt="" coords="171,5,272,33"/>
+<area shape="poly" id="edge13_Node000000_Node000001" title=" " alt="" coords="40,302,44,247,56,178,67,142,81,106,101,73,125,44,146,30,172,22,168,26,148,34,128,48,105,76,86,109,72,144,61,179,49,248,46,302"/>
+<area shape="rect" id="Node000002" href="$class_area_capacity_scope_dialog.html" title=" " alt="" coords="127,57,316,85"/>
+<area shape="poly" id="edge14_Node000000_Node000002" title=" " alt="" coords="43,301,49,256,63,201,88,145,104,119,125,96,146,83,143,88,128,100,109,122,92,147,69,203,55,257,48,302"/>
+<area shape="rect" id="Node000003" href="$class_area_capacity_window.html" title="The result window. Not modal. It holds the result and the run identity, not the run,..." alt="" coords="141,109,302,137"/>
+<area shape="poly" id="edge15_Node000000_Node000003" title=" " alt="" coords="46,302,56,266,71,225,94,183,125,148,148,135,145,140,128,152,98,187,76,227,61,268,51,303"/>
+<area shape="rect" id="Node000004" href="$class_capacity_window.html" title=" " alt="" coords="156,161,286,189"/>
+<area shape="poly" id="edge16_Node000000_Node000004" title=" " alt="" coords="52,302,80,250,100,223,125,200,157,185,154,189,128,204,104,226,84,253,57,304"/>
+<area shape="rect" id="Node000005" href="$class_case_chooser_dialog.html" title=" " alt="" coords="147,213,296,241"/>
+<area shape="poly" id="edge17_Node000000_Node000005" title=" " alt="" coords="63,304,91,276,125,252,156,240,153,244,128,256,94,280,67,307"/>
+<area shape="rect" id="Node000006" href="$class_delay_analysis_window.html" title=" " alt="" coords="138,265,304,293"/>
+<area shape="poly" id="edge18_Node000000_Node000006" title=" " alt="" coords="92,314,126,303,171,292,167,295,127,308,95,318"/>
+<area shape="rect" id="Node000007" href="$class_diagram_window.html" title=" " alt="" coords="157,317,286,345"/>
+<area shape="poly" id="edge19_Node000000_Node000007" title=" " alt="" coords="93,329,158,329,154,333,95,334"/>
+<area shape="rect" id="Node000008" href="$class_find_dialog.html" title=" " alt="" coords="176,369,266,397"/>
+<area shape="poly" id="edge20_Node000000_Node000008" title=" " alt="" coords="92,344,127,354,178,369,174,372,126,359,94,349"/>
+<area shape="rect" id="Node000009" href="$class_recovery_prompt.html" title=" " alt="" coords="157,421,286,449"/>
+<area shape="poly" id="edge21_Node000000_Node000009" title=" " alt="" coords="64,354,94,382,128,406,159,420,154,422,125,411,91,386,65,359"/>
+<area shape="rect" id="Node000010" href="$class_route_reference_dialog.html" title=" " alt="" coords="138,473,305,501"/>
+<area shape="poly" id="edge22_Node000000_Node000010" title=" " alt="" coords="54,357,84,410,104,436,128,458,151,472,146,474,125,463,100,440,80,413,54,362"/>
+<area shape="rect" id="Node000011" href="$class_settings_dialog.html" title=" " alt="" coords="163,525,280,553"/>
+<area shape="poly" id="edge23_Node000000_Node000011" title=" " alt="" coords="49,357,61,394,76,435,98,476,128,510,145,521,165,530,160,532,142,526,125,515,94,479,71,437,56,396,49,363"/>
+<area shape="rect" id="Node000012" href="$class_telemetry_consent_dialog.html" title=" " alt="" coords="131,577,312,605"/>
+<area shape="poly" id="edge24_Node000000_Node000012" title=" " alt="" coords="46,358,55,405,69,460,92,515,109,540,128,562,147,577,142,577,125,567,104,544,88,518,63,461,49,406,45,364"/>
+<area shape="rect" id="Node000013" href="$class_timetable_table_window.html" title=" " alt="" coords="135,629,308,657"/>
+<area shape="poly" id="edge25_Node000000_Node000013" title=" " alt="" coords="43,358,49,415,61,483,72,519,86,554,105,586,128,615,147,629,141,629,125,618,101,589,81,556,67,520,56,484,44,415,43,363"/>
 </map>

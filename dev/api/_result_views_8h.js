@@ -2,12 +2,6 @@ var _result_views_8h =
 [
     [ "ResultViews", "class_result_views.html", "class_result_views" ],
     [ "ResultViews::Host", "class_result_views_1_1_host.html", "class_result_views_1_1_host" ],
-    [ "TrajectoryChart", "_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5", [
-      [ "SpeedDistance", "_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5a3f5025309d27d8cf3076f98a52c34e4f", null ],
-      [ "SpeedTime", "_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5a1958963b8d673a9c00bdaca44a58c1ac", null ],
-      [ "TimeDistance", "_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5a249af15f429901f54cd4017dd9eb89ac", null ],
-      [ "TractiveEffortDistance", "_result_views_8h.html#a0fa81893835a3036bb374d3a404d58a5ae190d54334969f80ffabba252f521339", null ]
-    ] ],
     [ "saveCsvInteractive", "_result_views_8h.html#a49689422c78819ad5793da818378e387", null ],
     [ "ResultViewName::kBlockingTime", "namespace_result_view_name.html#aabef75f04faf6e3b66077dfdc3efff38", null ],
     [ "ResultViewName::kCapacity", "namespace_result_view_name.html#a6369148b78f50008b3e04c6344cbb58e", null ],

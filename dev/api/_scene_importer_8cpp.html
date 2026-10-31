@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
 <code>#include &quot;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_validator_8h_source.html">scene/SceneValidator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_section_reference_8h_source.html">scene/SectionReference.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_utf8_path_8h_source.html">scene/Utf8Path.h</a>&quot;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
@@ -137,7 +138,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_importe
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneImporter.cpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp__incl.svg" width="2688" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp__incl.svg" width="2834" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -151,8 +152,6 @@ Classes</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a1ab285815ef4815f88f9f0f4ddd46fea" id="r_a1ab285815ef4815f88f9f0f4ddd46fea"><td class="memItemLeft">static fs::path&#160;</td><td class="memItemRight"><a class="el" href="#a1ab285815ef4815f88f9f0f4ddd46fea">resolvePath</a> (const fs::path &amp;base, const std::string &amp;relPath)</td></tr>
 <tr class="memitem:af011a6ca680ac004aafb810c1cfe41ef" id="r_af011a6ca680ac004aafb810c1cfe41ef"><td class="memItemLeft">static std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af011a6ca680ac004aafb810c1cfe41ef">readTokens</a> (const std::string &amp;line)</td></tr>
-<tr class="memitem:ad34cbffa47fce39ac04ede0196ff570f" id="r_ad34cbffa47fce39ac04ede0196ff570f"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad34cbffa47fce39ac04ede0196ff570f">isPositionedRouteEndpoint</a> (const std::string &amp;token)</td></tr>
-<tr class="memitem:a542fed8f273acc9f0c4f3b720338e857" id="r_a542fed8f273acc9f0c4f3b720338e857"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a542fed8f273acc9f0c4f3b720338e857">isSwitchTransitionRouteToken</a> (const std::string &amp;token)</td></tr>
 <tr class="memitem:af92da0fe546920ab709f9f36ecb9f07b" id="r_af92da0fe546920ab709f9f36ecb9f07b"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#af92da0fe546920ab709f9f36ecb9f07b">utf16ToUtf8</a> (const std::u16string &amp;in, std::string &amp;out)</td></tr>
 <tr class="memitem:ade7e37ac73a4aaa31469db5376843898" id="r_ade7e37ac73a4aaa31469db5376843898"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ade7e37ac73a4aaa31469db5376843898">readFile</a> (const fs::path &amp;path, std::string &amp;content)</td></tr>
 <tr class="memitem:ab5cba885129b8c9b017c168d6f62fb46" id="r_ab5cba885129b8c9b017c168d6f62fb46"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab5cba885129b8c9b017c168d6f62fb46">trimRight</a> (const std::string &amp;s)</td></tr>
@@ -169,18 +168,46 @@ Functions</h2></td></tr>
 <tr class="memitem:aed3b5e18fd7ceb03109350d047ef6fe9" id="r_aed3b5e18fd7ceb03109350d047ef6fe9"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#aed3b5e18fd7ceb03109350d047ef6fe9">stripOuterAt</a> (const std::string &amp;token)</td></tr>
 <tr class="memitem:a6c4e2944121827f257d788a0bd51c3f3" id="r_a6c4e2944121827f257d788a0bd51c3f3"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6c4e2944121827f257d788a0bd51c3f3">normaliseStationName</a> (std::string value)</td></tr>
 <tr class="memitem:af672a56414c094d5bff2dc0031146dca" id="r_af672a56414c094d5bff2dc0031146dca"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#af672a56414c094d5bff2dc0031146dca">normaliseServiceSeparators</a> (std::string value)</td></tr>
-<tr class="memitem:ad9a5e2a40bf0f42228052b18fb45e939" id="r_ad9a5e2a40bf0f42228052b18fb45e939"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad9a5e2a40bf0f42228052b18fb45e939">copenhagenCase</a> (const std::string &amp;sceneName, const fs::path &amp;legacyPath)</td></tr>
-<tr class="memitem:a43e685f5959241ac53cd7084a393b657" id="r_a43e685f5959241ac53cd7084a393b657"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a43e685f5959241ac53cd7084a393b657">baseTimeForCase</a> (const std::string &amp;sceneName, const fs::path &amp;legacyPath, double &amp;duration, bool &amp;known)</td></tr>
+<tr class="memitem:a5ed2f60461204687c8f367478c596269" id="r_a5ed2f60461204687c8f367478c596269"><td class="memItemLeft">static KnownCase&#160;</td><td class="memItemRight"><a class="el" href="#a5ed2f60461204687c8f367478c596269">knownCaseFor</a> (const std::string &amp;sceneName, const fs::path &amp;legacyPath)</td></tr>
 <tr class="memitem:a0b699de8c56e704131c67da2d591c690" id="r_a0b699de8c56e704131c67da2d591c690"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a0b699de8c56e704131c67da2d591c690">passengerTimeWindow</a> (const std::string &amp;token, std::pair&lt; double, double &gt; &amp;result)</td></tr>
 <tr class="memitem:a9e2783e78476e6525d0d2be4a6135b45" id="r_a9e2783e78476e6525d0d2be4a6135b45"><td class="memItemLeft">static <a class="el" href="struct_legacy_passenger_sources.html">LegacyPassengerSources</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9e2783e78476e6525d0d2be4a6135b45">locateLegacyPassengerSources</a> (const fs::path &amp;root)</td></tr>
 <tr class="memitem:afe604f731fdccd767b2d88a4a898affb" id="r_afe604f731fdccd767b2d88a4a898affb"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#afe604f731fdccd767b2d88a4a898affb">passengerStationIdFor</a> (const std::vector&lt; <a class="el" href="struct_legacy_passenger_station_reference.html">LegacyPassengerStationReference</a> &gt; &amp;stations, const std::string &amp;raw, bool &amp;ambiguous)</td></tr>
 <tr class="memitem:a2f5776be3b2a317ae03a8f48cc9ef105" id="r_a2f5776be3b2a317ae03a8f48cc9ef105"><td class="memItemLeft">static <a class="el" href="struct_legacy_passenger_parse_result.html">LegacyPassengerParseResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2f5776be3b2a317ae03a8f48cc9ef105">parseLegacyPassengers</a> (const fs::path &amp;legacyRootOrPassengerDir, const std::vector&lt; <a class="el" href="struct_legacy_passenger_station_reference.html">LegacyPassengerStationReference</a> &gt; &amp;stations, const std::vector&lt; <a class="el" href="struct_scene_service.html">SceneService</a> &gt; &amp;services)</td></tr>
+<tr class="memitem:adcf04437236b3c66690d02bace01bee8" id="r_adcf04437236b3c66690d02bace01bee8"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#adcf04437236b3c66690d02bace01bee8">blockReferenceKnown</a> (const std::set&lt; std::string &gt; &amp;blockIds, const std::string &amp;reference)</td></tr>
+<tr class="memitem:a9d96e94cd24f4ac8f0b1badb46b71c66" id="r_a9d96e94cd24f4ac8f0b1badb46b71c66"><td class="memItemLeft">static std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9d96e94cd24f4ac8f0b1badb46b71c66">stationIdFor</a> (const std::vector&lt; <a class="el" href="struct_scene_station.html">SceneStation</a> &gt; &amp;stations, const std::string &amp;raw, bool &amp;ambiguous)</td></tr>
+<tr class="memitem:afcd458f6e815c8496a544de2d2c39c1a" id="r_afcd458f6e815c8496a544de2d2c39c1a"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#afcd458f6e815c8496a544de2d2c39c1a">importSettings</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a08b508eb658bdcc319233c2c4f212408" id="r_a08b508eb658bdcc319233c2c4f212408"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a08b508eb658bdcc319233c2c4f212408">findTrackFolders</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:ae8f944434586024aeb7ac4a68a27dc2d" id="r_ae8f944434586024aeb7ac4a68a27dc2d"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ae8f944434586024aeb7ac4a68a27dc2d">importTrackNodes</a> (ImportContext &amp;context, const std::string &amp;trackId, const fs::path &amp;trackDir)</td></tr>
+<tr class="memitem:aee40d457a69e751ff75eb58b869852d6" id="r_aee40d457a69e751ff75eb58b869852d6"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#aee40d457a69e751ff75eb58b869852d6">importTrackArcs</a> (ImportContext &amp;context, const std::string &amp;trackId, const fs::path &amp;trackDir)</td></tr>
+<tr class="memitem:a52e0506f5ce3df96f1507c7be95320cc" id="r_a52e0506f5ce3df96f1507c7be95320cc"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a52e0506f5ce3df96f1507c7be95320cc">importTrackBlocks</a> (ImportContext &amp;context, const std::string &amp;trackId, const fs::path &amp;trackDir)</td></tr>
+<tr class="memitem:a29184c64e24cc8b607338ecb3f6d1cf4" id="r_a29184c64e24cc8b607338ecb3f6d1cf4"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a29184c64e24cc8b607338ecb3f6d1cf4">importTracks</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a37fb8a31b2972a4acf5e5e04e9aa650a" id="r_a37fb8a31b2972a4acf5e5e04e9aa650a"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a37fb8a31b2972a4acf5e5e04e9aa650a">importConnections</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a56b5ca9acdf0ee2f83cc602c0da2e48a" id="r_a56b5ca9acdf0ee2f83cc602c0da2e48a"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a56b5ca9acdf0ee2f83cc602c0da2e48a">importStations</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a7d5432509435d5ef6d050bc3e588510b" id="r_a7d5432509435d5ef6d050bc3e588510b"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a7d5432509435d5ef6d050bc3e588510b">importTrackViews</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a7430f99c84e32ff17558f9acf4eb264e" id="r_a7430f99c84e32ff17558f9acf4eb264e"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a7430f99c84e32ff17558f9acf4eb264e">importStationViews</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:af499a71fe7d0da92626a2321bcb427d0" id="r_af499a71fe7d0da92626a2321bcb427d0"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#af499a71fe7d0da92626a2321bcb427d0">importTrains</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:ae0752af44759f3d5d322832234180ebc" id="r_ae0752af44759f3d5d322832234180ebc"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ae0752af44759f3d5d322832234180ebc">importRoutes</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:adad024d017a8e56c357eb2eb84278006" id="r_adad024d017a8e56c357eb2eb84278006"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#adad024d017a8e56c357eb2eb84278006">importRouteCorridors</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a27e355be8b23af61499f3e0510c94c73" id="r_a27e355be8b23af61499f3e0510c94c73"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a27e355be8b23af61499f3e0510c94c73">importJoinedRoutes</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a6186ab7e2bce4bdb2f01842c49867c0d" id="r_a6186ab7e2bce4bdb2f01842c49867c0d"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a6186ab7e2bce4bdb2f01842c49867c0d">importSingleTrackRestrictions</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a8f4dce8c878e766e1de08b3bf55d6940" id="r_a8f4dce8c878e766e1de08b3bf55d6940"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a8f4dce8c878e766e1de08b3bf55d6940">importStationBoundaries</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:ad20716f75c41465e1443d4ee2eb5a42a" id="r_ad20716f75c41465e1443d4ee2eb5a42a"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#ad20716f75c41465e1443d4ee2eb5a42a">importAreaSidecar</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:add70a24b78b5d174e2782a3efd25797b" id="r_add70a24b78b5d174e2782a3efd25797b"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#add70a24b78b5d174e2782a3efd25797b">importLegacyAreas</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a4b6ca2b061949c391437f92a83e23f6b" id="r_a4b6ca2b061949c391437f92a83e23f6b"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a4b6ca2b061949c391437f92a83e23f6b">importTimetables</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a42d765ea4119a96d2071b90b2ff314bb" id="r_a42d765ea4119a96d2071b90b2ff314bb"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a42d765ea4119a96d2071b90b2ff314bb">importTrainUnits</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a45901d15ec0bbdc3a189764c93e5ed64" id="r_a45901d15ec0bbdc3a189764c93e5ed64"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a45901d15ec0bbdc3a189764c93e5ed64">importIncidents</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a270bf5ee5184c159260b4f3e37c94d47" id="r_a270bf5ee5184c159260b4f3e37c94d47"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a270bf5ee5184c159260b4f3e37c94d47">importRollouts</a> (ImportContext &amp;context)</td></tr>
+<tr class="memitem:a4e5e0cd10c9e5ffe618c73999b927c5b" id="r_a4e5e0cd10c9e5ffe618c73999b927c5b"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#a4e5e0cd10c9e5ffe618c73999b927c5b">importPassengers</a> (ImportContext &amp;context)</td></tr>
 <tr class="memitem:a18f5a3a9059fe1b30f1dbcf15e252c09" id="r_a18f5a3a9059fe1b30f1dbcf15e252c09"><td class="memItemLeft"><a class="el" href="struct_scene_import_result.html">SceneImportResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a18f5a3a9059fe1b30f1dbcf15e252c09">importLegacyScene</a> (const std::string &amp;legacyDir, const std::string &amp;sceneDir, const std::string &amp;sceneName)</td></tr>
 <tr class="memitem:af073cc46a3a51cb4473f73f12825f8ce" id="r_af073cc46a3a51cb4473f73f12825f8ce"><td class="memItemLeft"><a class="el" href="struct_scene_passenger_import_result.html">ScenePassengerImportResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af073cc46a3a51cb4473f73f12825f8ce">importLegacyPassengers</a> (const std::string &amp;legacyRootOrPassengerDir, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ac8387c390a5b0801c0c4b039570217ef" id="r_ac8387c390a5b0801c0c4b039570217ef"><td class="memItemLeft">static const KnownCase&#160;</td><td class="memItemRight"><a class="el" href="#ac8387c390a5b0801c0c4b039570217ef">kKnownCases</a> []</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a43e685f5959241ac53cd7084a393b657" name="a43e685f5959241ac53cd7084a393b657"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a43e685f5959241ac53cd7084a393b657">&#9670;&#160;</a></span>baseTimeForCase()</h2>
+<a id="adcf04437236b3c66690d02bace01bee8" name="adcf04437236b3c66690d02bace01bee8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcf04437236b3c66690d02bace01bee8">&#9670;&#160;</a></span>blockReferenceKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -189,24 +216,14 @@ Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string baseTimeForCase </td>
+          <td class="memname">bool blockReferenceKnown </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneName</em></span>, </td>
+          <td class="paramtype">const std::set&lt; std::string &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>blockIds</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>legacyPath</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>duration</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool &amp;</td>          <td class="paramname"><span class="paramname"><em>known</em></span>&#160;)</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>reference</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -218,41 +235,7 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a43e685f5959241ac53cd7084a393b657_cgraph.svg" width="467" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ad9a5e2a40bf0f42228052b18fb45e939" name="ad9a5e2a40bf0f42228052b18fb45e939"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9a5e2a40bf0f42228052b18fb45e939">&#9670;&#160;</a></span>copenhagenCase()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool copenhagenCase </td>
-          <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneName</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>legacyPath</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ad9a5e2a40bf0f42228052b18fb45e939_cgraph.svg" width="282" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_adcf04437236b3c66690d02bace01bee8_cgraph.svg" width="422" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -287,6 +270,186 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a2368828ed01ecf60634935e6a32c40d2_cgraph.svg" width="248" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a08b508eb658bdcc319233c2c4f212408" name="a08b508eb658bdcc319233c2c4f212408"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08b508eb658bdcc319233c2c4f212408">&#9670;&#160;</a></span>findTrackFolders()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool findTrackFolders </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a08b508eb658bdcc319233c2c4f212408_cgraph.svg" width="486" height="214"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad20716f75c41465e1443d4ee2eb5a42a" name="ad20716f75c41465e1443d4ee2eb5a42a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad20716f75c41465e1443d4ee2eb5a42a">&#9670;&#160;</a></span>importAreaSidecar()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool importAreaSidecar </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ad20716f75c41465e1443d4ee2eb5a42a_cgraph.svg" width="1135" height="398"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a37fb8a31b2972a4acf5e5e04e9aa650a" name="a37fb8a31b2972a4acf5e5e04e9aa650a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37fb8a31b2972a4acf5e5e04e9aa650a">&#9670;&#160;</a></span>importConnections()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importConnections </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a37fb8a31b2972a4acf5e5e04e9aa650a_cgraph.svg" width="578" height="610"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a45901d15ec0bbdc3a189764c93e5ed64" name="a45901d15ec0bbdc3a189764c93e5ed64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45901d15ec0bbdc3a189764c93e5ed64">&#9670;&#160;</a></span>importIncidents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importIncidents </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a45901d15ec0bbdc3a189764c93e5ed64_cgraph.svg" width="687" height="524"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a27e355be8b23af61499f3e0510c94c73" name="a27e355be8b23af61499f3e0510c94c73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27e355be8b23af61499f3e0510c94c73">&#9670;&#160;</a></span>importJoinedRoutes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importJoinedRoutes </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a27e355be8b23af61499f3e0510c94c73_cgraph.svg" width="582" height="522"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="add70a24b78b5d174e2782a3efd25797b" name="add70a24b78b5d174e2782a3efd25797b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add70a24b78b5d174e2782a3efd25797b">&#9670;&#160;</a></span>importLegacyAreas()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importLegacyAreas </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_add70a24b78b5d174e2782a3efd25797b_cgraph.svg" width="696" height="547"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -345,13 +508,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1198" height="2534"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a18f5a3a9059fe1b30f1dbcf15e252c09_cgraph.svg" width="1132" height="2878"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ad34cbffa47fce39ac04ede0196ff570f" name="ad34cbffa47fce39ac04ede0196ff570f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad34cbffa47fce39ac04ede0196ff570f">&#9670;&#160;</a></span>isPositionedRouteEndpoint()</h2>
+<a id="a4e5e0cd10c9e5ffe618c73999b927c5b" name="a4e5e0cd10c9e5ffe618c73999b927c5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e5e0cd10c9e5ffe618c73999b927c5b">&#9670;&#160;</a></span>importPassengers()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -360,9 +523,9 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool isPositionedRouteEndpoint </td>
+          <td class="memname">void importPassengers </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>token</em></span></td><td>)</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -375,13 +538,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ad34cbffa47fce39ac04ede0196ff570f_cgraph.svg" width="450" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a4e5e0cd10c9e5ffe618c73999b927c5b_cgraph.svg" width="1024" height="920"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a542fed8f273acc9f0c4f3b720338e857" name="a542fed8f273acc9f0c4f3b720338e857"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a542fed8f273acc9f0c4f3b720338e857">&#9670;&#160;</a></span>isSwitchTransitionRouteToken()</h2>
+<a id="a270bf5ee5184c159260b4f3e37c94d47" name="a270bf5ee5184c159260b4f3e37c94d47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a270bf5ee5184c159260b4f3e37c94d47">&#9670;&#160;</a></span>importRollouts()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -390,9 +553,9 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool isSwitchTransitionRouteToken </td>
+          <td class="memname">void importRollouts </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>token</em></span></td><td>)</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -405,7 +568,518 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a542fed8f273acc9f0c4f3b720338e857_cgraph.svg" width="468" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a270bf5ee5184c159260b4f3e37c94d47_cgraph.svg" width="586" height="610"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adad024d017a8e56c357eb2eb84278006" name="adad024d017a8e56c357eb2eb84278006"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adad024d017a8e56c357eb2eb84278006">&#9670;&#160;</a></span>importRouteCorridors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importRouteCorridors </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_adad024d017a8e56c357eb2eb84278006_cgraph.svg" width="724" height="446"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae0752af44759f3d5d322832234180ebc" name="ae0752af44759f3d5d322832234180ebc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0752af44759f3d5d322832234180ebc">&#9670;&#160;</a></span>importRoutes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importRoutes </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ae0752af44759f3d5d322832234180ebc_cgraph.svg" width="618" height="764"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="afcd458f6e815c8496a544de2d2c39c1a" name="afcd458f6e815c8496a544de2d2c39c1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcd458f6e815c8496a544de2d2c39c1a">&#9670;&#160;</a></span>importSettings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importSettings </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_afcd458f6e815c8496a544de2d2c39c1a_cgraph.svg" width="867" height="516"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6186ab7e2bce4bdb2f01842c49867c0d" name="a6186ab7e2bce4bdb2f01842c49867c0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6186ab7e2bce4bdb2f01842c49867c0d">&#9670;&#160;</a></span>importSingleTrackRestrictions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importSingleTrackRestrictions </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a6186ab7e2bce4bdb2f01842c49867c0d_cgraph.svg" width="832" height="648"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a8f4dce8c878e766e1de08b3bf55d6940" name="a8f4dce8c878e766e1de08b3bf55d6940"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f4dce8c878e766e1de08b3bf55d6940">&#9670;&#160;</a></span>importStationBoundaries()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importStationBoundaries </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a8f4dce8c878e766e1de08b3bf55d6940_cgraph.svg" width="800" height="724"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a56b5ca9acdf0ee2f83cc602c0da2e48a" name="a56b5ca9acdf0ee2f83cc602c0da2e48a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56b5ca9acdf0ee2f83cc602c0da2e48a">&#9670;&#160;</a></span>importStations()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importStations </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a56b5ca9acdf0ee2f83cc602c0da2e48a_cgraph.svg" width="680" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7430f99c84e32ff17558f9acf4eb264e" name="a7430f99c84e32ff17558f9acf4eb264e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7430f99c84e32ff17558f9acf4eb264e">&#9670;&#160;</a></span>importStationViews()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importStationViews </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a7430f99c84e32ff17558f9acf4eb264e_cgraph.svg" width="712" height="648"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4b6ca2b061949c391437f92a83e23f6b" name="a4b6ca2b061949c391437f92a83e23f6b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b6ca2b061949c391437f92a83e23f6b">&#9670;&#160;</a></span>importTimetables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTimetables </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a4b6ca2b061949c391437f92a83e23f6b_cgraph.svg" width="738" height="636"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aee40d457a69e751ff75eb58b869852d6" name="aee40d457a69e751ff75eb58b869852d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee40d457a69e751ff75eb58b869852d6">&#9670;&#160;</a></span>importTrackArcs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrackArcs </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>trackId</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>trackDir</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_aee40d457a69e751ff75eb58b869852d6_cgraph.svg" width="559" height="534"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a52e0506f5ce3df96f1507c7be95320cc" name="a52e0506f5ce3df96f1507c7be95320cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52e0506f5ce3df96f1507c7be95320cc">&#9670;&#160;</a></span>importTrackBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrackBlocks </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>trackId</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>trackDir</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a52e0506f5ce3df96f1507c7be95320cc_cgraph.svg" width="574" height="534"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae8f944434586024aeb7ac4a68a27dc2d" name="ae8f944434586024aeb7ac4a68a27dc2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8f944434586024aeb7ac4a68a27dc2d">&#9670;&#160;</a></span>importTrackNodes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrackNodes </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>trackId</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>trackDir</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_ae8f944434586024aeb7ac4a68a27dc2d_cgraph.svg" width="572" height="534"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a29184c64e24cc8b607338ecb3f6d1cf4" name="a29184c64e24cc8b607338ecb3f6d1cf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29184c64e24cc8b607338ecb3f6d1cf4">&#9670;&#160;</a></span>importTracks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTracks </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a29184c64e24cc8b607338ecb3f6d1cf4_cgraph.svg" width="727" height="671"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a7d5432509435d5ef6d050bc3e588510b" name="a7d5432509435d5ef6d050bc3e588510b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d5432509435d5ef6d050bc3e588510b">&#9670;&#160;</a></span>importTrackViews()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrackViews </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a7d5432509435d5ef6d050bc3e588510b_cgraph.svg" width="700" height="447"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af499a71fe7d0da92626a2321bcb427d0" name="af499a71fe7d0da92626a2321bcb427d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af499a71fe7d0da92626a2321bcb427d0">&#9670;&#160;</a></span>importTrains()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrains </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_af499a71fe7d0da92626a2321bcb427d0_cgraph.svg" width="535" height="747"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a42d765ea4119a96d2071b90b2ff314bb" name="a42d765ea4119a96d2071b90b2ff314bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42d765ea4119a96d2071b90b2ff314bb">&#9670;&#160;</a></span>importTrainUnits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void importTrainUnits </td>
+          <td>(</td>
+          <td class="paramtype">ImportContext &amp;</td>          <td class="paramname"><span class="paramname"><em>context</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a42d765ea4119a96d2071b90b2ff314bb_cgraph.svg" width="562" height="560"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5ed2f60461204687c8f367478c596269" name="a5ed2f60461204687c8f367478c596269"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ed2f60461204687c8f367478c596269">&#9670;&#160;</a></span>knownCaseFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KnownCase knownCaseFor </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>sceneName</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const fs::path &amp;</td>          <td class="paramname"><span class="paramname"><em>legacyPath</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a5ed2f60461204687c8f367478c596269_cgraph.svg" width="266" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -914,6 +1588,45 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a9d96e94cd24f4ac8f0b1badb46b71c66" name="a9d96e94cd24f4ac8f0b1badb46b71c66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d96e94cd24f4ac8f0b1badb46b71c66">&#9670;&#160;</a></span>stationIdFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string stationIdFor </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_scene_station.html">SceneStation</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>stations</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>raw</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;</td>          <td class="paramname"><span class="paramname"><em>ambiguous</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_a9d96e94cd24f4ac8f0b1badb46b71c66_cgraph.svg" width="467" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aed3b5e18fd7ceb03109350d047ef6fe9" name="aed3b5e18fd7ceb03109350d047ef6fe9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aed3b5e18fd7ceb03109350d047ef6fe9">&#9670;&#160;</a></span>stripOuterAt()</h2>
 
@@ -1066,6 +1779,47 @@ Here is the call graph for this function:</div>
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_importer_8cpp_aa06f54b9db3428f5c864f4052a0a7352_cgraph.svg" width="146" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="ac8387c390a5b0801c0c4b039570217ef" name="ac8387c390a5b0801c0c4b039570217ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8387c390a5b0801c0c4b039570217ef">&#9670;&#160;</a></span>kKnownCases</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const KnownCase kKnownCases[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">                                   = {</div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_netherlands&quot;</span>}, {<span class="stringliteral">&quot;netherlands&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 8000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_paimpol&quot;</span>}, {<span class="stringliteral">&quot;paimpol&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:10:40&quot;</span>, 9000.0, <span class="keyword">false</span>, <span class="keyword">true</span>},</div>
+<div class="line">    </div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_paimpol - alternativejourneys&quot;</span>}, {<span class="stringliteral">&quot;paimpol alternative journeys&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:10:40&quot;</span>, 9000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    </div>
+<div class="line">    {{}, {}, <span class="stringliteral">&quot;input_egtrain_paimpol&quot;</span>, <span class="stringliteral">&quot;&quot;</span>, 0.0, <span class="keyword">false</span>, <span class="keyword">true</span>},</div>
+<div class="line">    </div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_copenhagen&quot;</span>, <span class="stringliteral">&quot;input_egtrain_banedanmark&quot;</span>}, {<span class="stringliteral">&quot;copenhagen&quot;</span>, <span class="stringliteral">&quot;banedanmark&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 8000.0, <span class="keyword">true</span>, <span class="keyword">false</span>},</div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_milano_brescia&quot;</span>}, {<span class="stringliteral">&quot;brescia&quot;</span>, <span class="stringliteral">&quot;milano_brescia&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;06:28:20&quot;</span>, 4000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">    </div>
+<div class="line">    {{<span class="stringliteral">&quot;input_egtrain_assignment&quot;</span>}, {<span class="stringliteral">&quot;assignment&quot;</span>}, <span class="stringliteral">&quot;&quot;</span>, <span class="stringliteral">&quot;07:00:00&quot;</span>, 10000.0, <span class="keyword">false</span>, <span class="keyword">false</span>},</div>
+<div class="line">}</div>
+</div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->

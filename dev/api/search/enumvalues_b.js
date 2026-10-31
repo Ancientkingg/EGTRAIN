@@ -9,5 +9,6 @@ var searchData=
   ['line_6',['Line',['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a4803e6b9e63dabf04de980788d6a13c4',1,'DiagramKeyEntry']]],
   ['linuxappimage_7',['LinuxAppImage',['../_distribution_8h.html#aecc95248f15d2eab64617d7dc0afeb42aeeaca6040afe6ffe642d60a93d3b1c51',1,'Distribution.h']]],
   ['live_8',['Live',['../class_network_presenter.html#a825c599a3402605dfa219e6657c05355a955ad3298db330b5ee880c2c9e6f23a0',1,'NetworkPresenter']]],
-  ['local_9',['Local',['../namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4',1,'telemetry']]]
+  ['loaded_9',['Loaded',['../_loaded_data_summary_8h.html#a64127e8f349c898753c44576b7557ea5a7381d487d18845b379422325c0a768d6',1,'LoadedDataSummary.h']]],
+  ['local_10',['Local',['../namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4',1,'telemetry']]]
 ];

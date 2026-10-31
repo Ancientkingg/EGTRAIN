@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_blocking_time
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -121,12 +122,12 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_blocking_time
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for BlockingTimeDiagram.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__incl.svg" width="530" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__incl.svg" width="623" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__dep__incl.svg" width="3216" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h__dep__incl.svg" width="4068" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_blocking_time_diagram_8h_source.html">Go to the source code of this file.</a></p>
@@ -141,6 +142,11 @@ Classes</h2></td></tr>
 <tr class="memitem:BlockSectionMarks" id="r_BlockSectionMarks"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_block_section_marks.html">BlockSectionMarks</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the section strip of a blocking-time chart marks on a section, besides a switch section (<a class="el" href="struct_block_section_extent.html#a7cd65ed2fcadd0afe6eadc2a10230987" title="The section holds a diverging switch.">BlockSectionExtent::isSwitch</a>).  <a href="struct_block_section_marks.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:BlockingTimeCsv" id="r_BlockingTimeCsv"><td class="memItemLeft">namespace &#160;</td><td class="memItemRight"><a class="el" href="namespace_blocking_time_csv.html">BlockingTimeCsv</a></td></tr>
+<tr class="memdesc:namespace_blocking_time_csv"><td class="mdescLeft">&#160;</td><td class="mdescRight">The columns of the blocking-time export. <br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a8e31489306e50f827b479eb73d6001d7" id="r_a8e31489306e50f827b479eb73d6001d7"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a8e31489306e50f827b479eb73d6001d7">BlockingTimeSegmentStyle</a> { <br />
@@ -153,6 +159,43 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a8e31489306e50f827b479eb73d6001d7a1765ca86e8cca0f47f882d03928aa973">CriticalStation</a>
 <br />
  }</td></tr>
+<tr class="memitem:aa4478207a944f7f5a8b246a9fc758647" id="r_aa4478207a944f7f5a8b246a9fc758647"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647">BlockingTimeCsv::Column</a> : std::size_t { <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a286a80f06036374b540871928a079703">BlockingTimeCsv::kTrain</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647afea942b80563bfc046fa2f01c5b5241c">BlockingTimeCsv::kBlock</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a08b52efa80dced005f5e454a05cc457e">BlockingTimeCsv::kOccupationStart</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a3f9e4feaf7e3f5712faac54c1d5f37eb">BlockingTimeCsv::kOccupationEnd</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a72d483bb4dc7d3f3af18b4074dfca2e0">BlockingTimeCsv::kPosition</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a7d98fb6f97f5e73f375c966bb533d124">BlockingTimeCsv::kSegmentType</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a9b52acfe69c0c736c6a7bbc4dd80ffd2">BlockingTimeCsv::kPlannedReference</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647afbbf5560dd49293d4bfee1fd9fa116d4">BlockingTimeCsv::kStation</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a7a967aeb4417640de96e878a9f652195">BlockingTimeCsv::kPlannedTime</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647af5209011d9afc57ecff73b6394b9e2ec">BlockingTimeCsv::kStartX</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647aa315a51b0f078fd9b85483f7ddc6e713">BlockingTimeCsv::kEndX</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a5514dc39d822eb9f72d3ffa40dde018f">BlockingTimeCsv::kOriginalStart</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ac98f7db36e119699a03815985499e0a3">BlockingTimeCsv::kOriginalEnd</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ae14020671960707c9fb2b82313113885">BlockingTimeCsv::kOriginalApproach</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647acf6ad4106e97c0e5eec2efbdf17a461b">BlockingTimeCsv::kOriginalRunStart</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a04d8822afcb6754fad735b86da56c93d">BlockingTimeCsv::kOriginalRunEnd</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a8df9c439822a126c4b1b2b3e00387293">BlockingTimeCsv::kOriginalClearance</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a65f6b5bed5c80f06ba2d814cf06cd883">BlockingTimeCsv::kSetup</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647aee02b11a21118405bb2faa4db943ecf0">BlockingTimeCsv::kSightReaction</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ae83b7563c1195b3363055a7732686651">BlockingTimeCsv::kRelease</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a1f33af228c654ae0cf6bc486c53ca2ae">BlockingTimeCsv::kRunMargin</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647af0a980c13e6ced30f32b10c61365b54f">BlockingTimeCsv::kLayer</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a9763eff51c64499267c41c7e0ad43eb6">BlockingTimeCsv::kReferenceSection</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a6dbb0aa47718fb3bc4855212043bffd2">BlockingTimeCsv::kGeoPosition</a>
+, <br />
+&#160;&#160;<a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a5ca5bd619d9dd487bb00dc53029e7e34">BlockingTimeCsv::kStartGeoX</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647a93cd0dfa17e0c98ad2a1cf81ca497d7e">BlockingTimeCsv::kEndGeoX</a>
+, <a class="el" href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647ad73e7e2c9e7f6c171f125d139644ca4c">BlockingTimeCsv::kColumnCount</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:aa4478207a944f7f5a8b246a9fc758647"><td class="mdescLeft">&#160;</td><td class="mdescRight">The position of each column in a row, in the order of the names of <a class="el" href="_blocking_time_diagram_8cpp.html#a88c7774ff8abc2790f37548811ba11a8">blockingTimeCsvHeader()</a>.  <a href="namespace_blocking_time_csv.html#aa4478207a944f7f5a8b246a9fc758647">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -370,7 +413,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_ac0aad245fbc57109d80f3eb8fe69588c_cgraph.svg" width="403" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_blocking_time_diagram_8h_ac0aad245fbc57109d80f3eb8fe69588c_cgraph.svg" width="363" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

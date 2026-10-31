@@ -1,27 +1,30 @@
 <map id="synthesizeCanonicalCompatibility" name="synthesizeCanonicalCompatibility">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,157,249,185"/>
-<area shape="poly" id="edge16_Node000001_Node000001" title=" " alt="" coords="81,157,74,148,80,139,98,133,127,131,158,133,177,141,172,143,157,138,127,136,99,138,83,143,79,148,86,156"/>
+<area shape="poly" id="edge18_Node000001_Node000001" title=" " alt="" coords="81,157,74,148,80,139,98,133,127,131,158,133,177,141,172,143,157,138,127,136,99,138,83,143,79,148,86,156"/>
 <area shape="rect" id="Node000002" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="311,5,481,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,155,205,101,249,70,295,43,316,37,312,40,298,48,252,75,209,105,145,159"/>
 <area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#a852c4c61a8d9505c440d48336336808b" title=" " alt="" coords="314,81,478,109"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,154,296,119,328,112,324,115,297,124,178,159"/>
-<area shape="rect" id="Node000006" href="$_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b" title=" " alt="" coords="321,157,470,185"/>
-<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="248,169,308,170,303,172,250,174"/>
-<area shape="rect" id="Node000007" href="$_scene_exporter_8cpp.html#acf3292b2f82d16d5b4a354f6399dd056" title=" " alt="" coords="297,233,495,261"/>
-<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="179,183,332,227,327,230,179,188"/>
-<area shape="rect" id="Node000008" href="$_scene_exporter_8cpp.html#a20cdaf8bfe8f00d8efbc8e5c91b6d557" title=" " alt="" coords="307,309,484,337"/>
-<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="152,183,298,270,355,302,350,302,295,275,150,188"/>
-<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="353,80,346,72,351,63,368,57,396,55,425,57,443,66,438,66,424,62,396,60,369,62,355,67,351,72,358,81"/>
-<area shape="rect" id="Node000004" href="$_scene_exporter_8cpp.html#aad950abdec606049de6ad0e476ccf2f1" title=" " alt="" coords="543,81,753,109"/>
+<area shape="rect" id="Node000007" href="$_scene_exporter_8cpp.html#a884eb8f6955c729fe312754aa8e13e0b" title=" " alt="" coords="321,157,470,185"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="248,169,308,170,303,172,250,174"/>
+<area shape="rect" id="Node000008" href="$_scene_exporter_8cpp.html#acf3292b2f82d16d5b4a354f6399dd056" title=" " alt="" coords="297,233,495,261"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="179,183,332,227,327,230,179,188"/>
+<area shape="rect" id="Node000009" href="$_scene_exporter_8cpp.html#a20cdaf8bfe8f00d8efbc8e5c91b6d557" title=" " alt="" coords="307,309,484,337"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="152,183,298,270,355,302,350,302,295,275,150,188"/>
+<area shape="poly" id="edge9_Node000003_Node000003" title=" " alt="" coords="353,80,346,72,352,63,369,57,396,55,425,57,442,66,437,66,424,62,396,60,370,62,355,67,352,72,358,81"/>
+<area shape="rect" id="Node000004" href="$_section_reference_8cpp.html#a52d7c516ec35bbd6983c3e5383903af4" title="True for a switch transition: two endpoints joined by one &#39;/&#39;." alt="" coords="543,81,747,109"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="477,93,530,94,525,96,478,98"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="605,80,599,72,604,63,621,57,648,55,678,57,695,66,690,66,676,62,648,60,622,62,607,67,604,72,610,81"/>
-<area shape="rect" id="Node000005" href="$_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f" title=" " alt="" coords="801,81,997,109"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="753,93,788,95,783,96,754,98"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="856,80,849,72,855,63,872,57,899,55,928,57,946,66,940,66,927,62,899,60,873,62,858,67,855,72,861,82"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="353,156,346,148,351,139,368,133,396,131,425,133,443,142,438,142,424,138,396,136,369,138,355,143,351,148,358,157"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="353,232,346,224,351,215,368,209,396,207,425,209,443,218,438,218,424,214,396,212,369,214,355,219,351,224,358,234"/>
-<area shape="poly" id="edge15_Node000008_Node000008" title=" " alt="" coords="353,308,346,300,351,291,368,285,396,283,425,285,443,294,438,294,424,290,396,288,369,290,355,295,351,300,358,310"/>
-<area shape="rect" id="Node000009" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="590,309,707,337"/>
-<area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="485,321,577,323,571,323,485,326"/>
-<area shape="poly" id="edge14_Node000009_Node000009" title=" " alt="" coords="605,308,599,300,604,291,621,285,648,283,678,285,695,294,690,294,676,290,648,288,622,290,607,295,604,300,610,310"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="603,80,596,72,601,63,618,57,645,55,674,57,692,66,686,66,673,62,645,60,619,62,605,67,601,72,608,81"/>
+<area shape="rect" id="Node000005" href="$_section_reference_8cpp.html#a1d71dac238c8c6d608e7a4db2b0ed4b3" title=" " alt="" coords="795,44,992,72"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="741,78,784,74,779,75,742,83"/>
+<area shape="rect" id="Node000006" href="$_section_reference_8cpp.html#aa3af0e68a1582951722d703d51f27f36" title="The parts of reference between its &#39;/&#39;, in order, empty parts included." alt="" coords="810,120,977,148"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="738,107,798,118,792,119,738,112"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="851,43,844,35,850,25,866,19,894,17,923,20,940,29,935,29,921,25,893,23,868,25,853,29,850,35,856,44"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="851,119,844,111,850,101,866,95,894,93,923,96,940,105,935,105,921,101,893,99,868,101,853,105,850,111,856,120"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="353,156,346,148,352,139,369,133,396,131,425,133,442,142,437,142,424,138,396,136,370,138,355,143,352,148,358,157"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="353,232,346,224,352,215,369,209,396,207,425,209,442,218,437,218,424,214,396,212,370,214,355,219,352,224,358,234"/>
+<area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="353,308,346,300,352,291,369,285,396,283,425,285,442,294,437,294,424,290,396,288,370,290,355,295,352,300,358,310"/>
+<area shape="rect" id="Node000010" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="586,309,704,337"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="485,321,574,323,568,323,485,326"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="603,308,596,300,601,291,618,285,645,283,674,285,692,294,686,294,673,290,645,288,619,290,605,295,601,300,608,310"/>
 </map>

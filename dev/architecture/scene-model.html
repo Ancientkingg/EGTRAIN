@@ -389,8 +389,16 @@ loaded and saved again.</p>
 <code class="docutils literal notranslate"><span class="pre">SceneWriter.cpp</span></code> has an encoder for each file (<code class="docutils literal notranslate"><span class="pre">encodeSceneMetadata</span></code>,
 <code class="docutils literal notranslate"><span class="pre">encodeInfrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeStations</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeSignalling</span></code>,
 <code class="docutils literal notranslate"><span class="pre">encodeRollingStock</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeServices</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeScenarios</span></code>, <code class="docutils literal notranslate"><span class="pre">encodeViews</span></code> and
-<code class="docutils literal notranslate"><span class="pre">encodePassengers</span></code>), and <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneModel.cpp</span></code> and
-<code class="docutils literal notranslate"><span class="pre">SceneFieldReader.cpp</span></code> read the files. The importer fills a <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and
+<code class="docutils literal notranslate"><span class="pre">encodePassengers</span></code>), and <code class="docutils literal notranslate"><span class="pre">SceneFieldReader.cpp</span></code> has a decoder for each file
+(<code class="docutils literal notranslate"><span class="pre">decodeSceneMetadata</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeInfrastructure</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeStations</span></code>,
+<code class="docutils literal notranslate"><span class="pre">decodeViews</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeSignalling</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeRollingStock</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeServices</span></code>,
+<code class="docutils literal notranslate"><span class="pre">decodeScenarios</span></code>, <code class="docutils literal notranslate"><span class="pre">decodeHistoricalIncidents</span></code> for <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> and
+<code class="docutils literal notranslate"><span class="pre">decodePassengers</span></code>). <code class="docutils literal notranslate"><span class="pre">loadScene</span></code> in <code class="docutils literal notranslate"><span class="pre">SceneModel.cpp</span></code> reads and parses the
+files, gives each file its own <code class="docutils literal notranslate"><span class="pre">SceneFieldReader</span></code> and calls the decoders in that
+order. It also makes the checks that span files: it decodes <code class="docutils literal notranslate"><span class="pre">views.json</span></code> after
+the tracks and stations that the views name, and <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> only when the
+case has no <code class="docutils literal notranslate"><span class="pre">scenarios.json</span></code>; with both files it warns that <code class="docutils literal notranslate"><span class="pre">incidents.json</span></code> is
+ignored. The importer fills a <a class="reference external" href="../api/struct_scene_model.html"><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code></a> and
 hands it to <code class="docutils literal notranslate"><span class="pre">replaceSceneDirectory</span></code>, which writes, loads back and publishes it
 as <code class="docutils literal notranslate"><span class="pre">saveScene</span></code> does, so an imported scene has the form of a saved one. Unlike a
 save, it replaces a folder at the destination with everything in it and keeps
@@ -412,8 +420,13 @@ and the builders check against, are in <code class="docutils literal notranslate
 <h2>Model ownership<a class="headerlink" href="#model-ownership" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> owns the canonical values, not a second flat copy of legacy
 incidents. Incidents belong to a <a class="reference external" href="../api/struct_scene_scenario.html"><code class="docutils literal notranslate"><span class="pre">SceneScenario</span></code></a>; the selected scenario is
-identified by <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code>. Runtime <code class="docutils literal notranslate"><span class="pre">loadedData</span></code> and <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code> are
-derived, non-serialized summaries. Loaded-data navigation targets point only to
+identified by <code class="docutils literal notranslate"><span class="pre">default_scenario_id</span></code>. <code class="docutils literal notranslate"><span class="pre">sourceFiles</span></code>, the scene files present at
+load or save, is derived and not saved. The Loaded Data tree is not part of the
+model: <code class="docutils literal notranslate"><span class="pre">buildLoadedDataSummary</span></code> in <code class="docutils literal notranslate"><span class="pre">scene/LoadedDataSummary.h</span></code> derives its rows
+from the model, its source files and the diagnostics of validation, and
+<code class="docutils literal notranslate"><span class="pre">ValidationPanel</span></code> builds them again each time it writes the tree. Each row has a
+<code class="docutils literal notranslate"><span class="pre">SceneLoadedStatus</span></code>, which the tree shows as <code class="docutils literal notranslate"><span class="pre">OK</span></code>, <code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">present</span></code>, <code class="docutils literal notranslate"><span class="pre">Warning</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Invalid</span></code>. Loaded-data navigation targets point only to
 existing editors and are not part of the canonical schema. <code class="docutils literal notranslate"><span class="pre">import_report</span></code> is
 the persisted conversion summary, with
 one row containing <code class="docutils literal notranslate"><span class="pre">category</span></code>, optional <code class="docutils literal notranslate"><span class="pre">source_file</span></code>, <code class="docutils literal notranslate"><span class="pre">source_count</span></code>,
@@ -522,6 +535,14 @@ platform, signal, route, train unit, composition or service, so that a delete ca
 that list. The <code class="docutils literal notranslate"><span class="pre">sceneRewrite...References</span></code> functions rewrite every reference to an entity after a
 rename; the caller renames the entity itself. The <code class="docutils literal notranslate"><span class="pre">sceneUnique...Id</span></code> functions return the base id
 when it is free and otherwise the first of <code class="docutils literal notranslate"><span class="pre">base_2</span></code>, <code class="docutils literal notranslate"><span class="pre">base_3</span></code> and so on.</p>
+<p><code class="docutils literal notranslate"><span class="pre">scene/SectionReference</span></code> reads a section reference, a block id or several joined by <code class="docutils literal notranslate"><span class="pre">/</span></code> such as
+the two endpoints of a switch transition <code class="docutils literal notranslate"><span class="pre">&#64;71-B0&#64;-21.235000/&#64;0-B1&#64;-21.252000</span></code>.
+<code class="docutils literal notranslate"><span class="pre">parseSectionReferencePart</span></code> splits one part into its block id and the offset of an endpoint. The
+validator, the editors’ reference rules, the importer’s check of known blocks and the route token checks
+of the importer and the exporter read references with it, so they agree on which parts name a block and
+which routes hold a switch transition. Two readers keep their own rules: <code class="docutils literal notranslate"><span class="pre">mapLegacyBlockReference</span></code> in the
+exporter, and the overlap rule of <code class="docutils literal notranslate"><span class="pre">SectionInventory</span></code> (<code class="docutils literal notranslate"><span class="pre">sectionReferences</span></code>, <code class="docutils literal notranslate"><span class="pre">nativeSectionTokens</span></code>).
+<code class="docutils literal notranslate"><span class="pre">nativeRuntimeBlockId</span></code> gives the runtime id of a block section.</p>
 <p>Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor’s
 in-period count includes entries in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">effective</span> <span class="pre">duration)</span></code>. Configured totals

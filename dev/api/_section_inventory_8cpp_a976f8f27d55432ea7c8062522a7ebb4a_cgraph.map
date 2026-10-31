@@ -1,13 +1,16 @@
 <map id="sceneRouteStations" name="sceneRouteStations">
-<area shape="rect" id="Node000001" title="The stations of the route in travel order, from its traversal." alt="" coords="5,29,156,57"/>
-<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="43,29,37,20,42,11,57,5,81,3,106,5,121,14,116,14,105,10,80,8,58,10,45,15,42,20,48,29"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="204,29,393,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,41,190,43,185,43,156,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="261,28,255,20,260,11,274,5,298,3,324,5,339,14,334,14,323,10,298,8,276,10,263,15,260,20,266,30"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="441,29,643,57"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="394,41,428,43,423,43,394,46"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="500,28,494,20,499,11,516,5,542,3,571,5,588,14,582,14,569,10,542,8,517,10,503,15,499,20,505,30"/>
+<area shape="rect" id="Node000001" title="The stations of the route in travel order, from its traversal." alt="" coords="5,68,156,96"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="43,68,37,59,42,49,57,43,81,41,106,44,121,52,116,53,105,49,80,47,58,49,45,53,42,59,48,67"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="204,68,393,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,79,190,81,185,82,156,84"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="261,67,255,59,260,49,274,43,298,41,324,44,339,53,334,52,323,49,298,47,276,49,263,53,260,59,266,68"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="441,68,643,96"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="393,79,428,82,423,82,394,84"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="500,66,494,59,499,49,516,43,542,41,571,44,588,53,582,52,569,49,542,47,517,49,503,53,499,59,505,68"/>
 <area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="691,29,915,57"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="644,41,678,43,673,43,644,46"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="759,28,751,20,757,11,775,5,803,3,833,5,852,14,846,14,832,10,803,8,776,10,761,15,757,20,763,30"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="640,65,687,60,692,60,640,70"/>
+<area shape="rect" id="Node000005" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="720,105,886,133"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="644,94,708,105,702,105,644,99"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="758,28,751,20,757,11,775,5,803,3,833,5,852,14,846,14,832,10,803,8,776,10,761,15,757,20,763,30"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="759,104,751,96,757,87,775,81,803,79,833,81,852,90,846,90,832,86,803,84,776,86,761,91,757,96,763,106"/>
 </map>

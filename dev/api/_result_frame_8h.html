@@ -128,7 +128,7 @@ Include dependency graph for ResultFrame.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__dep__incl.svg" width="1910" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h__dep__incl.svg" width="2107" height="266"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_result_frame_8h_source.html">Go to the source code of this file.</a></p>
@@ -151,10 +151,11 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a4c2734712d18606efdd36eca758870f1" id="r_a4c2734712d18606efdd36eca758870f1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4c2734712d18606efdd36eca758870f1">styleResultChart</a> (QChart *chart, const QPalette &amp;palette)</td></tr>
-<tr class="memitem:a1274054f48288a6a94d11a8ea7d740aa" id="r_a1274054f48288a6a94d11a8ea7d740aa"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1274054f48288a6a94d11a8ea7d740aa">roundTickStep</a> (double span, int steps)</td></tr>
 <tr class="memitem:a5095494f6ef2db171327a7f6e96c6900" id="r_a5095494f6ef2db171327a7f6e96c6900"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a5095494f6ef2db171327a7f6e96c6900">saveExportInteractive</a> (QWidget *parent, <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">telemetry::ExportKind</a> kind, const QString &amp;title, const QString &amp;suggestedName, const <a class="el" href="classtelemetry_1_1_operation_observation.html">telemetry::OperationObservation</a> &amp;operation, const std::function&lt; std::optional&lt; std::string &gt;()&gt; &amp;bytes, const <a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a> &amp;write={})</td></tr>
 <tr class="memitem:af47eb84d1408655f8c9d84fb3b29fb15" id="r_af47eb84d1408655f8c9d84fb3b29fb15"><td class="memItemLeft">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af47eb84d1408655f8c9d84fb3b29fb15">pngBytes</a> (const QImage &amp;image)</td></tr>
 <tr class="memdesc:af47eb84d1408655f8c9d84fb3b29fb15"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of a PNG export of <span class="tt">image</span>, for saveExportInteractive; nothing when the image cannot be encoded.  <br /></td></tr>
+<tr class="memitem:af4427af0200906891a03bce3aff863b6" id="r_af4427af0200906891a03bce3aff863b6"><td class="memItemLeft">QImage&#160;</td><td class="memItemRight"><a class="el" href="#af4427af0200906891a03bce3aff863b6">fullTableImage</a> (const QTableView &amp;table)</td></tr>
+<tr class="memdesc:af4427af0200906891a03bce3aff863b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whole table as an image: every row and column at the size that the table gives it, with no scroll bars.  <br /></td></tr>
 <tr class="memitem:af5fa318d02c8df37e09f7dd6f7846fa2" id="r_af5fa318d02c8df37e09f7dd6f7846fa2"><td class="memItemLeft"><a class="el" href="#abd3c25e443776e5a924392f01451d8d3">ExportWriter</a>&#160;</td><td class="memItemRight"><a class="el" href="#af5fa318d02c8df37e09f7dd6f7846fa2">runProvenanceWriter</a> (<a class="el" href="struct_run_provenance.html">RunProvenance</a> provenance)</td></tr>
 <tr class="memdesc:af5fa318d02c8df37e09f7dd6f7846fa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The writer of the exports of a run: writeRunArtifactWithProvenance with <span class="tt">provenance</span>, which it keeps.  <br /></td></tr>
 <tr class="memitem:a6ea9c7beca738c9a91b0709c49279117" id="r_a6ea9c7beca738c9a91b0709c49279117"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a6ea9c7beca738c9a91b0709c49279117">runContextText</a> (const <a class="el" href="struct_run_provenance.html">RunProvenance</a> &amp;provenance)</td></tr>
@@ -177,6 +178,30 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="af4427af0200906891a03bce3aff863b6" name="af4427af0200906891a03bce3aff863b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4427af0200906891a03bce3aff863b6">&#9670;&#160;</a></span>fullTableImage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QImage fullTableImage </td>
+          <td>(</td>
+          <td class="paramtype">const QTableView &amp;</td>          <td class="paramname"><span class="paramname"><em>table</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The whole table as an image: every row and column at the size that the table gives it, with no scroll bars. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_af4427af0200906891a03bce3aff863b6_cgraph.svg" width="128" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="af47eb84d1408655f8c9d84fb3b29fb15" name="af47eb84d1408655f8c9d84fb3b29fb15"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af47eb84d1408655f8c9d84fb3b29fb15">&#9670;&#160;</a></span>pngBytes()</h2>
 
@@ -220,33 +245,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_ad8be196188f3833116df03e38f65eb6e_cgraph.svg" width="134" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a1274054f48288a6a94d11a8ea7d740aa" name="a1274054f48288a6a94d11a8ea7d740aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1274054f48288a6a94d11a8ea7d740aa">&#9670;&#160;</a></span>roundTickStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double roundTickStep </td>
-          <td>(</td>
-          <td class="paramtype">double</td>          <td class="paramname"><span class="paramname"><em>span</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>steps</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The step of the ticks of an axis over <span class="tt">span</span>: the smallest of 1, 2 or 5 times a power of ten that divides <span class="tt">span</span> into no more than <span class="tt">steps</span> steps. <span class="tt">span</span> and <span class="tt">steps</span> are greater than 0. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_result_frame_8h_a1274054f48288a6a94d11a8ea7d740aa_cgraph.svg" width="126" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

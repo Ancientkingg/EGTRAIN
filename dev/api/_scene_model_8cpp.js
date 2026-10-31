@@ -11,8 +11,6 @@ var _scene_model_8cpp =
     [ "makeBaselineScenario", "_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823", null ],
     [ "makeNewSceneModel", "_scene_model_8cpp.html#a0219e27a2e17a2f4ae3ba1e1a4de311d", null ],
     [ "readSceneDirectorySnapshot", "_scene_model_8cpp.html#ab470a024de4ed1752b1d3e0f02ba84c1", null ],
-    [ "refreshLoadedDataDiagnostics", "_scene_model_8cpp.html#af50f126ec84573bc40322ddf0a48140d", null ],
-    [ "refreshLoadedDataSummary", "_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce", null ],
     [ "refreshSavedSceneMetadata", "_scene_model_8cpp.html#ae3ce8bbd695e81b69906adede3343951", null ],
     [ "resolveScenePassengerLegStops", "_scene_model_8cpp.html#a542427b235c1ce700a1b79692704626c", null ],
     [ "sceneFileWritten", "_scene_model_8cpp.html#a69af3c8a54fe5e718e34066cf176e53c", null ],

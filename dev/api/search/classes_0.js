@@ -11,5 +11,6 @@ var searchData=
   ['areacapacityscopedialog_8',['AreaCapacityScopeDialog',['../class_area_capacity_scope_dialog.html',1,'']]],
   ['areacapacitytrain_9',['AreaCapacityTrain',['../struct_area_capacity_train.html',1,'']]],
   ['areacapacitywindow_10',['AreaCapacityWindow',['../class_area_capacity_window.html',1,'']]],
-  ['authoritytarget_11',['AuthorityTarget',['../struct_train_1_1_authority_target.html',1,'Train']]]
+  ['authoritytarget_11',['AuthorityTarget',['../struct_train_1_1_authority_target.html',1,'Train']]],
+  ['axismeta_12',['AxisMeta',['../struct_axis_meta.html',1,'']]]
 ];

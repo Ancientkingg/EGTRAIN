@@ -1,0 +1,10 @@
+<map id="blockReferenceKnown" name="blockReferenceKnown">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,172,96"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,68,43,59,48,49,63,43,89,41,115,44,131,52,126,53,114,49,88,47,65,49,51,53,48,59,54,67"/>
+<area shape="rect" id="Node000002" href="$_section_reference_8cpp.html#a1d71dac238c8c6d608e7a4db2b0ed4b3" title=" " alt="" coords="220,29,416,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="172,65,220,59,214,61,173,70"/>
+<area shape="rect" id="Node000003" href="$_section_reference_8cpp.html#aa3af0e68a1582951722d703d51f27f36" title="The parts of reference between its &#39;/&#39;, in order, empty parts included." alt="" coords="235,105,401,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="172,93,222,103,217,103,172,98"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="278,28,272,20,277,11,293,5,318,3,345,5,361,14,356,14,343,10,318,8,294,10,281,15,278,20,283,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="278,104,272,96,277,87,293,81,318,79,345,81,361,90,356,90,343,86,318,84,294,86,281,91,278,96,283,106"/>
+</map>

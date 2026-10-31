@@ -1,0 +1,9 @@
+<map id="BlockSectionOverlay::paint" name="BlockSectionOverlay::paint">
+<area shape="rect" id="Node000001" title="Draws the strip, the notice and the break marks." alt="" coords="5,60,162,104"/>
+<area shape="rect" id="Node000002" href="$_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815" title="The rule between the cells of the section strip, and between a chart and the column of an exported fi..." alt="" coords="230,29,318,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,63,217,54,212,56,163,68"/>
+<area shape="rect" id="Node000003" href="$_block_section_overlay_8h.html#a9a98645c5a48cdaeff8084b3fee7956c" title="The id of a critical or conflict section in the strip, and the outline of a selected blocking time." alt="" coords="210,105,338,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="162,95,197,104,192,104,162,100"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="241,28,236,20,240,11,253,5,274,3,296,5,310,14,305,14,295,10,274,8,254,10,244,15,241,20,246,30"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="241,104,236,96,240,87,253,81,274,79,296,81,310,90,305,90,295,86,274,84,254,86,244,91,241,96,246,106"/>
+</map>

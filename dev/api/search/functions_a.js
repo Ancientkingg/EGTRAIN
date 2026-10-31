@@ -5,6 +5,10 @@ var searchData=
   ['keeplightpalette_2',['keepLightPalette',['../main_8cpp.html#a81a66035dde6f11c8b17238383aa0d39',1,'main.cpp']]],
   ['keepsectionswhole_3',['keepSectionsWhole',['../class_result_panel.html#ad1386d933caa218398b654d2395344ae',1,'ResultPanel']]],
   ['key_4',['key',['../class_infrastructure_facet.html#a737539b2834dc70254b559a438baf711',1,'InfrastructureFacet::key()'],['../class_list_facet.html#a48f1dc4d233c93e2a0a4e5042e8366f9',1,'ListFacet::key()'],['../class_section_rows_facet.html#a082f9f72a49e6a79dce3fdf0f75675a0',1,'SectionRowsFacet::key()']]],
-  ['keypressevent_5',['keyPressEvent',['../class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939',1,'DiagramWindow']]],
-  ['kselectioncuecolor_6',['kSelectionCueColor',['../_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82',1,'SelectionCueItem.h']]]
+  ['keyentries_5',['keyEntries',['../class_block_section_overlay.html#a074e84f86970580dfe59769ffa85b9fa',1,'BlockSectionOverlay']]],
+  ['keypressevent_6',['keyPressEvent',['../class_diagram_window.html#abe3380e3fe58e9421d64ea14fbef3939',1,'DiagramWindow']]],
+  ['knowncasefor_7',['knownCaseFor',['../_scene_importer_8cpp.html#a5ed2f60461204687c8f367478c596269',1,'SceneImporter.cpp']]],
+  ['kselectioncuecolor_8',['kSelectionCueColor',['../_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82',1,'SelectionCueItem.h']]],
+  ['kstriprule_9',['kStripRule',['../_block_section_overlay_8h.html#a9796191b875e40a5fd884326a8606815',1,'BlockSectionOverlay.h']]],
+  ['kstripstrongtext_10',['kStripStrongText',['../_block_section_overlay_8h.html#a9a98645c5a48cdaeff8084b3fee7956c',1,'BlockSectionOverlay.h']]]
 ];

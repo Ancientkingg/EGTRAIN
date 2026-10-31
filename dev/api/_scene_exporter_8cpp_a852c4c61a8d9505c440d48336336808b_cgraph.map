@@ -1,10 +1,13 @@
 <map id="legacyBoundaryToken" name="legacyBoundaryToken">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,57"/>
-<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="46,29,40,20,46,11,61,5,87,3,115,5,131,14,126,14,113,10,87,8,63,10,49,15,46,20,52,29"/>
-<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#aad950abdec606049de6ad0e476ccf2f1" title=" " alt="" coords="217,29,427,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,41,204,43,199,43,169,46"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="282,28,275,20,280,11,296,5,322,3,349,5,366,14,361,14,348,10,322,8,297,10,284,15,281,20,286,30"/>
-<area shape="rect" id="Node000003" href="$_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f" title=" " alt="" coords="475,29,670,57"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,41,462,43,457,43,427,46"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="530,28,523,20,529,11,545,5,573,3,602,5,619,14,614,14,601,10,573,8,546,10,532,15,528,20,535,30"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,169,96"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="47,68,41,59,46,49,62,43,87,41,114,44,130,52,125,53,113,49,87,47,63,49,50,53,46,59,52,67"/>
+<area shape="rect" id="Node000002" href="$_section_reference_8cpp.html#a52d7c516ec35bbd6983c3e5383903af4" title="True for a switch transition: two endpoints joined by one &#39;/&#39;." alt="" coords="217,68,421,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,79,204,81,198,82,169,84"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="279,67,273,59,278,49,294,43,319,41,346,44,362,53,357,53,345,49,319,47,295,49,281,53,278,59,284,68"/>
+<area shape="rect" id="Node000003" href="$_section_reference_8cpp.html#a1d71dac238c8c6d608e7a4db2b0ed4b3" title=" " alt="" coords="469,29,665,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="412,65,462,60,456,60,412,70"/>
+<area shape="rect" id="Node000004" href="$_section_reference_8cpp.html#aa3af0e68a1582951722d703d51f27f36" title="The parts of reference between its &#39;/&#39;, in order, empty parts included." alt="" coords="484,105,650,133"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="416,94,471,104,466,104,415,99"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="525,28,518,20,523,11,540,5,567,3,596,5,614,14,608,14,595,10,567,8,541,10,527,15,523,20,530,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="525,104,518,96,523,87,540,81,567,79,596,81,614,90,608,90,595,86,567,84,541,86,527,91,523,96,530,106"/>
 </map>

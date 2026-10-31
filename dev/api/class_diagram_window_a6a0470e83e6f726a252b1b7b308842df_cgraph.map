@@ -1,5 +1,8 @@
 <map id="DiagramWindow::setChart" name="DiagramWindow::setChart">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,33"/>
-<area shape="rect" id="Node000002" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="245,5,448,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,17,232,19,226,19,197,22"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,56,197,84"/>
+<area shape="rect" id="Node000002" href="$_series_meta_8cpp.html#aea4ccd6df38100e89256fb6d8b022ea1" title="What describeAxis attached to axis, or the defaults when it was not described." alt="" coords="306,29,387,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,57,293,49,288,50,198,62"/>
+<area shape="rect" id="Node000003" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="245,81,448,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="197,77,232,83,226,83,197,82"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,28,298,20,303,11,320,5,346,3,375,5,392,14,387,14,374,10,346,8,321,10,307,15,303,20,309,30"/>
 </map>

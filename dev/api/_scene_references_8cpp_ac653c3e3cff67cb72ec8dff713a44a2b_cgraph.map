@@ -1,4 +1,10 @@
 <map id="sceneRewriteBlockReference" name="sceneRewriteBlockReference">
-<area shape="rect" id="Node000001" title="reference with every component oldId replaced by newId." alt="" coords="5,29,217,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="74,28,69,20,73,11,88,5,111,3,136,5,151,14,146,14,134,10,111,8,89,10,77,15,74,20,80,29"/>
+<area shape="rect" id="Node000001" title="reference with every component oldId replaced by newId." alt="" coords="5,68,217,96"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="68,68,61,59,67,49,84,43,111,41,140,44,158,52,153,53,139,49,111,47,85,49,70,53,66,59,73,67"/>
+<area shape="rect" id="Node000002" href="$_section_reference_8cpp.html#a1d71dac238c8c6d608e7a4db2b0ed4b3" title=" " alt="" coords="265,29,461,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,65,256,59,250,61,206,70"/>
+<area shape="rect" id="Node000003" href="$_section_reference_8cpp.html#aa3af0e68a1582951722d703d51f27f36" title="The parts of reference between its &#39;/&#39;, in order, empty parts included." alt="" coords="280,105,446,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="209,94,267,104,261,105,209,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="320,28,313,20,319,11,335,5,363,3,392,5,410,14,404,14,391,10,363,8,336,10,322,15,318,20,325,30"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="320,104,313,96,319,87,335,81,363,79,392,81,410,90,404,90,391,86,363,84,336,86,322,91,318,96,325,106"/>
 </map>

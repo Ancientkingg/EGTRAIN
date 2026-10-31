@@ -1,4 +1,10 @@
 <map id="styleBlockingTime" name="styleBlockingTime">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,148,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="51,28,47,20,50,11,60,5,77,3,93,5,104,14,99,14,91,10,76,8,62,10,54,14,53,20,56,29"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,148,96"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="45,68,41,59,45,50,57,43,77,41,98,44,110,52,105,53,96,49,76,47,58,49,48,53,46,59,51,67"/>
+<area shape="rect" id="Node000002" href="$_series_meta_8cpp.html#abba1d00aa26051bf0fc9e03f8969858c" title="Attaches meta to series, in the place of what it had." alt="" coords="196,29,312,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,65,183,58,178,60,144,70"/>
+<area shape="rect" id="Node000003" href="$_series_meta_8cpp.html#acb003c686959dccc5d88fd90f72a0698" title="What describeSeries attached to series, or the defaults when it was not described." alt="" coords="207,105,300,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="146,94,195,106,189,107,145,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="223,28,218,20,222,11,234,5,254,3,275,5,288,14,282,14,273,10,254,8,236,10,226,15,223,20,228,30"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="223,104,218,96,222,87,234,81,254,79,275,81,288,90,282,90,273,86,254,84,236,86,226,91,223,96,228,106"/>
 </map>

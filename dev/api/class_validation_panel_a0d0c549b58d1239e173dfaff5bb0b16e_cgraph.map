@@ -1,35 +1,31 @@
 <map id="ValidationPanel::updateStatus" name="ValidationPanel::updateStatus">
-<area shape="rect" id="Node000001" title="Writes the status from the diagnostics again, and shows the table and the tree as advanced details no..." alt="" coords="5,171,221,198"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="587,29,720,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,168,199,142,268,117,347,95,428,77,574,53,569,55,430,82,349,100,269,122,202,147,145,172"/>
-<area shape="rect" id="Node000003" href="$class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" title="Writes the tree again." alt="" coords="294,132,470,176"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="220,170,281,164,276,167,222,175"/>
-<area shape="rect" id="Node000010" href="$class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" title="The status was written or cleared. What shows the diagnostics follows." alt="" coords="269,200,495,228"/>
-<area shape="poly" id="edge18_Node000001_Node000010" title=" " alt="" coords="221,194,256,199,250,201,221,199"/>
-<area shape="rect" id="Node000011" href="$class_validation_panel.html#a5773e83912aacc0f56bd3f3c5939e1fa" title=" " alt="" coords="284,271,480,298"/>
-<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="153,196,330,263,326,267,152,201"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="609,28,602,20,608,11,625,5,654,3,684,5,703,14,697,14,683,10,654,8,626,10,611,15,607,20,614,29"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="419,129,476,97,542,67,575,59,570,61,544,72,478,102,421,133"/>
-<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#af50f126ec84573bc40322ddf0a48140d" title=" " alt="" coords="543,105,764,133"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="469,140,530,134,525,136,470,145"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title="Rebuilds loadedData from the model and sourceFiles." alt="" coords="812,131,1021,158"/>
-<area shape="poly" id="edge15_Node000003_Node000005" title=" " alt="" coords="470,150,800,145,795,148,470,155"/>
-<area shape="rect" id="Node000009" href="$_scene_diagnostic_8cpp.html#a757664039e68baa3d8e4d84eb8f0fb9a" title=" " alt="" coords="602,231,705,258"/>
-<area shape="poly" id="edge16_Node000003_Node000009" title=" " alt="" coords="459,174,496,186,602,225,596,225,494,191,458,179"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="609,104,602,96,608,87,625,81,654,79,684,81,703,90,697,90,683,86,654,84,626,86,611,91,607,96,614,105"/>
-<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="765,127,800,133,794,133,765,133"/>
-<area shape="poly" id="edge12_Node000005_Node000005" title=" " alt="" coords="877,129,871,122,876,112,892,106,917,104,943,107,959,116,954,115,942,112,916,109,893,111,880,116,877,121,882,131"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="1082,92,1206,120"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="1001,127,1069,118,1064,119,1002,133"/>
-<area shape="rect" id="Node000008" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="1069,168,1219,196"/>
-<area shape="poly" id="edge13_Node000005_Node000008" title=" " alt="" coords="1005,156,1056,167,1051,167,1005,162"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="1108,90,1102,83,1107,73,1121,67,1144,65,1168,68,1183,77,1178,76,1167,73,1144,71,1122,73,1110,77,1108,83,1113,92"/>
-<area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="1267,92,1436,120"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="1205,103,1254,106,1249,106,1206,108"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="1316,90,1310,83,1315,73,1329,67,1352,65,1376,68,1391,77,1386,76,1375,73,1352,71,1330,73,1318,77,1315,83,1321,93"/>
-<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="1108,166,1102,159,1107,149,1121,143,1144,141,1168,144,1183,153,1178,152,1167,149,1144,147,1122,149,1110,153,1108,159,1113,169"/>
-<area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="609,229,602,222,608,212,625,206,654,204,684,206,703,216,697,215,683,212,654,209,626,211,611,216,607,221,614,231"/>
-<area shape="rect" id="Node000012" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="612,307,696,334"/>
-<area shape="poly" id="edge20_Node000011_Node000012" title=" " alt="" coords="481,295,599,313,593,313,480,300"/>
-<area shape="poly" id="edge21_Node000012_Node000012" title=" " alt="" coords="609,305,602,298,608,288,625,282,654,280,684,282,703,292,697,291,683,288,654,285,626,287,611,292,607,297,614,307"/>
+<area shape="rect" id="Node000001" title="Writes the status from the diagnostics again, and shows the table and the tree as advanced details no..." alt="" coords="5,136,221,164"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="574,29,707,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,133,198,106,268,82,344,66,421,54,560,45,555,46,422,59,345,71,269,87,200,111,143,138"/>
+<area shape="rect" id="Node000003" href="$class_validation_panel.html#a7829b14276bac3ef68a052d0b58637c2" title="Builds the loaded data summary of the scene with the diagnostics again and writes the tree." alt="" coords="294,97,470,142"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="220,135,281,130,276,132,222,140"/>
+<area shape="rect" id="Node000009" href="$class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" title="The status was written or cleared. What shows the diagnostics follows." alt="" coords="269,165,495,193"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="221,159,256,164,250,166,221,164"/>
+<area shape="rect" id="Node000010" href="$class_validation_panel.html#a5773e83912aacc0f56bd3f3c5939e1fa" title=" " alt="" coords="284,237,480,265"/>
+<area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="152,162,331,230,326,233,151,167"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="602,28,596,20,601,11,616,5,640,3,666,5,682,14,676,14,665,10,640,8,617,10,605,15,602,20,607,30"/>
+<area shape="poly" id="edge12_Node000003_Node000002" title=" " alt="" coords="455,94,542,67,574,61,569,63,544,72,457,99"/>
+<area shape="rect" id="Node000004" href="$_loaded_data_summary_8cpp.html#ab669917fdb6289a3d40d06bc19497b86" title=" " alt="" coords="543,105,737,133"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="470,117,530,119,525,120,470,122"/>
+<area shape="rect" id="Node000008" href="$_scene_diagnostic_8cpp.html#a757664039e68baa3d8e4d84eb8f0fb9a" title=" " alt="" coords="588,181,692,209"/>
+<area shape="poly" id="edge13_Node000003_Node000008" title=" " alt="" coords="460,139,578,176,573,177,460,145"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="602,104,596,96,601,87,616,81,640,79,666,81,682,90,676,90,665,86,640,84,617,86,605,91,602,96,607,106"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="799,68,922,96"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="725,102,786,94,781,95,726,107"/>
+<area shape="rect" id="Node000007" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="785,144,936,172"/>
+<area shape="poly" id="edge10_Node000004_Node000007" title=" " alt="" coords="723,131,773,142,767,142,723,136"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="825,67,819,59,824,49,838,43,861,41,885,44,900,53,894,52,884,49,860,47,839,49,827,53,824,59,830,68"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="984,68,1153,96"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="922,79,971,82,965,82,923,84"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="1032,66,1027,59,1031,49,1046,43,1068,41,1093,44,1108,53,1102,52,1091,49,1068,47,1047,49,1035,53,1032,59,1037,68"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="825,142,819,135,824,125,838,119,861,117,885,120,900,129,894,128,884,125,860,123,839,125,827,129,824,135,829,145"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="602,180,596,172,601,163,616,157,640,155,666,157,682,166,676,166,665,162,640,160,617,162,605,167,602,172,607,182"/>
+<area shape="rect" id="Node000011" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="598,257,682,285"/>
+<area shape="poly" id="edge17_Node000010_Node000011" title=" " alt="" coords="481,256,586,267,580,267,480,261"/>
+<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="602,256,596,248,601,239,616,233,640,231,666,233,682,242,676,242,665,238,640,236,617,238,605,243,602,248,607,258"/>
 </map>

@@ -1,0 +1,13 @@
+<map id="decodeHistoricalIncidents" name="decodeHistoricalIncidents">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,195,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="60,29,54,20,59,11,74,5,100,3,127,5,144,14,138,14,126,10,100,8,76,10,62,15,59,20,65,29"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#ad21b25a9d108aa335fddc1ed87ac807e" title="The incidents of defaultScenario(scene)." alt="" coords="243,29,425,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="195,41,230,43,224,43,195,46"/>
+<area shape="poly" id="edge7_Node000002_Node000002" title=" " alt="" coords="299,28,294,20,298,11,312,5,334,3,358,5,372,14,367,14,356,10,334,8,313,10,302,15,299,20,304,30"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="473,29,596,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="426,41,460,43,455,43,426,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="501,28,496,20,500,11,513,5,535,3,558,5,571,15,566,14,556,10,535,8,515,10,504,15,501,20,506,30"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="644,29,814,57"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="597,41,632,43,626,43,597,46"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="695,28,690,20,694,11,708,5,729,3,752,5,766,15,761,13,750,10,729,8,709,10,698,15,695,20,700,30"/>
+</map>

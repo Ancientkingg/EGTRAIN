@@ -1,7 +1,0 @@
-<map id="isSwitchTransitionRouteEntry" name="isSwitchTransitionRouteEntry">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,216,57"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="67,29,61,20,66,11,83,5,111,3,140,5,157,14,152,14,139,10,110,8,84,10,70,15,66,20,73,29"/>
-<area shape="rect" id="Node000002" href="$_scene_exporter_8cpp.html#ad34cbffa47fce39ac04ede0196ff570f" title=" " alt="" coords="264,29,459,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,41,251,43,246,43,216,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="318,28,312,20,317,11,334,5,361,3,391,5,408,14,403,14,389,10,361,8,335,10,321,15,317,20,323,30"/>
-</map>
