@@ -5,6 +5,8 @@
 
 #include <QString>
 
+#include <functional>
+
 class ColorChoiceButton;
 class QCheckBox;
 class QComboBox;
@@ -160,6 +162,13 @@ Q_SIGNALS:
 private:
 	// The selected service, or -1.
 	int selectedRow() const;
+	// The selected service, or null.
+	const SceneService* selectedService() const;
+	// Applies `mutate` to the selected service, which there must be, in one edit of the document. False when the document
+	// refuses the edit.
+	bool editService(const QString& label, const std::function<void(SceneService&)>& mutate);
+	// As editService(), and shows the occurrences again and emits changed().
+	void editSelectedService(const QString& label, const std::function<void(SceneService&)>& mutate);
 	void updateOccurrenceSelection(QTableWidgetItem* item);
 
 	bool m_updatingOccurrencePreview = false;

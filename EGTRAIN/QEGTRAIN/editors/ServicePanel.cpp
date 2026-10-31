@@ -288,6 +288,23 @@ int ServicePanel::selectedRow() const {
 	return row;
 }
 
+const SceneService* ServicePanel::selectedService() const {
+	const int row = selectedRow();
+	return row < 0 ? nullptr : &m_document->model().services[static_cast<std::size_t>(row)];
+}
+
+bool ServicePanel::editService(const QString& label, const std::function<void(SceneService&)>& mutate) {
+	const auto row = static_cast<std::size_t>(selectedRow());
+	return m_document->edit(SceneDocument::Services, label, [row, &mutate](SceneModel& model) { mutate(model.services[row]); });
+}
+
+void ServicePanel::editSelectedService(const QString& label, const std::function<void(SceneService&)>& mutate) {
+	if (!editService(label, mutate))
+		return;
+	refreshOccurrencePreview();
+	emit changed();
+}
+
 void ServicePanel::refresh() {
 	const bool editable = canEdit();
 	{
@@ -679,204 +696,143 @@ void ServicePanel::commitIdEdit() {
 }
 
 void ServicePanel::commitOperatingCode() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	const std::string value = m_operatingCodeEdit->text().trimmed().toStdString();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.operatingCode)
+	if (value == selected->operatingCode)
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service code", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.operatingCode = value;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service code", [&value](SceneService& service) { service.operatingCode = value; });
 }
 
 void ServicePanel::commitCategory(int index) {
-	const int row = selectedRow();
-	if (!canEdit() || row < 0 || index < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || index < 0)
 		return;
 	const std::string value = m_categoryCombo->itemData(index).toString().toStdString();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.category)
+	if (value == selected->category)
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service category", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.category = value;
-		}))
-		return;
-	emit changed();
+	if (editService("Change service category", [&value](SceneService& service) { service.category = value; }))
+		emit changed();
 }
 
 void ServicePanel::commitVisualizationColor(const QString& text) {
-	const int row = selectedRow();
-	if (!canEdit() || row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	const std::string value = text.toStdString();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.visualizationColor)
+	if (value == selected->visualizationColor)
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service colour", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.visualizationColor = value;
-		}))
-		return;
-	emit changed();
+	if (editService("Change service colour", [&value](SceneService& service) { service.visualizationColor = value; }))
+		emit changed();
 }
 
 void ServicePanel::commitComposition(const QString& text) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	const std::string value = text.toStdString();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.composition)
+	if (value == selected->composition)
 		return;
 	// the combo already shows the chosen value and the service list labels are
 	// unchanged, so do not rebuild the panel here (that would close the popup)
-	if (!m_document->edit(SceneDocument::Services, "Change service composition", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.composition = value;
-		}))
-		return;
-	emit changed();
+	if (editService("Change service composition", [&value](SceneService& service) { service.composition = value; }))
+		emit changed();
 }
 
 void ServicePanel::commitRoute(int index) {
-	const int row = selectedRow();
-	if (!canEdit() || row < 0 || index < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || index < 0)
 		return;
 	const std::string value = m_routeCombo->itemData(index).toString().toStdString();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.route)
+	if (value == selected->route)
 		return;
 	// the combo already shows the chosen value and the service list labels are
 	// unchanged, so do not rebuild the panel here (that would close the popup)
-	if (!m_document->edit(SceneDocument::Services, "Change service route", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
+	if (!editService("Change service route", [this, index, &value](SceneService& service) {
 			service.route = value;
 			m_routeCombo->setToolTip(m_routeCombo->itemData(index, Qt::ToolTipRole).toString());
 		}))
 		return;
 	refreshOccurrencePreview();
-	emit selectedServiceChanged(QString::fromStdString(shown.id));
+	emit selectedServiceChanged(QString::fromStdString(selected->id));
 	emit changed();
 }
 
 void ServicePanel::commitHasEntryTime(bool checked) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || checked == selected->hasEntryTime)
 		return;
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (checked == shown.hasEntryTime)
-		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service entry time", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.hasEntryTime = checked;
-			m_entryTimeSecondsEdit->setEnabled(checked);
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service entry time", [this, checked](SceneService& service) {
+		service.hasEntryTime = checked;
+		m_entryTimeSecondsEdit->setEnabled(checked);
+	});
 }
 
 void ServicePanel::commitEntryTimeSeconds() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
-	const double newValue = m_entryTimeSecondsEdit->value();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (newValue == shownValue(m_entryTimeSecondsEdit, shown.entryTimeSeconds))
+	const double value = m_entryTimeSecondsEdit->value();
+	if (value == shownValue(m_entryTimeSecondsEdit, selected->entryTimeSeconds))
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service entry time", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.entryTimeSeconds = newValue;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service entry time", [value](SceneService& service) { service.entryTimeSeconds = value; });
 }
 
 void ServicePanel::commitHasRepeat(bool checked) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || checked == selected->hasRepeat)
 		return;
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (checked == shown.hasRepeat)
-		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service repeat", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.hasRepeat = checked;
-			if (!checked) {
-				service.hasRepeatCount = false;
-				service.hasOperatingCodeStep = false;
-			}
-			const bool editable = canEdit();
-			m_headwaySecondsEdit->setEnabled(checked);
-			{
-				const QSignalBlocker blocker(m_hasRepeatCountCheck);
-				m_hasRepeatCountCheck->setChecked(checked && service.hasRepeatCount);
-				m_hasRepeatCountCheck->setEnabled(checked && editable);
-			}
-			m_repeatCountEdit->setEnabled(checked && service.hasRepeatCount && editable);
-			{
-				const QSignalBlocker blocker(m_hasOperatingCodeStepCheck);
-				m_hasOperatingCodeStepCheck->setChecked(checked && service.hasOperatingCodeStep);
-				m_hasOperatingCodeStepCheck->setEnabled(checked && editable);
-			}
-			m_operatingCodeStepEdit->setEnabled(checked && service.hasOperatingCodeStep && editable);
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service repeat", [this, checked](SceneService& service) {
+		service.hasRepeat = checked;
+		if (!checked) {
+			service.hasRepeatCount = false;
+			service.hasOperatingCodeStep = false;
+		}
+		const bool editable = canEdit();
+		m_headwaySecondsEdit->setEnabled(checked);
+		{
+			const QSignalBlocker blocker(m_hasRepeatCountCheck);
+			m_hasRepeatCountCheck->setChecked(checked && service.hasRepeatCount);
+			m_hasRepeatCountCheck->setEnabled(checked && editable);
+		}
+		m_repeatCountEdit->setEnabled(checked && service.hasRepeatCount && editable);
+		{
+			const QSignalBlocker blocker(m_hasOperatingCodeStepCheck);
+			m_hasOperatingCodeStepCheck->setChecked(checked && service.hasOperatingCodeStep);
+			m_hasOperatingCodeStepCheck->setEnabled(checked && editable);
+		}
+		m_operatingCodeStepEdit->setEnabled(checked && service.hasOperatingCodeStep && editable);
+	});
 }
 
 void ServicePanel::commitHeadwaySeconds() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
-	const double newValue = m_headwaySecondsEdit->value();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (newValue == shownValue(m_headwaySecondsEdit, shown.headwaySeconds))
+	const double value = m_headwaySecondsEdit->value();
+	if (value == shownValue(m_headwaySecondsEdit, selected->headwaySeconds))
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service headway", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.headwaySeconds = newValue;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service headway", [value](SceneService& service) { service.headwaySeconds = value; });
 }
 
 void ServicePanel::commitHasRepeatCount(bool checked) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || checked == selected->hasRepeatCount)
 		return;
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (checked == shown.hasRepeatCount)
-		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service repeat count", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.hasRepeatCount = checked;
-			if (checked && service.repeatCount < 1)
-				service.repeatCount = 1;
-			{
-				const QSignalBlocker blocker(m_repeatCountEdit);
-				m_repeatCountEdit->setText(QString::number(std::max(1, service.repeatCount)));
-				m_repeatCountEdit->setEnabled(checked && canEdit());
-			}
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service repeat count", [this, checked](SceneService& service) {
+		service.hasRepeatCount = checked;
+		if (checked && service.repeatCount < 1)
+			service.repeatCount = 1;
+		const QSignalBlocker blocker(m_repeatCountEdit);
+		m_repeatCountEdit->setText(QString::number(std::max(1, service.repeatCount)));
+		m_repeatCountEdit->setEnabled(checked && canEdit());
+	});
 }
 
 void ServicePanel::commitRepeatCount() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	bool ok = false;
 	int count = m_repeatCountEdit->text().toInt(&ok);
@@ -886,101 +842,62 @@ void ServicePanel::commitRepeatCount() {
 		const QSignalBlocker blocker(m_repeatCountEdit);
 		m_repeatCountEdit->setText(QString::number(count));
 	}
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (count == shown.repeatCount)
+	if (count == selected->repeatCount)
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service repeat count", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.repeatCount = count;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service repeat count", [count](SceneService& service) { service.repeatCount = count; });
 }
 
 void ServicePanel::commitPerformancePercent(double value) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	value = std::clamp(value, 1.0, 100.0);
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shownValue(m_performancePercentEdit, shown.performancePercent))
+	if (value == shownValue(m_performancePercentEdit, selected->performancePercent))
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service performance", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.performancePercent = value;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service performance", [value](SceneService& service) { service.performancePercent = value; });
 }
 
 void ServicePanel::commitHasMaximumSpeed(bool checked) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || checked == selected->hasMaximumSpeed)
 		return;
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (checked == shown.hasMaximumSpeed)
-		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service maximum speed", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.hasMaximumSpeed = checked;
-			if (checked && service.maximumSpeedKmh <= 0.0)
-				service.maximumSpeedKmh = 100.0;
-			{
-				const QSignalBlocker blocker(m_maximumSpeedKmhEdit);
-				m_maximumSpeedKmhEdit->setValue(std::max(0.1, service.maximumSpeedKmh));
-				m_maximumSpeedKmhEdit->setEnabled(checked && canEdit());
-			}
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service maximum speed", [this, checked](SceneService& service) {
+		service.hasMaximumSpeed = checked;
+		if (checked && service.maximumSpeedKmh <= 0.0)
+			service.maximumSpeedKmh = 100.0;
+		const QSignalBlocker blocker(m_maximumSpeedKmhEdit);
+		m_maximumSpeedKmhEdit->setValue(std::max(0.1, service.maximumSpeedKmh));
+		m_maximumSpeedKmhEdit->setEnabled(checked && canEdit());
+	});
 }
 
 void ServicePanel::commitMaximumSpeed() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	const double value = m_maximumSpeedKmhEdit->value();
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shownValue(m_maximumSpeedKmhEdit, shown.maximumSpeedKmh))
+	if (value == shownValue(m_maximumSpeedKmhEdit, selected->maximumSpeedKmh))
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service maximum speed", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.maximumSpeedKmh = value;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service maximum speed", [value](SceneService& service) { service.maximumSpeedKmh = value; });
 }
 
 void ServicePanel::commitHasOperatingCodeStep(bool checked) {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected || checked == selected->hasOperatingCodeStep)
 		return;
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (checked == shown.hasOperatingCodeStep)
-		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service code step", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.hasOperatingCodeStep = checked;
-			if (checked && service.operatingCodeStep == 0)
-				service.operatingCodeStep = 1;
-			{
-				const QSignalBlocker blocker(m_operatingCodeStepEdit);
-				m_operatingCodeStepEdit->setText(QString::number(service.operatingCodeStep == 0 ? 1 : service.operatingCodeStep));
-				m_operatingCodeStepEdit->setEnabled(checked && canEdit());
-			}
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service code step", [this, checked](SceneService& service) {
+		service.hasOperatingCodeStep = checked;
+		if (checked && service.operatingCodeStep == 0)
+			service.operatingCodeStep = 1;
+		const QSignalBlocker blocker(m_operatingCodeStepEdit);
+		m_operatingCodeStepEdit->setText(QString::number(service.operatingCodeStep == 0 ? 1 : service.operatingCodeStep));
+		m_operatingCodeStepEdit->setEnabled(checked && canEdit());
+	});
 }
 
 void ServicePanel::commitOperatingCodeStep() {
-	const int row = selectedRow();
-	if (row < 0)
+	const SceneService* selected = selectedService();
+	if (!selected)
 		return;
 	bool ok = false;
 	int value = m_operatingCodeStepEdit->text().toInt(&ok);
@@ -990,17 +907,12 @@ void ServicePanel::commitOperatingCodeStep() {
 		const QSignalBlocker blocker(m_operatingCodeStepEdit);
 		m_operatingCodeStepEdit->setText(QString::number(value));
 	}
-	const SceneService& shown = m_document->model().services[static_cast<std::size_t>(row)];
-	if (value == shown.operatingCodeStep)
+	if (value == selected->operatingCodeStep)
 		return;
-	if (!m_document->edit(SceneDocument::Services, "Change service code step", [&](SceneModel& model) {
-			SceneService& service = model.services[static_cast<std::size_t>(row)];
-			service.operatingCodeStep = value;
-			service.hasOperatingCodeStep = true;
-		}))
-		return;
-	refreshOccurrencePreview();
-	emit changed();
+	editSelectedService("Change service code step", [value](SceneService& service) {
+		service.operatingCodeStep = value;
+		service.hasOperatingCodeStep = true;
+	});
 }
 
 void ServicePanel::commitPendingEditors() {
