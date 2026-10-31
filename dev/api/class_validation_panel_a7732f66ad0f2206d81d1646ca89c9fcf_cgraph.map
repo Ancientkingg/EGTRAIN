@@ -1,7 +1,7 @@
 <map id="ValidationPanel::ValidationPanel" name="ValidationPanel::ValidationPanel">
-<area shape="rect" id="Node000001" title="The table, the tree and the label are made as children of parent, until the window moves them." alt="" coords="5,5,200,45"/>
-<area shape="rect" id="Node000002" href="$class_validation_panel.html#af865cff10dca3de09804499268e7bde5" title="Emits targetActivated() for a row of the tree that has a kind." alt="" coords="248,13,461,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,23,234,23,234,28,200,28"/>
-<area shape="rect" id="Node000003" href="$class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item." alt="" coords="509,13,740,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,23,496,23,496,28,462,28"/>
+<area shape="rect" id="Node000001" title="The table, the tree and the label are made as children of parent, until the window moves them." alt="" coords="5,5,200,50"/>
+<area shape="rect" id="Node000002" href="$class_validation_panel.html#af865cff10dca3de09804499268e7bde5" title="Emits targetActivated() for a row of the tree that has a kind." alt="" coords="248,14,460,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,25,235,27,230,28,200,30"/>
+<area shape="rect" id="Node000003" href="$class_validation_panel.html#a27443c73bf76a8d7726938f1339f0ca6" title="A row of the tree with this kind was activated. The tree owns item." alt="" coords="508,14,738,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="461,25,495,28,490,28,461,30"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="IncidentPanel::addIncident" name="IncidentPanel::addIncident">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,199,31"/>
-<area shape="rect" id="Node000002" href="$class_incident_panel.html#adb1a4d2555c5de0dbcda217609cd9695" title=" " alt="" coords="247,5,441,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,15,233,15,233,21,199,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,198,33"/>
+<area shape="rect" id="Node000002" href="$class_incident_panel.html#adb1a4d2555c5de0dbcda217609cd9695" title=" " alt="" coords="246,5,439,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,17,232,19,227,19,198,22"/>
 </map>

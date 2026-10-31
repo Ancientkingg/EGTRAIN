@@ -1,9 +1,9 @@
 <map id="readFile" name="readFile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,80,92"/>
-<area shape="rect" id="Node000002" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="128,29,239,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,67,121,56,123,61,81,72"/>
-<area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="134,103,233,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="81,86,121,97,120,102,80,91"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="160,30,155,21,157,11,167,5,183,3,203,6,211,15,207,18,200,11,183,8,169,10,162,15,160,20,164,28"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="160,104,155,94,157,85,167,78,183,76,203,80,211,88,207,92,200,84,183,81,169,83,162,88,160,94,164,101"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,79,96"/>
+<area shape="rect" id="Node000002" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="127,29,237,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,69,117,60,113,63,80,74"/>
+<area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="133,105,230,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="79,89,120,101,115,103,79,94"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="157,28,153,20,156,11,166,5,182,3,198,5,209,14,203,14,197,10,182,8,168,10,160,14,158,20,162,29"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="157,104,153,96,156,87,166,81,182,79,198,81,209,90,204,89,197,86,182,84,168,86,160,90,158,96,162,106"/>
 </map>

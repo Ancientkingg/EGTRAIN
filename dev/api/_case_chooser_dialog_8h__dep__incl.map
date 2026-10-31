@@ -1,9 +1,9 @@
 <map id="widgets/CaseChooserDialog.h" name="widgets/CaseChooserDialog.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="165,5,381,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,38,117,81,115,76,230,33"/>
-<area shape="rect" id="Node000003" href="$_scene_session_8cpp.html" title=" " alt="" coords="190,79,357,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,44,276,79,271,79,271,44"/>
-<area shape="rect" id="Node000004" href="$_case_chooser_dialog_8cpp.html" title=" " alt="" coords="381,79,611,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="323,32,461,76,459,81,321,37"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,5,379,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,40,119,83,117,78,222,38"/>
+<area shape="rect" id="Node000003" href="$_scene_session_8cpp.html" title=" " alt="" coords="189,81,354,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="274,47,274,82,269,79,270,51"/>
+<area shape="rect" id="Node000004" href="$_case_chooser_dialog_8cpp.html" title=" " alt="" coords="378,81,608,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,36,456,80,451,81,325,41"/>
 </map>

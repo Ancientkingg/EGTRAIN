@@ -1,5 +1,5 @@
 <map id="telemetry::TelemetryQueue::~TelemetryQueue" name="telemetry::TelemetryQueue::~TelemetryQueue">
-<area shape="rect" id="Node000001" title="Calls close()." alt="" coords="5,5,205,45"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="253,5,453,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,240,23,240,28,205,28"/>
+<area shape="rect" id="Node000001" title="Calls close()." alt="" coords="5,5,205,50"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="253,5,452,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,25,240,27,235,28,205,30"/>
 </map>

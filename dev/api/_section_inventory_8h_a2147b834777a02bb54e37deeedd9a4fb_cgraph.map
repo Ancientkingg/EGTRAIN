@@ -1,27 +1,27 @@
 <map id="buildSceneRouteTraversal" name="buildSceneRouteTraversal">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,176,196,201"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="244,45,435,71"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,174,301,75,304,80,126,178"/>
-<area shape="rect" id="Node000005" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="254,127,425,167"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="174,173,240,162,241,167,175,179"/>
-<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#ae4f9207213b44d11e550fd70a54d3fde" title=" " alt="" coords="261,216,418,241"/>
-<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="178,199,250,211,249,216,177,204"/>
-<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc..." alt="" coords="256,289,423,315"/>
-<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="130,199,301,281,298,286,127,204"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="301,47,292,37,297,27,313,21,339,19,373,23,385,32,382,36,371,27,339,24,314,26,300,31,298,36,305,43"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="492,29,695,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="435,49,478,47,478,52,435,55"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="552,31,543,21,548,11,565,5,593,3,629,7,639,11,643,17,639,20,636,15,628,12,593,8,566,10,552,15,549,20,556,27"/>
-<area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="752,29,976,55"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="695,39,738,39,738,45,695,45"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="821,31,811,21,816,11,834,5,864,3,903,7,913,12,917,18,912,20,910,16,901,12,864,8,835,10,819,15,816,20,824,27"/>
-<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="508,79,679,119"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="424,129,494,115,495,121,425,134"/>
-<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="508,143,679,183"/>
-<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="425,150,494,154,494,160,425,155"/>
-<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="301,218,292,208,297,198,313,192,339,189,373,193,385,203,382,207,371,198,339,195,314,197,300,202,298,207,305,214"/>
-<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a9cb3de6815c38bfd0cf14a022a187786" title=" " alt="" coords="483,232,704,257"/>
-<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="418,231,469,234,469,239,418,236"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="552,234,543,224,548,214,565,208,593,205,629,209,639,214,643,220,639,223,636,218,628,214,593,211,566,213,552,218,549,223,556,230"/>
-<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="301,291,292,281,297,271,313,265,339,263,373,267,385,276,382,280,371,271,339,268,314,270,300,275,298,280,305,287"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,167,195,194"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="243,29,432,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,164,299,62,298,68,127,168"/>
+<area shape="rect" id="Node000005" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="252,116,422,160"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="180,164,239,155,235,157,182,169"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#ae4f9207213b44d11e550fd70a54d3fde" title=" " alt="" coords="259,208,416,236"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="183,192,246,205,241,206,184,198"/>
+<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc..." alt="" coords="255,284,420,312"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="131,192,296,275,292,278,129,197"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="296,29,290,20,295,11,311,5,337,3,365,5,382,14,376,14,364,10,337,8,313,10,299,15,296,20,302,29"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="489,29,691,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="432,41,476,42,471,44,433,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="547,28,540,20,546,11,563,5,590,3,620,5,637,14,632,14,618,10,590,8,564,10,549,15,545,20,552,29"/>
+<area shape="rect" id="Node000004" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="748,29,972,57"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="691,41,736,43,730,44,692,46"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="814,28,807,20,813,11,831,5,860,3,891,5,910,14,905,14,890,10,860,8,832,10,816,15,812,20,819,29"/>
+<area shape="rect" id="Node000006" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="505,81,675,126"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="422,124,492,116,487,118,424,129"/>
+<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="505,150,675,195"/>
+<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="423,147,492,158,487,159,423,152"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="297,207,290,199,295,189,311,183,337,181,365,184,382,193,376,193,364,189,337,187,313,189,299,193,296,199,302,208"/>
+<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a9cb3de6815c38bfd0cf14a022a187786" title=" " alt="" coords="480,243,700,270"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="416,230,472,240,467,240,416,235"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="547,241,540,234,546,224,563,218,590,216,620,218,637,228,632,227,618,224,590,221,564,223,549,228,545,233,552,243"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="297,282,290,275,295,265,311,259,337,257,365,260,382,269,376,268,364,265,337,263,313,265,299,269,296,275,302,284"/>
 </map>

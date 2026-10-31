@@ -1,7 +1,7 @@
 <map id="DialogLayout::fitWidthToContent" name="DialogLayout::fitWidthToContent">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,187,69"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="56,30,54,20,60,10,74,5,96,3,121,6,135,13,132,18,119,11,96,8,76,10,63,15,59,21,61,28"/>
-<area shape="rect" id="Node000002" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="235,29,388,69"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="187,47,221,47,221,52,187,52"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="271,30,269,20,275,10,290,5,311,3,336,6,350,13,347,18,335,11,311,8,291,10,279,15,274,21,276,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,186,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="54,28,53,19,60,10,74,5,96,3,119,5,134,14,129,14,117,10,95,8,76,10,63,15,58,21,60,29"/>
+<area shape="rect" id="Node000002" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="234,29,386,74"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="186,49,221,51,216,52,186,54"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="269,27,267,19,274,10,289,5,310,3,333,5,348,14,343,14,332,10,310,8,290,10,278,15,273,21,274,30"/>
 </map>

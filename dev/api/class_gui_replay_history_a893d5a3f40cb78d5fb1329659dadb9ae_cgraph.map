@@ -1,5 +1,5 @@
 <map id="GuiReplayHistory::GuiReplayHistory" name="GuiReplayHistory::GuiReplayHistory">
-<area shape="rect" id="Node000001" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="5,5,216,45"/>
-<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="264,5,452,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,23,250,23,250,28,216,28"/>
+<area shape="rect" id="Node000001" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="5,5,215,50"/>
+<area shape="rect" id="Node000002" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="263,5,450,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,25,250,27,245,28,215,30"/>
 </map>

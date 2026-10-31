@@ -1,6 +1,6 @@
 <map id="printCurrentPassengerStatus" name="printCurrentPassengerStatus">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,212,55"/>
-<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#aacac856b135c49621e74ff6767182313" title=" " alt="" coords="260,29,467,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,39,246,39,246,45,212,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,31,313,21,318,11,335,5,363,3,399,7,409,11,413,17,409,20,406,15,398,12,363,8,336,10,322,15,319,20,326,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,212,57"/>
+<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#aacac856b135c49621e74ff6767182313" title=" " alt="" coords="260,29,466,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,41,247,43,242,43,212,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="319,28,313,20,318,11,335,5,363,3,393,5,410,14,405,14,391,10,363,8,336,10,321,15,318,20,324,30"/>
 </map>

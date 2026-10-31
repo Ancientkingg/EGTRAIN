@@ -1,34 +1,34 @@
 <map id="scene/SceneWriter.h" name="scene/SceneWriter.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="776,5,931,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,152,165,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="763,35,483,81,290,120,135,155,134,149,289,115,482,76,762,30"/>
-<area shape="rect" id="Node000003" href="$_scene_session_8cpp.html" title=" " alt="" coords="190,152,357,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="784,36,581,81,313,155,311,149,579,76,783,31"/>
-<area shape="rect" id="Node000004" href="$_scenario_panel_8cpp.html" title=" " alt="" coords="941,79,1131,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="896,33,1007,76,1005,81,894,38"/>
-<area shape="rect" id="Node000005" href="$_scene_bundle_8cpp.html" title=" " alt="" coords="381,152,555,177"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="792,37,721,56,645,81,558,119,490,154,487,150,556,115,643,76,719,51,790,31"/>
-<area shape="rect" id="Node000006" href="$_scene_bundle_8h.html" title=" " alt="" coords="656,79,816,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="824,40,757,81,754,76,821,35"/>
-<area shape="rect" id="Node000010" href="$_scene_exporter_8cpp.html" title=" " alt="" coords="1364,152,1548,177"/>
-<area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="858,43,867,75,876,90,887,102,926,121,979,134,1042,142,1111,145,1247,146,1352,149,1364,151,1363,156,1352,155,1247,151,1111,150,1042,147,978,139,924,126,884,106,871,93,862,77,853,45"/>
-<area shape="rect" id="Node000011" href="$_scene_migration_8cpp.html" title=" " alt="" coords="1572,152,1764,177"/>
-<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="869,41,895,74,912,90,930,102,988,121,1062,133,1148,140,1240,144,1420,145,1560,149,1572,150,1571,156,1560,155,1420,151,1239,149,1147,146,1061,139,986,126,928,106,908,94,891,78,865,45"/>
-<area shape="rect" id="Node000013" href="$_scene_importer_8cpp.html" title=" " alt="" coords="1155,79,1341,104"/>
-<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="931,30,1185,76,1184,81,930,36"/>
-<area shape="rect" id="Node000014" href="$_scene_writer_8cpp.html" title=" " alt="" coords="1365,79,1534,104"/>
-<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="945,28,1365,77,1364,83,944,33"/>
-<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="643,105,178,155,166,156,165,151,177,149,642,99"/>
-<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="649,109,348,155,347,149,648,103"/>
-<area shape="poly" id="edge10_Node000006_Node000005" title=" " alt="" coords="680,110,512,154,511,149,679,105"/>
-<area shape="rect" id="Node000007" href="$main_8cpp.html" title=" " alt="" coords="759,152,870,177"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="761,111,804,150,800,154,757,115"/>
-<area shape="rect" id="Node000008" href="$_recovery_store_8cpp.html" title=" " alt="" coords="895,152,1100,177"/>
-<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="792,105,956,149,954,154,790,110"/>
-<area shape="rect" id="Node000009" href="$_scene_compatibility_8cpp.html" title=" " alt="" coords="1124,152,1340,177"/>
-<area shape="poly" id="edge11_Node000006_Node000009" title=" " alt="" coords="829,103,1152,149,1152,155,829,109"/>
-<area shape="poly" id="edge12_Node000006_Node000010" title=" " alt="" coords="830,101,835,101,1352,149,1364,151,1363,156,1352,155,834,107,829,106"/>
-<area shape="poly" id="edge13_Node000006_Node000011" title=" " alt="" coords="830,97,886,101,1223,124,1560,149,1572,150,1571,156,1560,155,1223,129,885,107,829,102"/>
-<area shape="rect" id="Node000012" href="$_scene_tool_8cpp.html" title=" " alt="" coords="579,152,735,177"/>
-<area shape="poly" id="edge14_Node000006_Node000012" title=" " alt="" coords="715,115,672,154,668,150,711,111"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="772,5,926,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,157,165,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="754,34,621,57,470,84,286,123,138,159,136,153,285,118,468,78,620,52,760,33"/>
+<area shape="rect" id="Node000003" href="$_scene_session_8cpp.html" title=" " alt="" coords="189,157,354,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="772,36,576,84,432,123,314,159,313,153,431,118,575,78,767,37"/>
+<area shape="rect" id="Node000004" href="$_scenario_panel_8cpp.html" title=" " alt="" coords="938,81,1126,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="896,37,1002,81,997,80,895,42"/>
+<area shape="rect" id="Node000005" href="$_scene_bundle_8cpp.html" title=" " alt="" coords="378,157,552,184"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="781,37,712,59,641,83,556,122,488,159,487,154,553,118,639,79,710,54,776,38"/>
+<area shape="rect" id="Node000006" href="$_scene_bundle_8h.html" title=" " alt="" coords="652,81,811,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="818,40,753,83,751,78,813,42"/>
+<area shape="rect" id="Node000010" href="$_scene_exporter_8cpp.html" title=" " alt="" coords="1357,157,1541,184"/>
+<area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="853,46,863,80,871,94,883,107,921,126,974,139,1037,146,1105,150,1241,151,1345,154,1360,158,1354,158,1345,159,1240,156,1105,155,1036,152,973,144,919,131,879,111,867,98,858,82,850,50"/>
+<area shape="rect" id="Node000011" href="$_scene_migration_8cpp.html" title=" " alt="" coords="1565,157,1757,184"/>
+<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="865,44,891,78,908,94,926,106,983,126,1057,138,1142,145,1234,149,1414,150,1553,154,1568,158,1562,158,1553,159,1414,155,1234,154,1142,151,1056,144,981,131,924,111,904,98,887,82,862,49"/>
+<area shape="rect" id="Node000013" href="$_scene_importer_8cpp.html" title=" " alt="" coords="1150,81,1334,109"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="935,34,1174,80,1169,80,934,39"/>
+<area shape="rect" id="Node000014" href="$_scene_writer_8cpp.html" title=" " alt="" coords="1358,81,1526,109"/>
+<area shape="poly" id="edge18_Node000001_Node000014" title=" " alt="" coords="941,29,1347,78,1360,82,1355,82,1346,84,941,34"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="637,108,177,159,166,161,165,155,177,154,636,103"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="639,111,355,159,354,153,634,111"/>
+<area shape="poly" id="edge10_Node000006_Node000005" title=" " alt="" coords="672,113,513,159,512,153,667,113"/>
+<area shape="rect" id="Node000007" href="$main_8cpp.html" title=" " alt="" coords="756,157,865,184"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="758,117,799,157,794,155,756,122"/>
+<area shape="rect" id="Node000008" href="$_recovery_store_8cpp.html" title=" " alt="" coords="890,157,1094,184"/>
+<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="793,111,948,156,942,156,792,116"/>
+<area shape="rect" id="Node000009" href="$_scene_compatibility_8cpp.html" title=" " alt="" coords="1117,157,1333,184"/>
+<area shape="poly" id="edge11_Node000006_Node000009" title=" " alt="" coords="827,108,1139,156,1133,156,826,113"/>
+<area shape="poly" id="edge12_Node000006_Node000010" title=" " alt="" coords="827,106,831,106,1088,130,1345,154,1360,158,1354,158,1345,159,1087,136,830,111,827,111"/>
+<area shape="poly" id="edge13_Node000006_Node000011" title=" " alt="" coords="827,102,881,106,1217,128,1553,154,1568,158,1562,158,1553,159,1217,134,881,111,827,107"/>
+<area shape="rect" id="Node000012" href="$_scene_tool_8cpp.html" title=" " alt="" coords="577,157,732,184"/>
+<area shape="poly" id="edge14_Node000006_Node000012" title=" " alt="" coords="709,119,669,159,667,154,704,121"/>
 </map>

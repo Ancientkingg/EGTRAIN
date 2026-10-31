@@ -1,7 +1,7 @@
 <map id="releaseDoubleSwitch" name="releaseDoubleSwitch">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,164,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,31,37,21,42,11,58,5,85,3,118,7,131,16,128,20,116,11,85,8,59,10,45,15,43,20,50,27"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9" title=" " alt="" coords="212,29,439,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="165,39,198,39,198,45,165,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="286,31,278,21,282,11,298,5,325,3,359,7,372,16,369,20,357,11,325,8,300,10,286,15,283,20,290,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,164,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,29,37,20,42,11,58,5,85,3,113,5,129,14,124,14,111,10,84,8,59,10,46,15,42,20,48,29"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9" title=" " alt="" coords="212,29,438,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="164,41,199,43,193,43,164,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="284,28,277,20,282,11,299,5,325,3,353,5,370,14,364,14,352,10,325,8,300,10,286,15,282,20,289,30"/>
 </map>

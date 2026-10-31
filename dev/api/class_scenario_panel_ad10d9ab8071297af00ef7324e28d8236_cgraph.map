@@ -1,14 +1,14 @@
 <map id="ScenarioPanel::selectScenario" name="ScenarioPanel::selectScenario">
-<area shape="rect" id="Node000001" title="Selects the scenario at this position of the scene; the list follows when it is refreshed." alt="" coords="5,35,221,60"/>
-<area shape="rect" id="Node000002" href="$class_scenario_panel.html#a655b2f602434599d9d7d3aa0f57724ca" title=" " alt="" coords="269,9,501,35"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,35,256,31,256,37,222,40"/>
-<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="283,59,488,84"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,54,269,58,269,64,221,60"/>
-<area shape="rect" id="Node000004" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="549,29,743,55"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="488,57,535,52,536,57,489,62"/>
-<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="549,79,743,119"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="489,80,536,85,535,90,488,85"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="791,29,941,55"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="743,39,776,39,776,45,743,45"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="830,31,823,21,827,11,841,5,866,3,896,6,908,15,905,20,894,11,866,8,843,10,830,15,828,20,834,28"/>
+<area shape="rect" id="Node000001" title="Selects the scenario at this position of the scene; the list follows when it is refreshed." alt="" coords="5,35,221,62"/>
+<area shape="rect" id="Node000002" href="$class_scenario_panel.html#a655b2f602434599d9d7d3aa0f57724ca" title=" " alt="" coords="269,8,500,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,35,256,34,250,35,222,40"/>
+<area shape="rect" id="Node000003" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="282,60,486,88"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,56,269,62,264,63,221,61"/>
+<area shape="rect" id="Node000004" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="548,29,740,57"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="487,59,535,56,530,57,487,64"/>
+<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="548,81,740,126"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="487,83,535,91,530,91,487,88"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="788,29,939,57"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="740,41,775,43,770,43,741,46"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="826,28,820,20,825,11,839,5,864,3,889,5,905,14,899,14,888,10,863,8,841,10,828,15,825,20,831,30"/>
 </map>

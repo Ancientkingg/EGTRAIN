@@ -1,58 +1,58 @@
 <map id="TrainUnitSourceLinker::processChanges" name="TrainUnitSourceLinker::processChanges">
-<area shape="rect" id="Node000001" title="Takes the files that changed. Nothing happens while a run uses the model." alt="" coords="5,381,168,421"/>
-<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" title="Takes the values of this file into the units that are linked to it." alt="" coords="216,381,379,421"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,398,202,398,202,403,168,403"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title="Pending edits have to be taken into the model before the linker compares the model with a file." alt="" coords="427,63,660,103"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="299,380,310,327,333,255,350,216,370,179,395,144,425,113,431,108,435,113,428,117,399,147,375,182,355,219,338,257,316,328,304,381"/>
-<area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#aacfecc4e25bcb168faf76da83167440f" title=" " alt="" coords="438,225,649,251"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="310,379,356,320,388,288,425,261,442,253,444,258,428,266,392,292,360,323,314,382"/>
-<area shape="rect" id="Node000012" href="$_scene_importer_8cpp.html#af2140a30b929da68c19a93d11c3a6177" title=" " alt="" coords="440,152,647,177"/>
-<area shape="poly" id="edge18_Node000002_Node000012" title=" " alt="" coords="302,380,317,338,343,286,378,232,400,207,425,187,433,181,436,186,428,191,404,211,382,235,347,288,322,340,307,381"/>
-<area shape="rect" id="Node000015" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title="Watches exactly the linked files and the folders that hold them." alt="" coords="462,275,625,315"/>
-<area shape="poly" id="edge28_Node000002_Node000015" title=" " alt="" coords="327,378,373,351,426,325,448,316,450,321,428,330,375,356,330,383"/>
-<area shape="rect" id="Node000016" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="462,339,625,379"/>
-<area shape="poly" id="edge29_Node000002_Node000016" title=" " alt="" coords="378,384,448,373,449,378,379,390"/>
-<area shape="rect" id="Node000017" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="470,428,617,453"/>
-<area shape="poly" id="edge30_Node000002_Node000017" title=" " alt="" coords="379,411,457,424,456,429,378,416"/>
-<area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="462,478,625,518"/>
-<area shape="poly" id="edge32_Node000002_Node000018" title=" " alt="" coords="335,419,379,442,428,464,450,471,448,476,426,468,376,446,332,423"/>
-<area shape="rect" id="Node000019" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title="A message for the status line, shown for milliseconds." alt="" coords="462,542,625,582"/>
-<area shape="poly" id="edge33_Node000002_Node000019" title=" " alt="" coords="315,419,362,474,393,503,428,528,450,538,447,543,425,532,390,507,358,477,311,423"/>
-<area shape="rect" id="Node000020" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="448,606,639,646"/>
-<area shape="poly" id="edge34_Node000002_Node000020" title=" " alt="" coords="309,420,326,457,351,504,386,551,428,592,437,597,434,602,425,596,381,555,347,507,321,460,304,422"/>
-<area shape="rect" id="Node000021" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title="True when error is empty." alt="" coords="450,670,637,710"/>
-<area shape="poly" id="edge35_Node000002_Node000021" title=" " alt="" coords="305,420,318,469,342,532,378,599,401,630,428,656,439,664,436,668,425,660,397,633,374,602,337,535,313,470,300,422"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="505,227,497,217,501,207,517,201,543,199,576,203,589,212,586,216,574,207,543,204,518,206,505,211,502,216,509,223"/>
-<area shape="rect" id="Node000005" href="$_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f" title=" " alt="" coords="708,299,849,324"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="612,248,661,261,738,291,736,296,659,266,611,253"/>
-<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="723,103,835,128"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="584,223,621,207,658,186,673,174,682,162,691,150,706,137,717,131,720,136,710,142,695,153,686,165,676,178,662,191,624,212,586,228"/>
-<area shape="rect" id="Node000007" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="741,152,816,177"/>
-<area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="584,223,727,178,729,183,586,228"/>
-<area shape="rect" id="Node000010" href="$_scene_importer_8cpp.html#af011a6ca680ac004aafb810c1cfe41ef" title=" " alt="" coords="731,225,826,251"/>
-<area shape="poly" id="edge14_Node000004_Node000010" title=" " alt="" coords="649,235,717,235,717,241,649,241"/>
-<area shape="rect" id="Node000011" href="$_scene_importer_8cpp.html#aa06f54b9db3428f5c864f4052a0a7352" title=" " alt="" coords="711,372,846,397"/>
-<area shape="poly" id="edge16_Node000004_Node000011" title=" " alt="" coords="637,248,662,261,679,279,688,297,696,315,710,335,745,363,741,367,706,339,691,318,683,299,675,282,658,265,634,253"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="750,300,744,290,747,281,759,274,779,272,803,276,813,284,809,288,800,280,779,277,760,279,751,284,749,290,754,297"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="750,104,744,94,747,85,759,78,779,76,803,80,813,88,809,92,800,84,779,81,760,83,751,88,749,94,754,101"/>
-<area shape="rect" id="Node000008" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="897,128,1008,153"/>
-<area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="816,157,883,148,884,153,817,162"/>
-<area shape="rect" id="Node000009" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="903,201,1002,227"/>
-<area shape="poly" id="edge12_Node000007_Node000009" title=" " alt="" coords="817,173,895,195,893,200,816,178"/>
-<area shape="poly" id="edge11_Node000008_Node000008" title=" " alt="" coords="924,129,918,120,921,110,933,104,953,101,977,105,987,114,983,118,974,110,953,107,934,109,925,113,923,119,928,126"/>
-<area shape="poly" id="edge13_Node000009_Node000009" title=" " alt="" coords="924,203,918,193,921,183,933,177,953,175,977,178,987,187,983,191,974,183,953,180,934,182,925,187,923,192,928,200"/>
-<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="750,227,744,217,747,207,759,201,779,199,803,202,813,211,809,215,800,207,779,204,760,206,751,211,749,216,754,224"/>
-<area shape="poly" id="edge17_Node000011_Node000011" title=" " alt="" coords="750,373,744,364,747,354,759,348,779,345,803,349,813,358,809,362,800,354,779,351,760,353,751,357,749,363,754,370"/>
-<area shape="poly" id="edge19_Node000012_Node000005" title=" " alt="" coords="640,175,662,187,680,204,688,223,696,242,710,262,745,289,741,294,706,265,691,244,683,225,675,207,658,191,637,180"/>
-<area shape="poly" id="edge21_Node000012_Node000006" title=" " alt="" coords="604,149,709,127,710,132,605,155"/>
-<area shape="poly" id="edge22_Node000012_Node000007" title=" " alt="" coords="647,162,727,162,727,167,647,167"/>
-<area shape="poly" id="edge23_Node000012_Node000010" title=" " alt="" coords="617,175,661,186,739,217,737,222,659,191,616,180"/>
-<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="505,154,497,144,501,134,517,128,543,125,576,129,589,139,586,143,574,134,543,131,518,133,505,138,502,143,509,150"/>
-<area shape="rect" id="Node000013" href="$_scene_importer_8cpp.html#a8c7f671a4eaae43db4839df0abcb514a" title=" " alt="" coords="754,29,803,55"/>
-<area shape="poly" id="edge24_Node000012_Node000013" title=" " alt="" coords="584,149,621,134,658,113,673,101,682,89,691,76,707,64,740,49,742,54,709,68,695,80,686,92,676,104,662,118,624,139,586,154"/>
-<area shape="poly" id="edge25_Node000013_Node000013" title=" " alt="" coords="752,32,744,22,746,12,758,5,779,3,804,7,812,12,814,19,809,20,807,16,802,12,779,8,760,10,750,15,749,21,756,29"/>
-<area shape="rect" id="Node000014" href="$_scene_importer_8cpp.html#ab5cba885129b8c9b017c168d6f62fb46" title=" " alt="" coords="911,29,994,55"/>
-<area shape="poly" id="edge26_Node000013_Node000014" title=" " alt="" coords="803,39,898,39,898,45,803,45"/>
-<area shape="poly" id="edge27_Node000014_Node000014" title=" " alt="" coords="924,31,918,21,921,11,933,5,953,3,977,6,987,15,983,19,974,11,953,8,934,10,925,15,923,20,928,28"/>
-<area shape="poly" id="edge31_Node000017_Node000017" title=" " alt="" coords="505,430,497,420,501,410,517,404,543,401,576,405,589,415,586,419,574,410,543,407,518,409,505,414,502,419,509,426"/>
+<area shape="rect" id="Node000001" title="Takes the files that changed. Nothing happens while a run uses the model." alt="" coords="5,397,168,442"/>
+<area shape="rect" id="Node000002" href="$class_train_unit_source_linker.html#ae3fda9df595e4ee120f40884d798dfd8" title="Takes the values of this file into the units that are linked to it." alt="" coords="216,397,378,442"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,417,202,418,198,421,169,422"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873" title="Pending edits have to be taken into the model before the linker compares the model with a file." alt="" coords="426,65,658,110"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="299,395,310,340,333,266,349,226,370,188,394,152,424,120,432,117,428,121,428,124,399,155,374,190,354,229,338,268,315,341,304,397"/>
+<area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#aacfecc4e25bcb168faf76da83167440f" title=" " alt="" coords="438,233,647,261"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="309,395,355,332,387,298,425,270,438,266,434,269,427,275,391,302,359,335,314,398"/>
+<area shape="rect" id="Node000012" href="$_scene_importer_8cpp.html#af2140a30b929da68c19a93d11c3a6177" title=" " alt="" coords="439,157,645,185"/>
+<area shape="poly" id="edge18_Node000002_Node000012" title=" " alt="" coords="302,395,317,352,342,298,378,243,400,217,424,196,437,190,433,194,428,200,403,221,382,246,347,301,322,354,307,397"/>
+<area shape="rect" id="Node000015" href="$class_train_unit_source_linker.html#a446b8b9f4a5e30776ff5e4e6cb0e5cf4" title="Watches exactly the linked files and the folders that hold them." alt="" coords="461,285,623,330"/>
+<area shape="poly" id="edge28_Node000002_Node000015" title=" " alt="" coords="329,394,374,366,425,339,449,332,444,335,427,344,376,371,332,399"/>
+<area shape="rect" id="Node000016" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="461,354,623,399"/>
+<area shape="poly" id="edge29_Node000002_Node000016" title=" " alt="" coords="378,403,448,392,443,395,380,407"/>
+<area shape="rect" id="Node000017" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="469,447,615,474"/>
+<area shape="poly" id="edge30_Node000002_Node000017" title=" " alt="" coords="378,430,456,445,451,446,379,436"/>
+<area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title="The status of a link, or a link itself, has changed." alt="" coords="461,498,623,543"/>
+<area shape="poly" id="edge32_Node000002_Node000018" title=" " alt="" coords="338,439,427,483,449,493,444,494,425,488,337,445"/>
+<area shape="rect" id="Node000019" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title="A message for the status line, shown for milliseconds." alt="" coords="461,568,623,612"/>
+<area shape="poly" id="edge33_Node000002_Node000019" title=" " alt="" coords="314,439,362,497,393,527,427,553,449,566,444,566,425,557,389,531,358,500,313,445"/>
+<area shape="rect" id="Node000020" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="448,637,637,682"/>
+<area shape="poly" id="edge34_Node000002_Node000020" title=" " alt="" coords="307,440,325,480,350,529,385,580,428,622,437,631,432,630,424,627,380,583,346,532,320,483,305,445"/>
+<area shape="rect" id="Node000021" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title="True when error is empty." alt="" coords="449,706,635,751"/>
+<area shape="poly" id="edge35_Node000002_Node000021" title=" " alt="" coords="303,440,317,493,341,561,377,631,400,664,428,692,438,702,433,700,424,696,396,667,372,634,336,563,312,495,301,445"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="502,233,496,224,501,215,517,209,542,207,570,209,586,218,581,219,568,214,542,212,518,214,504,219,501,224,507,233"/>
+<area shape="rect" id="Node000005" href="$_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f" title=" " alt="" coords="706,309,847,337"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="618,259,659,270,736,302,730,303,657,275,619,264"/>
+<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="721,105,832,133"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="585,231,621,215,657,194,671,182,680,169,690,157,705,144,718,139,714,142,708,148,693,160,684,173,675,185,660,199,624,220,588,235"/>
+<area shape="rect" id="Node000007" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="740,157,813,185"/>
+<area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="586,230,727,186,723,189,589,235"/>
+<area shape="rect" id="Node000010" href="$_scene_importer_8cpp.html#af011a6ca680ac004aafb810c1cfe41ef" title=" " alt="" coords="729,233,824,261"/>
+<area shape="poly" id="edge14_Node000004_Node000010" title=" " alt="" coords="647,245,717,246,712,248,648,250"/>
+<area shape="rect" id="Node000011" href="$_scene_importer_8cpp.html#aa06f54b9db3428f5c864f4052a0a7352" title=" " alt="" coords="709,385,844,413"/>
+<area shape="poly" id="edge16_Node000004_Node000011" title=" " alt="" coords="638,259,660,270,678,288,687,307,694,326,708,347,741,376,736,376,704,350,690,329,682,309,674,291,657,275,638,264"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="746,308,741,300,745,291,757,285,777,283,797,285,810,294,804,294,795,290,776,288,759,290,749,295,747,300,751,309"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="746,104,741,96,745,87,757,81,777,79,797,81,810,90,804,90,795,86,776,84,759,86,749,91,747,96,751,105"/>
+<area shape="rect" id="Node000008" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="895,132,1005,160"/>
+<area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="813,163,882,155,878,157,815,168"/>
+<area shape="rect" id="Node000009" href="$_scene_importer_8cpp.html#af92da0fe546920ab709f9f36ecb9f07b" title=" " alt="" coords="901,208,998,236"/>
+<area shape="poly" id="edge12_Node000007_Node000009" title=" " alt="" coords="813,179,889,203,884,204,814,184"/>
+<area shape="poly" id="edge11_Node000008_Node000008" title=" " alt="" coords="919,131,915,123,919,114,931,107,950,105,971,108,983,117,978,117,969,113,950,111,932,113,922,117,920,123,924,132"/>
+<area shape="poly" id="edge13_Node000009_Node000009" title=" " alt="" coords="919,207,915,199,919,190,931,183,950,181,971,184,983,193,978,193,969,189,950,187,932,189,922,193,920,199,924,208"/>
+<area shape="poly" id="edge15_Node000010_Node000010" title=" " alt="" coords="746,232,741,224,745,215,757,209,777,207,797,209,810,218,804,218,795,214,776,212,759,214,749,219,747,224,751,233"/>
+<area shape="poly" id="edge17_Node000011_Node000011" title=" " alt="" coords="746,384,741,376,745,367,757,361,777,359,797,361,810,370,804,370,795,366,776,364,759,366,749,371,747,376,751,386"/>
+<area shape="poly" id="edge19_Node000012_Node000005" title=" " alt="" coords="635,183,660,196,678,213,687,232,694,251,708,271,742,300,736,300,704,274,690,253,682,234,673,217,657,200,636,188"/>
+<area shape="poly" id="edge21_Node000012_Node000006" title=" " alt="" coords="607,154,708,133,703,136,609,159"/>
+<area shape="poly" id="edge22_Node000012_Node000007" title=" " alt="" coords="645,169,727,170,722,172,647,174"/>
+<area shape="poly" id="edge23_Node000012_Node000010" title=" " alt="" coords="614,183,659,195,734,226,729,227,657,200,615,188"/>
+<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="502,157,496,148,501,139,517,133,542,131,570,133,586,141,581,143,568,138,542,136,518,138,504,143,501,148,507,157"/>
+<area shape="rect" id="Node000013" href="$_scene_importer_8cpp.html#a8c7f671a4eaae43db4839df0abcb514a" title=" " alt="" coords="752,29,801,57"/>
+<area shape="poly" id="edge24_Node000012_Node000013" title=" " alt="" coords="587,154,623,139,657,120,671,107,680,94,690,81,705,68,740,53,736,56,708,72,693,85,684,97,675,110,660,124,625,144,590,159"/>
+<area shape="poly" id="edge25_Node000013_Node000013" title=" " alt="" coords="749,32,742,23,744,12,756,5,777,3,802,7,812,19,806,19,799,12,776,8,758,10,748,16,747,22,755,32"/>
+<area shape="rect" id="Node000014" href="$_scene_importer_8cpp.html#ab5cba885129b8c9b017c168d6f62fb46" title=" " alt="" coords="909,29,991,57"/>
+<area shape="poly" id="edge26_Node000013_Node000014" title=" " alt="" coords="800,41,896,42,891,44,802,46"/>
+<area shape="poly" id="edge27_Node000014_Node000014" title=" " alt="" coords="919,28,915,20,919,11,931,5,950,3,971,5,983,14,978,14,969,10,950,8,932,10,922,15,920,20,925,29"/>
+<area shape="poly" id="edge31_Node000017_Node000017" title=" " alt="" coords="502,446,496,438,501,428,517,422,542,420,570,423,586,431,581,432,568,428,542,425,518,427,504,432,501,437,507,447"/>
 </map>

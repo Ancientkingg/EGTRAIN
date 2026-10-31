@@ -1,5 +1,5 @@
 <map id="SceneDocument::setDirty" name="SceneDocument::setDirty">
-<area shape="rect" id="Node000001" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="5,5,193,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="241,5,464,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,15,228,15,228,21,194,21"/>
+<area shape="rect" id="Node000001" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="5,5,193,33"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="241,5,463,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,17,228,19,222,19,193,22"/>
 </map>

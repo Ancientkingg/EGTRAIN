@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::paintPassengerInfoIcon" name="NetworkPresenter::paintPassengerInfoIcon">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,252,45"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="300,5,529,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,23,286,23,286,28,252,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,251,50"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="299,5,527,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,25,286,28,281,28,251,30"/>
 </map>

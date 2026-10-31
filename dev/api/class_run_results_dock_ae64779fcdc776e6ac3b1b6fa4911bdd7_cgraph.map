@@ -1,15 +1,15 @@
 <map id="RunResultsDock::refreshSummary" name="RunResultsDock::refreshSummary">
-<area shape="rect" id="Node000001" title="Writes the lines that say which run the table shows and its status, each entry on a line of its own." alt="" coords="5,103,251,128"/>
-<area shape="rect" id="Node000002" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="314,29,481,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,100,298,63,329,55,330,61,299,69,172,105"/>
-<area shape="rect" id="Node000004" href="$_run_results_8cpp.html#a213452198b1bc486ef396bfe6044b9f9" title=" " alt="" coords="299,103,496,128"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="251,113,285,113,285,118,251,118"/>
-<area shape="rect" id="Node000005" href="$_run_results_8cpp.html#a1f8947330931b9b59f169c0e5363a54a" title=" " alt="" coords="322,176,473,201"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="176,126,337,170,336,175,175,131"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="364,31,356,21,360,11,374,5,397,3,426,6,437,15,434,20,424,11,397,8,375,10,364,15,362,20,368,28"/>
-<area shape="rect" id="Node000003" href="$_result_frame_8cpp.html#a6ea9c7beca738c9a91b0709c49279117" title=" " alt="" coords="544,29,665,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="481,39,530,39,530,45,481,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="571,31,564,21,567,11,581,5,605,3,633,6,645,15,641,20,631,11,605,8,583,10,571,15,569,20,575,28"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="364,104,356,94,360,84,374,78,397,76,426,80,437,89,434,93,424,85,397,81,375,83,364,88,362,94,368,101"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="364,178,356,168,360,158,374,152,397,149,426,153,437,162,434,166,424,158,397,155,375,157,364,161,362,167,368,174"/>
+<area shape="rect" id="Node000001" title="Writes the lines that say which run the table shows and its status, each entry on a line of its own." alt="" coords="5,105,250,133"/>
+<area shape="rect" id="Node000002" href="$_run_controller_8cpp.html#acf7b70daa8898c6b508fe5ac95b0101f" title=" " alt="" coords="313,29,479,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,102,297,67,329,61,324,63,298,72,178,107"/>
+<area shape="rect" id="Node000004" href="$_run_results_8cpp.html#a213452198b1bc486ef396bfe6044b9f9" title=" " alt="" coords="298,105,494,133"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="250,117,285,119,280,120,250,122"/>
+<area shape="rect" id="Node000005" href="$_run_results_8cpp.html#a1f8947330931b9b59f169c0e5363a54a" title=" " alt="" coords="321,181,470,209"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="180,131,332,175,327,178,179,136"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="360,28,355,20,359,11,373,5,396,3,420,5,435,14,429,14,419,10,396,8,374,10,363,15,360,20,365,29"/>
+<area shape="rect" id="Node000003" href="$_result_frame_8cpp.html#a6ea9c7beca738c9a91b0709c49279117" title=" " alt="" coords="542,29,662,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="479,41,529,43,524,44,480,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="566,28,561,20,565,11,579,5,602,3,627,5,641,14,636,14,625,10,602,8,581,10,569,15,566,20,571,30"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="360,104,355,96,359,87,373,81,396,79,420,81,435,90,429,90,419,86,396,84,374,86,363,91,360,96,365,106"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="360,180,355,172,359,163,373,157,396,155,420,157,435,166,430,166,419,162,396,160,374,162,363,167,360,172,365,182"/>
 </map>

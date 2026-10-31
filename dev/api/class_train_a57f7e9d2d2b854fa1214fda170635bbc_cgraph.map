@@ -1,5 +1,5 @@
 <map id="Train::brakingArc" name="Train::brakingArc">
-<area shape="rect" id="Node000001" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="5,13,136,38"/>
-<area shape="rect" id="Node000002" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="184,5,359,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,23,170,23,170,28,136,28"/>
+<area shape="rect" id="Node000001" title="The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup." alt="" coords="5,14,136,42"/>
+<area shape="rect" id="Node000002" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="184,5,357,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,25,170,27,165,28,136,30"/>
 </map>

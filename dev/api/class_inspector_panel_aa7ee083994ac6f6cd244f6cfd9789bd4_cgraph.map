@@ -1,9 +1,9 @@
 <map id="InspectorPanel::selectsStationOverlay" name="InspectorPanel::selectsStationOverlay">
-<area shape="rect" id="Node000001" title="True when the overlay belongs to the selected station." alt="" coords="5,69,223,109"/>
-<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a15a99bf2d5436f07027e68886ddac9b8" title="The station stands for a node of the run." alt="" coords="286,5,435,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,67,272,45,274,51,193,72"/>
-<area shape="rect" id="Node000003" href="$class_station_overlay_item.html#a45218fc521b91ed42ddc09a1c2cfad1f" title="The station stands for the node with this ID on this track line." alt="" coords="271,69,451,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,87,257,87,257,92,223,92"/>
-<area shape="rect" id="Node000004" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title="The name of the station as given." alt="" coords="286,133,435,173"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="193,107,274,128,272,133,191,112"/>
+<area shape="rect" id="Node000001" title="True when the overlay belongs to the selected station." alt="" coords="5,75,222,119"/>
+<area shape="rect" id="Node000002" href="$class_station_overlay_item.html#a15a99bf2d5436f07027e68886ddac9b8" title="The station stands for a node of the run." alt="" coords="285,5,434,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,72,272,52,268,54,196,77"/>
+<area shape="rect" id="Node000003" href="$class_station_overlay_item.html#a45218fc521b91ed42ddc09a1c2cfad1f" title="The station stands for the node with this ID on this track line." alt="" coords="270,75,449,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,94,256,96,251,98,223,100"/>
+<area shape="rect" id="Node000004" href="$class_station_overlay_item.html#ace69d78b53944fd3e27b15aa21bc31aa" title="The name of the station as given." alt="" coords="285,144,434,189"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,117,273,141,267,142,195,123"/>
 </map>

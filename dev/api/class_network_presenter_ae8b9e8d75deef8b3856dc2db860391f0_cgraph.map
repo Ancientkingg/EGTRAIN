@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::clearOperationalTrackStates" name="NetworkPresenter::clearOperationalTrackStates">
-<area shape="rect" id="Node000001" title="Sets every track line back to the free state." alt="" coords="5,5,260,45"/>
-<area shape="rect" id="Node000002" href="$class_track_line_item.html#aaacd7649b9cd2d927adc09130f3755b9" title=" " alt="" coords="308,5,525,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,23,294,23,294,28,260,28"/>
+<area shape="rect" id="Node000001" title="Sets every track line back to the free state." alt="" coords="5,5,260,50"/>
+<area shape="rect" id="Node000002" href="$class_track_line_item.html#aaacd7649b9cd2d927adc09130f3755b9" title=" " alt="" coords="308,5,524,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,25,295,28,289,28,260,30"/>
 </map>

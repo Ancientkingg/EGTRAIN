@@ -1,8 +1,8 @@
 <map id="telemetry::OperationObservation::exportFinished" name="telemetry::OperationObservation::exportFinished">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,241,75"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07" title=" " alt="" coords="289,5,525,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,40,275,36,276,42,242,45"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036" title=" " alt="" coords="573,35,809,75"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="242,54,289,55,525,55,559,54,560,60,525,60,289,60,242,59"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="526,35,560,38,559,44,525,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,36,241,81"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a2db562cb6e4d6783eb276f421a01dc07" title=" " alt="" coords="289,5,524,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="241,43,276,42,271,42,242,48"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036" title=" " alt="" coords="572,36,807,81"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="241,59,289,60,524,60,559,62,554,62,524,65,289,65,241,64"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="525,38,559,44,554,44,525,43"/>
 </map>

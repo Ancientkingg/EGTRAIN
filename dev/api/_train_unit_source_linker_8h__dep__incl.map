@@ -1,7 +1,7 @@
 <map id="editors/TrainUnitSourceLinker.h" name="editors/TrainUnitSourceLinker.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="86,5,309,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,40,105,81,102,76,166,36"/>
-<area shape="rect" id="Node000003" href="$_train_unit_source_linker_8cpp.html" title=" " alt="" coords="190,79,429,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,36,292,76,290,81,226,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="84,5,307,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,41,106,83,103,78,161,42"/>
+<area shape="rect" id="Node000003" href="$_train_unit_source_linker_8cpp.html" title=" " alt="" coords="189,81,426,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,39,290,81,285,81,227,44"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="MainWindow::updateDiagramActions" name="MainWindow::updateDiagramActions">
-<area shape="rect" id="Node000001" title="Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how t..." alt="" coords="5,5,220,45"/>
-<area shape="rect" id="Node000002" href="$class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" title="Results of a completed run exist (RunController::hasRunResults())." alt="" coords="268,13,477,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,23,255,23,255,28,220,28"/>
+<area shape="rect" id="Node000001" title="Enables the diagram entries and the Run Results dock while results exist; disabled entries tell how t..." alt="" coords="5,5,219,50"/>
+<area shape="rect" id="Node000002" href="$class_main_window.html#aef45acf99c67d0bec5dfd949ee5a0c12" title="Results of a completed run exist (RunController::hasRunResults())." alt="" coords="267,14,475,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,25,254,28,248,28,219,30"/>
 </map>

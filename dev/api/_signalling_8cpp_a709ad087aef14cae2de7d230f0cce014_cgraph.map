@@ -1,7 +1,7 @@
 <map id="elaborateMaOnBlockSectionsWithSwitchDiv" name="elaborateMaOnBlockSectionsWithSwitchDiv">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,219,69"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="71,30,68,20,75,10,90,5,112,3,138,6,152,13,150,18,136,11,112,8,91,10,78,15,73,21,76,28"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="267,37,401,62"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="219,47,253,47,253,52,219,52"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="298,38,290,28,294,18,309,12,334,10,365,14,377,23,374,27,363,19,334,15,310,17,298,22,295,28,302,35"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,218,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="69,28,68,19,75,10,90,5,112,3,136,5,151,14,146,14,134,10,111,8,91,10,78,15,73,21,74,30"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="266,38,400,66"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="218,49,252,52,247,52,218,54"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="295,36,289,29,294,19,309,13,333,11,359,14,374,23,369,22,357,19,333,16,310,18,297,23,294,29,300,38"/>
 </map>

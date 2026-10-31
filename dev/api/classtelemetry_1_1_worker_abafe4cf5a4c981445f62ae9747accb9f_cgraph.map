@@ -1,9 +1,9 @@
 <map id="telemetry::Worker::disable" name="telemetry::Worker::disable">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,152,67"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="200,27,347,67"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,45,186,45,186,50,152,50"/>
-<area shape="rect" id="Node000003" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="431,5,559,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="347,35,416,26,417,31,347,40"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="395,55,595,95"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="347,54,382,58,381,64,347,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,28,151,72"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="199,28,344,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,47,186,49,180,50,151,52"/>
+<area shape="rect" id="Node000003" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="428,5,555,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,37,415,30,410,31,345,42"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="392,57,591,102"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="345,57,379,64,373,64,344,62"/>
 </map>

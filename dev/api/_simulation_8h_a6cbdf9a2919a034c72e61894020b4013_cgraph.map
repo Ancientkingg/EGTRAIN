@@ -1,9 +1,9 @@
 <map id="ComputeTimetableEnergyConsumption" name="ComputeTimetableEnergyConsumption">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,284,55"/>
-<area shape="rect" id="Node000002" href="$_simulation_8cpp.html#acce5faa57d4b83041d73a9f62488e9cb" title=" " alt="" coords="332,29,611,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,39,318,39,318,45,284,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="432,31,423,21,428,11,444,5,471,3,506,7,515,11,519,17,515,20,512,15,504,12,471,8,445,10,431,15,429,20,436,27"/>
-<area shape="rect" id="Node000003" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="659,29,771,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="611,39,645,39,645,45,611,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="675,31,667,21,671,11,688,5,715,3,749,7,759,11,762,17,758,20,755,15,748,12,715,8,689,10,675,15,672,20,679,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,283,57"/>
+<area shape="rect" id="Node000002" href="$_simulation_8cpp.html#acce5faa57d4b83041d73a9f62488e9cb" title=" " alt="" coords="331,29,608,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,41,318,43,312,43,283,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="428,28,421,20,427,11,443,5,469,3,498,5,515,14,509,14,496,10,469,8,444,10,430,15,427,20,433,30"/>
+<area shape="rect" id="Node000003" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="656,29,767,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="608,41,643,43,638,43,608,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="670,28,664,20,669,11,685,5,712,3,740,5,757,14,752,14,739,10,712,8,686,10,672,15,669,20,675,30"/>
 </map>

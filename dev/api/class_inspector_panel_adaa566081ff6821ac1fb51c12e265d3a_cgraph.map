@@ -1,5 +1,5 @@
 <map id="InspectorPanel::handleDisableHighlight" name="InspectorPanel::handleDisableHighlight">
-<area shape="rect" id="Node000001" title="Does what handleCloseInfoDockWidget does and hides the dock." alt="" coords="5,5,224,45"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="272,5,477,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,23,258,23,258,28,224,28"/>
+<area shape="rect" id="Node000001" title="Does what handleCloseInfoDockWidget does and hides the dock." alt="" coords="5,5,223,50"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="271,5,475,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,25,258,28,253,28,223,30"/>
 </map>

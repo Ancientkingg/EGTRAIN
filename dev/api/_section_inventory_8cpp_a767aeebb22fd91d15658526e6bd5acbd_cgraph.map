@@ -1,10 +1,10 @@
 <map id="buildSceneRouteTraversal" name="buildSceneRouteTraversal">
-<area shape="rect" id="Node000001" title="The station visits of the route, building the section inventory first." alt="" coords="5,29,196,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="61,31,53,21,57,11,74,5,101,3,135,7,145,11,148,17,144,20,141,15,134,12,101,8,75,10,61,15,58,20,65,27"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="244,29,447,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="196,39,230,39,230,45,196,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="306,31,297,21,302,11,318,5,345,3,380,7,389,11,393,17,389,20,386,15,378,12,345,8,319,10,305,15,303,20,310,27"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="495,29,719,55"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="447,39,481,39,481,45,447,45"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="564,31,555,21,560,11,577,5,607,3,644,7,654,12,658,18,653,20,651,16,643,12,607,8,579,10,564,15,561,20,568,27"/>
+<area shape="rect" id="Node000001" title="The station visits of the route, building the section inventory first." alt="" coords="5,29,195,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,29,52,20,57,11,73,5,100,3,129,5,146,14,140,14,127,10,100,8,75,10,60,15,57,20,63,29"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="243,29,445,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="195,41,230,43,224,43,195,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="302,28,295,20,301,11,317,5,344,3,372,5,389,14,384,14,371,10,344,8,318,10,304,15,301,20,307,30"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="493,29,716,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="445,41,480,43,475,43,445,46"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="560,28,553,20,559,11,576,5,605,3,635,5,653,14,648,14,634,10,605,8,577,10,562,15,558,20,565,30"/>
 </map>

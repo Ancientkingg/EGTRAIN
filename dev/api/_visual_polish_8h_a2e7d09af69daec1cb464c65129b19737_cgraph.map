@@ -1,4 +1,4 @@
 <map id="canvasColor" name="canvasColor">
-<area shape="rect" id="Node000001" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="5,29,108,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="39,30,35,21,37,12,44,5,57,3,71,6,77,15,73,18,68,11,57,8,47,10,42,14,40,20,44,28"/>
+<area shape="rect" id="Node000001" title="The background of the network canvas, RGB (16, 26, 34). The station pins and names take it as their h..." alt="" coords="5,29,107,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="37,28,34,20,37,11,44,5,56,3,69,5,76,14,71,14,66,10,56,8,46,10,41,14,40,20,42,29"/>
 </map>

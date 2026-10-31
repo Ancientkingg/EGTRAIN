@@ -1,7 +1,7 @@
 <map id="graphics/FollowCamera.h" name="graphics/FollowCamera.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,281,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,41,104,81,101,76,159,36"/>
-<area shape="rect" id="Node000003" href="$_follow_camera_8cpp.html" title=" " alt="" coords="190,79,391,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,36,275,76,272,81,214,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="94,5,279,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,42,104,83,102,78,153,43"/>
+<area shape="rect" id="Node000003" href="$_follow_camera_8cpp.html" title=" " alt="" coords="189,81,389,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,40,273,81,268,81,216,45"/>
 </map>

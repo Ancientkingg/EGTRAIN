@@ -1,14 +1,14 @@
 <map id="InspectorPanel::displayTrainInfo" name="InspectorPanel::displayTrainInfo">
-<area shape="rect" id="Node000001" title="Shows the train and follows it." alt="" coords="5,119,233,144"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title="Shows the train and, when changeFollowMode is set, follows it." alt="" coords="281,111,484,151"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,129,267,129,267,134,233,134"/>
-<area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="569,29,701,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,109,531,65,562,56,563,61,533,70,426,114"/>
-<area shape="rect" id="Node000004" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="532,79,737,119"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="484,116,518,111,519,117,485,121"/>
-<area shape="rect" id="Node000005" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="542,143,727,183"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="485,142,529,147,528,153,484,147"/>
-<area shape="rect" id="Node000006" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="547,207,723,247"/>
-<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="429,149,533,193,554,200,553,205,531,198,427,154"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="594,31,585,21,590,11,607,5,635,3,670,7,680,11,684,17,679,20,677,15,669,12,635,8,608,10,593,15,591,20,598,27"/>
+<area shape="rect" id="Node000001" title="Shows the train and follows it." alt="" coords="5,124,233,152"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a7a5fe31a4b6297e89acad9fe507f0e30" title="Shows the train and, when changeFollowMode is set, follows it." alt="" coords="281,116,483,160"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,135,268,137,262,139,234,140"/>
+<area shape="rect" id="Node000003" href="$_gui_simulation_snapshot_8h.html#a9d3587a1b79afd5c277b880adabbf418" title=" " alt="" coords="568,29,699,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="425,112,475,89,530,66,555,61,550,62,532,71,477,93,427,117"/>
+<area shape="rect" id="Node000004" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="531,81,735,126"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="483,121,518,119,513,120,484,126"/>
+<area shape="rect" id="Node000005" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="541,150,725,195"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="484,149,528,158,523,158,484,154"/>
+<area shape="rect" id="Node000006" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="546,220,721,264"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="429,158,532,205,550,214,545,213,530,210,428,163"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="590,28,583,20,589,11,606,5,633,3,663,5,680,14,675,14,661,10,633,8,607,10,592,15,589,20,595,29"/>
 </map>

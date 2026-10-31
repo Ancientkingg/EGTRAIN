@@ -1,21 +1,21 @@
 <map id="telemetry::batch" name="telemetry::batch">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,129,135,155"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="35,131,28,121,32,111,46,105,70,103,99,106,111,115,108,120,97,111,70,108,48,110,36,115,33,120,40,128"/>
-<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="196,104,368,129"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="134,132,182,126,183,131,135,137"/>
-<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="435,29,582,55"/>
-<area shape="poly" id="edge12_Node000001_Node000004" title=" " alt="" coords="84,127,126,95,153,79,182,66,243,50,306,40,421,35,422,40,306,45,244,55,184,71,155,84,129,99,87,131"/>
-<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="431,176,586,201"/>
-<area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="135,146,418,176,417,182,134,151"/>
-<area shape="rect" id="Node000006" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="183,229,381,255"/>
-<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="99,152,243,221,241,226,97,157"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="247,106,240,96,244,86,258,80,282,77,311,81,323,90,320,94,309,86,282,83,260,85,248,89,245,95,252,102"/>
-<area shape="rect" id="Node000003" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="429,103,588,128"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="368,113,416,113,416,119,368,119"/>
-<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="320,101,428,65,454,56,456,61,430,70,321,107"/>
-<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="324,127,456,169,454,174,322,132"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="472,104,464,94,468,84,483,78,509,76,541,80,553,89,549,93,539,85,509,81,484,83,472,88,469,94,476,101"/>
-<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="472,31,464,21,468,11,483,5,509,3,541,7,553,16,549,20,539,11,509,8,484,10,472,15,469,20,476,27"/>
-<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="472,178,464,168,468,158,483,152,509,149,541,153,553,163,549,167,539,158,509,155,484,157,472,162,469,167,476,174"/>
-<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="247,231,240,221,244,211,258,205,282,203,311,206,323,215,320,220,309,211,282,208,260,210,248,215,245,220,252,228"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,131,134,158"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="33,131,27,122,32,112,46,106,70,104,94,107,109,114,104,116,93,112,69,109,48,111,36,116,33,121,38,130"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="195,105,366,133"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="133,134,182,130,177,133,135,139"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="432,29,579,57"/>
+<area shape="poly" id="edge12_Node000001_Node000004" title=" " alt="" coords="84,128,126,96,152,80,181,67,241,51,303,41,420,37,415,40,304,47,242,56,183,72,155,85,129,101,88,132"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="428,181,583,209"/>
+<area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="134,149,414,182,412,187,134,155"/>
+<area shape="rect" id="Node000006" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="182,231,379,258"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="101,156,238,222,233,225,100,161"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="244,104,238,96,243,87,257,81,280,79,305,81,320,90,315,90,304,86,280,84,258,86,246,91,244,96,249,105"/>
+<area shape="rect" id="Node000003" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="427,105,584,133"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="366,117,414,119,409,120,367,122"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="323,102,450,61,446,64,325,107"/>
+<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="326,131,380,149,453,176,447,176,378,154,326,136"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="467,104,461,96,466,87,481,81,506,79,532,81,548,90,543,90,531,86,506,84,482,86,469,91,466,96,472,106"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="467,28,461,20,466,11,481,5,506,3,532,5,548,14,543,14,531,10,506,8,482,10,469,15,466,20,472,29"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="467,180,461,172,466,163,481,157,506,155,532,157,548,166,543,166,531,162,506,160,482,162,469,167,466,172,472,182"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="244,229,238,222,243,212,257,206,280,204,305,207,320,216,315,215,304,212,280,209,258,211,246,216,244,221,249,231"/>
 </map>

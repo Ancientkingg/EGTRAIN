@@ -1,20 +1,20 @@
 <map id="SceneSession::rebuildRecentScenesMenu" name="SceneSession::rebuildRecentScenesMenu">
-<area shape="rect" id="Node000001" title="Fills the Recent Cases menu again from the settings." alt="" coords="5,130,215,170"/>
-<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="287,35,445,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,127,262,82,314,62,316,67,264,87,157,132"/>
-<area shape="rect" id="Node000004" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="263,96,469,121"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="214,130,273,121,274,126,215,136"/>
-<area shape="rect" id="Node000006" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="265,170,467,210"/>
-<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="215,164,251,169,251,175,214,169"/>
-<area shape="rect" id="Node000007" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="292,259,440,284"/>
-<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="154,168,327,250,325,255,152,172"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="327,36,319,26,323,16,339,10,366,8,399,12,412,21,409,26,397,17,366,13,341,15,327,20,324,26,331,33"/>
-<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="517,29,692,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="445,43,504,42,504,47,445,48"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="566,31,558,21,562,11,578,5,605,3,638,7,651,16,647,20,636,11,605,8,579,10,566,15,563,20,570,27"/>
-<area shape="rect" id="Node000005" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="551,103,658,128"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="470,109,538,111,538,116,469,114"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="566,104,558,94,562,84,578,78,605,76,638,80,651,89,647,94,636,85,605,81,579,83,566,88,563,94,570,101"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="322,170,319,160,326,151,342,145,366,143,394,146,409,153,406,158,392,151,366,149,343,151,329,155,324,161,327,169"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="327,260,319,250,323,240,339,234,366,232,399,236,412,245,409,250,397,241,366,237,341,239,327,244,324,250,331,257"/>
+<area shape="rect" id="Node000001" title="Fills the Recent Cases menu again from the settings." alt="" coords="5,133,214,178"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="286,35,442,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,130,261,85,312,67,307,70,263,90,161,135"/>
+<area shape="rect" id="Node000004" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="262,99,467,126"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="213,135,265,128,260,131,215,140"/>
+<area shape="rect" id="Node000006" href="$class_scene_session.html#a2176c2bafa9f6d1f6ffaf4d6bfeb1b8f" title=" " alt="" coords="264,174,465,219"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="214,169,251,177,246,178,214,175"/>
+<area shape="rect" id="Node000007" href="$_case_chooser_dialog_8cpp.html#a20939c6104a524e256a3bd01b89196d2" title=" " alt="" coords="291,267,438,294"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="156,175,263,229,322,260,317,259,260,234,155,181"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="323,34,317,26,322,16,338,10,364,8,392,11,409,19,404,20,391,16,364,13,340,15,326,20,322,25,329,34"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="515,29,689,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="442,44,502,45,497,46,443,49"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="561,28,555,20,560,11,576,5,602,3,630,5,647,14,641,14,629,10,602,8,577,10,564,15,560,20,566,29"/>
+<area shape="rect" id="Node000005" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="549,105,655,133"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="467,113,536,117,531,118,468,118"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="561,104,555,96,560,87,576,81,602,79,630,81,647,90,641,90,629,86,602,84,577,86,564,91,560,96,566,106"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="319,172,318,164,325,155,341,149,364,148,390,150,407,159,402,159,389,155,364,153,342,155,328,160,323,166,324,175"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="324,265,317,258,322,248,338,242,364,240,392,243,409,252,404,251,391,248,364,245,340,247,326,252,322,257,328,267"/>
 </map>

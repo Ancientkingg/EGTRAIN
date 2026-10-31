@@ -1,10 +1,10 @@
 <map id="sceneSignalFailureTarget" name="sceneSignalFailureTarget">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,45,188,70"/>
-<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="60,46,52,36,56,26,72,20,97,18,128,22,140,31,137,35,126,27,97,23,73,25,60,30,57,36,64,43"/>
-<area shape="rect" id="Node000002" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="236,37,407,77"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,55,222,55,222,60,188,60"/>
-<area shape="rect" id="Node000003" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="455,5,625,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,42,441,37,441,42,407,48"/>
-<area shape="rect" id="Node000004" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="455,69,625,109"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="407,67,441,72,441,78,406,72"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,188,76"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="58,48,52,40,57,30,72,24,97,22,123,24,139,33,133,34,121,29,96,27,73,29,60,34,57,39,63,48"/>
+<area shape="rect" id="Node000002" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="236,40,406,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,60,223,62,218,63,188,65"/>
+<area shape="rect" id="Node000003" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="454,5,624,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,46,441,43,436,44,407,51"/>
+<area shape="rect" id="Node000004" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="454,75,624,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,73,441,81,436,81,406,78"/>
 </map>

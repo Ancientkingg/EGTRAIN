@@ -335,8 +335,9 @@ that names Qt 6.</p>
 <li><p>Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
 <code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and vcpkg <code class="docutils literal notranslate"><span class="pre">zeromq</span> <span class="pre">cppzmq</span> <span class="pre">nlohmann-json</span></code> for the
 <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
-<li><p>Linux: Ubuntu (the <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code> runner image) with Qt 6.8.3 and the apt
-packages in the configure example below.</p></li>
+<li><p>Linux: Ubuntu 24.04 (the <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code> runner image) with Qt 6.8.3 and the apt
+packages in the configure example below. The AppImage needs the glibc of the
+system that builds it, so CI builds and tests on 24.04 and not on <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code>.</p></li>
 </ul>
 <p>CI installs Qt 6.8.3 with the Qt Charts module through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, which runs
 <a class="reference external" href="https://aqtinstall.readthedocs.io/en/latest/getting_started.html">aqtinstall</a>. The same

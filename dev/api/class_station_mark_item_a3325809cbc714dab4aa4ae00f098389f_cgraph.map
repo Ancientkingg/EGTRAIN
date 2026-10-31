@@ -1,9 +1,9 @@
 <map id="StationMarkItem::StationMarkItem" name="StationMarkItem::StationMarkItem">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,191,99"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title=" " alt="" coords="239,29,387,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,61,225,54,226,60,192,66"/>
-<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a53bf883918011b406bcde8613aa0354d" title="The pin that paintStationMark() paints in frame, its edge included and its halo not." alt="" coords="243,103,383,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="192,92,230,99,229,104,191,98"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="278,31,270,21,274,11,289,5,313,3,342,6,354,15,351,20,340,11,313,8,290,10,278,15,275,20,282,28"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="278,104,270,94,274,84,289,78,313,76,342,80,354,89,351,93,340,85,313,81,290,83,278,88,275,94,282,101"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,60,190,104"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ab5821bb5e3b802765eef37c3ccc25547" title=" " alt="" coords="238,29,385,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,63,225,58,220,60,191,68"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a53bf883918011b406bcde8613aa0354d" title="The pin that paintStationMark() paints in frame, its edge included and its halo not." alt="" coords="242,105,381,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="190,95,229,104,224,105,190,101"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="274,28,269,20,273,11,288,5,311,3,337,5,352,14,346,14,335,10,311,8,289,10,277,15,274,20,279,30"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="274,104,269,96,273,87,288,81,311,79,337,81,352,90,346,90,335,86,311,84,289,86,277,91,274,96,279,106"/>
 </map>

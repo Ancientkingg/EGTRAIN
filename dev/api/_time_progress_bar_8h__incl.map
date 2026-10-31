@@ -1,5 +1,5 @@
 <map id="widgets/TimeProgressBar.h" name="widgets/TimeProgressBar.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,204,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="49,79,160,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,31,107,65,102,65,102,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,204,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="50,81,159,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,32,107,66,102,64,103,36"/>
 </map>

@@ -1,14 +1,14 @@
 <map id="graphics/NetworkPresenter.h" name="graphics/NetworkPresenter.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="195,5,405,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,152,165,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,37,151,54,114,81,102,97,94,117,88,152,83,151,89,115,97,95,110,77,148,49,192,32"/>
-<area shape="rect" id="Node000003" href="$_main_window_8h.html" title=" " alt="" coords="123,79,269,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,41,215,81,212,76,270,36"/>
-<area shape="rect" id="Node000005" href="$_network_presenter_8cpp.html" title=" " alt="" coords="293,79,517,104"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="330,36,390,76,387,81,327,41"/>
-<area shape="rect" id="Node000006" href="$_inspector_panel_8cpp.html" title=" " alt="" coords="541,79,739,104"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="368,31,585,76,584,81,367,36"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="168,114,105,154,102,150,165,109"/>
-<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="190,152,301,177"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="214,114,240,150,235,153,210,117"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="194,5,402,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,157,165,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,40,146,58,112,83,100,100,93,120,87,158,83,155,88,119,96,98,108,79,143,53,186,36"/>
+<area shape="rect" id="Node000003" href="$_main_window_8h.html" title=" " alt="" coords="122,81,266,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,41,214,83,211,78,265,43"/>
+<area shape="rect" id="Node000005" href="$_network_presenter_8cpp.html" title=" " alt="" coords="291,81,514,109"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="330,39,387,81,381,81,328,45"/>
+<area shape="rect" id="Node000006" href="$_inspector_panel_8cpp.html" title=" " alt="" coords="538,81,736,109"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="374,34,579,80,573,81,374,40"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="165,117,106,159,103,154,159,118"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="189,157,298,184"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="213,119,238,157,232,156,210,124"/>
 </map>

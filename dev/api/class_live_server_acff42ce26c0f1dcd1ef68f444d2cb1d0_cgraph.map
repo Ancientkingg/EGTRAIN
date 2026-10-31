@@ -1,30 +1,30 @@
 <map id="LiveServer::operator=" name="LiveServer::operator=">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,252,171,277"/>
-<area shape="rect" id="Node000002" href="$class_live_server.html#ae5555bb73bf4666593cc03703a854069" title="The same for the REP socket; empty without commands." alt="" coords="219,5,440,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,251,104,209,129,152,166,91,190,64,217,40,225,35,228,39,220,44,194,67,171,94,134,154,109,211,95,252"/>
-<area shape="rect" id="Node000003" href="$class_live_server.html#ac246026a56da29efd848c433ac872510" title="Number of state frames dropped since the server started." alt="" coords="233,55,426,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="93,251,109,217,136,173,172,128,217,89,228,83,230,88,220,94,176,131,140,176,114,220,97,253"/>
-<area shape="rect" id="Node000004" href="$class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" title="A server that is not started: no thread, context or socket." alt="" coords="245,104,413,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="97,250,144,195,178,164,217,138,232,131,234,136,220,143,182,169,148,199,101,254"/>
-<area shape="rect" id="Node000005" href="$class_live_server.html#ae62a2051c5c5dbaba0a2994e6128c326" title=" " alt="" coords="246,153,413,179"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="106,250,155,219,218,188,241,180,242,185,220,192,157,223,109,254"/>
-<area shape="rect" id="Node000006" href="$class_live_server.html#a305f7127a067fd2712970f05a2f2bf2c" title=" " alt="" coords="247,203,411,228"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="150,249,253,228,254,233,151,255"/>
-<area shape="rect" id="Node000007" href="$class_live_server.html#ac7f0cca626530eaaba8963fda08552cc" title=" " alt="" coords="247,252,411,277"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="171,262,234,262,234,267,171,267"/>
-<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="488,281,636,307"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="147,275,219,286,353,294,474,294,474,299,353,299,218,291,146,280"/>
-<area shape="rect" id="Node000009" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="265,353,394,379"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="112,275,160,303,220,332,265,347,263,352,218,336,158,308,109,280"/>
-<area shape="rect" id="Node000011" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="499,404,625,429"/>
-<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="100,276,146,333,180,364,220,389,287,411,357,422,425,425,485,423,485,428,425,430,356,427,285,416,218,394,177,369,142,337,96,279"/>
-<area shape="rect" id="Node000012" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running." alt="" coords="235,455,424,480"/>
-<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="98,276,115,308,142,351,177,395,220,433,248,448,246,452,217,438,173,399,137,354,110,311,93,279"/>
-<area shape="rect" id="Node000013" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it." alt="" coords="225,504,433,529"/>
-<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="95,277,108,319,133,377,170,439,193,467,220,491,228,496,225,500,217,495,189,470,166,442,128,379,103,320,90,278"/>
-<area shape="poly" id="edge11_Node000009_Node000008" title=" " alt="" coords="375,351,439,331,487,315,509,308,510,313,489,321,441,337,376,356"/>
-<area shape="rect" id="Node000010" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="513,355,611,380"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="394,364,499,364,499,370,394,369"/>
-<area shape="poly" id="edge12_Node000009_Node000011" title=" " alt="" coords="389,376,491,398,489,404,388,381"/>
-<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="524,356,516,346,520,336,536,330,562,328,595,332,607,341,604,346,593,337,562,333,537,335,524,340,521,346,528,353"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,265,170,293"/>
+<area shape="rect" id="Node000002" href="$class_live_server.html#ae5555bb73bf4666593cc03703a854069" title="The same for the REP socket; empty without commands." alt="" coords="218,5,438,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,264,103,221,128,161,165,98,189,69,216,44,228,38,224,42,219,48,193,72,169,101,133,163,108,223,95,266"/>
+<area shape="rect" id="Node000003" href="$class_live_server.html#ac246026a56da29efd848c433ac872510" title="Number of state frames dropped since the server started." alt="" coords="232,57,424,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="92,264,109,229,135,183,171,136,216,96,229,90,226,94,219,100,175,139,140,186,114,231,97,266"/>
+<area shape="rect" id="Node000004" href="$class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" title="A server that is not started: no thread, context or socket." alt="" coords="244,109,412,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="96,264,144,207,178,175,216,148,234,141,230,145,219,152,181,179,147,210,101,266"/>
+<area shape="rect" id="Node000005" href="$class_live_server.html#ae62a2051c5c5dbaba0a2994e6128c326" title=" " alt="" coords="245,161,411,189"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="106,263,155,231,217,199,242,192,238,196,219,204,158,236,110,267"/>
+<area shape="rect" id="Node000006" href="$class_live_server.html#a305f7127a067fd2712970f05a2f2bf2c" title=" " alt="" coords="246,213,410,241"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="154,262,248,243,244,247,156,267"/>
+<area shape="rect" id="Node000007" href="$class_live_server.html#ac7f0cca626530eaaba8963fda08552cc" title=" " alt="" coords="246,265,410,293"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="169,277,233,278,228,281,171,282"/>
+<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="486,291,633,318"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="149,291,218,302,350,308,473,308,468,310,350,314,217,307,150,296"/>
+<area shape="rect" id="Node000009" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="264,367,392,394"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="112,291,161,318,219,346,257,361,252,362,217,351,159,323,112,296"/>
+<area shape="rect" id="Node000011" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="496,419,623,446"/>
+<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="98,291,146,349,180,379,219,403,285,426,354,437,421,440,484,441,478,441,421,446,354,442,284,431,217,408,177,384,142,352,98,296"/>
+<area shape="rect" id="Node000012" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running." alt="" coords="234,468,422,496"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="96,291,115,325,142,367,177,410,219,448,242,462,237,462,216,452,173,414,138,370,111,327,95,296"/>
+<area shape="rect" id="Node000013" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it." alt="" coords="224,520,432,548"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="93,291,109,335,133,393,170,454,193,481,219,505,229,513,223,512,216,509,189,485,166,457,129,395,104,337,92,296"/>
+<area shape="poly" id="edge11_Node000009_Node000008" title=" " alt="" coords="380,364,437,346,508,323,503,325,439,351,382,369"/>
+<area shape="rect" id="Node000010" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="511,367,608,394"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="392,378,498,380,493,381,393,383"/>
+<area shape="poly" id="edge12_Node000009_Node000011" title=" " alt="" coords="392,392,484,415,479,415,392,398"/>
+<area shape="poly" id="edge10_Node000010_Node000010" title=" " alt="" coords="520,365,514,358,519,348,534,342,560,340,587,343,603,351,598,351,586,348,560,345,535,347,522,352,519,357,525,367"/>
 </map>

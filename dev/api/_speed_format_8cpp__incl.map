@@ -1,11 +1,11 @@
 <map id="util/SpeedFormat.cpp" name="util/SpeedFormat.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="126,5,286,31"/>
-<area shape="rect" id="Node000002" href="$_speed_format_8h.html" title=" " alt="" coords="5,79,151,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,33,112,74,110,69,184,28"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="175,79,237,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="209,31,209,65,203,65,203,31"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="262,79,323,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="222,29,270,68,266,72,218,33"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="49,152,107,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,104,81,138,75,138,75,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="126,5,285,33"/>
+<area shape="rect" id="Node000002" href="$_speed_format_8h.html" title=" " alt="" coords="5,81,150,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,35,115,75,112,71,184,32"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="174,81,237,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="207,31,208,66,203,64,204,36"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="261,81,321,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="221,31,267,70,261,71,220,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="48,157,107,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,107,80,142,75,140,76,111"/>
 </map>

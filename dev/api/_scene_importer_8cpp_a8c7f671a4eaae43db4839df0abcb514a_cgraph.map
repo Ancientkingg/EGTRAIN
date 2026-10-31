@@ -1,7 +1,7 @@
 <map id="trim" name="trim">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,55,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="10,30,6,21,8,12,17,5,30,3,46,6,53,14,49,18,43,11,30,8,19,10,13,14,12,20,15,28"/>
-<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#ab5cba885129b8c9b017c168d6f62fb46" title=" " alt="" coords="103,29,185,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="55,39,89,39,89,45,55,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="124,30,120,21,122,12,131,5,144,3,160,6,167,14,163,18,157,11,144,8,133,10,127,14,126,20,129,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,54,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="9,29,6,20,8,11,16,5,30,3,43,5,52,13,47,14,41,10,29,8,18,10,13,14,11,20,14,28"/>
+<area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#ab5cba885129b8c9b017c168d6f62fb46" title=" " alt="" coords="102,29,184,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="54,41,89,42,83,44,54,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="122,28,119,20,121,11,130,5,143,3,157,5,165,14,160,13,154,10,143,8,132,10,126,14,124,20,127,30"/>
 </map>

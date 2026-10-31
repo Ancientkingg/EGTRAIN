@@ -1,6 +1,6 @@
 <map id="UpdateInfrastructureElementStatus" name="UpdateInfrastructureElementStatus">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,216,69"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a1114fc9d5c5791a7104bd35425f5b98b" title=" " alt="" coords="264,29,475,69"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,47,251,47,251,52,216,52"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,30,319,20,327,10,343,5,369,3,399,6,415,13,413,18,398,11,369,8,345,10,330,15,324,21,327,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,216,74"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a1114fc9d5c5791a7104bd35425f5b98b" title=" " alt="" coords="264,29,474,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,49,250,52,245,52,216,54"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="320,27,318,19,327,10,344,5,369,3,397,5,415,14,410,14,395,10,369,8,345,10,329,15,323,21,325,30"/>
 </map>

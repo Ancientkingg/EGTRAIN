@@ -1,28 +1,28 @@
 <map id="ServicePanel::commitOperatingCode" name="ServicePanel::commitOperatingCode">
-<area shape="rect" id="Node000001" title="Takes the service code (the operating code) from its field, trimmed." alt="" coords="5,172,265,197"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="331,142,528,168"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="262,169,317,164,317,169,263,174"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="313,192,545,232"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,194,300,197,299,203,265,200"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="617,92,788,117"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="518,190,544,178,558,168,567,157,577,145,592,134,627,119,629,124,595,139,581,149,571,160,562,172,547,183,520,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="860,30,1139,56"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="527,190,544,179,556,164,562,148,565,115,569,83,577,67,592,53,634,29,679,14,727,6,775,3,867,10,943,24,942,30,866,15,775,8,728,11,681,19,636,34,595,57,581,70,574,84,570,116,567,149,560,166,547,182,530,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="895,117,1104,142"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="526,190,593,178,743,156,881,140,881,145,743,162,594,183,527,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="607,192,798,232"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="545,210,594,210,594,215,545,215"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="611,256,795,296"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="516,230,604,251,603,256,515,235"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="593,345,812,370"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="464,230,595,306,660,337,657,342,592,311,461,235"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="617,418,788,444"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="448,231,508,303,549,344,595,381,623,398,651,411,649,416,620,402,592,385,546,348,504,306,444,235"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="659,94,649,84,654,73,672,67,703,65,742,69,752,74,756,80,751,83,749,78,740,74,703,70,673,73,658,77,655,83,663,90"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="764,89,923,56,924,61,765,94"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="788,109,881,117,881,122,788,114"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="952,32,941,22,947,12,966,6,999,4,1043,8,1054,14,1057,20,1052,22,1050,17,1041,13,999,9,967,11,950,16,947,21,955,28"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="952,119,941,109,947,99,966,93,999,90,1043,95,1054,100,1057,107,1052,109,1050,104,1041,100,999,96,967,98,950,103,947,108,955,115"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="659,347,649,337,654,327,672,321,703,318,742,323,752,328,756,334,751,336,749,331,740,328,703,324,673,326,658,331,655,336,663,343"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="659,420,649,410,654,400,672,394,703,392,742,396,752,401,756,407,751,410,749,405,740,401,703,397,673,399,658,404,655,409,663,416"/>
+<area shape="rect" id="Node000001" title="Takes the service code (the operating code) from its field, trimmed." alt="" coords="5,172,265,200"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="330,141,526,169"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,170,317,166,313,168,266,175"/>
+<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="313,193,544,238"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="264,196,300,201,295,203,266,202"/>
+<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="616,91,786,118"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="518,190,543,178,557,168,566,157,576,146,591,134,622,123,617,125,593,139,579,149,570,160,560,172,545,183,520,195"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="858,29,1136,57"/>
+<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="527,190,542,179,554,164,560,148,563,115,568,83,576,67,590,53,631,30,675,15,721,6,768,3,857,9,935,25,929,26,857,14,768,9,722,12,676,20,633,35,594,57,580,71,573,85,569,116,566,149,559,166,546,183,529,195"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="893,117,1101,145"/>
+<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="529,190,592,178,740,156,880,142,875,144,741,162,592,183,531,195"/>
+<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="606,193,796,238"/>
+<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="544,213,593,215,588,216,545,218"/>
+<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="610,262,793,307"/>
+<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="519,236,598,258,593,258,519,241"/>
+<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="592,355,810,382"/>
+<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="463,236,523,275,593,317,654,348,649,348,591,322,520,280,462,241"/>
+<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="616,431,786,458"/>
+<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="447,236,508,311,548,353,594,392,648,425,643,424,590,396,545,357,504,314,445,241"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="655,90,647,82,653,72,672,66,701,64,733,67,752,75,747,76,732,72,701,69,673,71,657,76,653,82,660,91"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="771,88,914,60,909,62,772,93"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="787,110,880,120,875,121,787,115"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="947,28,939,21,945,11,965,5,997,3,1032,5,1052,14,1047,15,1031,11,997,8,966,10,948,15,944,20,952,29"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="947,116,939,109,945,99,965,93,997,91,1032,93,1052,103,1047,103,1031,99,997,96,966,98,948,103,944,108,952,118"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="655,353,647,346,653,336,672,330,701,328,733,331,752,340,747,339,732,336,701,333,673,335,657,340,653,346,660,355"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="655,429,647,422,653,412,672,406,701,404,733,407,752,416,747,415,732,412,701,409,673,411,657,416,653,422,660,431"/>
 </map>

@@ -1,7 +1,7 @@
 <map id="SceneLoadResult" name="SceneLoadResult">
-<area shape="rect" id="Node000001" title="The result of loading a scene directory or bundle." alt="" coords="31,197,164,223"/>
-<area shape="rect" id="Node000002" href="$struct_scene_model.html" title="The whole scene: the content of the scene files and the summaries derived from them." alt="" coords="47,101,148,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,141,100,197,95,197,95,141"/>
-<area shape="rect" id="Node000003" href="$struct_scene_simulation_settings.html" title="The simulation_settings of scene.json. Each value counts only when its has* flag is set." alt="" coords="5,5,189,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,45,100,101,95,101,95,45"/>
+<area shape="rect" id="Node000001" title="The result of loading a scene directory or bundle." alt="" coords="31,207,163,234"/>
+<area shape="rect" id="Node000002" href="$struct_scene_model.html" title="The whole scene: the content of the scene files and the summaries derived from them." alt="" coords="47,106,147,134"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,148,100,207,94,205,95,151"/>
+<area shape="rect" id="Node000003" href="$struct_scene_simulation_settings.html" title="The simulation_settings of scene.json. Each value counts only when its has* flag is set." alt="" coords="5,5,189,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,46,100,106,94,105,96,51"/>
 </map>

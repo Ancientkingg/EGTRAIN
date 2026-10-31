@@ -1,5 +1,5 @@
 <map id="ServicePanel::commitComposition" name="ServicePanel::commitComposition">
-<area shape="rect" id="Node000001" title="Takes the composition id." alt="" coords="5,5,251,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="299,5,496,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="251,15,285,15,285,21,251,21"/>
+<area shape="rect" id="Node000001" title="Takes the composition id." alt="" coords="5,5,250,33"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="298,5,494,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="250,17,285,19,280,19,250,22"/>
 </map>

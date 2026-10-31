@@ -1,5 +1,5 @@
 <map id="DiagramWindow::setChart" name="DiagramWindow::setChart">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,31"/>
-<area shape="rect" id="Node000002" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="245,5,449,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,15,232,15,232,21,197,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,33"/>
+<area shape="rect" id="Node000002" href="$class_position_scale.html#a5e381722b1f3fe5c50182f30d7187545" title="No sections: every geo X is NaN." alt="" coords="245,5,448,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,17,232,19,226,19,197,22"/>
 </map>

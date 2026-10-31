@@ -1,10 +1,10 @@
 <map id="ScenarioPanel::updateDetail" name="ScenarioPanel::updateDetail">
-<area shape="rect" id="Node000001" title="Shows the fields of the selected scenario again." alt="" coords="5,59,211,84"/>
-<area shape="rect" id="Node000002" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="259,29,452,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,57,245,52,246,58,211,62"/>
-<area shape="rect" id="Node000004" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="259,79,452,119"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="211,80,246,84,245,90,211,86"/>
-<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="500,29,651,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="453,39,486,39,486,45,453,45"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="540,31,532,21,536,11,551,5,575,3,606,6,618,15,615,20,604,11,575,8,552,10,540,15,537,20,544,28"/>
+<area shape="rect" id="Node000001" title="Shows the fields of the selected scenario again." alt="" coords="5,60,210,88"/>
+<area shape="rect" id="Node000002" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="258,29,450,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,58,245,56,239,58,211,64"/>
+<area shape="rect" id="Node000004" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="258,81,450,126"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="210,83,245,90,239,90,210,89"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="498,29,648,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="450,41,485,43,480,43,450,46"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="535,28,529,20,534,11,549,5,573,3,599,5,614,14,609,14,598,10,573,8,550,10,538,15,535,20,540,30"/>
 </map>

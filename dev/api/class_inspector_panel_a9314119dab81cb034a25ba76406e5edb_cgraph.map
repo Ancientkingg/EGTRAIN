@@ -1,7 +1,7 @@
 <map id="InspectorPanel::displayPassengerInfo" name="InspectorPanel::displayPassengerInfo">
-<area shape="rect" id="Node000001" title="Hides the dock and shows the information of the passenger on the canvas instead." alt="" coords="5,45,268,70"/>
-<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="316,5,521,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,42,302,36,303,41,249,47"/>
-<area shape="rect" id="Node000003" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="326,69,511,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="249,67,313,75,312,80,248,73"/>
+<area shape="rect" id="Node000001" title="Hides the dock and shows the information of the passenger on the canvas instead." alt="" coords="5,48,268,76"/>
+<area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="316,5,520,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,45,303,42,297,43,254,51"/>
+<area shape="rect" id="Node000003" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="326,75,510,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,74,313,84,307,84,254,79"/>
 </map>

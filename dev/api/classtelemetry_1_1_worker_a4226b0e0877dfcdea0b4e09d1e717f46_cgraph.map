@@ -1,37 +1,37 @@
 <map id="telemetry::Worker::attemptInteractiveSession" name="telemetry::Worker::attemptInteractiveSession">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,274,200,314"/>
-<area shape="rect" id="Node000002" href="$namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd" title="An event with a new random ID. occurredAt is taken as given." alt="" coords="249,29,420,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,273,128,231,158,178,197,121,246,72,269,58,272,62,250,76,202,125,163,181,133,234,114,275"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f" title=" " alt="" coords="496,423,643,463"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="149,312,249,351,335,376,422,397,491,417,489,422,421,402,334,381,247,357,147,317"/>
-<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a368475d984ef28abb45dae6fe60cd5a1" title=" " alt="" coords="469,359,669,399"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="201,309,456,356,455,361,200,314"/>
-<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="965,130,1165,170"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="132,272,191,235,273,190,368,147,418,129,469,115,593,94,644,90,692,91,791,100,918,115,974,124,973,130,917,121,791,105,692,96,644,96,594,99,470,121,420,134,370,152,275,195,194,240,135,276"/>
-<area shape="rect" id="Node000010" href="$classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61" title=" " alt="" coords="248,411,421,436"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="131,312,185,350,249,389,282,403,280,408,247,394,182,355,128,316"/>
-<area shape="rect" id="Node000011" href="$classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef" title=" " alt="" coords="261,245,408,285"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="200,279,248,273,248,278,201,284"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="297,31,289,21,293,11,309,5,335,3,367,7,380,16,376,20,365,11,335,8,310,10,297,15,294,20,301,27"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="744,410,891,450"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="643,437,730,432,731,437,643,442"/>
-<area shape="rect" id="Node000005" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="1001,333,1129,359"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="877,407,1013,361,1015,366,878,412"/>
-<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="965,410,1165,450"/>
-<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="891,427,952,427,952,433,891,433"/>
-<area shape="rect" id="Node000008" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="740,269,895,295"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="621,357,770,297,772,302,622,362"/>
-<area shape="poly" id="edge9_Node000008_Node000008" title=" " alt="" coords="778,271,769,261,773,251,790,245,817,243,852,247,862,251,866,257,861,260,858,255,851,252,817,248,791,250,777,255,774,260,781,267"/>
-<area shape="poly" id="edge14_Node000011_Node000003" title=" " alt="" coords="358,283,423,352,445,383,455,396,471,409,485,417,482,422,468,414,451,400,441,387,419,356,354,287"/>
-<area shape="poly" id="edge13_Node000011_Node000005" title=" " alt="" coords="409,282,470,294,612,313,755,327,988,341,987,346,755,332,612,318,469,299,408,287"/>
-<area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="717,130,917,170"/>
-<area shape="poly" id="edge15_Node000011_Node000012" title=" " alt="" coords="408,245,469,230,718,171,719,176,470,235,409,250"/>
-<area shape="rect" id="Node000013" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="469,130,669,170"/>
-<area shape="poly" id="edge17_Node000011_Node000013" title=" " alt="" coords="367,242,468,186,499,173,501,178,471,191,369,247"/>
-<area shape="rect" id="Node000014" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="469,245,669,285"/>
-<area shape="poly" id="edge19_Node000011_Node000014" title=" " alt="" coords="408,262,456,262,456,267,408,267"/>
-<area shape="poly" id="edge16_Node000012_Node000009" title=" " alt="" coords="917,147,952,147,952,153,917,153"/>
-<area shape="poly" id="edge18_Node000013_Node000012" title=" " alt="" coords="669,147,704,147,704,153,669,153"/>
-<area shape="poly" id="edge21_Node000014_Node000008" title=" " alt="" coords="670,269,726,273,726,278,669,274"/>
-<area shape="poly" id="edge20_Node000014_Node000009" title=" " alt="" coords="657,242,963,171,965,176,658,247"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,282,199,327"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd" title="An event with a new random ID. occurredAt is taken as given." alt="" coords="248,29,418,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,280,128,237,157,182,196,124,219,97,245,73,266,62,262,66,248,77,223,101,200,127,162,184,133,239,114,283"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f" title=" " alt="" coords="494,441,639,486"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="152,325,248,363,295,377,333,386,420,407,468,426,488,435,483,435,466,431,418,412,332,391,294,383,246,368,151,330"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a368475d984ef28abb45dae6fe60cd5a1" title=" " alt="" coords="467,372,666,416"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="199,320,454,370,450,374,199,326"/>
+<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="962,132,1161,176"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="133,280,192,241,273,194,367,150,416,131,466,117,590,94,641,90,689,90,788,100,914,117,966,127,961,128,913,122,788,106,689,96,641,95,591,99,468,122,418,136,369,155,275,199,195,245,137,284"/>
+<area shape="rect" id="Node000010" href="$classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61" title=" " alt="" coords="247,421,419,449"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="133,325,186,363,248,401,276,415,270,415,245,406,183,367,132,330"/>
+<area shape="rect" id="Node000011" href="$classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef" title=" " alt="" coords="260,252,406,296"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="198,289,247,284,243,287,200,294"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="293,29,287,20,292,11,308,5,333,3,360,5,376,13,371,15,359,10,333,8,309,10,296,15,292,20,298,29"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="741,425,887,470"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="639,456,723,453,728,453,640,461"/>
+<area shape="rect" id="Node000005" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="998,341,1125,369"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="876,422,1005,375,1010,374,877,427"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="962,425,1161,470"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="887,445,949,447,943,447,887,450"/>
+<area shape="rect" id="Node000008" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="737,275,891,302"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="620,368,763,310,768,308,622,373"/>
+<area shape="poly" id="edge9_Node000008_Node000008" title=" " alt="" coords="772,273,765,266,770,256,787,250,814,248,843,250,860,259,855,259,842,256,814,253,788,255,774,260,770,265,777,275"/>
+<area shape="poly" id="edge14_Node000011_Node000003" title=" " alt="" coords="357,294,421,364,443,398,453,412,469,426,483,437,478,436,465,431,449,416,439,401,417,367,355,299"/>
+<area shape="poly" id="edge13_Node000011_Node000005" title=" " alt="" coords="406,292,467,306,609,325,751,339,985,353,980,354,750,344,608,331,467,311,406,298"/>
+<area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="714,132,914,176"/>
+<area shape="poly" id="edge15_Node000011_Node000012" title=" " alt="" coords="405,252,466,237,706,179,701,182,468,242,407,257"/>
+<area shape="rect" id="Node000013" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="467,132,666,176"/>
+<area shape="poly" id="edge17_Node000011_Node000013" title=" " alt="" coords="368,249,466,193,495,182,491,184,468,198,371,253"/>
+<area shape="rect" id="Node000014" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="467,252,666,296"/>
+<area shape="poly" id="edge19_Node000011_Node000014" title=" " alt="" coords="406,271,454,273,448,275,407,276"/>
+<area shape="poly" id="edge16_Node000012_Node000009" title=" " alt="" coords="914,151,949,153,944,154,915,156"/>
+<area shape="poly" id="edge18_Node000013_Node000012" title=" " alt="" coords="666,151,701,153,696,154,667,156"/>
+<area shape="poly" id="edge21_Node000014_Node000008" title=" " alt="" coords="667,277,724,283,719,283,667,282"/>
+<area shape="poly" id="edge20_Node000014_Node000009" title=" " alt="" coords="662,248,954,179,949,181,663,253"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="TrainBadgeItem::speedTextRect" name="TrainBadgeItem::speedTextRect">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,232,31"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="280,5,493,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,15,267,15,267,21,232,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,232,33"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="280,5,492,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,17,267,19,262,19,232,22"/>
 </map>

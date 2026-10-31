@@ -1,108 +1,108 @@
 <map id="telemetry::Worker::send" name="telemetry::Worker::send">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,737,183,762"/>
-<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="1259,29,1387,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,737,103,614,127,417,145,313,167,217,195,138,211,108,229,85,269,49,308,26,347,12,386,5,472,6,577,10,828,10,1055,17,1245,32,1244,37,1055,23,828,15,577,15,472,11,387,10,348,17,311,30,273,54,233,89,216,111,200,141,172,219,150,314,132,418,108,614,99,737"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1" title=" " alt="" coords="257,276,404,316"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,737,103,672,126,573,143,517,166,460,194,405,229,355,247,336,269,321,272,325,251,340,233,358,199,408,171,462,148,519,131,574,108,673,99,737"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef" title=" " alt="" coords="505,266,652,306"/>
-<area shape="poly" id="edge67_Node000001_Node000004" title=" " alt="" coords="95,736,107,683,132,604,149,561,171,517,198,476,229,438,249,422,277,405,349,369,505,308,507,313,351,374,279,410,252,426,233,442,202,479,176,520,154,563,137,606,112,684,100,737"/>
-<area shape="rect" id="Node000005" href="$classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f" title=" " alt="" coords="753,114,900,154"/>
-<area shape="poly" id="edge17_Node000001_Node000005" title=" " alt="" coords="94,737,107,633,135,471,153,387,175,309,200,245,214,220,229,201,255,177,284,157,347,126,416,107,486,96,557,94,624,96,740,112,739,117,624,102,557,99,487,102,417,112,349,131,287,162,259,182,233,205,218,223,205,247,180,311,158,388,140,472,113,634,99,737"/>
-<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="1223,451,1423,491"/>
-<area shape="poly" id="edge21_Node000001_Node000009" title=" " alt="" coords="104,761,123,793,151,834,188,877,232,913,260,926,286,932,335,932,360,932,384,936,408,946,433,965,450,990,458,1015,458,1040,456,1065,454,1090,455,1114,463,1136,481,1158,534,1199,585,1223,634,1234,684,1234,737,1227,794,1216,926,1190,1002,1183,1064,1178,1091,1171,1118,1160,1144,1142,1173,1116,1188,1096,1202,1069,1229,1000,1252,915,1271,822,1300,638,1315,505,1321,505,1305,639,1276,823,1257,916,1234,1001,1207,1071,1192,1099,1177,1119,1148,1146,1120,1165,1093,1176,1064,1183,1003,1188,927,1195,795,1221,738,1233,685,1240,634,1239,583,1228,531,1203,477,1162,458,1139,449,1115,448,1090,451,1065,453,1040,453,1016,445,992,429,969,405,950,382,941,359,938,335,938,285,937,258,931,229,917,184,880,147,837,118,796,100,764"/>
-<area shape="rect" id="Node000013" href="$classtelemetry_1_1_worker.html#a9aad91dbf9c43cc4bfbfea8705f8d776" title=" " alt="" coords="505,151,652,191"/>
-<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="92,737,93,657,97,597,106,529,123,458,147,387,182,321,204,290,229,262,257,239,288,219,357,191,427,176,491,169,492,174,428,181,358,197,291,224,260,243,233,266,208,294,187,323,152,389,128,459,112,530,102,597,98,657,97,737"/>
-<area shape="rect" id="Node000014" href="$class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once." alt="" coords="258,978,403,1004"/>
-<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="103,762,119,800,146,853,184,909,207,934,232,957,256,971,254,975,229,961,203,938,180,912,141,855,114,802,98,764"/>
-<area shape="rect" id="Node000015" href="$classtelemetry_1_1_worker.html#a05283aff80c1f0236c3c0964cd56df85" title=" " alt="" coords="753,788,900,828"/>
-<area shape="poly" id="edge22_Node000001_Node000015" title=" " alt="" coords="183,757,231,762,510,784,740,800,739,806,509,790,230,767,183,762"/>
-<area shape="rect" id="Node000016" href="$classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61" title=" " alt="" coords="740,624,913,649"/>
-<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="119,734,169,711,230,687,352,651,478,632,535,628,579,629,679,632,726,633,726,638,679,638,578,634,535,634,479,638,353,656,232,692,172,716,121,739"/>
-<area shape="rect" id="Node000017" href="$classtelemetry_1_1_worker.html#aa4bede92e4f0dc36f2e3e2e75487c1a5" title=" " alt="" coords="257,452,404,492"/>
-<area shape="poly" id="edge24_Node000001_Node000017" title=" " alt="" coords="104,735,302,501,306,505,108,738"/>
-<area shape="rect" id="Node000019" href="$classtelemetry_1_1_worker.html#a65745d9bd123911e4ccf94928319e419" title=" " alt="" coords="505,647,652,687"/>
-<area shape="poly" id="edge68_Node000001_Node000019" title=" " alt="" coords="169,734,491,679,492,684,170,740"/>
-<area shape="rect" id="Node000021" href="$classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5" title="The current retry state." alt="" coords="727,724,927,764"/>
-<area shape="poly" id="edge69_Node000001_Node000021" title=" " alt="" coords="183,751,408,757,679,754,713,752,713,757,679,759,408,762,183,756"/>
-<area shape="rect" id="Node000025" href="$classtelemetry_1_1_telemetry_queue.html#a56be34acf9623b6127721dc898964183" title=" " alt="" coords="231,863,431,903"/>
-<area shape="poly" id="edge44_Node000001_Node000025" title=" " alt="" coords="113,761,164,799,232,842,260,855,257,860,229,847,161,804,110,765"/>
-<area shape="rect" id="Node000031" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="975,114,1175,154"/>
-<area shape="poly" id="edge61_Node000001_Node000031" title=" " alt="" coords="94,737,105,622,130,440,148,344,170,256,197,183,212,155,229,134,253,115,285,100,322,88,364,79,458,69,562,67,668,71,769,79,927,99,978,108,977,113,926,104,768,85,668,76,562,72,459,74,365,84,323,93,287,105,256,120,233,138,217,158,202,186,175,257,153,345,135,441,110,622,99,737"/>
-<area shape="rect" id="Node000032" href="$_http_transport_8cpp.html#a0610a06864265272ffc1206247ed05e0" title=" " alt="" coords="273,1052,389,1077"/>
-<area shape="poly" id="edge63_Node000001_Node000032" title=" " alt="" coords="101,762,115,808,142,875,181,948,205,983,232,1014,254,1031,278,1044,275,1049,251,1035,229,1018,201,986,176,951,137,877,110,810,96,763"/>
-<area shape="rect" id="Node000033" href="$class_http_reply.html#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply." alt="" coords="261,1101,401,1126"/>
-<area shape="poly" id="edge65_Node000001_Node000033" title=" " alt="" coords="99,762,107,821,128,910,146,958,168,1006,197,1050,232,1088,249,1099,247,1103,229,1092,193,1053,164,1008,141,960,123,911,102,822,94,763"/>
-<area shape="rect" id="Node000034" href="$class_http_reply.html#a6477173090a5907d88d42340d358511e" title="New bytes can be taken with readAll()." alt="" coords="249,1150,413,1176"/>
-<area shape="poly" id="edge66_Node000001_Node000034" title=" " alt="" coords="98,762,104,829,122,930,139,986,163,1041,193,1093,233,1137,238,1142,235,1146,229,1141,189,1096,158,1044,134,988,117,932,98,830,93,763"/>
-<area shape="rect" id="Node000035" href="$_http_transport_8cpp.html#ad6c716ec7aa9e0393ba58f0942b978f6" title=" " alt="" coords="277,1224,384,1249"/>
-<area shape="poly" id="edge70_Node000001_Node000035" title=" " alt="" coords="98,762,104,834,123,946,140,1008,163,1072,194,1132,233,1187,252,1203,274,1216,271,1221,249,1208,229,1190,189,1135,159,1074,135,1010,118,947,99,834,93,763"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="404,291,491,287,492,292,404,296"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="652,264,678,256,726,243,796,232,857,229,964,232,1014,230,1064,221,1116,200,1173,164,1184,153,1191,141,1196,116,1202,90,1209,77,1221,65,1244,51,1247,56,1224,69,1214,80,1207,92,1202,117,1196,143,1188,156,1176,168,1118,205,1065,226,1014,235,964,237,857,234,796,237,727,248,679,262,653,269"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="647,263,677,245,692,227,700,209,708,190,725,170,744,158,747,162,728,174,713,192,705,211,697,230,680,249,649,268"/>
-<area shape="rect" id="Node000008" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="975,279,1175,319"/>
-<area shape="poly" id="edge9_Node000004_Node000008" title=" " alt="" coords="652,272,726,264,827,259,927,264,983,273,983,279,926,270,827,264,727,270,652,277"/>
-<area shape="rect" id="Node000010" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="727,279,927,319"/>
-<area shape="poly" id="edge11_Node000004_Node000010" title=" " alt="" coords="652,287,713,290,713,296,652,292"/>
-<area shape="rect" id="Node000011" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="727,444,927,484"/>
-<area shape="poly" id="edge13_Node000004_Node000011" title=" " alt="" coords="609,304,788,434,785,438,606,308"/>
-<area shape="rect" id="Node000006" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="1001,50,1148,90"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="900,112,988,89,989,94,901,117"/>
-<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="1148,59,1245,48,1245,53,1149,64"/>
-<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="1223,79,1423,119"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="1149,76,1209,83,1209,88,1148,81"/>
-<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="1139,317,1176,335,1211,360,1243,387,1296,439,1292,443,1240,391,1208,364,1173,340,1136,322"/>
-<area shape="poly" id="edge12_Node000010_Node000008" title=" " alt="" coords="927,296,961,296,961,302,927,302"/>
-<area shape="poly" id="edge14_Node000011_Node000009" title=" " alt="" coords="927,463,1209,467,1209,472,927,468"/>
-<area shape="rect" id="Node000012" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="997,930,1152,956"/>
-<area shape="poly" id="edge15_Node000011_Node000012" title=" " alt="" coords="861,482,896,510,929,546,991,705,1067,916,1062,918,986,707,924,548,893,514,858,487"/>
-<area shape="poly" id="edge16_Node000012_Node000012" title=" " alt="" coords="1035,932,1026,922,1031,912,1047,906,1075,904,1109,908,1119,912,1123,918,1118,921,1116,916,1108,913,1075,909,1048,911,1034,916,1032,921,1039,928"/>
-<area shape="poly" id="edge19_Node000013_Node000005" title=" " alt="" coords="652,157,739,144,740,149,653,163"/>
-<area shape="poly" id="edge30_Node000017_Node000004" title=" " alt="" coords="360,450,394,424,429,392,443,373,451,356,460,340,477,322,496,310,499,314,480,326,465,343,456,359,447,376,433,395,398,428,363,454"/>
-<area shape="poly" id="edge25_Node000017_Node000005" title=" " alt="" coords="344,450,428,327,448,286,459,269,477,252,504,235,529,226,575,219,622,216,648,211,678,201,701,186,725,170,755,156,757,161,728,175,704,190,680,205,650,216,623,221,575,225,530,231,506,240,480,256,463,272,453,289,433,330,348,453"/>
-<area shape="poly" id="edge28_Node000017_Node000009" title=" " alt="" coords="403,457,429,444,444,425,451,405,459,385,477,367,513,360,583,355,788,350,1013,357,1107,366,1175,379,1207,391,1237,406,1288,440,1285,445,1234,411,1205,396,1174,384,1106,371,1012,362,788,356,583,360,514,365,480,372,463,388,456,407,449,428,432,448,406,462"/>
-<area shape="poly" id="edge29_Node000017_Node000016" title=" " alt="" coords="377,490,480,531,535,549,579,560,624,571,680,589,728,609,758,618,756,623,726,614,678,594,622,576,578,565,534,554,478,536,375,495"/>
-<area shape="rect" id="Node000018" href="$classtelemetry_1_1_telemetry_queue.html#a3fc3db4ac492fc3ec649ceeed720feed" title=" " alt="" coords="975,394,1175,434"/>
-<area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="404,461,726,430,961,416,961,421,727,435,405,467"/>
-<area shape="poly" id="edge31_Node000017_Node000019" title=" " alt="" coords="359,490,543,636,539,640,356,495"/>
-<area shape="poly" id="edge42_Node000017_Node000021" title=" " alt="" coords="341,492,358,536,387,593,428,650,452,676,480,697,535,723,595,740,656,748,713,750,713,756,655,753,594,745,533,728,477,701,449,680,423,654,382,595,353,538,336,494"/>
-<area shape="rect" id="Node000022" href="$classtelemetry_1_1_telemetry_queue.html#a4f6bb5e7a6d6cefd0c897a22cfe4f231" title=" " alt="" coords="479,482,679,522"/>
-<area shape="poly" id="edge38_Node000017_Node000022" title=" " alt="" coords="405,478,465,486,465,491,404,484"/>
-<area shape="rect" id="Node000024" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="495,381,662,406"/>
-<area shape="poly" id="edge43_Node000017_Node000024" title=" " alt="" coords="394,450,524,408,525,413,395,455"/>
-<area shape="poly" id="edge27_Node000018_Node000009" title=" " alt="" coords="1162,431,1223,445,1222,451,1161,436"/>
-<area shape="poly" id="edge34_Node000019_Node000005" title=" " alt="" coords="598,645,638,596,659,565,676,533,690,494,697,461,700,400,703,339,710,305,724,266,757,209,794,162,799,166,762,212,729,268,715,306,708,340,705,400,702,461,695,496,681,535,664,568,643,599,602,648"/>
-<area shape="poly" id="edge35_Node000019_Node000015" title=" " alt="" coords="604,685,658,729,728,774,742,781,740,786,725,779,655,734,601,689"/>
-<area shape="poly" id="edge36_Node000019_Node000016" title=" " alt="" coords="652,655,726,646,726,651,653,661"/>
-<area shape="rect" id="Node000020" href="$classtelemetry_1_1_telemetry_queue.html#a5bbba5b22a9a393304f02535cbfa6b5a" title="Validates and stores state, and moves the last time seen forward to now." alt="" coords="975,612,1175,652"/>
-<area shape="poly" id="edge32_Node000019_Node000020" title=" " alt="" coords="652,667,780,667,926,659,973,652,974,658,927,664,780,673,652,672"/>
-<area shape="poly" id="edge37_Node000019_Node000021" title=" " alt="" coords="645,685,750,718,748,723,643,690"/>
-<area shape="poly" id="edge33_Node000020_Node000009" title=" " alt="" coords="1105,610,1278,496,1281,501,1108,614"/>
-<area shape="poly" id="edge39_Node000022_Node000009" title=" " alt="" coords="679,499,927,494,1209,477,1209,482,927,499,679,504"/>
-<area shape="poly" id="edge41_Node000022_Node000010" title=" " alt="" coords="603,479,789,326,792,330,606,484"/>
-<area shape="rect" id="Node000023" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="727,559,927,599"/>
-<area shape="poly" id="edge40_Node000022_Node000023" title=" " alt="" coords="645,519,750,552,748,557,643,524"/>
-<area shape="poly" id="edge58_Node000025_Node000009" title=" " alt="" coords="431,880,557,877,700,870,832,857,885,849,926,838,1004,804,1060,768,1111,723,1173,662,1211,622,1246,578,1299,501,1304,504,1250,581,1215,625,1177,666,1115,727,1064,773,1007,809,928,843,886,854,833,863,700,875,557,882,431,885"/>
-<area shape="poly" id="edge60_Node000025_Node000012" title=" " alt="" coords="431,888,479,892,984,933,984,938,478,898,431,894"/>
-<area shape="rect" id="Node000026" href="$namespacetelemetry.html#a7a632c90b64def51977be566377b667d" title=" " alt="" coords="514,1029,643,1054"/>
-<area shape="poly" id="edge45_Node000025_Node000026" title=" " alt="" coords="394,901,432,919,502,969,557,1017,553,1021,499,973,429,924,391,906"/>
-<area shape="rect" id="Node000030" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="727,1154,926,1180"/>
-<area shape="poly" id="edge59_Node000025_Node000030" title=" " alt="" coords="407,901,433,920,446,939,454,958,456,995,460,1031,467,1048,481,1065,505,1086,533,1104,592,1131,655,1148,714,1159,713,1164,654,1154,591,1136,530,1108,502,1090,477,1069,462,1051,454,1032,451,995,448,959,442,941,429,924,404,905"/>
-<area shape="poly" id="edge57_Node000026_Node000012" title=" " alt="" coords="612,1026,665,1008,726,991,861,966,983,949,984,955,861,971,727,996,667,1013,614,1031"/>
-<area shape="poly" id="edge46_Node000026_Node000026" title=" " alt="" coords="538,1031,530,1021,534,1011,551,1005,579,1002,614,1006,624,1011,627,1017,623,1020,620,1015,612,1011,579,1008,552,1010,538,1015,535,1020,542,1027"/>
-<area shape="rect" id="Node000027" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="741,1029,913,1054"/>
-<area shape="poly" id="edge47_Node000026_Node000027" title=" " alt="" coords="644,1039,727,1039,727,1044,644,1044"/>
-<area shape="rect" id="Node000029" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="1001,1080,1148,1105"/>
-<area shape="poly" id="edge56_Node000026_Node000029" title=" " alt="" coords="644,1051,727,1064,864,1078,988,1086,987,1091,864,1083,726,1070,643,1057"/>
-<area shape="poly" id="edge54_Node000026_Node000030" title=" " alt="" coords="606,1052,790,1146,787,1151,604,1057"/>
-<area shape="poly" id="edge53_Node000027_Node000012" title=" " alt="" coords="850,1027,906,998,974,969,1008,957,1010,962,976,974,908,1003,853,1031"/>
-<area shape="poly" id="edge48_Node000027_Node000027" title=" " alt="" coords="787,1031,778,1021,783,1011,799,1005,827,1002,861,1006,871,1011,875,1017,870,1020,868,1015,860,1011,827,1008,800,1010,786,1015,784,1020,791,1027"/>
-<area shape="rect" id="Node000028" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="995,1006,1154,1032"/>
-<area shape="poly" id="edge49_Node000027_Node000028" title=" " alt="" coords="913,1031,981,1025,982,1030,913,1037"/>
-<area shape="poly" id="edge51_Node000027_Node000029" title=" " alt="" coords="890,1052,999,1074,998,1079,889,1057"/>
-<area shape="poly" id="edge50_Node000028_Node000028" title=" " alt="" coords="1035,1008,1026,998,1031,988,1047,982,1075,980,1109,984,1119,988,1123,994,1118,997,1116,992,1108,989,1075,985,1048,987,1034,992,1032,997,1039,1004"/>
-<area shape="poly" id="edge52_Node000029_Node000029" title=" " alt="" coords="1035,1081,1026,1071,1031,1061,1047,1055,1075,1053,1109,1057,1119,1062,1123,1068,1118,1070,1116,1066,1108,1062,1075,1058,1048,1060,1034,1065,1032,1071,1039,1078"/>
-<area shape="poly" id="edge55_Node000030_Node000030" title=" " alt="" coords="787,1156,778,1146,783,1136,799,1130,827,1128,861,1132,871,1136,875,1142,870,1145,868,1140,860,1137,827,1133,800,1135,786,1140,784,1145,791,1152"/>
-<area shape="poly" id="edge62_Node000031_Node000009" title=" " alt="" coords="1093,152,1177,265,1301,438,1297,441,1173,269,1089,156"/>
-<area shape="poly" id="edge64_Node000032_Node000032" title=" " alt="" coords="293,1053,284,1043,289,1033,304,1027,331,1025,364,1029,376,1038,373,1043,362,1034,331,1030,306,1032,292,1037,289,1043,296,1050"/>
-<area shape="poly" id="edge71_Node000035_Node000035" title=" " alt="" coords="293,1225,284,1215,289,1205,304,1199,331,1197,364,1201,376,1210,373,1215,362,1206,331,1202,306,1204,292,1209,289,1215,296,1222"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,730,182,758"/>
+<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="1255,26,1382,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,730,104,607,128,415,146,314,168,221,195,144,211,114,228,91,268,55,306,29,344,14,384,6,425,3,470,4,575,7,825,7,1051,15,1242,31,1237,33,1051,20,825,12,575,12,470,9,425,8,384,11,346,19,309,34,271,59,232,95,215,117,200,146,173,222,151,315,133,416,109,608,98,730"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1" title=" " alt="" coords="257,324,402,369"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,729,108,673,133,591,173,498,198,453,228,412,247,392,272,375,269,380,250,396,232,415,202,456,177,501,138,593,113,675,100,730"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef" title=" " alt="" coords="504,274,649,318"/>
+<area shape="poly" id="edge67_Node000001_Node000004" title=" " alt="" coords="96,729,109,681,135,612,174,537,199,501,228,469,253,447,278,433,324,418,373,406,399,395,427,379,451,357,475,335,500,323,497,327,479,339,455,361,431,383,401,400,374,411,326,423,280,438,257,452,232,472,203,504,179,539,140,614,114,683,101,731"/>
+<area shape="rect" id="Node000005" href="$classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f" title=" " alt="" coords="751,116,897,161"/>
+<area shape="poly" id="edge17_Node000001_Node000005" title=" " alt="" coords="92,730,93,647,98,586,108,516,124,443,149,369,183,299,228,237,253,212,281,190,343,156,410,132,481,118,551,112,619,111,738,122,734,125,619,117,552,117,482,124,412,138,345,161,284,194,257,216,232,240,187,302,154,371,129,444,113,517,103,586,98,647,97,730"/>
+<area shape="rect" id="Node000009" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="1219,467,1418,512"/>
+<area shape="poly" id="edge21_Node000001_Node000009" title=" " alt="" coords="100,755,119,795,146,845,184,897,206,921,231,942,258,956,284,962,333,962,358,961,382,964,406,974,431,993,449,1018,457,1045,457,1071,454,1097,451,1123,452,1147,460,1171,479,1194,532,1234,583,1258,632,1269,682,1269,734,1262,791,1250,923,1224,999,1217,1060,1212,1088,1206,1114,1194,1141,1177,1169,1150,1184,1130,1199,1102,1225,1032,1248,946,1268,852,1296,665,1312,529,1316,525,1301,665,1273,853,1254,947,1231,1034,1204,1105,1189,1132,1173,1154,1144,1181,1117,1199,1089,1211,1061,1217,999,1222,924,1229,792,1255,735,1267,682,1275,631,1274,581,1263,529,1239,475,1198,456,1174,447,1148,446,1122,449,1097,452,1071,451,1045,444,1021,427,996,404,978,381,969,357,966,333,967,283,968,256,961,228,946,203,925,180,901,142,848,114,797,100,761"/>
+<area shape="rect" id="Node000013" href="$classtelemetry_1_1_worker.html#a9aad91dbf9c43cc4bfbfea8705f8d776" title=" " alt="" coords="504,154,649,198"/>
+<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="92,729,98,657,116,545,133,483,156,421,188,363,228,310,256,284,287,262,355,226,424,201,491,187,487,190,426,207,357,231,289,266,259,288,232,314,192,365,161,424,138,485,121,547,103,657,98,730"/>
+<area shape="rect" id="Node000014" href="$class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once." alt="" coords="257,1006,402,1034"/>
+<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="99,755,115,801,141,863,180,929,204,959,231,986,249,999,244,1000,228,990,200,963,175,932,137,865,110,803,99,761"/>
+<area shape="rect" id="Node000015" href="$classtelemetry_1_1_worker.html#a05283aff80c1f0236c3c0964cd56df85" title=" " alt="" coords="751,818,897,862"/>
+<area shape="poly" id="edge22_Node000001_Node000015" title=" " alt="" coords="137,756,230,780,368,802,506,817,738,835,733,838,506,823,367,807,229,785,138,761"/>
+<area shape="rect" id="Node000016" href="$classtelemetry_1_1_worker.html#a331a2ed413fd225039b13d3b46020c61" title=" " alt="" coords="738,646,910,674"/>
+<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="131,727,229,696,352,667,477,651,577,647,676,651,725,654,720,656,676,656,577,652,477,656,353,672,230,701,134,732"/>
+<area shape="rect" id="Node000017" href="$classtelemetry_1_1_worker.html#aa4bede92e4f0dc36f2e3e2e75487c1a5" title=" " alt="" coords="257,483,402,528"/>
+<area shape="poly" id="edge24_Node000001_Node000017" title=" " alt="" coords="107,728,296,536,294,542,111,731"/>
+<area shape="rect" id="Node000019" href="$classtelemetry_1_1_worker.html#a65745d9bd123911e4ccf94928319e419" title=" " alt="" coords="504,666,649,710"/>
+<area shape="poly" id="edge68_Node000001_Node000019" title=" " alt="" coords="181,731,490,696,487,700,183,736"/>
+<area shape="rect" id="Node000021" href="$classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5" title="The current retry state." alt="" coords="724,748,924,793"/>
+<area shape="poly" id="edge69_Node000001_Node000021" title=" " alt="" coords="181,752,321,766,477,777,577,780,676,777,711,778,706,779,676,783,577,785,477,783,320,771,183,757"/>
+<area shape="rect" id="Node000025" href="$classtelemetry_1_1_telemetry_queue.html#a56be34acf9623b6127721dc898964183" title=" " alt="" coords="230,887,429,932"/>
+<area shape="poly" id="edge44_Node000001_Node000025" title=" " alt="" coords="107,756,160,808,194,839,231,866,254,879,248,881,228,870,191,843,156,812,108,761"/>
+<area shape="rect" id="Node000031" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="972,116,1171,161"/>
+<area shape="poly" id="edge61_Node000001_Node000031" title=" " alt="" coords="94,730,106,620,133,450,151,361,173,279,198,211,212,185,228,165,268,129,312,100,359,77,410,59,462,47,515,40,624,37,732,47,832,64,921,86,995,110,990,112,920,91,831,70,731,52,624,42,516,45,463,53,411,65,362,82,315,104,271,133,232,168,217,188,203,213,178,280,156,362,138,451,112,620,99,730"/>
+<area shape="rect" id="Node000032" href="$_http_transport_8cpp.html#a0610a06864265272ffc1206247ed05e0" title=" " alt="" coords="272,1082,387,1110"/>
+<area shape="poly" id="edge63_Node000001_Node000032" title=" " alt="" coords="98,756,113,810,138,885,177,968,202,1008,232,1043,251,1060,275,1075,269,1076,248,1064,228,1047,198,1011,173,971,133,887,108,811,98,761"/>
+<area shape="rect" id="Node000033" href="$class_http_reply.html#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply." alt="" coords="260,1134,399,1162"/>
+<area shape="poly" id="edge65_Node000001_Node000033" title=" " alt="" coords="96,755,105,823,124,921,141,974,164,1027,194,1076,231,1119,248,1132,243,1132,228,1123,190,1080,159,1030,136,976,119,922,99,824,95,761"/>
+<area shape="rect" id="Node000034" href="$class_http_reply.html#a6477173090a5907d88d42340d358511e" title="New bytes can be taken with readAll()." alt="" coords="248,1186,411,1214"/>
+<area shape="poly" id="edge66_Node000001_Node000034" title=" " alt="" coords="95,756,101,831,107,884,118,943,135,1004,158,1065,190,1122,232,1171,237,1177,232,1177,228,1175,186,1125,153,1067,130,1006,113,944,102,885,96,832,94,761"/>
+<area shape="rect" id="Node000035" href="$_http_transport_8cpp.html#ad6c716ec7aa9e0393ba58f0942b978f6" title=" " alt="" coords="277,1262,382,1290"/>
+<area shape="poly" id="edge70_Node000001_Node000035" title=" " alt="" coords="95,756,102,837,119,959,136,1027,160,1097,191,1163,232,1224,249,1240,271,1255,266,1255,246,1244,228,1227,186,1166,155,1099,131,1029,114,960,96,837,95,761"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="401,330,490,312,486,316,404,334"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="648,272,724,251,793,239,855,236,962,240,1011,238,1061,229,1113,208,1169,171,1181,159,1188,147,1193,119,1198,91,1205,77,1217,63,1242,51,1238,54,1221,67,1209,80,1203,93,1198,120,1193,148,1185,162,1173,175,1116,213,1063,234,1012,244,962,245,855,241,794,244,725,256,651,277"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="645,271,675,253,690,234,698,216,706,197,723,178,742,167,738,171,726,182,711,200,703,218,695,237,678,257,649,275"/>
+<area shape="rect" id="Node000008" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="972,287,1171,332"/>
+<area shape="poly" id="edge9_Node000004_Node000008" title=" " alt="" coords="649,281,724,272,824,266,924,272,976,282,971,284,923,277,824,271,725,277,651,286"/>
+<area shape="rect" id="Node000010" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="724,287,924,332"/>
+<area shape="poly" id="edge11_Node000004_Node000010" title=" " alt="" coords="648,297,711,302,706,304,651,302"/>
+<area shape="rect" id="Node000011" href="$classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a" title=" " alt="" coords="724,458,924,502"/>
+<area shape="poly" id="edge13_Node000004_Node000011" title=" " alt="" coords="608,316,783,447,778,449,608,321"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78" title=" " alt="" coords="999,47,1144,92"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="895,116,986,92,981,95,898,121"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="1143,58,1242,48,1237,50,1145,63"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="1219,78,1418,122"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="1143,76,1206,85,1201,87,1145,81"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="1137,330,1172,348,1238,400,1291,455,1285,455,1234,404,1170,353,1137,335"/>
+<area shape="poly" id="edge12_Node000010_Node000008" title=" " alt="" coords="923,307,959,308,954,310,925,312"/>
+<area shape="poly" id="edge14_Node000011_Node000009" title=" " alt="" coords="924,479,1206,486,1201,488,925,484"/>
+<area shape="rect" id="Node000012" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="994,961,1148,988"/>
+<area shape="poly" id="edge15_Node000011_Node000012" title=" " alt="" coords="860,500,895,529,926,564,987,727,1063,947,1058,945,982,729,921,567,891,532,860,506"/>
+<area shape="poly" id="edge16_Node000012_Node000012" title=" " alt="" coords="1029,959,1022,952,1028,942,1044,936,1071,934,1100,937,1118,946,1112,945,1099,942,1071,939,1045,941,1031,946,1028,952,1034,961"/>
+<area shape="poly" id="edge19_Node000013_Node000005" title=" " alt="" coords="648,163,738,150,734,153,651,167"/>
+<area shape="poly" id="edge30_Node000017_Node000004" title=" " alt="" coords="385,481,408,466,427,449,438,434,444,420,450,393,456,365,463,350,475,335,492,324,489,328,479,339,468,353,461,366,455,394,449,422,442,437,431,452,411,470,389,484"/>
+<area shape="poly" id="edge25_Node000017_Node000005" title=" " alt="" coords="350,481,388,436,427,380,440,346,445,316,453,288,462,274,475,259,501,241,525,230,548,226,571,224,619,223,646,218,675,208,699,194,723,178,752,166,748,169,726,182,702,198,677,213,647,223,620,228,571,230,549,231,526,236,503,246,479,263,466,277,458,290,450,317,445,348,431,382,392,439,354,484"/>
+<area shape="poly" id="edge28_Node000017_Node000009" title=" " alt="" coords="401,490,427,474,438,463,444,451,449,426,455,401,463,389,476,379,511,371,580,365,784,361,1008,368,1102,378,1172,392,1203,404,1232,420,1283,457,1278,457,1229,425,1200,409,1170,397,1102,383,1008,374,784,366,581,371,512,376,478,384,467,393,460,403,454,427,449,453,442,466,431,478,404,493"/>
+<area shape="poly" id="edge29_Node000017_Node000016" title=" " alt="" coords="400,526,478,549,578,575,622,587,677,607,702,620,725,632,746,641,741,642,723,637,699,624,675,612,621,592,577,580,476,554,402,531"/>
+<area shape="rect" id="Node000018" href="$classtelemetry_1_1_telemetry_queue.html#a3fc3db4ac492fc3ec649ceeed720feed" title=" " alt="" coords="972,407,1171,452"/>
+<area shape="poly" id="edge26_Node000017_Node000018" title=" " alt="" coords="401,492,477,480,600,459,724,443,844,434,959,430,954,433,844,439,725,448,601,464,477,485,404,496"/>
+<area shape="poly" id="edge31_Node000017_Node000019" title=" " alt="" coords="361,525,536,655,531,657,361,531"/>
+<area shape="poly" id="edge42_Node000017_Node000021" title=" " alt="" coords="339,525,359,570,388,623,428,677,452,701,478,720,533,747,592,763,652,772,711,777,706,778,652,777,591,768,531,752,476,725,448,705,424,680,384,626,355,572,339,531"/>
+<area shape="rect" id="Node000022" href="$classtelemetry_1_1_telemetry_queue.html#a4f6bb5e7a6d6cefd0c897a22cfe4f231" title=" " alt="" coords="477,495,676,540"/>
+<area shape="poly" id="edge38_Node000017_Node000022" title=" " alt="" coords="401,506,463,510,459,513,403,511"/>
+<area shape="rect" id="Node000024" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="494,393,660,420"/>
+<area shape="poly" id="edge43_Node000017_Node000024" title=" " alt="" coords="376,480,476,436,515,424,511,427,478,441,379,484"/>
+<area shape="poly" id="edge27_Node000018_Node000009" title=" " alt="" coords="1166,450,1212,462,1206,463,1167,455"/>
+<area shape="poly" id="edge34_Node000019_Node000005" title=" " alt="" coords="597,664,637,614,657,583,674,551,688,511,695,476,698,413,701,350,708,314,722,273,753,217,793,170,790,175,758,220,727,276,713,316,706,351,703,413,700,476,693,512,679,553,662,586,642,617,601,667"/>
+<area shape="poly" id="edge35_Node000019_Node000015" title=" " alt="" coords="601,708,657,756,726,803,740,812,735,812,723,808,653,760,601,713"/>
+<area shape="poly" id="edge36_Node000019_Node000016" title=" " alt="" coords="648,677,725,670,720,673,650,682"/>
+<area shape="rect" id="Node000020" href="$classtelemetry_1_1_telemetry_queue.html#a5bbba5b22a9a393304f02535cbfa6b5a" title="Validates and stores state, and moves the last time seen forward to now." alt="" coords="972,634,1171,678"/>
+<area shape="poly" id="edge32_Node000019_Node000020" title=" " alt="" coords="649,689,778,690,923,683,959,680,954,682,924,688,778,695,650,694"/>
+<area shape="poly" id="edge37_Node000019_Node000021" title=" " alt="" coords="645,708,743,742,738,744,646,713"/>
+<area shape="poly" id="edge33_Node000020_Node000009" title=" " alt="" coords="1105,631,1269,522,1274,519,1108,635"/>
+<area shape="poly" id="edge39_Node000022_Node000009" title=" " alt="" coords="676,515,924,512,1206,497,1202,499,924,517,678,520"/>
+<area shape="poly" id="edge41_Node000022_Node000010" title=" " alt="" coords="603,493,786,340,783,344,607,496"/>
+<area shape="rect" id="Node000023" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="724,578,924,622"/>
+<area shape="poly" id="edge40_Node000022_Node000023" title=" " alt="" coords="645,537,743,571,738,573,646,543"/>
+<area shape="poly" id="edge58_Node000025_Node000009" title=" " alt="" coords="428,908,555,907,697,902,829,891,883,883,923,872,988,842,1050,802,1106,755,1157,704,1202,653,1240,603,1294,527,1298,523,1244,606,1206,656,1161,708,1110,759,1053,806,991,846,925,877,884,888,830,896,698,907,555,912,430,913"/>
+<area shape="poly" id="edge60_Node000025_Node000012" title=" " alt="" coords="429,915,980,964,977,969,430,921"/>
+<area shape="rect" id="Node000026" href="$namespacetelemetry.html#a7a632c90b64def51977be566377b667d" title=" " alt="" coords="512,1062,641,1090"/>
+<area shape="poly" id="edge45_Node000025_Node000026" title=" " alt="" coords="393,930,430,948,499,999,554,1051,548,1051,496,1003,428,953,394,935"/>
+<area shape="rect" id="Node000030" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="725,1187,923,1215"/>
+<area shape="poly" id="edge59_Node000025_Node000030" title=" " alt="" coords="405,929,431,949,445,969,452,989,455,1027,458,1064,465,1081,479,1099,503,1120,530,1138,589,1165,651,1183,712,1195,707,1195,650,1188,588,1170,528,1142,500,1124,475,1103,460,1084,452,1065,449,1027,447,990,440,971,427,952,405,935"/>
+<area shape="poly" id="edge57_Node000026_Node000012" title=" " alt="" coords="614,1059,665,1041,724,1024,857,998,981,983,976,985,858,1003,725,1029,667,1046,616,1064"/>
+<area shape="poly" id="edge46_Node000026_Node000026" title=" " alt="" coords="534,1061,528,1053,533,1043,550,1037,577,1035,606,1038,623,1047,618,1047,604,1043,577,1041,551,1043,537,1048,533,1053,539,1062"/>
+<area shape="rect" id="Node000027" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="738,1062,910,1090"/>
+<area shape="poly" id="edge47_Node000026_Node000027" title=" " alt="" coords="641,1073,725,1075,720,1076,641,1079"/>
+<area shape="rect" id="Node000029" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="998,1113,1144,1140"/>
+<area shape="poly" id="edge56_Node000026_Node000029" title=" " alt="" coords="641,1086,725,1099,860,1112,985,1122,980,1123,860,1117,724,1104,641,1091"/>
+<area shape="poly" id="edge54_Node000026_Node000030" title=" " alt="" coords="607,1088,784,1180,779,1180,605,1093"/>
+<area shape="poly" id="edge53_Node000027_Node000012" title=" " alt="" coords="848,1059,903,1029,971,999,992,994,997,992,973,1004,906,1034,850,1064"/>
+<area shape="poly" id="edge48_Node000027_Node000027" title=" " alt="" coords="782,1061,775,1053,780,1043,797,1037,824,1035,853,1038,870,1047,865,1047,852,1043,824,1041,798,1043,784,1048,780,1053,787,1062"/>
+<area shape="rect" id="Node000028" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="993,1037,1150,1064"/>
+<area shape="poly" id="edge49_Node000027_Node000028" title=" " alt="" coords="910,1064,980,1060,975,1061,911,1070"/>
+<area shape="poly" id="edge51_Node000027_Node000029" title=" " alt="" coords="895,1088,988,1109,983,1109,895,1093"/>
+<area shape="poly" id="edge50_Node000028_Node000028" title=" " alt="" coords="1029,1035,1022,1028,1028,1018,1044,1012,1071,1010,1100,1013,1118,1022,1112,1021,1099,1018,1071,1015,1045,1017,1031,1022,1028,1028,1034,1037"/>
+<area shape="poly" id="edge52_Node000029_Node000029" title=" " alt="" coords="1029,1111,1022,1104,1028,1094,1044,1088,1071,1086,1100,1089,1118,1098,1112,1097,1099,1094,1071,1091,1045,1093,1031,1098,1028,1104,1034,1113"/>
+<area shape="poly" id="edge55_Node000030_Node000030" title=" " alt="" coords="782,1186,775,1178,780,1169,797,1163,824,1161,853,1163,870,1172,865,1172,852,1168,824,1166,798,1168,784,1173,780,1178,787,1188"/>
+<area shape="poly" id="edge62_Node000031_Node000009" title=" " alt="" coords="1090,159,1173,273,1296,454,1291,454,1169,276,1089,164"/>
+<area shape="poly" id="edge64_Node000032_Node000032" title=" " alt="" coords="289,1081,282,1073,288,1063,304,1058,329,1055,357,1058,373,1066,368,1067,356,1063,329,1061,305,1063,291,1068,288,1073,294,1082"/>
+<area shape="poly" id="edge71_Node000035_Node000035" title=" " alt="" coords="289,1261,282,1253,288,1243,304,1238,329,1235,357,1238,373,1247,368,1246,356,1243,329,1241,305,1243,291,1248,288,1253,294,1263"/>
 </map>

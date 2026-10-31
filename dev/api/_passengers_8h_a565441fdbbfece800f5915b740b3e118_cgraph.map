@@ -1,6 +1,6 @@
 <map id="printPassengerTotalJourneyDelay" name="printPassengerTotalJourneyDelay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,204,69"/>
-<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#a8fc2d8df775cbb04660ef50dfa81d942" title=" " alt="" coords="252,29,451,69"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,47,238,47,238,52,204,52"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,30,303,20,310,10,327,5,351,3,380,6,395,13,393,18,378,11,351,8,328,10,313,15,308,21,311,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,203,74"/>
+<area shape="rect" id="Node000002" href="$_passengers_8cpp.html#a8fc2d8df775cbb04660ef50dfa81d942" title=" " alt="" coords="251,29,448,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,49,238,51,232,52,203,54"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,27,301,19,309,10,325,5,349,3,376,5,393,14,388,14,375,10,349,8,326,10,312,15,306,21,307,30"/>
 </map>

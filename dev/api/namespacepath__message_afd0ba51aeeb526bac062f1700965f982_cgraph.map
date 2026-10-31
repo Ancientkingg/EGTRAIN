@@ -1,10 +1,10 @@
 <map id="path_message::outputFolder" name="path_message::outputFolder">
-<area shape="rect" id="Node000001" title="The status bar text that names the output folder of the next runs." alt="" coords="5,29,212,55"/>
-<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="71,31,63,21,67,11,83,5,109,3,141,7,153,16,150,20,139,11,109,8,84,10,71,15,68,20,75,27"/>
-<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="260,29,417,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,39,246,39,246,45,212,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="304,31,296,21,300,11,315,5,339,3,368,6,380,15,377,20,366,11,339,8,316,10,304,15,301,20,308,28"/>
-<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="465,29,640,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="417,39,452,39,452,45,417,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="518,31,510,21,514,11,529,5,553,3,582,6,594,15,591,20,580,11,553,8,530,10,518,15,515,20,522,28"/>
+<area shape="rect" id="Node000001" title="The status bar text that names the output folder of the next runs." alt="" coords="5,29,212,57"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="69,28,63,20,68,11,83,5,109,3,135,5,152,14,146,14,134,10,108,8,85,10,71,15,68,20,74,29"/>
+<area shape="rect" id="Node000002" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title="path with every slash replaced by separator()." alt="" coords="260,29,416,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,41,247,43,241,43,212,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="301,28,295,20,300,11,314,5,338,3,363,5,378,14,373,14,362,10,338,8,316,10,304,15,301,20,306,30"/>
+<area shape="rect" id="Node000003" href="$namespacedisplay__path.html#a2ff02b6c3e6b5a032f944fdb7b91c131" title="The separator that format writes. Only a test sets another one, to check the Windows form on any syst..." alt="" coords="464,29,638,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="416,41,451,43,446,43,416,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="514,28,509,20,513,11,528,5,551,3,576,5,591,14,586,14,575,10,551,8,529,10,517,15,514,20,519,30"/>
 </map>

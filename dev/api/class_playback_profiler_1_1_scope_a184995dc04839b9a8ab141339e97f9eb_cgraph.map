@@ -1,5 +1,5 @@
 <map id="PlaybackProfiler::Scope::Scope" name="PlaybackProfiler::Scope::Scope">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,180,45"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="228,13,419,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,179,50"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="227,14,416,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,25,214,27,208,28,179,30"/>
 </map>

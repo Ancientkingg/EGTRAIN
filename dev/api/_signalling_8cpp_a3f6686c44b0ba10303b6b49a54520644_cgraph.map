@@ -1,14 +1,14 @@
 <map id="setAllConnections" name="setAllConnections">
-<area shape="rect" id="Node000001" title="Makes the section over every connection of every node of the sections in run.infra...." alt="" coords="5,29,144,55"/>
-<area shape="poly" id="edge8_Node000001_Node000001" title=" " alt="" coords="45,31,38,21,42,11,54,5,75,3,100,6,110,15,107,19,97,11,75,8,56,10,46,15,43,20,49,28"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#afa46fc94a5b65b072b44a2a3df563f35" title=" " alt="" coords="192,29,324,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,39,178,39,178,45,144,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="228,31,222,21,225,11,237,5,258,3,283,6,293,15,290,19,281,11,258,8,239,10,229,15,227,20,232,28"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="589,29,813,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="324,31,372,27,457,25,541,27,576,29,575,34,541,33,457,30,372,33,324,37"/>
-<area shape="rect" id="Node000004" href="$_signalling_8cpp.html#a1b589d15a801ea6a9c8b9d7a05cce711" title=" " alt="" coords="372,67,541,92"/>
-<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="325,52,376,61,375,67,324,57"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="662,31,653,21,658,11,674,5,701,3,736,7,745,11,749,17,745,20,742,15,734,12,701,8,675,10,661,15,659,20,666,27"/>
-<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="540,64,603,54,604,59,541,69"/>
-<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="424,68,417,58,421,48,434,42,457,40,484,44,495,52,492,57,482,48,457,45,436,47,425,52,422,58,428,65"/>
+<area shape="rect" id="Node000001" title="Makes the section over every connection of every node of the sections in run.infra...." alt="" coords="5,29,144,57"/>
+<area shape="poly" id="edge8_Node000001_Node000001" title=" " alt="" coords="42,29,38,20,42,11,54,5,75,3,96,5,109,14,104,14,95,10,74,8,56,10,45,15,43,20,48,29"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#afa46fc94a5b65b072b44a2a3df563f35" title=" " alt="" coords="192,29,323,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,41,179,43,174,44,144,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="225,28,220,20,224,11,237,5,257,3,279,5,292,14,287,14,277,10,257,8,239,10,228,15,226,20,230,30"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="587,29,811,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="323,32,371,29,455,26,539,29,575,33,569,33,539,34,455,31,371,34,324,38"/>
+<area shape="rect" id="Node000004" href="$_signalling_8cpp.html#a1b589d15a801ea6a9c8b9d7a05cce711" title=" " alt="" coords="371,67,539,94"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="324,53,366,63,361,63,323,58"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="657,28,651,20,656,11,672,5,699,3,728,5,745,14,739,14,726,10,699,8,674,10,659,15,656,20,662,30"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="540,65,587,60,592,60,540,70"/>
+<area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="421,65,415,58,420,48,433,42,455,40,479,43,493,52,487,51,477,48,455,45,435,47,424,52,421,57,426,67"/>
 </map>

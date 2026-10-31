@@ -1,40 +1,40 @@
 <map id="lockSwitchesWhileTrainTraverses" name="lockSwitchesWhileTrainTraverses">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,291,243,316"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a32899c09835c4795635927747dc962e3" title=" " alt="" coords="309,29,535,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,289,147,245,180,183,228,118,257,89,289,64,299,58,302,63,292,68,260,93,232,122,185,186,152,248,133,291"/>
-<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#a06f5b27be6a92c7dffdb4fadac26836c" title=" " alt="" coords="303,103,541,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="132,289,156,258,191,216,237,174,289,138,308,130,311,135,292,143,240,178,195,220,160,261,136,292"/>
-<area shape="rect" id="Node000006" href="$_signalling_8cpp.html#a39da4653597bcc1f744002e9dde82277" title=" " alt="" coords="325,177,519,217"/>
-<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="149,288,212,258,290,226,316,218,318,223,292,231,214,263,151,293"/>
-<area shape="rect" id="Node000007" href="$_signalling_8cpp.html#ae506dd708d608f1c83bc0e790570a987" title=" " alt="" coords="291,265,553,291"/>
-<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="243,291,277,288,277,293,243,296"/>
-<area shape="rect" id="Node000008" href="$_signalling_8cpp.html#a12b28368d8164de8c3c1f69503d7d0f3" title=" " alt="" coords="601,353,817,379"/>
-<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="243,313,588,350,587,356,243,319"/>
-<area shape="rect" id="Node000009" href="$_signalling_8cpp.html#a17c34a6fb342ec8619d0ef4836687db0" title=" " alt="" coords="311,391,533,416"/>
-<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="164,314,371,384,369,389,162,319"/>
-<area shape="rect" id="Node000010" href="$_signalling_8cpp.html#a0cce480a4e39f952b8311c63cb37db52" title=" " alt="" coords="359,464,485,489"/>
-<area shape="poly" id="edge18_Node000001_Node000010" title=" " alt="" coords="141,314,204,367,247,398,292,426,364,457,362,462,289,431,244,403,201,371,138,318"/>
-<area shape="rect" id="Node000013" href="$_signalling_8cpp.html#a7caf9e075db8201e60a60261421b618d" title=" " alt="" coords="346,537,498,563"/>
-<area shape="poly" id="edge24_Node000001_Node000013" title=" " alt="" coords="135,315,158,351,193,401,239,453,292,500,323,517,355,531,354,535,320,522,289,504,235,457,189,404,153,354,131,318"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="376,31,366,21,371,11,390,5,422,3,463,7,474,12,478,18,473,21,471,16,462,12,422,8,391,10,375,15,371,20,380,27"/>
-<area shape="poly" id="edge8_Node000003_Node000003" title=" " alt="" coords="376,105,366,94,371,84,390,78,422,76,463,80,474,85,478,92,473,94,471,89,462,85,422,81,391,83,375,88,371,94,380,101"/>
-<area shape="rect" id="Node000004" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="642,63,777,88"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="513,100,628,84,629,89,514,105"/>
-<area shape="rect" id="Node000005" href="$_signalling_8cpp.html#a5dae0c1df215e9154ed51bc44572903c" title=" " alt="" coords="604,137,815,177"/>
-<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="511,125,591,137,590,142,510,131"/>
-<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="676,64,669,54,673,44,687,38,709,36,737,40,748,49,745,53,735,45,709,41,688,43,677,48,675,54,681,61"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="672,137,669,127,675,118,689,112,709,110,733,113,746,120,743,125,731,118,709,115,690,117,679,122,675,128,677,136"/>
-<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="369,177,366,167,375,158,393,152,422,150,455,153,473,160,471,165,454,158,422,155,394,157,377,162,371,168,374,175"/>
-<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="376,267,366,257,371,247,390,241,422,239,463,243,474,248,478,254,473,257,471,252,462,248,422,244,391,246,375,251,371,256,380,263"/>
-<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="676,355,669,345,673,335,687,329,709,327,737,330,748,340,745,344,735,335,709,332,688,334,677,339,675,344,681,352"/>
-<area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="520,388,597,378,598,383,520,393"/>
-<area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="376,393,366,382,371,372,390,366,422,364,463,368,474,373,478,380,473,382,471,377,462,373,422,369,391,371,375,376,371,382,380,389"/>
-<area shape="poly" id="edge23_Node000010_Node000010" title=" " alt="" coords="376,466,366,456,371,446,390,439,422,437,463,442,474,447,478,453,473,455,471,451,462,447,422,443,391,445,375,450,371,455,380,462"/>
-<area shape="rect" id="Node000011" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="627,464,791,489"/>
-<area shape="poly" id="edge19_Node000010_Node000011" title=" " alt="" coords="485,474,614,474,614,479,485,479"/>
-<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="676,465,669,456,673,446,687,440,709,437,737,441,748,450,745,454,735,446,709,443,688,445,677,449,675,455,681,462"/>
-<area shape="rect" id="Node000012" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="865,464,956,489"/>
-<area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="791,474,851,474,851,479,791,479"/>
-<area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="878,465,871,456,874,446,888,440,911,437,939,441,950,450,946,454,936,446,911,443,889,445,878,449,876,455,882,462"/>
-<area shape="poly" id="edge25_Node000013_Node000013" title=" " alt="" coords="376,539,366,529,371,519,390,513,422,511,463,515,474,520,478,526,473,529,471,524,462,520,422,516,391,518,375,523,371,528,380,535"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,299,242,326"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a32899c09835c4795635927747dc962e3" title=" " alt="" coords="308,29,534,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,297,147,252,180,189,227,123,256,93,288,68,302,62,298,66,291,72,260,97,231,126,185,192,152,254,132,299"/>
+<area shape="rect" id="Node000003" href="$_signalling_8cpp.html#a06f5b27be6a92c7dffdb4fadac26836c" title=" " alt="" coords="303,105,539,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="132,297,155,264,191,222,236,178,288,142,303,137,299,141,291,147,240,183,195,226,160,268,136,300"/>
+<area shape="rect" id="Node000006" href="$_signalling_8cpp.html#a39da4653597bcc1f744002e9dde82277" title=" " alt="" coords="324,181,518,226"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="151,296,214,266,289,235,314,229,309,232,291,240,216,271,154,300"/>
+<area shape="rect" id="Node000007" href="$_signalling_8cpp.html#ae506dd708d608f1c83bc0e790570a987" title=" " alt="" coords="290,273,552,301"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="241,300,276,298,272,301,243,305"/>
+<area shape="rect" id="Node000008" href="$_signalling_8cpp.html#a12b28368d8164de8c3c1f69503d7d0f3" title=" " alt="" coords="600,361,815,389"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="242,322,586,360,583,364,242,328"/>
+<area shape="rect" id="Node000009" href="$_signalling_8cpp.html#a17c34a6fb342ec8619d0ef4836687db0" title=" " alt="" coords="310,399,532,426"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="167,324,365,392,361,395,167,329"/>
+<area shape="rect" id="Node000010" href="$_signalling_8cpp.html#a0cce480a4e39f952b8311c63cb37db52" title=" " alt="" coords="358,475,484,502"/>
+<area shape="poly" id="edge18_Node000001_Node000010" title=" " alt="" coords="141,324,205,377,247,408,291,435,362,469,357,469,288,440,244,412,202,381,140,330"/>
+<area shape="rect" id="Node000013" href="$_signalling_8cpp.html#a7caf9e075db8201e60a60261421b618d" title=" " alt="" coords="345,551,496,578"/>
+<area shape="poly" id="edge24_Node000001_Node000013" title=" " alt="" coords="133,324,158,362,193,412,238,465,291,512,321,529,354,545,348,545,318,534,288,516,235,469,189,415,154,365,133,329"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="372,29,364,20,371,11,390,5,421,3,455,5,474,14,469,15,454,10,421,8,391,10,374,15,370,20,377,29"/>
+<area shape="poly" id="edge8_Node000003_Node000003" title=" " alt="" coords="372,105,364,96,371,87,390,81,421,79,455,81,474,90,469,91,454,86,421,84,391,86,374,91,370,96,377,105"/>
+<area shape="rect" id="Node000004" href="$_signalling_8cpp.html#aa4d0088e47ad59d2fa1bbca0fa3332f8" title=" " alt="" coords="640,64,775,92"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="521,102,627,88,623,91,523,107"/>
+<area shape="rect" id="Node000005" href="$_signalling_8cpp.html#a5dae0c1df215e9154ed51bc44572903c" title=" " alt="" coords="602,140,813,184"/>
+<area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="518,131,590,143,585,145,519,136"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="673,63,667,55,672,45,686,39,708,37,731,40,746,48,740,49,730,45,708,43,687,45,676,49,673,55,678,64"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="669,138,668,129,674,121,688,115,708,113,729,115,743,124,738,124,728,120,708,118,689,120,678,125,673,131,674,140"/>
+<area shape="poly" id="edge10_Node000006_Node000006" title=" " alt="" coords="367,180,365,171,374,162,393,156,421,154,451,157,471,165,466,166,450,162,421,159,394,161,377,166,370,172,372,181"/>
+<area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="372,273,364,264,371,255,390,249,421,247,455,249,474,258,469,259,454,254,421,252,391,254,374,259,370,264,377,273"/>
+<area shape="poly" id="edge14_Node000008_Node000008" title=" " alt="" coords="673,360,667,352,672,343,686,337,708,335,731,337,746,346,740,346,730,342,708,340,687,342,676,347,673,352,678,362"/>
+<area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="531,395,587,391,582,392,533,401"/>
+<area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="372,398,364,390,371,380,390,374,421,372,455,375,475,384,469,384,454,380,421,377,391,379,374,384,370,389,377,399"/>
+<area shape="poly" id="edge23_Node000010_Node000010" title=" " alt="" coords="372,473,364,466,371,456,390,450,421,448,455,451,475,460,469,460,454,456,421,453,391,455,374,460,370,465,377,475"/>
+<area shape="rect" id="Node000011" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="626,475,789,502"/>
+<area shape="poly" id="edge19_Node000010_Node000011" title=" " alt="" coords="484,486,613,488,608,489,484,491"/>
+<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="673,473,667,466,672,456,686,450,708,448,731,451,746,460,740,459,730,456,708,453,687,455,676,460,673,465,678,475"/>
+<area shape="rect" id="Node000012" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="863,475,953,502"/>
+<area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="790,486,850,488,845,489,790,491"/>
+<area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="873,473,868,466,872,456,886,450,908,448,932,451,946,460,941,459,930,456,908,453,887,455,876,460,873,465,878,475"/>
+<area shape="poly" id="edge25_Node000013_Node000013" title=" " alt="" coords="372,549,364,542,371,532,390,526,421,524,455,527,475,536,469,535,454,532,421,529,391,531,374,536,370,541,377,551"/>
 </map>

@@ -1,8 +1,8 @@
 <map id="TrainBadgeItem::boundingRect" name="TrainBadgeItem::boundingRect">
-<area shape="rect" id="Node000001" title="The speed text with its outline and a margin of 1 logical pixel; empty when showsSpeed() is false." alt="" coords="5,5,227,31"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="549,5,763,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,15,536,15,536,21,227,21"/>
-<area shape="rect" id="Node000003" href="$class_train_badge_item.html#a8ef5aae236421b9efacd1ec8922a072a" title=" " alt="" coords="275,31,501,56"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,26,261,29,261,34,227,31"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="501,30,536,27,536,32,502,35"/>
+<area shape="rect" id="Node000001" title="The speed text with its outline and a margin of 1 logical pixel; empty when showsSpeed() is false." alt="" coords="5,5,226,33"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5" title="The badge draws the speed: in the Detailed presentation, while the speed is visible and not empty." alt="" coords="548,5,760,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,17,533,17,532,22,226,22"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html#a8ef5aae236421b9efacd1ec8922a072a" title=" " alt="" coords="274,31,500,58"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,27,261,32,256,33,226,32"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="500,31,530,31,535,30,501,36"/>
 </map>

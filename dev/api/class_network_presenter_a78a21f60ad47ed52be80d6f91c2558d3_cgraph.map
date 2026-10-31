@@ -1,17 +1,17 @@
 <map id="NetworkPresenter::getTrainPolygon" name="NetworkPresenter::getTrainPolygon">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,204,109"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" title="The line of the preview that the track line with this index in the run is drawn on,..." alt="" coords="270,5,463,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,67,270,46,272,51,188,72"/>
-<area shape="rect" id="Node000005" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="252,69,481,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="204,87,238,87,238,92,204,92"/>
-<area shape="rect" id="Node000006" href="$_network_presenter_8cpp.html#a4ee8a0b69325a28edae851515c7bb021" title=" " alt="" coords="285,158,448,183"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="171,107,313,151,311,156,169,112"/>
-<area shape="rect" id="Node000003" href="$class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" title="The line of the preview with this track id in the scene, or null." alt="" coords="529,13,736,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="463,23,515,23,515,28,463,28"/>
-<area shape="rect" id="Node000004" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="784,13,1015,38"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="736,23,770,23,770,28,736,28"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="324,160,315,150,320,140,337,133,367,131,404,135,414,140,418,146,413,149,411,144,403,141,367,137,339,139,324,144,321,149,328,156"/>
-<area shape="rect" id="Node000007" href="$_annotation_placement_8h.html#a34f664aa07616621a1de9d792747472f" title=" " alt="" coords="543,158,723,183"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="448,168,529,168,529,173,448,173"/>
-<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="590,160,581,150,586,140,603,133,633,131,671,135,681,140,684,146,680,149,677,144,669,141,633,137,604,139,589,144,586,149,594,156"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,75,204,119"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" title="The line of the preview that the track line with this index in the run is drawn on,..." alt="" coords="270,5,462,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,72,267,53,262,56,193,77"/>
+<area shape="rect" id="Node000005" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="252,75,480,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="204,94,239,96,233,98,204,100"/>
+<area shape="rect" id="Node000006" href="$_network_presenter_8cpp.html#a4ee8a0b69325a28edae851515c7bb021" title=" " alt="" coords="285,167,446,195"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="177,117,308,161,303,163,176,123"/>
+<area shape="rect" id="Node000003" href="$class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" title="The line of the preview with this track id in the scene, or null." alt="" coords="528,14,734,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,25,515,27,510,28,463,30"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="782,14,1013,42"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="735,25,770,27,764,28,735,30"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="321,166,314,158,320,148,337,143,366,141,396,143,414,152,409,152,395,148,366,146,338,148,323,153,320,158,326,168"/>
+<area shape="rect" id="Node000007" href="$_annotation_placement_8h.html#a34f664aa07616621a1de9d792747472f" title=" " alt="" coords="542,167,721,195"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="447,178,529,181,523,181,447,184"/>
+<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="586,166,579,158,585,148,602,143,631,141,662,143,680,152,675,151,661,148,631,146,603,148,588,153,584,158,591,168"/>
 </map>

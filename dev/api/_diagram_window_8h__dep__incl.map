@@ -1,9 +1,9 @@
 <map id="diagrams/DiagramWindow.h" name="diagrams/DiagramWindow.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="165,5,371,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,38,116,81,114,76,225,33"/>
-<area shape="rect" id="Node000003" href="$_result_views_8cpp.html" title=" " alt="" coords="189,79,347,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="271,44,271,79,265,79,265,44"/>
-<area shape="rect" id="Node000004" href="$_diagram_window_8cpp.html" title=" " alt="" coords="371,79,592,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="316,32,448,76,446,81,314,37"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,5,369,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,40,118,83,116,78,217,38"/>
+<area shape="rect" id="Node000003" href="$_result_views_8cpp.html" title=" " alt="" coords="188,81,344,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,47,269,82,264,79,264,51"/>
+<area shape="rect" id="Node000004" href="$_diagram_window_8cpp.html" title=" " alt="" coords="368,81,588,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="319,36,443,80,438,81,318,41"/>
 </map>

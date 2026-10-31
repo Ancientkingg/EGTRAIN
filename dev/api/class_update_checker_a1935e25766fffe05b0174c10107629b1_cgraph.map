@@ -1,39 +1,39 @@
 <map id="UpdateChecker::check" name="UpdateChecker::check">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,240,172,265"/>
-<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="257,5,385,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,239,106,200,132,146,169,88,192,62,219,40,243,27,245,32,221,44,196,66,173,92,137,148,111,202,97,241"/>
-<area shape="rect" id="Node000003" href="$class_http_reply.html#a0090d73555b553b74b13212df9044c89" title="A description of the failure for the user." alt="" coords="240,55,403,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,238,112,208,139,167,175,125,219,89,230,83,232,88,221,94,179,129,143,170,116,210,99,241"/>
-<area shape="rect" id="Node000004" href="$class_http_reply.html#a5477041bdcac6e7fec4ede9a0a9a2da2" title="True for a transport error, a cancelled request and an HTTP error status (4xx and 5xx)." alt="" coords="256,104,387,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="99,238,148,189,181,162,219,138,242,129,244,134,221,143,185,166,151,193,103,242"/>
-<area shape="rect" id="Node000005" href="$class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once." alt="" coords="249,153,394,179"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="112,237,160,212,219,187,244,180,246,185,221,193,162,217,114,242"/>
-<area shape="rect" id="Node000006" href="$class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended." alt="" coords="231,203,411,228"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="168,237,228,228,229,233,169,243"/>
-<area shape="rect" id="Node000007" href="$_release_info_8cpp.html#a5101cce45b3b110bd114fe82a3f20bb0" title=" " alt="" coords="226,276,417,301"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="172,263,226,271,225,276,171,268"/>
-<area shape="rect" id="Node000013" href="$class_http_reply.html#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply." alt="" coords="251,325,391,351"/>
-<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="116,263,164,287,221,310,250,319,249,324,219,315,161,291,113,268"/>
-<area shape="rect" id="Node000014" href="$class_http_reply.html#a6477173090a5907d88d42340d358511e" title="New bytes can be taken with readAll()." alt="" coords="239,375,403,400"/>
-<area shape="poly" id="edge19_Node000001_Node000014" title=" " alt="" coords="103,264,152,311,185,337,221,360,240,368,238,373,219,364,182,342,148,315,100,268"/>
-<area shape="rect" id="Node000015" href="$class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases." alt="" coords="220,424,423,449"/>
-<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="99,264,116,294,143,334,179,376,221,410,232,416,230,421,219,415,175,380,139,338,112,297,94,267"/>
-<area shape="rect" id="Node000016" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="238,473,405,499"/>
-<area shape="poly" id="edge21_Node000001_Node000016" title=" " alt="" coords="97,264,111,303,137,356,173,413,196,438,222,460,229,465,226,469,218,464,192,442,169,416,132,359,106,305,92,266"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="284,278,275,268,280,258,295,252,321,249,354,253,366,263,363,267,352,258,321,255,296,257,283,262,281,267,288,274"/>
-<area shape="rect" id="Node000008" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="483,167,658,192"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="351,274,421,237,445,218,469,201,487,194,489,199,472,206,448,223,424,242,353,278"/>
-<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#af5c1cef922b9bea6e866ea9782d31cb8" title=" " alt="" coords="471,240,671,265"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="409,273,468,265,469,270,410,279"/>
-<area shape="rect" id="Node000010" href="$_version_8cpp.html#a137f71e5b980c1049d67bc615992834b" title=" " alt="" coords="510,313,631,339"/>
-<area shape="poly" id="edge12_Node000007_Node000010" title=" " alt="" coords="407,299,497,312,496,318,406,304"/>
-<area shape="rect" id="Node000012" href="$_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;." alt="" coords="471,387,670,412"/>
-<area shape="poly" id="edge16_Node000007_Node000012" title=" " alt="" coords="394,299,424,310,449,328,472,348,529,378,526,383,469,352,446,332,421,315,392,304"/>
-<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="535,168,527,158,531,148,546,142,571,140,601,144,614,153,610,157,599,149,571,145,547,147,534,152,532,158,539,165"/>
-<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="535,242,527,232,531,222,546,216,571,213,601,217,614,226,610,230,599,222,571,219,547,221,534,226,532,231,539,238"/>
-<area shape="poly" id="edge13_Node000010_Node000010" title=" " alt="" coords="535,315,527,305,531,295,546,289,571,287,601,290,614,299,610,304,599,295,571,292,547,294,534,299,532,304,539,312"/>
-<area shape="rect" id="Node000011" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="719,313,865,339"/>
-<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="632,323,705,323,705,329,632,329"/>
-<area shape="poly" id="edge15_Node000011_Node000011" title=" " alt="" coords="756,315,748,305,752,295,767,289,792,287,823,290,835,299,832,304,821,295,792,292,768,294,756,299,753,304,760,312"/>
-<area shape="poly" id="edge17_Node000012_Node000012" title=" " alt="" coords="535,388,527,378,531,368,546,362,571,360,601,364,614,373,610,377,599,369,571,365,547,367,534,372,532,378,539,385"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,252,172,280"/>
+<area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="257,5,384,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,251,106,210,132,153,169,94,192,67,218,44,245,31,241,35,221,48,196,71,173,98,136,156,111,211,97,252"/>
+<area shape="rect" id="Node000003" href="$class_http_reply.html#a0090d73555b553b74b13212df9044c89" title="A description of the failure for the user." alt="" coords="240,57,402,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="94,250,112,218,139,176,175,133,218,96,232,90,228,94,221,100,179,136,143,179,116,221,99,253"/>
+<area shape="rect" id="Node000004" href="$class_http_reply.html#a5477041bdcac6e7fec4ede9a0a9a2da2" title="True for a transport error, a cancelled request and an HTTP error status (4xx and 5xx)." alt="" coords="256,109,386,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="100,250,148,200,182,171,218,147,243,138,239,142,221,152,185,176,152,203,104,253"/>
+<area shape="rect" id="Node000005" href="$class_http_reply.html#a148662f8bf1d7b19f555cbd85483bcbb" title="The request ended, whether it succeeded, failed or was cancelled. Emitted once." alt="" coords="249,161,393,189"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="113,250,162,224,219,199,245,192,241,196,221,204,164,229,117,254"/>
+<area shape="rect" id="Node000006" href="$class_update_checker.html#aff7ad6ee2f6c676cc13133ef6cd2d939" title="The check started by check() ended." alt="" coords="231,213,410,241"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="171,250,221,243,217,246,173,254"/>
+<area shape="rect" id="Node000007" href="$_release_info_8cpp.html#a5101cce45b3b110bd114fe82a3f20bb0" title=" " alt="" coords="226,289,416,317"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="171,277,218,285,213,287,173,282"/>
+<area shape="rect" id="Node000013" href="$class_http_reply.html#a4e211b26004cf9e035241435f736e918" title="Returns the bytes received since the last call and removes them from the reply." alt="" coords="251,341,390,369"/>
+<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="116,278,165,302,221,326,246,336,241,337,219,331,162,307,116,283"/>
+<area shape="rect" id="Node000014" href="$class_http_reply.html#a6477173090a5907d88d42340d358511e" title="New bytes can be taken with readAll()." alt="" coords="239,393,402,421"/>
+<area shape="poly" id="edge19_Node000001_Node000014" title=" " alt="" coords="102,277,152,327,185,355,221,378,238,387,232,388,218,383,182,359,148,331,102,283"/>
+<area shape="rect" id="Node000015" href="$class_update_checker.html#a93fd2added1cd3bdf26be8c0b4ca2575" title="The release list of the GitHub API, at most 100 releases." alt="" coords="220,445,422,473"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="97,277,117,310,143,351,179,394,221,430,233,439,228,439,218,435,175,398,139,355,112,313,97,283"/>
+<area shape="rect" id="Node000016" href="$class_http_reply.html#a25c7e826839fcd45ef0c7b11195aaaed" title="The HTTP status code of the response, or 0 when no response arrived." alt="" coords="238,497,404,525"/>
+<area shape="poly" id="edge21_Node000001_Node000016" title=" " alt="" coords="94,278,111,320,136,375,173,433,196,460,221,482,231,491,225,490,218,487,192,463,169,436,132,378,106,322,94,283"/>
+<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="281,289,275,280,280,271,295,265,321,263,348,265,364,274,359,274,347,270,321,268,297,270,283,275,280,280,286,289"/>
+<area shape="rect" id="Node000008" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="482,176,657,204"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="353,286,421,250,444,231,469,214,490,208,485,210,471,219,447,236,423,255,355,291"/>
+<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#af5c1cef922b9bea6e866ea9782d31cb8" title=" " alt="" coords="470,252,669,280"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="416,286,461,282,456,283,417,291"/>
+<area shape="rect" id="Node000010" href="$_version_8cpp.html#a137f71e5b980c1049d67bc615992834b" title=" " alt="" coords="510,328,630,356"/>
+<area shape="poly" id="edge12_Node000007_Node000010" title=" " alt="" coords="414,315,496,330,491,331,414,320"/>
+<area shape="rect" id="Node000012" href="$_release_info_8cpp.html#a7df84b7a08d1e20df92499ba21302b64" title="The file name of the update manifest of a release: &quot;update&#45;manifest.json&quot;." alt="" coords="470,404,669,432"/>
+<area shape="poly" id="edge16_Node000007_Node000012" title=" " alt="" coords="391,315,423,327,448,345,472,365,526,397,521,397,468,369,445,350,421,332,391,320"/>
+<area shape="poly" id="edge8_Node000008_Node000008" title=" " alt="" coords="531,175,526,167,531,157,545,151,570,149,596,152,611,160,606,161,594,157,570,155,547,157,534,161,531,167,537,176"/>
+<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="531,251,526,243,531,233,545,227,570,225,596,228,611,237,606,237,594,233,570,231,547,233,534,237,531,243,537,252"/>
+<area shape="poly" id="edge13_Node000010_Node000010" title=" " alt="" coords="532,327,526,319,531,309,545,303,570,301,596,304,611,313,606,313,594,309,570,307,547,309,534,313,531,319,537,328"/>
+<area shape="rect" id="Node000011" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="717,328,864,356"/>
+<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="630,339,704,341,699,342,630,344"/>
+<area shape="poly" id="edge15_Node000011_Node000011" title=" " alt="" coords="752,327,746,319,751,309,766,303,791,301,816,304,832,313,827,312,815,309,790,307,768,309,755,313,752,319,757,328"/>
+<area shape="poly" id="edge17_Node000012_Node000012" title=" " alt="" coords="532,403,526,395,531,385,545,379,570,377,596,380,611,389,606,388,594,385,570,383,547,385,534,389,531,395,537,404"/>
 </map>

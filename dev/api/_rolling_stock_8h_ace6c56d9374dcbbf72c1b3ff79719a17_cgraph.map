@@ -1,18 +1,18 @@
 <map id="prepareNativeOperationsState" name="prepareNativeOperationsState">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,225,137"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="77,114,68,104,73,94,89,88,115,85,149,89,161,99,158,103,147,94,115,91,90,93,76,98,74,103,81,110"/>
-<area shape="rect" id="Node000002" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="273,112,432,137"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="225,122,260,122,260,127,225,127"/>
-<area shape="rect" id="Node000003" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="530,5,694,31"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="368,110,415,74,446,55,479,40,516,28,518,33,481,44,449,60,418,79,371,114"/>
-<area shape="rect" id="Node000004" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="535,55,689,80"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="401,109,479,90,528,80,529,85,481,95,402,114"/>
-<area shape="rect" id="Node000005" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="541,105,683,145"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="432,122,528,122,528,127,432,127"/>
-<area shape="rect" id="Node000007" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="480,169,744,195"/>
-<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="402,135,481,154,529,164,528,169,479,159,401,140"/>
-<area shape="rect" id="Node000008" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="544,219,680,244"/>
-<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="371,135,419,170,481,204,531,218,530,223,479,208,416,174,368,140"/>
-<area shape="rect" id="Node000006" href="$class_initial_parameters.html#af0cffe214c1366a11fab292eaf4fd48d" title=" " alt="" coords="792,105,933,145"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="683,122,778,122,778,127,683,127"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,117,225,145"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="74,117,68,108,73,99,89,93,115,91,143,93,159,101,154,103,141,98,115,96,90,98,77,103,73,108,80,116"/>
+<area shape="rect" id="Node000002" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="273,117,430,145"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="225,129,260,130,255,132,226,134"/>
+<area shape="rect" id="Node000003" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title="Empties the index." alt="" coords="528,5,691,33"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="367,115,414,79,445,60,477,43,515,33,510,35,479,48,447,64,417,83,370,119"/>
+<area shape="rect" id="Node000004" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="533,57,686,85"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="400,114,477,94,520,87,515,89,479,99,402,119"/>
+<area shape="rect" id="Node000005" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="540,109,680,154"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="430,129,527,131,522,132,431,134"/>
+<area shape="rect" id="Node000007" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="478,177,741,205"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="401,143,479,163,517,174,511,174,477,168,401,148"/>
+<area shape="rect" id="Node000008" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="542,229,677,257"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="370,143,417,179,447,198,479,214,529,232,524,231,477,219,445,203,414,183,368,148"/>
+<area shape="rect" id="Node000006" href="$class_initial_parameters.html#af0cffe214c1366a11fab292eaf4fd48d" title=" " alt="" coords="789,109,930,154"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="680,129,776,131,771,131,680,134"/>
 </map>

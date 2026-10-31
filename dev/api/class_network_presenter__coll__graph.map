@@ -1,17 +1,17 @@
 <map id="NetworkPresenter" name="NetworkPresenter">
-<area shape="rect" id="Node000001" title=" " alt="" coords="281,176,420,201"/>
-<area shape="rect" id="Node000002" href="$class_signal_item.html" title=" " alt="" coords="63,80,155,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,117,127,135,140,150,164,160,199,169,282,180,281,185,198,174,162,165,137,154,123,138,113,119"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,168,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,43,108,79,103,80,92,45"/>
-<area shape="rect" id="Node000004" href="$class_train_item_group.html" title=" " alt="" coords="211,80,333,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="276,118,281,135,289,150,303,164,320,174,317,178,300,168,285,154,276,137,271,119"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="193,5,351,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="275,45,275,80,269,80,269,45"/>
-<area shape="rect" id="Node000006" href="$class_passenger_item.html" title="The icon of a passenger waiting on a platform. It draws over the platforms." alt="" coords="358,80,477,105"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="408,119,386,154,365,177,361,174,382,150,403,116"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="376,5,544,31"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="448,44,427,81,422,78,444,42"/>
-<area shape="rect" id="Node000008" href="$struct_track_preview_result.html" title="What the network preview draws of a scene." alt="" coords="500,80,649,105"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="553,116,525,136,493,154,456,168,418,179,416,173,454,163,491,150,522,132,550,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="278,183,416,211"/>
+<area shape="rect" id="Node000002" href="$class_signal_item.html" title=" " alt="" coords="63,82,154,110"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,122,126,142,139,157,162,168,197,176,281,190,275,191,196,182,160,173,136,161,122,145,114,127"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,167,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,45,107,82,102,82,94,51"/>
+<area shape="rect" id="Node000004" href="$class_train_item_group.html" title=" " alt="" coords="209,82,331,110"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="273,123,279,142,286,157,300,170,317,183,311,182,296,175,282,161,274,144,270,128"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="191,5,349,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="272,46,272,83,268,81,268,51"/>
+<area shape="rect" id="Node000006" href="$class_passenger_item.html" title="The icon of a passenger waiting on a platform. It draws over the platforms." alt="" coords="355,82,473,110"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="404,122,383,161,362,185,359,180,378,157,399,125"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="373,5,540,33"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="444,45,423,84,420,80,440,48"/>
+<area shape="rect" id="Node000008" href="$struct_track_preview_result.html" title="What the network preview draws of a scene." alt="" coords="497,82,646,110"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="549,119,522,143,491,161,455,176,418,186,417,181,453,171,489,157,519,139,544,121"/>
 </map>

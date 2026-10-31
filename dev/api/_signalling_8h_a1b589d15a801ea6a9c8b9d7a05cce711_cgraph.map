@@ -1,7 +1,7 @@
 <map id="generateConnectBlock" name="generateConnectBlock">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,175,55"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="51,31,42,21,47,11,63,5,90,3,124,7,134,11,138,17,133,20,130,15,123,12,90,8,64,10,50,15,47,20,55,27"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="223,29,447,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,39,209,39,209,45,175,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="295,31,287,21,291,11,308,5,335,3,369,7,379,11,382,17,378,20,375,15,368,12,335,8,309,10,295,15,292,20,299,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,174,57"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="48,29,41,20,47,11,63,5,90,3,118,5,135,14,130,14,117,10,89,8,64,10,50,15,46,20,53,29"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="222,29,445,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,41,209,43,203,43,174,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="292,28,285,20,290,11,307,5,333,3,362,5,379,14,374,14,361,10,333,8,308,10,294,15,290,20,297,30"/>
 </map>

@@ -1,10 +1,10 @@
 <map id="IncidentPanel::commitEndSeconds" name="IncidentPanel::commitEndSeconds">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,196,87"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="257,5,455,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,46,276,31,277,36,197,52"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="244,55,468,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,65,230,65,230,70,196,70"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="306,128,406,153"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,85,298,122,297,127,170,90"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="315,130,306,120,311,110,328,104,356,101,392,105,402,110,406,116,401,119,398,114,390,110,356,107,329,109,314,114,311,119,319,126"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,196,94"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="257,5,454,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,49,271,36,266,38,197,54"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="244,57,467,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,69,231,70,226,72,197,74"/>
+<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="306,133,405,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="178,91,294,127,289,129,177,97"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="312,132,305,124,311,115,328,109,355,107,385,109,403,118,398,118,384,114,355,112,329,114,314,119,310,124,317,134"/>
 </map>

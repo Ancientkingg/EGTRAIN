@@ -1,15 +1,15 @@
 <map id="CompositionPanel::commitPendingEditors" name="CompositionPanel::commitPendingEditors">
-<area shape="rect" id="Node000001" title="Takes the id that is being edited into the document." alt="" coords="5,97,203,137"/>
-<area shape="rect" id="Node000002" href="$class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="251,97,448,137"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,114,237,114,237,119,203,119"/>
-<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="530,5,727,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,94,435,66,495,41,529,31,531,36,497,46,437,71,385,99"/>
-<area shape="rect" id="Node000004" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="515,55,742,95"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="448,99,501,91,502,97,449,105"/>
-<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title="Rewrites the composition id in the composition of services." alt="" coords="496,144,761,169"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="449,128,526,139,526,145,448,133"/>
-<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="529,217,729,243"/>
-<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="396,134,497,178,580,210,578,215,495,183,394,139"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="584,146,574,136,579,126,598,119,629,117,669,122,680,127,683,133,678,135,676,131,668,127,629,123,599,125,583,130,580,135,588,142"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="584,219,574,209,579,199,598,193,629,191,669,195,680,200,683,206,678,209,676,204,668,200,629,196,599,198,583,203,580,208,588,215"/>
+<area shape="rect" id="Node000001" title="Takes the id that is being edited into the document." alt="" coords="5,100,202,144"/>
+<area shape="rect" id="Node000002" href="$class_composition_panel.html#afa6ece843725100b4a04402a748b43ff" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="250,100,446,144"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,119,237,121,232,123,203,124"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="528,5,724,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,97,434,68,493,42,520,36,515,38,495,47,437,73,386,101"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="513,57,739,102"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="446,104,500,98,495,100,447,109"/>
+<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title="Rewrites the composition id in the composition of services." alt="" coords="494,149,758,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="446,134,516,146,511,147,446,139"/>
+<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="526,225,726,253"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="398,142,495,186,574,220,569,219,493,191,397,147"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="579,148,571,140,577,131,596,125,626,123,659,125,678,134,672,134,657,130,626,128,597,130,581,135,577,140,584,150"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="579,224,571,216,577,207,596,201,626,199,659,201,678,210,672,210,657,206,626,204,597,206,581,211,577,216,584,226"/>
 </map>

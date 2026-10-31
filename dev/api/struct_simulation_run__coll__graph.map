@@ -1,17 +1,17 @@
 <map id="SimulationRun" name="SimulationRun">
-<area shape="rect" id="Node000001" title=" " alt="" coords="441,186,559,211"/>
-<area shape="rect" id="Node000002" href="$class_initial_parameters.html" title=" " alt="" coords="113,22,247,47"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="261,25,299,26,341,32,381,43,419,62,449,90,472,124,488,158,498,185,493,186,483,160,468,127,445,93,416,66,379,48,339,37,299,32,260,30"/>
-<area shape="rect" id="Node000003" href="$class_passenger_index.html" title=" " alt="" coords="118,75,242,101"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,84,337,93,379,103,419,119,441,133,462,151,491,184,487,187,458,154,438,137,416,124,377,109,336,98,256,90"/>
-<area shape="rect" id="Node000004" href="$class_platform_index.html" title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen..." alt="" coords="123,129,237,154"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="252,144,332,153,418,168,467,183,466,188,417,173,331,158,251,149"/>
-<area shape="rect" id="Node000005" href="$class_stations.html" title=" " alt="" coords="143,242,217,267"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="231,260,319,265,369,261,416,251,454,232,483,209,487,214,457,237,418,256,369,266,319,270,231,265"/>
-<area shape="rect" id="Node000006" href="$class_node.html" title=" " alt="" coords="5,242,61,267"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="75,252,142,252,142,257,75,257"/>
-<area shape="rect" id="Node000007" href="$class_number_generator.html" title=" " alt="" coords="111,295,249,321"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="263,316,340,314,379,306,416,292,441,275,462,253,490,210,495,213,466,256,445,279,419,297,381,311,341,319,263,322"/>
-<area shape="rect" id="Node000008" href="$struct_run_infrastructure.html" title=" " alt="" coords="113,349,247,374"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="261,372,299,373,340,370,380,361,416,344,433,331,448,315,470,277,485,240,493,211,499,212,490,241,475,279,452,318,437,335,419,349,381,366,341,376,300,379,261,377"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="439,197,556,225"/>
+<area shape="rect" id="Node000002" href="$class_initial_parameters.html" title=" " alt="" coords="113,24,245,51"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,28,300,29,340,34,380,46,417,65,448,95,471,131,486,167,495,197,490,195,481,169,466,134,444,98,414,69,378,51,339,40,299,34,262,33"/>
+<area shape="rect" id="Node000003" href="$class_passenger_index.html" title=" " alt="" coords="118,80,241,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,89,336,97,377,107,417,123,440,139,460,158,490,197,485,196,457,162,437,143,414,128,376,112,335,102,257,94"/>
+<area shape="rect" id="Node000004" href="$class_platform_index.html" title="Station platforms by station ID and platform ID, for one platform list, with the same rules as Passen..." alt="" coords="122,136,236,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="250,151,331,160,416,176,468,196,463,197,415,181,330,165,252,156"/>
+<area shape="rect" id="Node000005" href="$class_stations.html" title=" " alt="" coords="142,258,216,286"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="231,280,273,286,319,288,368,285,414,274,435,264,453,251,482,226,487,224,457,255,437,268,416,279,368,290,319,293,272,291,232,286"/>
+<area shape="rect" id="Node000006" href="$class_node.html" title=" " alt="" coords="5,258,61,286"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="76,270,144,270,140,274,77,275"/>
+<area shape="rect" id="Node000007" href="$class_number_generator.html" title=" " alt="" coords="110,314,248,342"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="263,340,301,342,340,340,378,333,414,319,441,299,462,273,488,227,493,224,466,276,444,303,417,324,380,338,340,345,301,347,264,346"/>
+<area shape="rect" id="Node000008" href="$struct_run_infrastructure.html" title=" " alt="" coords="112,370,246,398"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="262,398,300,400,340,398,378,389,414,372,432,358,447,340,470,298,484,257,492,227,496,223,489,258,475,300,452,343,436,361,417,377,380,394,340,403,300,405,262,403"/>
 </map>

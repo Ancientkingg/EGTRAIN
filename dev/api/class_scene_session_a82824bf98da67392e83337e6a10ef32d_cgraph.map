@@ -1,5 +1,5 @@
 <map id="SceneSession::SceneSession" name="SceneSession::SceneSession">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,213,38"/>
-<area shape="rect" id="Node000002" href="$class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" title="Marks the entries of the menu whose scene is gone as unavailable, and the others as available." alt="" coords="261,5,472,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,23,248,23,248,28,214,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,14,213,42"/>
+<area shape="rect" id="Node000002" href="$class_scene_session.html#ae84d74862a356ef7781631f6a98c41cb" title="Marks the entries of the menu whose scene is gone as unavailable, and the others as available." alt="" coords="261,5,470,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,25,248,27,243,28,213,30"/>
 </map>

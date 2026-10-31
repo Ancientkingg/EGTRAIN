@@ -1,7 +1,7 @@
 <map id="recovery/RecoveryPrompt.h" name="recovery/RecoveryPrompt.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="91,5,293,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,40,104,81,101,76,162,36"/>
-<area shape="rect" id="Node000003" href="$_recovery_prompt_8cpp.html" title=" " alt="" coords="189,79,408,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,36,283,76,280,81,219,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="89,5,292,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,42,105,83,102,78,157,43"/>
+<area shape="rect" id="Node000003" href="$_recovery_prompt_8cpp.html" title=" " alt="" coords="188,81,406,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,40,281,81,275,81,221,45"/>
 </map>

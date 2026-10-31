@@ -1,6 +1,6 @@
 <map id="telemetry::TelemetryQueue::enqueueUsage" name="telemetry::TelemetryQueue::enqueueUsage">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,205,62"/>
-<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="253,29,408,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,39,240,39,240,45,206,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="294,31,286,21,290,11,306,5,331,3,362,7,374,16,371,20,360,11,331,8,307,10,294,15,291,20,298,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,21,205,66"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="253,29,407,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,41,240,43,234,43,205,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="291,28,285,20,290,11,305,5,330,3,356,5,372,14,367,14,355,10,330,8,306,10,294,15,290,20,296,30"/>
 </map>

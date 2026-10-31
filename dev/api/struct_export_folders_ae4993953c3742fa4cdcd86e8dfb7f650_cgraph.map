@@ -1,5 +1,5 @@
 <map id="ExportFolders::exists" name="ExportFolders::exists">
-<area shape="rect" id="Node000001" title="True when existing finds a file at relative." alt="" coords="5,5,164,31"/>
-<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="212,5,383,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,15,198,15,198,21,164,21"/>
+<area shape="rect" id="Node000001" title="True when existing finds a file at relative." alt="" coords="5,5,163,33"/>
+<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="211,5,381,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,17,198,19,193,19,163,22"/>
 </map>

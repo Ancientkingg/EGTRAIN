@@ -1,9 +1,9 @@
 <map id="defaultScenario" name="defaultScenario">
-<area shape="rect" id="Node000001" title="The scenario that defaultScenarioId names, or the first one when it names none; null when there is no..." alt="" coords="5,29,129,55"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="177,29,301,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,39,163,39,163,45,130,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="211,31,205,21,208,11,220,5,239,3,263,6,273,15,269,19,260,11,239,8,221,10,212,15,210,20,215,28"/>
-<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="349,29,520,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="302,39,336,39,336,45,302,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="403,31,396,21,399,11,413,5,435,3,461,6,473,15,469,19,459,11,435,8,414,10,403,15,401,20,407,28"/>
+<area shape="rect" id="Node000001" title="The scenario that defaultScenarioId names, or the first one when it names none; null when there is no..." alt="" coords="5,29,129,57"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="177,29,300,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,41,164,43,158,43,129,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="208,28,204,20,207,11,219,5,238,3,259,5,271,14,266,14,257,10,238,8,221,10,211,15,209,20,213,30"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="348,29,517,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="300,41,335,43,330,43,300,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="399,28,394,20,398,11,411,5,433,3,456,5,469,14,464,14,454,10,433,8,413,10,402,15,399,20,404,30"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="exactNumberEdit" name="exactNumberEdit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,140,55"/>
-<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="39,31,31,21,35,11,49,5,73,3,102,6,113,15,110,20,100,11,73,8,51,10,39,15,36,20,43,28"/>
-<area shape="rect" id="Node000002" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="188,22,375,62"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,39,174,39,174,45,140,45"/>
-<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="423,29,568,55"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="375,39,409,39,409,45,375,45"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="460,31,453,21,457,11,471,5,495,3,525,6,537,15,534,20,523,11,495,8,473,10,461,15,458,20,465,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,140,57"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="36,29,31,20,35,11,50,5,73,3,97,5,112,14,107,14,96,10,72,8,51,10,39,15,36,20,42,29"/>
+<area shape="rect" id="Node000002" href="$class_compact_double_spin_box.html#a649387d186d6bddf6fb9c519bc1e0dfe" title="A spin box whose wheel is guarded by FocusWheel." alt="" coords="188,21,374,66"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,41,175,43,169,43,140,46"/>
+<area shape="rect" id="Node000003" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="422,29,566,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="374,41,409,43,404,43,375,46"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="457,28,452,20,456,11,471,5,494,3,519,5,534,14,529,14,518,10,494,8,472,10,460,15,457,20,462,30"/>
 </map>

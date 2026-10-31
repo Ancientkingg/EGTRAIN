@@ -1,11 +1,11 @@
 <map id="RunSelection::selectedCount" name="RunSelection::selectedCount">
-<area shape="rect" id="Node000001" title="How many occurrences over durationSeconds are selected." alt="" coords="5,79,213,104"/>
-<area shape="rect" id="Node000002" href="$class_run_selection.html#a8cca816811ab5177645f08407fae64f4" title="The occurrences that a run leaves out. All others are selected." alt="" coords="283,5,458,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,76,261,39,293,31,295,36,262,45,147,81"/>
-<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="261,79,480,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,89,248,89,248,94,214,94"/>
-<area shape="rect" id="Node000004" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="285,152,456,177"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="156,102,312,146,310,151,155,107"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="328,80,319,70,324,60,341,54,371,52,408,56,418,61,422,67,417,70,415,65,407,61,371,57,343,59,328,64,325,70,332,77"/>
-<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="328,154,319,144,324,134,341,127,371,125,408,129,418,134,422,140,417,143,415,138,407,135,371,131,343,133,328,138,325,143,332,150"/>
+<area shape="rect" id="Node000001" title="How many occurrences over durationSeconds are selected." alt="" coords="5,81,213,109"/>
+<area shape="rect" id="Node000002" href="$class_run_selection.html#a8cca816811ab5177645f08407fae64f4" title="The occurrences that a run leaves out. All others are selected." alt="" coords="283,5,456,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,78,260,43,294,36,289,38,261,48,153,83"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="261,81,479,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,93,248,95,242,96,214,98"/>
+<area shape="rect" id="Node000004" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="285,157,455,185"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="160,107,307,151,303,154,159,112"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="325,80,318,72,324,63,341,57,370,55,400,57,418,66,413,66,399,62,370,60,343,62,327,67,324,72,330,81"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="325,156,318,148,324,139,341,133,370,131,400,133,418,142,413,142,399,138,370,136,343,138,327,143,324,148,330,158"/>
 </map>

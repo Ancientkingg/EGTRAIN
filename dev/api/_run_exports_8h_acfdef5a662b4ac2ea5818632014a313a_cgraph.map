@@ -1,82 +1,82 @@
 <map id="capacityCsvFrom" name="capacityCsvFrom">
-<area shape="rect" id="Node000001" title="capacityAnalysisCsv of capacityAnalysisFrom; empty when the scope has an issue." alt="" coords="5,492,140,517"/>
-<area shape="poly" id="edge41_Node000001_Node000001" title=" " alt="" coords="39,494,32,484,35,474,49,468,73,465,101,469,113,478,109,482,99,474,73,471,51,473,39,477,37,483,43,490"/>
-<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#ab420be6557579b41e9121557671bc2f5" title=" " alt="" coords="202,140,358,165"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,490,262,176,267,178,84,493"/>
-<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#acfe154895d5d0c3d5793d1c8f2836e66" title=" " alt="" coords="197,439,363,464"/>
-<area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="122,489,216,465,218,470,124,494"/>
-<area shape="rect" id="Node000021" href="$_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" title="Why the scope cannot be analysed, empty when it can or has no route or block." alt="" coords="189,528,371,553"/>
-<area shape="poly" id="edge42_Node000001_Node000021" title=" " alt="" coords="141,514,194,523,193,528,140,519"/>
-<area shape="rect" id="Node000026" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="188,633,372,659"/>
-<area shape="poly" id="edge52_Node000001_Node000026" title=" " alt="" coords="94,515,250,623,247,627,91,520"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="246,142,239,132,243,122,257,116,280,113,309,117,320,126,317,130,306,122,280,119,258,121,247,125,244,131,250,138"/>
-<area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a377514d82329bc112de7abd1211fa0fb" title=" " alt="" coords="448,103,611,128"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="358,138,434,127,435,132,358,144"/>
-<area shape="rect" id="Node000004" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="719,29,861,55"/>
-<area shape="poly" id="edge14_Node000002_Node000004" title=" " alt="" coords="295,138,347,100,382,80,419,65,493,47,569,37,642,33,705,34,705,39,642,39,570,42,494,52,421,70,384,85,350,104,298,142"/>
-<area shape="rect" id="Node000009" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="452,176,607,201"/>
-<area shape="poly" id="edge15_Node000002_Node000009" title=" " alt="" coords="358,161,439,173,438,178,358,166"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="489,104,480,94,485,84,502,78,529,76,564,80,574,85,578,90,574,93,571,89,563,85,529,81,503,83,489,88,486,94,493,101"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="569,100,686,65,721,55,723,61,687,70,571,105"/>
-<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a3bb2c1995320c79d30288260f90e0bd3" title=" " alt="" coords="709,103,871,128"/>
-<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="611,113,695,113,695,118,611,118"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="749,31,741,21,745,11,762,5,790,3,825,7,835,11,839,17,835,20,832,15,824,12,790,8,763,10,749,15,746,20,753,27"/>
-<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="749,104,741,94,745,84,762,78,790,76,825,80,835,85,839,90,835,93,832,89,824,85,790,81,763,83,749,88,746,94,753,101"/>
-<area shape="rect" id="Node000006" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="965,125,1116,165"/>
-<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="872,122,952,132,952,137,871,127"/>
-<area shape="rect" id="Node000007" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="989,75,1092,100"/>
-<area shape="poly" id="edge10_Node000005_Node000007" title=" " alt="" coords="871,104,975,92,976,97,872,109"/>
-<area shape="poly" id="edge13_Node000007_Node000007" title=" " alt="" coords="1003,76,994,66,999,56,1014,50,1041,48,1074,52,1086,61,1083,66,1072,57,1041,53,1016,55,1002,60,999,66,1006,73"/>
-<area shape="rect" id="Node000008" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="1188,236,1367,261"/>
-<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="1093,92,1118,100,1141,110,1178,136,1212,166,1261,223,1257,227,1208,170,1175,140,1139,115,1116,105,1092,98"/>
-<area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="1239,238,1231,228,1235,218,1251,212,1277,209,1310,213,1323,223,1320,227,1308,218,1277,215,1252,217,1239,222,1236,227,1243,234"/>
-<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="489,178,480,168,485,158,502,152,529,149,564,153,574,158,578,164,574,167,571,162,563,158,529,155,503,157,489,162,486,167,493,174"/>
-<area shape="rect" id="Node000010" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="733,176,847,201"/>
-<area shape="poly" id="edge17_Node000009_Node000010" title=" " alt="" coords="607,186,719,186,719,191,607,191"/>
-<area shape="poly" id="edge20_Node000010_Node000010" title=" " alt="" coords="749,178,741,168,745,158,762,152,790,149,825,153,835,158,839,164,835,167,832,162,824,158,790,155,763,157,749,162,746,167,753,174"/>
-<area shape="rect" id="Node000011" href="$namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21" title=" " alt="" coords="977,213,1105,239"/>
-<area shape="poly" id="edge18_Node000010_Node000011" title=" " alt="" coords="848,195,963,212,963,217,847,200"/>
-<area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="1003,215,994,205,999,195,1014,189,1041,187,1074,191,1086,200,1083,204,1072,195,1041,192,1016,194,1002,199,999,204,1006,211"/>
-<area shape="poly" id="edge29_Node000012_Node000012" title=" " alt="" coords="246,440,239,430,243,420,257,414,280,412,309,416,320,425,317,429,306,421,280,417,258,419,247,424,244,430,250,437"/>
-<area shape="rect" id="Node000013" href="$_capacity_analysis_8cpp.html#aa2d628e9a6d19056454846df4785c094" title=" " alt="" coords="464,447,595,472"/>
-<area shape="poly" id="edge22_Node000012_Node000013" title=" " alt="" coords="363,451,451,454,450,459,363,457"/>
-<area shape="rect" id="Node000016" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="454,300,605,325"/>
-<area shape="poly" id="edge30_Node000012_Node000016" title=" " alt="" coords="291,437,343,387,379,359,419,336,440,327,442,332,421,340,382,364,346,391,295,441"/>
-<area shape="rect" id="Node000019" href="$_capacity_analysis_8cpp.html#a8c99415d983b8a0fbf2a069c3e0bda96" title=" " alt="" coords="439,373,619,399"/>
-<area shape="poly" id="edge37_Node000012_Node000019" title=" " alt="" coords="323,436,419,409,458,399,459,404,421,414,324,441"/>
-<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="489,448,480,438,485,428,502,422,529,420,564,424,574,429,578,434,574,437,571,433,563,429,529,425,503,427,489,432,486,438,493,445"/>
-<area shape="rect" id="Node000014" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="687,521,893,547"/>
-<area shape="poly" id="edge24_Node000013_Node000014" title=" " alt="" coords="590,469,639,482,741,514,739,519,638,487,589,475"/>
-<area shape="rect" id="Node000015" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="941,363,1140,403"/>
-<area shape="poly" id="edge27_Node000013_Node000015" title=" " alt="" coords="595,457,733,452,813,444,893,431,978,406,980,411,894,437,814,450,733,457,595,463"/>
-<area shape="poly" id="edge25_Node000014_Node000008" title=" " alt="" coords="865,519,927,504,998,482,1071,452,1138,413,1178,380,1212,342,1260,272,1264,275,1216,345,1181,384,1142,418,1073,457,1000,487,928,509,866,524"/>
-<area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="749,523,741,513,745,503,762,497,790,495,825,499,835,503,839,509,835,512,832,507,824,504,790,500,763,502,749,507,746,512,753,519"/>
-<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="997,364,994,354,1001,344,1017,339,1041,337,1068,340,1083,347,1081,352,1067,345,1041,342,1018,344,1004,349,999,355,1002,362"/>
-<area shape="poly" id="edge34_Node000016_Node000016" title=" " alt="" coords="489,302,480,292,485,282,502,276,529,273,564,277,574,282,578,288,574,291,571,286,563,282,529,279,503,281,489,286,486,291,493,298"/>
-<area shape="rect" id="Node000017" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="719,249,861,275"/>
-<area shape="poly" id="edge31_Node000016_Node000017" title=" " alt="" coords="595,297,710,275,711,280,596,302"/>
-<area shape="rect" id="Node000018" href="$_capacity_scope_8cpp.html#aac7c86a64b69f8408bd47a637e7f4ef5" title=" " alt="" coords="718,323,862,348"/>
-<area shape="poly" id="edge35_Node000016_Node000018" title=" " alt="" coords="605,317,704,325,704,331,605,322"/>
-<area shape="poly" id="edge33_Node000017_Node000015" title=" " alt="" coords="858,272,894,285,954,317,1005,353,1002,357,951,322,892,290,856,277"/>
-<area shape="poly" id="edge32_Node000017_Node000017" title=" " alt="" coords="749,251,741,241,745,231,762,225,790,223,825,227,835,231,839,237,835,240,832,235,824,232,790,228,763,230,749,235,746,240,753,247"/>
-<area shape="poly" id="edge36_Node000018_Node000018" title=" " alt="" coords="749,324,741,314,745,304,762,298,790,296,825,300,835,305,839,310,835,313,832,309,824,305,790,301,763,303,749,308,746,314,753,321"/>
-<area shape="poly" id="edge40_Node000019_Node000019" title=" " alt="" coords="489,375,480,365,485,355,502,349,529,347,564,351,574,355,578,361,574,364,571,359,563,356,529,352,503,354,489,359,486,364,493,371"/>
-<area shape="rect" id="Node000020" href="$_capacity_analysis_8cpp.html#a2e351fad4243c80b6986c4b1f7a614c8" title="The runtime id of the copy of a train one period later: &quot;&lt;runtimeId&gt; (next period)&quot;." alt="" coords="691,396,889,421"/>
-<area shape="poly" id="edge38_Node000019_Node000020" title=" " alt="" coords="620,391,677,396,676,401,619,396"/>
-<area shape="poly" id="edge39_Node000020_Node000020" title=" " alt="" coords="749,398,741,388,745,378,762,372,790,369,825,373,835,378,839,384,835,387,832,382,824,378,790,375,763,377,749,382,746,387,753,394"/>
-<area shape="poly" id="edge50_Node000021_Node000021" title=" " alt="" coords="246,530,239,520,243,510,257,504,280,501,309,505,320,514,317,518,306,510,280,507,258,509,247,513,244,519,250,526"/>
-<area shape="rect" id="Node000022" href="$_blocking_time_diagram_8cpp.html#adcf9933259eba38375607b9a01c8f432" title=" " alt="" coords="429,594,630,634"/>
-<area shape="poly" id="edge43_Node000021_Node000022" title=" " alt="" coords="325,551,448,587,447,593,324,556"/>
-<area shape="rect" id="Node000024" href="$_blocking_time_diagram_8cpp.html#a2e3ec7df5ff5d122f18686e97790e774" title=" " alt="" coords="436,520,623,545"/>
-<area shape="poly" id="edge48_Node000021_Node000024" title=" " alt="" coords="371,535,422,533,422,539,372,540"/>
-<area shape="rect" id="Node000025" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="420,659,639,684"/>
-<area shape="poly" id="edge51_Node000021_Node000025" title=" " alt="" coords="306,551,374,596,397,622,406,633,421,644,438,652,436,656,419,648,403,637,393,625,370,600,303,556"/>
-<area shape="poly" id="edge47_Node000022_Node000014" title=" " alt="" coords="595,591,734,548,735,553,597,596"/>
-<area shape="poly" id="edge44_Node000022_Node000022" title=" " alt="" coords="483,594,480,584,488,575,504,569,529,567,558,570,574,577,572,582,557,575,529,573,505,575,491,579,486,585,488,593"/>
-<area shape="rect" id="Node000023" href="$_blocking_time_diagram_8cpp.html#ac0eb1630a5980ae39bb2139cba51f7b4" title=" " alt="" coords="689,601,891,627"/>
-<area shape="poly" id="edge45_Node000022_Node000023" title=" " alt="" coords="630,611,675,611,675,617,630,617"/>
-<area shape="poly" id="edge46_Node000023_Node000023" title=" " alt="" coords="749,603,741,593,745,583,762,577,790,575,825,579,835,583,839,589,835,592,832,587,824,584,790,580,763,582,749,587,746,592,753,599"/>
-<area shape="poly" id="edge49_Node000024_Node000024" title=" " alt="" coords="489,522,480,512,485,502,502,496,529,493,564,497,574,502,578,508,574,511,571,506,563,502,529,499,503,501,489,506,486,511,493,518"/>
-<area shape="poly" id="edge54_Node000026_Node000025" title=" " alt="" coords="372,653,407,656,406,661,372,658"/>
-<area shape="poly" id="edge53_Node000026_Node000026" title=" " alt="" coords="246,635,239,625,243,615,257,609,280,607,309,610,320,619,317,624,306,615,280,612,258,614,247,619,244,624,250,632"/>
+<area shape="rect" id="Node000001" title="capacityAnalysisCsv of capacityAnalysisFrom; empty when the scope has an issue." alt="" coords="5,515,139,542"/>
+<area shape="poly" id="edge41_Node000001_Node000001" title=" " alt="" coords="36,515,31,506,35,496,49,490,72,488,96,491,111,498,106,500,95,496,72,493,51,495,39,500,36,505,41,514"/>
+<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#ab420be6557579b41e9121557671bc2f5" title=" " alt="" coords="201,144,356,172"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,513,259,184,264,187,83,516"/>
+<area shape="rect" id="Node000012" href="$_capacity_scope_8cpp.html#acfe154895d5d0c3d5793d1c8f2836e66" title=" " alt="" coords="196,423,360,450"/>
+<area shape="poly" id="edge21_Node000001_Node000012" title=" " alt="" coords="104,512,232,455,230,460,107,516"/>
+<area shape="rect" id="Node000021" href="$_capacity_scope_8cpp.html#ae772795361eed14e636e3f0f7ad92b6b" title="Why the scope cannot be analysed, empty when it can or has no route or block." alt="" coords="187,569,370,597"/>
+<area shape="poly" id="edge42_Node000001_Node000021" title=" " alt="" coords="127,540,211,563,206,566,127,546"/>
+<area shape="rect" id="Node000026" href="$_capacity_scope_8cpp.html#aa88001510e05548edcb57449cb5cfa18" title=" " alt="" coords="187,663,370,690"/>
+<area shape="poly" id="edge52_Node000001_Node000026" title=" " alt="" coords="94,540,247,652,243,655,92,545"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="242,144,237,135,242,125,256,119,278,117,303,120,317,128,312,130,301,125,278,123,257,125,245,129,242,135,248,143"/>
+<area shape="rect" id="Node000003" href="$_run_exports_8cpp.html#a377514d82329bc112de7abd1211fa0fb" title=" " alt="" coords="446,105,608,133"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="355,143,432,133,428,136,358,148"/>
+<area shape="rect" id="Node000004" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="716,29,857,57"/>
+<area shape="poly" id="edge14_Node000002_Node000004" title=" " alt="" coords="294,142,347,103,381,83,417,67,490,49,566,39,638,35,703,37,698,39,638,40,566,44,491,54,419,72,383,88,350,107,298,145"/>
+<area shape="rect" id="Node000009" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="450,181,603,209"/>
+<area shape="poly" id="edge15_Node000002_Node000009" title=" " alt="" coords="356,167,437,180,432,183,357,172"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="484,105,477,96,483,87,500,81,527,79,556,81,573,89,568,91,554,86,527,84,501,86,486,91,483,96,489,105"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="570,102,683,67,716,60,711,63,684,72,573,107"/>
+<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a3bb2c1995320c79d30288260f90e0bd3" title=" " alt="" coords="706,105,867,133"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="607,117,693,118,688,120,609,122"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="744,29,737,20,742,11,759,5,787,3,816,5,833,14,828,14,815,10,786,8,760,10,746,15,742,20,749,29"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="744,105,737,96,742,87,759,81,787,79,816,81,833,90,828,90,815,86,786,84,760,86,746,91,742,96,749,105"/>
+<area shape="rect" id="Node000006" href="$struct_scene_section_labels.html#a8ca1ad810db82d81a695b19c0298e585" title=" " alt="" coords="962,128,1112,172"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="867,126,949,138,944,139,868,132"/>
+<area shape="rect" id="Node000007" href="$_blocking_time_diagram_8cpp.html#a71f3e00da322333deb9949ee1ef18a26" title=" " alt="" coords="986,76,1088,104"/>
+<area shape="poly" id="edge10_Node000005_Node000007" title=" " alt="" coords="867,107,973,97,968,99,868,112"/>
+<area shape="poly" id="edge13_Node000007_Node000007" title=" " alt="" coords="996,75,990,67,995,57,1011,51,1037,49,1065,52,1081,60,1076,61,1063,57,1037,55,1012,57,999,61,995,67,1001,76"/>
+<area shape="rect" id="Node000008" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="1184,243,1362,270"/>
+<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="1088,95,1114,102,1137,113,1174,139,1207,170,1256,231,1251,230,1203,173,1171,143,1135,117,1112,107,1089,100"/>
+<area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="1233,241,1226,234,1231,224,1247,218,1273,216,1301,219,1317,227,1312,227,1300,224,1273,221,1249,223,1235,228,1232,233,1238,243"/>
+<area shape="poly" id="edge16_Node000009_Node000009" title=" " alt="" coords="484,181,477,172,483,163,500,157,527,155,556,157,573,165,568,167,554,162,527,160,501,162,486,167,483,172,489,181"/>
+<area shape="rect" id="Node000010" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="729,181,844,209"/>
+<area shape="poly" id="edge17_Node000009_Node000010" title=" " alt="" coords="603,193,716,194,711,196,605,198"/>
+<area shape="poly" id="edge20_Node000010_Node000010" title=" " alt="" coords="744,180,737,172,742,163,759,157,787,155,816,157,833,166,828,166,815,162,786,160,760,162,746,167,742,172,749,181"/>
+<area shape="rect" id="Node000011" href="$namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21" title=" " alt="" coords="973,220,1100,248"/>
+<area shape="poly" id="edge18_Node000010_Node000011" title=" " alt="" coords="844,201,960,221,955,222,844,207"/>
+<area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="996,219,990,211,995,201,1011,195,1037,193,1065,196,1081,205,1076,205,1063,201,1037,199,1012,201,999,205,995,211,1001,220"/>
+<area shape="poly" id="edge29_Node000012_Node000012" title=" " alt="" coords="242,422,237,414,242,404,256,398,278,396,303,399,317,407,312,408,301,404,278,401,257,403,245,408,242,413,248,422"/>
+<area shape="rect" id="Node000013" href="$_capacity_analysis_8cpp.html#aa2d628e9a6d19056454846df4785c094" title=" " alt="" coords="462,460,591,488"/>
+<area shape="poly" id="edge22_Node000012_Node000013" title=" " alt="" coords="361,446,449,461,444,463,361,452"/>
+<area shape="rect" id="Node000016" href="$_capacity_scope_8cpp.html#a9221478d65742500cad2597b5f521d2c" title=" " alt="" coords="452,308,601,336"/>
+<area shape="poly" id="edge30_Node000012_Node000016" title=" " alt="" coords="296,420,349,383,417,346,441,339,436,342,419,351,352,388,299,424"/>
+<area shape="rect" id="Node000019" href="$_capacity_analysis_8cpp.html#a8c99415d983b8a0fbf2a069c3e0bda96" title=" " alt="" coords="437,384,616,412"/>
+<area shape="poly" id="edge37_Node000012_Node000019" title=" " alt="" coords="360,421,424,413,419,415,362,426"/>
+<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="484,459,477,451,483,441,500,435,527,433,556,436,573,445,568,445,554,441,527,439,501,441,486,445,483,451,489,460"/>
+<area shape="rect" id="Node000014" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="683,535,890,562"/>
+<area shape="poly" id="edge24_Node000013_Node000014" title=" " alt="" coords="589,486,636,498,731,529,726,529,635,503,589,491"/>
+<area shape="rect" id="Node000015" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="938,374,1136,419"/>
+<area shape="poly" id="edge27_Node000013_Node000015" title=" " alt="" coords="591,472,729,467,810,459,889,446,965,426,970,424,890,451,810,464,729,472,592,477"/>
+<area shape="poly" id="edge25_Node000014_Node000008" title=" " alt="" coords="873,531,935,517,1002,495,1071,466,1134,429,1174,395,1208,355,1255,285,1260,282,1212,358,1178,399,1138,433,1073,471,1004,500,936,522,875,537"/>
+<area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="744,533,737,526,742,516,759,510,787,508,816,510,833,520,828,519,815,516,786,513,760,515,746,520,742,525,749,535"/>
+<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="992,372,990,364,998,355,1014,349,1037,348,1062,350,1079,359,1074,359,1061,355,1037,353,1015,355,1001,359,996,366,997,375"/>
+<area shape="poly" id="edge34_Node000016_Node000016" title=" " alt="" coords="484,307,477,299,483,289,500,283,527,281,556,284,573,292,568,293,554,289,527,287,501,289,486,293,483,299,489,308"/>
+<area shape="rect" id="Node000017" href="$_capacity_scope_8cpp.html#a1eacf23720ac45233dc640e58f1217a2" title=" " alt="" coords="715,257,858,285"/>
+<area shape="poly" id="edge31_Node000016_Node000017" title=" " alt="" coords="600,305,702,287,698,289,602,310"/>
+<area shape="rect" id="Node000018" href="$_capacity_scope_8cpp.html#aac7c86a64b69f8408bd47a637e7f4ef5" title=" " alt="" coords="715,333,858,361"/>
+<area shape="poly" id="edge35_Node000016_Node000018" title=" " alt="" coords="601,326,702,338,697,339,602,332"/>
+<area shape="poly" id="edge33_Node000017_Node000015" title=" " alt="" coords="856,283,891,295,948,327,999,365,993,364,945,332,889,300,856,288"/>
+<area shape="poly" id="edge32_Node000017_Node000017" title=" " alt="" coords="744,256,737,248,742,239,759,233,787,231,816,233,833,242,828,242,815,238,786,236,760,238,746,243,742,248,749,257"/>
+<area shape="poly" id="edge36_Node000018_Node000018" title=" " alt="" coords="744,332,737,324,742,315,759,309,787,307,816,309,833,318,828,318,815,314,786,312,760,314,746,319,742,324,749,333"/>
+<area shape="poly" id="edge40_Node000019_Node000019" title=" " alt="" coords="484,383,477,375,483,365,500,359,527,357,556,360,573,368,568,369,554,365,527,363,501,365,486,369,483,375,489,384"/>
+<area shape="rect" id="Node000020" href="$_capacity_analysis_8cpp.html#a2e351fad4243c80b6986c4b1f7a614c8" title="The runtime id of the copy of a train one period later: &quot;&lt;runtimeId&gt; (next period)&quot;." alt="" coords="687,409,886,437"/>
+<area shape="poly" id="edge38_Node000019_Node000020" title=" " alt="" coords="616,404,675,412,670,413,617,409"/>
+<area shape="poly" id="edge39_Node000020_Node000020" title=" " alt="" coords="744,408,737,400,742,391,759,385,787,383,816,385,833,394,828,394,815,390,786,388,760,390,746,395,742,400,749,409"/>
+<area shape="poly" id="edge50_Node000021_Node000021" title=" " alt="" coords="242,568,237,560,242,551,256,545,278,543,303,545,317,554,312,554,301,550,278,548,257,550,245,555,242,560,248,569"/>
+<area shape="rect" id="Node000022" href="$_blocking_time_diagram_8cpp.html#adcf9933259eba38375607b9a01c8f432" title=" " alt="" coords="426,612,627,656"/>
+<area shape="poly" id="edge43_Node000021_Node000022" title=" " alt="" coords="349,595,414,610,409,611,349,600"/>
+<area shape="rect" id="Node000024" href="$_blocking_time_diagram_8cpp.html#a2e3ec7df5ff5d122f18686e97790e774" title=" " alt="" coords="434,536,620,564"/>
+<area shape="poly" id="edge48_Node000021_Node000024" title=" " alt="" coords="370,568,420,564,415,565,371,573"/>
+<area shape="rect" id="Node000025" href="$struct_completed_run_data.html#ae3d16e992a1da1e83865b70b4027f0e8" title="True when routeIndex indexes routes." alt="" coords="418,680,635,708"/>
+<area shape="poly" id="edge51_Node000021_Node000025" title=" " alt="" coords="315,595,372,625,395,647,405,657,419,666,433,675,428,674,417,671,402,661,392,651,368,629,314,600"/>
+<area shape="poly" id="edge47_Node000022_Node000014" title=" " alt="" coords="597,608,725,568,730,567,598,613"/>
+<area shape="poly" id="edge44_Node000022_Node000022" title=" " alt="" coords="480,609,478,601,486,592,502,587,527,585,553,587,571,597,566,596,552,593,527,590,503,592,489,597,483,603,484,612"/>
+<area shape="rect" id="Node000023" href="$_blocking_time_diagram_8cpp.html#ac0eb1630a5980ae39bb2139cba51f7b4" title=" " alt="" coords="686,620,887,648"/>
+<area shape="poly" id="edge45_Node000022_Node000023" title=" " alt="" coords="627,631,674,634,668,634,628,636"/>
+<area shape="poly" id="edge46_Node000023_Node000023" title=" " alt="" coords="744,618,737,611,742,601,759,595,787,593,816,596,833,605,828,604,815,601,786,599,760,601,746,605,742,611,749,620"/>
+<area shape="poly" id="edge49_Node000024_Node000024" title=" " alt="" coords="484,535,477,527,483,517,500,511,527,509,556,512,573,521,568,521,554,517,527,515,501,517,486,521,483,527,489,536"/>
+<area shape="poly" id="edge54_Node000026_Node000025" title=" " alt="" coords="370,680,405,685,400,685,370,686"/>
+<area shape="poly" id="edge53_Node000026_Node000026" title=" " alt="" coords="243,661,237,654,242,644,256,638,278,636,303,639,317,648,312,647,301,644,278,641,257,643,245,648,242,653,248,663"/>
 </map>

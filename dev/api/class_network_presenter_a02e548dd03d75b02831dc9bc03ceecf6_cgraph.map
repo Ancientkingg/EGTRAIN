@@ -1,80 +1,80 @@
 <map id="NetworkPresenter::paintTrain" name="NetworkPresenter::paintTrain">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,635,216,661"/>
-<area shape="rect" id="Node000002" href="$class_train_item_group.html#a05f4971b0231b1713a43a9a8733fb77a" title="Gives every body its minimum size on screen for a view of viewScale logical pixels per scene unit." alt="" coords="282,5,481,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,635,126,524,158,349,179,257,203,173,231,103,246,76,262,56,269,49,273,53,266,59,250,79,236,105,208,174,184,259,163,350,132,525,116,636"/>
-<area shape="rect" id="Node000003" href="$_speed_format_8cpp.html#acac732ef9d3fa7e85383bef90fbad403" title=" " alt="" coords="311,94,452,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="109,635,110,549,115,485,126,413,144,337,172,261,211,191,235,159,262,130,278,119,296,111,298,116,281,123,266,134,239,162,215,194,177,264,150,338,131,414,121,486,115,550,114,635"/>
-<area shape="rect" id="Node000004" href="$class_network_presenter.html#a78a21f60ad47ed52be80d6f91c2558d3" title=" " alt="" coords="282,144,481,184"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="110,635,116,561,125,506,138,445,157,380,183,315,218,254,262,201,277,189,281,193,266,205,222,257,188,318,162,382,143,446,130,507,122,562,115,636"/>
-<area shape="rect" id="Node000008" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="547,204,776,244"/>
-<area shape="poly" id="edge18_Node000001_Node000008" title=" " alt="" coords="110,635,115,564,123,512,136,456,155,397,182,340,217,288,262,244,282,234,309,226,376,216,454,213,532,214,532,219,454,218,377,222,310,231,284,239,266,249,221,291,186,342,160,399,141,457,128,513,120,564,115,635"/>
-<area shape="rect" id="Node000011" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title="The name of a train in lists and messages: its operating code, or its description when it has none." alt="" coords="291,283,471,309"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="111,635,123,577,149,491,169,444,194,398,225,356,262,319,277,310,280,314,266,323,229,359,199,401,174,447,154,493,128,578,116,636"/>
-<area shape="rect" id="Node000012" href="$class_train_badge_item.html#a15161bda9d67909b1050b6de7e7f794b" title=" " alt="" coords="274,333,489,373"/>
-<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="113,634,129,587,158,519,203,446,230,412,262,383,270,378,273,382,266,387,234,416,207,449,163,522,134,589,118,636"/>
-<area shape="rect" id="Node000015" href="$_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db" title=" " alt="" coords="311,1074,452,1099"/>
-<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="116,661,127,726,152,825,171,881,197,936,228,989,266,1035,289,1053,315,1067,313,1071,286,1058,262,1039,223,992,192,939,166,883,147,827,121,727,111,661"/>
-<area shape="rect" id="Node000020" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="275,471,488,497"/>
-<area shape="poly" id="edge29_Node000001_Node000020" title=" " alt="" coords="120,633,176,572,217,537,263,507,282,499,284,503,265,512,220,541,179,576,124,637"/>
-<area shape="rect" id="Node000021" href="$_scene_model_8cpp.html#ae53d137b1740d6eb1634c41e827293f5" title=" " alt="" coords="285,545,477,585"/>
-<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="149,633,263,596,295,587,297,592,265,601,151,638"/>
-<area shape="rect" id="Node000022" href="$class_train_badge_item.html#ae9f51fc05516364c2ccae0dfa9c5b985" title="Sets the identifier of the train." alt="" coords="276,610,487,635"/>
-<area shape="poly" id="edge33_Node000001_Node000022" title=" " alt="" coords="216,635,262,631,263,636,217,641"/>
-<area shape="rect" id="Node000023" href="$class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" title="Sets how much the badge shows." alt="" coords="264,398,499,423"/>
-<area shape="poly" id="edge34_Node000001_Node000023" title=" " alt="" coords="115,634,133,594,164,539,208,481,234,455,263,432,273,427,275,431,265,437,237,459,212,484,169,542,138,596,120,636"/>
-<area shape="rect" id="Node000025" href="$class_train_badge_item.html#a708b2d9fd8a68704f80ce5dffee2689a" title="The train is selected or followed, which raises its badge over the others." alt="" coords="274,709,489,734"/>
-<area shape="poly" id="edge36_Node000001_Node000025" title=" " alt="" coords="148,658,265,695,300,703,298,708,263,700,146,663"/>
-<area shape="rect" id="Node000026" href="$class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" title="Keeps whether the train runs in the reversed direction." alt="" coords="275,758,488,783"/>
-<area shape="poly" id="edge37_Node000001_Node000026" title=" " alt="" coords="129,659,187,701,225,724,265,744,286,752,285,757,263,749,222,729,184,705,126,663"/>
-<area shape="rect" id="Node000027" href="$class_train_badge_item.html#a5d15bb6ef28bc67dceaf5d8f9abfe890" title="Sets the speed of the train as text." alt="" coords="272,807,491,833"/>
-<area shape="poly" id="edge38_Node000001_Node000027" title=" " alt="" coords="123,659,178,724,219,762,265,794,280,800,277,805,263,798,215,766,174,728,119,662"/>
-<area shape="rect" id="Node000028" href="$class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" title="Sets whether the Detailed presentation shows the speed." alt="" coords="285,857,477,897"/>
-<area shape="poly" id="edge39_Node000001_Node000028" title=" " alt="" coords="121,660,140,696,172,746,214,799,239,822,266,843,275,849,272,853,262,848,235,826,210,802,167,749,136,699,116,662"/>
-<area shape="rect" id="Node000029" href="$class_train_badge_item.html#a6e8e9320be6b4464cc99c66d6ee16197" title="Keeps the description, the operating code and the type of the train. The badge shows no tooltip." alt="" coords="284,921,479,961"/>
-<area shape="poly" id="edge40_Node000001_Node000029" title=" " alt="" coords="118,660,134,708,164,774,207,846,235,879,266,907,273,912,270,917,262,911,231,883,203,849,159,777,129,709,113,662"/>
-<area shape="rect" id="Node000030" href="$class_train_badge_item.html#a79f78c32e9b5c346117bbe19f2f21fa1" title="Sets the look of the train, which gives the icon." alt="" coords="290,985,473,1025"/>
-<area shape="poly" id="edge41_Node000001_Node000030" title=" " alt="" coords="117,660,129,717,156,801,175,847,200,893,230,935,266,971,279,981,276,985,262,975,226,938,196,896,171,850,151,803,124,719,111,661"/>
-<area shape="rect" id="Node000031" href="$class_train_badge_item.html#a5706932ab06a88e39da80f70298b974a" title="A badge in the Overview presentation with the look of TrainVisualKind::Passenger." alt="" coords="264,659,499,685"/>
-<area shape="poly" id="edge42_Node000001_Node000031" title=" " alt="" coords="217,655,251,658,250,663,216,660"/>
-<area shape="rect" id="Node000032" href="$class_train_body_item.html#aeeb3bbb085b5553d6f7a6c74f706c208" title="A body with the shape of polygon and train index &#45;1." alt="" coords="272,1123,491,1149"/>
-<area shape="poly" id="edge44_Node000001_Node000032" title=" " alt="" coords="115,661,118,739,125,796,137,861,156,928,183,995,219,1057,241,1085,266,1110,270,1114,267,1118,262,1114,237,1088,214,1060,178,998,151,930,132,862,120,797,113,739,109,661"/>
-<area shape="rect" id="Node000033" href="$class_train_item_group.html#a91be3682065f70ca60cdb815eb8c21c5" title="An empty group with train index &#45;1 and no bodies." alt="" coords="286,1173,477,1213"/>
-<area shape="poly" id="edge45_Node000001_Node000033" title=" " alt="" coords="114,661,116,745,122,808,134,880,152,954,179,1029,217,1099,240,1130,266,1159,275,1167,272,1172,262,1163,235,1134,212,1102,174,1031,147,956,128,881,117,809,111,746,109,661"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="338,96,328,86,333,76,351,69,381,67,420,71,430,76,434,82,430,85,427,80,418,77,381,73,352,75,337,80,334,85,342,92"/>
-<area shape="rect" id="Node000005" href="$class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" title="The line of the preview that the track line with this index in the run is drawn on,..." alt="" coords="565,140,758,180"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="481,160,551,159,551,164,481,165"/>
-<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="476,181,555,198,553,204,475,187"/>
-<area shape="rect" id="Node000009" href="$_network_presenter_8cpp.html#a4ee8a0b69325a28edae851515c7bb021" title=" " alt="" coords="580,90,743,115"/>
-<area shape="poly" id="edge9_Node000004_Node000009" title=" " alt="" coords="473,141,589,116,590,121,474,147"/>
-<area shape="rect" id="Node000006" href="$class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" title="The line of the preview with this track id in the scene, or null." alt="" coords="824,147,1031,173"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="758,157,810,157,810,163,758,163"/>
-<area shape="rect" id="Node000007" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="1079,147,1309,173"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="1031,157,1065,157,1065,163,1031,163"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="619,92,609,82,614,72,632,65,661,63,699,67,710,72,713,78,709,81,706,76,698,73,661,69,633,71,618,76,615,81,623,88"/>
-<area shape="rect" id="Node000010" href="$_annotation_placement_8h.html#a34f664aa07616621a1de9d792747472f" title=" " alt="" coords="837,90,1017,115"/>
-<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="743,100,824,100,824,105,743,105"/>
-<area shape="poly" id="edge11_Node000010_Node000010" title=" " alt="" coords="885,92,875,82,880,72,898,65,927,63,965,67,976,72,979,78,975,81,972,76,964,73,927,69,899,71,884,76,881,81,889,88"/>
-<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="338,285,328,275,333,265,351,259,381,257,420,261,430,266,434,272,430,274,427,270,418,266,381,262,352,264,337,269,334,274,342,281"/>
-<area shape="rect" id="Node000013" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="569,333,754,373"/>
-<area shape="poly" id="edge16_Node000012_Node000013" title=" " alt="" coords="489,351,555,351,555,356,489,356"/>
-<area shape="rect" id="Node000014" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="570,269,753,309"/>
-<area shape="poly" id="edge17_Node000012_Node000014" title=" " alt="" coords="469,331,559,310,561,315,470,336"/>
-<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="338,1076,328,1066,333,1056,351,1049,381,1047,420,1051,430,1056,434,1062,430,1065,427,1060,418,1057,381,1053,352,1055,337,1060,334,1065,342,1072"/>
-<area shape="rect" id="Node000016" href="$_visual_polish_8cpp.html#a1cc87232a45c91e955c2e5a7220ae087" title=" " alt="" coords="595,866,727,891"/>
-<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="422,1071,459,1056,497,1035,540,1002,580,966,639,900,643,904,583,969,543,1006,500,1040,462,1061,424,1076"/>
-<area shape="poly" id="edge23_Node000016_Node000016" title=" " alt="" coords="619,868,609,858,614,848,632,841,661,839,699,843,710,848,713,854,709,857,706,852,698,849,661,845,633,847,618,852,615,857,623,864"/>
-<area shape="rect" id="Node000017" href="$_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" title="The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others." alt="" coords="836,939,1019,965"/>
-<area shape="poly" id="edge21_Node000016_Node000017" title=" " alt="" coords="709,889,868,933,867,938,708,894"/>
-<area shape="rect" id="Node000018" href="$_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" title="The fill of a train without a service colour: RGB (235, 210, 55)." alt="" coords="868,793,987,818"/>
-<area shape="poly" id="edge24_Node000016_Node000018" title=" " alt="" coords="703,863,823,828,859,819,860,824,825,833,704,868"/>
-<area shape="rect" id="Node000019" href="$_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" title="The outline of a train without a service colour: RGB (110, 90, 20)." alt="" coords="854,866,1001,891"/>
-<area shape="poly" id="edge26_Node000016_Node000019" title=" " alt="" coords="727,876,840,876,840,881,727,881"/>
-<area shape="poly" id="edge22_Node000017_Node000017" title=" " alt="" coords="885,941,875,931,880,921,898,915,927,913,965,917,976,922,979,928,975,930,972,926,964,922,927,918,899,920,884,925,881,930,889,937"/>
-<area shape="poly" id="edge25_Node000018_Node000018" title=" " alt="" coords="885,794,875,784,880,774,898,768,927,766,965,770,976,775,979,781,975,784,972,779,964,775,927,771,899,773,884,778,881,784,889,791"/>
-<area shape="poly" id="edge27_Node000019_Node000019" title=" " alt="" coords="885,868,875,858,880,848,898,841,927,839,965,843,976,848,979,854,975,857,972,852,964,849,927,845,899,847,884,852,881,857,889,864"/>
-<area shape="poly" id="edge30_Node000020_Node000020" title=" " alt="" coords="338,473,328,463,333,453,351,447,381,445,420,449,430,454,434,460,430,462,427,458,418,454,381,450,352,452,337,457,334,462,342,469"/>
-<area shape="poly" id="edge32_Node000021_Node000021" title=" " alt="" coords="331,546,328,536,337,526,354,521,381,519,413,521,430,529,427,534,411,527,381,524,355,526,339,531,334,537,337,544"/>
-<area shape="rect" id="Node000024" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title="How much the badge shows." alt="" coords="554,398,769,423"/>
-<area shape="poly" id="edge35_Node000023_Node000024" title=" " alt="" coords="499,408,540,408,540,413,499,413"/>
-<area shape="poly" id="edge43_Node000031_Node000016" title=" " alt="" coords="471,682,500,695,548,731,590,774,624,817,648,853,643,856,619,820,586,778,545,735,497,700,469,687"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,659,216,687"/>
+<area shape="rect" id="Node000002" href="$class_train_item_group.html#a05f4971b0231b1713a43a9a8733fb77a" title="Gives every body its minimum size on screen for a view of viewScale logical pixels per scene unit." alt="" coords="282,5,479,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,658,126,543,157,363,178,269,202,181,230,110,246,82,262,61,271,55,268,59,266,64,250,85,235,112,207,183,183,270,162,364,131,544,116,659"/>
+<area shape="rect" id="Node000003" href="$_speed_format_8cpp.html#acac732ef9d3fa7e85383bef90fbad403" title=" " alt="" coords="310,98,450,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="111,658,128,555,160,397,181,314,205,239,232,177,247,153,262,135,277,124,297,117,294,121,280,129,265,139,251,156,237,179,210,241,186,316,165,398,133,556,116,659"/>
+<area shape="rect" id="Node000004" href="$class_network_presenter.html#a78a21f60ad47ed52be80d6f91c2558d3" title=" " alt="" coords="281,149,480,194"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="110,658,116,581,124,525,137,462,156,396,183,329,217,267,262,211,277,200,275,205,266,215,222,270,188,332,161,398,142,464,129,526,121,582,115,659"/>
+<area shape="rect" id="Node000008" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="545,209,773,254"/>
+<area shape="poly" id="edge18_Node000001_Node000008" title=" " alt="" coords="109,658,114,585,122,532,134,473,153,412,180,353,216,300,238,276,262,255,282,244,308,236,375,226,452,222,532,224,527,227,452,228,375,231,309,241,284,249,265,259,241,280,220,303,185,356,158,414,139,474,127,532,120,585,115,659"/>
+<area shape="rect" id="Node000011" href="$_gui_simulation_snapshot_8h.html#adbc7d0bbe4ca909664f6723c1413dc0a" title="The name of a train in lists and messages: its operating code, or its description when it has none." alt="" coords="291,292,470,320"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="111,658,122,597,148,508,168,459,193,412,224,367,262,330,278,321,275,325,265,334,228,371,197,414,172,462,153,510,127,598,116,659"/>
+<area shape="rect" id="Node000012" href="$class_train_badge_item.html#a15161bda9d67909b1050b6de7e7f794b" title=" " alt="" coords="274,344,487,389"/>
+<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="113,658,129,609,158,539,202,464,230,429,262,399,271,395,268,399,265,403,234,433,207,467,163,541,134,610,118,659"/>
+<area shape="rect" id="Node000015" href="$_visual_polish_8cpp.html#a25b564e13629edc3120f6ca6f58a72db" title=" " alt="" coords="310,1123,450,1151"/>
+<area shape="poly" id="edge19_Node000001_Node000015" title=" " alt="" coords="113,685,125,756,149,862,169,921,194,980,226,1036,266,1086,285,1102,310,1117,305,1117,282,1107,262,1090,222,1039,189,983,164,923,144,864,120,757,113,690"/>
+<area shape="rect" id="Node000020" href="$_scene_model_8cpp.html#a4ace14b9d098e1d8cfda2236f8c3561b" title=" " alt="" coords="274,488,486,516"/>
+<area shape="poly" id="edge29_Node000001_Node000020" title=" " alt="" coords="120,657,176,593,216,556,262,525,277,520,274,524,265,530,220,560,179,597,125,660"/>
+<area shape="rect" id="Node000021" href="$_scene_model_8cpp.html#ae53d137b1740d6eb1634c41e827293f5" title=" " alt="" coords="285,564,476,609"/>
+<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="151,657,263,618,289,612,285,615,264,624,154,661"/>
+<area shape="rect" id="Node000022" href="$class_train_badge_item.html#ae9f51fc05516364c2ccae0dfa9c5b985" title="Sets the identifier of the train." alt="" coords="276,632,485,660"/>
+<area shape="poly" id="edge33_Node000001_Node000022" title=" " alt="" coords="215,660,262,656,258,660,218,665"/>
+<area shape="rect" id="Node000023" href="$class_train_badge_item.html#a4de00ebbd35704ab0c8f59ebf2de5aa4" title="Sets how much the badge shows." alt="" coords="264,412,497,440"/>
+<area shape="poly" id="edge34_Node000001_Node000023" title=" " alt="" coords="115,658,133,617,164,560,207,501,233,474,262,451,275,445,272,449,265,455,237,478,211,504,169,563,138,619,120,660"/>
+<area shape="rect" id="Node000025" href="$class_train_badge_item.html#a708b2d9fd8a68704f80ce5dffee2689a" title="The train is selected or followed, which raises its badge over the others." alt="" coords="273,736,488,764"/>
+<area shape="poly" id="edge36_Node000001_Node000025" title=" " alt="" coords="151,685,264,721,299,731,295,734,263,726,152,690"/>
+<area shape="rect" id="Node000026" href="$class_train_badge_item.html#a75066e73b7c42e631c649d2893628edd" title="Keeps whether the train runs in the reversed direction." alt="" coords="274,788,486,816"/>
+<area shape="poly" id="edge37_Node000001_Node000026" title=" " alt="" coords="128,685,187,729,225,753,265,773,287,782,282,784,263,778,222,757,184,733,129,690"/>
+<area shape="rect" id="Node000027" href="$class_train_badge_item.html#a5d15bb6ef28bc67dceaf5d8f9abfe890" title="Sets the speed of the train as text." alt="" coords="271,840,490,868"/>
+<area shape="poly" id="edge38_Node000001_Node000027" title=" " alt="" coords="121,684,178,753,219,793,265,825,280,834,275,835,262,830,215,797,174,757,122,690"/>
+<area shape="rect" id="Node000028" href="$class_train_badge_item.html#a2a3d8be902ce79fb3919db9f2ff4527f" title="Sets whether the Detailed presentation shows the speed." alt="" coords="285,892,476,937"/>
+<area shape="poly" id="edge39_Node000001_Node000028" title=" " alt="" coords="118,684,140,724,171,776,214,831,238,856,265,878,274,884,268,885,262,882,235,860,210,834,167,779,135,727,118,690"/>
+<area shape="rect" id="Node000029" href="$class_train_badge_item.html#a6e8e9320be6b4464cc99c66d6ee16197" title="Keeps the description, the operating code and the type of the train. The badge shows no tooltip." alt="" coords="283,961,478,1006"/>
+<area shape="poly" id="edge40_Node000001_Node000029" title=" " alt="" coords="115,684,133,736,162,806,182,844,206,882,234,917,265,947,273,953,267,954,262,951,230,920,202,885,178,847,158,808,128,737,115,690"/>
+<area shape="rect" id="Node000030" href="$class_train_badge_item.html#a79f78c32e9b5c346117bbe19f2f21fa1" title="Sets the look of the train, which gives the icon." alt="" coords="289,1031,472,1075"/>
+<area shape="poly" id="edge41_Node000001_Node000030" title=" " alt="" coords="114,685,128,747,154,836,174,885,199,933,229,977,265,1016,278,1027,273,1027,262,1020,225,981,194,935,169,887,149,838,123,749,114,690"/>
+<area shape="rect" id="Node000031" href="$class_train_badge_item.html#a5706932ab06a88e39da80f70298b974a" title="A badge in the Overview presentation with the look of TrainVisualKind::Passenger." alt="" coords="264,684,497,712"/>
+<area shape="poly" id="edge42_Node000001_Node000031" title=" " alt="" coords="215,681,250,684,246,687,218,685"/>
+<area shape="rect" id="Node000032" href="$class_train_body_item.html#aeeb3bbb085b5553d6f7a6c74f706c208" title="A body with the shape of polygon and train index &#45;1." alt="" coords="272,1175,489,1203"/>
+<area shape="poly" id="edge44_Node000001_Node000032" title=" " alt="" coords="112,685,117,770,123,830,135,898,154,969,180,1039,217,1104,240,1134,265,1160,271,1167,266,1166,262,1164,236,1137,213,1107,176,1041,149,970,130,899,118,831,112,770,111,690"/>
+<area shape="rect" id="Node000033" href="$class_train_item_group.html#a91be3682065f70ca60cdb815eb8c21c5" title="An empty group with train index &#45;1 and no bodies." alt="" coords="285,1227,476,1271"/>
+<area shape="poly" id="edge45_Node000001_Node000033" title=" " alt="" coords="112,684,115,776,120,842,131,917,150,996,177,1074,215,1148,239,1182,266,1212,275,1223,270,1221,262,1216,234,1185,210,1151,172,1076,144,997,126,918,115,843,110,776,111,690"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="334,98,327,89,333,79,351,73,380,71,412,74,430,81,425,84,411,79,380,76,352,78,336,83,332,89,339,97"/>
+<area shape="rect" id="Node000005" href="$class_network_presenter.html#aa584645a8bf7c50604a8a088cb25213d" title="The line of the preview that the track line with this index in the run is drawn on,..." alt="" coords="563,140,755,185"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="478,166,550,165,545,168,481,171"/>
+<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="479,191,540,204,535,207,481,195"/>
+<area shape="rect" id="Node000009" href="$_network_presenter_8cpp.html#a4ee8a0b69325a28edae851515c7bb021" title=" " alt="" coords="578,88,740,116"/>
+<area shape="poly" id="edge9_Node000004_Node000009" title=" " alt="" coords="463,147,544,125,579,118,575,122,546,130,466,151"/>
+<area shape="rect" id="Node000006" href="$class_network_presenter.html#a09450afaffb9d037218c7abb50bb7de1" title="The line of the preview with this track id in the scene, or null." alt="" coords="821,148,1028,176"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="755,160,808,161,803,164,757,165"/>
+<area shape="rect" id="Node000007" href="$class_network_presenter.html#a28d577f5bbbb4e9de524c1beace0a1d1" title="The id in the scene of the track line with this index in the run; empty when the run has none for it." alt="" coords="1076,148,1306,176"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="1027,160,1063,161,1058,163,1029,165"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="614,88,607,80,613,70,630,64,659,62,690,64,708,72,703,74,689,70,659,67,631,69,616,74,612,79,619,88"/>
+<area shape="rect" id="Node000010" href="$_annotation_placement_8h.html#a34f664aa07616621a1de9d792747472f" title=" " alt="" coords="835,88,1014,116"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="739,100,822,101,817,104,742,105"/>
+<area shape="poly" id="edge11_Node000010_Node000010" title=" " alt="" coords="879,88,872,80,878,70,896,64,925,62,955,64,974,72,969,74,954,70,924,67,897,69,881,74,877,79,884,88"/>
+<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="334,292,327,284,333,274,351,268,380,266,412,268,430,276,425,278,411,274,380,271,352,273,336,278,332,283,339,291"/>
+<area shape="rect" id="Node000013" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="567,348,751,393"/>
+<area shape="poly" id="edge16_Node000012_Node000013" title=" " alt="" coords="486,366,554,367,549,370,489,370"/>
+<area shape="rect" id="Node000014" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="568,279,750,323"/>
+<area shape="poly" id="edge17_Node000012_Node000014" title=" " alt="" coords="477,341,555,324,551,327,480,346"/>
+<area shape="poly" id="edge28_Node000015_Node000015" title=" " alt="" coords="334,1122,327,1114,333,1104,351,1099,380,1097,412,1099,430,1108,425,1108,411,1104,380,1102,352,1104,336,1109,332,1114,339,1123"/>
+<area shape="rect" id="Node000016" href="$_visual_polish_8cpp.html#a1cc87232a45c91e955c2e5a7220ae087" title=" " alt="" coords="594,903,725,931"/>
+<area shape="poly" id="edge20_Node000015_Node000016" title=" " alt="" coords="426,1120,461,1105,495,1085,539,1051,578,1012,637,945,641,942,582,1015,542,1055,499,1090,463,1110,428,1125"/>
+<area shape="poly" id="edge23_Node000016_Node000016" title=" " alt="" coords="614,902,607,894,613,884,630,879,659,877,690,879,709,888,703,888,689,884,659,882,631,884,616,889,612,894,619,903"/>
+<area shape="rect" id="Node000017" href="$_visual_polish_8cpp.html#a1116968bc73a190cd5f022eff464c95c" title="The badge shape of a kind: a capsule for an intercity, square for freight, rounded for the others." alt="" coords="833,979,1016,1007"/>
+<area shape="poly" id="edge21_Node000016_Node000017" title=" " alt="" coords="711,929,862,974,856,975,710,934"/>
+<area shape="rect" id="Node000018" href="$_visual_polish_8cpp.html#aff8e3ad42eb21b9d8861e3013901ea7c" title="The fill of a train without a service colour: RGB (235, 210, 55)." alt="" coords="866,827,983,855"/>
+<area shape="poly" id="edge24_Node000016_Node000018" title=" " alt="" coords="705,900,821,865,854,858,849,860,822,870,707,905"/>
+<area shape="rect" id="Node000019" href="$_visual_polish_8cpp.html#a0ca541531be69ea00b2db71455ba3104" title="The outline of a train without a service colour: RGB (110, 90, 20)." alt="" coords="852,903,997,931"/>
+<area shape="poly" id="edge26_Node000016_Node000019" title=" " alt="" coords="725,914,839,916,834,918,726,920"/>
+<area shape="poly" id="edge22_Node000017_Node000017" title=" " alt="" coords="879,978,872,970,878,960,896,955,925,953,955,955,974,964,969,964,954,960,924,958,897,960,881,965,877,970,884,979"/>
+<area shape="poly" id="edge25_Node000018_Node000018" title=" " alt="" coords="879,826,872,818,878,808,896,803,925,801,955,803,974,812,969,812,954,808,924,806,897,808,881,813,877,818,884,827"/>
+<area shape="poly" id="edge27_Node000019_Node000019" title=" " alt="" coords="879,902,872,894,878,884,896,879,925,877,955,879,974,888,969,888,954,884,924,882,897,884,881,889,877,894,884,903"/>
+<area shape="poly" id="edge30_Node000020_Node000020" title=" " alt="" coords="334,488,327,480,333,470,351,464,380,462,412,464,430,472,425,474,411,470,380,467,352,469,336,474,332,479,339,488"/>
+<area shape="poly" id="edge32_Node000021_Node000021" title=" " alt="" coords="329,563,328,554,336,545,354,539,380,537,409,540,428,548,423,550,408,545,380,543,355,545,339,549,333,555,334,564"/>
+<area shape="rect" id="Node000024" href="$class_train_badge_item.html#a59a1ffe608b8700e3a5b281f188955d1" title="How much the badge shows." alt="" coords="552,416,766,444"/>
+<area shape="poly" id="edge35_Node000023_Node000024" title=" " alt="" coords="496,426,539,427,534,430,499,430"/>
+<area shape="poly" id="edge43_Node000031_Node000016" title=" " alt="" coords="470,710,498,723,547,760,588,805,621,850,645,890,640,889,617,853,584,809,543,764,496,727,471,715"/>
 </map>

@@ -1,6 +1,6 @@
 <map id="telemetry::SimulationObservation::finish" name="telemetry::SimulationObservation::finish">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,248,62"/>
-<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86" title="The bucket of a run duration given in milliseconds." alt="" coords="296,29,487,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,39,282,39,282,45,248,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="349,31,339,21,344,11,362,5,391,3,429,7,440,12,443,18,439,20,436,16,428,12,391,8,363,10,348,15,345,20,353,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,21,247,66"/>
+<area shape="rect" id="Node000002" href="$namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86" title="The bucket of a run duration given in milliseconds." alt="" coords="295,29,485,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,41,282,43,276,43,247,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="345,28,338,20,344,11,361,5,390,3,421,5,439,14,434,14,419,10,390,8,362,10,347,15,343,20,350,30"/>
 </map>

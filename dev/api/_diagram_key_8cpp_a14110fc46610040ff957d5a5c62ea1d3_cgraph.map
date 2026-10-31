@@ -1,10 +1,10 @@
 <map id="paintKeyRow" name="paintKeyRow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,112,92"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="28,68,21,58,25,48,37,42,59,40,84,44,95,52,92,56,82,48,59,45,39,47,29,52,26,58,32,65"/>
-<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="160,29,331,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,66,167,55,168,60,113,71"/>
-<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a1d0e16ff0d09758910f642fbc90639a1" title="Draws the sample of entry centred in area." alt="" coords="181,103,309,128"/>
-<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="113,87,168,98,167,103,112,92"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="214,31,208,21,211,11,224,5,245,3,271,6,282,15,278,19,269,11,245,8,226,10,215,15,213,20,219,28"/>
-<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="214,104,208,94,211,84,224,78,245,76,271,80,282,88,278,92,269,84,245,81,226,83,215,88,213,94,219,101"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,68,112,96"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="26,68,21,59,25,50,38,43,59,41,81,44,94,52,89,53,79,49,58,47,39,49,29,53,26,59,31,67"/>
+<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="160,29,330,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,68,162,60,158,62,113,73"/>
+<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a1d0e16ff0d09758910f642fbc90639a1" title="Draws the sample of entry centred in area." alt="" coords="181,105,308,133"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="112,90,168,103,163,104,112,95"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="212,28,207,20,211,11,224,5,245,3,267,5,280,14,275,14,265,10,245,8,226,10,215,15,213,20,217,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="212,104,207,96,211,87,224,81,245,79,267,81,280,90,275,90,265,86,245,84,226,86,215,91,213,96,217,106"/>
 </map>

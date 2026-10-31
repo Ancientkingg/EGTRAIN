@@ -1,9 +1,9 @@
 <map id="DiagramKey::sizeHint" name="DiagramKey::sizeHint">
-<area shape="rect" id="Node000001" title="As high as the rows, as wide as the widest row." alt="" coords="5,67,168,92"/>
-<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="216,29,387,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,64,214,54,215,60,161,69"/>
-<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a0c7228d0bdd3028082478ef9ff1707c0" title="The width of the widest row of entries in font, sample and name." alt="" coords="232,103,371,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="163,89,219,99,218,104,162,95"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="266,31,259,21,263,11,277,5,301,3,331,6,343,15,340,20,329,11,301,8,279,10,267,15,264,20,271,28"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="266,104,259,94,263,84,277,78,301,76,331,80,343,89,340,93,329,85,301,81,279,83,267,88,264,94,271,101"/>
+<area shape="rect" id="Node000001" title="As high as the rows, as wide as the widest row." alt="" coords="5,68,167,96"/>
+<area shape="rect" id="Node000002" href="$_diagram_key_8cpp.html#a7eab8d2b7a112ef6877c72c8603ceee0" title="The height of one row of a key in font: its text or its sample, whichever is taller,..." alt="" coords="215,29,385,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,65,207,60,202,61,167,70"/>
+<area shape="rect" id="Node000003" href="$_diagram_key_8cpp.html#a0c7228d0bdd3028082478ef9ff1707c0" title="The width of the widest row of entries in font, sample and name." alt="" coords="231,105,368,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="167,93,218,104,213,105,167,99"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="263,28,257,20,262,11,276,5,300,3,325,5,340,14,335,14,324,10,300,8,278,10,265,15,262,20,268,30"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="263,104,257,96,262,87,276,81,300,79,325,81,340,90,335,90,324,86,300,84,278,86,265,91,262,96,268,106"/>
 </map>

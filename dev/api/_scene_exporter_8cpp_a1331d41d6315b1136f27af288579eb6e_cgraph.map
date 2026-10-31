@@ -1,11 +1,11 @@
 <map id="synthesizeCanonicalInfrastructure" name="synthesizeCanonicalInfrastructure">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,43,249,68"/>
-<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="87,44,78,34,83,24,100,18,127,16,162,20,172,25,176,30,172,33,169,29,161,25,127,21,101,23,87,28,84,34,91,41"/>
-<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650" title="True when existing finds a file at relative." alt="" coords="297,5,456,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,40,283,29,284,35,213,45"/>
-<area shape="rect" id="Node000004" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="317,79,436,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,65,304,78,303,84,215,71"/>
-<area shape="rect" id="Node000003" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="504,5,675,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,15,490,15,490,21,456,21"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="342,80,335,70,339,60,353,54,377,52,406,56,418,65,414,69,404,61,377,57,354,59,342,64,340,70,346,77"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,44,249,72"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="84,43,78,35,83,25,100,19,127,17,156,20,173,28,168,29,155,25,127,23,101,25,87,29,83,35,90,44"/>
+<area shape="rect" id="Node000002" href="$struct_export_folders.html#ae4993953c3742fa4cdcd86e8dfb7f650" title="True when existing finds a file at relative." alt="" coords="297,5,454,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,41,284,33,279,34,221,46"/>
+<area shape="rect" id="Node000004" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="317,81,434,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,70,304,84,298,84,224,75"/>
+<area shape="rect" id="Node000003" href="$struct_export_folders.html#ae3c9f78f695bc92fdecf7ef03ef0b9c2" title="The file at relative in staging, else an empty path. Sets ec when the filesystem cannot tell." alt="" coords="502,5,672,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="454,17,489,19,484,19,455,22"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="339,80,333,72,338,63,352,57,375,55,400,57,415,66,410,66,399,62,375,60,353,62,341,67,338,72,344,82"/>
 </map>

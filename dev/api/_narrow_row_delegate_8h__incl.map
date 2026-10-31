@@ -1,7 +1,7 @@
 <map id="widgets/NarrowRowDelegate.h" name="widgets/NarrowRowDelegate.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,228,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="21,79,79,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,33,72,70,68,67,104,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="103,79,266,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,29,166,67,162,70,126,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,228,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="21,81,79,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,32,74,71,70,68,102,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="102,81,264,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,31,164,69,159,70,127,36"/>
 </map>

@@ -1,7 +1,7 @@
 <map id="TrainBadgeItem::presentationForZoom" name="TrainBadgeItem::presentationForZoom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,220,77"/>
-<area shape="rect" id="Node000002" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="268,5,453,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,41,254,36,255,42,221,46"/>
-<area shape="rect" id="Node000003" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="269,69,452,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,69,256,73,255,78,220,74"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,40,219,85"/>
+<area shape="rect" id="Node000002" href="$class_train_badge_item.html#af4e35564da77c911b2c5598165fd9a05" title="The zoom ratio from which a badge shows the speed." alt="" coords="267,5,451,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,45,254,42,249,43,220,50"/>
+<area shape="rect" id="Node000003" href="$class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938" title="The zoom ratio from which a badge is in the Identity presentation." alt="" coords="268,75,450,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,75,255,82,250,82,219,80"/>
 </map>

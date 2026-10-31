@@ -1,16 +1,16 @@
 <map id="blockTimesFrom" name="blockTimesFrom">
-<area shape="rect" id="Node000001" title="Every train&#39;s blocking&#45;time segments, classified against the other trains." alt="" coords="5,71,136,96"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="36,72,29,62,33,52,47,46,71,44,100,48,112,57,108,61,98,53,71,49,48,51,36,56,34,62,40,69"/>
-<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a8550c0c61fd18522ddfaa73bba1454c4" title=" " alt="" coords="184,63,383,103"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="136,81,170,81,170,86,136,86"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="244,64,241,54,248,44,262,39,283,37,308,40,321,47,319,52,306,45,283,42,263,44,251,49,247,55,249,62"/>
-<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="431,29,637,55"/>
-<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="382,64,443,54,443,60,383,70"/>
-<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="435,103,633,143"/>
-<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="383,97,422,103,421,108,382,102"/>
-<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="495,31,487,21,491,11,507,5,534,3,568,7,581,16,577,20,566,11,534,8,508,10,495,15,492,20,499,27"/>
-<area shape="rect" id="Node000004" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="685,29,864,55"/>
-<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="638,39,672,39,672,45,638,45"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="736,31,727,21,732,11,748,5,775,3,808,7,821,16,818,20,806,11,775,8,749,10,735,15,733,20,740,27"/>
-<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="489,104,487,94,494,84,510,79,534,77,562,80,577,87,575,92,560,85,534,82,511,84,497,89,492,95,494,102"/>
+<area shape="rect" id="Node000001" title="Every train&#39;s blocking&#45;time segments, classified against the other trains." alt="" coords="5,72,135,100"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="33,72,28,63,32,53,47,47,70,45,95,48,110,56,105,57,94,53,70,51,48,53,36,57,33,63,38,71"/>
+<area shape="rect" id="Node000002" href="$_blocking_time_diagram_8cpp.html#a8550c0c61fd18522ddfaa73bba1454c4" title=" " alt="" coords="183,64,381,108"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="135,83,170,85,165,87,136,88"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="241,62,240,53,247,44,261,39,282,37,305,39,320,48,315,48,303,44,282,42,262,44,250,49,245,55,246,64"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_diagram_8cpp.html#a71bdbb3a6346dc3f078b5fe2183ffa2d" title=" " alt="" coords="429,29,635,57"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="381,66,434,60,429,61,382,72"/>
+<area shape="rect" id="Node000005" href="$_blocking_time_diagram_8cpp.html#a788941251df4149c16de46d3441e0926" title=" " alt="" coords="433,105,631,150"/>
+<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="382,100,421,108,415,108,381,105"/>
+<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="491,28,484,20,490,11,506,5,532,3,560,5,577,14,572,14,559,10,532,8,507,10,493,15,490,20,496,30"/>
+<area shape="rect" id="Node000004" href="$_blocking_time_diagram_8cpp.html#aaaaf79ea1a3e7a4f74ca8d1e1907e458" title=" " alt="" coords="683,29,862,57"/>
+<area shape="poly" id="edge5_Node000003_Node000004" title=" " alt="" coords="635,41,670,43,665,43,636,46"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="731,28,725,20,730,11,746,5,773,3,801,5,817,14,812,14,799,10,772,8,747,10,734,15,730,20,736,30"/>
+<area shape="poly" id="edge9_Node000005_Node000005" title=" " alt="" coords="487,103,485,95,493,86,509,80,532,78,558,81,575,90,570,89,557,86,532,83,510,85,496,90,490,96,491,106"/>
 </map>

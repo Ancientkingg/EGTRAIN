@@ -1,5 +1,5 @@
 <map id="Node::operator==" name="Node::operator==">
-<area shape="rect" id="Node000001" title="True when ID, X, Y, isSignalled, station and dwellTime are equal." alt="" coords="5,5,147,31"/>
-<area shape="rect" id="Node000002" href="$class_node.html#ad7a34779cad45d997bfd6d3d8043c75f" title="Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to &#45;1." alt="" coords="195,5,293,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,15,181,15,181,21,147,21"/>
+<area shape="rect" id="Node000001" title="True when ID, X, Y, isSignalled, station and dwellTime are equal." alt="" coords="5,5,146,33"/>
+<area shape="rect" id="Node000002" href="$class_node.html#ad7a34779cad45d997bfd6d3d8043c75f" title="Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to &#45;1." alt="" coords="194,5,291,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,17,181,19,176,19,146,22"/>
 </map>

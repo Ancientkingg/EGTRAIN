@@ -1,6 +1,6 @@
 <map id="ValidationPanel::statusText" name="ValidationPanel::statusText">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,203,55"/>
-<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="251,29,336,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,39,237,39,237,45,203,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="262,31,255,21,259,11,272,5,293,3,319,6,330,15,327,19,317,11,293,8,273,10,263,15,261,20,266,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,202,57"/>
+<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="250,29,334,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,41,237,43,231,43,202,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,28,254,20,258,11,271,5,292,3,314,5,328,14,322,14,313,10,292,8,272,10,262,15,259,20,264,30"/>
 </map>

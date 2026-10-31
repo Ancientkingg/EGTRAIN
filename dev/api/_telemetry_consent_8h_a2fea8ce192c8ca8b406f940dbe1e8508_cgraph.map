@@ -1,7 +1,7 @@
 <map id="applicationTelemetryContext" name="applicationTelemetryContext">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,216,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="67,31,57,21,62,11,80,5,111,3,150,7,160,12,164,18,159,20,157,16,148,12,111,8,81,10,66,15,63,20,71,27"/>
-<area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="264,29,503,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="216,39,250,39,250,45,216,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="340,31,330,21,335,11,353,5,383,3,422,7,433,12,437,18,432,20,429,16,421,12,383,8,354,10,338,15,335,20,343,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,215,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,29,56,20,62,11,80,5,110,3,142,5,160,14,155,14,141,10,110,8,81,10,66,15,62,20,69,29"/>
+<area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c" title=" " alt="" coords="263,29,501,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="215,41,250,43,244,43,215,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="336,28,328,20,334,11,352,5,382,3,414,5,432,14,427,14,412,10,382,8,353,10,337,15,334,20,341,30"/>
 </map>

@@ -1,13 +1,13 @@
 <map id="widgets/WidgetStyle.h" name="widgets/WidgetStyle.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="218,5,386,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,111,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,33,111,77,110,72,262,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="135,79,245,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,33,222,73,219,69,283,28"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="269,79,335,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="305,31,305,65,299,65,299,31"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="359,79,471,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="322,28,387,69,384,74,319,33"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="495,79,562,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="339,28,483,73,481,78,338,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="215,5,382,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,110,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,36,116,79,115,73,255,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="134,81,243,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,33,221,75,219,70,276,34"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="267,81,331,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="301,32,301,67,297,64,297,35"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="355,81,466,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="320,31,381,73,376,72,318,36"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="490,81,556,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="339,31,478,78,473,78,338,36"/>
 </map>

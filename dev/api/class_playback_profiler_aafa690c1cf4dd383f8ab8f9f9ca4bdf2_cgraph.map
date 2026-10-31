@@ -1,5 +1,5 @@
 <map id="PlaybackProfiler::noteRenderedUpdate" name="PlaybackProfiler::noteRenderedUpdate">
-<area shape="rect" id="Node000001" title="Counts one delivered snapshot that the main window renders while measuring." alt="" coords="5,5,232,45"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" title="True while the window runs." alt="" coords="280,13,484,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,23,266,23,266,28,232,28"/>
+<area shape="rect" id="Node000001" title="Counts one delivered snapshot that the main window renders while measuring." alt="" coords="5,5,231,50"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" title="True while the window runs." alt="" coords="279,14,482,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,25,266,28,260,28,231,30"/>
 </map>

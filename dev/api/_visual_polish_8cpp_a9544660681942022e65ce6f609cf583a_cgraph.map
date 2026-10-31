@@ -1,7 +1,7 @@
 <map id="classifyTrackState" name="classifyTrackState">
-<area shape="rect" id="Node000001" title="The look of a track state. Free has a transparent colour, a width of 0 and no pen." alt="" coords="5,29,144,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,31,37,21,40,11,53,5,75,3,101,6,112,15,108,19,99,11,75,8,55,10,44,15,42,20,48,28"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471" title=" " alt="" coords="192,29,340,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="144,39,178,39,178,45,144,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="235,31,228,21,232,11,245,5,266,3,292,6,303,15,300,19,290,11,266,8,246,10,235,15,233,20,239,28"/>
+<area shape="rect" id="Node000001" title="The look of a track state. Free has a transparent colour, a width of 0 and no pen." alt="" coords="5,29,144,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="41,29,36,20,40,11,53,5,75,3,97,5,111,14,105,14,96,10,74,8,55,10,44,15,41,20,46,29"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#af4d1772532a63c691de494ce9f3f9471" title=" " alt="" coords="192,29,339,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="144,41,179,43,174,43,144,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="232,28,227,20,231,11,244,5,265,3,288,5,302,14,296,14,286,10,265,8,246,10,235,15,232,20,237,30"/>
 </map>

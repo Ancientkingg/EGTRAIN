@@ -1,9 +1,9 @@
 <map id="editors/ServicePanel.h" name="editors/ServicePanel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,355,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,38,117,81,115,76,229,33"/>
-<area shape="rect" id="Node000003" href="$_run_controller_8cpp.html" title=" " alt="" coords="189,79,355,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="275,44,275,79,269,79,269,44"/>
-<area shape="rect" id="Node000004" href="$_service_panel_8cpp.html" title=" " alt="" coords="379,79,560,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,33,438,76,436,81,316,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="188,5,353,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,40,119,83,117,78,221,38"/>
+<area shape="rect" id="Node000003" href="$_run_controller_8cpp.html" title=" " alt="" coords="188,81,352,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,47,273,82,268,79,268,51"/>
+<area shape="rect" id="Node000004" href="$_service_panel_8cpp.html" title=" " alt="" coords="376,81,556,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="320,36,434,80,429,81,319,41"/>
 </map>

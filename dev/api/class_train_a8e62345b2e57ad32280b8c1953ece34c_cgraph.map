@@ -1,11 +1,11 @@
 <map id="Train::total_train_resistances" name="Train::total_train_resistances">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,133,117"/>
-<area shape="rect" id="Node000002" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="181,5,385,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,74,180,40,205,32,207,37,182,44,107,79"/>
-<area shape="rect" id="Node000003" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="185,55,381,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,85,177,79,177,85,134,91"/>
-<area shape="rect" id="Node000004" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="212,105,355,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,102,199,111,198,116,133,108"/>
-<area shape="rect" id="Node000005" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="187,169,379,195"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="104,114,141,135,182,154,209,163,207,168,180,159,138,140,101,119"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,133,124"/>
+<area shape="rect" id="Node000002" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="181,5,384,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,77,180,43,206,36,202,39,182,48,112,81"/>
+<area shape="rect" id="Node000003" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="185,57,380,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,90,171,86,167,89,134,95"/>
+<area shape="rect" id="Node000004" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="211,109,354,154"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,108,198,118,193,120,133,113"/>
+<area shape="rect" id="Node000005" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="187,177,378,205"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="104,122,141,144,182,163,201,172,196,172,180,168,139,149,103,127"/>
 </map>

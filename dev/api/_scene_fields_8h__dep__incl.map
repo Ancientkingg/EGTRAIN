@@ -1,13 +1,13 @@
 <map id="scene/SceneFields.h" name="scene/SceneFields.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="439,5,592,31"/>
-<area shape="rect" id="Node000002" href="$_train_unit_panel_8cpp.html" title=" " alt="" coords="5,79,196,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="436,36,168,81,167,76,435,30"/>
-<area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html" title=" " alt="" coords="220,79,405,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="471,38,346,81,345,76,469,33"/>
-<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html" title=" " alt="" coords="430,79,601,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="518,44,518,79,513,79,513,44"/>
-<area shape="rect" id="Node000005" href="$_scene_validator_8cpp.html" title=" " alt="" coords="625,79,811,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="561,33,686,76,684,81,560,38"/>
-<area shape="rect" id="Node000006" href="$_scene_writer_8cpp.html" title=" " alt="" coords="836,79,1005,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="594,30,856,76,855,81,593,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="438,5,590,33"/>
+<area shape="rect" id="Node000002" href="$_train_unit_panel_8cpp.html" title=" " alt="" coords="5,81,196,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,39,175,83,175,78,424,34"/>
+<area shape="rect" id="Node000003" href="$_scene_importer_8cpp.html" title=" " alt="" coords="220,81,405,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="466,38,349,83,348,78,461,39"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html" title=" " alt="" coords="429,81,598,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="516,47,516,82,512,79,512,51"/>
+<area shape="rect" id="Node000005" href="$_scene_validator_8cpp.html" title=" " alt="" coords="622,81,808,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="564,36,682,81,676,80,563,41"/>
+<area shape="rect" id="Node000006" href="$_scene_writer_8cpp.html" title=" " alt="" coords="832,81,1001,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="602,34,847,80,841,81,601,39"/>
 </map>

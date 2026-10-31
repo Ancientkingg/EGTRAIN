@@ -1,15 +1,15 @@
 <map id="CompositionPanel::duplicateComposition" name="CompositionPanel::duplicateComposition">
-<area shape="rect" id="Node000001" title="Inserts a copy of the selected composition, with a new unique id, after it." alt="" coords="5,85,212,125"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="275,5,472,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,82,259,41,293,31,294,37,261,46,155,87"/>
-<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="260,55,487,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,91,246,87,247,92,212,96"/>
-<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="277,120,470,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="212,113,263,118,263,124,212,118"/>
-<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="273,193,473,219"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="163,122,327,186,325,191,161,127"/>
-<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="535,120,629,145"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="470,130,521,130,521,135,470,135"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="548,122,541,112,544,102,559,96,582,93,611,97,622,106,619,110,609,102,582,99,560,101,548,105,546,111,552,118"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="339,195,332,185,336,175,350,169,373,167,402,170,414,179,410,184,400,175,373,172,351,174,339,179,337,184,343,192"/>
+<area shape="rect" id="Node000001" title="Inserts a copy of the selected composition, with a new unique id, after it." alt="" coords="5,88,212,132"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="275,5,471,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,85,205,62,259,42,286,36,282,39,261,47,207,67,158,89"/>
+<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="260,57,486,102"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,95,247,93,242,95,213,100"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="277,125,469,153"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="212,119,264,126,259,127,212,124"/>
+<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="273,201,472,229"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="167,130,324,194,319,197,166,135"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="534,125,628,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="469,137,521,139,516,139,469,142"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="545,124,539,116,544,107,558,101,581,99,606,101,620,110,615,110,604,106,581,104,560,106,548,111,545,116,550,126"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="337,200,331,192,336,183,350,177,373,175,397,177,412,186,407,186,396,182,373,180,351,182,339,187,336,192,342,202"/>
 </map>

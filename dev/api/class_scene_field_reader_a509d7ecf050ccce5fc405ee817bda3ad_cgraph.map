@@ -1,11 +1,11 @@
 <map id="SceneFieldReader::integerField" name="SceneFieldReader::integerField">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,197,89"/>
-<area shape="rect" id="Node000002" href="$class_scene_field_reader.html#a38681a834cd04f10752c10054793098f" title=" " alt="" coords="245,5,461,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,47,275,31,276,36,198,52"/>
-<area shape="rect" id="Node000003" href="$class_scene_field_reader.html#a53879345feee72005c27d93ac4a54315" title=" " alt="" coords="509,31,695,56"/>
-<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="197,61,495,46,495,51,198,67"/>
-<area shape="rect" id="Node000004" href="$_scene_diagnostic_8h.html#a25e67cc6987a7e66789ede5ae08fe7f4" title=" " alt="" coords="306,131,401,156"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,86,297,124,296,129,169,91"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,26,496,30,495,35,461,32"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="313,132,304,122,309,112,326,106,353,104,388,108,398,113,402,118,398,121,395,117,387,113,353,109,327,111,313,116,310,122,317,129"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,197,92"/>
+<area shape="rect" id="Node000002" href="$class_scene_field_reader.html#a38681a834cd04f10752c10054793098f" title=" " alt="" coords="245,5,460,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,48,268,36,263,38,198,53"/>
+<area shape="rect" id="Node000003" href="$class_scene_field_reader.html#a53879345feee72005c27d93ac4a54315" title=" " alt="" coords="508,31,692,58"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="197,62,493,47,492,52,197,68"/>
+<area shape="rect" id="Node000004" href="$_scene_diagnostic_8h.html#a25e67cc6987a7e66789ede5ae08fe7f4" title=" " alt="" coords="305,131,400,158"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,90,293,125,288,127,178,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="460,28,495,33,490,34,461,33"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="310,129,303,122,309,112,325,106,352,104,381,106,399,116,393,115,380,112,352,109,326,111,312,116,309,121,315,131"/>
 </map>

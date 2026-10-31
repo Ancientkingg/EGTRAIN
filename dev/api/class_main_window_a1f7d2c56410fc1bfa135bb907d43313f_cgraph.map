@@ -1,6 +1,6 @@
 <map id="MainWindow::~MainWindow" name="MainWindow::~MainWindow">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,213,55"/>
-<area shape="rect" id="Node000002" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="261,29,436,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,39,248,39,248,45,213,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="310,31,302,21,306,11,322,5,349,3,382,7,395,16,391,20,380,11,349,8,323,10,310,15,307,20,314,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,213,57"/>
+<area shape="rect" id="Node000002" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="261,29,434,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,41,248,43,242,43,213,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="306,28,300,20,305,11,321,5,347,3,375,5,392,14,387,14,374,10,347,8,322,10,309,15,305,20,311,30"/>
 </map>

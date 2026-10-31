@@ -1,7 +1,7 @@
 <map id="TrainKeyList::setSearchedVisible" name="TrainKeyList::setSearchedVisible">
-<area shape="rect" id="Node000001" title="Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibility..." alt="" coords="5,5,193,45"/>
-<area shape="rect" id="Node000002" href="$class_train_key_list.html#a72ce9eb6454f9676364e59040582f633" title="A check box of the list showed or hid trains." alt="" coords="241,5,405,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,23,228,23,228,28,194,28"/>
-<area shape="rect" id="Node000003" href="$class_train_key_list.html#a2873886c5b9e37aeb6366b9509cfad6f" title=" " alt="" coords="453,13,632,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,23,440,23,440,28,405,28"/>
+<area shape="rect" id="Node000001" title="Shows or hides the trains of the rows that the search shows, as All and None do, and emits visibility..." alt="" coords="5,5,193,50"/>
+<area shape="rect" id="Node000002" href="$class_train_key_list.html#a72ce9eb6454f9676364e59040582f633" title="A check box of the list showed or hid trains." alt="" coords="241,5,404,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,25,228,27,222,28,193,30"/>
+<area shape="rect" id="Node000003" href="$class_train_key_list.html#a2873886c5b9e37aeb6366b9509cfad6f" title=" " alt="" coords="452,14,629,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,25,439,28,434,28,405,30"/>
 </map>

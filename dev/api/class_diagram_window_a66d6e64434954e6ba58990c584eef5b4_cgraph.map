@@ -1,6 +1,6 @@
 <map id="DiagramWindow::figureImage" name="DiagramWindow::figureImage">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,55"/>
-<area shape="rect" id="Node000002" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="268,29,444,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,39,254,39,254,45,220,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="317,31,308,21,313,11,329,5,356,3,390,7,400,11,404,17,399,20,396,15,389,12,356,8,330,10,316,15,313,20,321,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,220,57"/>
+<area shape="rect" id="Node000002" href="$_plain_tool_tip_8h.html#a569a63c7ee49356e655a4b1cd2eb8315" title=" " alt="" coords="268,29,443,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,41,255,43,249,43,220,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="314,28,307,20,313,11,329,5,355,3,384,5,401,14,395,14,382,10,355,8,330,10,316,15,313,20,319,30"/>
 </map>

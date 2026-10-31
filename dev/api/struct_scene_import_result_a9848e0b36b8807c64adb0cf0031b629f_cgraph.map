@@ -1,6 +1,6 @@
 <map id="SceneImportResult::success" name="SceneImportResult::success">
-<area shape="rect" id="Node000001" title="True when wroteScene is set and no diagnostic is an error." alt="" coords="5,22,159,62"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="207,29,289,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,39,193,39,193,45,159,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="220,31,214,21,218,11,229,5,248,3,271,6,280,15,277,19,268,11,248,8,231,10,222,15,220,20,225,28"/>
+<area shape="rect" id="Node000001" title="True when wroteScene is set and no diagnostic is an error." alt="" coords="5,21,158,66"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="206,29,288,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,41,193,43,187,43,158,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="218,28,213,20,217,11,228,5,247,3,267,5,279,14,273,14,265,10,247,8,230,10,221,15,219,20,223,30"/>
 </map>

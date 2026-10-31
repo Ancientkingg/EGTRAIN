@@ -1,6 +1,6 @@
 <map id="orderListOfTrainEvents" name="orderListOfTrainEvents">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,175,55"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b" title=" " alt="" coords="223,29,392,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,39,209,39,209,45,175,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="272,31,264,21,268,11,283,5,307,3,337,6,349,15,346,20,335,11,307,8,284,10,272,15,270,20,276,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,174,57"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b" title=" " alt="" coords="222,29,390,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,41,209,43,203,43,174,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="269,28,263,20,267,11,282,5,306,3,331,5,347,14,341,14,330,10,306,8,283,10,271,15,268,20,273,30"/>
 </map>

@@ -1,11 +1,11 @@
 <map id="recovery/RecoveryStore.h" name="recovery/RecoveryStore.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="114,5,305,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,101,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,33,92,75,90,70,183,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="126,79,197,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,33,179,69,174,66,199,30"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="221,79,294,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="219,30,244,66,240,69,215,33"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="319,79,396,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="234,28,322,70,320,75,232,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,301,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,81,101,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,34,95,76,93,72,176,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="125,81,194,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,32,178,70,174,66,196,35"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="218,81,290,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="216,31,240,69,235,67,214,36"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="315,81,391,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="233,31,316,74,311,74,232,36"/>
 </map>

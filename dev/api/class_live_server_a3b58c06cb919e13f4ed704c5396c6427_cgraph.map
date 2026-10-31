@@ -1,10 +1,10 @@
 <map id="LiveServer::start" name="LiveServer::start">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,135,104"/>
-<area shape="rect" id="Node000002" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="207,29,306,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,76,194,56,195,61,119,81"/>
-<area shape="rect" id="Node000003" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="183,79,331,104"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="135,89,169,89,169,94,135,94"/>
-<area shape="rect" id="Node000004" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="193,128,320,153"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="119,101,195,122,194,127,118,107"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="226,31,219,21,223,11,235,5,257,3,282,6,293,15,290,19,280,11,257,8,237,10,227,15,224,20,230,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,134,109"/>
+<area shape="rect" id="Node000002" href="$_live_frame_8cpp.html#adbba254b1a4954c529d0489c8186eed1" title=" " alt="" coords="207,29,304,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,78,194,59,190,62,123,83"/>
+<area shape="rect" id="Node000003" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="182,81,329,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="133,93,169,94,164,96,134,98"/>
+<area shape="rect" id="Node000004" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="192,133,318,161"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="122,107,191,128,186,129,122,112"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="223,28,218,20,222,11,235,5,255,3,277,5,291,14,285,14,276,10,255,8,236,10,226,15,223,20,228,29"/>
 </map>

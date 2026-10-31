@@ -1,5 +1,5 @@
 <map id="NetworkView::zoomRatio" name="NetworkView::zoomRatio">
-<area shape="rect" id="Node000001" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="5,13,192,38"/>
-<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="240,5,461,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,23,226,23,226,28,192,28"/>
+<area shape="rect" id="Node000001" title="The view scale divided by fittedScale(): 1 at Fit, at most maximumZoomRatio()." alt="" coords="5,14,191,42"/>
+<area shape="rect" id="Node000002" href="$class_network_view.html#af1efa7710811d8837e43eff52971cd3a" title="The largest zoom ratio." alt="" coords="239,5,459,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,25,226,27,220,28,191,30"/>
 </map>

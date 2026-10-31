@@ -1,13 +1,13 @@
 <map id="update/UpdatePreparation.h" name="update/UpdatePreparation.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="341,5,546,31"/>
-<area shape="rect" id="Node000002" href="$_self_updater_8h.html" title=" " alt="" coords="257,79,416,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="416,40,356,81,353,76,414,36"/>
-<area shape="rect" id="Node000006" href="$_update_preparation_8cpp.html" title=" " alt="" coords="440,79,660,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="473,36,534,76,531,81,470,40"/>
-<area shape="rect" id="Node000003" href="$_update_telemetry_controller_8cpp.html" title=" " alt="" coords="5,152,257,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="292,111,165,154,164,149,290,106"/>
-<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="281,152,392,177"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="339,118,339,152,334,152,334,118"/>
-<area shape="rect" id="Node000005" href="$_self_updater_8cpp.html" title=" " alt="" coords="416,152,591,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="377,107,477,149,475,154,375,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="340,5,544,33"/>
+<area shape="rect" id="Node000002" href="$_self_updater_8h.html" title=" " alt="" coords="256,81,414,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="413,41,355,83,353,78,408,43"/>
+<area shape="rect" id="Node000006" href="$_update_preparation_8cpp.html" title=" " alt="" coords="439,81,658,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="474,39,532,81,527,80,473,45"/>
+<area shape="rect" id="Node000003" href="$_update_telemetry_controller_8cpp.html" title=" " alt="" coords="5,157,257,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="287,114,168,159,167,154,282,114"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="280,157,390,184"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="337,123,337,158,333,155,333,126"/>
+<area shape="rect" id="Node000005" href="$_self_updater_8cpp.html" title=" " alt="" coords="414,157,587,184"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="379,113,474,156,468,156,378,118"/>
 </map>

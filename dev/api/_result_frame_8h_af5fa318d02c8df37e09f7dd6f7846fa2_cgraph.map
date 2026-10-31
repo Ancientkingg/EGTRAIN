@@ -1,7 +1,7 @@
 <map id="runProvenanceWriter" name="runProvenanceWriter">
-<area shape="rect" id="Node000001" title="The writer of the exports of a run: writeRunArtifactWithProvenance with provenance,..." alt="" coords="5,29,164,55"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="45,31,37,21,41,11,58,5,85,3,119,7,129,11,132,17,128,20,125,15,118,12,85,8,59,10,45,15,42,20,49,27"/>
-<area shape="rect" id="Node000002" href="$_run_results_8cpp.html#a2da8b4613133af536cad7cc3a2703daa" title=" " alt="" coords="212,29,447,55"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="164,39,198,39,198,45,164,45"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="290,31,281,21,286,11,302,5,329,3,364,7,373,11,377,17,373,20,370,15,362,12,329,8,303,10,289,15,287,20,294,27"/>
+<area shape="rect" id="Node000001" title="The writer of the exports of a run: writeRunArtifactWithProvenance with provenance,..." alt="" coords="5,29,164,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,29,36,20,42,11,58,5,85,3,113,5,130,14,125,14,112,10,84,8,59,10,45,15,41,20,48,29"/>
+<area shape="rect" id="Node000002" href="$_run_results_8cpp.html#a2da8b4613133af536cad7cc3a2703daa" title=" " alt="" coords="212,29,445,57"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="164,41,199,43,194,43,164,46"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="287,28,280,20,285,11,302,5,328,3,357,5,374,14,369,14,356,10,328,8,303,10,289,15,285,20,292,30"/>
 </map>

@@ -1,13 +1,13 @@
 <map id="readSceneDirectorySnapshot" name="readSceneDirectorySnapshot">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,103,216,128"/>
-<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="69,104,60,94,64,84,82,78,111,76,147,80,157,85,161,90,157,93,154,89,146,85,111,81,83,83,68,88,65,94,73,101"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a9b4d098f5d08e110343420ff55701cd5" title=" " alt="" coords="264,29,477,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,100,263,63,295,55,297,60,265,69,149,105"/>
-<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="315,103,427,128"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="216,113,301,113,301,118,216,118"/>
-<area shape="rect" id="Node000004" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="315,176,426,201"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="158,126,312,170,311,175,156,131"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="329,31,320,21,324,11,342,5,371,3,407,7,417,11,421,17,417,20,414,15,406,12,371,8,343,10,328,15,325,20,333,27"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="329,104,320,94,324,84,342,78,371,76,407,80,417,85,421,90,417,93,414,89,406,85,371,81,343,83,328,88,325,94,333,101"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="329,178,320,168,324,158,342,151,371,149,407,153,417,158,421,164,417,167,414,162,406,158,371,155,343,157,328,162,325,167,333,174"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,105,215,133"/>
+<area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="66,105,59,96,65,87,82,81,110,79,140,81,158,89,153,91,139,86,110,84,83,86,68,91,64,96,71,104"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a9b4d098f5d08e110343420ff55701cd5" title=" " alt="" coords="263,29,475,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,102,262,67,296,60,291,62,263,72,154,107"/>
+<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="313,105,424,133"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="215,117,300,118,295,120,215,122"/>
+<area shape="rect" id="Node000004" href="$_staged_directory_8h.html#a7aa4b7fb80e7c4bde386345c1698840f" title="Reads the whole file at path into content, byte for byte. Returns false when the file cannot be opene..." alt="" coords="314,181,424,209"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="161,131,307,175,302,178,160,136"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="324,28,318,20,323,11,341,5,369,3,399,5,417,14,412,14,398,10,369,8,342,10,327,15,323,20,330,29"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="325,104,318,96,323,87,341,81,369,79,399,81,417,90,412,90,398,86,369,84,342,86,327,91,323,96,330,105"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="325,180,318,172,323,163,341,157,369,155,399,157,417,166,412,166,398,162,369,160,342,162,327,167,323,172,330,182"/>
 </map>

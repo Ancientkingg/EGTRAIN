@@ -1,9 +1,9 @@
 <map id="UpdateChecker::UpdateChecker" name="UpdateChecker::UpdateChecker">
-<area shape="rect" id="Node000001" title="Uses the transport of the application and a timeout of 10 seconds." alt="" coords="5,29,233,55"/>
-<area shape="rect" id="Node000002" href="$_http_transport_8cpp.html#a515e602cbe2ce442004bcfef48c5ccf3" title=" " alt="" coords="281,29,432,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,39,268,39,268,45,234,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,31,315,21,319,11,333,5,357,3,386,6,398,15,394,20,384,11,357,8,334,10,322,15,320,20,326,28"/>
-<area shape="rect" id="Node000003" href="$_win_http_transport_8cpp.html#a163cb78b4c9613697a1da12eb088f719" title=" " alt="" coords="480,29,656,55"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="432,39,466,39,466,45,432,45"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="533,31,526,21,530,11,544,5,568,3,597,6,609,15,606,20,595,11,568,8,546,10,534,15,531,20,538,28"/>
+<area shape="rect" id="Node000001" title="Uses the transport of the application and a timeout of 10 seconds." alt="" coords="5,29,233,57"/>
+<area shape="rect" id="Node000002" href="$_http_transport_8cpp.html#a515e602cbe2ce442004bcfef48c5ccf3" title=" " alt="" coords="281,29,431,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,41,268,43,262,43,233,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="319,28,314,20,318,11,333,5,356,3,381,5,396,14,390,14,379,10,356,8,334,10,322,15,319,20,324,30"/>
+<area shape="rect" id="Node000003" href="$_win_http_transport_8cpp.html#a163cb78b4c9613697a1da12eb088f719" title=" " alt="" coords="479,29,654,57"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="431,41,466,43,461,43,431,46"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="530,28,525,20,529,11,544,5,567,3,592,5,606,14,601,14,590,10,567,8,545,10,533,15,530,20,535,30"/>
 </map>

@@ -1,7 +1,7 @@
 <map id="graphics/SignalItemRoles.h" name="graphics/SignalItemRoles.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="94,5,293,31"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,79,165,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,40,104,81,102,76,163,36"/>
-<area shape="rect" id="Node000003" href="$_network_presenter_8cpp.html" title=" " alt="" coords="189,79,413,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,36,285,76,282,81,221,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="94,5,292,33"/>
+<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,42,105,83,103,78,158,43"/>
+<area shape="rect" id="Node000003" href="$_network_presenter_8cpp.html" title=" " alt="" coords="189,81,413,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,40,285,81,279,81,224,45"/>
 </map>

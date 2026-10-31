@@ -1,5 +1,5 @@
 <map id="NetworkPresenter::paintVCouplingMsg" name="NetworkPresenter::paintVCouplingMsg">
-<area shape="rect" id="Node000001" title="Shows the message of a virtual coupling above a train, in a group that is made once for the train." alt="" coords="5,13,279,38"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="327,5,556,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="279,23,313,23,313,28,279,28"/>
+<area shape="rect" id="Node000001" title="Shows the message of a virtual coupling above a train, in a group that is made once for the train." alt="" coords="5,14,278,42"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a11bfc2063067289eeb11c990cbf6da16" title=" " alt="" coords="326,5,554,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="278,25,313,28,308,28,278,30"/>
 </map>

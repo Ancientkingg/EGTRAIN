@@ -1,7 +1,7 @@
 <map id="changeTrainDepartureTimesForHourlyTimetabling" name="changeTrainDepartureTimesForHourlyTimetabling">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,211,69"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,30,62,20,69,10,84,5,108,3,135,6,150,13,148,18,134,11,108,8,85,10,72,15,67,21,69,28"/>
-<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b" title=" " alt="" coords="259,37,428,62"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="211,47,245,47,245,52,211,52"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="305,38,297,28,301,18,317,12,343,10,376,14,389,23,386,28,374,19,343,15,318,17,305,22,302,28,309,35"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,210,74"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="63,28,61,19,69,10,84,5,108,3,133,5,150,14,144,14,132,10,107,8,86,10,72,15,67,21,68,30"/>
+<area shape="rect" id="Node000002" href="$_signalling_8cpp.html#a83551e4431b445f64b467e1beaeaa11b" title=" " alt="" coords="258,38,426,66"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="210,49,245,51,239,52,210,54"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="302,36,295,29,300,19,316,13,342,11,369,14,386,23,380,22,368,19,342,16,317,18,304,23,301,29,307,38"/>
 </map>

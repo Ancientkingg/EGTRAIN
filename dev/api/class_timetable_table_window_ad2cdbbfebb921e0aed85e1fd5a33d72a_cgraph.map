@@ -1,6 +1,6 @@
 <map id="TimetableTableWindow::tableImage" name="TimetableTableWindow::tableImage">
-<area shape="rect" id="Node000001" title="The picture that the PNG export saves: every column of the table and the rows of the visible trains." alt="" coords="5,22,180,62"/>
-<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" title="The whole table as an image: every row and column at its natural size, with no scroll bars." alt="" coords="228,29,347,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,39,214,39,214,45,180,45"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="255,31,248,21,252,11,265,5,287,3,314,6,325,15,322,19,312,11,287,8,267,10,256,15,254,20,259,28"/>
+<area shape="rect" id="Node000001" title="The picture that the PNG export saves: every column of the table and the rows of the visible trains." alt="" coords="5,21,179,66"/>
+<area shape="rect" id="Node000002" href="$_run_exports_8cpp.html#af4427af0200906891a03bce3aff863b6" title="The whole table as an image: every row and column at its natural size, with no scroll bars." alt="" coords="227,29,344,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,41,214,43,209,43,179,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="252,28,246,20,251,11,264,5,285,3,308,5,322,14,317,14,307,10,285,8,265,10,254,15,252,20,257,30"/>
 </map>

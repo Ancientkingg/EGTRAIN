@@ -1,20 +1,20 @@
 <map id="MainWindow::handleHelpAbout" name="MainWindow::handleHelpAbout">
-<area shape="rect" id="Node000001" title="Shows the About dialog." alt="" coords="5,107,231,132"/>
-<area shape="rect" id="Node000002" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title="Takes the icon from parent, or from the application when there is no parent." alt="" coords="279,107,469,132"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,117,265,117,265,122,231,122"/>
-<area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="517,107,673,132"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,117,504,117,504,122,469,122"/>
-<area shape="poly" id="edge11_Node000003_Node000003" title=" " alt="" coords="562,108,554,98,558,88,572,82,595,80,624,84,635,93,632,97,622,89,595,85,573,87,562,92,560,98,566,105"/>
-<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="721,65,884,91"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="659,104,725,91,726,96,660,109"/>
-<area shape="rect" id="Node000007" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="726,139,879,179"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="662,129,713,139,712,145,661,135"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="769,67,762,57,765,47,779,41,803,39,831,42,843,51,839,56,829,47,803,44,781,46,769,51,767,56,773,64"/>
-<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="953,29,1098,55"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="881,63,939,53,940,59,882,68"/>
-<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="932,103,1119,128"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="880,88,936,98,935,103,879,93"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="989,31,981,21,985,11,1000,5,1025,3,1056,6,1068,15,1065,20,1054,11,1025,8,1002,10,989,15,987,20,993,28"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="989,104,981,94,985,84,1000,78,1025,76,1056,80,1068,89,1065,93,1054,85,1025,81,1002,83,989,88,987,94,993,101"/>
-<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="764,140,762,130,768,121,782,115,803,113,827,116,840,123,837,128,825,121,803,118,783,120,771,125,767,131,769,138"/>
+<area shape="rect" id="Node000001" title="Shows the About dialog." alt="" coords="5,109,230,137"/>
+<area shape="rect" id="Node000002" href="$class_about_dialog.html#a66647a6ddd09e3a000e96bd25a835799" title="Takes the icon from parent, or from the application when there is no parent." alt="" coords="278,109,467,137"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,121,265,123,259,124,230,126"/>
+<area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a7a942aba131ce624950e8ec35254d874" title=" " alt="" coords="515,109,670,137"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="467,121,502,123,497,123,467,126"/>
+<area shape="poly" id="edge11_Node000003_Node000003" title=" " alt="" coords="557,108,551,100,556,91,570,85,593,83,617,85,632,94,626,94,616,90,593,88,571,90,560,95,557,100,562,110"/>
+<area shape="rect" id="Node000004" href="$namespace_focus_wheel.html#a971842c3b3c91ee8ffaaa17e6f3d11ea" title="Guards every combo box, spin box and slider inside root." alt="" coords="718,67,880,94"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="663,106,711,98,717,98,663,111"/>
+<area shape="rect" id="Node000007" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="723,142,875,187"/>
+<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="665,135,710,146,705,146,665,140"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="763,65,758,58,762,48,776,42,799,40,823,43,838,52,833,51,822,48,799,45,778,47,766,52,763,57,768,67"/>
+<area shape="rect" id="Node000005" href="$namespace_focus_wheel.html#ad28258548a7afa6221a12ad246a48dbe" title="Guards box: gives it strong focus and installs a Filter, once." alt="" coords="948,29,1092,57"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="879,64,930,58,935,57,880,70"/>
+<area shape="rect" id="Node000006" href="$namespace_focus_wheel.html#a04ff8ef26e873c39cc6ae8d2bd196c91" title="Whether the wheel changes the value of widget. A scroll bar is not one of them: it has to follow the ..." alt="" coords="928,105,1113,133"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="880,92,925,102,920,102,880,97"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="982,28,976,20,981,11,996,5,1020,3,1046,5,1062,14,1057,14,1045,10,1020,8,997,10,985,15,982,20,987,30"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="982,104,976,96,981,87,996,81,1020,79,1046,81,1062,90,1057,90,1045,86,1020,84,997,86,985,91,982,96,987,106"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="760,140,758,132,765,123,779,118,799,116,821,118,836,127,831,126,820,123,799,121,780,123,768,127,763,133,764,143"/>
 </map>

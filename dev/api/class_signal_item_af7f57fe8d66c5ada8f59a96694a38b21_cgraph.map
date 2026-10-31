@@ -1,21 +1,21 @@
 <map id="SignalItem::setAspectCode" name="SignalItem::setAspectCode">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,203,80"/>
-<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61" title=" " alt="" coords="269,29,423,55"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,54,255,49,255,54,203,60"/>
-<area shape="rect" id="Node000004" href="$class_signal_item.html#a79bea8af53d006c06ff90dbad18ed95c" title=" " alt="" coords="251,79,441,104"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="203,74,237,78,237,83,202,80"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,31,299,21,303,11,319,5,346,3,380,7,393,16,389,20,378,11,346,8,320,10,307,15,304,20,311,27"/>
-<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="775,53,911,79"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="424,43,761,59,761,65,423,48"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="803,55,795,45,799,35,816,29,843,27,877,31,887,35,890,41,886,44,883,39,876,36,843,32,817,34,803,39,800,44,807,51"/>
-<area shape="rect" id="Node000005" href="$class_signal_item.html#a350a640edbd76e6d682205a87c8ddc2e" title=" " alt="" coords="489,79,707,104"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="442,89,476,89,476,94,442,94"/>
-<area shape="rect" id="Node000006" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="528,152,668,177"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="392,102,541,146,540,151,390,107"/>
-<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="629,150,796,82,798,87,631,154"/>
-<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="559,154,550,144,555,134,571,128,598,125,632,129,642,134,646,140,641,143,638,138,631,134,598,131,572,133,558,138,555,143,563,150"/>
-<area shape="rect" id="Node000007" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="755,127,931,152"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="668,155,741,147,741,153,668,160"/>
-<area shape="rect" id="Node000008" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="774,176,911,201"/>
-<area shape="poly" id="edge10_Node000006_Node000008" title=" " alt="" coords="668,169,761,178,760,183,668,174"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,56,202,84"/>
+<area shape="rect" id="Node000002" href="$_visual_polish_8cpp.html#ac90f4bc2aaf513636a1b81df1096bc61" title=" " alt="" coords="268,29,422,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,56,255,52,250,54,203,61"/>
+<area shape="rect" id="Node000004" href="$class_signal_item.html#a79bea8af53d006c06ff90dbad18ed95c" title=" " alt="" coords="250,81,440,109"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="202,78,237,83,232,84,203,83"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="303,28,297,20,302,11,319,5,345,3,373,5,390,14,385,14,372,10,345,8,320,10,306,15,302,20,309,29"/>
+<area shape="rect" id="Node000003" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="772,53,908,81"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="422,44,759,62,755,65,423,50"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="798,52,792,44,797,35,813,29,840,27,869,29,886,38,880,38,867,34,840,32,815,34,800,39,797,44,803,54"/>
+<area shape="rect" id="Node000005" href="$class_signal_item.html#a350a640edbd76e6d682205a87c8ddc2e" title=" " alt="" coords="488,80,704,108"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="440,92,475,94,470,95,441,97"/>
+<area shape="rect" id="Node000006" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="526,156,666,184"/>
+<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="394,107,535,151,529,151,394,112"/>
+<area shape="poly" id="edge9_Node000006_Node000003" title=" " alt="" coords="631,153,788,88,794,87,632,158"/>
+<area shape="poly" id="edge11_Node000006_Node000006" title=" " alt="" coords="554,154,548,147,553,137,570,131,596,129,625,132,642,141,636,140,623,137,596,135,571,137,557,141,553,147,559,157"/>
+<area shape="rect" id="Node000007" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="752,129,928,157"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="666,160,734,155,739,154,666,165"/>
+<area shape="rect" id="Node000008" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="772,181,908,209"/>
+<area shape="poly" id="edge10_Node000006_Node000008" title=" " alt="" coords="666,174,759,187,754,186,666,180"/>
 </map>

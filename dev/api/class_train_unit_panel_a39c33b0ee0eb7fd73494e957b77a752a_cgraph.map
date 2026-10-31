@@ -1,32 +1,32 @@
 <map id="TrainUnitPanel::deleteUnit" name="TrainUnitPanel::deleteUnit">
-<area shape="rect" id="Node000001" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it." alt="" coords="5,132,196,157"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="253,9,450,35"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,130,168,87,204,64,243,44,263,36,264,41,245,48,207,68,172,92,118,134"/>
-<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="267,59,436,84"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,129,243,93,275,85,276,90,245,98,136,134"/>
-<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="244,132,459,157"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,142,230,142,230,147,196,147"/>
-<area shape="rect" id="Node000012" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="258,182,445,222"/>
-<area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="158,155,251,176,250,182,156,160"/>
-<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title="The unit is gone from the model. Emitted after the document is marked changed." alt="" coords="252,247,451,272"/>
-<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="120,155,174,193,245,232,270,240,268,245,243,236,171,198,117,160"/>
-<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="581,29,676,55"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="436,60,567,46,568,51,436,65"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="584,31,574,21,579,11,598,5,629,3,669,7,680,12,683,18,678,21,676,16,668,12,629,8,599,10,583,15,580,20,588,27"/>
-<area shape="poly" id="edge15_Node000005_Node000005" title=" " alt="" coords="311,134,302,124,306,114,323,108,351,105,387,109,397,114,401,120,396,123,393,118,385,114,351,111,324,113,310,118,307,123,315,130"/>
-<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="527,103,730,128"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="459,131,513,125,514,130,459,136"/>
-<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="543,153,714,193"/>
-<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="459,153,530,160,530,165,459,158"/>
-<area shape="rect" id="Node000011" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="507,241,751,267"/>
-<area shape="poly" id="edge13_Node000005_Node000011" title=" " alt="" coords="424,155,460,168,485,184,508,202,578,234,576,239,505,207,481,189,457,172,422,160"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="584,104,574,94,579,84,598,78,629,76,669,80,680,85,683,92,678,94,676,89,668,85,629,81,599,83,583,88,580,94,588,101"/>
-<area shape="rect" id="Node000007" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="799,103,1023,128"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="730,113,785,113,785,118,730,118"/>
-<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="866,104,856,94,861,84,879,78,911,76,951,80,962,85,966,92,961,94,958,89,950,85,911,81,880,83,864,88,861,94,869,101"/>
-<area shape="rect" id="Node000009" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="825,153,996,193"/>
-<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="714,170,812,170,812,175,714,175"/>
-<area shape="rect" id="Node000010" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="825,217,996,257"/>
-<area shape="poly" id="edge12_Node000008_Node000010" title=" " alt="" coords="715,189,813,212,812,217,714,195"/>
-<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="584,243,574,233,579,223,598,217,629,215,669,219,680,224,683,230,678,233,676,228,668,224,629,220,599,222,583,227,580,232,588,239"/>
+<area shape="rect" id="Node000001" title="Deletes the selected unit after the user has confirmed it; refused while a composition uses it." alt="" coords="5,135,196,162"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="253,7,449,34"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,132,170,89,205,65,243,45,265,38,260,41,245,50,208,70,173,93,119,136"/>
+<area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="267,59,435,86"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,132,243,97,276,90,271,92,244,102,141,137"/>
+<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#a08f3f60ca755346a82a46d9013729e12" title=" " alt="" coords="244,135,458,162"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="196,146,230,148,225,149,197,151"/>
+<area shape="rect" id="Node000012" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="258,186,444,231"/>
+<area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="161,160,245,181,240,184,161,166"/>
+<area shape="rect" id="Node000013" href="$class_train_unit_panel.html#aada88fec49c7c65ff35650ce409594ba" title="The unit is gone from the model. Emitted after the document is marked changed." alt="" coords="252,255,450,282"/>
+<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="120,160,174,201,208,222,245,241,263,250,258,249,243,246,206,227,171,205,118,166"/>
+<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="580,29,675,57"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="435,61,567,49,562,51,436,66"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="580,28,573,20,579,11,598,5,628,3,660,5,679,14,674,14,659,10,628,8,599,10,582,15,578,20,586,29"/>
+<area shape="poly" id="edge15_Node000005_Node000005" title=" " alt="" coords="308,134,301,126,307,116,324,110,351,108,380,110,398,119,392,119,379,116,351,113,325,115,310,120,307,125,313,135"/>
+<area shape="rect" id="Node000006" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="526,105,729,133"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="458,134,513,131,508,132,459,140"/>
+<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a03c3b41fd7859a36164db37bc7784fb8" title=" " alt="" coords="542,157,713,202"/>
+<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="458,158,530,168,524,168,459,163"/>
+<area shape="rect" id="Node000011" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="506,249,749,277"/>
+<area shape="poly" id="edge13_Node000005_Node000011" title=" " alt="" coords="431,160,459,171,474,181,484,191,507,212,571,244,566,243,505,216,481,195,471,185,457,176,430,166"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="580,104,573,96,579,87,598,81,628,79,660,81,679,90,674,90,659,86,628,84,599,86,582,91,578,96,586,106"/>
+<area shape="rect" id="Node000007" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="797,105,1021,133"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="729,117,784,119,779,119,729,122"/>
+<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="861,104,854,96,860,87,878,81,909,79,942,81,962,91,956,90,941,86,909,84,879,86,863,91,859,96,866,106"/>
+<area shape="rect" id="Node000009" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="824,157,994,202"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="713,177,811,179,806,179,714,182"/>
+<area shape="rect" id="Node000010" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="824,226,994,271"/>
+<area shape="poly" id="edge12_Node000008_Node000010" title=" " alt="" coords="714,198,812,224,806,224,713,203"/>
+<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="581,248,573,240,579,231,598,225,628,223,660,225,679,234,674,234,659,230,628,228,599,230,582,235,578,240,586,250"/>
 </map>
