@@ -148,17 +148,47 @@ static TelemetryContext loopbackContext() {
 // consent there, and it may read the queue files. beforeFlagsRead calls atPump().
 class PumpHold {
 public:
+	// Lets a held pump go on and waits until the worker has left atPump(), so that a slot that a failed check ends does
+	// not leave the worker waiting on a hold that is gone.
+	~PumpHold() {
+		std::unique_lock<std::mutex> lock(m_mutex);
+		m_armed = false;
+		m_closing = true;
+		m_changed.notify_all();
+		m_changed.wait(lock, [this] { return !m_holding; });
+	}
 	void atPump() {
-		if (!m_armed.exchange(false)) return;
-		m_reached.release();
-		RECORD_VERIFY(m_resume.tryAcquire(1, 3000));
+		std::unique_lock<std::mutex> lock(m_mutex);
+		if (!m_armed) return;
+		m_armed = false;
+		m_holding = true;
+		++m_reached;
+		m_changed.notify_all();
+		const bool resumed = m_changed.wait_for(lock, std::chrono::milliseconds(3000), [this] { return m_resumes > 0 || m_closing; });
+		if (m_resumes > 0) --m_resumes;
+		m_holding = false;
+		m_changed.notify_all();
+		lock.unlock();
+		RECORD_VERIFY(resumed);
 	}
 	// Makes the next pump hold. Arm before a release, so that the pump after the held one cannot slip through.
-	void arm() { m_armed = true; }
+	void arm() {
+		const std::lock_guard<std::mutex> lock(m_mutex);
+		m_armed = true;
+	}
 	// Waits until the worker holds in the armed pump.
-	bool reached() { return m_reached.tryAcquire(1, 3000); }
+	bool reached() {
+		std::unique_lock<std::mutex> lock(m_mutex);
+		if (!m_changed.wait_for(lock, std::chrono::milliseconds(3000), [this] { return m_reached > 0; })) return false;
+		--m_reached;
+		return true;
+	}
 	// Lets the held pump go on.
-	void release() { m_resume.release(); }
+	void release() {
+		const std::lock_guard<std::mutex> lock(m_mutex);
+		++m_resumes;
+		m_changed.notify_all();
+	}
 	// Waits until the worker holds at the start of its next pump.
 	bool holdNext() {
 		arm();
@@ -171,8 +201,33 @@ public:
 		return reached();
 	}
 private:
-	Semaphore m_reached, m_resume;
-	std::atomic<bool> m_armed{false};
+	std::mutex m_mutex;
+	std::condition_variable m_changed;
+	bool m_armed = false, m_holding = false, m_closing = false;
+	int m_reached = 0, m_resumes = 0;
+};
+
+// A thread that captures an operation token while the slot holds it in afterOperationCaptureLocked, which waits for
+// unlock. The destructor lets it go on and joins it, so a check that fails during the hold does not end the program.
+class ContendedCapture {
+public:
+	ContendedCapture(telemetry::TelemetrySender& sender, Semaphore& unlock)
+		: m_unlock(unlock), m_thread([this, target = &sender] { m_token = target->captureOperation(); }) {}
+	~ContendedCapture() { finish(); }
+	ContendedCapture(const ContendedCapture&) = delete;
+	ContendedCapture& operator=(const ContendedCapture&) = delete;
+	// Lets the capture go on, waits for it and returns its token.
+	telemetry::TelemetrySender::OperationToken finish() {
+		if (m_thread.joinable()) {
+			m_unlock.release();
+			m_thread.join();
+		}
+		return m_token;
+	}
+private:
+	Semaphore& m_unlock;
+	telemetry::TelemetrySender::OperationToken m_token;
+	std::thread m_thread;
 };
 
 // The options of a sender with a still clock, so that nothing is sent and no poll runs unless a test asks for one.
@@ -428,9 +483,8 @@ void TestTelemetrySender::tokenLifetimeAndContention() {
 	telemetry::TelemetryEventInput usage;
 	usage.name = telemetry::Name::SceneOpened;
 	const auto original = sender->captureOperation();
-	telemetry::TelemetrySender::OperationToken contended;
 	holdCapture = true;
-	std::thread producer([&] { contended = sender->captureOperation(); });
+	ContendedCapture producer(*sender, unlock);
 	QVERIFY(captured.tryAcquire(1, 3000));
 	QElapsedTimer timer;
 	timer.start();
@@ -439,8 +493,7 @@ void TestTelemetrySender::tokenLifetimeAndContention() {
 	const auto delay = timer.elapsed();
 	// Invalidation must reject an old token even when its epoch cannot be updated yet.
 	sender->invalidateConsent(true, false);
-	unlock.release();
-	producer.join();
+	const auto contended = producer.finish();
 	holdCapture = false;
 	QCOMPARE_LT(delay, qint64(100));
 	QVERIFY(!admitted);
@@ -1640,38 +1693,45 @@ void TestTelemetrySender::revocationDropsTheWholeRing() {
 }
 
 void TestTelemetrySender::contendedRevocationRefusesUntokenedEvents() {
-	// A revocation that cannot take the ingress lock still refuses an event without a token before the next pump.
+	// A revocation that cannot take the ingress lock leaves the gate open. Its pending flag refuses an event without a
+	// token until the next pump, and the gate that this pump closes refuses it after that, before any consent read.
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryConsent consent(settings, m_context);
 	QVERIFY(consent.save(true, true));
-	Semaphore polled, proceed, exited, captured, unlock;
+	Semaphore polled, exited, captured, unlock;
+	PumpHold pump;
+	std::atomic<bool> holdCapture{true};
 	auto options = stillClockOptions(settingsFile);
-	options.afterPoll = [&] {
-		polled.release();
-		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
-	};
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
 	options.afterOperationCaptureLocked = [&] {
+		if (!holdCapture) return;
 		captured.release();
 		RECORD_VERIFY(unlock.tryAcquire(1, 3000));
 	};
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
 	QVERIFY(polled.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
 	telemetry::TelemetryEventInput usage, diagnostic;
 	usage.name = telemetry::Name::SceneOpened;
 	diagnostic.name = telemetry::Name::OperationFailed;
-	std::thread producer([&] { sender.captureOperation(); });
+	ContendedCapture producer(sender, unlock);
 	QVERIFY(captured.tryAcquire(1, 3000));
 	sender.invalidateConsent(true, false);
-	unlock.release();
-	producer.join();
+	producer.finish();
+	holdCapture = false;
 	QVERIFY(!sender.tryEnqueue(usage));
 	// The lock is free again: the other category still takes an event.
 	QVERIFY(sender.tryEnqueue(diagnostic));
+	// The pump takes the flag and drops the ring, so it reads no consent.
+	QVERIFY(pump.nextPump());
+	QVERIFY(!sender.tryEnqueue(usage));
+	QVERIFY(!sender.tryEnqueue(usage, sender.captureOperation()));
 	sender.stop();
-	proceed.release();
+	pump.release();
 	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
@@ -1977,19 +2037,19 @@ void TestTelemetrySender::workerFailureRefusesOldTokens() {
 }
 
 void TestTelemetrySender::nonWaitingCallsUnderContention() {
-	// None of these calls waits for the ingress lock: one that did would outlast the hold in the hook, which records a
-	// failure. The token taken under the lock is refused afterwards.
+	// None of these calls waits for the ingress lock that another thread holds: each returns within 100 ms. The flags
+	// that they raise refuse the token taken under the lock, and an event without a token, before the stop and before
+	// the next pump.
 	QTemporaryDir directory;
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryConsent consent(settings, m_context);
 	QVERIFY(consent.save(true, true));
-	Semaphore polled, proceed, exited, captured, unlock;
+	Semaphore polled, exited, captured, unlock;
+	PumpHold pump;
 	auto options = stillClockOptions(settingsFile);
-	options.afterPoll = [&] {
-		polled.release();
-		RECORD_VERIFY(proceed.tryAcquire(1, 3000));
-	};
+	options.afterPoll = [&] { polled.release(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
 	options.afterOperationCaptureLocked = [&] {
 		captured.release();
 		RECORD_VERIFY(unlock.tryAcquire(1, 3000));
@@ -1997,17 +2057,31 @@ void TestTelemetrySender::nonWaitingCallsUnderContention() {
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
 	QVERIFY(polled.tryAcquire(1, 3000));
-	telemetry::TelemetrySender::OperationToken contended;
-	std::thread producer([&] { contended = sender.captureOperation(); });
+	QVERIFY(pump.holdNext());
+	ContendedCapture first(sender, unlock);
 	QVERIFY(captured.tryAcquire(1, 3000));
+	QElapsedTimer timer;
+	timer.start();
 	sender.requestConsentRefresh();
+	const qint64 refreshTime = timer.restart();
+	sender.invalidateConsent(false, true);
+	const qint64 revocationTime = timer.restart();
 	sender.invalidateReceiver();
-	sender.stop();
-	unlock.release();
-	producer.join();
+	const qint64 receiverTime = timer.elapsed();
+	QCOMPARE_LT(refreshTime, qint64(100));
+	QCOMPARE_LT(revocationTime, qint64(100));
+	QCOMPARE_LT(receiverTime, qint64(100));
+	const auto contended = first.finish();
 	QVERIFY(!sender.tryEnqueue({}, contended));
 	QVERIFY(!sender.tryEnqueue({}));
-	proceed.release();
+	ContendedCapture second(sender, unlock);
+	QVERIFY(captured.tryAcquire(1, 3000));
+	timer.start();
+	sender.stop();
+	const qint64 stopTime = timer.elapsed();
+	QCOMPARE_LT(stopTime, qint64(100));
+	second.finish();
+	pump.release();
 	QVERIFY(exited.tryAcquire(1, 3000));
 }
 
