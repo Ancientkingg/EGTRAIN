@@ -1,5 +1,7 @@
 var NAVTREEINDEX18 =
 {
+"functions_func_j.html":[2,3,1,9],
+"functions_func_k.html":[2,3,1,10],
 "functions_func_l.html":[2,3,1,11],
 "functions_func_m.html":[2,3,1,12],
 "functions_func_n.html":[2,3,1,13],
@@ -247,7 +249,5 @@ var NAVTREEINDEX18 =
 "namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6":[1,0,6,2],
 "namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6":[1,0,6,2,8],
 "namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a0e336a3db70be9616045f205a7a0dcc6":[1,0,6,2,2],
-"namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8":[1,0,6,2,5],
-"namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7":[1,0,6,2,7],
-"namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a4d9c8da3f5824e82a978d9e78ad67220":[1,0,6,2,4]
+"namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8":[1,0,6,2,5]
 };

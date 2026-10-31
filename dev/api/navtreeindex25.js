@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"struct_station_tick.html#a50d6634d233119cb5e084b9ed1c82f90":[2,0,300,0],
+"struct_station_tick.html#a68a0e3e8c197b23c32e4d3603ffcd15e":[2,0,300,2],
 "struct_station_visual.html":[2,0,301],
 "struct_station_visual.html#a11639545485943258853d34f28c4f920":[2,0,301,1],
 "struct_station_visual.html#a2e3e565349d31331589d00f49ec7528b":[2,0,301,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "structtelemetry_1_1_telemetry_event.html#a08f9a5a8db7b372fc41df8b53d955d17":[2,0,3,8,1],
 "structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[1,0,13,8,0],
 "structtelemetry_1_1_telemetry_event.html#a2212f54ed2e4207eb6cdfb608c5089b2":[2,0,3,8,0],
-"structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[1,0,13,8,2],
-"structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[2,0,3,8,2],
-"structtelemetry_1_1_telemetry_event_input.html":[1,0,13,9]
+"structtelemetry_1_1_telemetry_event.html#a87aa297e492168f6b53555b5cc081db6":[1,0,13,8,2]
 };

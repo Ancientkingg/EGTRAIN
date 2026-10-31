@@ -336,8 +336,8 @@ result checks described below.</p></li>
 <code class="docutils literal notranslate"><span class="pre">main</span></code> that changes <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>, <code class="docutils literal notranslate"><span class="pre">.clang-format</span></code>, <code class="docutils literal notranslate"><span class="pre">.clang-format-ignore</span></code>,
 <code class="docutils literal notranslate"><span class="pre">tools/format.py</span></code> or <code class="docutils literal notranslate"><span class="pre">format.yml</span></code>, and when started by hand.</p></li>
 <li><p>The tidy check (<code class="docutils literal notranslate"><span class="pre">tidy.yml</span></code>) runs <code class="docutils literal notranslate"><span class="pre">tools/tidy.py</span></code> for a pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> that
-changes <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>, the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/tidy.py</span></code> or
-<code class="docutils literal notranslate"><span class="pre">tidy.yml</span></code>. A pull request analyses the changed sources and the sources that include a
+changes <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/</span></code>, the root <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/tidy.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tidy.yml</span></code> or the setup action in <code class="docutils literal notranslate"><span class="pre">.github/actions/</span></code>. A pull request analyses the changed sources and the sources that include a
 changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
 run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
 and the checks are described in the <a class="reference internal" href="coding-guidelines.html#static-checks"><span class="std std-ref">coding guidelines</span></a>.
@@ -348,7 +348,8 @@ files it changes, and publishes the site to <code class="docutils literal notran
 and <code class="docutils literal notranslate"><span class="pre">latest/</span></code> after a successful release.</p></li>
 <li><p>A pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> that changes a packaging input also runs the
 package check (<code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>). The inputs are the workflow files
-<code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/release/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">package-check.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, the setup action in <code class="docutils literal notranslate"><span class="pre">.github/actions/</span></code>, <code class="docutils literal notranslate"><span class="pre">tools/release/</span></code>, the
+vcpkg manifest in <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/</span></code>,
 <code class="docutils literal notranslate"><span class="pre">installer/</span></code>, <code class="docutils literal notranslate"><span class="pre">Info.plist.in</span></code>, <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/update/</span></code> and
 <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN/app/main.cpp</span></code>. The check also runs once a night on <code class="docutils literal notranslate"><span class="pre">main</span></code>
 and can be started by hand, which covers changes that reach the packages
@@ -401,6 +402,8 @@ signature, which <code class="docutils literal notranslate"><span class="pre">to
 the app, runs <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> on the Paimpol scene of the app without
 the GUI, starts a copy of the app with the same script, and prints the number
 of files and bytes of the app before and after the removal in its job summary.
+The steps that fill, trim and check the app call <code class="docutils literal notranslate"><span class="pre">tools/release/package_macos.sh</span></code> (see
+<a class="reference internal" href="#macos-packaging-script">macOS packaging script</a>).
 In a push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag it then notarizes and staples the app
 when the environment holds notarization credentials (see
 <a class="reference internal" href="#macos-notarization-script">macOS notarization script</a>). It builds
@@ -422,7 +425,10 @@ The image is the only file of the artifact <code class="docutils literal notrans
 made. The Linux package job extracts its AppImage and starts the extracted
 image with the same script on a virtual display, after the script has checked
 that every Qt and ZeroMQ library of the programs and plugins comes from the
-image. The start in each of the three package jobs is the headless run and the
+image. That job runs on <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code>, not <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code>, because the
+AppImage needs the glibc of the system that built it; the workflow test
+requires a named Ubuntu release no newer than the one of the rehearsal job
+<code class="docutils literal notranslate"><span class="pre">rehearse-linux</span></code>. The start in each of the three package jobs is the headless run and the
 window start, with no CSV or PNG export, because a release build has no test
 hooks to ask for one. The check does not show how the SVG icons look, typing
 into text fields, the native file dialogs, how Finder presents the disk
@@ -554,7 +560,7 @@ packaged guides ship with the next release; <code class="docutils literal notran
 are not filtered by changed paths.</p>
 <section id="required-checks-on-main">
 <h3>Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code><a class="headerlink" href="#required-checks-on-main" title="Link to this heading">¶</a></h3>
-<p>Every pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> starts the CMake, Format and Package check
+<p>Every pull request to <code class="docutils literal notranslate"><span class="pre">main</span></code> starts the CMake, Format, Tidy and Package check
 workflows; their triggers have no path filter. The first job of each, <code class="docutils literal notranslate"><span class="pre">changes</span></code>,
 compares the files of the pull request with the rule of the workflow, and the
 real jobs skip when the rule selects nothing:</p>
@@ -566,6 +572,14 @@ checks the documentation on every pull request.</p></li>
 <li><p>Tidy runs for the files of the tidy check, listed above.</p></li>
 <li><p>The package check runs its jobs for the packaging inputs, listed above.</p></li>
 </ul>
+<p>The CMake, Tidy and Package check workflows read their rule from <code class="docutils literal notranslate"><span class="pre">tools/ci/changed_files.py</span></code>, which holds one
+entry per workflow and prints the output line of the <code class="docutils literal notranslate"><span class="pre">changes</span></code> job. The Format workflow keeps the same patterns in a
+<code class="docutils literal notranslate"><span class="pre">case</span></code> statement of <code class="docutils literal notranslate"><span class="pre">format.yml</span></code>. To see what a branch selects:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>tools/ci/changed_files.py<span class="w"> </span>tidy<span class="w"> </span>origin/main<span class="w"> </span>HEAD
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">tools/ci/test_changed_files.py</span></code> (CTest <code class="docutils literal notranslate"><span class="pre">test_changed_files</span></code>) checks the rules on sample paths and runs the script on
+the commits of a temporary repository.</p>
 <p>A nightly or manual run always does its jobs. The condition of a job is
 evaluated before its matrix is expanded, so a skipped <code class="docutils literal notranslate"><span class="pre">build</span></code> job would be
 listed as <code class="docutils literal notranslate"><span class="pre">build</span> <span class="pre">(${{</span> <span class="pre">matrix.name</span> <span class="pre">}})</span></code>. The three legs of the CMake workflow
@@ -578,6 +592,37 @@ build when the documentation check finds nothing. <code class="docutils literal 
 merge automatically when they are green. Do not require the build legs, the
 format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.</p>
+</section>
+<section id="workflow-test">
+<h3>Workflow test<a class="headerlink" href="#workflow-test" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> (CTest <code class="docutils literal notranslate"><span class="pre">test_ci_workflow</span></code>) reads the workflows and checks the properties that every
+workflow keeps:</p>
+<ul class="simple">
+<li><p>The result job of each required workflow is its last job, always runs, needs every job of a pull request and fails
+when one of them failed or was cancelled. Each <code class="docutils literal notranslate"><span class="pre">changes</span></code> job runs <code class="docutils literal notranslate"><span class="pre">tools/ci/changed_files.py</span></code>.</p></li>
+<li><p>Every job that does not call a reusable workflow has <code class="docutils literal notranslate"><span class="pre">timeout-minutes</span></code>. The macOS package job allows 150 minutes,
+because its two notarization steps may wait an hour each.</p></li>
+<li><p>The permissions at the top of a workflow only read. The permissions of a job are a mapping of scopes, not <code class="docutils literal notranslate"><span class="pre">write-all</span></code>,
+and a job writes exactly the scopes that <code class="docutils literal notranslate"><span class="pre">WRITE_PERMISSIONS</span></code> in the test lists for it with the reason: <code class="docutils literal notranslate"><span class="pre">contents</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">publish</span></code> job of <code class="docutils literal notranslate"><span class="pre">docs.yml</span></code> and in the <code class="docutils literal notranslate"><span class="pre">release</span></code> job of <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>.</p></li>
+<li><p>A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
+cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.</p></li>
+<li><p>A credential or an environment reaches only a job or a step of a push to <code class="docutils literal notranslate"><span class="pre">production</span></code> or a <code class="docutils literal notranslate"><span class="pre">v*</span></code> tag. Such a job has
+that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
+skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
+such as <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">container</span></code> or <code class="docutils literal notranslate"><span class="pre">services</span></code>, reads one, except the <code class="docutils literal notranslate"><span class="pre">secrets</span></code> of a call of a workflow in this repository,
+whose jobs this rule checks in turn. The top-level <code class="docutils literal notranslate"><span class="pre">env</span></code> of a workflow reads none either. A call of <code class="docutils literal notranslate"><span class="pre">package.yml</span></code>
+passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.</p></li>
+<li><p>The files, actions and tests that the workflows name exist, and every test script in <code class="docutils literal notranslate"><span class="pre">tools/ci/</span></code> and
+<code class="docutils literal notranslate"><span class="pre">tools/release/</span></code> is registered in CTest or run by a workflow.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">KNOWN_GAPS</span></code> in the test lists the workflows that lack one of these properties, such as the job time limits of
+<code class="docutils literal notranslate"><span class="pre">release.yml</span></code>. The test fails when one of them gets the property, so the entry goes with the change. The test then
+checks the properties of the build, package and release jobs that this page describes. It finds a step by what the
+step runs, not by its name, so a step can be renamed or moved as long as the property holds. It reads the workflows
+with a small reader of the YAML that they use, which needs no package and stops at what it cannot read. The test runs
+a few cases of the reader every time; where PyYAML is installed, it also checks that the reader reads every workflow
+as PyYAML does.</p>
 </section>
 <section id="release-assets-script">
 <h3>Release assets script<a class="headerlink" href="#release-assets-script" title="Link to this heading">¶</a></h3>
@@ -713,6 +758,83 @@ message for a missing tool, and the command lines, the link, the staged
 for <code class="docutils literal notranslate"><span class="pre">ditto</span></code> and <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, and that the committed layout file names the app and
 the link. Run it with
 <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">test_make_dmg</span> <span class="pre">--output-on-failure</span></code>.</p>
+</section>
+<section id="macos-packaging-script">
+<h3>macOS packaging script<a class="headerlink" href="#macos-packaging-script" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tools/release/package_macos.sh</span> <span class="pre">&lt;step&gt;</span> <span class="pre">&lt;app&gt;</span></code> runs one step of the macOS package job on the app in the build folder,
+<code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app</span></code> in the job. Each step of the job is one call:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Step</p></th>
+<th class="head"><p>Job step</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bundle</span></code></p></td>
+<td><p>Bundle Qt and dependencies into the app</p></td>
+<td><p>Runs <code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> from <code class="docutils literal notranslate"><span class="pre">$QT_ROOT_DIR</span></code> on the app and copies <code class="docutils literal notranslate"><span class="pre">egtrain_update_helper</span></code> of the build folder into <code class="docutils literal notranslate"><span class="pre">Contents/MacOS</span></code>. A Homebrew library can name a dependency as <code class="docutils literal notranslate"><span class="pre">&#64;rpath/&lt;name&gt;</span></code>, which <code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code> does not copy: the step copies it from the Homebrew prefix and points the reference at the copy, until nothing is missing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add-files</span></code></p></td>
+<td><p>Add scene_tool and the licence files to the app</p></td>
+<td><p>Copies <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> of the build folder into <code class="docutils literal notranslate"><span class="pre">Contents/MacOS</span></code>, and <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> and <code class="docutils literal notranslate"><span class="pre">THIRD_PARTY_NOTICES.md</span></code> into <code class="docutils literal notranslate"><span class="pre">Contents/Resources</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trim</span></code></p></td>
+<td><p>Remove unused Qt modules and plugins</p></td>
+<td><p>Removes the virtual keyboard and input context plugins, the Quick and QML frameworks, the WebP and TIFF plugins with their libraries and the database drivers other than SQLite, and prints the number of files and bytes of the app before and after.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thin</span></code></p></td>
+<td><p>Keep only the arm64 code of the Qt 6 libraries</p></td>
+<td><p>Keeps the arm64 code of every universal file.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">strip-paths</span></code></p></td>
+<td><p>Remove build machine paths</p></td>
+<td><p>Runs <code class="docutils literal notranslate"><span class="pre">tools/release/macos_build_paths.py</span> <span class="pre">fix</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min-version</span></code></p></td>
+<td><p>Set the minimum macOS version</p></td>
+<td><p>Writes the minimum system version of the executable into <code class="docutils literal notranslate"><span class="pre">LSMinimumSystemVersion</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">verify-contents</span></code></p></td>
+<td><p>Verify the app is self-contained</p></td>
+<td><p>Requires the Qt frameworks, the cocoa platform plugin, the SVG plugins, the macOS style, the SQLite driver, the icon and ZeroMQ, fails on a removed file and on a build machine path (<code class="docutils literal notranslate"><span class="pre">macos_build_paths.py</span> <span class="pre">check</span></code>), and runs <code class="docutils literal notranslate"><span class="pre">codesign</span> <span class="pre">--verify</span> <span class="pre">--deep</span> <span class="pre">--strict</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">verify-signature</span></code></p></td>
+<td><p>Verify the signature</p></td>
+<td><p>Prints the identifier, the authority and the team, and requires an ad-hoc signature without <code class="docutils literal notranslate"><span class="pre">MACOS_SIGNING_IDENTITY</span></code> and a Developer ID Application authority, a team, the hardened runtime and a timestamp with it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">verify-package</span></code></p></td>
+<td><p>Verify the packaged app</p></td>
+<td><p>Requires the three programs, the licence files, the manual and the Paimpol scene, and runs <code class="docutils literal notranslate"><span class="pre">scene_tool</span> <span class="pre">validate</span></code> on that scene.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The first six steps change the app, so they come before the signature, and the last three check the signed app. The app
+first runs in the next step, <strong>Start the package</strong>, from a copy. <code class="docutils literal notranslate"><span class="pre">bundle</span></code> and <code class="docutils literal notranslate"><span class="pre">add-files</span></code> take the programs from the
+folder that holds the app, which is the build folder. <code class="docutils literal notranslate"><span class="pre">bundle</span></code> needs <code class="docutils literal notranslate"><span class="pre">QT_ROOT_DIR</span></code> and Homebrew. <code class="docutils literal notranslate"><span class="pre">trim</span></code> and
+<code class="docutils literal notranslate"><span class="pre">min-version</span></code> also write their lines into the job summary when <code class="docutils literal notranslate"><span class="pre">GITHUB_STEP_SUMMARY</span></code> is set, so every step also runs
+outside a workflow. To package a local build, copy the app and the two programs into a new folder and run the steps in
+the order of the table, with <code class="docutils literal notranslate"><span class="pre">tools/release/sign_macos.sh</span></code> between <code class="docutils literal notranslate"><span class="pre">min-version</span></code> and <code class="docutils literal notranslate"><span class="pre">verify-contents</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/package/build
+ditto<span class="w"> </span>build/QEGTRAIN.app<span class="w"> </span>/tmp/package/build/QEGTRAIN.app
+cp<span class="w"> </span>build/scene_tool<span class="w"> </span>build/egtrain_update_helper<span class="w"> </span>/tmp/package/build/
+<span class="nv">QT_ROOT_DIR</span><span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/macos"</span><span class="w"> </span>bash<span class="w"> </span>tools/release/package_macos.sh<span class="w"> </span>bundle<span class="w"> </span>/tmp/package/build/QEGTRAIN.app
+</pre></div>
+</div>
+<p>A build without the Sphinx environment of the manual has no <code class="docutils literal notranslate"><span class="pre">EGTRAIN.qch</span></code>, and <code class="docutils literal notranslate"><span class="pre">verify-package</span></code> then fails.</p>
+<p>The test is <code class="docutils literal notranslate"><span class="pre">tools/release/test_package_macos.sh</span></code>. It builds a fixture build folder whose app holds what <code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code>
+leaves: frameworks, plugins and libraries, among them the files that <code class="docutils literal notranslate"><span class="pre">trim</span></code> removes, a universal program built for
+macOS 26 with a run path into the Homebrew Cellar, and a <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> that fails on request. It runs every step but
+<code class="docutils literal notranslate"><span class="pre">bundle</span></code> in the order of the job, signs the app ad hoc with <code class="docutils literal notranslate"><span class="pre">sign_macos.sh</span></code> in between, and checks the result of each:
+the copied files, the removed and the kept files, the size lines in a job summary and a run without one, the arm64
+program, the removed run path, the minimum version, and the three checks. Then it requires <code class="docutils literal notranslate"><span class="pre">verify-contents</span></code> to fail
+for a missing SVG icon engine, a missing Qt Svg framework, a WebP plugin, a run path into the Homebrew Cellar and a file
+changed after the signature, <code class="docutils literal notranslate"><span class="pre">verify-signature</span></code> to fail when an identity is set and the signature is ad hoc, and
+<code class="docutils literal notranslate"><span class="pre">verify-package</span></code> to fail for a missing manual and a scene that does not validate. It does not run <code class="docutils literal notranslate"><span class="pre">bundle</span></code>, which needs
+<code class="docutils literal notranslate"><span class="pre">macdeployqt</span></code>, Qt and Homebrew, or sign with an identity. Run it with
+<code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-R</span> <span class="pre">test_package_macos</span> <span class="pre">--output-on-failure</span></code>.</p>
 </section>
 <section id="macos-signing-script">
 <h3>macOS signing script<a class="headerlink" href="#macos-signing-script" title="Link to this heading">¶</a></h3>
@@ -959,18 +1081,42 @@ The certificate is never exported or added to a trusted root, and the test
 removes it with its key. Run it by hand with
 <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">--test-dir</span> <span class="pre">build</span> <span class="pre">-C</span> <span class="pre">Release</span> <span class="pre">-R</span> <span class="pre">test_verify_signatures</span> <span class="pre">--output-on-failure</span></code>.</p>
 </section>
+<section id="configure-options">
+<h3>Configure options<a class="headerlink" href="#configure-options" title="Link to this heading">¶</a></h3>
+<p>The three legs of <code class="docutils literal notranslate"><span class="pre">cmake.yml</span></code> configure with the presets <code class="docutils literal notranslate"><span class="pre">ci-macos</span></code>, <code class="docutils literal notranslate"><span class="pre">ci-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> of
+<code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code>. They inherit <code class="docutils literal notranslate"><span class="pre">ci-base</span></code>: a Release build with the tests, <code class="docutils literal notranslate"><span class="pre">EGTRAIN_WARNINGS_AS_ERRORS=ON</span></code> and
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>, in <code class="docutils literal notranslate"><span class="pre">build/</span></code>, where the later steps look. The configure step of each leg adds the compiler launcher of
+the matrix and the prefix path of its runner, and macOS also passes <code class="docutils literal notranslate"><span class="pre">WrapOpenGL_AGL</span></code>. A configure step names no
+generator and no variable that its preset sets. The leak check and the nightly sanitizer jobs keep configure lines of
+their own.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> also holds Ninja, the <code class="docutils literal notranslate"><span class="pre">cl</span></code> compilers, <code class="docutils literal notranslate"><span class="pre">EGTRAIN_NETWORK_TESTS=ON</span></code> and the vcpkg options: the toolchain of the
+vcpkg of the runner image (<code class="docutils literal notranslate"><span class="pre">VCPKG_INSTALLATION_ROOT</span></code>), the <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet, the manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>
+and no DLL copy after each link (<code class="docutils literal notranslate"><span class="pre">VCPKG_APPLOCAL_DEPS=OFF</span></code>; the job puts the DLL folders on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>). The configure step
+installs the packages of the manifest at its <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code>, into the <code class="docutils literal notranslate"><span class="pre">installed</span></code> folder of that vcpkg
+(<code class="docutils literal notranslate"><span class="pre">VCPKG_INSTALLED_DIR</span></code>), where the DLL steps of the job read them. The Windows package job of <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> passes the
+same vcpkg options on its configure line. The
+runner image clones vcpkg in full and a new image updates the clone, so the checkout holds the baseline commit. A
+baseline newer than the checkout of the image fails the configure step, because vcpkg reads the port versions from that
+checkout.</p>
+</section>
 <section id="dependency-caches">
 <h3>Dependency caches<a class="headerlink" href="#dependency-caches" title="Link to this heading">¶</a></h3>
+<p>The build legs, the leak check, the nightly sanitizer jobs, the tidy check and the package jobs set up their
+dependencies with the local action <code class="docutils literal notranslate"><span class="pre">.github/actions/setup-deps</span></code>. It installs Qt 6.8.3 with Qt Charts through
+<code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, ZeroMQ, cppzmq and nlohmann-json from Homebrew on macOS and from apt on Linux, with the
+extra apt packages of its <code class="docutils literal notranslate"><span class="pre">apt-packages</span></code> input, and sets up the MSVC environment on Windows. The <code class="docutils literal notranslate"><span class="pre">validation</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sanitizer</span></code> jobs of <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> install the same Qt and Homebrew packages in steps of their own.</p>
 <p>Every leg caches the Qt install (through <code class="docutils literal notranslate"><span class="pre">jurplel/install-qt-action</span></code>, with the
 same cache entries as the package jobs), and the Windows leg also caches the vcpkg
-binary archives in <code class="docutils literal notranslate"><span class="pre">runner.temp/vcpkg-binary-cache</span></code>. vcpkg names an archive by a hash
+binary archives in <code class="docutils literal notranslate"><span class="pre">runner.temp/vcpkg-binary-cache</span></code>, which its configure step names in
+<code class="docutils literal notranslate"><span class="pre">VCPKG_BINARY_SOURCES</span></code>. vcpkg names an archive by a hash
 that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
 The key of the vcpkg cache is therefore
-<code class="docutils literal notranslate"><span class="pre">vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-&lt;image&gt;-v1</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;</span></code> is
-<code class="docutils literal notranslate"><span class="pre">ImageOS</span></code> and <code class="docutils literal notranslate"><span class="pre">ImageVersion</span></code> of the runner. A new image writes a new entry, and
-the save step runs when the restore found no entry with the exact key. To start
-over, for example after changing the vcpkg package list, raise the <code class="docutils literal notranslate"><span class="pre">-v1</span></code> suffix
-by hand in the restore and save steps. An existing key is never overwritten.
+<code class="docutils literal notranslate"><span class="pre">vcpkg-x64-windows-&lt;packages&gt;-&lt;baseline&gt;-&lt;image&gt;-v1</span></code>: the packages and the <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code> of
+<code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>, which the step <code class="docutils literal notranslate"><span class="pre">Read</span> <span class="pre">the</span> <span class="pre">vcpkg</span> <span class="pre">manifest</span></code> reads, and <code class="docutils literal notranslate"><span class="pre">ImageOS</span></code> and <code class="docutils literal notranslate"><span class="pre">ImageVersion</span></code> of the
+runner. A new image or a change to the packages or the baseline writes a new entry. The save step follows the
+configure step, which installs the packages, and runs when the restore found no entry with the exact key. To start
+over, raise the <code class="docutils literal notranslate"><span class="pre">-v1</span></code> suffix by hand in the restore and save steps. An existing key is never overwritten.
 Homebrew and apt packages are not cached.</p>
 <p>All three legs also keep a compiler cache, set up by <code class="docutils literal notranslate"><span class="pre">hendrikmuhs/ccache-action</span></code>
 before the configure step: ccache on macOS and Linux, sccache on Windows. The
@@ -985,7 +1131,7 @@ run saves a new entry. A run restores the newest entry of its leg and image, or
 else the newest of its leg. The post step of the action (<code class="docutils literal notranslate"><span class="pre">Post</span> <span class="pre">Set</span> <span class="pre">up</span> <span class="pre">compiler</span> <span class="pre">cache</span></code>) prints the hits and misses of the job. Each entry holds at most 500 MB,
 and GitHub keeps 10 GB for the repository and removes the entries used least
 recently first.</p>
-<p>The three legs configure with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_IPO=OFF</span></code>. A Release build links with
+<p>The ci presets of the three legs set <code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>. A Release build links with
 interprocedural optimization by default (link-time optimization, or LTCG with
 MSVC) when the toolchain supports it; with the option OFF the build skips it.
 The optimized link generates the code of the whole program again for every test
@@ -1063,13 +1209,16 @@ seven days; the nightly run keeps the entries in use.</p>
 <li><a class="reference internal" href="#">CI and release</a><ul>
 <li><a class="reference internal" href="#ci-and-release-branches">CI and release branches</a><ul>
 <li><a class="reference internal" href="#required-checks-on-main">Required checks on <code class="docutils literal notranslate"><span class="pre">main</span></code></a></li>
+<li><a class="reference internal" href="#workflow-test">Workflow test</a></li>
 <li><a class="reference internal" href="#release-assets-script">Release assets script</a></li>
 <li><a class="reference internal" href="#disk-image-script">Disk image script</a></li>
+<li><a class="reference internal" href="#macos-packaging-script">macOS packaging script</a></li>
 <li><a class="reference internal" href="#macos-signing-script">macOS signing script</a></li>
 <li><a class="reference internal" href="#macos-notarization-script">macOS notarization script</a></li>
 <li><a class="reference internal" href="#installer-script">Installer script</a></li>
 <li><a class="reference internal" href="#installer-smoke">Installer smoke</a></li>
 <li><a class="reference internal" href="#signature-check">Signature check</a></li>
+<li><a class="reference internal" href="#configure-options">Configure options</a></li>
 <li><a class="reference internal" href="#dependency-caches">Dependency caches</a></li>
 </ul>
 </li>

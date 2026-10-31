@@ -128,10 +128,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9aad91dbf9c43cc4bfbfea8705f8d776" id="r_a9aad91dbf9c43cc4bfbfea8705f8d776"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9aad91dbf9c43cc4bfbfea8705f8d776">failClosed</a> () noexcept</td></tr>
 <tr class="memitem:ad52466496e349dcb76e5e28e0eee41ef" id="r_ad52466496e349dcb76e5e28e0eee41ef"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad52466496e349dcb76e5e28e0eee41ef">refresh</a> ()</td></tr>
 <tr class="memitem:a4226b0e0877dfcdea0b4e09d1e717f46" id="r_a4226b0e0877dfcdea0b4e09d1e717f46"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4226b0e0877dfcdea0b4e09d1e717f46">attemptInteractiveSession</a> ()</td></tr>
-<tr class="memitem:af69c3e1d64c6f01b1d4cbb34e318c2f1" id="r_af69c3e1d64c6f01b1d4cbb34e318c2f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af69c3e1d64c6f01b1d4cbb34e318c2f1">authorized</a> (int index, const QString &amp;selectedStamp, quint64 epoch, quint64 permitVersion)</td></tr>
+<tr class="memitem:a7059c1f8d1980b7b4a0c8bcd144351dc" id="r_a7059c1f8d1980b7b4a0c8bcd144351dc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7059c1f8d1980b7b4a0c8bcd144351dc">authorized</a> (int index, const QString &amp;selectedStamp, quint64 epoch)</td></tr>
 <tr class="memitem:a65745d9bd123911e4ccf94928319e419" id="r_a65745d9bd123911e4ccf94928319e419"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a65745d9bd123911e4ccf94928319e419">reserve</a> (qint64 delay, int failures, int usageLimit=-1, int diagnosticLimit=-1)</td></tr>
 <tr class="memitem:aa4bede92e4f0dc36f2e3e2e75487c1a5" id="r_aa4bede92e4f0dc36f2e3e2e75487c1a5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa4bede92e4f0dc36f2e3e2e75487c1a5">onFinished</a> ()</td></tr>
 <tr class="memitem:acc56f4f17d7f654bf8669d8eae45d0fc" id="r_acc56f4f17d7f654bf8669d8eae45d0fc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acc56f4f17d7f654bf8669d8eae45d0fc">send</a> ()</td></tr>
+<tr class="memitem:a7434402ceb56a8f55e68b8450496f422" id="r_a7434402ceb56a8f55e68b8450496f422"><td class="memItemLeft">unsigned&#160;</td><td class="memItemRight"><a class="el" href="#a7434402ceb56a8f55e68b8450496f422">takeFlags</a> ()</td></tr>
 <tr class="memitem:a1f136a06f23ad6db74ef4dc30c9a0f6a" id="r_a1f136a06f23ad6db74ef4dc30c9a0f6a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1f136a06f23ad6db74ef4dc30c9a0f6a">pump</a> ()</td></tr>
 <tr class="memitem:ae10987671ac7e6c0b1c26d40c3284192" id="r_ae10987671ac7e6c0b1c26d40c3284192"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae10987671ac7e6c0b1c26d40c3284192">run</a> ()</td></tr>
 </table><table class="memberdecls">
@@ -219,8 +220,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="af69c3e1d64c6f01b1d4cbb34e318c2f1" name="af69c3e1d64c6f01b1d4cbb34e318c2f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af69c3e1d64c6f01b1d4cbb34e318c2f1">&#9670;&#160;</a></span>authorized()</h2>
+<a id="a7059c1f8d1980b7b4a0c8bcd144351dc" name="a7059c1f8d1980b7b4a0c8bcd144351dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7059c1f8d1980b7b4a0c8bcd144351dc">&#9670;&#160;</a></span>authorized()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,12 +242,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>epoch</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>permitVersion</em></span>&#160;)</td>
+          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>epoch</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -258,7 +254,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_af69c3e1d64c6f01b1d4cbb34e318c2f1_cgraph.svg" width="1092" height="312"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_a7059c1f8d1980b7b4a0c8bcd144351dc_cgraph.svg" width="1092" height="312"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -562,7 +558,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="1904" height="2240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_ae10987671ac7e6c0b1c26d40c3284192_cgraph.svg" width="1904" height="2466"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -594,6 +590,32 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classtelemetry_1_1_worker_acc56f4f17d7f654bf8669d8eae45d0fc_cgraph.svg" width="1424" height="1295"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a7434402ceb56a8f55e68b8450496f422" name="a7434402ceb56a8f55e68b8450496f422"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7434402ceb56a8f55e68b8450496f422">&#9670;&#160;</a></span>takeFlags()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned telemetry::Worker::takeFlags </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Takes the pending requests. Pending revocations reach the gates, the epochs and the ring in one locked step. A pump without any leaves the lock alone, and one raised in between stays pending for the next pump. </p>
 
 </div>
 </div>

@@ -1007,13 +1007,13 @@ if(NOT EGTRAIN_ENABLE_SANITIZERS)
 	# The scripts get the built application, scene_tool and a platform plugin that needs no display.
 	set(egtrain_e2e_environment
 		"QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>;QT_QPA_PLATFORM=offscreen")
-	# One test per committed scene, so that they run side by side. Each case writes its own Output folder.
-	# Copenhagen takes longest and starts first.
+	# One test per committed scene, so that they run side by side. Each case writes its own Output folder, and its log
+	# into smoke-logs in the build folder. Copenhagen takes longest and starts first.
 	foreach(egtrain_case 1 2 3 4 5 7)
 		egtrain_add_test(test_headless_smoke_case_${egtrain_case}
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_smoke.py ${egtrain_case}
 			LABELS integration
-			ENVIRONMENT ${egtrain_e2e_environment}
+			ENVIRONMENT ${egtrain_e2e_environment} "QEGTRAIN_SMOKE_LOG_DIR=${CMAKE_CURRENT_BINARY_DIR}/smoke-logs"
 			TIMEOUT 900)
 	endforeach()
 	set_tests_properties(test_headless_smoke_case_3 PROPERTIES COST 200)
@@ -1067,8 +1067,8 @@ if(NOT EGTRAIN_ENABLE_SANITIZERS)
 		message(STATUS "Windows: skipping the GUI smoke tests (test_scene_render_smoke, test_track_preview_smoke, test_legacy_import_smoke, test_route_diagram_smoke)")
 	endif()
 	if(APPLE)
-		# visual_polish_smoke.sh runs its phases one after another when it gets no argument. The phases write file
-		# names of their own below TMPDIR, so CTest runs them as separate tests side by side. The last phase, which
+		# visual_polish_smoke.sh runs its phases one after another when it gets no argument. Each run writes into a
+		# folder of its own below TMPDIR, so CTest runs the phases as separate tests side by side. The last phase, which
 		# runs scene_render_smoke.sh and legacy_import_smoke.sh, has no test of its own: those two are tests above.
 		# The cost is about the seconds that the test takes on a development machine, so that the longest start first.
 		function(egtrain_add_visual_polish_smoke name cost timeout)
@@ -1099,10 +1099,16 @@ if(APPLE)
 	egtrain_add_test(test_package_contents_smoke
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh
 		LABELS integration gui
+		ENVIRONMENT "QEGTRAIN_APP_BUNDLE=$<TARGET_BUNDLE_DIR:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>"
 		TIMEOUT 420)
 	# Signs a fixture bundle with the release signing script. It needs cc and codesign, not the built application.
 	egtrain_add_test(test_sign_macos
 		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh
+		LABELS integration
+		TIMEOUT 120)
+	# Runs the steps of the macOS package job on a fixture bundle. It needs cc, codesign and lipo, not the built application.
+	egtrain_add_test(test_package_macos
+		COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_macos.sh
 		LABELS integration
 		TIMEOUT 120)
 endif()
@@ -1123,6 +1129,9 @@ egtrain_add_test(test_installer_script
 	LABELS unit)
 egtrain_add_test(test_ci_workflow
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py
+	LABELS unit)
+egtrain_add_test(test_changed_files
+	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/ci/test_changed_files.py
 	LABELS unit)
 egtrain_add_test(test_signalling_bounds
 	COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_signalling_bounds.py

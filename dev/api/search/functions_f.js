@@ -128,7 +128,8 @@ var searchData=
   ['purgecategory_125',['purgeCategory',['../classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56',1,'telemetry::TelemetryQueue']]],
   ['purgeendpointdata_126',['purgeEndpointData',['../classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960',1,'telemetry::TelemetryQueue']]],
   ['purgeotherstamps_127',['purgeOtherStamps',['../classtelemetry_1_1_telemetry_queue.html#a665464812eb23c0319b4b1b95901601a',1,'telemetry::TelemetryQueue']]],
-  ['pushevent_128',['pushEvent',['../class_live_server.html#ae62a2051c5c5dbaba0a2994e6128c326',1,'LiveServer']]],
-  ['pushhello_129',['pushHello',['../class_live_server.html#a305f7127a067fd2712970f05a2f2bf2c',1,'LiveServer']]],
-  ['pushstate_130',['pushState',['../class_live_server.html#ac7f0cca626530eaaba8963fda08552cc',1,'LiveServer']]]
+  ['push_128',['push',['../structtelemetry_1_1_telemetry_sender_1_1_shared.html#a30e8f956ff174be7a9137dd7671a06d0',1,'telemetry::TelemetrySender::Shared']]],
+  ['pushevent_129',['pushEvent',['../class_live_server.html#ae62a2051c5c5dbaba0a2994e6128c326',1,'LiveServer']]],
+  ['pushhello_130',['pushHello',['../class_live_server.html#a305f7127a067fd2712970f05a2f2bf2c',1,'LiveServer']]],
+  ['pushstate_131',['pushState',['../class_live_server.html#ac7f0cca626530eaaba8963fda08552cc',1,'LiveServer']]]
 ];

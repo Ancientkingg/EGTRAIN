@@ -221,7 +221,7 @@ installer and again on the payload.
 store of the current user, signs copies of `scene_tool.exe` with it and expects the check to pass for a SHA-256
 signature and to fail for an unsigned copy, a SHA-1 signature, another signer, a missing file, an untrusted chain and a
 missing timestamp. The certificate is never exported or trusted, and it is removed when the test ends. The test runs in
-the Windows leg of the pull request checks. `tools/e2e/test_ci_workflow.py` reads `package.yml` and pins the order of the
+the Windows leg of the pull request checks. `tools/e2e/test_ci_workflow.py` reads `package.yml` and checks the order of the
 signing: the finalize job reads the payload that `sign-windows` replaced and signs nothing, the installer job runs only
 after a successful `sign-windows`, checks the installer and the program files before it replaces the installer artifact,
 and the release job runs only after the whole package workflow succeeded. The signing requests themselves have not run

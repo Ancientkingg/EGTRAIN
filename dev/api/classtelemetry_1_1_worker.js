@@ -2,7 +2,7 @@ var classtelemetry_1_1_worker =
 [
     [ "Worker", "classtelemetry_1_1_worker.html#ae2472f5f960d646fecda3ee4fc28aa2e", null ],
     [ "attemptInteractiveSession", "classtelemetry_1_1_worker.html#a4226b0e0877dfcdea0b4e09d1e717f46", null ],
-    [ "authorized", "classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1", null ],
+    [ "authorized", "classtelemetry_1_1_worker.html#a7059c1f8d1980b7b4a0c8bcd144351dc", null ],
     [ "close", "classtelemetry_1_1_worker.html#a1e1845e9e51c21862c29806193005b78", null ],
     [ "disable", "classtelemetry_1_1_worker.html#abafe4cf5a4c981445f62ae9747accb9f", null ],
     [ "failClosed", "classtelemetry_1_1_worker.html#a9aad91dbf9c43cc4bfbfea8705f8d776", null ],
@@ -14,6 +14,7 @@ var classtelemetry_1_1_worker =
     [ "reserve", "classtelemetry_1_1_worker.html#a65745d9bd123911e4ccf94928319e419", null ],
     [ "run", "classtelemetry_1_1_worker.html#ae10987671ac7e6c0b1c26d40c3284192", null ],
     [ "send", "classtelemetry_1_1_worker.html#acc56f4f17d7f654bf8669d8eae45d0fc", null ],
+    [ "takeFlags", "classtelemetry_1_1_worker.html#a7434402ceb56a8f55e68b8450496f422", null ],
     [ "active", "classtelemetry_1_1_worker.html#ada6dc93986fbc146d545131c57913dd6", null ],
     [ "consent", "classtelemetry_1_1_worker.html#a12dbfdeba71419000d7ce00064bcbdd8", null ],
     [ "deadline", "classtelemetry_1_1_worker.html#aedfc4de3e0098e0a52fff6693116816a", null ],

@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,730,182,758"/>
 <area shape="rect" id="Node000002" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title="Cancels the request. finished() is emitted if it was not emitted yet." alt="" coords="1255,26,1382,54"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,730,104,607,128,415,146,314,168,221,195,144,211,114,228,91,268,55,306,29,344,14,384,6,425,3,470,4,575,7,825,7,1051,15,1242,31,1237,33,1051,20,825,12,575,12,470,9,425,8,384,11,346,19,309,34,271,59,232,95,215,117,200,146,173,222,151,315,133,416,109,608,98,730"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1" title=" " alt="" coords="257,324,402,369"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_worker.html#a7059c1f8d1980b7b4a0c8bcd144351dc" title=" " alt="" coords="257,324,402,369"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,729,108,673,133,591,173,498,198,453,228,412,247,392,272,375,269,380,250,396,232,415,202,456,177,501,138,593,113,675,100,730"/>
 <area shape="rect" id="Node000004" href="$classtelemetry_1_1_worker.html#ad52466496e349dcb76e5e28e0eee41ef" title=" " alt="" coords="504,274,649,318"/>
 <area shape="poly" id="edge67_Node000001_Node000004" title=" " alt="" coords="96,729,109,681,135,612,174,537,199,501,228,469,253,447,278,433,324,418,373,406,399,395,427,379,451,357,475,335,500,323,497,327,479,339,455,361,431,383,401,400,374,411,326,423,280,438,257,452,232,472,203,504,179,539,140,614,114,683,101,731"/>

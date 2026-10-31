@@ -584,10 +584,10 @@ is the full rule.</p>
 </tbody>
 </table>
 </div>
-<p>CI configures with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_WARNINGS_AS_ERRORS=ON</span> <span class="pre">-DEGTRAIN_IPO=OFF</span></code> on all three systems; the
-warnings option is off by default. Add it to your configure line to see the warnings that CI rejects.
-The Windows leg also uses Ninja with <code class="docutils literal notranslate"><span class="pre">cl</span></code>, <code class="docutils literal notranslate"><span class="pre">-DCMAKE_BUILD_TYPE=Release</span></code> and
-<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>; see <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
+<p>CI configures a Release build with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_WARNINGS_AS_ERRORS=ON</span> <span class="pre">-DEGTRAIN_IPO=OFF</span></code> on all three systems, through
+the presets <code class="docutils literal notranslate"><span class="pre">ci-macos</span></code>, <code class="docutils literal notranslate"><span class="pre">ci-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> of <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code>; the warnings option is off by default. Add
+it to your configure line to see the warnings that CI rejects. The <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> preset also uses Ninja with <code class="docutils literal notranslate"><span class="pre">cl</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>; see <a class="reference internal" href="ci-and-release.html#configure-options"><span class="std std-ref">Configure options</span></a>.</p>
 <p>The two Python smokes read the application that <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code> names, and otherwise the executable in
 <code class="docutils literal notranslate"><span class="pre">build/</span></code> for the system: <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN</span></code> on
 Linux and <code class="docutils literal notranslate"><span class="pre">build/QEGTRAIN.exe</span></code> or <code class="docutils literal notranslate"><span class="pre">build/Release/QEGTRAIN.exe</span></code> on Windows. They stop and name the paths

@@ -122,6 +122,12 @@ Collaboration diagram for telemetry::TelemetrySender::Shared:</div>
 Classes</h2></td></tr>
 <tr class="memitem:Intent" id="r_Intent"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_telemetry_sender_1_1_shared_1_1_intent.html">Intent</a></td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ad1194fbac8836a653567128efee9789c" id="r_ad1194fbac8836a653567128efee9789c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad1194fbac8836a653567128efee9789c">admits</a> (int index, quint64 takenEpoch, unsigned pending) const</td></tr>
+<tr class="memitem:a30e8f956ff174be7a9137dd7671a06d0" id="r_a30e8f956ff174be7a9137dd7671a06d0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a30e8f956ff174be7a9137dd7671a06d0">push</a> (const <a class="el" href="structtelemetry_1_1_telemetry_event_input.html">TelemetryEventInput</a> &amp;input, int index, quint64 takenEpoch)</td></tr>
+<tr class="memdesc:a30e8f956ff174be7a9137dd7671a06d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts input in the ring when its category admits it and the ring has room, with mutex held.  <br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa63f290307d7e98bbd864a44baefa633" id="r_aa63f290307d7e98bbd864a44baefa633"><td class="memItemLeft">QMutex&#160;</td><td class="memItemRight"><a class="el" href="#aa63f290307d7e98bbd864a44baefa633">mutex</a></td></tr>
@@ -132,13 +138,88 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ad43567200d179b37e4eb6d7f6a10e288" id="r_ad43567200d179b37e4eb6d7f6a10e288"><td class="memItemLeft">quint64&#160;</td><td class="memItemRight"><a class="el" href="#ad43567200d179b37e4eb6d7f6a10e288">epoch</a> [2] = {1, 1}</td></tr>
 <tr class="memitem:a16704c3ac7d6276178ceb1cad3b1b4e6" id="r_a16704c3ac7d6276178ceb1cad3b1b4e6"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a16704c3ac7d6276178ceb1cad3b1b4e6">stop</a> {false}</td></tr>
 <tr class="memitem:ab8152619b90750d9d8fb41ec87850884" id="r_ab8152619b90750d9d8fb41ec87850884"><td class="memItemLeft">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab8152619b90750d9d8fb41ec87850884">interactiveSessionRequested</a> {false}</td></tr>
-<tr class="memitem:a5683e7b45ff110ab7a89f69b18ae0fa0" id="r_a5683e7b45ff110ab7a89f69b18ae0fa0"><td class="memItemLeft">std::atomic&lt; quint64 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5683e7b45ff110ab7a89f69b18ae0fa0">invalidation</a> [2] {}</td></tr>
 <tr class="memitem:a72a1eefb5e14de542f8da4604ff0d913" id="r_a72a1eefb5e14de542f8da4604ff0d913"><td class="memItemLeft">std::atomic&lt; unsigned &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a72a1eefb5e14de542f8da4604ff0d913">flags</a> {0}</td></tr>
-<tr class="memitem:ab22ed1192cd01dedf24d52d4ed858e16" id="r_ab22ed1192cd01dedf24d52d4ed858e16"><td class="memItemLeft">std::atomic&lt; quint64 &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab22ed1192cd01dedf24d52d4ed858e16">permits</a> {0}</td></tr>
 <tr class="memitem:a132360faf8274e14638dc817671864d3" id="r_a132360faf8274e14638dc817671864d3"><td class="memItemLeft"><a class="el" href="struct_telemetry_context.html">TelemetryContext</a>&#160;</td><td class="memItemRight"><a class="el" href="#a132360faf8274e14638dc817671864d3">context</a></td></tr>
 <tr class="memitem:a38f58fbe9e261c5ad575fece283ddb77" id="r_a38f58fbe9e261c5ad575fece283ddb77"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_application.html">Application</a>&#160;</td><td class="memItemRight"><a class="el" href="#a38f58fbe9e261c5ad575fece283ddb77">application</a></td></tr>
 <tr class="memitem:a444a54ac1ff5305759d26495ebf627e8" id="r_a444a54ac1ff5305759d26495ebf627e8"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a444a54ac1ff5305759d26495ebf627e8">directory</a></td></tr>
 </table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="ad1194fbac8836a653567128efee9789c" name="ad1194fbac8836a653567128efee9789c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1194fbac8836a653567128efee9789c">&#9670;&#160;</a></span>admits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::TelemetrySender::Shared::admits </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>takenEpoch</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned</td>          <td class="paramname"><span class="paramname"><em>pending</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Whether category index may take something in under takenEpoch while none of the pending flags is raised, with mutex held. </p>
+
+</div>
+</div>
+<a id="a30e8f956ff174be7a9137dd7671a06d0" name="a30e8f956ff174be7a9137dd7671a06d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30e8f956ff174be7a9137dd7671a06d0">&#9670;&#160;</a></span>push()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telemetry::TelemetrySender::Shared::push </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structtelemetry_1_1_telemetry_event_input.html">TelemetryEventInput</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint64</td>          <td class="paramname"><span class="paramname"><em>takenEpoch</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Puts input in the ring when its category admits it and the ring has room, with mutex held. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="structtelemetry_1_1_telemetry_sender_1_1_shared_a30e8f956ff174be7a9137dd7671a06d0_cgraph.svg" width="464" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a38f58fbe9e261c5ad575fece283ddb77" name="a38f58fbe9e261c5ad575fece283ddb77"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38f58fbe9e261c5ad575fece283ddb77">&#9670;&#160;</a></span>application</h2>
@@ -266,20 +347,6 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a5683e7b45ff110ab7a89f69b18ae0fa0" name="a5683e7b45ff110ab7a89f69b18ae0fa0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5683e7b45ff110ab7a89f69b18ae0fa0">&#9670;&#160;</a></span>invalidation</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::atomic&lt;quint64&gt; telemetry::TelemetrySender::Shared::invalidation[2] {}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="aa63f290307d7e98bbd864a44baefa633" name="aa63f290307d7e98bbd864a44baefa633"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa63f290307d7e98bbd864a44baefa633">&#9670;&#160;</a></span>mutex</h2>
 
@@ -288,20 +355,6 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">QMutex telemetry::TelemetrySender::Shared::mutex</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab22ed1192cd01dedf24d52d4ed858e16" name="ab22ed1192cd01dedf24d52d4ed858e16"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab22ed1192cd01dedf24d52d4ed858e16">&#9670;&#160;</a></span>permits</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::atomic&lt;quint64&gt; telemetry::TelemetrySender::Shared::permits {0}</td>
         </tr>
       </table>
 </div><div class="memdoc">

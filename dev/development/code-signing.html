@@ -623,7 +623,7 @@ installer and again on the payload.</p>
 store of the current user, signs copies of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> with it and expects the check to pass for a SHA-256
 signature and to fail for an unsigned copy, a SHA-1 signature, another signer, a missing file, an untrusted chain and a
 missing timestamp. The certificate is never exported or trusted, and it is removed when the test ends. The test runs in
-the Windows leg of the pull request checks. <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> reads <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and pins the order of the
+the Windows leg of the pull request checks. <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_ci_workflow.py</span></code> reads <code class="docutils literal notranslate"><span class="pre">package.yml</span></code> and checks the order of the
 signing: the finalize job reads the payload that <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code> replaced and signs nothing, the installer job runs only
 after a successful <code class="docutils literal notranslate"><span class="pre">sign-windows</span></code>, checks the installer and the program files before it replaces the installer artifact,
 and the release job runs only after the whole package workflow succeeded. The signing requests themselves have not run

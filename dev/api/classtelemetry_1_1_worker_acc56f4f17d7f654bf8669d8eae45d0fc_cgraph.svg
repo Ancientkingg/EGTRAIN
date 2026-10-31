@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="classtelemetry_1_1_worker.html#af69c3e1d64c6f01b1d4cbb34e318c2f1" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="classtelemetry_1_1_worker.html#a7059c1f8d1980b7b4a0c8bcd144351dc" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="297.5,-724.12 188.5,-724.12 188.5,-690.62 297.5,-690.62 297.5,-724.12"/>
 <text xml:space="preserve" text-anchor="start" x="196.5" y="-710.62" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::Worker::</text>
 <text xml:space="preserve" text-anchor="middle" x="243" y="-697.88" font-family="Helvetica,sans-Serif" font-size="10.00">authorized</text>

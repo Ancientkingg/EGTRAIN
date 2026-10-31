@@ -695,10 +695,12 @@ Secure Transport, the TLS backend of Qt on macOS, does not trust that root certi
 <code class="docutils literal notranslate"><span class="pre">test_telemetrynetwork_trusted</span></code> reports itself as skipped there.</p>
 <p>Every Bash smoke in the table except <code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code> reads the
 application path from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code>; <code class="docutils literal notranslate"><span class="pre">visual_polish_smoke.sh</span></code> passes it on to
-the two scripts that its <code class="docutils literal notranslate"><span class="pre">scripts</span></code> phase runs. <code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>
-and <code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code> also read the <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> path from
-<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_SCENE_TOOL</span></code>. CTest sets these variables from the build targets. Run by
-hand without them, the scripts use the macOS paths under <code class="docutils literal notranslate"><span class="pre">build/</span></code>.
+the two scripts that its <code class="docutils literal notranslate"><span class="pre">scripts</span></code> phase runs. <code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code>
+reads the app bundle from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP_BUNDLE</span></code> instead. It,
+<code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code> and <code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code> also read
+the <code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> path from <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_SCENE_TOOL</span></code>. CTest sets these variables from
+the build targets. Run by hand without them, the scripts use the macOS paths under
+<code class="docutils literal notranslate"><span class="pre">build/</span></code>.
 <code class="docutils literal notranslate"><span class="pre">test_route_diagram_smoke</span></code> reads no variable: CTest passes the application and
 the directory of the test executables as the two arguments of
 <code class="docutils literal notranslate"><span class="pre">route_diagram_smoke.py</span></code>, which uses the paths under <code class="docutils literal notranslate"><span class="pre">build/</span></code> when it gets none.</p>
@@ -773,7 +775,7 @@ the certificate check worked, and the test tells the cases apart by what came ba
 request. The program reads no rate-limit header, so every 403 counts as a rate limit.</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_updatetransport_https_cases</span></code> runs the same program against a server on <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code>
 that gives each kind of answer, and runs in every configuration without the internet.</p>
-<p>The Windows leg of the CMake workflow configures with <code class="docutils literal notranslate"><span class="pre">-DEGTRAIN_NETWORK_TESTS=ON</span></code>, leaves the
+<p>The Windows leg of the CMake workflow configures with <code class="docutils literal notranslate"><span class="pre">EGTRAIN_NETWORK_TESTS=ON</span></code> through the <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> preset, leaves the
 network tests out of the Test step with <code class="docutils literal notranslate"><span class="pre">-LE</span> <span class="pre">network</span></code>, and runs them in the step
 Check HTTPS (Windows). The Windows package job builds the program with the package and runs
 it in the step Check HTTPS from the package. That step copies the program into the copy of the

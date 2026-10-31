@@ -314,7 +314,7 @@ application itself from <code class="docutils literal notranslate"><span class="
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>CMake 3.16 or newer</p></li>
+<li><p>CMake 3.16 or newer, or 3.21 or newer for the presets in <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code></p></li>
 <li><p>C++17 compiler</p></li>
 <li><p>Qt 6 Core, Gui, Widgets, Charts, Svg, Network and Help, and the Qt tools
 (<code class="docutils literal notranslate"><span class="pre">qhelpgenerator</span></code> builds the manual). CI and the release packages use Qt 6.8.3.</p></li>
@@ -333,8 +333,8 @@ that names Qt 6.</p>
 <ul class="simple">
 <li><p>macOS: Qt 6.8.3 and the Homebrew packages in the configure example below.</p></li>
 <li><p>Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
-<code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and vcpkg <code class="docutils literal notranslate"><span class="pre">zeromq</span> <span class="pre">cppzmq</span> <span class="pre">nlohmann-json</span></code> for the
-<code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
+<code class="docutils literal notranslate"><span class="pre">msvc2022_64</span></code> with Qt Charts, and the vcpkg manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code> (ZeroMQ, cppzmq and
+nlohmann-json at its <code class="docutils literal notranslate"><span class="pre">builtin-baseline</span></code>) for the <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet. 32-bit Windows is not supported.</p></li>
 <li><p>Linux: Ubuntu 24.04 (the <code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code> runner image) with Qt 6.8.3 and the apt
 packages in the configure example below. The AppImage needs the glibc of the
 system that builds it, so CI builds and tests on 24.04 and not on <code class="docutils literal notranslate"><span class="pre">ubuntu-latest</span></code>.</p></li>
@@ -390,6 +390,20 @@ cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>
 </div>
 <p>The configure step then prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">XKB</span></code> and <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">PkgConfig</span></code>, which do no harm. CI and
 the packages use 6.8.3, so a difference between the two shows only there.</p>
+<p>On macOS and Linux, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> also has the presets <code class="docutils literal notranslate"><span class="pre">macos-debug</span></code>, <code class="docutils literal notranslate"><span class="pre">macos-release</span></code>, <code class="docutils literal notranslate"><span class="pre">linux-debug</span></code> and
+<code class="docutils literal notranslate"><span class="pre">linux-release</span></code>. They build with Ninja (<code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">ninja</span></code>, or <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">-y</span> <span class="pre">ninja-build</span></code>) and with the
+tests, each in <code class="docutils literal notranslate"><span class="pre">out/build/&lt;preset&gt;</span></code>. The libraries come from the configure line, as above; the build folder keeps
+them, so later configures need only the preset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--preset<span class="w"> </span>macos-release<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/Qt/6.8.3/macos;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>zeromq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>cppzmq<span class="k">)</span><span class="s2">;</span><span class="k">$(</span>brew<span class="w"> </span>--prefix<span class="w"> </span>nlohmann-json<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWrapOpenGL_AGL<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>xcrun<span class="w"> </span>--show-sdk-path<span class="k">)</span><span class="s2">/System/Library/Frameworks/OpenGL.framework"</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="w"> </span>macos-release
+ctest<span class="w"> </span>--preset<span class="w"> </span>macos-release
+</pre></div>
+</div>
+<p>On Linux, use <code class="docutils literal notranslate"><span class="pre">linux-release</span></code> and leave out <code class="docutils literal notranslate"><span class="pre">WrapOpenGL_AGL</span></code>. A preset build puts the application in
+<code class="docutils literal notranslate"><span class="pre">out/build/&lt;preset&gt;</span></code>, not in <code class="docutils literal notranslate"><span class="pre">build/</span></code>. CTest gives the smoke tests that path; a smoke script run by hand needs it in
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_APP</span></code> (see <a class="reference internal" href="testing.html#platform-coverage"><span class="std std-ref">Platform coverage</span></a>).</p>
 <p>On Windows, <code class="docutils literal notranslate"><span class="pre">CMakePresets.json</span></code> holds the settings: Ninja and MSVC for x64, the vcpkg of Visual Studio with the
 <code class="docutils literal notranslate"><span class="pre">x64-windows</span></code> triplet and the manifest <code class="docutils literal notranslate"><span class="pre">tools/vcpkg/vcpkg.json</span></code>, Qt from <code class="docutils literal notranslate"><span class="pre">C:/Qt/6.8.3/msvc2022_64</span></code>, and the tests.
 From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the repository folder:</p>
@@ -401,8 +415,13 @@ From an x64 Developer PowerShell for Visual Studio 2022 or newer, in the reposit
 <p>The <code class="docutils literal notranslate"><span class="pre">x64-debug</span></code> presets make a Debug build. Each preset builds in <code class="docutils literal notranslate"><span class="pre">out\build\&lt;preset&gt;</span></code>. The first configure on a
 machine also builds ZeroMQ, cppzmq and nlohmann-json with vcpkg; later configures restore them from the cache of vcpkg
 in <code class="docutils literal notranslate"><span class="pre">%LOCALAPPDATA%\vcpkg\archives</span></code>. The configure prints <code class="docutils literal notranslate"><span class="pre">Could</span> <span class="pre">NOT</span> <span class="pre">find</span> <span class="pre">WrapVulkanHeaders</span></code> twice, which does no
-harm. CI does not use the presets: it installs the same packages with
-vcpkg in classic mode and passes the toolchain, the triplet and the Qt folder itself, in <code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>.</p>
+harm. The Windows leg of CI (<code class="docutils literal notranslate"><span class="pre">.github/workflows/cmake.yml</span></code>) and the Windows package (<code class="docutils literal notranslate"><span class="pre">.github/workflows/package.yml</span></code>)
+install the same manifest with the vcpkg of the runner image: the leg through the <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> preset, and the package
+job with the same options on its configure line.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ci-macos</span></code>, <code class="docutils literal notranslate"><span class="pre">ci-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> presets hold the options that the three CI legs share: a Release build with
+the tests, <code class="docutils literal notranslate"><span class="pre">EGTRAIN_WARNINGS_AS_ERRORS=ON</span></code> and <code class="docutils literal notranslate"><span class="pre">EGTRAIN_IPO=OFF</span></code>, in <code class="docutils literal notranslate"><span class="pre">build/</span></code>. <code class="docutils literal notranslate"><span class="pre">ci-windows</span></code> adds Ninja, <code class="docutils literal notranslate"><span class="pre">cl</span></code> and
+<code class="docutils literal notranslate"><span class="pre">EGTRAIN_NETWORK_TESTS=ON</span></code>. Each configure step of the workflow adds the compiler launcher and the prefix path of its
+runner; see <a class="reference internal" href="ci-and-release.html#configure-options"><span class="std std-ref">Configure options</span></a>.</p>
 <p>The Start-menu entry <strong>Developer PowerShell for VS</strong> opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.
 <code class="docutils literal notranslate"><span class="pre">-VsInstallPath</span></code> is the folder of Visual Studio, here Visual Studio Community 2026; on an Arm64 PC use <code class="docutils literal notranslate"><span class="pre">-host_arch=arm64</span></code>:</p>
@@ -527,7 +546,9 @@ form that a build without tests compiles holds <code class="docutils literal not
 <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> and the telemetry smoke support are not scanned. Four files are exempt for the text that
 they hold on purpose: <code class="docutils literal notranslate"><span class="pre">update/UpdateSettings.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsent.cpp</span></code> test the prefix
 <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code>, and <code class="docutils literal notranslate"><span class="pre">app/OpenRequestRelay.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">app/OpenRequestRelay.h</span></code> test it and name
-<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPEN_RELAY</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPEN_RELAY</span></code>. The test also fails when a script under <code class="docutils literal notranslate"><span class="pre">tools/</span></code> waits for an <code class="docutils literal notranslate"><span class="pre">E2E_</span></code> marker that
+no C++ file in <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> or <code class="docutils literal notranslate"><span class="pre">app</span></code> prints, such as a misspelt name. That check skips the <code class="docutils literal notranslate"><span class="pre">test_*.py</span></code> files, whose
+markers are fixtures.</p>
 <p><code class="docutils literal notranslate"><span class="pre">PostRun.cpp</span></code> holds the autostart and the checks that follow a run. With <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART</span></code>
 set, the runner starts the run of the case 1.5 s after the first show. The hooks
 <code class="docutils literal notranslate"><span class="pre">snapshotDelivered</span></code>, <code class="docutils literal notranslate"><span class="pre">snapshotDrawn</span></code>, <code class="docutils literal notranslate"><span class="pre">runResultsRefreshed</span></code>, <code class="docutils literal notranslate"><span class="pre">runFinished</span></code>, <code class="docutils literal notranslate"><span class="pre">runSettled</span></code> and
