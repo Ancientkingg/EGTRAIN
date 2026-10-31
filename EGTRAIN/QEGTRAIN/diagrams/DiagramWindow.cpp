@@ -1812,7 +1812,7 @@ QString axisUnit(const QAbstractAxis& axis) {
 
 // The value under the pointer in the units of the axes, to the precision of one pixel of the plot, as the value of the
 // left axis at the value of the bottom axis: "07:14:32 at 9.860 km", "100.0 km/h at 07:14:32". A position axis gives the
-// geo X. An axis with the dynamic property "readoutStation" reads the station of the station axis at the nearest value
+// geo X. An axis whose AxisMeta has readoutStation reads the station of the station axis at the nearest value
 // along it that a shown series has a sample at, "2.5 min at Treviglio", and nothing without one. Empty outside the plot.
 void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 	if (!m_readout) return;
