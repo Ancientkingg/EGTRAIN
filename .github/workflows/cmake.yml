@@ -61,7 +61,8 @@ jobs:
         run: python3 tools/docs/check_docs.py
 
   # A skipped matrix job is listed under its unexpanded name, so the legs always start and each step checks the output
-  # of the changes job. Every leg builds with Qt 6.8.3 from install-qt-action.
+  # of the changes job. Every leg builds with Qt 6.8.3 from install-qt-action. The Linux leg and the Linux sanitizer jobs
+  # run on Ubuntu 24.04, the system that builds the AppImage in package.yml.
   build:
     name: build (${{ matrix.name }})
     needs: changes
@@ -80,7 +81,7 @@ jobs:
             jobs: 4
             cache: sccache
           - name: Linux
-            os: ubuntu-latest
+            os: ubuntu-24.04
             jobs: 4
             cache: ccache
     env:
@@ -282,7 +283,7 @@ jobs:
   leak-check:
     name: leak check (Linux)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
@@ -365,7 +366,7 @@ jobs:
   sanitizers:
     name: sanitizers (Linux)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
@@ -431,7 +432,7 @@ jobs:
   thread-sanitizer:
     name: thread sanitizer (Linux)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4

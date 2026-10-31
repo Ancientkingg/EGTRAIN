@@ -360,7 +360,7 @@ def main() -> None:
     ):
         missing.append("sanitizers only in Debug builds of the leak check and the nightly sanitizer jobs")
     if (
-        "    runs-on: ubuntu-latest\n" not in leak_job
+        "    runs-on: ubuntu-24.04\n" not in leak_job
         or "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n" not in leak_job
     ):
         missing.append("leak check on Linux in the nightly and manual runs only")
@@ -397,7 +397,7 @@ def main() -> None:
     # of release.yml, so that the two cannot drift apart, and as many tests at once as the Linux leg. The thread sanitizer job
     # builds and runs registered tests of the threaded parts. Both run only in the nightly and manual runs.
     nightly_gate = "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n"
-    if any("    runs-on: ubuntu-latest\n" not in job or nightly_gate not in job for job in (nightly_job, tsan_job)):
+    if any("    runs-on: ubuntu-24.04\n" not in job or nightly_gate not in job for job in (nightly_job, tsan_job)):
         missing.append("nightly sanitizer jobs on Linux in the nightly and manual runs only")
     release_sanitizer = job_block(release_only, "sanitizer")
     plain_option = r"-D[A-Za-z_]+=[\w.]+(?=\s)"
@@ -733,7 +733,7 @@ def main() -> None:
         if any(word.lower() in text.lower() for text in (release_only, package_only, package_check)):
             missing.append(f"no {word} in the workflows, as the manifest, its hashes and the archive come from the script only")
     if (
-        any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-latest"))
+        any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-24.04"))
         or "      fail-fast: false\n" not in workflow
     ):
         missing.append("independent macOS, Windows and Linux validation legs")
@@ -1967,6 +1967,9 @@ def main() -> None:
         missing.append("Linux package start of the extracted AppImage under RUNNER_TEMP on a virtual display with Python set up")
     if "QT_QPA_PLATFORM" in linux_job or "QT_PLUGIN_PATH" in linux_job:
         missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
+    # The AppImage needs the glibc of the system that builds it, so it is built on the Ubuntu of the rehearsal.
+    if re.findall(r"^    runs-on: (.+)$", linux_job, re.MULTILINE) != ["ubuntu-24.04"]:
+        missing.append("Linux package job on ubuntu-24.04, the oldest Ubuntu that the AppImage supports")
     # Every package job fails when the licence, the third-party notices or the manual are missing from its package.
     for job, step in (
         ("package-macos", "Verify the packaged app"),
