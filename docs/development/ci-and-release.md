@@ -284,11 +284,15 @@ workflow keeps:
   when one of them failed or was cancelled. Each `changes` job runs `tools/ci/changed_files.py`.
 - Every job that does not call a reusable workflow has `timeout-minutes`. The macOS package job allows 150 minutes,
   because its two notarization steps may wait an hour each.
-- The permissions at the top of a workflow only read. A job writes only when `WRITE_PERMISSIONS` in the test lists it
-  with the reason: the `publish` job of `docs.yml` and the `release` job of `release.yml`.
+- The permissions at the top of a workflow only read. The permissions of a job are a mapping of scopes, not `write-all`,
+  and a job writes exactly the scopes that `WRITE_PERMISSIONS` in the test lists for it with the reason: `contents` in the
+  `publish` job of `docs.yml` and in the `release` job of `release.yml`.
 - A workflow that a pull request starts has a concurrency group in which only a newer push to the same pull request
   cancels a run. No two scheduled workflows start at the same time, and none starts on the hour.
-- A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. A call of
+- A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
+  that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
+  skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
+  such as `env`, `container` or `services`, reads one, and neither does the top-level `env` of a workflow. A call of
   `package.yml` passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs
   ask for.
 - The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
@@ -298,8 +302,9 @@ workflow keeps:
 `release.yml`. The test fails when one of them gets the property, so the entry goes with the change. The test then
 checks the properties of the build, package and release jobs that this page describes. It finds a step by what the
 step runs, not by its name, so a step can be renamed or moved as long as the property holds. It reads the workflows
-with a small reader of the YAML that they use, which needs no package; where PyYAML is installed, the test also
-checks that the reader reads every workflow as PyYAML does.
+with a small reader of the YAML that they use, which needs no package and stops at what it cannot read. The test runs
+a few cases of the reader every time; where PyYAML is installed, it also checks that the reader reads every workflow
+as PyYAML does.
 
 ### Release assets script
 

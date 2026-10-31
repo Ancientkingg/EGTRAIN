@@ -61,7 +61,7 @@ def changed_files(base: str, head: str) -> list:
     proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise SystemExit(f"{' '.join(command)} exited with {proc.returncode}\n{proc.stderr}")
-    return [line for line in proc.stdout.splitlines() if line]
+    return [line for line in proc.stdout.split("\n") if line]
 
 
 def main() -> None:

@@ -8,8 +8,10 @@ found by what they run, not by their names.
 """
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,10 +30,10 @@ REQUIRED = {
     "package-check.yml": ("Package check result", "package-check", "version", ()),
 }
 
-# The jobs that may write with the token of the run, and why.
+# The jobs that may write with the token of the run: the scopes of each, and why.
 WRITE_PERMISSIONS = {
-    ("docs.yml", "publish"): "pushes the documentation site to gh-pages",
-    ("release.yml", "release"): "creates and publishes the GitHub release",
+    ("docs.yml", "publish"): ({"contents"}, "pushes the documentation site to gh-pages"),
+    ("release.yml", "release"): ({"contents"}, "creates and publishes the GitHub release"),
 }
 
 # Properties that these workflows do not have yet. The test fails when one of them gets the property, so that the entry
@@ -64,8 +66,11 @@ def release_pipeline_text() -> str:
 
 # A reader of the YAML that the workflows use: block mappings and sequences, flow sequences, block scalars and plain or
 # quoted scalars on one line. Every scalar is a string, as yaml.BaseLoader reads it. It stops at an anchor, a tag, a
-# flow mapping or a plain scalar over several lines, which the workflows do not use.
+# flow mapping, a quoted item of a flow sequence, text after a quoted value or a plain scalar over several lines, which
+# the workflows do not use.
 KEY = re.compile(r"^([^\s'\"#][^:#]*?|'[^']*'|\"[^\"]*\"):(?: +|$)(.*)$")
+QUOTED = re.compile(r"""'(?:[^']|'')*'|"(?:[^"\\]|\\.)*\"""")
+AFTER_VALUE = re.compile(r"\s*|\s+#.*")
 
 
 def load_yaml(text: str):
@@ -180,10 +185,16 @@ def _inline(text: str):
     if text[:1] in ("{", "&", "*", "!"):
         raise ValueError(f"unsupported YAML: {text!r}")
     if text.startswith("["):
-        return [_scalar(item) for item in text[1:text.rindex("]")].split(",") if item.strip()]
-    if text[:1] not in ("'", '"'):
-        text = re.split(r"\s+#", text, maxsplit=1)[0]
-    return _scalar(text)
+        items, closed, rest = text[1:].partition("]")
+        if not closed or not AFTER_VALUE.fullmatch(rest) or set(items) & set("'\"[{"):
+            raise ValueError(f"unsupported YAML: {text!r}")
+        return [item.strip() for item in items.split(",") if item.strip()]
+    if text[:1] in ("'", '"'):
+        quoted = QUOTED.match(text)
+        if not quoted or not AFTER_VALUE.fullmatch(text[quoted.end():]):
+            raise ValueError(f"unsupported YAML: {text!r}")
+        return _scalar(quoted.group(0))
+    return _scalar(re.split(r"\s+#", text, maxsplit=1)[0])
 
 
 def _scalar(text: str) -> str:
@@ -249,6 +260,17 @@ def configure_preset(presets: list[dict], name: str) -> dict:
     return resolved
 
 
+def push_only_jobs(jobs: dict) -> set:
+    """The jobs that only a push to production or a v* tag runs: a condition with the gate, or exactly the success of such
+    a job. A condition that also accepts a skipped job holds for every pull request."""
+    found = set()
+    for job_id, job in jobs.items():
+        condition = job.get("if", "")
+        if PUSH_GATE in condition or any(condition == f"${{{{ needs.{other}.result == 'success' }}}}" for other in found):
+            found.add(job_id)
+    return found
+
+
 def test_registration(cmake: str, name: str) -> str:
     """The egtrain_add_test call that registers the test, or an empty string."""
     found = re.search(rf"^\s*egtrain_add_test\({re.escape(name)}\b.*?\)$", cmake, re.MULTILINE | re.DOTALL)
@@ -280,6 +302,27 @@ class Checks:
             self.problems.append(f"KNOWN_GAPS lists the {gap} of {workflow}, which it has now: remove the entry")
         if self.problems:
             raise SystemExit("These properties of the CI workflows do not hold:\n- " + "\n- ".join(self.problems))
+
+
+def check_reader(checks: Checks) -> None:
+    """The reader leaves out the comment after a value and stops at what it cannot read. CI has no PyYAML to compare with."""
+    expect = checks.expect
+    text = "a: 'x' # note\nb: \"y # z\" # note\nc: 'it''s'\nd: [e, f] # note\n"
+    expect(load_yaml(text) == {"a": "x", "b": "y # z", "c": "it's", "d": ["e", "f"]}, "the YAML reader leaves out a comment")
+    for text in ('a: ["b,c"]\n', "a: ['b', c]\n", "a: 'b' c\n", 'a: "b\n', "a: [b\n", "a: [b] c\n", "a: [{b: c}]\n"):
+        try:
+            load_yaml(text)
+        except ValueError:
+            continue
+        expect(False, f"the YAML reader stops at {text!r}")
+
+
+def check_changed_file_names(checks: Checks, changed_files) -> None:
+    """git prints U+0085, U+2028 and U+2029 in a file name as they are, so only a line feed ends a name."""
+    listed = subprocess.CompletedProcess([], 0, stdout="docs/a\u0085b\u2028c\u2029d.md\n\nLICENSE\n", stderr="")
+    with mock.patch.object(subprocess, "run", return_value=listed):
+        names = changed_files.changed_files("base", "head")
+    checks.expect(names == ["docs/a\u0085b\u2028c\u2029d.md", "LICENSE"], "tools/ci/changed_files.py splits the file names at line feeds only")
 
 
 def check_required_workflows(checks: Checks, workflows: dict, rules: dict) -> None:
@@ -366,8 +409,9 @@ def check_every_workflow(checks: Checks, workflows: dict) -> None:
         )
         for job_id, job in workflow["jobs"].items():
             permissions = job.get("permissions", {})
-            writes = permissions == "write-all" or isinstance(permissions, dict) and "write" in permissions.values()
-            expect(writes == ((name, job_id) in WRITE_PERMISSIONS), f"{name}: job {job_id} writes exactly when WRITE_PERMISSIONS lists it")
+            allowed = WRITE_PERMISSIONS.get((name, job_id), (set(), ""))[0]
+            expect(isinstance(permissions, dict) and {scope for scope, level in permissions.items() if level == "write"} == allowed,
+                   f"{name}: job {job_id} has a mapping of permissions that writes the scopes that WRITE_PERMISSIONS lists for it")
         # A newer push to a pull request replaces the running checks of that pull request; a scheduled, manual or push
         # run has a group of its own. The release workflow has a publication group of its own.
         if "pull_request" in events and name != "release.yml":
@@ -394,16 +438,17 @@ def check_every_workflow(checks: Checks, workflows: dict) -> None:
 
 def check_credentials(checks: Checks, workflows: dict) -> None:
     """A credential reaches only the steps of a push to production or a v* tag: through a job or a step with that
-    condition, or a job that runs only after such a job succeeded. A call passes a credential by name, never all of them,
-    and no step that reads one traces its commands."""
+    condition, or a job that runs only after such a job succeeded. Every other key of a job applies to the whole job, and
+    the top-level env to every job. A call passes a credential by name, never all of them, and no step that reads one
+    traces its commands."""
     expect = checks.expect
     for name, workflow in workflows.items():
-        push_jobs = set()
+        push_jobs = push_only_jobs(workflow["jobs"])
+        expect("secrets." not in flat(workflow.get("env", {})), f"{name}: no credential in the top-level env, which reaches every job")
         for job_id, job in workflow["jobs"].items():
-            condition = job.get("if", "")
-            if PUSH_GATE in condition or any(f"needs.{other}.result == 'success'" in condition for other in push_jobs):
-                push_jobs.add(job_id)
-        for job_id, job in workflow["jobs"].items():
+            settings = {key: value for key, value in job.items() if key not in ("steps", "if") and not (key == "secrets" and "uses" in job)}
+            expect("secrets." not in flat(settings) or job_id in push_jobs,
+                   f"{name}: job {job_id} reads a credential outside its steps and a pull request runs it")
             if "uses" in job:
                 passed = job.get("secrets", {})
                 expect(
@@ -659,6 +704,8 @@ def check_sanitizers(checks: Checks, cmake: dict, release: dict, tests_cmake: st
         and f"ctest --test-dir build --parallel {linux_jobs} --timeout 1500" in nightly_test.get("run", ""),
         "cmake.yml: the nightly sanitizer job has the options and the environment of the release sanitizer job",
     )
+    expect(all("halt_on_error=1" in release_test.get("env", {}).get(option, "").split(":") for option in ("UBSAN_OPTIONS", "ASAN_OPTIONS")),
+           "release.yml: the sanitizer job stops a test at the first finding")
     # An instrumented build runs slower: the release sanitizer job scales the time limits and runs as many tests at once as
     # the macOS leg. Only the sanitizer jobs pass the scale, so every other build keeps its limits.
     macos_jobs = next((leg["jobs"] for leg in jobs["build"]["strategy"]["matrix"]["include"] if leg["name"] == "macOS"), "")
@@ -1117,8 +1164,8 @@ def main() -> None:
     sys.path.insert(0, str(ROOT / "tools/release"))
     sys.path.insert(0, str(ROOT / "tools/ci"))
     import build_release_assets
+    import changed_files
     import make_dmg
-    from changed_files import RULES
 
     paths = sorted((ROOT / ".github/workflows").glob("*.yml"))
     texts = {path.name: path.read_text(encoding="utf-8") for path in paths}
@@ -1147,7 +1194,9 @@ def main() -> None:
         for name, text in {**texts, "setup-deps": action_text}.items():
             checks.expect(load_yaml(text) == yaml.load(text, Loader=yaml.BaseLoader), f"{name}: read as PyYAML reads it")
 
-    check_required_workflows(checks, workflows, RULES)
+    check_reader(checks)
+    check_changed_file_names(checks, changed_files)
+    check_required_workflows(checks, workflows, changed_files.RULES)
     check_every_workflow(checks, workflows)
     check_credentials(checks, workflows)
     check_reusable_calls(checks, workflows)
@@ -1156,7 +1205,7 @@ def main() -> None:
     check_build(checks, workflows["cmake.yml"], texts["cmake.yml"], presets, workflows["package.yml"], release_text, cmake_lists)
     check_sanitizers(checks, workflows["cmake.yml"], workflows["release.yml"], tests_cmake, characterization_cmake)
     check_format_and_tidy(checks, workflows["format.yml"], workflows["tidy.yml"])
-    check_release(checks, workflows["release.yml"], release_text, workflows["package-check.yml"], RULES, sources)
+    check_release(checks, workflows["release.yml"], release_text, workflows["package-check.yml"], changed_files.RULES, sources)
     check_packages(checks, workflows["package.yml"], texts["package.yml"], workflows["package-check.yml"], build_release_assets, make_dmg)
     check_scripts(checks, tests_cmake)
     check_ctest(checks, cmake_lists, tests_cmake)
