@@ -654,24 +654,26 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 	return showPreview(sceneModel, PreviewOptions());
 }
 
-// What the stages of showPreview() share.
+/// What the stages of showPreview() share.
 struct NetworkPresenter::PreviewDrawing {
-	// The ids of the tracks that the infrastructure panel selects.
+	/// The ids of the tracks that the infrastructure panel selects.
 	std::set<std::string> selectedTrackIds;
-	// The line of each track that has a drawable shape, by track id, with its display offset.
+	/// The line of each track that has a drawable shape, by track id, with its display offset.
 	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
-	// The same lines in the order of the preview.
+	/// The same lines in the order of the preview.
 	std::vector<const TrackPreviewLine*> drawnLines;
-	// The bounds of the points of the drawn lines and connections; empty until hasPreviewBounds.
+	/// The bounds of the points of the drawn lines and connections; empty until hasPreviewBounds.
 	QRectF previewBounds;
+	/// Whether previewBounds holds a point yet.
 	bool hasPreviewBounds = false;
-	// The item of each node and the platform bar of each station node, by node id.
+	/// The item of each node, by node id.
 	std::map<std::string, QGraphicsItem*> nodeItems;
+	/// The platform bar of each station node, by node id.
 	std::map<std::string, const PlatformItem*> platformBars;
-	// The station and the platform of each node, by node id.
+	/// The station and the platform of each node, by node id.
 	std::map<std::string, PreviewStationMembership> memberships;
 
-	// Extends the bounds to point.
+	/// Extends the bounds to point.
 	void includePreviewPoint(const QPointF& point) {
 		if (!hasPreviewBounds) {
 			previewBounds = QRectF(point, point);
