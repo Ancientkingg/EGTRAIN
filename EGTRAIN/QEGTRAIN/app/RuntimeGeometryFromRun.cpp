@@ -10,17 +10,17 @@ namespace {
 
 class RuntimeGeometryFromRun final : public RuntimeGeometrySource {
 public:
-	explicit RuntimeGeometryFromRun(DispatchController& controller) : m_controller(controller) {}
+	explicit RuntimeGeometryFromRun(const DispatchController& controller) : m_controller(controller) {}
 
 	int trackCount() const override { return run().infra.numTrackLines; }
-	BlockSet& track(int index) const override { return run().infra.blockSets[index]; }
+	const BlockSet& track(int index) const override { return run().infra.blockSets[index]; }
 	int regionOfTrack(int index) const override { return run().infra.blockSets[index].region; }
 
 	int stationCount() const override { return run().infra.numStations; }
-	Stations& station(int index) const override { return run().infra.stations[index]; }
+	const Stations& station(int index) const override { return run().infra.stations[index]; }
 
 	int connectionCount() const override { return run().infra.numConnections; }
-	Connections& connection(int index) const override { return run().infra.connections[index]; }
+	const Connections& connection(int index) const override { return run().infra.connections[index]; }
 
 	int sectionCount() const override { return run().infra.numBlocks; }
 	const Section& section(int index) const override { return run().infra.sections[static_cast<std::size_t>(index)]; }
@@ -43,12 +43,12 @@ public:
 	bool passengerGui() const override { return run().settings.PAX_GUI; }
 
 private:
-	SimulationRun& run() const { return m_controller.mutableRun(); }
-	DispatchController& m_controller;
+	const SimulationRun& run() const { return m_controller.run(); }
+	const DispatchController& m_controller;
 };
 
 } // namespace
 
-std::unique_ptr<RuntimeGeometrySource> makeRuntimeGeometryFromRun(DispatchController& controller) {
+std::unique_ptr<RuntimeGeometrySource> makeRuntimeGeometryFromRun(const DispatchController& controller) {
 	return std::make_unique<RuntimeGeometryFromRun>(controller);
 }

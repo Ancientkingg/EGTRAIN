@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -132,13 +133,27 @@ public:
 		m_route.sequence_of_block_sections = m_sections;
 	}
 
+	// Gives the crossover of makeCrossover() its connection, from T at 4 km to U at 6 km.
+	void addCrossoverConnection() {
+		m_connections.resize(1);
+		m_connections[0].ID = "c";
+		m_connections[0].idFirstTrackLine = 0;
+		m_connections[0].idSecondTrackLine = 1;
+		m_connections[0].xFirstNode = 4.0;
+		m_connections[0].xSecondNode = 6.0;
+	}
+
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
-	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	const BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	// The track line with this index, for a test to set up.
+	BlockSet& track(int index) { return m_tracks[static_cast<std::size_t>(index)]; }
 	int regionOfTrack(int index) const override { return m_tracks[static_cast<std::size_t>(index)].region; }
 	int stationCount() const override { return static_cast<int>(m_stations.size()); }
-	Stations& station(int index) const override { return m_stations[static_cast<std::size_t>(index)]; }
-	int connectionCount() const override { return 0; }
-	Connections& connection(int) const override { return m_noConnection; }
+	const Stations& station(int index) const override { return m_stations[static_cast<std::size_t>(index)]; }
+	// The station with this index, for a test to set up.
+	Stations& station(int index) { return m_stations[static_cast<std::size_t>(index)]; }
+	int connectionCount() const override { return static_cast<int>(m_connections.size()); }
+	const Connections& connection(int index) const override { return m_connections[static_cast<std::size_t>(index)]; }
 	int sectionCount() const override { return static_cast<int>(m_sections.size()); }
 	const Section& section(int index) const override { return m_sections[static_cast<std::size_t>(index)]; }
 	// Route 1 runs over the same sections as route 0, so that a train can change its route where it is. Route 2 runs over
@@ -167,9 +182,9 @@ private:
 		m_tracks[1].member[1].endNode.stationPlatformId.clear();
 	}
 
-	mutable std::vector<BlockSet> m_tracks;
-	mutable std::vector<Stations> m_stations;
-	mutable Connections m_noConnection;
+	std::vector<BlockSet> m_tracks;
+	std::vector<Stations> m_stations;
+	std::vector<Connections> m_connections;
 	std::vector<Section> m_sections;
 	Route m_route;
 	Route m_undrawnRoute;
@@ -451,16 +466,55 @@ static bool iconAt(const PlatformItem& platform, int i, int n, qreal iconSize) {
 	return near(at.x(), centre.x() - iconSize / 2) && near(at.y(), centre.y() - iconSize / 2);
 }
 
+// The line the presenter draws for the arc, from its start node to its end node; an empty line when it draws none.
+static QLineF drawnArc(NetworkPresenter& presenter, const Arc& arc) {
+	for (const TrackLineItem* item : PresenterAccess::allArcs(presenter))
+		if (item->arc == &arc)
+			return item->line();
+	return {};
+}
+
 // Whether the platform is parallel, within half a degree, to direction, a unit vector that points to the right, with its
-// centre 1.15 times size from the node on the upper side of the track.
-static bool platformAlong(const PlatformItem& platform, const Node& node, const QPointF& direction, qreal size) {
+// centre 1.15 times size from node, the point where the node is drawn, on the upper side of the track.
+static bool platformAlong(const PlatformItem& platform, const QPointF& node, const QPointF& direction, qreal size) {
 	const QRectF rect = platform.rect();
 	const QLineF axis(platform.mapToScene(QPointF(rect.left(), rect.center().y())),
 		platform.mapToScene(QPointF(rect.right(), rect.center().y())));
 	const QPointF centre = platform.mapToScene(rect.center());
-	const QPointF expected = QPointF(node.graphX, node.graphY) + QPointF(direction.y(), -direction.x()) * 1.15 * size;
+	const QPointF expected = node + QPointF(direction.y(), -direction.x()) * 1.15 * size;
 	return std::fabs(axis.dx() * direction.y() - axis.dy() * direction.x()) < axis.length() * std::sin(qDegreesToRadians(0.5))
 		&& near(centre.x(), expected.x()) && near(centre.y(), expected.y());
+}
+
+// The fields of the source that hold a place on the canvas: the levels of the tracks, the canvas points of their nodes,
+// the places, regions and shifts of the stations and the canvas ends of the connections, a map as its keys and values.
+static std::vector<double> canvasFields(const RuntimeGeometrySource& source) {
+	std::vector<double> fields;
+	const auto addMap = [&fields](const std::map<int, double>& values) {
+		fields.push_back(static_cast<double>(values.size()));
+		for (const auto& [key, value] : values) {
+			fields.push_back(key);
+			fields.push_back(value);
+		}
+	};
+	for (int track = 0; track < source.trackCount(); ++track) {
+		fields.push_back(source.track(track).graphID);
+		for (const Arc& arc : source.track(track).member)
+			fields.insert(fields.end(), {arc.startNode.graphX, arc.startNode.graphY, arc.endNode.graphX, arc.endNode.graphY});
+	}
+	for (int index = 0; index < source.stationCount(); ++index) {
+		const Stations& station = source.station(index);
+		fields.insert(fields.end(), {station.graphX, station.graphY, static_cast<double>(station.regions.size())});
+		fields.insert(fields.end(), station.regions.begin(), station.regions.end());
+		for (const std::map<int, double>* values :
+			{&station.regionX, &station.shiftX, &station.shiftY, &station.signalDeltaX, &station.signalDeltaY})
+			addMap(*values);
+	}
+	for (int index = 0; index < source.connectionCount(); ++index) {
+		const Connections& connection = source.connection(index);
+		fields.insert(fields.end(), {connection.graphXFirstNode, connection.graphYFirstNode, connection.graphXSecondNode, connection.graphYSecondNode});
+	}
+	return fields;
 }
 
 using Ids = std::vector<std::string>;
@@ -562,6 +616,7 @@ private slots:
 	void platformLiesAlongDiagonalTrack();
 	void levelWithoutStationGeometryIsDrawnHigher();
 	void runPutsPicturesWherePreviewDoes();
+	void drawingLeavesSourceUnchanged();
 };
 
 void TestRuntimeCanvas::initTestCase() {
@@ -617,7 +672,7 @@ void TestRuntimeCanvas::drawsGeometryOfSource() {
 		}
 		// The platform of a level track is level, above its node.
 		QCOMPARE_EQ(platform->rotation(), 0.0);
-		QVERIFY(platformAlong(*platform, source->track(0).member[1].endNode, QPointF(1, 0),
+		QVERIFY(platformAlong(*platform, drawnArc(presenter, source->track(0).member[1]).p2(), QPointF(1, 0),
 			presenter.station_node_size * presenter.presentationScale()));
 		// The bar shows with the stations in the near look; its counter waits for the zoom.
 		const auto counterShown = [platform]() { return platform && platform->textIcon && platform->textIcon->isVisible(); };
@@ -2211,9 +2266,8 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 	presenter.showRuntime(f.model);
 	// The platforms and their passengers show in the near look.
 	PresenterAccess::setStationNearLook(presenter, true);
-	const Arc& lastArc = source->track(0).member[1];
-	const QLineF unit =
-		QLineF(lastArc.startNode.graphX, lastArc.startNode.graphY, lastArc.endNode.graphX, lastArc.endNode.graphY).unitVector();
+	const QLineF lastArc = drawnArc(presenter, source->track(0).member[1]);
+	const QLineF unit = lastArc.unitVector();
 	const QPointF direction(unit.dx(), unit.dy());
 	const qreal size = presenter.station_node_size * presenter.presentationScale();
 	PlatformItem* const middlePlatform = PresenterAccess::allPlatforms(presenter).value(0);
@@ -2222,8 +2276,8 @@ void TestRuntimeCanvas::platformLiesAlongDiagonalTrack() {
 	QCOMPARE_GT(direction.y(), 0.1);
 	if (middlePlatform == nullptr || endPlatform == nullptr)
 		QFAIL("the run draws no two platforms");
-	QVERIFY(platformAlong(*middlePlatform, lastArc.startNode, direction, size));
-	QVERIFY(platformAlong(*endPlatform, lastArc.endNode, direction, size));
+	QVERIFY(platformAlong(*middlePlatform, lastArc.p1(), direction, size));
+	QVERIFY(platformAlong(*endPlatform, lastArc.p2(), direction, size));
 
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = 10;
@@ -2309,6 +2363,28 @@ void TestRuntimeCanvas::runPutsPicturesWherePreviewDoes() {
 	for (auto anchor = preview.cbegin(); anchor != preview.cend(); ++anchor)
 		same = same && run.contains(anchor.key()) && QLineF(run.value(anchor.key()), anchor.value()).length() < 1e-6;
 	QVERIFY2(same, "a run with the preview puts the station pictures of a higher schematic level where the preview put them");
+}
+
+// Drawing a run with a connection and a station lower down, and a train on it, leaves the source as it was: the presenter
+// keeps the places it works out for the canvas to itself.
+void TestRuntimeCanvas::drawingLeavesSourceUnchanged() {
+	RunFixture f;
+	NetworkPresenter& presenter = f.presenter;
+	FakeGeometry* const source = f.source;
+	source->makeCrossover();
+	source->addCrossoverConnection();
+	source->station(1).Y = 5.0;
+	const std::vector<double> before = canvasFields(*source);
+	presenter.showRuntime(f.model);
+	GuiSimulationSnapshot snapshot;
+	snapshot.timestep = 10;
+	snapshot.trains = {trainAt(5.0)};
+	presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+	// The run draws the arcs of both tracks and the train.
+	QCOMPARE(PresenterAccess::allArcs(presenter).size(), qsizetype(4));
+	QCOMPARE(presenter.runTrains().size(), qsizetype(1));
+	QVERIFY2(canvasFields(*source) == before, "drawing a run leaves the canvas fields of its source as they were");
+	presenter.clear();
 }
 
 QTEST_MAIN(TestRuntimeCanvas)

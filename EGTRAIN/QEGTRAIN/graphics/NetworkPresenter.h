@@ -3,6 +3,7 @@
 
 #include <QElapsedTimer>
 #include <QGraphicsScene>
+#include <QLineF>
 #include <QList>
 #include <QMap>
 #include <QPen>
@@ -248,7 +249,7 @@ public:
 	/// units, times the presentation scale when the track line has a line in the preview. The item points
 	/// to node, which belongs to the run. The node is darker at the end of a line when its platform
 	/// is known.
-	void paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd);
+	void paintStationNode(QPointF coord, int size, int track, const Node* node, bool lineEnd);
 
 	/// Shows the passengers on board above a train and selects it. A train without a shape shows none, and the
 	/// passenger information is deleted. The group of the information is made once and then reused.
@@ -539,6 +540,30 @@ private:
 	std::unique_ptr<RuntimeGeometrySource> m_source;
 	std::vector<std::vector<int>> m_regionStations;
 
+	// The layout of a station on the canvas of a run, for the places that no line of the preview covers: its point, its
+	// display regions, those of the source or else region 0, with its position in kilometres in each, and per region the
+	// unit vector along which the display levels of the tracks shift at the station and the one along which the signals
+	// stand beside the track.
+	struct StationLayout {
+		double graphX = 0.0;
+		double graphY = 0.0;
+		std::vector<int> regions;
+		std::map<int, double> regionX;
+		std::map<int, double> shiftX, shiftY;
+		std::map<int, double> signalDeltaX, signalDeltaY;
+	};
+	// The layout of the run, which showRuntime() works out from the source and the source does not hold: the display level
+	// of each track, the authored level of the source or else the first level free over its span, 0 for a track without
+	// arcs, and the layout of each station, both indexed like the source. Each showRuntime() fills them anew and clear()
+	// empties them. A station with a latitude and a longitude is projected with the size of the view at that moment, so a
+	// later resize of the view does not move it.
+	std::vector<int> m_trackLevels;
+	std::vector<StationLayout> m_stationLayouts;
+	// The display level of the track with this index, or the graphID of the source when the layout has no level for it.
+	int trackLevel(int track) const;
+	// The layout of the station with this index, or one whose values all read 0 when the layout has none for it.
+	const StationLayout& stationLayout(int index) const;
+
 	// The train groups by train index, and the platforms by station id and platform id. paintTrain and
 	// paintStationPlatform fill them and clear() empties them.
 	std::unordered_map<int, TrainItemGroup*> m_trainsByIndex;
@@ -640,15 +665,17 @@ private:
 	void calculateStationCoordAndShift();
 	bool hasTrackGeometry(int track) const;
 	void neighbourStations(double X, int tracklineID, int* stationIdx) const;
+	void interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level, double separation,
+		double& graphX, double& graphY) const;
 	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const;
-	void egtrainPoint2Screen(Node* node, int track, double separation) const;
-	void egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const;
-	void paintNode(QPointF coord, int size, int track, Node* node);
+	QPointF egtrainPoint2Screen(const Node& node, int track, double separation) const;
+	QLineF egtrainPoint2Screen(const Connections& connection, int track1, int track2, double separation) const;
+	void paintNode(QPointF coord, int size, int track, const Node* node);
 	PlatformItem* addPlatformBar(QPointF before, QPointF node, QPointF after, qreal size);
-	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node);
-	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
-	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
-	void paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection);
+	void paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, const Node* node);
+	void paintArc(QPointF start, QPointF end, int penWidth, int track, const Arc* arc);
+	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, const Arc* arc);
+	void paintConnection(QPointF start, QPointF end, int penWidth, const Connections* connection);
 	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex,
 		const SceneSectionLabels& labels);
 	void buildSignalIndex();

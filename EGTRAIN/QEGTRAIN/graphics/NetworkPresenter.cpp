@@ -281,19 +281,10 @@ NoFrameHost& noFrameHost() {
 	return host;
 }
 
-// The point at the position X of a track line, shifted to its display level: a linear interpolation of the
-// shifted stations on both sides of X in the region of the track line.
-void interpolateBetweenStations(Stations& first, Stations& second, int region, double X, double level, double separation,
-	double& graphX, double& graphY) {
-	// shifted stations
-	const double x1 = first.graphX + first.shiftX[region] * level * separation;
-	const double x2 = second.graphX + second.shiftX[region] * level * separation;
-	const double y1 = first.graphY + first.shiftY[region] * level * separation;
-	const double y2 = second.graphY + second.shiftY[region] * level * separation;
-
-	// linear interpolation of geodetic coordinates using known coordinates of closest stations
-	graphX = x1 + (((X - first.regionX[region]) / (second.regionX[region] - first.regionX[region])) * (x2 - x1));
-	graphY = y1 + (((X - first.regionX[region]) / (second.regionX[region] - first.regionX[region])) * (y2 - y1));
+// The value of a display region in a map of the layout of a station, or 0 for a region that the map lacks.
+double regionValue(const std::map<int, double>& values, int region) {
+	const auto found = values.find(region);
+	return found == values.end() ? 0.0 : found->second;
 }
 
 // The unit vector along which the display levels of the tracks shift at middle, on a line from previous through middle
@@ -399,6 +390,8 @@ void NetworkPresenter::clear() {
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
 	m_regionStations.clear();
+	m_trackLevels.clear();
+	m_stationLayouts.clear();
 	m_trainsByIndex.clear();
 	m_platformsById.clear();
 	m_platformsStale = false;
@@ -1451,6 +1444,12 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		return;
 	m_runModel = &sceneModel;
 
+	// The layout of this run, which starts from the authored levels and regions of the source.
+	m_trackLevels.clear();
+	for (int track = 0; track < m_source->trackCount(); ++track)
+		m_trackLevels.push_back(m_source->track(track).graphID);
+	m_stationLayouts.assign(static_cast<std::size_t>(m_source->stationCount()), StationLayout());
+
 	// Reuse drawing levels once track spans stop overlapping when the scene has
 	// no authored display layout.
 	struct TrackSpan {
@@ -1460,11 +1459,11 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	};
 	std::vector<TrackSpan> trackSpans;
 	for (int track = 0; track < m_source->trackCount(); ++track) {
-		BlockSet& trackSet = m_source->track(track);
+		const BlockSet& trackSet = m_source->track(track);
 		if (trackSet.hasGraphLayout)
 			continue;
 		if (trackSet.len <= 0) {
-			trackSet.graphID = 0;
+			m_trackLevels[static_cast<std::size_t>(track)] = 0;
 			continue;
 		}
 		double begin = std::numeric_limits<double>::max();
@@ -1484,19 +1483,22 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			return end < span.begin;
 		});
 		if (available == levelEnds.end()) {
-			m_source->track(span.track).graphID = static_cast<int>(levelEnds.size());
+			m_trackLevels[static_cast<std::size_t>(span.track)] = static_cast<int>(levelEnds.size());
 			levelEnds.push_back(span.end);
 		} else {
-			m_source->track(span.track).graphID = static_cast<int>(std::distance(levelEnds.begin(), available));
+			m_trackLevels[static_cast<std::size_t>(span.track)] = static_cast<int>(std::distance(levelEnds.begin(), available));
 			*available = span.end;
 		}
 	}
 	// Use a single fallback region for stations without authored view metadata.
 	for (int stationIndex = 0; stationIndex < m_source->stationCount(); ++stationIndex) {
-		Stations& legacyStation = m_source->station(stationIndex);
-		if (legacyStation.regions.empty()) {
-			legacyStation.regions.push_back(0);
-			legacyStation.regionX[0] = legacyStation.X;
+		const Stations& legacyStation = m_source->station(stationIndex);
+		StationLayout& layout = m_stationLayouts[static_cast<std::size_t>(stationIndex)];
+		layout.regions = legacyStation.regions;
+		layout.regionX = legacyStation.regionX;
+		if (layout.regions.empty()) {
+			layout.regions.push_back(0);
+			layout.regionX[0] = legacyStation.X;
 		}
 	}
 
@@ -1542,7 +1544,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	// draw station icons and print names
 	QPointF pt;
 	for (int i = 0; i < m_source->stationCount(); i++) {
-		Stations& legacyStation = m_source->station(i);
+		const Stations& legacyStation = m_source->station(i);
+		const StationLayout& layout = m_stationLayouts[static_cast<std::size_t>(i)];
 		// ignore virtual stations (name contains "virtual")
 		if (legacyStation.stationName.find("virtual") != std::string::npos) {
 			continue;
@@ -1562,12 +1565,12 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		}
 
 		// Keep the native graph position as the source anchor when no shared line resolves.
-		pt = QPointF(legacyStation.graphX, legacyStation.graphY);
+		pt = QPointF(layout.graphX, layout.graphY);
 		QPointF averageShift;
 		int validRegions = 0;
-		for (int region : legacyStation.regions) {
-			const double x = legacyStation.shiftX[region];
-			const double y = legacyStation.shiftY[region];
+		for (int region : layout.regions) {
+			const double x = regionValue(layout.shiftX, region);
+			const double y = regionValue(layout.shiftY, region);
 			if (std::isfinite(x) && std::isfinite(y)) {
 				averageShift += QPointF(x, y);
 				++validRegions;
@@ -1586,19 +1589,13 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	}
 
 	// draw connections
-	QPointF ptc1, ptc2;
 	for (int c = 0; c < m_source->connectionCount(); c++) {
-		Connections& connection = m_source->connection(c);
+		const Connections& connection = m_source->connection(c);
 		if (hasSharedPreview && (!cachedTrackLine(connection.idFirstTrackLine) || !cachedTrackLine(connection.idSecondTrackLine)))
 			continue;
 		// get shifted connections
-		egtrainPoint2Screen(&connection, connection.idFirstTrackLine, connection.idSecondTrackLine, track_separation);
-		ptc1.setX(connection.graphXFirstNode);
-		ptc1.setY(connection.graphYFirstNode);
-		ptc2.setX(connection.graphXSecondNode);
-		ptc2.setY(connection.graphYSecondNode);
-
-		paintConnection(ptc1, ptc2, line_width, &connection);
+		const QLineF ends = egtrainPoint2Screen(connection, connection.idFirstTrackLine, connection.idSecondTrackLine, track_separation);
+		paintConnection(ends.p1(), ends.p2(), line_width, &connection);
 	}
 
 	// draw tracklines
@@ -1606,18 +1603,14 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	for (int track = 0; track < m_source->trackCount(); track++) {
 		if (hasSharedPreview && !cachedTrackLine(track))
 			continue;
-		BlockSet& trackSet = m_source->track(track);
+		const BlockSet& trackSet = m_source->track(track);
 		// a double switch is drawn without its first and last arc and without ordinary node dots
 		const bool doubleSwitch = drawnAsDoubleSwitch(sceneModel, trackSet.sceneTrackId);
 		// run over all arcs
 		for (int i = 0; i < trackSet.len; i++) {
 			// get shifted nodes
-			egtrainPoint2Screen(&trackSet.member[i].startNode, track, track_separation);
-			egtrainPoint2Screen(&trackSet.member[i].endNode, track, track_separation);
-			pt.setX(trackSet.member[i].startNode.graphX);
-			pt.setY(trackSet.member[i].startNode.graphY);
-			pte.setX(trackSet.member[i].endNode.graphX);
-			pte.setY(trackSet.member[i].endNode.graphY);
+			pt = egtrainPoint2Screen(trackSet.member[i].startNode, track, track_separation);
+			pte = egtrainPoint2Screen(trackSet.member[i].endNode, track, track_separation);
 
 			// draw nodes
 			if (i > 0 && !trackSet.member[i - 1].endNode.stationName.empty()) { // station Node (only visible from end nodes [end_node] -> i>1)
@@ -1688,7 +1681,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 }
 
 // draws a Node
-void NetworkPresenter::paintNode(QPointF coord, int size, int track, Node* node) {
+void NetworkPresenter::paintNode(QPointF coord, int size, int track, const Node* node) {
 	QPen pen = QPen(Qt::lightGray);
 	pen.setWidth(0);
 	pen.setCosmetic(true);
@@ -1711,7 +1704,7 @@ void NetworkPresenter::paintNode(QPointF coord, int size, int track, Node* node)
 }
 
 // draws a station Node; its platform id darkens the square only at the end of a line
-void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd) {
+void NetworkPresenter::paintStationNode(QPointF coord, int size, int track, const Node* node, bool lineEnd) {
 	const bool hasPlatform = lineEnd && node && hasPlatformId(node->stationPlatformId);
 	StationVisual visual = classifyStation(hasPlatform, node ? node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
@@ -1754,7 +1747,7 @@ PlatformItem* NetworkPresenter::addPlatformBar(QPointF before, QPointF node, QPo
 }
 
 // paint platform next to station Node (upper side), along the track from before through coord to after
-void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, Node* node) {
+void NetworkPresenter::paintStationPlatform(QPointF before, QPointF coord, QPointF after, int size, const Node* node) {
 	PlatformItem* platformItem = addPlatformBar(before, coord, after, size * presentationScale());
 	platformItem->node = node;
 	allPlatforms.push_back(platformItem);
@@ -1839,12 +1832,12 @@ void NetworkPresenter::paintPassengerInfoIcon(PassengerItem* paxItem, const GuiP
 
 
 // draws an Arc
-void NetworkPresenter::paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc) {
+void NetworkPresenter::paintArc(QPointF start, QPointF end, int penWidth, int track, const Arc* arc) {
 	arcDrawing(start, end, penWidth, track, arc);
 }
 
 // Arc drawing
-void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc) {
+void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int track, const Arc* arc) {
 	TrackVisual visual = classifyTrackSpeed(arc ? arc->speedLimit : 0.0);
 	QPen pen = QPen(visual.color);
 	pen.setWidth(std::max(penWidth, visual.width));
@@ -1866,7 +1859,7 @@ void NetworkPresenter::arcDrawing(QPointF start, QPointF end, int penWidth, int 
 }
 
 // draws a connection
-void NetworkPresenter::paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection) {
+void NetworkPresenter::paintConnection(QPointF start, QPointF end, int penWidth, const Connections* connection) {
 	// draws a line from start to end with a given line width
 	ConnectionItem* line = new ConnectionItem(QLineF(start.x(), start.y(), end.x(), end.y()));
 	line->setPen(connectionPen(penWidth));
@@ -1897,9 +1890,9 @@ void NetworkPresenter::paintSignal(double X, int size, int penWidth, int track, 
 	} else {
 		int stationIdx[2];
 		neighbourStations(X, track, stationIdx);
-		const int index = stationIdx[1];
-		normal = QPointF(m_source->station(index).signalDeltaX[m_source->track(track).region],
-			m_source->station(index).signalDeltaY[m_source->track(track).region]);
+		const StationLayout& station = stationLayout(stationIdx[1]);
+		normal = QPointF(regionValue(station.signalDeltaX, m_source->track(track).region),
+			regionValue(station.signalDeltaY, m_source->track(track).region));
 	}
 	const SignalGeometry geometry = signalGeometry(QPointF(centerX, centerY),
 		QPointF(beforeX, beforeY), QPointF(afterX, afterY), normal,
@@ -2158,7 +2151,7 @@ QPointF NetworkPresenter::Coord2ScreenPoint(double x, double y, double factor) c
 // find shift vector for each station/region
 // find delta X,Y to place trackside signals
 void NetworkPresenter::calculateStationCoordAndShift() {
-	const auto stationAt = [this](int index) -> Stations& { return m_source->station(index); };
+	const auto stationAt = [this](int index) -> StationLayout& { return m_stationLayouts[static_cast<std::size_t>(index)]; };
 	double beta; // angle between first Arc and screen x axis
 	double x1, x2, x3;
 	double y1, y2, y3;
@@ -2166,17 +2159,16 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 
 	// get station screen coordinates
 	for (int i = 0; i < m_source->stationCount(); i++) { // need a separate for as the one below accesses positions ahead of i
-		if (std::fabs(stationAt(i).latitude) > 1e-12 || std::fabs(stationAt(i).longitude) > 1e-12) {
-			pt = Coord2ScreenPoint(stationAt(i).latitude, stationAt(i).longitude, geo_scale);
+		const Stations& station = m_source->station(i);
+		if (std::fabs(station.latitude) > 1e-12 || std::fabs(station.longitude) > 1e-12) {
+			pt = Coord2ScreenPoint(station.latitude, station.longitude, geo_scale);
 			stationAt(i).graphX = pt.x();
 			stationAt(i).graphY = pt.y();
 		} else {
 			// Native scenes may intentionally omit legacy geographic metadata.
-			stationAt(i).graphX = stationAt(i).X * 1000.0;
-			stationAt(i).graphY = stationAt(i).Y * 1000.0;
+			stationAt(i).graphX = station.X * 1000.0;
+			stationAt(i).graphY = station.Y * 1000.0;
 		}
-		if (stationAt(i).regions.empty())
-			stationAt(i).regions.push_back(0);
 	}
 
 	// find number of regions
@@ -2192,7 +2184,7 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 
 	// create X-ordered array of stations per region
 	for (auto& region : m_regionStations)
-		std::sort(region.begin(), region.end(), [&stationAt](int a, int b) { return stationAt(a).X < stationAt(b).X; });
+		std::sort(region.begin(), region.end(), [this](int a, int b) { return m_source->station(a).X < m_source->station(b).X; });
 
 	// calculate shifts and signal deltas per region
 	for (int r = 0; r < static_cast<int>(m_regionStations.size()); r++) {
@@ -2220,8 +2212,8 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 		for (int i = 0; i < static_cast<int>(m_regionStations[r].size()); i++) {
 			if (i == static_cast<int>(m_regionStations[r].size()) - 1) { // special case - last Arc
 				// use shifts of previous Arc
-				stationAt(m_regionStations[r][i]).shiftX[r] = stationAt(m_regionStations[r][i - 1]).shiftX[r];
-				stationAt(m_regionStations[r][i]).shiftY[r] = stationAt(m_regionStations[r][i - 1]).shiftY[r];
+				stationAt(m_regionStations[r][i]).shiftX[r] = regionValue(stationAt(m_regionStations[r][i - 1]).shiftX, r);
+				stationAt(m_regionStations[r][i]).shiftY[r] = regionValue(stationAt(m_regionStations[r][i - 1]).shiftY, r);
 
 				// special case for signal deltas (need to use next Arc)
 				x1 = stationAt(m_regionStations[r][i - 1]).graphX;
@@ -2283,7 +2275,7 @@ void NetworkPresenter::neighbourStations(double X, int tracklineID, int* station
 		return;
 	const int region = m_source->track(tracklineID).region;
 	const std::vector<int>& trackStIdx = m_regionStations[region];
-	const auto regionX = [this, region](int index) { return m_source->station(index).regionX[region]; };
+	const auto regionX = [this, region](int index) { return regionValue(stationLayout(index).regionX, region); };
 
 	// find neighbour stations
 	// check if value is inside/outside X range of stations
@@ -2305,6 +2297,38 @@ void NetworkPresenter::neighbourStations(double X, int tracklineID, int* station
 	}
 }
 
+int NetworkPresenter::trackLevel(int track) const {
+	if (track >= 0 && track < static_cast<int>(m_trackLevels.size()))
+		return m_trackLevels[static_cast<std::size_t>(track)];
+	return m_source->track(track).graphID;
+}
+
+const NetworkPresenter::StationLayout& NetworkPresenter::stationLayout(int index) const {
+	static const StationLayout none;
+	if (index < 0 || index >= static_cast<int>(m_stationLayouts.size()))
+		return none;
+	return m_stationLayouts[static_cast<std::size_t>(index)];
+}
+
+// The point at the position X of a track line, shifted to its display level: a linear interpolation of the
+// shifted stations on both sides of X in the region of the track line.
+void NetworkPresenter::interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level,
+	double separation, double& graphX, double& graphY) const {
+	const StationLayout& first = stationLayout(firstIndex);
+	const StationLayout& second = stationLayout(secondIndex);
+	// shifted stations
+	const double x1 = first.graphX + regionValue(first.shiftX, region) * level * separation;
+	const double x2 = second.graphX + regionValue(second.shiftX, region) * level * separation;
+	const double y1 = first.graphY + regionValue(first.shiftY, region) * level * separation;
+	const double y2 = second.graphY + regionValue(second.shiftY, region) * level * separation;
+
+	// linear interpolation of geodetic coordinates using known coordinates of closest stations
+	const double firstX = regionValue(first.regionX, region);
+	const double secondX = regionValue(second.regionX, region);
+	graphX = x1 + (((X - firstX) / (secondX - firstX)) * (x2 - x1));
+	graphY = y1 + (((X - firstX) / (secondX - firstX)) * (y2 - y1));
+}
+
 // get shifted screen coordinates of a point (given 1D X coordinate)
 void NetworkPresenter::egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const {
 	if (const auto* line = cachedTrackLine(track)) {
@@ -2317,87 +2341,79 @@ void NetworkPresenter::egtrainPoint2Screen(double X, int track, double separatio
 	}
 	if (!hasTrackGeometry(track)) {
 		graphX = X * 1000.0;
-		graphY = -static_cast<double>(m_source->track(track).graphID) * separation;
+		graphY = -static_cast<double>(trackLevel(track)) * separation;
 		return;
 	}
-	double graphID = (double)m_source->track(track).graphID;
+	double graphID = (double)trackLevel(track);
 
 	// find index of closest stations
 	int stationIdx[2];
 	neighbourStations(X, track, stationIdx);
 
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track).region, X, graphID, separation, graphX, graphY);
+	interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track).region, X, graphID, separation, graphX, graphY);
 }
 
 // get shifted screen coordinates of a Node
-void NetworkPresenter::egtrainPoint2Screen(Node* node, int track, double separation) const {
+QPointF NetworkPresenter::egtrainPoint2Screen(const Node& node, int track, double separation) const {
 	if (const auto* line = cachedTrackLine(track)) {
 		TrackPreviewPoint point;
-		if ((!node->sceneNodeId.empty()
-				&& trackPreviewPointAtNode(*line, node->sceneNodeId, point))
-			|| trackPreviewPointAtX(*line, node->X, point)) {
-			node->graphX = point.x;
-			node->graphY = point.y + line->displayOffset;
-			return;
+		if ((!node.sceneNodeId.empty()
+				&& trackPreviewPointAtNode(*line, node.sceneNodeId, point))
+			|| trackPreviewPointAtX(*line, node.X, point)) {
+			return QPointF(point.x, point.y + line->displayOffset);
 		}
 	}
-	if (!hasTrackGeometry(track)) {
-		node->graphX = node->X * 1000.0;
-		node->graphY = node->Y * 1000.0 - static_cast<double>(m_source->track(track).graphID) * separation;
-		return;
-	}
+	if (!hasTrackGeometry(track))
+		return QPointF(node.X * 1000.0, node.Y * 1000.0 - static_cast<double>(trackLevel(track)) * separation);
 	int stationIdx[2];
-	neighbourStations(node->X, track, stationIdx);
-	int graphID = m_source->track(track).graphID;
+	neighbourStations(node.X, track, stationIdx);
+	int graphID = trackLevel(track);
 
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track).region, node->X, graphID, separation, node->graphX, node->graphY);
+	double graphX = 0.0;
+	double graphY = 0.0;
+	interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track).region, node.X, graphID, separation, graphX,
+		graphY);
+	return QPointF(graphX, graphY);
 }
 
-// get shifted screen coordinates of the two ends of a connection
-void NetworkPresenter::egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const {
+// get shifted screen coordinates of the two ends of a connection, from the first node to the second
+QLineF NetworkPresenter::egtrainPoint2Screen(const Connections& connection, int track1, int track2, double separation) const {
 	if (const auto* firstLine = cachedTrackLine(track1)) {
 		if (const auto* secondLine = cachedTrackLine(track2)) {
 			TrackPreviewPoint first;
 			TrackPreviewPoint second;
-			const bool hasFirst = (!connection->sceneFirstNodeId.empty()
-									  && trackPreviewPointAtNode(*firstLine, connection->sceneFirstNodeId, first))
-				|| trackPreviewPointAtX(*firstLine, connection->xFirstNode, first);
-			const bool hasSecond = (!connection->sceneSecondNodeId.empty()
-									   && trackPreviewPointAtNode(*secondLine, connection->sceneSecondNodeId, second))
-				|| trackPreviewPointAtX(*secondLine, connection->xSecondNode, second);
-			if (hasFirst && hasSecond) {
-				connection->graphXFirstNode = first.x;
-				connection->graphYFirstNode = first.y + firstLine->displayOffset;
-				connection->graphXSecondNode = second.x;
-				connection->graphYSecondNode = second.y + secondLine->displayOffset;
-				return;
-			}
+			const bool hasFirst = (!connection.sceneFirstNodeId.empty()
+									  && trackPreviewPointAtNode(*firstLine, connection.sceneFirstNodeId, first))
+				|| trackPreviewPointAtX(*firstLine, connection.xFirstNode, first);
+			const bool hasSecond = (!connection.sceneSecondNodeId.empty()
+									   && trackPreviewPointAtNode(*secondLine, connection.sceneSecondNodeId, second))
+				|| trackPreviewPointAtX(*secondLine, connection.xSecondNode, second);
+			if (hasFirst && hasSecond)
+				return QLineF(first.x, first.y + firstLine->displayOffset, second.x, second.y + secondLine->displayOffset);
 		}
 	}
 	if (!hasTrackGeometry(track1) || !hasTrackGeometry(track2)) {
-		connection->graphXFirstNode = connection->xFirstNode * 1000.0;
-		connection->graphYFirstNode = -static_cast<double>(m_source->track(track1).graphID) * separation;
-		connection->graphXSecondNode = connection->xSecondNode * 1000.0;
-		connection->graphYSecondNode = -static_cast<double>(m_source->track(track2).graphID) * separation;
-		return;
+		return QLineF(connection.xFirstNode * 1000.0, -static_cast<double>(trackLevel(track1)) * separation,
+			connection.xSecondNode * 1000.0, -static_cast<double>(trackLevel(track2)) * separation);
 	}
-	int graphID1 = m_source->track(track1).graphID;
-	int graphID2 = m_source->track(track2).graphID;
+	int graphID1 = trackLevel(track1);
+	int graphID2 = trackLevel(track2);
 
 	// find index of closest stations
 	int stationIdx[2];
-	neighbourStations(connection->xFirstNode, track1, stationIdx);
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track1).region, connection->xFirstNode, graphID1, separation,
-		connection->graphXFirstNode, connection->graphYFirstNode);
+	double firstX = 0.0;
+	double firstY = 0.0;
+	neighbourStations(connection.xFirstNode, track1, stationIdx);
+	interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track1).region, connection.xFirstNode, graphID1,
+		separation, firstX, firstY);
 
 	// find index of closest stations
-	neighbourStations(connection->xSecondNode, track2, stationIdx);
-	interpolateBetweenStations(m_source->station(stationIdx[0]), m_source->station(stationIdx[1]),
-		m_source->track(track2).region, connection->xSecondNode, graphID2, separation,
-		connection->graphXSecondNode, connection->graphYSecondNode);
+	double secondX = 0.0;
+	double secondY = 0.0;
+	neighbourStations(connection.xSecondNode, track2, stationIdx);
+	interpolateBetweenStations(stationIdx[0], stationIdx[1], m_source->track(track2).region, connection.xSecondNode, graphID2,
+		separation, secondX, secondY);
+	return QLineF(firstX, firstY, secondX, secondY);
 }
 
 // The ends of the connection of a section derived at a switch, whose id is "<first id>@-<x1>/@<second id>@-<x2>": the
@@ -2837,15 +2853,16 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 		const int index = stationIdx[1];
 		const int revPrevIndex = index * (1 - revStIndex) + prevIndex * revStIndex;
 		const int region = m_source->track(track).region;
+		const StationLayout& station = stationLayout(index);
 		trainPointsUp.push_back(QPointF(point.x()
-				- m_source->station(index).signalDeltaX[region] * 0.10 * track_separation,
-			point.y() - m_source->station(index).signalDeltaY[region] * 0.10 * track_separation));
+				- regionValue(station.signalDeltaX, region) * 0.10 * track_separation,
+			point.y() - regionValue(station.signalDeltaY, region) * 0.10 * track_separation));
 		trainPointsDown.push_front(QPointF(point.x()
-				+ m_source->station(index).signalDeltaX[region] * 0.10 * track_separation,
-			point.y() + m_source->station(index).signalDeltaY[region] * 0.10 * track_separation));
+				+ regionValue(station.signalDeltaX, region) * 0.10 * track_separation,
+			point.y() + regionValue(station.signalDeltaY, region) * 0.10 * track_separation));
 		trainPointsStIndex.push_back(revPrevIndex);
 		trainPointsStRegion.push_back(region);
-		trainPointsGraphID.push_back(m_source->track(track).graphID);
+		trainPointsGraphID.push_back(trackLevel(track));
 		return true;
 	};
 
@@ -2939,7 +2956,7 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 						trainPointsDown.push_front(QPointF(point.x() + shiftX * 0.10 * lateralSeparation, point.y() + shiftY * 0.10 * lateralSeparation));
 						trainPointsStIndex.push_back(stationIndex);
 						trainPointsStRegion.push_back(m_source->track(section->trackLineId).region);
-						trainPointsGraphID.push_back(m_source->track(section->trackLineId).graphID);
+						trainPointsGraphID.push_back(trackLevel(section->trackLineId));
 					};
 
 					// get beginning and end of connection to interpolate
@@ -3065,12 +3082,14 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 			|| (trainPointsStIndex[i - 1] != -1 && trainPointsStIndex[i] != trainPointsStIndex[i - 1]
 				&& trainPointsStRegion[i] == trainPointsStRegion[i - 1])) {
 
-			Stations& shiftedStation = m_source->station(trainPointsStIndex[i]);
+			const StationLayout& shiftedStation = stationLayout(trainPointsStIndex[i]);
 			const int stationRegion = trainPointsStRegion[i];
-			QPointF stationUp = QPointF(shiftedStation.graphX + shiftedStation.shiftX[stationRegion] * track_separation * (trainPointsGraphID[i] - 0.10),
-				shiftedStation.graphY + shiftedStation.shiftY[stationRegion] * track_separation * (trainPointsGraphID[i] - 0.10));
-			QPointF stationDown = QPointF(shiftedStation.graphX + shiftedStation.shiftX[stationRegion] * track_separation * (trainPointsGraphID[i] + 0.10),
-				shiftedStation.graphY + shiftedStation.shiftY[stationRegion] * track_separation * (trainPointsGraphID[i] + 0.10));
+			const double shiftX = regionValue(shiftedStation.shiftX, stationRegion);
+			const double shiftY = regionValue(shiftedStation.shiftY, stationRegion);
+			QPointF stationUp = QPointF(shiftedStation.graphX + shiftX * track_separation * (trainPointsGraphID[i] - 0.10),
+				shiftedStation.graphY + shiftY * track_separation * (trainPointsGraphID[i] - 0.10));
+			QPointF stationDown = QPointF(shiftedStation.graphX + shiftX * track_separation * (trainPointsGraphID[i] + 0.10),
+				shiftedStation.graphY + shiftY * track_separation * (trainPointsGraphID[i] + 0.10));
 			trainPointsUp.insert(i + added, stationUp);
 			trainPointsDown.insert(i + added, stationDown);
 			added++;

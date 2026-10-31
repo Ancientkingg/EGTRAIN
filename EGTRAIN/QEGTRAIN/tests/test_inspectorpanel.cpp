@@ -80,12 +80,12 @@ public:
 	}
 
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
-	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	const BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
 	int regionOfTrack(int) const override { return 0; }
 	int stationCount() const override { return 0; }
-	Stations& station(int) const override { return m_station; }
+	const Stations& station(int) const override { return m_station; }
 	int connectionCount() const override { return 0; }
-	Connections& connection(int) const override { return m_connection; }
+	const Connections& connection(int) const override { return m_connection; }
 	int sectionCount() const override { return 0; }
 	const Section& section(int) const override { return m_section; }
 	const Route* route(int) const override { return nullptr; }
@@ -93,9 +93,9 @@ public:
 	bool passengerGui() const override { return false; }
 
 private:
-	mutable std::vector<BlockSet> m_tracks;
-	mutable Stations m_station;
-	mutable Connections m_connection;
+	std::vector<BlockSet> m_tracks;
+	Stations m_station;
+	Connections m_connection;
 	Section m_section;
 };
 

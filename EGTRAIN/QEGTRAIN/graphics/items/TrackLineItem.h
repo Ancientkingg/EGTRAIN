@@ -48,7 +48,7 @@ public:
 	int track;
 
 	/// The arc of the run, which belongs to the run; null in the preview.
-	Arc* arc;
+	const Arc* arc;
 
 	enum { Type = UserType + 1 /**< The item type for qgraphicsitem_cast. */ };
 	/// Returns Type.
