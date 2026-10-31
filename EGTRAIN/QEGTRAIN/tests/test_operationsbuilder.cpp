@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -115,6 +116,7 @@ private slots:
 	void linearInverseSolvesActualStartStep();
 	void nonMonotoneInverseRecovers();
 	void brakingLookupMatchesLinearReference();
+	void backwardBrakingCursorMatchesLookup();
 	void parkedTrainIsNotShortOfBrakingPoint();
 	void timetablePointOfStopIgnoresLastPlace();
 	void brakingPhase();
@@ -2845,6 +2847,107 @@ void TestOperationsBuilder::brakingLookupMatchesLinearReference() {
 	QVERIFY(predicted);
 	QVERIFY(below);
 	QVERIFY(recovered);
+}
+
+// The backward cursor of the inverse braking walk finds the arc of brakingArc for every position, on both routes of a scene and
+// on routes whose arcs overlap, leave gaps, are listed out of order or hold empty and invalid intervals.
+void TestOperationsBuilder::backwardBrakingCursorMatchesLookup() {
+	const double inf = std::numeric_limits<double>::infinity(), nan = std::numeric_limits<double>::quiet_NaN();
+	const auto same = [](double a, double b) { return std::memcmp(&a, &b, sizeof(double)) == 0; };
+	Train train = brakingTrain(1.0);
+	// Looks up the heads in their order with cursor; true when every lookup gives the arc of brakingArc.
+	const auto walk = [&train](Train::BackwardBrakingArcCursor& cursor, Section* sections, int count, const std::vector<double>& heads) {
+		return std::all_of(heads.begin(), heads.end(), [&](double head) {
+			return cursor.find(head, sections, count) == train.brakingArc(head, sections, count);
+		});
+	};
+	// Every arc boundary (m) of the sections with its neighbours, and positions `spacing` m apart from 50 m beyond the highest
+	// boundary to 50 m before the lowest, from high to low.
+	const auto descendingHeads = [inf](const Section* sections, int count, double spacing) {
+		std::vector<double> heads;
+		for (int i = 0; i < count; ++i)
+			for (int k = 0; k < sections[i].total_arcs; ++k) {
+				const Arc& arc = sections[i].arcs_in_signalling_block_section[k];
+				for (double boundary : {arc.startNode.X * 1000, arc.endNode.X * 1000})
+					heads.insert(heads.end(), {std::nextafter(boundary, -inf), boundary, std::nextafter(boundary, inf)});
+			}
+		const double low = *std::min_element(heads.begin(), heads.end()), high = *std::max_element(heads.begin(), heads.end());
+		const int positions = static_cast<int>((high - low + 100) / spacing);
+		for (int k = 0; k <= positions; ++k)
+			heads.push_back(high + 50 - k * spacing);
+		std::sort(heads.begin(), heads.end(), std::greater<>());
+		return heads;
+	};
+
+	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
+	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
+		QFAIL("crossover scene builds");
+	Train& native = defaultRun().trains[0];
+	// The scene has a route in each direction of travel.
+	QCOMPARE(defaultRun().infra.routes.size(), std::size_t{2});
+	for (Route& route : defaultRun().infra.routes) {
+		Section* sections = route.sequence_of_block_sections.data();
+		const int count = route.N_Block_Sections;
+		QVERIFY(count > 1);
+		Train::BackwardBrakingArcCursor cursor;
+		QVERIFY(walk(cursor, sections, count, descendingHeads(sections, count, 0.25)));
+		// The arcs of the route are ordered, so the cursor moved back over them.
+		QVERIFY(cursor.ordered);
+		// The inverse braking walk with a cursor takes the steps of the walk without one, from standstill at the end of the route
+		// until it leaves the route. The speed starts again from standstill above 30 m/s.
+		Train::BackwardBrakingArcCursor stepCursor;
+		double nextHead = route.x_of_end_node * 1000 - 10, nextSpeed = 0;
+		int steps = 0;
+		for (bool inside = true; inside; ++steps) {
+			double head = -1, speed = -1, plainHead = -2, plainSpeed = -2;
+			inside = native.inverseBrakingStep(nextHead, nextSpeed, sections, count, head, speed, &stepCursor);
+			QCOMPARE(native.inverseBrakingStep(nextHead, nextSpeed, sections, count, plainHead, plainSpeed), inside);
+			QVERIFY(same(head, plainHead));
+			if (inside) {
+				QVERIFY(same(speed, plainSpeed));
+				nextHead = head;
+				nextSpeed = speed > 30 ? 0 : speed;
+			}
+			QVERIFY(steps < 100000);
+		}
+		QVERIFY(steps > 10);
+		QVERIFY(nextHead < sections[0].start_node.X * 1000 + 30);
+	}
+
+	auto overlap = brakingRouteOfTwoArcs(0.06, 0.1, 0.02, -0.005);
+	overlap[0].arcs_in_signalling_block_section[0].startNode.X = 0.03;
+	overlap[0].arcs_in_signalling_block_section[1].startNode.X = 0;
+	auto gap = brakingRouteOfTwoArcs(0.03, 0.1, 0.02, -0.005);
+	gap[0].arcs_in_signalling_block_section[1].startNode.X = 0.04;
+	std::vector<Section> unordered{brakingRoute(0.10, 0.12, 0.02)[0], brakingRoute(0.13, 0.125, 0.02)[0],
+		brakingRoute(0, 0.01, -0.005)[0], Section{}, brakingRoute(0.01, 0.02, 0.02)[0], brakingRoute(0.02, 0.04, -0.005)[0],
+		brakingRoute(0.05, 0.08, 0.02)[0], brakingRoute(0.08, 0.16, -0.005)[0]};
+	unordered[3].total_arcs = 0;
+	std::vector<Section> crossSection{brakingRoute(0.03, 0.06, 0.02)[0], brakingRoute(0, 0.1, -0.005)[0]};
+	// The arc from 60 m back to 40 m holds nothing, but the arc after it overlaps the first one.
+	std::vector<Section> inverted{brakingRoute(0, 0.05, 0)[0], brakingRoute(0.06, 0.04, 0)[0], brakingRoute(0.04, 0.07, 0)[0]};
+	// Ordered, with an empty section, an arc of no length and gaps.
+	std::vector<Section> ordered{brakingRoute(0, 0.01, 0)[0], Section{}, brakingRoute(0.01, 0.02, 0)[0],
+		brakingRoute(0.03, 0.03, 0)[0], brakingRoute(0.03, 0.05, 0)[0], brakingRoute(0.06, 0.08, 0)[0]};
+	ordered[1].total_arcs = 0;
+	// Ordered up to the second arc, with a later arc over the gap before it or before the first arc.
+	std::vector<Section> coveredGap{brakingRoute(0, 0.01, 0)[0], brakingRoute(0.02, 0.03, 0)[0], brakingRoute(0.005, 0.025, 0)[0]};
+	std::vector<Section> laterStart{brakingRoute(0.01, 0.02, 0)[0], brakingRoute(0.03, 0.04, 0)[0], brakingRoute(0, 0.005, 0)[0]};
+	std::vector<Section> shortArcs;
+	for (int k = 0; k < 80; ++k)
+		shortArcs.push_back(brakingRoute(k * 0.002, (k + 1) * 0.002, 0)[0]);
+	for (std::vector<Section>* route :
+		{&overlap, &gap, &unordered, &crossSection, &inverted, &ordered, &coveredGap, &laterStart, &shortArcs}) {
+		Section* sections = route->data();
+		const int count = static_cast<int>(route->size());
+		Train::BackwardBrakingArcCursor cursor;
+		QVERIFY(walk(cursor, sections, count, descendingHeads(sections, count, 0.5)));
+		// Moves forward, NaN and infinities between moves back.
+		QVERIFY(walk(cursor, sections, count, {150, 70, 75, 30, nan, 25, 45, 5, 60, -inf, 55, inf, 10, 9, 70, 65, 45, 35, 3}));
+	}
 }
 
 void TestOperationsBuilder::parkedTrainIsNotShortOfBrakingPoint() {

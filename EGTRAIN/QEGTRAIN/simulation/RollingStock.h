@@ -583,6 +583,23 @@ public:
 	/// The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.
 	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const;
 
+	/// Finds the arc of the route under a head position in metres for a walk against the direction of travel, continuing from
+	/// the previous lookup, with the result of brakingArc.
+	///
+	/// The scan of brakingArc returns the first arc that holds the head. While the arcs up to the arc of the last lookup are
+	/// ordered (each starts at or after the end of the one before it and does not end before it starts), that is the only arc of
+	/// them that holds the head, so the cursor moves back over them. Otherwise, and when none of them holds the head, it scans
+	/// from the first section again.
+	struct BackwardBrakingArcCursor {
+		const Arc* arc = nullptr; ///< Arc of the last lookup; null when there is none.
+		int section = 0;		  ///< Index of the section of the last lookup.
+		int arcIndex = 0;		  ///< Index of the arc within that section.
+		bool ordered = false;	  ///< True when the arcs up to and including arc are ordered.
+
+		/// The arc under head, or null.
+		const Arc* find(double head, Section* sections, int count);
+	};
+
 	/// Speed (m/s) after one full braking step from speed (m/s) on arc. Every curve step samples force at the actual start and uses
 	/// the right endpoint for distance.
 	double brakingCurveSpeed(double speed, const Arc& arc) {
@@ -592,8 +609,9 @@ public:
 	/// The state one full braking step before nextHead (m) and nextSpeed (m/s); head and speed receive it. The resistance is
 	/// quadratic in speed, and only the root on the increasing branch of v - dt a(v) counts, so false when there is no unique one.
 	/// For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the entire saturated preimage of max(0, q(v)); smaller terminal
-	/// speeds are valid forward states.
-	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed);
+	/// speeds are valid forward states. cursor, when given, finds the arc in place of brakingArc.
+	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed,
+		BackwardBrakingArcCursor* cursor = nullptr);
 
 	/// Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m).
 	/// False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every
