@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,196,215,258"/>
 <area shape="rect" id="Node000002" href="$class_run_control.html#af0558800cbbc4be025c334a61eba5abe" title=" " alt="" coords="283,89,449,117"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,194,262,139,310,121,307,125,264,144,165,197"/>
-<area shape="rect" id="Node000008" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="295,205,437,250"/>
+<area shape="rect" id="Node000008" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title="The same run with write access, for the stages of the controller and for tests. The thread rules of r..." alt="" coords="295,205,437,250"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="214,225,281,225,277,229,217,229"/>
 <area shape="rect" id="Node000010" href="$_passengers_8cpp.html#aacac856b135c49621e74ff6767182313" title=" " alt="" coords="263,297,469,325"/>
 <area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="205,256,309,290,304,293,207,261"/>

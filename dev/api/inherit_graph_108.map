@@ -1,3 +1,19 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_node.html" title=" " alt="" coords="5,5,61,33"/>
+<area shape="rect" id="Node000000" href="$class_network_presenter_1_1_frame_host.html" title=" " alt="" coords="5,5,223,33"/>
+<area shape="rect" id="Node000001" href="$class_main_window.html" title=" " alt="" coords="271,188,376,216"/>
+<area shape="poly" id="edge4_Node000000_Node000001" title=" " alt="" coords="213,38,224,44,260,78,287,118,307,157,320,188,315,187,302,159,283,120,256,81,221,48,214,43"/>
+<area shape="rect" id="Node000002" href="$class_editor_docks_1_1_host.html" title="What the editor docks ask of the window." alt="" coords="45,57,183,85"/>
+<area shape="poly" id="edge5_Node000002_Node000001" title=" " alt="" coords="196,84,224,96,253,116,279,141,315,188,310,188,275,145,250,121,221,100,198,89"/>
+<area shape="rect" id="Node000003" href="$class_inspector_panel_1_1_host.html" title="What the panel asks of the window." alt="" coords="37,109,191,137"/>
+<area shape="poly" id="edge6_Node000003_Node000001" title=" " alt="" coords="197,139,224,147,264,166,301,187,296,188,262,170,222,152,198,144"/>
+<area shape="rect" id="Node000004" href="$class_result_views_1_1_host.html" title="What the views ask of the window." alt="" coords="44,161,184,189"/>
+<area shape="poly" id="edge7_Node000004_Node000001" title=" " alt="" coords="199,183,273,194,268,196,200,189"/>
+<area shape="rect" id="Node000005" href="$class_run_controller_1_1_host.html" title=" " alt="" coords="40,213,188,241"/>
+<area shape="poly" id="edge8_Node000005_Node000001" title=" " alt="" coords="203,214,273,207,268,210,204,219"/>
+<area shape="rect" id="Node000006" href="$class_run_results_dock_1_1_host.html" title="What the dock asks of the window." alt="" coords="31,265,197,293"/>
+<area shape="poly" id="edge9_Node000006_Node000001" title=" " alt="" coords="197,258,222,250,300,215,296,218,224,255,199,263"/>
+<area shape="rect" id="Node000007" href="$class_scene_session_1_1_host.html" title=" " alt="" coords="40,317,188,345"/>
+<area shape="poly" id="edge10_Node000007_Node000001" title=" " alt="" coords="202,311,221,302,249,282,274,258,310,218,314,215,278,262,253,286,224,307,204,316"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="56,369,172,397"/>
+<area shape="poly" id="edge11_Node000008_Node000001" title=" " alt="" coords="186,371,221,354,256,322,283,282,302,244,315,218,319,214,307,247,287,285,260,325,224,359,188,376"/>
 </map>

@@ -1,15 +1,19 @@
 <map id="CompositionPanel::addComposition" name="CompositionPanel::addComposition">
-<area shape="rect" id="Node000001" title="Appends a composition without units, with a new unique id, and selects it." alt="" coords="5,96,258,124"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="321,5,517,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,93,230,68,305,42,334,36,329,38,306,47,232,73,168,98"/>
-<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="306,57,532,102"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="257,94,293,92,288,94,259,99"/>
-<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="323,125,515,153"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="258,120,310,127,304,128,258,125"/>
-<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="319,201,518,229"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="172,122,366,194,362,197,171,127"/>
-<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="580,125,674,153"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="515,137,567,139,562,139,515,142"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="591,124,585,116,590,107,604,101,627,99,652,101,666,110,661,110,650,106,627,104,606,106,594,111,591,116,596,126"/>
-<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="383,200,377,192,382,183,396,177,419,175,443,177,458,186,453,186,442,182,419,180,397,182,385,187,382,192,388,202"/>
+<area shape="rect" id="Node000001" title="Appends a composition without units, with a new unique id, and selects it." alt="" coords="5,81,258,109"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="307,5,504,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,78,340,36,336,40,185,83"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="553,56,756,84"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,86,539,73,536,78,258,92"/>
+<area shape="rect" id="Node000004" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="309,107,502,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="258,104,296,110,291,111,258,110"/>
+<area shape="rect" id="Node000007" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="306,183,505,210"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="172,107,353,175,349,178,171,112"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="476,104,571,87,566,88,477,109"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="580,132,730,160"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="502,128,566,137,561,137,502,133"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="621,130,615,123,620,113,633,107,655,105,678,108,692,117,687,116,676,113,655,111,634,113,623,117,620,123,625,133"/>
+<area shape="rect" id="Node000006" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="804,132,899,160"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="730,143,791,146,786,146,730,148"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="817,130,812,123,816,113,830,107,852,105,875,108,889,117,884,116,873,113,851,111,831,113,820,117,817,123,822,133"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="363,181,356,174,361,164,378,158,405,156,435,158,452,168,447,167,433,164,405,161,379,163,365,168,361,173,368,183"/>
 </map>

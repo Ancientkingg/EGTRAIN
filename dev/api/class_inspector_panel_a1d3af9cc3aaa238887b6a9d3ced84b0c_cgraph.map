@@ -1,19 +1,17 @@
 <map id="InspectorPanel::displaySignallingInfo" name="InspectorPanel::displaySignallingInfo">
-<area shape="rect" id="Node000001" title="Shows the form of a signal of the run, with its position and the length of the section ahead in metre..." alt="" coords="5,126,266,154"/>
+<area shape="rect" id="Node000001" title="Shows the form of a signal of the run, with its position and the length of the section ahead in metre..." alt="" coords="5,98,266,126"/>
 <area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="314,5,518,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,123,313,60,334,54,329,57,315,65,169,128"/>
-<area shape="rect" id="Node000003" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="324,75,508,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,123,311,112,306,114,232,128"/>
-<area shape="rect" id="Node000004" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="346,167,486,195"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,151,333,168,328,169,234,157"/>
-<area shape="rect" id="Node000008" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="328,219,504,263"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="175,152,315,204,336,213,330,213,313,209,174,157"/>
-<area shape="poly" id="edge8_Node000004_Node000004" title=" " alt="" coords="375,166,369,158,374,149,390,143,416,141,444,143,460,152,455,152,442,148,416,146,391,148,377,153,374,158,380,167"/>
-<area shape="rect" id="Node000005" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="566,91,741,119"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="459,164,565,129,588,125,593,123,567,134,461,169"/>
-<area shape="rect" id="Node000006" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="586,167,721,195"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="486,178,573,181,568,181,486,184"/>
-<area shape="rect" id="Node000007" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="586,219,722,247"/>
-<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="483,193,575,215,569,215,482,198"/>
-<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="613,166,606,158,612,149,628,143,654,141,682,143,698,152,693,152,680,148,654,146,629,148,615,153,612,158,618,168"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,95,327,53,322,56,185,100"/>
+<area shape="rect" id="Node000003" href="$_signal_item_8cpp.html#a5973ce3c0f3fa3092a7e97a99b576e47" title=" " alt="" coords="346,98,486,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,109,333,111,328,112,267,114"/>
+<area shape="rect" id="Node000007" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="328,149,504,194"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="204,123,315,149,310,150,203,129"/>
+<area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="375,96,369,89,374,79,390,73,416,71,444,74,460,83,455,82,442,79,416,76,391,78,377,83,374,89,380,98"/>
+<area shape="rect" id="Node000004" href="$class_signal_item.html#acce94295f480f3ab855b01fc5e662bf3" title="The aspect code of the head." alt="" coords="566,22,741,50"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="459,95,565,60,588,55,593,54,567,65,461,100"/>
+<area shape="rect" id="Node000005" href="$_visual_polish_8cpp.html#a2511e34f95b2de260988d67c627468bf" title="The state of a signal head for an aspect code, as SignalCueKind lists it." alt="" coords="586,98,721,126"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="486,109,573,111,568,112,486,114"/>
+<area shape="rect" id="Node000006" href="$class_signal_item.html#a166671bcb87bb1c4a3cceef6f2920596" title="The signal has failed." alt="" coords="586,150,722,178"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="483,123,575,146,569,146,482,129"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="613,96,606,89,612,79,628,73,654,71,682,74,698,83,693,82,680,79,654,76,629,78,615,83,612,89,618,98"/>
 </map>

@@ -1,31 +1,19 @@
 <map id="diagrams/BlockingTimeScope.h" name="diagrams/BlockingTimeScope.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="271,5,498,33"/>
-<area shape="rect" id="Node000002" href="$_result_views_8cpp.html" title=" " alt="" coords="161,308,317,336"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,29,189,43,121,67,90,84,61,105,36,129,16,158,8,185,14,209,30,231,55,251,86,268,120,283,188,306,183,308,118,288,84,273,52,255,26,234,9,211,3,184,12,156,32,126,58,100,87,80,119,62,187,38,258,25"/>
-<area shape="rect" id="Node000003" href="$_blocking_time_data_8h.html" title=" " alt="" coords="149,81,367,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="347,43,282,83,279,78,351,39"/>
-<area shape="rect" id="Node000012" href="$_blocking_time_scope_8cpp.html" title=" " alt="" coords="391,81,632,109"/>
-<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="420,38,492,80,486,81,420,44"/>
-<area shape="rect" id="Node000013" href="$_run_csv_8cpp.html" title=" " alt="" coords="656,81,817,109"/>
-<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="463,34,676,79,671,81,463,39"/>
-<area shape="rect" id="Node000004" href="$_blocking_time_data_8cpp.html" title=" " alt="" coords="27,157,260,184"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,119,165,158,162,154,227,116"/>
-<area shape="rect" id="Node000005" href="$_route_charts_8h.html" title=" " alt="" coords="283,157,462,184"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="292,115,355,156,350,157,291,120"/>
-<area shape="rect" id="Node000007" href="$_run_exports_8h.html" title=" " alt="" coords="521,157,693,184"/>
-<area shape="poly" id="edge7_Node000003_Node000007" title=" " alt="" coords="336,110,547,155,542,157,336,115"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="306,189,274,210,249,234,241,252,238,272,239,309,235,306,232,272,236,250,245,231,271,205,301,192"/>
-<area shape="rect" id="Node000006" href="$_route_charts_8cpp.html" title=" " alt="" coords="259,232,452,260"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="368,198,360,234,356,230,364,202"/>
-<area shape="poly" id="edge13_Node000007_Node000002" title=" " alt="" coords="578,192,516,234,466,262,386,291,309,310,308,305,384,286,464,258,514,229,573,194"/>
-<area shape="rect" id="Node000008" href="$_main_window_support_8h.html" title=" " alt="" coords="527,232,722,260"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="615,198,624,233,619,231,612,202"/>
-<area shape="rect" id="Node000011" href="$_run_results_dock_8cpp.html" title=" " alt="" coords="721,308,904,336"/>
-<area shape="poly" id="edge14_Node000007_Node000011" title=" " alt="" coords="658,188,698,206,736,230,777,270,806,309,801,307,773,273,732,234,695,211,658,193"/>
-<area shape="poly" id="edge10_Node000008_Node000002" title=" " alt="" coords="543,263,309,310,308,305,538,263"/>
-<area shape="rect" id="Node000009" href="$_main_window_8cpp.html" title=" " alt="" coords="350,308,510,336"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="578,265,465,310,464,305,573,266"/>
-<area shape="rect" id="Node000010" href="$_run_controller_8cpp.html" title=" " alt="" coords="533,308,697,336"/>
-<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="623,274,619,309,615,306,619,277"/>
-<area shape="poly" id="edge12_Node000008_Node000011" title=" " alt="" coords="673,263,782,308,777,307,672,269"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="222,5,449,33"/>
+<area shape="rect" id="Node000002" href="$_result_views_8cpp.html" title=" " alt="" coords="5,232,162,260"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,38,137,57,108,69,89,83,79,100,72,120,69,162,74,202,82,232,77,232,69,203,64,162,67,119,74,98,86,79,105,64,136,52,215,34"/>
+<area shape="rect" id="Node000003" href="$_blocking_time_data_8h.html" title=" " alt="" coords="100,81,318,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="298,43,233,83,230,78,302,39"/>
+<area shape="rect" id="Node000007" href="$_blocking_time_scope_8cpp.html" title=" " alt="" coords="342,81,583,109"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="371,38,442,80,437,81,371,44"/>
+<area shape="rect" id="Node000008" href="$_run_csv_8cpp.html" title=" " alt="" coords="607,81,768,109"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="414,34,627,79,622,81,414,39"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="159,117,135,135,111,158,100,177,93,197,87,233,82,231,88,195,95,174,107,155,131,131,163,114"/>
+<area shape="rect" id="Node000004" href="$_blocking_time_data_8cpp.html" title=" " alt="" coords="122,157,355,184"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="221,121,236,157,230,156,219,126"/>
+<area shape="rect" id="Node000005" href="$_route_charts_8h.html" title=" " alt="" coords="378,157,557,184"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="270,111,424,155,419,157,269,116"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="384,190,153,234,152,229,383,185"/>
+<area shape="rect" id="Node000006" href="$_route_charts_8cpp.html" title=" " alt="" coords="371,232,564,260"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="469,198,470,234,465,230,466,202"/>
 </map>

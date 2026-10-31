@@ -1,0 +1,5 @@
+<map id="PassengerPanel::selectedPassenger" name="PassengerPanel::selectedPassenger">
+<area shape="rect" id="Node000001" title="The selected passenger, or null when none is selected or no scene is loaded." alt="" coords="5,5,191,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="239,14,442,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,25,226,27,220,28,191,30"/>
+</map>

@@ -6,5 +6,5 @@ var class_connection_item =
     [ "paint", "class_connection_item.html#acd3cf6ac682c114592a99a975d3a6812", null ],
     [ "shape", "class_connection_item.html#ae3a8acd1a3352ebc6b655acc74eede4b", null ],
     [ "type", "class_connection_item.html#ad1f2251dad95ca0dcf2a3e8a55d98660", null ],
-    [ "connection", "class_connection_item.html#a88d0774ff29ce5a44536466a90c9054a", null ]
+    [ "connection", "class_connection_item.html#a1d75b5dc89305fb7060a43d6137338b2", null ]
 ];

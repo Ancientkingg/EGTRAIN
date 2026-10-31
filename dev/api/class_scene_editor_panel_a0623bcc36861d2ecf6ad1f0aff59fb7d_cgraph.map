@@ -1,0 +1,14 @@
+<map id="SceneEditorPanel::setDocument" name="SceneEditorPanel::setDocument">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,135,234,162"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="290,5,480,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,132,198,88,238,63,281,42,300,37,296,40,283,47,241,68,201,92,140,136"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#a146f3ad4e046cdd8290757d3d03bff76" title="kinds of the document have changed. A panel that shows them goes along here." alt="" coords="282,57,488,102"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,132,284,104,280,108,176,137"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#aa13f46339c1a46209bbbd3b2b7ff13fd" title="The document has been replaced. The panel shows it again." alt="" coords="282,126,488,171"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,146,269,148,264,149,235,151"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8" title="Shows the current state of the document." alt="" coords="536,165,723,193"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="174,160,226,172,282,181,340,185,385,185,488,181,523,182,518,183,488,186,385,190,339,190,281,186,225,177,174,166"/>
+<area shape="rect" id="Node000006" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="289,245,480,273"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="147,160,209,192,283,225,320,240,315,240,281,230,207,196,147,165"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="488,159,523,165,518,166,489,164"/>
+</map>

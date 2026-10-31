@@ -1,7 +1,9 @@
 <map id="editors/EntranceDelayPanel.h" name="editors/EntranceDelayPanel.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,299,33"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,81,165,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,42,105,83,103,78,158,43"/>
-<area shape="rect" id="Node000003" href="$_entrance_delay_panel_8cpp.html" title=" " alt="" coords="189,81,416,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,40,286,81,280,81,224,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="158,5,370,33"/>
+<area shape="rect" id="Node000002" href="$_editor_docks_8cpp.html" title=" " alt="" coords="5,81,160,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,40,116,83,114,78,215,38"/>
+<area shape="rect" id="Node000003" href="$_main_window_8cpp.html" title=" " alt="" coords="184,81,344,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,47,266,82,262,79,262,51"/>
+<area shape="rect" id="Node000004" href="$_entrance_delay_panel_8cpp.html" title=" " alt="" coords="368,81,595,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,36,445,80,440,81,316,41"/>
 </map>

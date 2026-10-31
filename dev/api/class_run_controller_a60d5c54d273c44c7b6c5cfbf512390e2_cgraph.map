@@ -1,6 +1,8 @@
 <map id="RunController::completedDelaySnapshot" name="RunController::completedDelaySnapshot">
-<area shape="rect" id="Node000001" title="The completed run as the delay analysis takes it. It has no scenario when no run has completed." alt="" coords="5,21,193,66"/>
-<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="241,29,394,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,41,228,43,222,43,193,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="280,28,274,20,279,11,293,5,317,3,343,5,358,14,353,14,342,10,317,8,295,10,282,15,279,20,285,30"/>
+<area shape="rect" id="Node000001" title="The completed run as the delay analysis takes it. It has no scenario when no run has completed." alt="" coords="5,48,193,92"/>
+<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="275,29,428,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,57,262,52,257,53,194,63"/>
+<area shape="rect" id="Node000003" href="$class_run_controller.html#a4ab71663fd2e781b122a664f0d929787" title="The last run completed and its results are valid for the scene as it is." alt="" coords="241,81,463,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="193,77,228,82,222,83,193,82"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="309,28,302,20,307,11,324,5,352,3,381,5,399,14,394,14,380,10,352,8,325,10,311,15,307,20,314,30"/>
 </map>

@@ -1,28 +1,7 @@
 <map id="ServicePanel::commitHasOperatingCodeStep" name="ServicePanel::commitHasOperatingCodeStep">
-<area shape="rect" id="Node000001" title="Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1." alt="" coords="5,164,257,208"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="322,141,518,169"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,170,309,166,305,169,258,175"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="305,193,536,238"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,196,292,201,287,203,258,201"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="608,91,778,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="510,190,535,178,549,168,558,157,568,146,583,134,614,123,609,125,585,139,571,149,562,160,552,172,537,183,513,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="850,29,1128,57"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="519,190,534,179,546,164,552,148,555,115,560,83,568,67,582,53,623,30,667,15,713,6,760,3,849,9,927,25,921,26,849,14,760,9,714,12,668,20,625,35,586,57,572,71,565,85,561,116,558,149,551,166,538,183,521,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="885,117,1093,145"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="521,190,584,178,732,156,872,142,867,144,733,162,584,183,523,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="598,193,788,238"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="536,213,585,215,580,216,537,218"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="602,262,785,307"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="511,236,590,258,585,258,511,241"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="584,355,802,382"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="455,236,515,275,585,317,646,348,641,348,583,322,512,280,454,241"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="608,431,778,458"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="439,236,500,311,540,353,586,392,640,425,635,424,582,396,537,357,496,314,437,241"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="647,90,639,82,645,72,664,66,693,64,725,67,744,75,739,76,724,72,693,69,665,71,649,76,645,82,652,91"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="763,88,906,60,901,62,764,93"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="779,110,872,120,867,121,779,115"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="939,28,931,21,937,11,957,5,989,3,1024,5,1044,14,1039,15,1023,11,989,8,958,10,940,15,936,20,944,29"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="939,116,931,109,937,99,957,93,989,91,1024,93,1044,103,1039,103,1023,99,989,96,958,98,940,103,936,108,944,118"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="647,353,639,346,645,336,664,330,693,328,725,331,744,340,739,339,724,336,693,333,665,335,649,340,645,346,652,355"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="647,429,639,422,645,412,664,406,693,404,725,407,744,416,739,415,724,412,693,409,665,411,649,416,645,422,652,431"/>
+<area shape="rect" id="Node000001" title="Sets whether the service code grows by a step with each occurrence; a step of 0 becomes 1." alt="" coords="5,5,257,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="305,14,494,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="257,25,292,28,286,28,257,30"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="542,14,745,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="494,25,529,28,524,28,495,30"/>
 </map>

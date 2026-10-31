@@ -1,7 +1,0 @@
-<map id="CaseSettingsPanel::setDocument" name="CaseSettingsPanel::setDocument">
-<area shape="rect" id="Node000001" title="Refreshes when the document is replaced." alt="" coords="5,36,155,81"/>
-<area shape="rect" id="Node000002" href="$class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9" title="Shows the current state of the document." alt="" coords="224,5,373,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,45,211,39,206,41,155,50"/>
-<area shape="rect" id="Node000003" href="$class_scene_document.html#a6b22d47eaed3e5ca1c78c8092ee8bac2" title="Emitted by replace(), after the whole state is set." alt="" coords="203,74,394,102"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,66,190,73,185,73,155,71"/>
-</map>

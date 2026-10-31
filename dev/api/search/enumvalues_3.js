@@ -10,5 +10,5 @@ var searchData=
   ['discard_7',['Discard',['../class_recovery_prompt.html#a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733',1,'RecoveryPrompt']]],
   ['duplicateidentity_8',['DuplicateIdentity',['../_area_capacity_8h.html#ab6015ecca101bd676809ab10e59392d0a1faa6cebeea868f75d6ea33fdd8e3aca',1,'AreaCapacity.h']]],
   ['durationdiffers_9',['DurationDiffers',['../_delay_analysis_8h.html#ab222e5d6efd74d15502936212ee68f60a548dc89da66bb54892a3f140097456ff',1,'DelayAnalysis.h']]],
-  ['dwell_10',['Dwell',['../struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12',1,'RouteDiagramSeries']]]
+  ['dwell_10',['Dwell',['../struct_route_diagram_series.html#a99f1439d0db3191ec5ff7ad0ce45b2a7a72208938ff5d41b722faba328d044f12',1,'RouteDiagramSeries::Dwell'],['../_stop_editor_dialog_8h.html#a18bb7c78b21b0952796ca911c64fc217a72208938ff5d41b722faba328d044f12',1,'Dwell:&#160;StopEditorDialog.h']]]
 ];

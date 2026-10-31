@@ -3,6 +3,7 @@ var class_train_unit_source_linker =
     [ "Link", "struct_train_unit_source_linker_1_1_link.html", "struct_train_unit_source_linker_1_1_link" ],
     [ "TrainUnitSourceLinker", "class_train_unit_source_linker.html#a4a956874976fc131a31095e03150a088", null ],
     [ "clear", "class_train_unit_source_linker.html#aab03a4717247b3434574c6905b628367", null ],
+    [ "commitAllPendingEditsRequested", "class_train_unit_source_linker.html#a1634ba591e106a7ed9878439e5ed67e7", null ],
     [ "commitPendingEditsRequested", "class_train_unit_source_linker.html#a54184a53c6a3a3ecd45c007f1ff75873", null ],
     [ "forgetUnit", "class_train_unit_source_linker.html#a3b9ea4f872d5ec25776cab95b481c358", null ],
     [ "hasPendingChanges", "class_train_unit_source_linker.html#a3eef3d22841d2a77efce3df0459cddd8", null ],

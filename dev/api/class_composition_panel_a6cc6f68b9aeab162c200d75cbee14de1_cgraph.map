@@ -1,6 +1,11 @@
 <map id="CompositionPanel::refresh" name="CompositionPanel::refresh">
-<area shape="rect" id="Node000001" title="Shows the current state of the document." alt="" coords="5,29,198,57"/>
-<area shape="rect" id="Node000002" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="246,29,340,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,41,232,43,227,43,198,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="260,28,254,20,259,11,272,5,293,3,316,5,329,14,324,14,314,10,293,8,273,10,262,15,260,20,264,30"/>
+<area shape="rect" id="Node000001" title="Shows the current state of the document." alt="" coords="5,44,198,72"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="246,5,449,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,41,243,35,238,37,194,46"/>
+<area shape="rect" id="Node000003" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="272,81,422,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,70,260,81,254,82,197,75"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="313,80,308,72,312,63,326,57,347,55,371,57,385,66,379,66,369,62,347,60,327,62,316,67,313,72,318,82"/>
+<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="497,81,591,109"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="423,93,484,95,479,95,423,98"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="510,80,505,72,509,63,522,57,544,55,567,57,581,67,576,66,566,62,544,60,524,62,513,67,510,72,515,82"/>
 </map>

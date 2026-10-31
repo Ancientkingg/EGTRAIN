@@ -1,5 +1,0 @@
-<map id="NetworkPresenter::platformPassengersVisible" name="NetworkPresenter::platformPassengersVisible">
-<area shape="rect" id="Node000001" title="The passengers on a platform show where its bar shows, with the passenger layer." alt="" coords="5,5,208,50"/>
-<area shape="rect" id="Node000002" href="$class_network_presenter.html#acd9ae8da79343e2686907d5f71fb86f0" title="A platform bar shows with the stations in the near look." alt="" coords="256,5,458,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,25,243,27,238,28,208,30"/>
-</map>

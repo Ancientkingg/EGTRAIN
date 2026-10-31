@@ -1,28 +1,7 @@
 <map id="ServicePanel::commitHasMaximumSpeed" name="ServicePanel::commitHasMaximumSpeed">
-<area shape="rect" id="Node000001" title="Sets whether the service has a maximum speed; one that has none gets 100 km/h." alt="" coords="5,164,259,208"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="324,141,520,169"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="258,170,311,166,307,169,260,175"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="307,193,538,238"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,196,294,201,289,203,260,201"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="610,91,780,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="512,190,537,178,551,168,560,157,570,146,585,134,616,123,611,125,587,139,573,149,564,160,554,172,539,183,515,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="852,29,1130,57"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="521,190,536,179,548,164,554,148,557,115,562,83,570,67,584,53,625,30,669,15,715,6,762,3,851,9,929,25,923,26,851,14,762,9,716,12,670,20,627,35,588,57,574,71,567,85,563,116,560,149,553,166,540,183,523,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="887,117,1095,145"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="523,190,586,178,734,156,874,142,869,144,735,162,586,183,525,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="600,193,790,238"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="538,213,587,215,582,216,539,218"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="604,262,787,307"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="513,236,592,258,587,258,513,241"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="586,355,804,382"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="457,236,517,275,587,317,648,348,643,348,585,322,514,280,456,241"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="610,431,780,458"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="441,236,502,311,542,353,588,392,642,425,637,424,584,396,539,357,498,314,439,241"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="649,90,641,82,647,72,666,66,695,64,727,67,746,75,741,76,726,72,695,69,667,71,651,76,647,82,654,91"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="765,88,908,60,903,62,766,93"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="781,110,874,120,869,121,781,115"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="941,28,933,21,939,11,959,5,991,3,1026,5,1046,14,1041,15,1025,11,991,8,960,10,942,15,938,20,946,29"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="941,116,933,109,939,99,959,93,991,91,1026,93,1046,103,1041,103,1025,99,991,96,960,98,942,103,938,108,946,118"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="649,353,641,346,647,336,666,330,695,328,727,331,746,340,741,339,726,336,695,333,667,335,651,340,647,346,654,355"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="649,429,641,422,647,412,666,406,695,404,727,407,746,416,741,415,726,412,695,409,667,411,651,416,647,422,654,431"/>
+<area shape="rect" id="Node000001" title="Sets whether the service has a maximum speed; one that has none gets 100 km/h." alt="" coords="5,5,259,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="307,14,496,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="259,25,294,28,288,28,259,30"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="544,14,747,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="496,25,531,28,526,28,497,30"/>
 </map>

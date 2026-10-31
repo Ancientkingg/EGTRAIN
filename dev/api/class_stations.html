@@ -143,15 +143,14 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a03313d5cb0703543c305e3d5bea49792"><td class="mdescLeft">&#160;</td><td class="mdescRight">Latitude in degrees from the scene views; 0 when there is none.  <br /></td></tr>
 <tr class="memitem:a673376dec31658b8c951dcc1b1727737" id="r_a673376dec31658b8c951dcc1b1727737"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a673376dec31658b8c951dcc1b1727737">longitude</a> = 0</td></tr>
 <tr class="memitem:a02c0f36d291e32c6f9cfe86acc5b288f" id="r_a02c0f36d291e32c6f9cfe86acc5b288f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a02c0f36d291e32c6f9cfe86acc5b288f">graphX</a> = 0</td></tr>
-<tr class="memdesc:a02c0f36d291e32c6f9cfe86acc5b288f"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the station on the canvas, which the network presenter sets.  <br /></td></tr>
 <tr class="memitem:a4175e4445181c9382f8deb4831c28057" id="r_a4175e4445181c9382f8deb4831c28057"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4175e4445181c9382f8deb4831c28057">graphY</a> = 0</td></tr>
 <tr class="memitem:a01f5a81d69c1c53a3a9dcc750ce4fc75" id="r_a01f5a81d69c1c53a3a9dcc750ce4fc75"><td class="memItemLeft">std::map&lt; int, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a01f5a81d69c1c53a3a9dcc750ce4fc75">shiftX</a></td></tr>
-<tr class="memdesc:a01f5a81d69c1c53a3a9dcc750ce4fc75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per display region, the unit vector along which the canvas shifts the display levels of the tracks at the station.  <br /></td></tr>
+<tr class="memdesc:a01f5a81d69c1c53a3a9dcc750ce4fc75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used, like graphX; empty.  <br /></td></tr>
 <tr class="memitem:a7938f3cb8b89624c06dbeaee036c7a20" id="r_a7938f3cb8b89624c06dbeaee036c7a20"><td class="memItemLeft">std::map&lt; int, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7938f3cb8b89624c06dbeaee036c7a20">shiftY</a></td></tr>
 <tr class="memitem:aaddce61db44fa90afbfd6716e262b052" id="r_aaddce61db44fa90afbfd6716e262b052"><td class="memItemLeft">std::map&lt; int, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaddce61db44fa90afbfd6716e262b052">signalDeltaX</a></td></tr>
-<tr class="memdesc:aaddce61db44fa90afbfd6716e262b052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per display region, the unit vector along which the canvas places trackside signals at the station.  <br /></td></tr>
+<tr class="memdesc:aaddce61db44fa90afbfd6716e262b052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used, like graphX; empty.  <br /></td></tr>
 <tr class="memitem:af5d3dd951faa6955d821e732ed5f3ed0" id="r_af5d3dd951faa6955d821e732ed5f3ed0"><td class="memItemLeft">std::map&lt; int, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af5d3dd951faa6955d821e732ed5f3ed0">signalDeltaY</a></td></tr>
-<tr class="memdesc:af5d3dd951faa6955d821e732ed5f3ed0"><td class="mdescLeft">&#160;</td><td class="mdescRight">See signalDeltaX.  <br /></td></tr>
+<tr class="memdesc:af5d3dd951faa6955d821e732ed5f3ed0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not used, like graphX; empty.  <br /></td></tr>
 <tr class="memitem:a6dca759fee373e9660cb270a912011af" id="r_a6dca759fee373e9660cb270a912011af"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6dca759fee373e9660cb270a912011af">regions</a></td></tr>
 <tr class="memdesc:a6dca759fee373e9660cb270a912011af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display regions of the station from the scene views.  <br /></td></tr>
 <tr class="memitem:a495f105e8f5839e209e6b4bc23a2f982" id="r_a495f105e8f5839e209e6b4bc23a2f982"><td class="memItemLeft">std::map&lt; int, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a495f105e8f5839e209e6b4bc23a2f982">regionX</a></td></tr>
@@ -216,8 +215,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>X of the station on the canvas, which the network presenter sets. </p>
+<p>Not used: the network canvas keeps the positions, shifts and signal offsets of the stations in its own layout tables. 0. </p>
 
 </div>
 </div>
@@ -232,7 +230,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Y of the station on the canvas, which the network presenter sets. </p>
+<p>Not used, like graphX. </p>
 
 </div>
 </div>
@@ -327,7 +325,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Per display region, the unit vector along which the canvas shifts the display levels of the tracks at the station. </p>
+<p>Not used, like graphX; empty. </p>
 
 </div>
 </div>
@@ -342,7 +340,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>See shiftX. </p>
+<p>Not used, like graphX; empty. </p>
 
 </div>
 </div>
@@ -358,7 +356,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Per display region, the unit vector along which the canvas places trackside signals at the station. </p>
+<p>Not used, like graphX; empty. </p>
 
 </div>
 </div>
@@ -374,7 +372,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>See signalDeltaX. </p>
+<p>Not used, like graphX; empty. </p>
 
 </div>
 </div>

@@ -161,9 +161,8 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a18e537ee3be0b0f494e54d19486b532b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not set for a node; <a class="el" href="class_stations.html" title="A station, with the delay statistics of the trains that stop there.">Stations</a> has its own latitude and longitude.  <br /></td></tr>
 <tr class="memitem:af1772ed9e687d1e230f21c8fdf955ee9" id="r_af1772ed9e687d1e230f21c8fdf955ee9"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af1772ed9e687d1e230f21c8fdf955ee9">longitude</a></td></tr>
 <tr class="memitem:a17af8258d372ab0d2c0a63022f12c7df" id="r_a17af8258d372ab0d2c0a63022f12c7df"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a17af8258d372ab0d2c0a63022f12c7df">graphX</a></td></tr>
-<tr class="memdesc:a17af8258d372ab0d2c0a63022f12c7df"><td class="mdescLeft">&#160;</td><td class="mdescRight">X on the canvas, which the network presenter sets for the nodes of <a class="el" href="class_block_set.html#ab2f49a93077ab4ba03e00618676639d2" title="A second copy of the arcs, which the canvas draws and setVirtualSignals reads.">BlockSet::member</a>; 0 otherwise.  <br /></td></tr>
 <tr class="memitem:abca80823d69b672821840baa596bb53a" id="r_abca80823d69b672821840baa596bb53a"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abca80823d69b672821840baa596bb53a">graphY</a></td></tr>
-<tr class="memdesc:abca80823d69b672821840baa596bb53a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y on the canvas, set like graphX.  <br /></td></tr>
+<tr class="memdesc:abca80823d69b672821840baa596bb53a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stays 0, like graphX.  <br /></td></tr>
 <tr class="memitem:a191fc672342373f3c7c899961b4d8344" id="r_a191fc672342373f3c7c899961b4d8344"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a191fc672342373f3c7c899961b4d8344">virtualSignal</a></td></tr>
 <tr class="memdesc:a191fc672342373f3c7c899961b4d8344"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for the signal in the middle of a double switch, which setVirtualSignals marks.  <br /></td></tr>
 </table>
@@ -297,8 +296,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>X on the canvas, which the network presenter sets for the nodes of <a class="el" href="class_block_set.html#ab2f49a93077ab4ba03e00618676639d2" title="A second copy of the arcs, which the canvas draws and setVirtualSignals reads.">BlockSet::member</a>; 0 otherwise. </p>
+<p>Stays 0. The builder copies it and graphY into the fields of a connection (<a class="el" href="class_connections.html#abe46975eb784942ea18354770c3c82cc">Connections::graphXFirstNode</a> and the others), and the network canvas works out the point of a node when it draws it. </p>
 
 </div>
 </div>
@@ -314,7 +312,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Y on the canvas, set like graphX. </p>
+<p>Stays 0, like graphX. </p>
 
 </div>
 </div>

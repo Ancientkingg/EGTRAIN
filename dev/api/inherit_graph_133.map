@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,176,33"/>
-<area shape="rect" id="Node000001" href="$class_train_body_item.html" title="The body of one wagon of a train, a polygon in scene coordinates." alt="" coords="224,5,339,33"/>
-<area shape="poly" id="edge43_Node000000_Node000001" title=" " alt="" coords="191,17,226,19,221,19,191,22"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,32,167,60"/>
+<area shape="rect" id="Node000001" href="$class_node_item.html" title=" " alt="" coords="218,5,303,33"/>
+<area shape="poly" id="edge32_Node000000_Node000001" title=" " alt="" coords="182,28,220,25,215,26,183,34"/>
+<area shape="rect" id="Node000002" href="$class_signal_item.html" title=" " alt="" coords="215,57,306,85"/>
+<area shape="poly" id="edge33_Node000000_Node000002" title=" " alt="" coords="182,57,217,64,211,65,182,63"/>
 </map>

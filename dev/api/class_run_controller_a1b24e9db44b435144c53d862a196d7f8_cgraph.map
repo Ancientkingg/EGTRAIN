@@ -1,0 +1,5 @@
+<map id="RunController::hasRunResults" name="RunController::hasRunResults">
+<area shape="rect" id="Node000001" title="Results of a completed run exist and the simulation still holds the trajectories behind them." alt="" coords="5,5,220,33"/>
+<area shape="rect" id="Node000002" href="$class_run_controller.html#a4ab71663fd2e781b122a664f0d929787" title="The last run completed and its results are valid for the scene as it is." alt="" coords="268,5,490,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,17,255,19,250,19,220,22"/>
+</map>

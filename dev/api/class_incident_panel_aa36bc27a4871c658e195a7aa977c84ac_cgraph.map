@@ -2,9 +2,13 @@
 <area shape="rect" id="Node000001" title="Takes the start from its field, in whole seconds; text that is no number counts as 0." alt="" coords="5,49,203,94"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="264,5,460,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,49,278,36,273,38,204,54"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="251,57,474,85"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a6a0c7a1001a3f734a0ff29482b8ff350" title="The selected incident, or null when none is selected or the scene cannot be edited." alt="" coords="251,57,474,85"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,69,238,71,232,72,204,74"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="313,133,412,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,91,300,127,295,129,182,97"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="318,132,311,124,317,115,334,109,362,107,393,109,410,118,405,118,391,114,362,112,335,114,320,119,317,124,323,134"/>
+<area shape="rect" id="Node000006" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="313,133,412,161"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="183,91,300,127,295,129,182,97"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="522,57,711,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="474,69,509,71,504,71,475,74"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="759,57,963,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="712,69,746,71,741,71,712,74"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="319,132,312,124,318,115,335,109,362,107,392,109,410,118,404,118,391,114,362,112,336,114,321,119,317,124,324,134"/>
 </map>

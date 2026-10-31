@@ -1,0 +1,4 @@
+<map id="TimetableStops::stopResolutionText" name="TimetableStops::stopResolutionText">
+<area shape="rect" id="Node000001" title="What is wrong with a stop on its route; empty for a stop that is on it." alt="" coords="5,29,261,57"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="89,28,83,20,88,11,105,5,133,3,163,5,181,14,175,14,162,10,133,8,106,10,91,15,88,20,94,29"/>
+</map>

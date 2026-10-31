@@ -1,0 +1,5 @@
+<map id="ScenarioImport" name="ScenarioImport">
+<area shape="rect" id="Node000001" title="A scenario read from a file, made ready to be added to a scene." alt="" coords="5,106,126,134"/>
+<area shape="rect" id="Node000002" href="$struct_scene_scenario.html" title="A named set of incidents and entrance delays." alt="" coords="7,5,124,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,47,68,106,63,105,63,50"/>
+</map>

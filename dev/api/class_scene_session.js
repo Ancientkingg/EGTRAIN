@@ -32,9 +32,13 @@ var class_scene_session =
     [ "saveSceneAs", "class_scene_session.html#a3395b45add58263ffba82ed5720578ee", null ],
     [ "saveSceneAsToDirectory", "class_scene_session.html#a278c0c5e43c8aea7f5c58a410ac09a7c", null ],
     [ "saveSceneToCurrentDir", "class_scene_session.html#a205a27ef46c6c6a132d0fd9c790afd14", null ],
+    [ "sceneActionsChanged", "class_scene_session.html#aca549b2a35ff4bf6b8810526e2308b64", null ],
     [ "sceneBundleVersion", "class_scene_session.html#a59a6d029bf374e8624b1b2dbf1d0907f", null ],
+    [ "sceneCreated", "class_scene_session.html#a5f7428c163b240aef36672ef2d9e0615", null ],
     [ "sceneDir", "class_scene_session.html#a5bb9cf979da9a4e5966a96f74ce2a765", null ],
     [ "sceneIsBundle", "class_scene_session.html#ab8ac6f245e14a5e25c9e4d45e21ac7a7", null ],
+    [ "sceneSaved", "class_scene_session.html#a46ac127a9562f058d7aa6e46be229dfa", null ],
+    [ "sceneWillBeReplaced", "class_scene_session.html#ae75784a18bbc20a29e1147b671060dc4", null ],
     [ "setDiagnostics", "class_scene_session.html#ac7d1218838357cf581eadee9fce08e1c", null ],
     [ "updateSceneWindowTitle", "class_scene_session.html#a696a34730801868a898ff582a634700d", null ],
     [ "MainWindowTestAccess", "class_scene_session.html#a07d58747d59f49d1ff6b222687ecbf39", null ]

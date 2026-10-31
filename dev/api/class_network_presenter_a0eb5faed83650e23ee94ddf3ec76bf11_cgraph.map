@@ -1,0 +1,5 @@
+<map id="NetworkPresenter::hasContent" name="NetworkPresenter::hasContent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,14,226,42"/>
+<area shape="rect" id="Node000002" href="$class_network_presenter.html#a783fae0edfc2b9840b0f2487e6bbc939" title="Whether a train moves." alt="" coords="274,5,457,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,25,261,28,255,28,226,30"/>
+</map>

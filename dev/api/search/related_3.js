@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['telemetrysender_0',['TelemetrySender',['../classtelemetry_1_1_telemetry_sender_1_1_operation_token.html#a5fea3af9af185876667484f95534fbbe',1,'telemetry::TelemetrySender::OperationToken']]]
+  ['scope_0',['Scope',['../class_playback_profiler.html#a921193447f6e42f596ac0a7694b02830',1,'PlaybackProfiler']]]
 ];

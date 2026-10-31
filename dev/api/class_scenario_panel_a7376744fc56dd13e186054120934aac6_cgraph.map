@@ -1,6 +1,10 @@
 <map id="ScenarioPanel::addBlankScenario" name="ScenarioPanel::addBlankScenario">
-<area shape="rect" id="Node000001" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,..." alt="" coords="5,29,243,57"/>
-<area shape="rect" id="Node000002" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="291,29,464,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,41,278,43,272,43,243,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="334,28,327,20,333,11,350,5,377,3,407,5,425,14,419,14,406,10,377,8,351,10,336,15,333,20,339,30"/>
+<area shape="rect" id="Node000001" title="Appends a scenario &quot;New scenario&quot; without incidents or delays, with a new unique id,..." alt="" coords="5,44,243,72"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="291,5,480,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,41,278,35,273,36,223,46"/>
+<area shape="rect" id="Node000004" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="299,81,472,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="226,70,286,80,281,81,226,75"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="528,5,731,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="480,17,515,19,510,19,481,22"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="344,80,337,72,342,63,359,57,385,55,414,57,431,66,426,66,413,62,385,60,360,62,346,67,342,72,348,82"/>
 </map>

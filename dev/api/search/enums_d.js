@@ -7,5 +7,7 @@ var searchData=
   ['replaycoveragekind_4',['ReplayCoverageKind',['../_replay_coverage_8h.html#a0939c05274de0f19e3fb4faf5b0d8cbf',1,'ReplayCoverage.h']]],
   ['role_5',['Role',['../namespace_preview_graphics.html#ab5c908dfa3c9a1a5664ac8a95369fa1f',1,'PreviewGraphics']]],
   ['runcommandkind_6',['RunCommandKind',['../_run_control_8h.html#a6a9687067f1629c08befd855f5af0c73',1,'RunControl.h']]],
-  ['runphase_7',['RunPhase',['../class_run_controller.html#a84d8e766e5645acf304a2da6c186d9e9',1,'RunController']]]
+  ['rundiscard_7',['RunDiscard',['../_run_outcome_8h.html#a4e05f1ebce1ad00560d58275de36439e',1,'RunOutcome.h']]],
+  ['runphase_8',['RunPhase',['../class_run_controller.html#a84d8e766e5645acf304a2da6c186d9e9',1,'RunController']]],
+  ['runstate_9',['RunState',['../class_run_controller.html#aa596c97788b0451bfd5d7b9967b13837',1,'RunController']]]
 ];

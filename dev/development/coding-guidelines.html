@@ -596,7 +596,9 @@ without a parent.</p></li>
 gets its parent item when it is created (<code class="docutils literal notranslate"><span class="pre">graphics/items/SignalItem.cpp</span></code>). Pointers to
 scene items held elsewhere only observe them: <code class="docutils literal notranslate"><span class="pre">NetworkPresenter::clear</span></code> calls
 <code class="docutils literal notranslate"><span class="pre">scene-&gt;clear()</span></code>, which deletes the items, then clears the lists that point at them
-(<code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code>, documented in <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.h</span></code>).</p></li>
+(<code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.cpp</span></code>, documented in <code class="docutils literal notranslate"><span class="pre">graphics/NetworkPresenter.h</span></code>). Those lists are
+private: only the presenter fills them, and the window and the inspector use its const getters
+and named actions such as <code class="docutils literal notranslate"><span class="pre">setHighlight</span></code>.</p></li>
 <li><p>Everything else: <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> for collections and arrays, <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> for one owned
 object that is not a QObject. <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> holds its entity lists in <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> members,
 <code class="docutils literal notranslate"><span class="pre">widgets/ConsoleWidget.h</span></code> owns a <code class="docutils literal notranslate"><span class="pre">std::unique_ptr&lt;ConsoleStreambuf&gt;</span></code>, and
@@ -609,8 +611,10 @@ infrastructure in place. A new member needs a line in <code class="docutils lite
 The routines of <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> take the run they work on as a <code class="docutils literal notranslate"><span class="pre">SimulationRun&amp;</span></code> parameter, and the
 member functions of a <code class="docutils literal notranslate"><span class="pre">Train</span></code> reach it through <code class="docutils literal notranslate"><span class="pre">Train::run_</span></code>, which <code class="docutils literal notranslate"><span class="pre">buildOperationsFromScene</span></code>
 sets. The window and <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> read the run
-through <code class="docutils literal notranslate"><span class="pre">DispatchController::run()</span></code>, and <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> takes it as a parameter. The canvas takes
-<code class="docutils literal notranslate"><span class="pre">mutableRun()</span></code> because it writes its layout into the tracks, stations and connections. A test that
+through <code class="docutils literal notranslate"><span class="pre">DispatchController::run()</span></code>, and <code class="docutils literal notranslate"><span class="pre">captureCompletedRun</span></code> takes it as a parameter. The canvas
+reads it through <code class="docutils literal notranslate"><span class="pre">run()</span></code> as well. It keeps the levels of the tracks and the layout of the stations in
+tables of its own and works out the points of the nodes and connections when it draws them, so it
+writes nothing into the tracks, stations and connections. A test that
 calls the builders itself passes them <code class="docutils literal notranslate"><span class="pre">defaultRun()</span></code> or a <code class="docutils literal notranslate"><span class="pre">SimulationRun</span></code> of its own.
 <code class="docutils literal notranslate"><span class="pre">SimulationRun::settings</span></code> is the copy of <code class="docutils literal notranslate"><span class="pre">initial_variables</span></code> that <code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code>
 takes once the scene is built. <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> and the routines of <code class="docutils literal notranslate"><span class="pre">simulation/</span></code> read the
@@ -800,8 +804,14 @@ own file there (<code class="docutils literal notranslate"><span class="pre">Leg
 <code class="docutils literal notranslate"><span class="pre">StationOverlay.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">TrackPreview.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">VisualPolish.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">EditorSmoke.cpp</span></code>,
 <code class="docutils literal notranslate"><span class="pre">CreatorAcceptance.cpp</span></code>) is a member of
 it, and the table in <code class="docutils literal notranslate"><span class="pre">tests/e2e/E2ERunner.cpp</span></code> starts a scenario from its <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code> variable.
+A scenario reaches an editor panel or its dock through the getters of <code class="docutils literal notranslate"><span class="pre">MainWindowTestAccess</span></code>, such as
+<code class="docutils literal notranslate"><span class="pre">servicePanel(w)</span></code> and <code class="docutils literal notranslate"><span class="pre">serviceDock(w)</span></code>, and the fields of a panel through the accessors of the panel
+(<code class="docutils literal notranslate"><span class="pre">servicePanel(w)-&gt;idEdit()</span></code>). Do not copy such a pointer into a member of the window for a scenario.
+A scenario and a test of the canvas read the presenter through its const getters. <code class="docutils literal notranslate"><span class="pre">NetworkPresenterTestAccess</span></code>
+(<code class="docutils literal notranslate"><span class="pre">tests/NetworkPresenterTestAccess.h</span></code>) is the friend of <code class="docutils literal notranslate"><span class="pre">NetworkPresenter</span></code> for a value that no product code
+reads and for a test that puts items in a registry itself.
 <code class="docutils literal notranslate"><span class="pre">PostRun.cpp</span></code> holds the autostart and the checks that follow a run, which the window calls through
-the hooks of <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks</span></code>, and <code class="docutils literal notranslate"><span class="pre">Dialogs.cpp</span></code> answers the dialogs that the window opens. A source
+the hooks of <code class="docutils literal notranslate"><span class="pre">MainWindowTestHooks</span></code> and the signals of <code class="docutils literal notranslate"><span class="pre">RunController</span></code> and <code class="docutils literal notranslate"><span class="pre">RunResultsDock</span></code>, and <code class="docutils literal notranslate"><span class="pre">Dialogs.cpp</span></code> answers the dialogs that the window opens. A source
 that a build without tests compiles must not name a <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_</span></code> variable, print an <code class="docutils literal notranslate"><span class="pre">E2E_</span></code> marker or
 assert with <code class="docutils literal notranslate"><span class="pre">failures</span> <span class="pre">&lt;&lt;</span></code>: put such code in <code class="docutils literal notranslate"><span class="pre">tests/e2e</span></code> and give the window a hook.
 <code class="docutils literal notranslate"><span class="pre">tools/e2e/test_no_e2e_in_product.py</span></code> fails otherwise.</p>

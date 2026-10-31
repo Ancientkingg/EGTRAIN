@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['scope_0',['Scope',['../class_playback_profiler.html#a921193447f6e42f596ac0a7694b02830',1,'PlaybackProfiler']]]
+  ['playbackprofilertestaccess_0',['PlaybackProfilerTestAccess',['../class_playback_profiler.html#a225312ac12a6f362b630e2590d983484',1,'PlaybackProfiler']]]
 ];

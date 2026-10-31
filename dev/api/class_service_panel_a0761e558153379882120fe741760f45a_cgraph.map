@@ -1,31 +1,6 @@
 <map id="ServicePanel::commitMaximumSpeed" name="ServicePanel::commitMaximumSpeed">
-<area shape="rect" id="Node000001" title="Takes the maximum speed in km/h from its field." alt="" coords="5,193,234,238"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="299,141,496,169"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,190,317,171,313,175,227,195"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="282,193,513,238"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,213,268,214,264,216,235,218"/>
-<area shape="rect" id="Node000011" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="348,285,447,313"/>
-<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="196,236,336,279,332,282,196,241"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="585,91,755,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="487,190,512,178,526,168,535,157,545,146,560,134,591,123,586,125,562,139,548,149,539,160,529,172,514,183,490,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="827,29,1105,57"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="495,190,511,179,523,164,529,148,532,115,537,83,545,67,559,53,600,30,644,15,690,6,737,3,826,9,904,25,898,26,826,14,737,9,691,12,645,20,602,35,563,57,549,71,542,85,538,116,535,149,528,166,515,183,498,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="862,117,1070,145"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="498,190,561,178,709,156,849,142,844,144,710,162,561,183,500,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="575,193,765,238"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="513,213,562,215,557,216,514,218"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="578,262,762,307"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="488,236,567,258,562,258,488,241"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="561,355,779,382"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="493,235,515,248,531,265,540,283,548,300,563,317,586,333,613,349,607,348,583,338,559,321,543,303,535,285,527,268,511,252,493,241"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="585,431,755,458"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="498,236,515,248,529,266,537,285,541,320,544,356,550,374,563,392,582,409,606,425,601,424,579,413,559,396,546,376,539,357,536,321,532,286,525,269,511,252,497,241"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="624,90,616,82,622,72,641,66,670,64,702,67,721,75,716,76,701,72,670,69,642,71,626,76,622,82,629,91"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="740,88,883,60,878,62,741,93"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="756,110,849,120,844,121,756,115"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="916,28,908,21,914,11,934,5,966,3,1001,5,1021,14,1016,15,1000,11,966,8,935,10,917,15,913,20,921,29"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="916,116,908,109,914,99,934,93,966,91,1001,93,1021,103,1016,103,1000,99,966,96,935,98,917,103,913,108,921,118"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="624,353,616,346,622,336,641,330,670,328,702,331,721,340,716,339,701,336,670,333,642,335,626,340,622,346,629,355"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="624,429,616,422,622,412,641,406,670,404,702,407,721,416,716,415,701,412,670,409,642,411,626,416,622,422,629,431"/>
-<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="351,284,344,277,350,267,368,261,397,259,429,261,448,270,443,270,428,266,397,264,369,266,353,271,349,276,356,285"/>
+<area shape="rect" id="Node000001" title="Takes the maximum speed in km/h from its field." alt="" coords="5,21,234,66"/>
+<area shape="rect" id="Node000002" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="282,29,381,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,41,269,43,263,43,234,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="295,28,289,20,294,11,308,5,331,3,356,5,371,14,366,14,355,10,331,8,309,10,297,15,294,20,300,30"/>
 </map>

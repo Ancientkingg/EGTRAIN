@@ -1,7 +1,7 @@
 <map id="editors/infrastructure/TopologyFacets.h" name="editors/infrastructure/TopologyFacets.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,255,50"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html" title=" " alt="" coords="5,106,165,134"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,60,100,108,96,104,141,62"/>
-<area shape="rect" id="Node000003" href="$_topology_facets_8cpp.html" title=" " alt="" coords="188,98,347,143"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,59,249,98,243,98,207,64"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="93,5,251,50"/>
+<area shape="rect" id="Node000002" href="$_editor_docks_8cpp.html" title=" " alt="" coords="5,106,160,134"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,60,97,108,94,104,137,62"/>
+<area shape="rect" id="Node000003" href="$_topology_facets_8cpp.html" title=" " alt="" coords="183,98,342,143"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,59,244,98,239,98,203,64"/>
 </map>

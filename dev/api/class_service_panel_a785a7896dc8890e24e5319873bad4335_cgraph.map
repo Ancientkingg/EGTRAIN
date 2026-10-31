@@ -1,31 +1,6 @@
 <map id="ServicePanel::commitEntryTimeSeconds" name="ServicePanel::commitEntryTimeSeconds">
-<area shape="rect" id="Node000001" title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun..." alt="" coords="5,193,202,238"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="267,141,464,169"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,190,249,178,286,172,281,174,250,183,201,195"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="250,193,481,238"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,213,236,214,232,217,203,218"/>
-<area shape="rect" id="Node000011" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="316,285,415,313"/>
-<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="176,236,308,279,303,282,176,241"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="553,91,723,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="455,190,480,178,494,168,503,157,513,146,528,134,559,123,554,125,530,139,516,149,507,160,497,172,482,183,458,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="795,29,1073,57"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="463,190,479,179,491,164,497,148,500,115,505,83,513,67,527,53,568,30,612,15,658,6,705,3,794,9,872,25,867,26,794,14,705,9,659,12,613,20,570,35,531,57,517,71,510,85,506,116,503,149,496,166,483,183,466,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="830,117,1038,145"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="466,190,529,178,677,156,817,142,812,144,678,162,529,183,468,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="543,193,733,238"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="481,213,530,215,525,216,482,218"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="546,262,730,307"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="456,236,535,258,530,258,456,241"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="529,355,747,382"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="461,235,483,248,499,265,508,283,516,300,531,317,554,333,581,349,575,348,551,338,527,321,511,303,503,285,495,268,479,252,461,241"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="553,431,723,458"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="466,236,483,248,497,266,505,285,509,320,512,356,518,374,531,392,550,409,574,425,569,424,547,413,527,396,514,376,507,357,504,321,500,286,493,269,479,252,465,241"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="592,90,584,82,590,72,609,66,638,64,670,67,689,75,684,76,669,72,638,69,610,71,594,76,590,82,597,91"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="708,88,851,60,846,62,709,93"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="724,110,817,120,812,121,724,115"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="884,28,876,21,882,11,902,5,934,3,969,5,989,14,984,15,968,11,934,8,903,10,885,15,881,20,889,29"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="884,116,876,109,882,99,902,93,934,91,969,93,989,103,984,103,968,99,934,96,903,98,885,103,881,108,889,118"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="592,353,584,346,590,336,609,330,638,328,670,331,689,340,684,339,669,336,638,333,610,335,594,340,590,346,597,355"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="592,429,584,422,590,412,609,406,638,404,670,407,689,416,684,415,669,412,638,409,610,411,594,416,590,422,597,431"/>
-<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="321,284,314,277,319,267,337,261,365,259,396,261,414,270,409,270,395,266,365,264,338,266,323,271,319,276,326,285"/>
+<area shape="rect" id="Node000001" title="Takes the entry time from its field, in whole seconds from the base time; text that is no number coun..." alt="" coords="5,21,202,66"/>
+<area shape="rect" id="Node000002" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="250,29,349,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,41,237,43,231,43,202,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="265,28,260,20,264,11,278,5,299,3,323,5,336,14,331,14,321,10,299,8,279,10,268,15,265,20,270,30"/>
 </map>

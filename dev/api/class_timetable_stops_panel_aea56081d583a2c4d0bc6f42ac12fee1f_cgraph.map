@@ -1,44 +1,58 @@
 <map id="TimetableStopsPanel::refresh" name="TimetableStopsPanel::refresh">
-<area shape="rect" id="Node000001" title="Lists the stops of the service again." alt="" coords="5,249,164,294"/>
-<area shape="rect" id="Node000002" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="231,29,384,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,248,107,209,132,160,167,110,210,68,221,62,218,66,213,72,171,114,137,163,112,211,96,250"/>
-<area shape="rect" id="Node000003" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="238,105,378,133"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="101,247,146,195,177,167,210,144,227,137,223,141,213,148,180,171,150,198,105,250"/>
-<area shape="rect" id="Node000004" href="$_time_format_8cpp.html#a3079e8e543ca6e5149fd08095187f693" title=" " alt="" coords="233,181,383,209"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="139,246,211,219,239,212,235,215,213,224,142,251"/>
-<area shape="rect" id="Node000005" href="$_section_inventory_8cpp.html#af454f6ad805e4782da5b9ee9d8a43dbe" title=" " alt="" coords="212,257,404,285"/>
-<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="163,269,198,270,194,273,165,274"/>
-<area shape="rect" id="Node000006" href="$_stop_insertion_8cpp.html#aae8ae02ee8c37ce93108e5fae52bf3ea" title=" " alt="" coords="225,333,391,361"/>
-<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="152,291,252,326,248,329,152,297"/>
-<area shape="rect" id="Node000011" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="225,409,390,437"/>
-<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="111,291,159,330,213,370,266,402,260,402,210,375,155,334,111,297"/>
-<area shape="rect" id="Node000015" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title="The table shows the stops again, so what depends on the timetable of the services is out of date." alt="" coords="229,461,387,506"/>
-<area shape="poly" id="edge27_Node000001_Node000015" title=" " alt="" coords="97,292,142,368,175,410,213,446,221,453,215,452,210,451,171,413,138,371,95,297"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="269,29,263,20,268,11,283,5,308,3,334,5,350,13,345,15,333,10,308,8,285,10,272,15,269,20,275,29"/>
-<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="269,105,263,96,268,87,283,81,308,79,334,81,350,89,345,91,333,86,308,84,285,86,272,91,269,96,275,105"/>
-<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="269,181,263,172,268,163,283,157,308,155,334,157,350,165,345,167,333,162,308,160,285,162,272,167,269,172,275,181"/>
-<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="269,257,263,248,268,239,283,233,308,231,334,233,350,242,344,242,333,238,308,236,285,238,272,243,269,248,275,257"/>
-<area shape="poly" id="edge18_Node000006_Node000006" title=" " alt="" coords="269,332,263,324,268,315,283,309,308,307,334,309,350,318,344,318,333,314,308,312,285,314,272,319,269,324,274,333"/>
-<area shape="rect" id="Node000007" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="452,329,641,357"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="391,343,439,344,434,346,392,348"/>
-<area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="506,328,499,320,505,311,521,305,547,303,575,305,591,314,586,314,573,310,547,308,522,310,508,315,505,320,511,330"/>
-<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="689,329,892,357"/>
-<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="642,341,676,343,671,344,642,346"/>
-<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="749,328,742,320,748,311,764,305,791,303,819,305,836,314,831,314,818,310,790,308,765,310,751,315,747,320,754,330"/>
-<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="940,253,1163,281"/>
-<area shape="poly" id="edge14_Node000008_Node000009" title=" " alt="" coords="831,326,939,291,969,286,974,285,940,296,832,331"/>
-<area shape="rect" id="Node000010" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="969,329,1134,357"/>
-<area shape="poly" id="edge16_Node000008_Node000010" title=" " alt="" coords="892,341,956,343,951,343,892,346"/>
-<area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="1007,252,1000,244,1006,235,1023,229,1051,227,1082,229,1100,238,1095,238,1081,234,1051,232,1024,234,1009,239,1005,244,1012,254"/>
-<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="1007,328,1000,320,1006,311,1023,305,1051,303,1082,305,1100,314,1095,314,1081,310,1051,308,1024,310,1009,315,1005,320,1012,330"/>
-<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="269,408,263,400,268,391,283,385,308,383,334,385,350,394,344,394,333,390,308,388,285,390,272,395,269,400,274,410"/>
-<area shape="rect" id="Node000012" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="470,405,623,450"/>
-<area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="391,422,458,425,452,426,391,427"/>
-<area shape="poly" id="edge26_Node000012_Node000012" title=" " alt="" coords="502,403,500,395,508,386,523,380,547,378,573,381,589,390,584,389,571,386,547,383,524,385,510,390,505,396,506,406"/>
-<area shape="rect" id="Node000013" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="700,405,881,450"/>
-<area shape="poly" id="edge22_Node000012_Node000013" title=" " alt="" coords="623,425,687,427,682,427,623,430"/>
-<area shape="poly" id="edge23_Node000013_Node000013" title=" " alt="" coords="745,403,743,395,751,386,767,380,791,378,817,381,834,390,829,389,816,386,790,383,768,385,754,390,748,396,749,406"/>
-<area shape="rect" id="Node000014" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="975,405,1128,450"/>
-<area shape="poly" id="edge24_Node000013_Node000014" title=" " alt="" coords="881,425,962,427,957,427,881,430"/>
-<area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="1002,403,1000,395,1009,386,1026,380,1051,378,1079,381,1098,390,1092,389,1078,386,1051,383,1027,385,1012,390,1005,396,1007,406"/>
+<area shape="rect" id="Node000001" title="Lists the stops of the service again." alt="" coords="5,405,164,450"/>
+<area shape="rect" id="Node000002" href="$namespace_timetable_stops.html#a760c0eac70de2284909ab143fbfe0146" title="The line that names the base time while planned times show as seconds after it; empty for clock times..." alt="" coords="233,29,455,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,404,90,337,108,246,124,197,146,149,174,105,210,67,220,61,217,65,213,70,179,108,151,151,129,199,114,247,95,338,89,405"/>
+<area shape="rect" id="Node000003" href="$namespace_timetable_stops.html#a641f55d38748385fa14b464b2afcd09e" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="246,105,442,150"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="87,404,100,353,123,287,159,219,182,187,210,160,234,146,231,151,213,164,186,191,163,221,128,289,105,355,93,405"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="249,173,438,201"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="90,404,106,363,131,312,165,261,186,237,210,217,236,204,233,208,213,221,190,241,170,264,136,315,111,365,96,405"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="524,199,727,226"/>
+<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="93,404,111,370,137,331,170,292,210,261,263,242,339,229,511,215,507,218,340,234,265,247,213,266,173,296,141,334,116,373,98,405"/>
+<area shape="rect" id="Node000006" href="$namespacecsv.html#a31b42e8f36642fcbeb44b675adffe685" title=" " alt="" coords="274,299,414,326"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="109,403,155,368,211,337,261,322,257,326,213,342,158,373,114,406"/>
+<area shape="rect" id="Node000007" href="$_time_format_8cpp.html#a3079e8e543ca6e5149fd08095187f693" title=" " alt="" coords="269,375,419,402"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="163,413,255,400,251,404,166,418"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#af454f6ad805e4782da5b9ee9d8a43dbe" title=" " alt="" coords="248,451,440,478"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="163,436,235,447,230,450,165,441"/>
+<area shape="rect" id="Node000009" href="$_stop_insertion_8cpp.html#aae8ae02ee8c37ce93108e5fae52bf3ea" title=" " alt="" coords="261,527,427,554"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="129,447,213,487,291,520,286,522,211,492,130,453"/>
+<area shape="rect" id="Node000014" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="261,603,426,630"/>
+<area shape="poly" id="edge24_Node000001_Node000014" title=" " alt="" coords="101,447,149,505,179,536,213,564,244,581,278,596,272,598,241,586,210,568,176,540,145,509,101,453"/>
+<area shape="rect" id="Node000018" href="$namespace_timetable_stops.html#abf31a056f5e6f5ea5dc26e9a23719715" title=" " alt="" coords="212,679,476,706"/>
+<area shape="poly" id="edge32_Node000001_Node000018" title=" " alt="" coords="93,447,112,490,137,541,171,594,213,640,239,657,270,673,265,674,237,662,210,644,166,597,132,543,107,492,93,453"/>
+<area shape="rect" id="Node000019" href="$namespace_timetable_stops.html#a9e5c38c3c31041e3cb9b387be84e871b" title="What is wrong with a stop on its route; empty for a stop that is on it." alt="" coords="216,755,472,782"/>
+<area shape="poly" id="edge34_Node000001_Node000019" title=" " alt="" coords="90,447,104,503,127,574,162,650,186,685,213,716,237,733,265,749,260,749,234,738,210,720,182,688,158,652,122,576,99,504,89,452"/>
+<area shape="rect" id="Node000020" href="$class_timetable_stops_panel.html#aa24004f04a710802178ff261c5461a5d" title="The table shows the stops again, so what depends on the timetable of the services is out of date." alt="" coords="265,806,423,851"/>
+<area shape="poly" id="edge36_Node000001_Node000020" title=" " alt="" coords="87,447,96,517,114,609,130,659,152,707,179,753,213,792,231,805,253,817,247,816,228,809,210,796,175,756,147,710,125,661,109,611,90,518,86,453"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="299,29,293,20,298,11,316,5,344,3,374,5,392,13,387,15,373,10,344,8,317,10,302,15,298,20,305,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="295,104,293,95,302,86,318,80,344,78,372,81,390,89,385,91,371,86,344,83,319,85,304,90,298,96,300,105"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="438,193,511,201,506,203,440,198"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="299,298,293,290,298,280,316,274,344,272,374,274,392,282,387,284,373,280,344,277,317,279,302,284,298,289,305,298"/>
+<area shape="poly" id="edge10_Node000007_Node000007" title=" " alt="" coords="299,374,293,366,298,356,316,350,344,348,374,350,392,359,387,360,373,356,344,353,317,355,302,360,298,365,305,374"/>
+<area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="299,450,293,442,298,432,316,426,344,424,374,426,392,435,387,436,373,432,344,429,317,431,302,436,298,441,305,450"/>
+<area shape="poly" id="edge23_Node000009_Node000009" title=" " alt="" coords="299,526,293,518,298,508,316,502,344,500,374,502,392,511,387,512,373,508,344,505,317,507,302,512,298,517,305,526"/>
+<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="531,523,720,550"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="427,537,518,537,513,539,428,542"/>
+<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="583,522,576,514,582,504,598,498,626,496,655,498,672,507,667,508,654,504,626,501,599,503,585,508,581,513,588,523"/>
+<area shape="rect" id="Node000011" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="775,523,978,550"/>
+<area shape="poly" id="edge17_Node000010_Node000011" title=" " alt="" coords="720,534,762,536,757,537,721,539"/>
+<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="834,521,827,514,832,504,849,498,877,496,906,498,923,507,918,507,905,504,876,501,850,503,836,508,832,513,839,523"/>
+<area shape="rect" id="Node000012" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1026,447,1249,474"/>
+<area shape="poly" id="edge19_Node000011_Node000012" title=" " alt="" coords="917,520,1025,485,1060,478,1055,479,1026,490,919,525"/>
+<area shape="rect" id="Node000013" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="1055,523,1220,550"/>
+<area shape="poly" id="edge21_Node000011_Node000013" title=" " alt="" coords="978,534,1042,536,1037,537,978,539"/>
+<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="1093,445,1086,438,1092,428,1109,422,1137,420,1168,422,1186,431,1181,431,1167,428,1137,425,1110,427,1095,432,1091,437,1098,447"/>
+<area shape="poly" id="edge22_Node000013_Node000013" title=" " alt="" coords="1093,521,1086,514,1092,504,1109,498,1137,496,1168,498,1186,507,1181,507,1167,504,1137,501,1110,503,1095,508,1091,513,1098,523"/>
+<area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="299,602,293,594,298,584,316,578,344,576,374,578,392,587,387,588,373,584,344,581,317,583,302,588,298,593,305,602"/>
+<area shape="rect" id="Node000015" href="$namespace_dialog_layout_1_1detail.html#a4fa3a15c3933dae659c2de90469fa734" title=" " alt="" coords="550,598,702,643"/>
+<area shape="poly" id="edge26_Node000014_Node000015" title=" " alt="" coords="427,615,537,618,532,620,427,620"/>
+<area shape="poly" id="edge31_Node000015_Node000015" title=" " alt="" coords="578,596,577,588,585,579,601,573,626,572,653,574,670,583,665,583,651,579,626,577,602,579,588,584,582,590,583,599"/>
+<area shape="rect" id="Node000016" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="786,598,967,643"/>
+<area shape="poly" id="edge27_Node000015_Node000016" title=" " alt="" coords="702,618,774,620,769,621,703,623"/>
+<area shape="poly" id="edge28_Node000016_Node000016" title=" " alt="" coords="829,596,827,588,835,579,852,573,877,572,904,574,921,583,916,583,902,579,876,577,853,579,838,584,832,590,834,599"/>
+<area shape="rect" id="Node000017" href="$namespace_dialog_layout_1_1detail.html#aa8cd7ad9558261edc8f7ebfe89ac65ac" title=" " alt="" coords="1061,598,1214,643"/>
+<area shape="poly" id="edge29_Node000016_Node000017" title=" " alt="" coords="967,618,1048,620,1043,621,967,623"/>
+<area shape="poly" id="edge30_Node000017_Node000017" title=" " alt="" coords="1088,596,1086,588,1095,579,1112,573,1137,572,1165,574,1184,583,1178,583,1164,579,1137,577,1113,579,1098,584,1091,590,1093,599"/>
+<area shape="poly" id="edge33_Node000018_Node000018" title=" " alt="" coords="299,678,293,670,298,660,316,654,344,652,374,654,392,663,387,664,373,660,344,657,317,659,302,664,298,669,305,679"/>
+<area shape="poly" id="edge35_Node000019_Node000019" title=" " alt="" coords="299,753,293,746,298,736,316,730,344,728,374,730,392,739,387,739,373,736,344,733,317,735,302,740,298,745,305,755"/>
 </map>

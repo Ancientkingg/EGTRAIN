@@ -1,9 +1,7 @@
 <map id="InspectorPanel::displayStationNodeInfo" name="InspectorPanel::displayStationNodeInfo">
-<area shape="rect" id="Node000001" title="Shows the form of a station node of the run and selects its station." alt="" coords="5,75,223,119"/>
+<area shape="rect" id="Node000001" title="Shows the form of a station node of the run and selects its station." alt="" coords="5,40,223,85"/>
 <area shape="rect" id="Node000002" href="$class_inspector_panel.html#a86ad792c418b9b49fd790e9ff05e27df" title=" " alt="" coords="271,5,475,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,71,275,53,270,56,201,77"/>
-<area shape="rect" id="Node000003" href="$class_highlight_effect.html#adf647a7463d3cfd110067bc3f28c692a" title="An effect without a cue until it is installed on an item. color and strength are not used." alt="" coords="281,75,465,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,94,268,96,263,98,224,100"/>
-<area shape="rect" id="Node000004" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="285,144,460,189"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,117,275,139,270,140,200,123"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,45,258,43,253,44,224,50"/>
+<area shape="rect" id="Node000003" href="$class_inspector_panel.html#af73129cdfba728ac8d9aa43e80963edc" title="The value in fixed notation with precision digits after the decimal point." alt="" coords="285,75,460,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,74,272,83,267,83,223,80"/>
 </map>

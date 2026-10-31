@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
+<g id="a_Node000003"><a xlink:href="_startup_timing_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
 <polygon fill="white" stroke="#666666" points="240.39,-2276.75 128.39,-2276.75 128.39,-2256 240.39,-2256 240.39,-2276.75"/>
 <text xml:space="preserve" text-anchor="middle" x="184.39" y="-2263.25" font-family="Helvetica,sans-Serif" font-size="10.00">beginStartupTiming</text>
 </a>
@@ -66,7 +66,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;.">
+<g id="a_Node000004"><a xlink:href="_startup_timing_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;.">
 <polygon fill="white" stroke="#666666" points="438.64,-2247.75 315.39,-2247.75 315.39,-2227 438.64,-2227 438.64,-2247.75"/>
 <text xml:space="preserve" text-anchor="middle" x="377.02" y="-2234.25" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingEnabled</text>
 </a>
@@ -704,7 +704,7 @@
 <!-- Node128 -->
 <g id="Node000128" class="node">
 <title>Node128</title>
-<g id="a_Node000128"><a xlink:href="_main_window_8cpp.html#a47c2ba6e7064ed2ad030d4c1c2b34528" target="_top" xlink:title=" ">
+<g id="a_Node000128"><a xlink:href="_startup_timing_8cpp.html#a47c2ba6e7064ed2ad030d4c1c2b34528" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="242.27,-2219.75 126.52,-2219.75 126.52,-2199 242.27,-2199 242.27,-2219.75"/>
 <text xml:space="preserve" text-anchor="middle" x="184.39" y="-2206.25" font-family="Helvetica,sans-Serif" font-size="10.00">recordStartupTiming</text>
 </a>
@@ -851,7 +851,7 @@
 <!-- Node145 -->
 <g id="Node000145" class="node">
 <title>Node145</title>
-<g id="a_Node000145"><a xlink:href="_main_window_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" target="_top" xlink:title="Nanoseconds since beginStartupTiming() started the clock.">
+<g id="a_Node000145"><a xlink:href="_startup_timing_8cpp.html#a63d91ad96a8a23ba52cc91ea2b8912f9" target="_top" xlink:title="Nanoseconds since beginStartupTiming() started the clock.">
 <polygon fill="white" stroke="#666666" points="270.02,-134.75 98.77,-134.75 98.77,-114 270.02,-114 270.02,-134.75"/>
 <text xml:space="preserve" text-anchor="middle" x="184.39" y="-121.25" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingNowNanoseconds</text>
 </a>

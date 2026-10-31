@@ -68,6 +68,7 @@ var hierarchy =
     [ "TelemetryConsent::DiagnosticsObservation", "struct_telemetry_consent_1_1_diagnostics_observation.html", null ],
     [ "DiagramKeyEntry", "struct_diagram_key_entry.html", null ],
     [ "DispatchLive", "struct_dispatch_live.html", null ],
+    [ "EditorDocks", "class_editor_docks.html", null ],
     [ "ExportFolders", "struct_export_folders.html", null ],
     [ "FigureColumn", "struct_figure_column.html", null ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", null ],
@@ -88,6 +89,9 @@ var hierarchy =
     [ "GuiSimulationSnapshotMailbox", "class_gui_simulation_snapshot_mailbox.html", null ],
     [ "GuiTrainState", "struct_gui_train_state.html", null ],
     [ "GuiVirtualCouplingState", "struct_gui_virtual_coupling_state.html", null ],
+    [ "EditorDocks::Host", "class_editor_docks_1_1_host.html", [
+      [ "MainWindow", "class_main_window.html", null ]
+    ] ],
     [ "InspectorPanel::Host", "class_inspector_panel_1_1_host.html", [
       [ "MainWindow", "class_main_window.html", null ]
     ] ],
@@ -105,6 +109,8 @@ var hierarchy =
     ] ],
     [ "HttpRequest", "struct_http_request.html", null ],
     [ "IncidentTarget", "struct_incident_target.html", null ],
+    [ "IncidentTargetChoice", "struct_incident_target_choice.html", null ],
+    [ "IncidentTargetChoices", "struct_incident_target_choices.html", null ],
     [ "InfraElement", "class_infra_element.html", null ],
     [ "InfraEvent", "class_infra_event.html", null ],
     [ "InfrastructureFacet", "class_infrastructure_facet.html", [
@@ -145,11 +151,14 @@ var hierarchy =
     [ "telemetry::TelemetrySender::OperationToken", "classtelemetry_1_1_telemetry_sender_1_1_operation_token.html", null ],
     [ "CaseChooserDialog::Options", "struct_case_chooser_dialog_1_1_options.html", null ],
     [ "Passenger", "class_passenger.html", null ],
+    [ "PassengerImportMerge", "struct_passenger_import_merge.html", null ],
     [ "PassengerIndex", "class_passenger_index.html", null ],
     [ "PlatformIndex", "class_platform_index.html", null ],
     [ "PlaybackProfiler", "class_playback_profiler.html", null ],
     [ "PositionScale", "class_position_scale.html", null ],
     [ "telemetry::PreparedBatch", "structtelemetry_1_1_prepared_batch.html", null ],
+    [ "NetworkPresenter::PreviewDrawing", "struct_network_presenter_1_1_preview_drawing.html", null ],
+    [ "NetworkPresenter::PreviewFit", "struct_network_presenter_1_1_preview_fit.html", null ],
     [ "NetworkPresenter::PreviewOptions", "struct_network_presenter_1_1_preview_options.html", null ],
     [ "NetworkPresenter::PreviewOutcome", "struct_network_presenter_1_1_preview_outcome.html", null ],
     [ "PreviewStationMembership", "struct_preview_station_membership.html", null ],
@@ -171,6 +180,7 @@ var hierarchy =
       [ "RecoveryPrompt", "class_recovery_prompt.html", null ],
       [ "RouteReferenceDialog", "class_route_reference_dialog.html", null ],
       [ "SettingsDialog", "class_settings_dialog.html", null ],
+      [ "StopEditorDialog", "class_stop_editor_dialog.html", null ],
       [ "TelemetryConsentDialog", "class_telemetry_consent_dialog.html", null ],
       [ "TimetableTableWindow", "class_timetable_table_window.html", null ]
     ] ],
@@ -245,6 +255,7 @@ var hierarchy =
       [ "RecoveryController", "class_recovery_controller.html", null ],
       [ "ResultViews", "class_result_views.html", null ],
       [ "RunController", "class_run_controller.html", null ],
+      [ "RunResultsDock", "class_run_results_dock.html", null ],
       [ "SceneDocument", "class_scene_document.html", null ],
       [ "SceneSession", "class_scene_session.html", null ],
       [ "SelfUpdater", "class_self_updater.html", null ],
@@ -264,6 +275,7 @@ var hierarchy =
       [ "EditorLayout::VerticalScrollArea", "class_editor_layout_1_1_vertical_scroll_area.html", null ]
     ] ],
     [ "QStyledItemDelegate", null, [
+      [ "InfrastructurePanel::CellDelegate", "class_infrastructure_panel_1_1_cell_delegate.html", null ],
       [ "NarrowRowDelegate", "class_narrow_row_delegate.html", null ]
     ] ],
     [ "QThread", null, [
@@ -320,15 +332,17 @@ var hierarchy =
     [ "RunCommand", "struct_run_command.html", null ],
     [ "PlaybackProfiler::RunConfig", "struct_playback_profiler_1_1_run_config.html", null ],
     [ "RunControl", "class_run_control.html", null ],
+    [ "RunEnd", "struct_run_end.html", null ],
     [ "RunInfrastructure", "struct_run_infrastructure.html", null ],
     [ "RunInputProvenance", "struct_run_input_provenance.html", null ],
     [ "RunOccurrenceProvenance", "struct_run_occurrence_provenance.html", null ],
+    [ "RunOutcome", "struct_run_outcome.html", null ],
     [ "RunProvenance", "struct_run_provenance.html", null ],
     [ "RunResults", "struct_run_results.html", null ],
-    [ "RunResultsDock", "class_run_results_dock.html", null ],
     [ "RunResultValue", "struct_run_result_value.html", null ],
     [ "RunSelection", "class_run_selection.html", null ],
     [ "RuntimeGeometrySource", "class_runtime_geometry_source.html", null ],
+    [ "ScenarioImport", "struct_scenario_import.html", null ],
     [ "ScenarioLoadResult", "struct_scenario_load_result.html", null ],
     [ "SceneArc", "struct_scene_arc.html", null ],
     [ "SceneAreaSignalling", "struct_scene_area_signalling.html", null ],
@@ -423,12 +437,16 @@ var hierarchy =
     [ "StableRelease", "struct_stable_release.html", null ],
     [ "StagedDirectory", "struct_staged_directory.html", null ],
     [ "StagedPublishResult", "struct_staged_publish_result.html", null ],
+    [ "StartupIdentity", "struct_startup_identity.html", null ],
+    [ "StartupTimingTrials", "class_startup_timing_trials.html", null ],
     [ "telemetry_smoke::State", "structtelemetry__smoke_1_1_state.html", null ],
     [ "StationBoundarySection", "class_station_boundary_section.html", null ],
     [ "StationDelaySummary", "struct_station_delay_summary.html", null ],
     [ "StationPlatform", "class_station_platform.html", null ],
     [ "StationTick", "struct_station_tick.html", null ],
     [ "StationVisual", "struct_station_visual.html", null ],
+    [ "StopDraftCheck", "struct_stop_draft_check.html", null ],
+    [ "StopDraftFields", "struct_stop_draft_fields.html", null ],
     [ "std::streambuf", null, [
       [ "ConsoleStreambuf", "class_console_streambuf.html", null ]
     ] ],

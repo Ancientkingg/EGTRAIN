@@ -11,6 +11,5 @@ var class_case_settings_panel =
     [ "durationSecondsEdit", "class_case_settings_panel.html#ae3a7929359c0847f8984b9c59303f5aa", null ],
     [ "nameEdit", "class_case_settings_panel.html#adf7a9af461fd8312d03f90db5890eae2", null ],
     [ "recoveryPercentEdit", "class_case_settings_panel.html#a0aa7a7ae30964978c4d7786745d6edf5", null ],
-    [ "refresh", "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9", null ],
-    [ "setDocument", "class_case_settings_panel.html#af2581c6046d3e6ebea0acee871cf5e13", null ]
+    [ "refresh", "class_case_settings_panel.html#acb968dbe3f40db2f385af2b032ac32f9", null ]
 ];

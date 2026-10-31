@@ -122,27 +122,52 @@ Inheritance diagram for SceneEditorPanel:</div>
 <div class="dynheader">
 Collaboration diagram for SceneEditorPanel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel__coll__graph.svg" width="144" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel__coll__graph.svg" width="384" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
-<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
-<tr class="memitem:a8512aeeb40be039d5a4da46e71b26268" id="r_a8512aeeb40be039d5a4da46e71b26268"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a8512aeeb40be039d5a4da46e71b26268">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)=0</td></tr>
-<tr class="memdesc:a8512aeeb40be039d5a4da46e71b26268"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel works on this document from now on; null detaches it.  <br /></td></tr>
+<tr class="memitem:a0623bcc36861d2ecf6ad1f0aff59fb7d" id="r_a0623bcc36861d2ecf6ad1f0aff59fb7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0623bcc36861d2ecf6ad1f0aff59fb7d">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
+<tr class="memitem:a58adc7c4da3c0681dc6264496a8df4f2" id="r_a58adc7c4da3c0681dc6264496a8df4f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
+<tr class="memitem:af13cca73366a245163487f9a06d72bdf" id="r_af13cca73366a245163487f9a06d72bdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af13cca73366a245163487f9a06d72bdf">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
+<tr class="memitem:a5a1e0ed680110c0ebcaaadae5c6bb795" id="r_a5a1e0ed680110c0ebcaaadae5c6bb795"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5a1e0ed680110c0ebcaaadae5c6bb795">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:afdd8ab3fbb9c8886df696fb56cf832c8" id="r_afdd8ab3fbb9c8886df696fb56cf832c8"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#afdd8ab3fbb9c8886df696fb56cf832c8">refresh</a> ()=0</td></tr>
 <tr class="memdesc:afdd8ab3fbb9c8886df696fb56cf832c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows the current state of the document.  <br /></td></tr>
 <tr class="memitem:a2fbf713650fa347aef6fc025fa1b3e34" id="r_a2fbf713650fa347aef6fc025fa1b3e34"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a2fbf713650fa347aef6fc025fa1b3e34">commitPendingEditors</a> ()=0</td></tr>
 <tr class="memdesc:a2fbf713650fa347aef6fc025fa1b3e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the text of a field that is being edited into the document, as if the user had left the field.  <br /></td></tr>
+<tr class="memitem:af9647734cc3da5fead984dc7c8b70c0f" id="r_af9647734cc3da5fead984dc7c8b70c0f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af9647734cc3da5fead984dc7c8b70c0f">hasScene</a> () const</td></tr>
+<tr class="memdesc:af9647734cc3da5fead984dc7c8b70c0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a scene is loaded.  <br /></td></tr>
+<tr class="memitem:a1a8b6da5077b8326131e15cb93ce964b" id="r_a1a8b6da5077b8326131e15cb93ce964b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1a8b6da5077b8326131e15cb93ce964b">canEdit</a> () const</td></tr>
+<tr class="memdesc:a1a8b6da5077b8326131e15cb93ce964b"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while no scene is loaded or a run uses it.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:aa13f46339c1a46209bbbd3b2b7ff13fd" id="r_aa13f46339c1a46209bbbd3b2b7ff13fd"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#aa13f46339c1a46209bbbd3b2b7ff13fd">documentReplaced</a> ()</td></tr>
+<tr class="memdesc:aa13f46339c1a46209bbbd3b2b7ff13fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document has been replaced. The panel shows it again.  <br /></td></tr>
+<tr class="memitem:a146f3ad4e046cdd8290757d3d03bff76" id="r_a146f3ad4e046cdd8290757d3d03bff76"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a146f3ad4e046cdd8290757d3d03bff76">documentChanged</a> (SceneDocument::ChangeKinds kinds)</td></tr>
+<tr class="memdesc:a146f3ad4e046cdd8290757d3d03bff76"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt">kinds</span> of the document have changed. A panel that shows them goes along here.  <br /></td></tr>
+<tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
+<tr class="memitem:af9755fee94e360ddd2d2489013b426ce" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
+<tr class="memdesc:af9755fee94e360ddd2d2489013b426ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-attribs" class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a24c4a36acd25b52de025dbf518d84b94" id="r_a24c4a36acd25b52de025dbf518d84b94"><td class="memItemLeft">QPointer&lt; <a class="el" href="class_scene_document.html">SceneDocument</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a24c4a36acd25b52de025dbf518d84b94">m_document</a></td></tr>
+<tr class="memdesc:a24c4a36acd25b52de025dbf518d84b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document that the panel works on; null without one.  <br /></td></tr>
+<tr class="memitem:ae17302f3547a021119c99a951597235d" id="r_ae17302f3547a021119c99a951597235d"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ae17302f3547a021119c99a951597235d">m_prompts</a> = &amp;m_ownPrompts</td></tr>
+<tr class="memdesc:ae17302f3547a021119c99a951597235d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The prompts of <a class="el" href="#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts()</a>.  <br /></td></tr>
+<tr class="memitem:a57a02e26e706794cd4afd7191d43737b" id="r_a57a02e26e706794cd4afd7191d43737b"><td class="memItemLeft"><a class="el" href="class_run_selection.html">RunSelection</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a57a02e26e706794cd4afd7191d43737b">m_runSelection</a> = &amp;m_ownRunSelection</td></tr>
+<tr class="memdesc:a57a02e26e706794cd4afd7191d43737b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of <a class="el" href="#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The widget of one scene editor dock. A panel shows the model of its <a class="el" href="class_scene_document.html">SceneDocument</a>, edits it there in place, calls <a class="el" href="class_scene_document.html#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called.">SceneDocument::markChanged</a> and then emits <a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. The window creates the dock and puts the panel in it. The panel does not own the document. </p>
+<div class="textblock"><p>The widget of one scene editor dock. A panel shows the model of its <a class="el" href="class_scene_document.html">SceneDocument</a>, changes it with <a class="el" href="class_scene_document.html#a19d593b9d99483a0468c0c17409cb2c8">SceneDocument::edit</a>, which can refuse while a run uses the scene, and then emits <a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. The window creates the dock and puts the panel in it. The panel does not own the document. The base keeps what every panel has: the document with its signals, the prompts, the run selection and the time over which occurrences are counted. A panel that does not need one of them does not use it. </p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa11edba490c33cf21b24cc32f333ad88" name="aa11edba490c33cf21b24cc32f333ad88"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa11edba490c33cf21b24cc32f333ad88">&#9670;&#160;</a></span>SceneEditorPanel()</h2>
@@ -172,6 +197,38 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a1a8b6da5077b8326131e15cb93ce964b" name="a1a8b6da5077b8326131e15cb93ce964b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a8b6da5077b8326131e15cb93ce964b">&#9670;&#160;</a></span>canEdit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SceneEditorPanel::canEdit </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>False while no scene is loaded or a run uses it. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_a1a8b6da5077b8326131e15cb93ce964b_cgraph.svg" width="452" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ab57b6ba8b04710b122cf09ac57e34b52" name="ab57b6ba8b04710b122cf09ac57e34b52"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab57b6ba8b04710b122cf09ac57e34b52">&#9670;&#160;</a></span>changed</h2>
 
@@ -195,7 +252,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>. </p>
+<p>The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>. </p>
 
 </div>
 </div>
@@ -228,6 +285,123 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a146f3ad4e046cdd8290757d3d03bff76" name="a146f3ad4e046cdd8290757d3d03bff76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a146f3ad4e046cdd8290757d3d03bff76">&#9670;&#160;</a></span>documentChanged()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void SceneEditorPanel::documentChanged </td>
+          <td>(</td>
+          <td class="paramtype">SceneDocument::ChangeKinds</td>          <td class="paramname"><span class="paramname"><em>kinds</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p><span class="tt">kinds</span> of the document have changed. A panel that shows them goes along here. </p>
+
+<p>Reimplemented in <a class="el" href="class_composition_panel.html#a8d64f8c9e6918502fc43f6e469058d84">CompositionPanel</a>, <a class="el" href="class_entrance_delay_panel.html#aa06790ade25cfbefa36d0edfad958912">EntranceDelayPanel</a>, <a class="el" href="class_incident_panel.html#a4421e69eb05c0c191ab76c2717482cc6">IncidentPanel</a>, <a class="el" href="class_passenger_panel.html#adee78a47fd81c4158bc04cebe8b54616">PassengerPanel</a>, <a class="el" href="class_scenario_panel.html#ad51c05d4c85a0aca2881264abb0823f9">ScenarioPanel</a>, <a class="el" href="class_service_panel.html#abff1b7c90ae6799951ed7a27ba89b354">ServicePanel</a>, and <a class="el" href="class_timetable_stops_panel.html#ab597ba2b93b7a10ded709aba55da7785">TimetableStopsPanel</a>.</p>
+
+</div>
+</div>
+<a id="aa13f46339c1a46209bbbd3b2b7ff13fd" name="aa13f46339c1a46209bbbd3b2b7ff13fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa13f46339c1a46209bbbd3b2b7ff13fd">&#9670;&#160;</a></span>documentReplaced()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void SceneEditorPanel::documentReplaced </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The document has been replaced. The panel shows it again. </p>
+
+<p>Reimplemented in <a class="el" href="class_infrastructure_panel.html#a074f48f2320d84d763f53f77f91598eb">InfrastructurePanel</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_aa13f46339c1a46209bbbd3b2b7ff13fd_cgraph.svg" width="452" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="af9647734cc3da5fead984dc7c8b70c0f" name="af9647734cc3da5fead984dc7c8b70c0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9647734cc3da5fead984dc7c8b70c0f">&#9670;&#160;</a></span>hasScene()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SceneEditorPanel::hasScene </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>True when a scene is loaded. </p>
+
+</div>
+</div>
+<a id="af9755fee94e360ddd2d2489013b426ce" name="af9755fee94e360ddd2d2489013b426ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9755fee94e360ddd2d2489013b426ce">&#9670;&#160;</a></span>occurrenceDuration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">double SceneEditorPanel::occurrenceDuration </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The time in seconds over which the occurrences of a service are counted. The panel must have a document. </p>
+
+</div>
+</div>
 <a id="afdd8ab3fbb9c8886df696fb56cf832c8" name="afdd8ab3fbb9c8886df696fb56cf832c8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afdd8ab3fbb9c8886df696fb56cf832c8">&#9670;&#160;</a></span>refresh()</h2>
 
@@ -257,8 +431,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a8512aeeb40be039d5a4da46e71b26268" name="a8512aeeb40be039d5a4da46e71b26268"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8512aeeb40be039d5a4da46e71b26268">&#9670;&#160;</a></span>setDocument()</h2>
+<a id="a0623bcc36861d2ecf6ad1f0aff59fb7d" name="a0623bcc36861d2ecf6ad1f0aff59fb7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0623bcc36861d2ecf6ad1f0aff59fb7d">&#9670;&#160;</a></span>setDocument()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -267,7 +441,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void SceneEditorPanel::setDocument </td>
+          <td class="memname">void SceneEditorPanel::setDocument </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="class_scene_document.html">SceneDocument</a> *</td>          <td class="paramname"><span class="paramname"><em>document</em></span></td><td>)</td>
           <td></td>
@@ -275,14 +449,198 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel pure-virtual">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The panel works on this document from now on and shows it; null detaches it. From then on <a class="el" href="#aa13f46339c1a46209bbbd3b2b7ff13fd" title="The document has been replaced. The panel shows it again.">documentReplaced()</a> and <a class="el" href="#a146f3ad4e046cdd8290757d3d03bff76" title="kinds of the document have changed. A panel that shows them goes along here.">documentChanged()</a> follow the document. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_a0623bcc36861d2ecf6ad1f0aff59fb7d_cgraph.svg" width="730" height="279"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5a1e0ed680110c0ebcaaadae5c6bb795" name="a5a1e0ed680110c0ebcaaadae5c6bb795"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a1e0ed680110c0ebcaaadae5c6bb795">&#9670;&#160;</a></span>setOccurrenceDuration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::setOccurrenceDuration </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; double()&gt;</td>          <td class="paramname"><span class="paramname"><em>duration</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
+
+</div>
+</div>
+<a id="a58adc7c4da3c0681dc6264496a8df4f2" name="a58adc7c4da3c0681dc6264496a8df4f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58adc7c4da3c0681dc6264496a8df4f2">&#9670;&#160;</a></span>setPrompts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::setPrompts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The messages and questions of the panel go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
+
+</div>
+</div>
+<a id="af13cca73366a245163487f9a06d72bdf" name="af13cca73366a245163487f9a06d72bdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af13cca73366a245163487f9a06d72bdf">&#9670;&#160;</a></span>setRunSelection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::setRunSelection </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_run_selection.html">RunSelection</a> *</td>          <td class="paramname"><span class="paramname"><em>selection</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The selected scenario, the scenarios that are edited and the occurrences that the next run leaves out are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
+
+</div>
+</div>
+<a id="abd663bc6b6425c64c8b23ef2e1d776a2" name="abd663bc6b6425c64c8b23ef2e1d776a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd663bc6b6425c64c8b23ef2e1d776a2">&#9670;&#160;</a></span>takePendingText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SceneEditorPanel::takePendingText </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Takes the text that is still being typed in the panel into the document, before <a class="el" href="#a146f3ad4e046cdd8290757d3d03bff76" title="kinds of the document have changed. A panel that shows them goes along here.">documentChanged()</a> writes the stored values over the fields. Only for kinds that the panel never edits itself: the change is then an edit of another panel, and the text is taken as an edit of its own after it. The signals of the panel are blocked meanwhile, because the other panel is still in the middle of its edit and the window answers <a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a> by taking the text of every panel, that one too. The window validates both edits when the other panel emits <a class="el" href="#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed().">changed()</a>. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_scene_editor_panel_abd663bc6b6425c64c8b23ef2e1d776a2_cgraph.svg" width="499" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="a24c4a36acd25b52de025dbf518d84b94" name="a24c4a36acd25b52de025dbf518d84b94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24c4a36acd25b52de025dbf518d84b94">&#9670;&#160;</a></span>m_document</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QPointer&lt;<a class="el" href="class_scene_document.html">SceneDocument</a>&gt; SceneEditorPanel::m_document</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>The panel works on this document from now on; null detaches it. </p>
+<p>The document that the panel works on; null without one. </p>
 
-<p>Implemented in <a class="el" href="class_case_settings_panel.html#af2581c6046d3e6ebea0acee871cf5e13">CaseSettingsPanel</a>, <a class="el" href="class_composition_panel.html#aac00236b7a1120226a46cb697b28202b">CompositionPanel</a>, <a class="el" href="class_entrance_delay_panel.html#a93e4730688974ecdbcdc21148feddee4">EntranceDelayPanel</a>, <a class="el" href="class_incident_panel.html#a3d56a4c04062132a7ec33a17a1167453">IncidentPanel</a>, <a class="el" href="class_infrastructure_panel.html#a0b1cbbdb0c5c14c9c7f3f73907cf9cea">InfrastructurePanel</a>, <a class="el" href="class_passenger_panel.html#ad61cdc408e8f6c227695a95bd8918db9">PassengerPanel</a>, <a class="el" href="class_scenario_panel.html#aa20347077c0648b1fe9c71bfffa6bb82">ScenarioPanel</a>, <a class="el" href="class_service_panel.html#ad5f5db4c176efeee1f9f6d85ca199bdd">ServicePanel</a>, <a class="el" href="class_timetable_stops_panel.html#a9282f4307dbca9d8104829d06d838d40">TimetableStopsPanel</a>, and <a class="el" href="class_train_unit_panel.html#a99687cc055496394ebd693a0c262c762">TrainUnitPanel</a>.</p>
+</div>
+</div>
+<a id="ae17302f3547a021119c99a951597235d" name="ae17302f3547a021119c99a951597235d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae17302f3547a021119c99a951597235d">&#9670;&#160;</a></span>m_prompts</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_user_prompts.html">UserPrompts</a>* SceneEditorPanel::m_prompts = &amp;m_ownPrompts</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The prompts of <a class="el" href="#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts()</a>. </p>
+
+</div>
+</div>
+<a id="a57a02e26e706794cd4afd7191d43737b" name="a57a02e26e706794cd4afd7191d43737b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57a02e26e706794cd4afd7191d43737b">&#9670;&#160;</a></span>m_runSelection</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_run_selection.html">RunSelection</a>* SceneEditorPanel::m_runSelection = &amp;m_ownRunSelection</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The selection of <a class="el" href="#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>. </p>
 
 </div>
 </div>

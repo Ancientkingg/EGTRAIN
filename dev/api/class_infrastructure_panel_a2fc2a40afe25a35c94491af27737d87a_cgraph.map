@@ -1,7 +1,9 @@
 <map id="InfrastructurePanel::addEntity" name="InfrastructurePanel::addEntity">
-<area shape="rect" id="Node000001" title="Adds an entity of the chosen kind." alt="" coords="5,5,150,50"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" title="False while no scene is loaded or a run uses it." alt="" coords="198,5,342,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,25,185,27,180,28,150,30"/>
-<area shape="rect" id="Node000003" href="$class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" title="True when a scene is loaded." alt="" coords="390,5,534,50"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="342,25,377,28,372,28,342,30"/>
+<area shape="rect" id="Node000001" title="Adds an entity of the chosen kind." alt="" coords="5,24,150,68"/>
+<area shape="rect" id="Node000002" href="$class_infrastructure_facet.html#a59ef82d561cda5d6590da834599652b2" title="Adds an entity." alt="" coords="205,5,380,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,34,192,31,187,33,151,39"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="198,57,387,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,52,185,58,180,58,150,57"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="435,57,638,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,69,422,71,417,71,387,74"/>
 </map>

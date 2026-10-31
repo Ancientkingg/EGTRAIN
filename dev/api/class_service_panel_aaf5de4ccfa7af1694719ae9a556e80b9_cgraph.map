@@ -1,38 +1,8 @@
 <map id="ServicePanel::commitIdEdit" name="ServicePanel::commitIdEdit">
-<area shape="rect" id="Node000001" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="5,324,205,352"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="270,141,466,169"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,322,165,252,205,212,251,178,265,174,261,177,254,183,209,216,169,256,117,325"/>
-<area shape="rect" id="Node000003" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title="Lists the occurrences again." alt="" coords="253,193,484,238"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="125,322,181,285,252,248,271,242,267,245,254,252,183,290,128,326"/>
-<area shape="rect" id="Node000011" href="$_scene_references_8cpp.html#a87333c70e4338a37d53f1958b925864f" title="Rewrites the service id in entrance delays, train&#45;breakdown incident targets and passenger legs." alt="" coords="253,285,484,313"/>
-<area shape="poly" id="edge17_Node000001_Node000011" title=" " alt="" coords="203,321,257,315,252,317,205,326"/>
-<area shape="rect" id="Node000012" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="286,361,451,389"/>
-<area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="205,349,272,360,268,362,206,355"/>
-<area shape="rect" id="Node000013" href="$class_service_panel.html#a8a400164f094d35a68eff39d27d55480" title=" " alt="" coords="261,413,476,458"/>
-<area shape="poly" id="edge21_Node000001_Node000013" title=" " alt="" coords="138,350,254,398,276,408,270,408,252,403,137,355"/>
-<area shape="rect" id="Node000014" href="$class_service_panel.html#a4593da10a1c4c7b2454290e3abbb7105" title=" " alt="" coords="258,481,479,509"/>
-<area shape="poly" id="edge22_Node000001_Node000014" title=" " alt="" coords="118,350,173,408,211,440,254,468,268,476,263,476,251,472,208,445,170,412,117,355"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#ad62f2e54a7087b05ffde1ecd81112a79" title=" " alt="" coords="556,91,726,118"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="458,190,483,178,497,168,506,157,516,146,531,134,562,123,558,125,533,139,519,149,510,160,500,172,485,183,461,195"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#aa13611c525609dd4cdde39d34766b51b" title=" " alt="" coords="798,29,1076,57"/>
-<area shape="poly" id="edge13_Node000003_Node000005" title=" " alt="" coords="466,190,482,179,494,164,500,148,503,115,508,83,516,67,530,53,571,30,615,15,661,6,708,3,797,9,875,25,870,26,797,14,708,9,662,12,616,20,573,35,534,57,520,71,513,85,509,116,506,149,499,166,486,183,469,195"/>
-<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#ab7587e34d0ddda26476e1d691ad5c9e7" title=" " alt="" coords="833,117,1041,145"/>
-<area shape="poly" id="edge14_Node000003_Node000006" title=" " alt="" coords="469,190,532,178,680,156,820,142,815,144,681,162,532,183,471,195"/>
-<area shape="rect" id="Node000007" href="$class_service_panel.html#a64b1a37963513e4a8dbe3cbe289b1085" title=" " alt="" coords="546,193,736,238"/>
-<area shape="poly" id="edge9_Node000003_Node000007" title=" " alt="" coords="484,213,533,215,528,216,485,218"/>
-<area shape="rect" id="Node000008" href="$class_service_panel.html#a102353b015ec1123d7cb6832739e787e" title=" " alt="" coords="550,262,733,307"/>
-<area shape="poly" id="edge10_Node000003_Node000008" title=" " alt="" coords="459,236,538,257,533,258,459,241"/>
-<area shape="rect" id="Node000009" href="$_scene_model_8cpp.html#a8c0a79779bc995b9892ec8e44d904d20" title=" " alt="" coords="532,355,750,382"/>
-<area shape="poly" id="edge11_Node000003_Node000009" title=" " alt="" coords="464,235,486,248,502,265,511,283,519,300,534,317,557,333,584,349,578,348,554,338,530,321,514,303,506,285,498,268,482,252,464,241"/>
-<area shape="rect" id="Node000010" href="$_run_selection_8cpp.html#ae0f6edca24427d9831919b8af2063cd7" title=" " alt="" coords="556,431,726,458"/>
-<area shape="poly" id="edge15_Node000003_Node000010" title=" " alt="" coords="469,236,486,248,500,266,508,285,512,320,515,356,521,374,534,392,553,409,577,425,572,424,550,413,530,396,517,376,510,357,507,321,503,286,496,269,482,252,468,241"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="595,90,587,82,593,72,612,66,641,64,673,67,692,75,687,76,672,72,641,69,613,71,597,76,593,82,600,91"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="711,88,854,60,849,62,712,93"/>
-<area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="726,110,820,120,815,121,727,115"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="887,29,879,21,885,11,905,5,937,3,972,5,992,14,987,15,971,11,937,8,906,10,888,15,884,20,892,29"/>
-<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="887,116,879,109,885,99,905,93,937,91,972,93,992,103,987,103,971,99,937,96,906,98,888,103,884,108,892,117"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="595,354,587,346,593,336,612,330,641,328,673,331,692,340,687,339,672,336,641,333,613,335,597,340,593,346,600,355"/>
-<area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="595,429,587,422,593,412,612,406,641,404,673,407,692,416,687,415,672,412,641,409,613,411,597,416,593,422,600,431"/>
-<area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="323,285,316,277,322,267,340,261,368,259,399,261,417,270,412,270,398,266,368,264,341,266,325,271,322,276,329,285"/>
-<area shape="poly" id="edge20_Node000012_Node000012" title=" " alt="" coords="323,360,316,353,322,343,340,337,368,335,399,337,417,346,412,346,398,342,368,340,341,342,325,347,322,352,329,361"/>
+<area shape="rect" id="Node000001" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="5,56,205,84"/>
+<area shape="rect" id="Node000002" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="259,29,424,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,56,246,54,241,55,206,61"/>
+<area shape="rect" id="Node000003" href="$class_user_prompts.html#a577030d596229c409a5bd863b50327f4" title=" " alt="" coords="253,81,431,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="205,78,240,84,235,84,205,83"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="301,28,295,20,300,11,316,5,342,3,370,5,386,14,381,14,368,10,342,8,317,10,303,15,300,20,306,30"/>
 </map>

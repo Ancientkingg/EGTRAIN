@@ -148,6 +148,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae9f55885c0745b66737a45acaf839544" id="r_ae9f55885c0745b66737a45acaf839544"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae9f55885c0745b66737a45acaf839544">resetState</a> ()</td></tr>
 <tr class="memitem:aa8e0c7473475d098b4d91cab37a1c4d9" id="r_aa8e0c7473475d098b4d91cab37a1c4d9"><td class="memItemLeft">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run</a> () const</td></tr>
 <tr class="memitem:a027310e296b105e0d388fd96dbca6d63" id="r_a027310e296b105e0d388fd96dbca6d63"><td class="memItemLeft"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a027310e296b105e0d388fd96dbca6d63">mutableRun</a> ()</td></tr>
+<tr class="memdesc:a027310e296b105e0d388fd96dbca6d63"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same run with write access, for the stages of the controller and for tests. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply.  <br /></td></tr>
 <tr class="memitem:adfb494be209a1122219b5d24128a4ec2" id="r_adfb494be209a1122219b5d24128a4ec2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adfb494be209a1122219b5d24128a4ec2">runSimulation</a> ()</td></tr>
 <tr class="memitem:a3a9e80e3e66281ea2a8bcf3f073e2fb0" id="r_a3a9e80e3e66281ea2a8bcf3f073e2fb0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3a9e80e3e66281ea2a8bcf3f073e2fb0">Train_Simulation_Mixed_Signalling_With_Passengers</a> ()</td></tr>
 <tr class="memitem:a36418dfc2831a157cf9fe1158307ecdc" id="r_a36418dfc2831a157cf9fe1158307ecdc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a36418dfc2831a157cf9fe1158307ecdc">printLastTrainServicePathDiagram</a> ()</td></tr>
@@ -458,7 +459,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply. </p>
+
+<p>The same run with write access, for the stages of the controller and for tests. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -614,7 +616,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The run that prepareScene made, with the results after it has been run. While a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> is running, the thread that steps the run owns its state, and the window reads only what a step does not change (the infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the worker has joined. </p>
+<p>The run that prepareScene made, with the results after it has been run. While a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> is running, the thread that steps the run owns its state, and the window reads only what a step does not change (the infrastructure) and sees the rest through the snapshots. Results are read after the worker has joined. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

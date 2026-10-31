@@ -8,7 +8,7 @@ var searchData=
   ['cell_5',['Cell',['../struct_diagram_key_entry.html#ab30743ff16b867014d0734c733575ea7a1a66ab62bfc858b7bcf9e01aa9cd1841',1,'DiagramKeyEntry']]],
   ['chainconflict_6',['ChainConflict',['../_area_capacity_8h.html#ab6015ecca101bd676809ab10e59392d0a388bd84ad20aae62663236b8467cea0c',1,'AreaCapacity.h']]],
   ['changed_7',['Changed',['../class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a820dbd2b8f606aff866c0bbfb6b737c1',1,'InfrastructureFacet::Changed'],['../_recovery_store_8h.html#af480b1ede1fd36a7990eaded55d1daa4a820dbd2b8f606aff866c0bbfb6b737c1',1,'Changed:&#160;RecoveryStore.h']]],
-  ['completed_8',['Completed',['../classtelemetry_1_1_simulation_observation.html#aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f',1,'telemetry::SimulationObservation']]],
+  ['completed_8',['Completed',['../class_run_controller.html#aa596c97788b0451bfd5d7b9967b13837a07ca5050e697392c9ed47e6453f1453f',1,'RunController::Completed'],['../classtelemetry_1_1_simulation_observation.html#aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f',1,'telemetry::SimulationObservation::Completed']]],
   ['compositions_9',['Compositions',['../class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0ae08b6ed4f8d2d2f813c3e364b28d57de',1,'SceneDocument']]],
   ['conflict_10',['Conflict',['../_train_colors_8h.html#ad085b8ab25c7060dfbb67c5b737f4da6af1d4ac54357cc0932f385d56814ba7e4',1,'TrainColors.h']]],
   ['continue_11',['Continue',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00aa0bfb8e59e6c13fc8d990781f77694fe',1,'CaseChooserDialog']]],

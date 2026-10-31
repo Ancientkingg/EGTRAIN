@@ -10,7 +10,7 @@
 <area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="301,693,498,419,503,417,306,696"/>
 <area shape="rect" id="Node000014" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="751,133,834,161"/>
 <area shape="poly" id="edge33_Node000002_Node000014" title=" " alt="" coords="286,694,294,629,314,536,329,485,348,434,373,385,403,340,435,302,466,273,495,250,526,233,595,204,682,170,738,155,734,158,684,175,597,209,529,237,498,255,469,277,439,306,407,343,377,388,353,437,334,487,319,537,300,629,291,696"/>
-<area shape="rect" id="Node000020" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="721,849,864,894"/>
+<area shape="rect" id="Node000020" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title="The same run with write access, for the stages of the controller and for tests. The thread rules of r..." alt="" coords="721,849,864,894"/>
 <area shape="poly" id="edge34_Node000002_Node000020" title=" " alt="" coords="357,737,406,750,471,763,523,769,574,779,637,801,661,817,685,834,709,847,704,846,682,839,658,822,634,806,572,784,522,775,470,768,404,755,358,742"/>
 <area shape="rect" id="Node000022" href="$class_dispatch_controller.html#ae9f55885c0745b66737a45acaf839544" title=" " alt="" coords="449,696,591,740"/>
 <area shape="poly" id="edge37_Node000002_Node000022" title=" " alt="" coords="357,715,436,717,431,719,358,720"/>

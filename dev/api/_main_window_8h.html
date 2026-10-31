@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;<a class="el" href="_editor_docks_8h_source.html">app/EditorDocks.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_follow_availability_8h_source.html">app/FollowAvailability.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_gui_replay_history_8h_source.html">app/GuiReplayHistory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_result_views_8h_source.html">app/ResultViews.h</a>&quot;</code><br />
@@ -133,6 +134,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 <code>#include &quot;<a class="el" href="_run_controller_8h_source.html">app/RunController.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_run_selection_8h_source.html">app/RunSelection.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_scene_session_8h_source.html">app/SceneSession.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_startup_timing_8h_source.html">app/StartupTiming.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_run_results_8h_source.html">diagrams/RunResults.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_recovery_store_8h_source.html">recovery/RecoveryStore.h</a>&quot;</code><br />
@@ -141,7 +143,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for MainWindow.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h__incl.svg" width="5004" height="434"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h__incl.svg" width="5311" height="434"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -163,40 +165,9 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad28abff3e25f7649067ca48baa355c3f" id="r_ad28abff3e25f7649067ca48baa355c3f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad28abff3e25f7649067ca48baa355c3f">crashNoteFolder</a> ()</td></tr>
-<tr class="memitem:afc4b99469fe5a5e382be0216b6184cdd" id="r_afc4b99469fe5a5e382be0216b6184cdd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc4b99469fe5a5e382be0216b6184cdd">startupTimingEnabled</a> ()</td></tr>
-<tr class="memdesc:afc4b99469fe5a5e382be0216b6184cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".  <br /></td></tr>
-<tr class="memitem:a83e0ad346d67e58fe51907c04f72f66c" id="r_a83e0ad346d67e58fe51907c04f72f66c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a83e0ad346d67e58fe51907c04f72f66c">beginStartupTiming</a> ()</td></tr>
-<tr class="memdesc:a83e0ad346d67e58fe51907c04f72f66c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.  <br /></td></tr>
-<tr class="memitem:a63d91ad96a8a23ba52cc91ea2b8912f9" id="r_a63d91ad96a8a23ba52cc91ea2b8912f9"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a63d91ad96a8a23ba52cc91ea2b8912f9">startupTimingNowNanoseconds</a> ()</td></tr>
-<tr class="memdesc:a63d91ad96a8a23ba52cc91ea2b8912f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nanoseconds since <a class="el" href="#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">beginStartupTiming()</a> started the clock.  <br /></td></tr>
-<tr class="memitem:a0b1472493f7b2cff5992282f4a995a92" id="r_a0b1472493f7b2cff5992282f4a995a92"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0b1472493f7b2cff5992282f4a995a92">recordStartupTiming</a> (const QString &amp;phase, int iteration, int generation, qint64 elapsedNanoseconds, const QString &amp;invocation={}, const QString &amp;source={}, bool identityOk=true, bool canonicalPreloadNested=false)</td></tr>
 <tr class="memitem:a8b8f228ef04f0786d5039638590d0a67" id="r_a8b8f228ef04f0786d5039638590d0a67"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8b8f228ef04f0786d5039638590d0a67">setStartupTimingPreloadIdentity</a> (const QString &amp;path, const <a class="el" href="struct_scene_load_result.html">SceneLoadResult</a> &amp;loaded)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a83e0ad346d67e58fe51907c04f72f66c" name="a83e0ad346d67e58fe51907c04f72f66c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83e0ad346d67e58fe51907c04f72f66c">&#9670;&#160;</a></span>beginStartupTiming()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void beginStartupTiming </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_a83e0ad346d67e58fe51907c04f72f66c_cgraph.svg" width="372" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
 <a id="ad28abff3e25f7649067ca48baa355c3f" name="ad28abff3e25f7649067ca48baa355c3f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad28abff3e25f7649067ca48baa355c3f">&#9670;&#160;</a></span>crashNoteFolder()</h2>
 
@@ -216,63 +187,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_ad28abff3e25f7649067ca48baa355c3f_cgraph.svg" width="139" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a0b1472493f7b2cff5992282f4a995a92" name="a0b1472493f7b2cff5992282f4a995a92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b1472493f7b2cff5992282f4a995a92">&#9670;&#160;</a></span>recordStartupTiming()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void recordStartupTiming </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>phase</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>iteration</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>generation</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">qint64</td>          <td class="paramname"><span class="paramname"><em>elapsedNanoseconds</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>invocation</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>source</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>identityOk</em></span><span class="paramdefsep"> = </span><span class="paramdefval">true</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>canonicalPreloadNested</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Writes one QEGTRAIN_TIMING line of JSON to standard output when startup timing is on. <span class="tt">elapsedNanoseconds</span> is written in milliseconds. <span class="tt">iteration</span> 0 is the fresh process and higher ones are warm reloads; a negative <span class="tt">generation</span> and empty <span class="tt">invocation</span> and <span class="tt">source</span> are left out. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_a0b1472493f7b2cff5992282f4a995a92_cgraph.svg" width="378" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -300,54 +214,6 @@ Here is the call graph for this function:</div>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_a8b8f228ef04f0786d5039638590d0a67_cgraph.svg" width="456" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="afc4b99469fe5a5e382be0216b6184cdd" name="afc4b99469fe5a5e382be0216b6184cdd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc4b99469fe5a5e382be0216b6184cdd">&#9670;&#160;</a></span>startupTimingEnabled()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool startupTimingEnabled </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1". </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_afc4b99469fe5a5e382be0216b6184cdd_cgraph.svg" width="175" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a63d91ad96a8a23ba52cc91ea2b8912f9" name="a63d91ad96a8a23ba52cc91ea2b8912f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63d91ad96a8a23ba52cc91ea2b8912f9">&#9670;&#160;</a></span>startupTimingNowNanoseconds()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">qint64 startupTimingNowNanoseconds </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Nanoseconds since <a class="el" href="#a83e0ad346d67e58fe51907c04f72f66c" title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">beginStartupTiming()</a> started the clock. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8h_a63d91ad96a8a23ba52cc91ea2b8912f9_cgraph.svg" width="239" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

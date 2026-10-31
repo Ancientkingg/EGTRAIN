@@ -4,12 +4,12 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,110,209,105,204,107,175,116"/>
 <area shape="rect" id="Node000006" href="$_editor_helpers_8h.html#a37baa06dd8545a6269a16d67386af9c8" title=" " alt="" coords="237,158,356,186"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="174,144,224,157,219,157,174,150"/>
-<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="442,5,592,50"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,65,430,51,425,53,372,70"/>
-<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="419,74,615,102"/>
+<area shape="rect" id="Node000003" href="$class_case_settings_panel.html#a5ea1b6d082ad62636f686c1fbcbabb64" title="The base time of the model has been set to this text. Emitted before the document is marked changed." alt="" coords="446,5,595,50"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,65,433,51,428,52,372,70"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="419,74,622,102"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="371,85,406,87,401,88,372,90"/>
-<area shape="rect" id="Node000005" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="468,150,567,178"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="364,108,463,144,457,144,363,113"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="479,148,473,141,478,131,493,125,517,123,543,126,559,135,553,134,542,131,517,128,494,130,482,135,478,141,484,150"/>
+<area shape="rect" id="Node000005" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="471,150,570,178"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="365,108,466,144,460,144,364,113"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="482,148,476,141,481,131,496,125,521,123,547,126,563,135,558,134,546,131,521,128,497,130,484,135,481,141,487,150"/>
 <area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="261,156,255,149,260,139,274,133,296,131,321,134,335,143,330,142,319,139,296,136,275,138,263,143,260,149,265,158"/>
 </map>

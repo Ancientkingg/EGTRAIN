@@ -1,30 +1,32 @@
 <map id="scene/SceneIds.h" name="scene/SceneIds.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="1120,5,1254,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="1210,5,1343,33"/>
 <area shape="rect" id="Node000002" href="$_composition_panel_8cpp.html" title=" " alt="" coords="5,90,220,117"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1102,23,727,42,481,59,233,84,180,91,179,86,232,78,481,54,727,37,1108,22"/>
-<area shape="rect" id="Node000003" href="$_incident_panel_8cpp.html" title=" " alt="" coords="244,90,429,117"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1102,25,812,45,627,62,442,84,397,92,395,86,441,78,627,56,811,40,1107,24"/>
-<area shape="rect" id="Node000004" href="$_passenger_panel_8cpp.html" title=" " alt="" coords="453,90,652,117"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1103,29,904,52,664,84,618,92,617,86,663,78,904,47,1108,28"/>
-<area shape="rect" id="Node000005" href="$_scenario_panel_8cpp.html" title=" " alt="" coords="676,90,864,117"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1108,36,876,84,836,91,835,86,875,78,1103,37"/>
-<area shape="rect" id="Node000006" href="$_service_panel_8cpp.html" title=" " alt="" coords="888,90,1068,117"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1142,38,1012,92,1011,86,1137,40"/>
-<area shape="rect" id="Node000007" href="$_train_unit_panel_8cpp.html" title=" " alt="" coords="1092,90,1282,117"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1189,47,1189,91,1185,87,1185,51"/>
-<area shape="rect" id="Node000008" href="$_block_route_facets_8cpp.html" title=" " alt="" coords="1100,174,1267,218"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1246,37,1274,55,1296,80,1304,103,1296,127,1272,155,1241,176,1239,171,1269,151,1292,124,1299,103,1292,82,1271,59,1244,42"/>
-<area shape="rect" id="Node000009" href="$_list_facet_8h.html" title=" " alt="" coords="1407,81,1565,126"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1250,35,1409,80,1404,80,1250,40"/>
-<area shape="rect" id="Node000010" href="$_signal_facets_8cpp.html" title=" " alt="" coords="1291,174,1449,218"/>
-<area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="1249,36,1285,54,1318,79,1336,101,1350,126,1367,175,1362,172,1345,129,1332,104,1315,83,1283,59,1248,42"/>
-<area shape="rect" id="Node000011" href="$_station_facets_8cpp.html" title=" " alt="" coords="1656,174,1814,218"/>
-<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="1269,17,1338,21,1417,31,1499,50,1578,79,1594,89,1605,99,1629,124,1701,174,1696,172,1625,128,1601,103,1591,93,1575,83,1498,55,1416,37,1338,27,1269,23"/>
-<area shape="rect" id="Node000013" href="$_scene_ids_8cpp.html" title=" " alt="" coords="1640,90,1788,117"/>
-<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="1269,27,1432,48,1621,78,1662,89,1657,89,1620,84,1432,54,1269,33"/>
-<area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="1402,130,1256,176,1255,171,1396,131"/>
-<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="1449,134,1398,176,1397,171,1444,136"/>
-<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="1560,129,1678,173,1673,173,1559,134"/>
-<area shape="rect" id="Node000012" href="$_topology_facets_8cpp.html" title=" " alt="" coords="1473,174,1632,218"/>
-<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="1512,136,1539,175,1534,172,1509,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1192,23,781,40,509,58,233,84,180,91,179,86,232,78,508,52,781,35,1197,21"/>
+<area shape="rect" id="Node000003" href="$_editor_rules_8cpp.html" title=" " alt="" coords="244,90,416,117"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1192,23,859,41,644,58,428,84,385,91,384,86,427,78,643,53,859,36,1197,22"/>
+<area shape="rect" id="Node000004" href="$_incident_panel_8cpp.html" title=" " alt="" coords="439,90,623,117"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1192,26,945,48,791,64,637,84,592,92,591,86,636,78,790,59,944,43,1197,25"/>
+<area shape="rect" id="Node000005" href="$_passenger_panel_8cpp.html" title=" " alt="" coords="648,90,846,117"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1191,32,858,84,814,91,813,86,857,78,1197,31"/>
+<area shape="rect" id="Node000006" href="$_scenario_panel_8cpp.html" title=" " alt="" coords="870,90,1059,117"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1214,37,1015,92,1014,86,1209,38"/>
+<area shape="rect" id="Node000007" href="$_service_panel_8cpp.html" title=" " alt="" coords="1082,90,1263,117"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1250,42,1190,91,1188,86,1245,44"/>
+<area shape="rect" id="Node000008" href="$_train_unit_panel_8cpp.html" title=" " alt="" coords="1287,90,1477,117"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1306,40,1368,90,1362,88,1304,45"/>
+<area shape="rect" id="Node000009" href="$_block_route_facets_8cpp.html" title=" " alt="" coords="1294,174,1462,218"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1359,31,1438,51,1470,64,1491,79,1497,91,1499,103,1491,127,1467,155,1436,176,1434,171,1463,151,1486,124,1494,103,1492,93,1486,83,1468,68,1436,56,1359,36"/>
+<area shape="rect" id="Node000010" href="$_list_facet_8h.html" title=" " alt="" coords="1601,81,1760,126"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1359,34,1584,78,1604,85,1598,85,1583,84,1358,39"/>
+<area shape="rect" id="Node000011" href="$_signal_facets_8cpp.html" title=" " alt="" coords="1485,174,1644,218"/>
+<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="1358,22,1398,28,1438,39,1477,56,1513,79,1532,100,1547,125,1562,175,1558,172,1542,127,1528,103,1509,83,1475,60,1436,44,1396,33,1358,27"/>
+<area shape="rect" id="Node000012" href="$_station_facets_8cpp.html" title=" " alt="" coords="1851,174,2009,218"/>
+<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="1359,22,1584,41,1694,57,1739,67,1772,79,1789,89,1800,99,1824,124,1895,174,1890,172,1820,128,1796,103,1786,93,1770,83,1737,72,1693,62,1583,46,1359,27"/>
+<area shape="rect" id="Node000014" href="$_scene_ids_8cpp.html" title=" " alt="" coords="1834,90,1983,117"/>
+<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="1359,24,1567,45,1816,78,1858,89,1852,89,1815,84,1566,50,1359,30"/>
+<area shape="poly" id="edge10_Node000010_Node000009" title=" " alt="" coords="1596,130,1451,176,1450,171,1591,131"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="1644,134,1593,176,1591,171,1639,136"/>
+<area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="1755,129,1873,173,1868,173,1754,134"/>
+<area shape="rect" id="Node000013" href="$_topology_facets_8cpp.html" title=" " alt="" coords="1668,174,1826,218"/>
+<area shape="poly" id="edge13_Node000010_Node000013" title=" " alt="" coords="1707,136,1734,175,1729,172,1704,141"/>
 </map>

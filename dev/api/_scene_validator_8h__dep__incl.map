@@ -1,25 +1,25 @@
 <map id="scene/SceneValidator.h" name="scene/SceneValidator.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="958,5,1129,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="939,5,1110,33"/>
 <area shape="rect" id="Node000002" href="$_dispatch_controller_8cpp.html" title=" " alt="" coords="5,81,202,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="940,27,617,51,213,84,202,85,202,79,213,78,617,46,945,26"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="921,27,606,51,213,84,202,85,202,79,213,78,606,46,926,26"/>
 <area shape="rect" id="Node000003" href="$_main_window_8cpp.html" title=" " alt="" coords="225,81,384,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="945,28,694,53,397,84,385,85,385,80,397,78,694,48,940,29"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="926,29,684,54,397,84,385,85,385,80,397,78,683,48,921,29"/>
 <area shape="rect" id="Node000004" href="$_scene_session_8cpp.html" title=" " alt="" coords="409,81,574,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="945,34,575,85,574,80,939,34"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="926,34,575,85,574,79,921,34"/>
 <area shape="rect" id="Node000005" href="$main_8cpp.html" title=" " alt="" coords="598,81,708,109"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="961,36,720,84,708,86,708,80,719,78,956,37"/>
-<area shape="rect" id="Node000006" href="$_scenario_panel_8cpp.html" title=" " alt="" coords="732,81,920,109"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="993,38,866,83,864,78,988,39"/>
-<area shape="rect" id="Node000007" href="$_validation_panel_8cpp.html" title=" " alt="" coords="945,81,1142,109"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1045,47,1045,82,1042,79,1042,51"/>
-<area shape="rect" id="Node000008" href="$_scene_exporter_8cpp.html" title=" " alt="" coords="1166,81,1350,109"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1097,36,1222,81,1217,80,1096,41"/>
-<area shape="rect" id="Node000009" href="$_scene_importer_8cpp.html" title=" " alt="" coords="1374,81,1558,109"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1135,34,1393,80,1387,80,1134,39"/>
-<area shape="rect" id="Node000010" href="$_scene_migration_8cpp.html" title=" " alt="" coords="1582,81,1774,109"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1145,29,1570,78,1585,83,1580,82,1570,84,1145,35"/>
-<area shape="rect" id="Node000011" href="$_scene_tool_8cpp.html" title=" " alt="" coords="1798,81,1953,109"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1145,24,1433,45,1786,78,1800,82,1795,82,1786,84,1433,51,1144,30"/>
-<area shape="rect" id="Node000012" href="$_scene_validator_8cpp.html" title=" " alt="" coords="1977,81,2163,109"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1144,23,1507,43,1965,78,1979,82,1974,82,1965,84,1506,49,1144,28"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="946,36,708,85,707,80,940,37"/>
+<area shape="rect" id="Node000006" href="$_editor_rules_8cpp.html" title=" " alt="" coords="731,81,902,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="976,38,855,83,853,78,971,39"/>
+<area shape="rect" id="Node000007" href="$_validation_panel_8cpp.html" title=" " alt="" coords="926,81,1124,109"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1027,47,1027,82,1023,79,1023,51"/>
+<area shape="rect" id="Node000008" href="$_scene_exporter_8cpp.html" title=" " alt="" coords="1148,81,1331,109"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1078,36,1204,81,1198,80,1077,41"/>
+<area shape="rect" id="Node000009" href="$_scene_importer_8cpp.html" title=" " alt="" coords="1355,81,1540,109"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1116,34,1374,80,1369,80,1115,39"/>
+<area shape="rect" id="Node000010" href="$_scene_migration_8cpp.html" title=" " alt="" coords="1564,81,1755,109"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1126,29,1552,78,1566,83,1561,82,1551,84,1126,35"/>
+<area shape="rect" id="Node000011" href="$_scene_tool_8cpp.html" title=" " alt="" coords="1779,81,1934,109"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="1126,24,1415,45,1768,78,1782,82,1776,82,1767,84,1414,51,1126,30"/>
+<area shape="rect" id="Node000012" href="$_scene_validator_8cpp.html" title=" " alt="" coords="1958,81,2145,109"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="1126,23,1488,43,1946,78,1961,82,1955,82,1946,84,1488,49,1125,28"/>
 </map>

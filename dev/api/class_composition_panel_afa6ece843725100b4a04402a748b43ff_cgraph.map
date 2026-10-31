@@ -1,13 +1,6 @@
 <map id="CompositionPanel::commitIdEdit" name="CompositionPanel::commitIdEdit">
-<area shape="rect" id="Node000001" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="5,100,202,144"/>
-<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="284,5,480,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,97,190,68,249,42,275,36,271,39,251,47,192,73,142,101"/>
-<area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="269,57,495,102"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,104,256,98,251,100,203,109"/>
-<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title="Rewrites the composition id in the composition of services." alt="" coords="250,149,514,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,134,272,146,266,147,202,139"/>
-<area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="282,225,482,253"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="153,142,251,186,330,219,324,220,249,191,152,147"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="334,148,327,140,333,131,352,125,382,123,414,125,433,134,428,134,413,130,382,128,353,130,336,135,332,140,340,149"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="334,224,327,216,333,207,352,201,382,199,414,201,433,210,428,210,413,206,382,204,353,206,336,211,332,216,339,226"/>
+<area shape="rect" id="Node000001" title="Takes the id from the field. An empty or used id is dropped and the field shows the old id again." alt="" coords="5,21,202,66"/>
+<area shape="rect" id="Node000002" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="250,29,449,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,41,237,43,231,43,202,46"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="307,28,301,20,306,11,323,5,349,3,378,5,395,14,390,14,377,10,349,8,324,10,309,15,306,20,312,30"/>
 </map>

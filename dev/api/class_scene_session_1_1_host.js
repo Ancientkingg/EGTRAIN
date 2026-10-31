@@ -9,9 +9,5 @@ var class_scene_session_1_1_host =
     [ "offerUpdateCheck", "class_scene_session_1_1_host.html#ad357e6c68b725f4d4e79f33bdcf8b1f5", null ],
     [ "readScene", "class_scene_session_1_1_host.html#af6ee830bb43819af1dc87fd7238b640e", null ],
     [ "recoveredSceneSource", "class_scene_session_1_1_host.html#a9cbce332a88179c824d788f2e5622b65", null ],
-    [ "sceneActionsChanged", "class_scene_session_1_1_host.html#af1e887440b754f79bbee90c154856cd6", null ],
-    [ "sceneCreated", "class_scene_session_1_1_host.html#ad08d182f761db4f44832d39f8e21b18b", null ],
-    [ "sceneOpened", "class_scene_session_1_1_host.html#a4f049bc423d18f29ec228abe83f78f17", null ],
-    [ "sceneSaved", "class_scene_session_1_1_host.html#af1299a535dee48ae992e40d9a11eb145", null ],
-    [ "sceneWillBeReplaced", "class_scene_session_1_1_host.html#aeb5b4b6f233da4a2919b97e897edbb87", null ]
+    [ "sceneOpened", "class_scene_session_1_1_host.html#a4f049bc423d18f29ec228abe83f78f17", null ]
 ];

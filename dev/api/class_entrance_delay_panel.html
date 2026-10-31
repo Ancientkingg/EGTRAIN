@@ -122,18 +122,13 @@ Inheritance diagram for EntranceDelayPanel:</div>
 <div class="dynheader">
 Collaboration diagram for EntranceDelayPanel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel__coll__graph.svg" width="163" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel__coll__graph.svg" width="384" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad69251e58aecb776bccfb14fd4cd7a92" id="r_ad69251e58aecb776bccfb14fd4cd7a92"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad69251e58aecb776bccfb14fd4cd7a92">EntranceDelayPanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:ad69251e58aecb776bccfb14fd4cd7a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
-<tr class="memitem:a93e4730688974ecdbcdc21148feddee4" id="r_a93e4730688974ecdbcdc21148feddee4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a93e4730688974ecdbcdc21148feddee4">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
-<tr class="memdesc:a93e4730688974ecdbcdc21148feddee4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced, and when the case settings, the infrastructure or the services change.  <br /></td></tr>
-<tr class="memitem:a3cf41d225174fc7ac72485ed1272a7cb" id="r_a3cf41d225174fc7ac72485ed1272a7cb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3cf41d225174fc7ac72485ed1272a7cb">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
-<tr class="memitem:a0fd51de3a9b5ecd15142b2d7f71c4251" id="r_a0fd51de3a9b5ecd15142b2d7f71c4251"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0fd51de3a9b5ecd15142b2d7f71c4251">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
-<tr class="memitem:a7ff764011414efdf9918b1396570c70c" id="r_a7ff764011414efdf9918b1396570c70c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7ff764011414efdf9918b1396570c70c">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:ab4f97bfcfa207e578bf6559732c0d06a" id="r_ab4f97bfcfa207e578bf6559732c0d06a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab4f97bfcfa207e578bf6559732c0d06a">refresh</a> () override</td></tr>
 <tr class="memdesc:ab4f97bfcfa207e578bf6559732c0d06a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lists the delays of the selected scenario again and keeps the selected row where it still exists.  <br /></td></tr>
 <tr class="memitem:a64fb882abea20002d08c55790b0cf36d" id="r_a64fb882abea20002d08c55790b0cf36d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a64fb882abea20002d08c55790b0cf36d">commitPendingEditors</a> () override</td></tr>
@@ -152,7 +147,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a380e44076e412c89da9227f5f659bb98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the station at <span class="tt">index</span> of the station combo.  <br /></td></tr>
 <tr class="memitem:acd386ab2684633c40d040000b8f615fa" id="r_acd386ab2684633c40d040000b8f615fa"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acd386ab2684633c40d040000b8f615fa">commitSeconds</a> ()</td></tr>
 <tr class="memdesc:acd386ab2684633c40d040000b8f615fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Takes the delay in seconds from its field.  <br /></td></tr>
-<tr class="memitem:afd5ac27382e7e98fc7fcaf27358120fb" id="r_afd5ac27382e7e98fc7fcaf27358120fb"><td class="memItemLeft"><a class="el" href="struct_scene_entrance_delay.html">SceneEntranceDelay</a> *&#160;</td><td class="memItemRight"><a class="el" href="#afd5ac27382e7e98fc7fcaf27358120fb">selectedEntranceDelay</a> ()</td></tr>
+<tr class="memitem:af3f1013b6ccdf5e6c6c04c81453518bc" id="r_af3f1013b6ccdf5e6c6c04c81453518bc"><td class="memItemLeft">const <a class="el" href="struct_scene_entrance_delay.html">SceneEntranceDelay</a> *&#160;</td><td class="memItemRight"><a class="el" href="#af3f1013b6ccdf5e6c6c04c81453518bc">selectedEntranceDelay</a> () const</td></tr>
+<tr class="memdesc:af3f1013b6ccdf5e6c6c04c81453518bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected delay, or null when none is selected or the scene cannot be edited.  <br /></td></tr>
 <tr class="memitem:ae0b84da365cd871666ea6850514c86be" id="r_ae0b84da365cd871666ea6850514c86be"><td class="memItemLeft">QListWidget *&#160;</td><td class="memItemRight"><a class="el" href="#ae0b84da365cd871666ea6850514c86be">listWidget</a> () const</td></tr>
 <tr class="memdesc:ae0b84da365cd871666ea6850514c86be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delays of the selected scenario, one row each.  <br /></td></tr>
 <tr class="memitem:ad2721b9ff3daa7064c4787e4325a407a" id="r_ad2721b9ff3daa7064c4787e4325a407a"><td class="memItemLeft">QComboBox *&#160;</td><td class="memItemRight"><a class="el" href="#ad2721b9ff3daa7064c4787e4325a407a">serviceCombo</a> () const</td></tr>
@@ -175,12 +171,38 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
+<tr class="memitem:a0623bcc36861d2ecf6ad1f0aff59fb7d pub_methods_class_scene_editor_panel" id="r_a0623bcc36861d2ecf6ad1f0aff59fb7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a0623bcc36861d2ecf6ad1f0aff59fb7d">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
+<tr class="memitem:a58adc7c4da3c0681dc6264496a8df4f2 pub_methods_class_scene_editor_panel" id="r_a58adc7c4da3c0681dc6264496a8df4f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
+<tr class="memitem:af13cca73366a245163487f9a06d72bdf pub_methods_class_scene_editor_panel" id="r_af13cca73366a245163487f9a06d72bdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
+<tr class="memitem:a5a1e0ed680110c0ebcaaadae5c6bb795 pub_methods_class_scene_editor_panel" id="r_a5a1e0ed680110c0ebcaaadae5c6bb795"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a5a1e0ed680110c0ebcaaadae5c6bb795">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
+<tr class="memitem:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel" id="r_af9647734cc3da5fead984dc7c8b70c0f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f">hasScene</a> () const</td></tr>
+<tr class="memdesc:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a scene is loaded.  <br /></td></tr>
+<tr class="memitem:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel" id="r_a1a8b6da5077b8326131e15cb93ce964b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b">canEdit</a> () const</td></tr>
+<tr class="memdesc:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while no scene is loaded or a run uses it.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:aa06790ade25cfbefa36d0edfad958912" id="r_aa06790ade25cfbefa36d0edfad958912"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa06790ade25cfbefa36d0edfad958912">documentChanged</a> (SceneDocument::ChangeKinds kinds) override</td></tr>
+<tr class="memdesc:aa06790ade25cfbefa36d0edfad958912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the case settings, the infrastructure or the services change.  <br /></td></tr>
+<tr class="inherit_header pro_methods_class_scene_editor_panel"><td colspan="2">Protected Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
+<tr class="memitem:aa13f46339c1a46209bbbd3b2b7ff13fd pro_methods_class_scene_editor_panel" id="r_aa13f46339c1a46209bbbd3b2b7ff13fd"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa13f46339c1a46209bbbd3b2b7ff13fd">documentReplaced</a> ()</td></tr>
+<tr class="memdesc:aa13f46339c1a46209bbbd3b2b7ff13fd pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document has been replaced. The panel shows it again.  <br /></td></tr>
+<tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2 pro_methods_class_scene_editor_panel" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
+<tr class="memitem:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
+<tr class="memdesc:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
-<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="inherit_header pro_attribs_class_scene_editor_panel"><td colspan="2">Protected Attributes inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
+<tr class="memitem:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel" id="r_a24c4a36acd25b52de025dbf518d84b94"><td class="memItemLeft">QPointer&lt; <a class="el" href="class_scene_document.html">SceneDocument</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a24c4a36acd25b52de025dbf518d84b94">m_document</a></td></tr>
+<tr class="memdesc:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document that the panel works on; null without one.  <br /></td></tr>
+<tr class="memitem:ae17302f3547a021119c99a951597235d pro_attribs_class_scene_editor_panel" id="r_ae17302f3547a021119c99a951597235d"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> *&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ae17302f3547a021119c99a951597235d">m_prompts</a> = &amp;m_ownPrompts</td></tr>
+<tr class="memdesc:ae17302f3547a021119c99a951597235d pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The prompts of <a class="el" href="class_scene_editor_panel.html#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts()</a>.  <br /></td></tr>
+<tr class="memitem:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel" id="r_a57a02e26e706794cd4afd7191d43737b"><td class="memItemLeft"><a class="el" href="class_run_selection.html">RunSelection</a> *&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a57a02e26e706794cd4afd7191d43737b">m_runSelection</a> = &amp;m_ownRunSelection</td></tr>
+<tr class="memdesc:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of <a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The entrance delays of the selected scenario: a list to pick one, and the fields of the selected delay, which holds a train back before it enters the network. A delay names one occurrence of a service (counted from 1), the station at which the train is held and the delay in seconds. The choices of occurrences and stations follow the services of the document: a station is offered when the first stop of the service there has a planned departure. The scenario whose delays are shown is the one that the run selection names. </p>
@@ -212,7 +234,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_ad69251e58aecb776bccfb14fd4cd7a92_cgraph.svg" width="1978" height="811"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_ad69251e58aecb776bccfb14fd4cd7a92_cgraph.svg" width="1978" height="871"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -263,7 +285,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a27df63699c7d44ab41f4d5f85febbda5_cgraph.svg" width="1627" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a27df63699c7d44ab41f4d5f85febbda5_cgraph.svg" width="1627" height="612"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -287,7 +309,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a08697c3bb62f317c1a172a1ab12ea242_cgraph.svg" width="1627" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a08697c3bb62f317c1a172a1ab12ea242_cgraph.svg" width="1655" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -321,7 +343,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a64fb882abea20002d08c55790b0cf36d_cgraph.svg" width="1852" height="267"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a64fb882abea20002d08c55790b0cf36d_cgraph.svg" width="1852" height="554"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -345,7 +367,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_acd386ab2684633c40d040000b8f615fa_cgraph.svg" width="1627" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_acd386ab2684633c40d040000b8f615fa_cgraph.svg" width="1655" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -368,7 +390,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a2333d4143fd53a87fde507aa6326336d_cgraph.svg" width="1627" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a2333d4143fd53a87fde507aa6326336d_cgraph.svg" width="1655" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -392,7 +414,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a380e44076e412c89da9227f5f659bb98_cgraph.svg" width="1627" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a380e44076e412c89da9227f5f659bb98_cgraph.svg" width="1655" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -443,7 +465,41 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_aaa5c655c6b6cdd6194780b1000538022_cgraph.svg" width="1640" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_aaa5c655c6b6cdd6194780b1000538022_cgraph.svg" width="1668" height="610"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa06790ade25cfbefa36d0edfad958912" name="aa06790ade25cfbefa36d0edfad958912"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa06790ade25cfbefa36d0edfad958912">&#9670;&#160;</a></span>documentChanged()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void EntranceDelayPanel::documentChanged </td>
+          <td>(</td>
+          <td class="paramtype">SceneDocument::ChangeKinds</td>          <td class="paramname"><span class="paramname"><em>kinds</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Refreshes when the case settings, the infrastructure or the services change. </p>
+
+<p>Reimplemented from <a class="el" href="class_scene_editor_panel.html#a146f3ad4e046cdd8290757d3d03bff76">SceneEditorPanel</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_aa06790ade25cfbefa36d0edfad958912_cgraph.svg" width="1719" height="590"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -494,7 +550,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a626c068f10d94cec966644e7da82ddc8_cgraph.svg" width="1659" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a626c068f10d94cec966644e7da82ddc8_cgraph.svg" width="1687" height="576"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -635,7 +691,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_ab4f97bfcfa207e578bf6559732c0d06a_cgraph.svg" width="1382" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_ab4f97bfcfa207e578bf6559732c0d06a_cgraph.svg" width="1382" height="498"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -667,21 +723,27 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="afd5ac27382e7e98fc7fcaf27358120fb" name="afd5ac27382e7e98fc7fcaf27358120fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd5ac27382e7e98fc7fcaf27358120fb">&#9670;&#160;</a></span>selectedEntranceDelay()</h2>
+<a id="af3f1013b6ccdf5e6c6c04c81453518bc" name="af3f1013b6ccdf5e6c6c04c81453518bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3f1013b6ccdf5e6c6c04c81453518bc">&#9670;&#160;</a></span>selectedEntranceDelay()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="struct_scene_entrance_delay.html">SceneEntranceDelay</a> * EntranceDelayPanel::selectedEntranceDelay </td>
+          <td class="memname">const <a class="el" href="struct_scene_entrance_delay.html">SceneEntranceDelay</a> * EntranceDelayPanel::selectedEntranceDelay </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The selected delay for an edit, or null when none is selected or the scene cannot be edited. A scene without a scenario gets the baseline scenario first. </p>
+
+<p>The selected delay, or null when none is selected or the scene cannot be edited. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_af3f1013b6ccdf5e6c6c04c81453518bc_cgraph.svg" width="679" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -709,94 +771,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The services of the scene, each with its id as the data. A service that the scene lacks is shown as missing. </p>
-
-</div>
-</div>
-<a id="a93e4730688974ecdbcdc21148feddee4" name="a93e4730688974ecdbcdc21148feddee4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93e4730688974ecdbcdc21148feddee4">&#9670;&#160;</a></span>setDocument()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void EntranceDelayPanel::setDocument </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_scene_document.html">SceneDocument</a> *</td>          <td class="paramname"><span class="paramname"><em>document</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Refreshes when the document is replaced, and when the case settings, the infrastructure or the services change. </p>
-
-<p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a93e4730688974ecdbcdc21148feddee4_cgraph.svg" width="1622" height="298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a7ff764011414efdf9918b1396570c70c" name="a7ff764011414efdf9918b1396570c70c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ff764011414efdf9918b1396570c70c">&#9670;&#160;</a></span>setOccurrenceDuration()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void EntranceDelayPanel::setOccurrenceDuration </td>
-          <td>(</td>
-          <td class="paramtype">std::function&lt; double()&gt;</td>          <td class="paramname"><span class="paramname"><em>duration</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
-
-</div>
-</div>
-<a id="a3cf41d225174fc7ac72485ed1272a7cb" name="a3cf41d225174fc7ac72485ed1272a7cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3cf41d225174fc7ac72485ed1272a7cb">&#9670;&#160;</a></span>setPrompts()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void EntranceDelayPanel::setPrompts </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
-
-</div>
-</div>
-<a id="a0fd51de3a9b5ecd15142b2d7f71c4251" name="a0fd51de3a9b5ecd15142b2d7f71c4251"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0fd51de3a9b5ecd15142b2d7f71c4251">&#9670;&#160;</a></span>setRunSelection()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void EntranceDelayPanel::setRunSelection </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_run_selection.html">RunSelection</a> *</td>          <td class="paramname"><span class="paramname"><em>selection</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -846,7 +820,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a35cf7bffe1e1784f471285a0c7090e81_cgraph.svg" width="1183" height="264"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_entrance_delay_panel_a35cf7bffe1e1784f471285a0c7090e81_cgraph.svg" width="1183" height="343"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

@@ -2,9 +2,13 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,49,196,94"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="257,5,454,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,49,271,36,266,38,197,54"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="244,57,467,85"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a6a0c7a1001a3f734a0ff29482b8ff350" title="The selected incident, or null when none is selected or the scene cannot be edited." alt="" coords="244,57,467,85"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,69,231,70,226,72,197,74"/>
-<area shape="rect" id="Node000004" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="306,133,405,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="178,91,294,127,289,129,177,97"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="312,132,305,124,311,115,328,109,355,107,385,109,403,118,398,118,384,114,355,112,329,114,314,119,310,124,317,134"/>
+<area shape="rect" id="Node000006" href="$_editor_helpers_8h.html#a7efe6339b284ef6f1ee37485b69cf16b" title=" " alt="" coords="306,133,405,161"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="178,91,294,127,289,129,177,97"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="515,57,704,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="467,69,502,71,497,71,468,74"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="752,57,956,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="705,69,739,71,734,71,705,74"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="312,132,305,124,311,115,328,109,355,107,385,109,403,118,397,118,384,114,355,112,329,114,314,119,310,124,317,134"/>
 </map>

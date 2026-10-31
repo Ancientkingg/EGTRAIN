@@ -1,7 +1,0 @@
-<map id="recordStartupTiming" name="recordStartupTiming">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,57"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,29,41,20,46,11,60,5,83,3,107,5,122,14,116,14,106,10,82,8,61,10,49,15,46,20,52,29"/>
-<area shape="rect" id="Node000002" href="$_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;." alt="" coords="208,29,372,57"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="160,41,195,43,189,43,160,46"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="254,28,248,20,253,11,267,5,290,3,314,5,329,14,324,14,313,10,290,8,268,10,257,15,254,20,259,30"/>
-</map>

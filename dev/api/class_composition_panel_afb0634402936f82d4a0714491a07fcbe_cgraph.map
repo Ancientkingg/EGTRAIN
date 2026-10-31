@@ -3,8 +3,13 @@
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="282,5,478,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,31,269,30,263,31,235,37"/>
 <area shape="rect" id="Node000003" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="284,57,476,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,54,271,60,265,60,234,60"/>
-<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="526,57,620,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="476,69,513,71,508,71,477,74"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="540,56,534,48,539,39,552,33,573,31,596,33,610,43,605,42,595,38,573,36,553,38,542,43,540,48,544,58"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,54,271,60,265,61,234,60"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="526,19,729,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="472,54,517,50,522,49,473,59"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="552,95,703,122"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="476,83,540,95,535,95,476,88"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="594,93,588,86,593,76,606,70,628,68,651,71,665,80,660,79,649,76,628,73,607,75,596,80,593,85,598,95"/>
+<area shape="rect" id="Node000006" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="777,95,872,122"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="703,106,764,108,759,109,703,111"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="790,93,785,86,789,76,803,70,825,68,848,71,862,80,857,79,846,76,824,73,804,75,793,80,790,85,795,95"/>
 </map>

@@ -109,6 +109,12 @@ var namespaces_dup =
     ] ],
     [ "telemetry", "namespacetelemetry.html", "namespacetelemetry" ],
     [ "telemetry_smoke", "namespacetelemetry__smoke.html", "namespacetelemetry__smoke" ],
+    [ "TimetableStops", "namespace_timetable_stops.html", [
+      [ "baseTimeText", "namespace_timetable_stops.html#a760c0eac70de2284909ab143fbfe0146", null ],
+      [ "baseTimeToSeconds", "namespace_timetable_stops.html#a641f55d38748385fa14b464b2afcd09e", null ],
+      [ "stationDisplayName", "namespace_timetable_stops.html#abf31a056f5e6f5ea5dc26e9a23719715", null ],
+      [ "stopResolutionText", "namespace_timetable_stops.html#a9e5c38c3c31041e3cb9b387be84e871b", null ]
+    ] ],
     [ "Ui", "namespace_ui.html", null ],
     [ "update_prompt", "namespaceupdate__prompt.html", [
       [ "automaticChecksDetail", "namespaceupdate__prompt.html#a82c1c5be32beff8f5f711f66ff1f9334", null ],

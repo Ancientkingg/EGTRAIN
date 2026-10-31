@@ -1,7 +1,7 @@
 <map id="InfrastructurePanel::insertEntity" name="InfrastructurePanel::insertEntity">
 <area shape="rect" id="Node000001" title="Inserts an entity before the selected one." alt="" coords="5,5,150,50"/>
-<area shape="rect" id="Node000002" href="$class_infrastructure_panel.html#a65fd74c160edbe2ab88ff5e0fbcb2c22" title="False while no scene is loaded or a run uses it." alt="" coords="198,5,342,50"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,25,185,27,180,28,150,30"/>
-<area shape="rect" id="Node000003" href="$class_infrastructure_panel.html#a5628f0d372d4b1a8772036d4587ef9cc" title="True when a scene is loaded." alt="" coords="390,5,534,50"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="342,25,377,28,372,28,342,30"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="198,14,387,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,25,185,27,179,28,150,30"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="435,14,638,42"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,25,422,28,417,28,388,30"/>
 </map>

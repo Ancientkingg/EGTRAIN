@@ -2,6 +2,10 @@
 <area shape="rect" id="Node000001" title="Sets the terminate&#45;at&#45;destination request of a breakdown (see the scene schema)." alt="" coords="5,24,237,68"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="298,5,494,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,32,285,30,280,31,238,37"/>
-<area shape="rect" id="Node000003" href="$class_incident_panel.html#a375e4980dce11bb5cbe65638f67b98d8" title=" " alt="" coords="285,57,508,85"/>
+<area shape="rect" id="Node000003" href="$class_incident_panel.html#a6a0c7a1001a3f734a0ff29482b8ff350" title="The selected incident, or null when none is selected or the scene cannot be edited." alt="" coords="285,57,508,85"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,54,272,59,267,60,237,59"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="556,57,745,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="508,69,543,71,538,71,508,74"/>
+<area shape="rect" id="Node000005" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="793,57,997,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="746,69,780,71,775,71,746,74"/>
 </map>

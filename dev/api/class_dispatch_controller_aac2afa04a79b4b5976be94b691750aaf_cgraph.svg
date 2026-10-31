@@ -94,7 +94,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" target="_top" xlink:title="The same run with write access, for the stages of the controller and for tests. The thread rules of r...">
 <polygon fill="white" stroke="#666666" points="486.75,-83.12 380,-83.12 380,-49.62 486.75,-49.62 486.75,-83.12"/>
 <text xml:space="preserve" text-anchor="start" x="388" y="-69.62" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text xml:space="preserve" text-anchor="middle" x="433.38" y="-56.88" font-family="Helvetica,sans-Serif" font-size="10.00">::mutableRun</text>

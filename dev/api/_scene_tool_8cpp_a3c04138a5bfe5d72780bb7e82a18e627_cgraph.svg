@@ -138,7 +138,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
+<g id="a_Node000006"><a xlink:href="_startup_timing_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
 <polygon fill="#fff0f0" stroke="red" points="467.5,-1471.15 355.5,-1471.15 355.5,-1450.4 467.5,-1450.4 467.5,-1471.15"/>
 <text xml:space="preserve" text-anchor="middle" x="411.5" y="-1457.65" font-family="Helvetica,sans-Serif" font-size="10.00">beginStartupTiming</text>
 </a>
@@ -722,7 +722,7 @@
 <!-- Node130 -->
 <g id="Node000130" class="node">
 <title>Node130</title>
-<g id="a_Node000130"><a xlink:href="_main_window_8cpp.html#a47c2ba6e7064ed2ad030d4c1c2b34528" target="_top" xlink:title=" ">
+<g id="a_Node000130"><a xlink:href="_startup_timing_8cpp.html#a47c2ba6e7064ed2ad030d4c1c2b34528" target="_top" xlink:title=" ">
 <polygon fill="#fff0f0" stroke="red" points="469.38,-1687.15 353.62,-1687.15 353.62,-1666.4 469.38,-1666.4 469.38,-1687.15"/>
 <text xml:space="preserve" text-anchor="middle" x="411.5" y="-1673.65" font-family="Helvetica,sans-Serif" font-size="10.00">recordStartupTiming</text>
 </a>

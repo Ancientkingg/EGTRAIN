@@ -138,7 +138,7 @@ Signals</h2></td></tr>
 <tr class="memdesc:ae03fc8e1d489ae031230808457f2677e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The links have been dropped.  <br /></td></tr>
 <tr class="memitem:a7f8c7b0786c8a294cfa526e7ad9b407b" id="r_a7f8c7b0786c8a294cfa526e7ad9b407b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7f8c7b0786c8a294cfa526e7ad9b407b">reloaded</a> (const QStringList &amp;tractionUnitIds)</td></tr>
 <tr class="memitem:a54184a53c6a3a3ecd45c007f1ff75873" id="r_a54184a53c6a3a3ecd45c007f1ff75873"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a54184a53c6a3a3ecd45c007f1ff75873">commitPendingEditsRequested</a> ()</td></tr>
-<tr class="memdesc:a54184a53c6a3a3ecd45c007f1ff75873"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pending edits have to be taken into the model before the linker compares the model with a file.  <br /></td></tr>
+<tr class="memitem:a1634ba591e106a7ed9878439e5ed67e7" id="r_a1634ba591e106a7ed9878439e5ed67e7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1634ba591e106a7ed9878439e5ed67e7">commitAllPendingEditsRequested</a> ()</td></tr>
 <tr class="memitem:ac19717cc1626f87ada89b940e2a61dd4" id="r_ac19717cc1626f87ada89b940e2a61dd4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac19717cc1626f87ada89b940e2a61dd4">statusMessage</a> (const QString &amp;message, int milliseconds)</td></tr>
 <tr class="memdesc:ac19717cc1626f87ada89b940e2a61dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A message for the status line, shown for <span class="tt">milliseconds</span>.  <br /></td></tr>
 </table><table class="memberdecls">
@@ -214,7 +214,7 @@ Friends</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_a4a956874976fc131a31095e03150a088_cgraph.svg" width="1230" height="698"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_a4a956874976fc131a31095e03150a088_cgraph.svg" width="1246" height="767"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -244,6 +244,32 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a1634ba591e106a7ed9878439e5ed67e7" name="a1634ba591e106a7ed9878439e5ed67e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1634ba591e106a7ed9878439e5ed67e7">&#9670;&#160;</a></span>commitAllPendingEditsRequested</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainUnitSourceLinker::commitAllPendingEditsRequested </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The pending edits of every editor have to be taken into the model before the linker asks whether to reload a changed file. The question takes the focus, and a field that takes its text when it loses the focus would change the scene while the question is open: the answer would then be stale, and the question would be asked again. Only the editor of the train units edits them, and its edits are taken before the comparison, so the conflicts that the question names stay as they are. </p>
+
+</div>
+</div>
 <a id="a54184a53c6a3a3ecd45c007f1ff75873" name="a54184a53c6a3a3ecd45c007f1ff75873"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a54184a53c6a3a3ecd45c007f1ff75873">&#9670;&#160;</a></span>commitPendingEditsRequested</h2>
 
@@ -266,8 +292,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Pending edits have to be taken into the model before the linker compares the model with a file. </p>
+<p>The pending edits of the train units have to be taken into the model before the linker compares the model with a file. Not emitted while the file holds what it held when it was last handled and no retry asks for it. </p>
 
 </div>
 </div>
@@ -447,7 +472,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_afb25c4d7890af7afca1f014b38c2d3ff_cgraph.svg" width="1011" height="756"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_afb25c4d7890af7afca1f014b38c2d3ff_cgraph.svg" width="1028" height="767"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -475,7 +500,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_ae3fda9df595e4ee120f40884d798dfd8_cgraph.svg" width="800" height="756"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_unit_source_linker_ae3fda9df595e4ee120f40884d798dfd8_cgraph.svg" width="818" height="767"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

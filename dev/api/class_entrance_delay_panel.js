@@ -10,6 +10,7 @@ var class_entrance_delay_panel =
     [ "commitStation", "class_entrance_delay_panel.html#a380e44076e412c89da9227f5f659bb98", null ],
     [ "deleteButton", "class_entrance_delay_panel.html#a26e235e4304019eb14f2641f009cac88", null ],
     [ "deleteEntranceDelay", "class_entrance_delay_panel.html#aaa5c655c6b6cdd6194780b1000538022", null ],
+    [ "documentChanged", "class_entrance_delay_panel.html#aa06790ade25cfbefa36d0edfad958912", null ],
     [ "duplicateButton", "class_entrance_delay_panel.html#a2964022d05c54cc1af9938611f731dd8", null ],
     [ "duplicateEntranceDelay", "class_entrance_delay_panel.html#a626c068f10d94cec966644e7da82ddc8", null ],
     [ "emptyStateLabel", "class_entrance_delay_panel.html#a1a61d54815ec7c8da265ca8f5db8b55f", null ],
@@ -18,12 +19,8 @@ var class_entrance_delay_panel =
     [ "occurrenceEdit", "class_entrance_delay_panel.html#a88cb07f6c953475af8ec23c2e2f33b2e", null ],
     [ "refresh", "class_entrance_delay_panel.html#ab4f97bfcfa207e578bf6559732c0d06a", null ],
     [ "secondsEdit", "class_entrance_delay_panel.html#a63ecf2769231f0b42a859e09026f550a", null ],
-    [ "selectedEntranceDelay", "class_entrance_delay_panel.html#afd5ac27382e7e98fc7fcaf27358120fb", null ],
+    [ "selectedEntranceDelay", "class_entrance_delay_panel.html#af3f1013b6ccdf5e6c6c04c81453518bc", null ],
     [ "serviceCombo", "class_entrance_delay_panel.html#ad2721b9ff3daa7064c4787e4325a407a", null ],
-    [ "setDocument", "class_entrance_delay_panel.html#a93e4730688974ecdbcdc21148feddee4", null ],
-    [ "setOccurrenceDuration", "class_entrance_delay_panel.html#a7ff764011414efdf9918b1396570c70c", null ],
-    [ "setPrompts", "class_entrance_delay_panel.html#a3cf41d225174fc7ac72485ed1272a7cb", null ],
-    [ "setRunSelection", "class_entrance_delay_panel.html#a0fd51de3a9b5ecd15142b2d7f71c4251", null ],
     [ "stationCombo", "class_entrance_delay_panel.html#a9a6535f2f650eb77490c69daff5f1540", null ],
     [ "updateDetail", "class_entrance_delay_panel.html#a35cf7bffe1e1784f471285a0c7090e81", null ]
 ];

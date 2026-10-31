@@ -1,14 +1,18 @@
 <map id="ScenarioPanel::updatePresentation" name="ScenarioPanel::updatePresentation">
-<area shape="rect" id="Node000001" title="Writes the label of each scenario in the list again." alt="" coords="5,107,253,134"/>
-<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="355,29,439,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,104,300,67,342,58,337,60,301,72,179,108"/>
-<area shape="rect" id="Node000003" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="301,81,493,109"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="253,106,287,105,282,107,254,111"/>
-<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="541,107,691,134"/>
-<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="253,118,527,118,523,123,253,123"/>
-<area shape="rect" id="Node000005" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="301,184,493,228"/>
-<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="176,132,312,177,308,180,175,138"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="359,28,353,20,358,11,373,5,397,3,423,5,438,14,433,14,421,10,397,8,374,10,362,15,358,20,364,29"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="493,104,528,110,523,110,493,109"/>
-<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="578,105,572,98,577,88,592,82,616,80,642,83,657,92,652,91,641,88,616,85,593,87,581,92,578,97,583,107"/>
+<area shape="rect" id="Node000001" title="Writes the label of each scenario in the list again." alt="" coords="5,159,253,186"/>
+<area shape="rect" id="Node000002" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="360,29,444,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,156,214,113,300,67,347,54,343,57,302,72,216,117,151,160"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="301,81,504,109"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="176,156,300,119,333,112,329,115,301,124,179,160"/>
+<area shape="rect" id="Node000004" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="306,133,498,161"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="252,158,293,156,288,159,254,164"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="552,159,702,186"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="253,170,538,170,535,175,253,175"/>
+<area shape="rect" id="Node000006" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="306,236,498,280"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="176,184,316,229,311,232,176,190"/>
+<area shape="rect" id="Node000007" href="$class_run_selection.html#a028b122d6097a640618a77541c0b7f72" title="The scenario id was edited since the scene was saved." alt="" coords="312,305,493,350"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="148,184,214,235,257,264,302,290,316,299,311,298,299,295,254,269,211,239,147,189"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="363,29,358,20,363,11,378,5,402,3,429,5,445,14,439,14,427,10,402,8,379,10,366,15,363,20,369,29"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="498,155,539,162,534,163,499,161"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="588,157,582,150,587,140,603,134,627,132,654,135,669,143,664,143,652,140,627,137,604,139,591,144,588,149,593,159"/>
 </map>

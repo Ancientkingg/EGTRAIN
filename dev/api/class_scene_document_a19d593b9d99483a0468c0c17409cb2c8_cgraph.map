@@ -1,0 +1,11 @@
+<map id="SceneDocument::edit" name="SceneDocument::edit">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,32,166,60"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#aad2a9b2a6152f239fd50148f7bd6da57" title="Records that an editor has changed kinds of the model, and what the change was called." alt="" coords="214,32,440,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,43,201,45,195,46,167,48"/>
+<area shape="rect" id="Node000003" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="488,5,678,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,31,475,30,470,31,441,37"/>
+<area shape="rect" id="Node000004" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="490,57,677,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="441,54,477,60,471,60,440,60"/>
+<area shape="rect" id="Node000005" href="$class_scene_document.html#aa264b685cb49af4df36f5c11bc53e71d" title="The dirty state has changed to dirty." alt="" coords="726,57,949,85"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="677,69,713,71,708,71,678,74"/>
+</map>

@@ -84,7 +84,7 @@ of its range, such as an entry time of 600.5 s, a performance of 150 or a speed 
 the user does not edit it, even when the field has the focus at Save, and that a typed fraction of a second is stored.
 The infrastructure facets have one test for each file of facets: `test_editor_infrastructure_topology`,
 `test_editor_infrastructure_blocks`, `test_editor_infrastructure_stations` and `test_editor_infrastructure_signals`.
-`test_editor_infrastructure` checks the panel itself with facets of its own, including where its buttons and the sections of a route are placed. `test_infrastructureguidance` checks the sentence above the table for each of the thirteen facets, with and without entities and a scene.
+`test_editor_infrastructure` checks the panel itself with facets of its own, including where its buttons and the sections of a route are placed, and with the real block, route and signal facets that their combos and route section functions change nothing while the scene is closed for edits. `test_infrastructureguidance` checks the sentence above the table for each of the thirteen facets, with and without entities and a scene.
 
 `test_recoverystore` checks `RecoveryStore` in one process: the layout of an
 instance folder, writing and replacing a copy, a failed write that keeps the

@@ -573,7 +573,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="_main_window_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
+<g id="a_Node000020"><a xlink:href="_startup_timing_8cpp.html#a83e0ad346d67e58fe51907c04f72f66c" target="_top" xlink:title="Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing i...">
 <polygon fill="#fff0f0" stroke="red" points="861.5,-1116.75 749.5,-1116.75 749.5,-1096 861.5,-1096 861.5,-1116.75"/>
 <text xml:space="preserve" text-anchor="middle" x="805.5" y="-1103.25" font-family="Helvetica,sans-Serif" font-size="10.00">beginStartupTiming</text>
 </a>

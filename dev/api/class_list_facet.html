@@ -147,6 +147,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a4a36b88bc8ef343174f18b9515ac5cbb pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">A facet is not copied; the panel owns one of each kind.  <br /></td></tr>
 <tr class="memitem:a1159b25888d91082ac427a97095813b3 pub_methods_class_infrastructure_facet" id="r_a1159b25888d91082ac427a97095813b3"><td class="memItemLeft">virtual&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a1159b25888d91082ac427a97095813b3">~InfrastructureFacet</a> ()=default</td></tr>
 <tr class="memdesc:a1159b25888d91082ac427a97095813b3 pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel deletes its facets through this base.  <br /></td></tr>
+<tr class="memitem:a1918c6757b3db77a5ea28ed59e76353a pub_methods_class_infrastructure_facet" id="r_a1918c6757b3db77a5ea28ed59e76353a"><td class="memItemLeft">virtual Capabilities&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a">capabilities</a> () const</td></tr>
+<tr class="memdesc:a1918c6757b3db77a5ea28ed59e76353a pub_methods_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controls that the panel shows for this facet. The default is none.  <br /></td></tr>
 <tr class="memitem:a236bf728d7cfc10f94d25c5e862252b2 pub_methods_class_infrastructure_facet" id="r_a236bf728d7cfc10f94d25c5e862252b2"><td class="memItemLeft">virtual QString&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#a236bf728d7cfc10f94d25c5e862252b2">selectionId</a> (const QTableWidget &amp;table, int row) const</td></tr>
 <tr class="memitem:ade0c153239bac056442822ccd1dacada pub_methods_class_infrastructure_facet" id="r_ade0c153239bac056442822ccd1dacada"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#ade0c153239bac056442822ccd1dacada">commitPendingEdits</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;)</td></tr>
 <tr class="memitem:af93ff13e6c64ae7d9f83a882a5684274 pub_methods_class_infrastructure_facet" id="r_af93ff13e6c64ae7d9f83a882a5684274"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#af93ff13e6c64ae7d9f83a882a5684274">insert</a> (<a class="el" href="class_infrastructure_panel.html">InfrastructurePanel</a> &amp;)</td></tr>
@@ -175,6 +177,12 @@ Protected Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_types_class_infrastructure_facet"><td colspan="2">Public Types inherited from <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a></td></tr>
+<tr class="memitem:aed4e8cca9f65e056704bccc4b37817f9 pub_types_class_infrastructure_facet" id="r_aed4e8cca9f65e056704bccc4b37817f9"><td class="memItemLeft">enum &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9">Capability</a> { <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3">TrackFilter</a> = 0x1
+, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2">InsertAndMove</a> = 0x2
+, <a class="el" href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead">RouteSections</a> = 0x4
+ }</td></tr>
+<tr class="memdesc:aed4e8cca9f65e056704bccc4b37817f9 pub_types_class_infrastructure_facet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controls next to the table that a facet uses besides the Add and Delete buttons.  <a href="class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9">More...</a><br /></td></tr>
 <tr class="inherit_header pro_types_class_infrastructure_facet"><td colspan="2">Protected Types inherited from <a class="el" href="class_infrastructure_facet.html">InfrastructureFacet</a></td></tr>
 <tr class="memitem:aeb7ce8db82d9ecedf99d50aed54a0c11 pro_types_class_infrastructure_facet" id="r_aeb7ce8db82d9ecedf99d50aed54a0c11"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11">Edit</a> { <a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a5ff3c6978f87d96febfdc8ed3899a97e">Unchanged</a>
 , <a class="el" href="class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a820dbd2b8f606aff866c0bbfb6b737c1">Changed</a>
@@ -282,7 +290,7 @@ template&lt;typename Item&gt; </div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_a9a7789b68f360cff3d5c312e7225aa49_cgraph.svg" width="1198" height="876"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_a9a7789b68f360cff3d5c312e7225aa49_cgraph.svg" width="1302" height="1035"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -357,7 +365,7 @@ template&lt;typename Item&gt; </div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_a97dbc9a3f611844354dd83c7f7656be7_cgraph.svg" width="1250" height="830"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_a97dbc9a3f611844354dd83c7f7656be7_cgraph.svg" width="1352" height="854"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -598,7 +606,7 @@ template&lt;typename Item&gt; </div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_abc844f336839decab2a5b3fbbd5c89bc_cgraph.svg" width="1378" height="1348"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_list_facet_abc844f336839decab2a5b3fbbd5c89bc_cgraph.svg" width="1462" height="1407"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

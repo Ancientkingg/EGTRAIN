@@ -1,5 +1,5 @@
 <map id="DispatchController::mutableRun" name="DispatchController::mutableRun">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,21,148,66"/>
+<area shape="rect" id="Node000001" title="The same run with write access, for the stages of the controller and for tests. The thread rules of r..." alt="" coords="5,21,148,66"/>
 <area shape="rect" id="Node000002" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="196,29,288,57"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,41,183,43,177,43,148,46"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="213,28,208,20,212,11,223,5,242,3,262,5,274,14,268,14,260,10,242,8,225,10,216,15,214,20,218,30"/>

@@ -1,0 +1,46 @@
+<map id="ScenarioPanel::documentChanged" name="ScenarioPanel::documentChanged">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,345,248,373"/>
+<area shape="rect" id="Node000002" href="$class_scenario_panel.html#a8d72bafa45cdda75db1d8c8219db78b6" title="Lists the scenarios again and shows the selected one." alt="" coords="337,208,503,236"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,342,375,240,373,245,160,347"/>
+<area shape="rect" id="Node000013" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title="Writes the label of each scenario in the list again." alt="" coords="592,345,839,373"/>
+<area shape="poly" id="edge27_Node000001_Node000013" title=" " alt="" coords="248,357,578,357,575,361,249,362"/>
+<area shape="rect" id="Node000016" href="$class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2" title=" " alt="" coords="296,400,544,428"/>
+<area shape="poly" id="edge25_Node000001_Node000016" title=" " alt="" coords="204,371,329,395,325,398,205,376"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="889,183,1078,210"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="503,215,876,200,871,203,504,221"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="1128,183,1331,210"/>
+<area shape="poly" id="edge8_Node000002_Node000004" title=" " alt="" coords="432,206,458,179,496,147,541,116,591,93,663,70,725,55,782,46,835,43,889,46,946,56,1081,93,1117,108,1151,128,1205,172,1200,172,1148,132,1114,112,1079,98,944,61,888,52,835,48,782,51,726,60,664,76,593,98,543,121,499,151,462,183,436,209"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="654,131,777,158"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="475,205,647,161,643,164,477,210"/>
+<area shape="rect" id="Node000007" href="$class_run_selection.html#a2c14443d9fc3d2899751ede640359fec" title=" " alt="" coords="625,285,806,313"/>
+<area shape="poly" id="edge9_Node000002_Node000007" title=" " alt="" coords="466,234,593,270,631,281,626,282,591,275,467,239"/>
+<area shape="rect" id="Node000008" href="$class_run_selection.html#ab52c5a649c5038533dfa9f577df2532c" title="Selects the scenario with the id id." alt="" coords="611,5,820,33"/>
+<area shape="poly" id="edge10_Node000002_Node000008" title=" " alt="" coords="429,206,491,131,538,87,591,49,622,37,618,40,593,53,541,91,495,134,433,209"/>
+<area shape="rect" id="Node000009" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title="Shows the fields of the selected scenario again." alt="" coords="614,233,818,261"/>
+<area shape="poly" id="edge11_Node000002_Node000009" title=" " alt="" coords="503,226,601,236,596,238,504,232"/>
+<area shape="poly" id="edge17_Node000002_Node000013" title=" " alt="" coords="441,233,507,277,593,322,640,341,635,341,591,327,505,281,441,239"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1078,194,1115,196,1109,197,1079,199"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="670,130,663,122,669,112,687,106,716,104,747,106,765,115,760,116,746,112,716,109,688,111,672,116,668,121,675,130"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="899,131,1068,158"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="777,142,886,144,881,145,778,147"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="941,130,935,122,940,112,957,106,984,104,1012,106,1029,115,1024,115,1011,112,983,109,958,111,944,116,940,121,946,131"/>
+<area shape="poly" id="edge12_Node000009_Node000003" title=" " alt="" coords="792,230,894,213,889,215,793,235"/>
+<area shape="rect" id="Node000010" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="887,235,1080,262"/>
+<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="818,245,874,247,869,248,819,250"/>
+<area shape="rect" id="Node000012" href="$class_scenario_panel.html#a228ab01925be2a02afc7768776978c3f" title="The selected scenario or its id or name has changed, or the document is replaced; the argument is hea..." alt="" coords="887,286,1080,331"/>
+<area shape="poly" id="edge16_Node000009_Node000012" title=" " alt="" coords="784,259,840,271,877,282,871,282,839,276,784,264"/>
+<area shape="rect" id="Node000011" href="$_scene_model_8cpp.html#a894c7fcb75ec06b27b0536d6eff399b5" title=" " alt="" coords="1154,367,1304,394"/>
+<area shape="poly" id="edge14_Node000010_Node000011" title=" " alt="" coords="1051,260,1081,271,1149,312,1204,357,1198,356,1146,316,1078,276,1051,266"/>
+<area shape="poly" id="edge15_Node000011_Node000011" title=" " alt="" coords="1187,365,1181,358,1186,348,1203,342,1229,340,1258,342,1275,352,1270,351,1257,348,1229,345,1204,347,1189,352,1186,357,1192,367"/>
+<area shape="poly" id="edge20_Node000013_Node000004" title=" " alt="" coords="818,371,879,374,946,372,1014,361,1079,341,1120,316,1156,285,1186,251,1208,225,1213,222,1190,255,1160,289,1123,321,1081,346,1015,367,946,377,879,379,819,376"/>
+<area shape="poly" id="edge21_Node000013_Node000010" title=" " alt="" coords="791,342,838,322,852,310,861,298,870,284,886,272,895,270,899,268,889,276,874,288,865,301,856,314,841,327,793,347"/>
+<area shape="poly" id="edge24_Node000013_Node000011" title=" " alt="" coords="820,371,841,382,858,403,865,424,872,444,889,461,938,481,980,484,1025,476,1079,461,1112,449,1143,434,1195,405,1200,403,1146,439,1114,454,1080,466,1026,481,981,490,937,486,886,465,867,447,860,426,854,405,838,387,819,376"/>
+<area shape="poly" id="edge22_Node000013_Node000012" title=" " alt="" coords="792,342,875,329,870,330,793,347"/>
+<area shape="rect" id="Node000014" href="$_count_text_8h.html#a0d3c4d98f8067558d0aad496276f83b5" title="A count with the noun that fits it, such as &quot;1 error&quot; or &quot;2 errors&quot;." alt="" coords="941,549,1026,577"/>
+<area shape="poly" id="edge18_Node000013_Node000014" title=" " alt="" coords="823,371,841,382,855,397,863,412,869,443,873,474,879,489,889,505,910,524,935,543,930,541,907,529,885,509,874,492,868,475,863,444,858,414,851,400,838,387,822,376"/>
+<area shape="rect" id="Node000015" href="$class_run_selection.html#a028b122d6097a640618a77541c0b7f72" title="The scenario id was edited since the scene was saved." alt="" coords="893,406,1074,451"/>
+<area shape="poly" id="edge23_Node000013_Node000015" title=" " alt="" coords="792,371,840,382,901,401,895,401,839,387,792,376"/>
+<area shape="poly" id="edge19_Node000014_Node000014" title=" " alt="" coords="941,548,935,540,940,531,957,525,984,523,1012,525,1029,534,1024,534,1011,530,983,528,958,530,944,535,940,540,946,550"/>
+<area shape="rect" id="Node000017" href="$class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34" title="Takes the text of a field that is being edited into the document, as if the user had left the field." alt="" coords="620,397,811,442"/>
+<area shape="poly" id="edge26_Node000016_Node000017" title=" " alt="" coords="544,413,607,417,602,418,545,419"/>
+</map>

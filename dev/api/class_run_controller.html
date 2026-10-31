@@ -130,10 +130,20 @@ Classes</h2></td></tr>
 <tr class="memitem:DelayBaselineState" id="r_DelayBaselineState"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_run_controller_1_1_delay_baseline_state.html">DelayBaselineState</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the Run Results dock shows about the delay baseline.  <a href="struct_run_controller_1_1_delay_baseline_state.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Host" id="r_Host"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_run_controller_1_1_host.html">Host</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the controller asks of the window, and the points at which it tells the window that the run changed.  <a href="class_run_controller_1_1_host.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
+<tr class="memitem:aa596c97788b0451bfd5d7b9967b13837" id="r_aa596c97788b0451bfd5d7b9967b13837"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#aa596c97788b0451bfd5d7b9967b13837">RunState</a> { <br />
+&#160;&#160;<a class="el" href="#aa596c97788b0451bfd5d7b9967b13837a17737a82a6b01509b56a9ba77d2cc6a9">NotBuilt</a>
+, <a class="el" href="#aa596c97788b0451bfd5d7b9967b13837ae7d31fc0602fb2ede144d18cdffd816b">Ready</a>
+, <a class="el" href="#aa596c97788b0451bfd5d7b9967b13837a5bda814c4aedb126839228f1a3d92f09">Running</a>
+, <a class="el" href="#aa596c97788b0451bfd5d7b9967b13837a07ca5050e697392c9ed47e6453f1453f">Completed</a>
+, <br />
+&#160;&#160;<a class="el" href="#aa596c97788b0451bfd5d7b9967b13837ac23e2b09ebe6bf4cb5e2a9abe85c0be2">Stopped</a>
+, <a class="el" href="#aa596c97788b0451bfd5d7b9967b13837ad7c8c85bf79bbe1b7188497c32c3b0ca">Failed</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:aa596c97788b0451bfd5d7b9967b13837"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the run, which the loaded data shows as its status.  <a href="#aa596c97788b0451bfd5d7b9967b13837">More...</a><br /></td></tr>
 <tr class="memitem:a84d8e766e5645acf304a2da6c186d9e9" id="r_a84d8e766e5645acf304a2da6c186d9e9"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9">RunPhase</a> { <a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9ae599161956d626eda4cb0a5ffb85271c">Idle</a>
 , <a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9a5bda814c4aedb126839228f1a3d92f09">Running</a>
 , <a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9a7b7ecb39b9e110c2a31409a1672bad23">Stopping</a>
@@ -150,6 +160,39 @@ Public Slots</h2></td></tr>
 <tr class="memdesc:a4de52f2ac8efd3075d1d8a464a70ebdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Asks for the folder that the next runs write to. A run that is going on keeps its folder.  <br /></td></tr>
 <tr class="memitem:a9c387653b91bbef62aac81912369ca3b" id="r_a9c387653b91bbef62aac81912369ca3b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9c387653b91bbef62aac81912369ca3b">setDelayBaseline</a> ()</td></tr>
 <tr class="memdesc:a9c387653b91bbef62aac81912369ca3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the completed run the delay baseline. It has to have no incidents and no entrance delays.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
+Signals</h2></td></tr>
+<tr class="memitem:adf66746ddd7bf63447e7faaeaf21923c" id="r_adf66746ddd7bf63447e7faaeaf21923c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adf66746ddd7bf63447e7faaeaf21923c">runPreparing</a> ()</td></tr>
+<tr class="memdesc:adf66746ddd7bf63447e7faaeaf21923c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene is about to be prepared. The window shows that and lets the events through.  <br /></td></tr>
+<tr class="memitem:a05c07477fc18bfbe500b1da72218afac" id="r_a05c07477fc18bfbe500b1da72218afac"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a05c07477fc18bfbe500b1da72218afac">sceneActionsChanged</a> ()</td></tr>
+<tr class="memdesc:a05c07477fc18bfbe500b1da72218afac"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the actions of the window enable depends on the scene or on the run, and one of them changed.  <br /></td></tr>
+<tr class="memitem:a6f15e4bc2547a040d9be32dff564c0d3" id="r_a6f15e4bc2547a040d9be32dff564c0d3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f15e4bc2547a040d9be32dff564c0d3">loadedDataChanged</a> ()</td></tr>
+<tr class="memdesc:a6f15e4bc2547a040d9be32dff564c0d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">The loaded data shows the state of the run.  <br /></td></tr>
+<tr class="memitem:a2395c6706f7747f1cda80ec168c2dfef" id="r_a2395c6706f7747f1cda80ec168c2dfef"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2395c6706f7747f1cda80ec168c2dfef">caseLayersChanged</a> ()</td></tr>
+<tr class="memdesc:a2395c6706f7747f1cda80ec168c2dfef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The case layers panel shows the case name and the clock time.  <br /></td></tr>
+<tr class="memitem:acea75df242d1780f39e4d803a5e4f855" id="r_acea75df242d1780f39e4d803a5e4f855"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acea75df242d1780f39e4d803a5e4f855">runStarting</a> ()</td></tr>
+<tr class="memdesc:acea75df242d1780f39e4d803a5e4f855"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run starts: the window ends the replay of an earlier run and shows the progress.  <br /></td></tr>
+<tr class="memitem:a6f0ced36a2788e89528270cdc8a6087c" id="r_a6f0ced36a2788e89528270cdc8a6087c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6f0ced36a2788e89528270cdc8a6087c">workerReady</a> ()</td></tr>
+<tr class="memdesc:a6f0ced36a2788e89528270cdc8a6087c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker is set up and its thread starts next.  <br /></td></tr>
+<tr class="memitem:aa756f9ef50f3341bad1748f201818222" id="r_aa756f9ef50f3341bad1748f201818222"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa756f9ef50f3341bad1748f201818222">runPhaseChanged</a> (<a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9">RunController::RunPhase</a> phase)</td></tr>
+<tr class="memdesc:aa756f9ef50f3341bad1748f201818222"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pause and Stop mean something while a run exists, and Output Folder only while none does.  <br /></td></tr>
+<tr class="memitem:a4e1d9ea8c7d41ec2ca46615254a72ddf" id="r_a4e1d9ea8c7d41ec2ca46615254a72ddf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4e1d9ea8c7d41ec2ca46615254a72ddf">runPanelsChanged</a> ()</td></tr>
+<tr class="memdesc:a4e1d9ea8c7d41ec2ca46615254a72ddf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The editors, the infrastructure dock and the actions follow the run state.  <br /></td></tr>
+<tr class="memitem:a5a4f214fdefa28c4eb7af56bc93666ad" id="r_a5a4f214fdefa28c4eb7af56bc93666ad"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5a4f214fdefa28c4eb7af56bc93666ad">playbackEnded</a> ()</td></tr>
+<tr class="memdesc:a5a4f214fdefa28c4eb7af56bc93666ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker is gone, so the transient states of the canvas end.  <br /></td></tr>
+<tr class="memitem:acb17691cee163bb94a9a01dd5985976d" id="r_acb17691cee163bb94a9a01dd5985976d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb17691cee163bb94a9a01dd5985976d">resultsKept</a> ()</td></tr>
+<tr class="memdesc:acb17691cee163bb94a9a01dd5985976d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run kept results, which the Run Results dock shows.  <br /></td></tr>
+<tr class="memitem:a55a4e029877dfeb91e9efa943bbfd44c" id="r_a55a4e029877dfeb91e9efa943bbfd44c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a55a4e029877dfeb91e9efa943bbfd44c">resultsDiscarded</a> (bool stoppedByUser, bool sceneChangedDuringRun)</td></tr>
+<tr class="memdesc:a55a4e029877dfeb91e9efa943bbfd44c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run kept no results. The Run Results dock says why and hides.  <br /></td></tr>
+<tr class="memitem:a27030019d13bf55307f6d49554834476" id="r_a27030019d13bf55307f6d49554834476"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a27030019d13bf55307f6d49554834476">runProgressEnded</a> ()</td></tr>
+<tr class="memdesc:a27030019d13bf55307f6d49554834476"><td class="mdescLeft">&#160;</td><td class="mdescRight">The progress of the run is no longer shown.  <br /></td></tr>
+<tr class="memitem:af5d585fa9dac2f6b6097675bc669fc2e" id="r_af5d585fa9dac2f6b6097675bc669fc2e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af5d585fa9dac2f6b6097675bc669fc2e">runEnded</a> ()</td></tr>
+<tr class="memdesc:af5d585fa9dac2f6b6097675bc669fc2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window follows the trains of the finished run again and enables what the run disabled.  <br /></td></tr>
+<tr class="memitem:a91e55d0503fb90486fa1377c5e783419" id="r_a91e55d0503fb90486fa1377c5e783419"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a91e55d0503fb90486fa1377c5e783419">runSettled</a> ()</td></tr>
+<tr class="memdesc:a91e55d0503fb90486fa1377c5e783419"><td class="mdescLeft">&#160;</td><td class="mdescRight">The window has done everything for the run.  <br /></td></tr>
+<tr class="memitem:a7150f567d499de328a83340860fe0666" id="r_a7150f567d499de328a83340860fe0666"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7150f567d499de328a83340860fe0666">delayBaselineChanged</a> ()</td></tr>
+<tr class="memdesc:a7150f567d499de328a83340860fe0666"><td class="mdescLeft">&#160;</td><td class="mdescRight">The delay baseline changed, so the Run Results dock and the diagram actions follow.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -169,7 +212,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae934e2964634ce14e9405bbeec4931d7" id="r_ae934e2964634ce14e9405bbeec4931d7"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae934e2964634ce14e9405bbeec4931d7">selectSceneOutputFolder</a> (const std::string &amp;sceneName)</td></tr>
 <tr class="memdesc:ae934e2964634ce14e9405bbeec4931d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The next run writes to the folder of the scene <span class="tt">sceneName</span>, unless the user chose a folder.  <br /></td></tr>
 <tr class="memitem:a14b1d39f4b3dde256d97cc3dfe1cfeee" id="r_a14b1d39f4b3dde256d97cc3dfe1cfeee"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a14b1d39f4b3dde256d97cc3dfe1cfeee">running</a> () const</td></tr>
-<tr class="memdesc:a14b1d39f4b3dde256d97cc3dfe1cfeee"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run exists from the moment that it starts until its worker has finished.  <br /></td></tr>
 <tr class="memitem:a2890337e28bf728da886d2a4913fb2e6" id="r_a2890337e28bf728da886d2a4913fb2e6"><td class="memItemLeft"><a class="el" href="class_simulation_worker.html">SimulationWorker</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a2890337e28bf728da886d2a4913fb2e6">worker</a> () const</td></tr>
 <tr class="memdesc:a2890337e28bf728da886d2a4913fb2e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker of the run. Qt deletes it when its thread has finished; null while no run exists.  <br /></td></tr>
 <tr class="memitem:a1ac70e812eeef72f529a7ebf1ded8395" id="r_a1ac70e812eeef72f529a7ebf1ded8395"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1ac70e812eeef72f529a7ebf1ded8395">stopRequested</a> () const</td></tr>
@@ -180,6 +222,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a2e8f8201580f04cc4057df76d7276918"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pauses the run, or resumes it when it is paused. Returns whether it is paused afterwards.  <br /></td></tr>
 <tr class="memitem:a0ccf7166aca49cf5dcc1a68408ab77bb" id="r_a0ccf7166aca49cf5dcc1a68408ab77bb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0ccf7166aca49cf5dcc1a68408ab77bb">setDelayMs</a> (int delayMs)</td></tr>
 <tr class="memdesc:a0ccf7166aca49cf5dcc1a68408ab77bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the delay between two steps of the run, in milliseconds. Does nothing without a run.  <br /></td></tr>
+<tr class="memitem:add3c1031d63e0684038d3812c1be15d0" id="r_add3c1031d63e0684038d3812c1be15d0"><td class="memItemLeft"><a class="el" href="#aa596c97788b0451bfd5d7b9967b13837">RunState</a>&#160;</td><td class="memItemRight"><a class="el" href="#add3c1031d63e0684038d3812c1be15d0">state</a> () const</td></tr>
+<tr class="memdesc:add3c1031d63e0684038d3812c1be15d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The state of the run.  <br /></td></tr>
 <tr class="memitem:aff05c374c7559899a2cfdeb04739507b" id="r_aff05c374c7559899a2cfdeb04739507b"><td class="memItemLeft">const QString &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aff05c374c7559899a2cfdeb04739507b">runtimeStatus</a> () const</td></tr>
 <tr class="memitem:ad8ce71397d0ff2f57be3e623f578c813" id="r_ad8ce71397d0ff2f57be3e623f578c813"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad8ce71397d0ff2f57be3e623f578c813">runtimeDiagnostics</a> () const</td></tr>
 <tr class="memdesc:ad8ce71397d0ff2f57be3e623f578c813"><td class="mdescLeft">&#160;</td><td class="mdescRight">The diagnostics with which the simulation prepared the last run.  <br /></td></tr>
@@ -226,7 +270,7 @@ Friends</h2></td></tr>
 <tr class="memitem:a07d58747d59f49d1ff6b222687ecbf39" id="r_a07d58747d59f49d1ff6b222687ecbf39"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a07d58747d59f49d1ff6b222687ecbf39">MainWindowTestAccess</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The run of the scene that the window holds. The controller asks the user to review the run, prepares the scene in the simulation, starts the simulation on a worker thread, and stops it on request. It keeps what the run leaves: the status, the run as plain values, the delay baseline, and the clock time at which the run starts. It is the one place in the window that reads the settings of the process (initial_variables). What a run changes in the rest of the window, such as the canvas, the panels and the results dock, is done by the window, which the controller tells through its <a class="el" href="class_run_controller_1_1_host.html" title="What the controller asks of the window, and the points at which it tells the window that the run chan...">Host</a>. </p>
+<div class="textblock"><p>The run of the scene that the window holds. The controller asks the user to review the run, prepares the scene in the simulation, starts the simulation on a worker thread, and stops it on request. It keeps what the run leaves: the status, the run as plain values, the delay baseline, and the clock time at which the run starts. It is the one place in the window that reads the settings of the process (initial_variables). What a run changes in the rest of the window, such as the canvas, the panels and the results dock, is done by the window, which the controller tells through its signals and asks through its <a class="el" href="class_run_controller_1_1_host.html">Host</a>. </p>
 </div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a84d8e766e5645acf304a2da6c186d9e9" name="a84d8e766e5645acf304a2da6c186d9e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a84d8e766e5645acf304a2da6c186d9e9">&#9670;&#160;</a></span>RunPhase</h2>
@@ -255,6 +299,44 @@ Friends</h2></td></tr>
 <tr><td class="fieldname"><a id="a84d8e766e5645acf304a2da6c186d9e9a5bda814c4aedb126839228f1a3d92f09" name="a84d8e766e5645acf304a2da6c186d9e9a5bda814c4aedb126839228f1a3d92f09"></a>Running&#160;</td><td class="fielddoc"><p>The worker runs. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a84d8e766e5645acf304a2da6c186d9e9a7b7ecb39b9e110c2a31409a1672bad23" name="a84d8e766e5645acf304a2da6c186d9e9a7b7ecb39b9e110c2a31409a1672bad23"></a>Stopping&#160;</td><td class="fielddoc"><p>The worker was asked to stop and has not finished. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="aa596c97788b0451bfd5d7b9967b13837" name="aa596c97788b0451bfd5d7b9967b13837"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa596c97788b0451bfd5d7b9967b13837">&#9670;&#160;</a></span>RunState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#aa596c97788b0451bfd5d7b9967b13837">RunController::RunState</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The state of the run, which the loaded data shows as its status. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837a17737a82a6b01509b56a9ba77d2cc6a9" name="aa596c97788b0451bfd5d7b9967b13837a17737a82a6b01509b56a9ba77d2cc6a9"></a>NotBuilt&#160;</td><td class="fielddoc"><p>No run is prepared, or the results of the last one were discarded. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837ae7d31fc0602fb2ede144d18cdffd816b" name="aa596c97788b0451bfd5d7b9967b13837ae7d31fc0602fb2ede144d18cdffd816b"></a>Ready&#160;</td><td class="fielddoc"><p>The scene is prepared and the run has not started. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837a5bda814c4aedb126839228f1a3d92f09" name="aa596c97788b0451bfd5d7b9967b13837a5bda814c4aedb126839228f1a3d92f09"></a>Running&#160;</td><td class="fielddoc"><p>The run has started and has not ended. A worker that is ended before the run has ended leaves it so. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837a07ca5050e697392c9ed47e6453f1453f" name="aa596c97788b0451bfd5d7b9967b13837a07ca5050e697392c9ed47e6453f1453f"></a>Completed&#160;</td><td class="fielddoc"><p>The run ended with results. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837ac23e2b09ebe6bf4cb5e2a9abe85c0be2" name="aa596c97788b0451bfd5d7b9967b13837ac23e2b09ebe6bf4cb5e2a9abe85c0be2"></a>Stopped&#160;</td><td class="fielddoc"><p>The user stopped the run before its last stage. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa596c97788b0451bfd5d7b9967b13837ad7c8c85bf79bbe1b7188497c32c3b0ca" name="aa596c97788b0451bfd5d7b9967b13837ad7c8c85bf79bbe1b7188497c32c3b0ca"></a>Failed&#160;</td><td class="fielddoc"><p>The preparation or the run failed, the scene changed during the run, or the run ended without results. </p>
 </td></tr>
 </table>
 
@@ -319,6 +401,33 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a1f2fdb868a1b68a63228e818164fb66f_cgraph.svg" width="563" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a2395c6706f7747f1cda80ec168c2dfef" name="a2395c6706f7747f1cda80ec168c2dfef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2395c6706f7747f1cda80ec168c2dfef">&#9670;&#160;</a></span>caseLayersChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::caseLayersChanged </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The case layers panel shows the case name and the clock time. </p>
 
 </div>
 </div>
@@ -410,7 +519,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7800e103e0f9e83da53b0ae2b98a6618_cgraph.svg" width="476" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7800e103e0f9e83da53b0ae2b98a6618_cgraph.svg" width="515" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -434,7 +543,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a60d5c54d273c44c7b6c5cfbf512390e2_cgraph.svg" width="400" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a60d5c54d273c44c7b6c5cfbf512390e2_cgraph.svg" width="468" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -481,6 +590,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>With a run going on: asks it to stop, shows the stopping state and keeps <span class="tt">action</span> for the moment its worker has finished. The last request replaces an earlier one. Returns false without a run; the caller then acts at once. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a92622bf326dec8c87f0f4f5ed4a7f990_cgraph.svg" width="478" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -511,6 +625,38 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a7150f567d499de328a83340860fe0666" name="a7150f567d499de328a83340860fe0666"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7150f567d499de328a83340860fe0666">&#9670;&#160;</a></span>delayBaselineChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::delayBaselineChanged </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The delay baseline changed, so the Run Results dock and the diagram actions follow. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7150f567d499de328a83340860fe0666_cgraph.svg" width="1788" height="1675"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a7ba10598e616c254895bd2200e38e56d" name="a7ba10598e616c254895bd2200e38e56d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7ba10598e616c254895bd2200e38e56d">&#9670;&#160;</a></span>delayBaselineState()</h2>
 
@@ -529,7 +675,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7ba10598e616c254895bd2200e38e56d_cgraph.svg" width="658" height="147"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7ba10598e616c254895bd2200e38e56d_cgraph.svg" width="727" height="247"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -588,6 +734,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Results of a completed run exist and the simulation still holds the trajectories behind them. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a1b24e9db44b435144c53d862a196d7f8_cgraph.svg" width="496" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -672,6 +823,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a6f15e4bc2547a040d9be32dff564c0d3" name="a6f15e4bc2547a040d9be32dff564c0d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f15e4bc2547a040d9be32dff564c0d3">&#9670;&#160;</a></span>loadedDataChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::loadedDataChanged </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The loaded data shows the state of the run. </p>
+
+</div>
+</div>
 <a id="acebfbcf6eb2f5a76b501454948e826d2" name="acebfbcf6eb2f5a76b501454948e826d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acebfbcf6eb2f5a76b501454948e826d2">&#9670;&#160;</a></span>markCaseNamed()</h2>
 
@@ -729,7 +907,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2a777afc9c09e3e57b2955098ca67b2c_cgraph.svg" width="1238" height="1146"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2a777afc9c09e3e57b2955098ca67b2c_cgraph.svg" width="1271" height="1655"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -752,8 +930,35 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a28b81efaa43f715c9637330f1e78a2c5_cgraph.svg" width="1443" height="1414"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a28b81efaa43f715c9637330f1e78a2c5_cgraph.svg" width="1443" height="1363"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a5a4f214fdefa28c4eb7af56bc93666ad" name="a5a4f214fdefa28c4eb7af56bc93666ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a4f214fdefa28c4eb7af56bc93666ad">&#9670;&#160;</a></span>playbackEnded</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::playbackEnded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The worker is gone, so the transient states of the canvas end. </p>
 
 </div>
 </div>
@@ -803,6 +1008,64 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a55a4e029877dfeb91e9efa943bbfd44c" name="a55a4e029877dfeb91e9efa943bbfd44c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55a4e029877dfeb91e9efa943bbfd44c">&#9670;&#160;</a></span>resultsDiscarded</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::resultsDiscarded </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>stoppedByUser</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>sceneChangedDuringRun</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The run kept no results. The Run Results dock says why and hides. </p>
+
+</div>
+</div>
+<a id="acb17691cee163bb94a9a01dd5985976d" name="acb17691cee163bb94a9a01dd5985976d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb17691cee163bb94a9a01dd5985976d">&#9670;&#160;</a></span>resultsKept</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::resultsKept </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The run kept results, which the Run Results dock shows. </p>
+
+</div>
+</div>
 <a id="a2f3f550f14d769ca77cdefdb21fdc034" name="a2f3f550f14d769ca77cdefdb21fdc034"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2f3f550f14d769ca77cdefdb21fdc034">&#9670;&#160;</a></span>runCurrent</h2>
 
@@ -830,8 +1093,35 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2f3f550f14d769ca77cdefdb21fdc034_cgraph.svg" width="1531" height="1871"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2f3f550f14d769ca77cdefdb21fdc034_cgraph.svg" width="1474" height="2179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="af5d585fa9dac2f6b6097675bc669fc2e" name="af5d585fa9dac2f6b6097675bc669fc2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5d585fa9dac2f6b6097675bc669fc2e">&#9670;&#160;</a></span>runEnded</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runEnded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The window follows the trains of the finished run again and enables what the run disabled. </p>
 
 </div>
 </div>
@@ -857,13 +1147,120 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>The run exists from the moment that it starts until its worker has finished. </p>
+<p>A worker exists, from the moment that the run starts until its worker has finished. The state differs at both ends: it is Running just before the worker starts and after a worker that clearSimulationWorker ends early, and it is already Completed, Stopped or Failed while onSimulationFinished still holds the worker. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a14b1d39f4b3dde256d97cc3dfe1cfeee_cgraph.svg" width="179" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a4e1d9ea8c7d41ec2ca46615254a72ddf" name="a4e1d9ea8c7d41ec2ca46615254a72ddf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e1d9ea8c7d41ec2ca46615254a72ddf">&#9670;&#160;</a></span>runPanelsChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runPanelsChanged </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The editors, the infrastructure dock and the actions follow the run state. </p>
+
+</div>
+</div>
+<a id="aa756f9ef50f3341bad1748f201818222" name="aa756f9ef50f3341bad1748f201818222"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa756f9ef50f3341bad1748f201818222">&#9670;&#160;</a></span>runPhaseChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runPhaseChanged </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a84d8e766e5645acf304a2da6c186d9e9">RunController::RunPhase</a></td>          <td class="paramname"><span class="paramname"><em>phase</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Pause and Stop mean something while a run exists, and Output Folder only while none does. </p>
+
+</div>
+</div>
+<a id="adf66746ddd7bf63447e7faaeaf21923c" name="adf66746ddd7bf63447e7faaeaf21923c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf66746ddd7bf63447e7faaeaf21923c">&#9670;&#160;</a></span>runPreparing</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runPreparing </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The scene is about to be prepared. The window shows that and lets the events through. </p>
+
+</div>
+</div>
+<a id="a27030019d13bf55307f6d49554834476" name="a27030019d13bf55307f6d49554834476"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27030019d13bf55307f6d49554834476">&#9670;&#160;</a></span>runProgressEnded</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runProgressEnded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The progress of the run is no longer shown. </p>
 
 </div>
 </div>
@@ -917,8 +1314,62 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_ae95580dfc5edc30afa6c8030bca9e56c_cgraph.svg" width="1296" height="1906"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_ae95580dfc5edc30afa6c8030bca9e56c_cgraph.svg" width="1238" height="2178"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a91e55d0503fb90486fa1377c5e783419" name="a91e55d0503fb90486fa1377c5e783419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91e55d0503fb90486fa1377c5e783419">&#9670;&#160;</a></span>runSettled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runSettled </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The window has done everything for the run. </p>
+
+</div>
+</div>
+<a id="acea75df242d1780f39e4d803a5e4f855" name="acea75df242d1780f39e4d803a5e4f855"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acea75df242d1780f39e4d803a5e4f855">&#9670;&#160;</a></span>runStarting</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::runStarting </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The run starts: the window ends the replay of an earlier run and shows the progress. </p>
 
 </div>
 </div>
@@ -954,9 +1405,6 @@ Here is the call graph for this function:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">const QString &amp; RunController::runtimeStatus </td>
@@ -965,13 +1413,35 @@ Here is the call graph for this function:</div>
           <td> const</td>
         </tr>
       </table>
+</div><div class="memdoc">
+<p>The state of the run as the loaded data shows it: "Not built", "Ready", "Running", "Completed", "Stopped" or "Failed". </p>
+
+</div>
+</div>
+<a id="a05c07477fc18bfbe500b1da72218afac" name="a05c07477fc18bfbe500b1da72218afac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05c07477fc18bfbe500b1da72218afac">&#9670;&#160;</a></span>sceneActionsChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::sceneActionsChanged </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The status of the run as the loaded data shows it: "Not built", "Ready", "Running", "Completed", "Stopped" or "Failed". </p>
+
+<p>What the actions of the window enable depends on the scene or on the run, and one of them changed. </p>
 
 </div>
 </div>
@@ -1063,7 +1533,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9c387653b91bbef62aac81912369ca3b_cgraph.svg" width="680" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9c387653b91bbef62aac81912369ca3b_cgraph.svg" width="2064" height="1747"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1198,8 +1668,35 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9d280ab444f391dd8b84cbcf9a4c2b51_cgraph.svg" width="1510" height="1387"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9d280ab444f391dd8b84cbcf9a4c2b51_cgraph.svg" width="1260" height="1882"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="add3c1031d63e0684038d3812c1be15d0" name="add3c1031d63e0684038d3812c1be15d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add3c1031d63e0684038d3812c1be15d0">&#9670;&#160;</a></span>state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#aa596c97788b0451bfd5d7b9967b13837">RunState</a> RunController::state </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The state of the run. </p>
 
 </div>
 </div>
@@ -1265,6 +1762,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The worker of the run. Qt deletes it when its thread has finished; null while no run exists. </p>
+
+</div>
+</div>
+<a id="a6f0ced36a2788e89528270cdc8a6087c" name="a6f0ced36a2788e89528270cdc8a6087c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f0ced36a2788e89528270cdc8a6087c">&#9670;&#160;</a></span>workerReady</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void RunController::workerReady </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel signal">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The worker is set up and its thread starts next. </p>
 
 </div>
 </div>

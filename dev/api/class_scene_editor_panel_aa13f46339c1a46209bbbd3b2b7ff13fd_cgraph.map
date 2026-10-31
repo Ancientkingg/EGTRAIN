@@ -1,0 +1,5 @@
+<map id="SceneEditorPanel::documentReplaced" name="SceneEditorPanel::documentReplaced">
+<area shape="rect" id="Node000001" title="The document has been replaced. The panel shows it again." alt="" coords="5,5,212,50"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#afdd8ab3fbb9c8886df696fb56cf832c8" title="Shows the current state of the document." alt="" coords="260,14,447,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,25,247,27,241,28,212,30"/>
+</map>

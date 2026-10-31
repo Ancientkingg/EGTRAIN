@@ -1,109 +1,120 @@
 <map id="RunController::startSimulation" name="RunController::startSimulation">
-<area shape="rect" id="Node000001" title="Starts the run on a worker thread. The scene has to be prepared." alt="" coords="5,877,224,905"/>
-<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="303,546,445,591"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,876,133,825,163,751,184,711,208,671,237,634,270,601,290,590,287,594,273,605,241,637,213,674,188,713,168,753,138,826,122,878"/>
-<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#ad19c9b2ae386006cd197ff8481d4f290" title=" " alt="" coords="303,616,445,660"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="120,876,140,836,172,781,216,722,242,694,270,670,291,660,287,664,273,675,245,698,220,725,177,784,144,838,125,878"/>
-<area shape="rect" id="Node000004" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run..." alt="" coords="299,685,448,730"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="125,875,183,811,224,773,270,740,287,733,283,737,273,744,228,777,187,814,129,878"/>
-<area shape="rect" id="Node000005" href="$class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c" title=" " alt="" coords="298,754,450,799"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="139,875,199,843,271,809,289,803,285,807,273,814,201,848,143,879"/>
-<area shape="rect" id="Node000006" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="287,847,460,874"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="223,876,273,871,269,874,226,880"/>
-<area shape="rect" id="Node000007" href="$class_run_controller.html#a2a777afc9c09e3e57b2955098ca67b2c" title="The results of the run are kept or discarded, and the window follows." alt="" coords="272,898,476,943"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="223,901,259,906,254,909,225,906"/>
-<area shape="rect" id="Node000039" href="$class_simulation_worker.html#a8672bbf61be0e0fe558e06080ccfe739" title=" " alt="" coords="291,1173,456,1201"/>
-<area shape="poly" id="edge57_Node000001_Node000039" title=" " alt="" coords="128,903,274,1075,352,1161,346,1162,270,1078,127,908"/>
-<area shape="rect" id="Node000040" href="$class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d" title=" " alt="" coords="528,1165,741,1210"/>
-<area shape="poly" id="edge62_Node000001_Node000040" title=" " alt="" coords="134,903,198,949,291,1015,405,1086,525,1150,541,1159,536,1159,523,1155,402,1090,288,1019,195,954,135,908"/>
-<area shape="rect" id="Node000042" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title="A worker without a controller runs the controller of the process, the global simulation." alt="" coords="792,1264,1007,1308"/>
-<area shape="poly" id="edge63_Node000001_Node000042" title=" " alt="" coords="119,903,135,962,163,1044,184,1089,209,1133,238,1175,273,1210,329,1250,391,1278,457,1298,525,1310,593,1315,659,1315,780,1308,775,1308,659,1321,593,1320,524,1315,456,1303,389,1283,326,1254,270,1215,234,1178,204,1136,179,1091,158,1046,130,963,118,908"/>
-<area shape="rect" id="Node000043" href="$class_run_controller.html#a2890337e28bf728da886d2a4913fb2e6" title="The worker of the run. Qt deletes it when its thread has finished; null while no run exists." alt="" coords="293,1353,455,1381"/>
-<area shape="poly" id="edge64_Node000001_Node000043" title=" " alt="" coords="117,903,126,980,135,1034,149,1095,169,1159,195,1222,230,1281,274,1333,288,1347,283,1345,270,1337,225,1284,190,1224,164,1161,144,1096,130,1035,121,981,116,908"/>
-<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="329,846,323,838,328,828,346,822,374,820,404,822,422,831,417,832,403,828,374,825,347,827,332,832,328,837,335,846"/>
-<area shape="rect" id="Node000008" href="$_completed_run_capture_8cpp.html#a28ef20b66f910d15773edc1894e07444" title=" " alt="" coords="551,333,717,361"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="462,896,474,884,503,838,517,795,520,754,515,712,509,668,505,622,507,571,521,516,540,474,563,434,612,371,610,375,568,437,545,476,527,517,513,572,510,622,514,668,521,711,525,754,522,796,508,841,478,888,465,899"/>
-<area shape="rect" id="Node000023" href="$class_run_controller.html#a7800e103e0f9e83da53b0ae2b98a6618" title=" " alt="" coords="524,529,744,574"/>
-<area shape="poly" id="edge37_Node000007_Node000023" title=" " alt="" coords="461,896,474,884,497,846,505,810,504,773,497,736,490,699,489,661,498,623,522,584,527,582,524,586,526,587,503,625,494,662,496,698,502,735,509,772,510,810,502,848,478,888,465,900"/>
-<area shape="rect" id="Node000026" href="$class_playback_profiler.html#a661afe92bbd8a1ed34e064b1e364b5d3" title=" " alt="" coords="526,597,742,625"/>
-<area shape="poly" id="edge40_Node000007_Node000026" title=" " alt="" coords="461,896,474,884,494,853,501,822,500,792,496,761,492,730,492,699,500,667,522,636,529,632,526,636,526,640,505,669,497,699,497,730,501,760,506,791,506,823,498,855,478,888,465,900"/>
-<area shape="rect" id="Node000027" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="541,649,727,677"/>
-<area shape="poly" id="edge41_Node000007_Node000027" title=" " alt="" coords="460,896,474,884,490,861,497,837,499,814,497,790,495,766,497,742,505,718,522,693,538,683,535,687,526,697,509,720,502,743,500,766,502,790,504,814,503,838,495,863,478,888,464,900"/>
-<area shape="rect" id="Node000028" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="805,679,994,706"/>
-<area shape="poly" id="edge43_Node000007_Node000028" title=" " alt="" coords="459,896,474,884,487,866,494,848,496,810,498,773,506,755,522,737,542,726,568,716,635,703,713,695,792,692,787,695,713,700,636,708,569,721,544,730,526,741,511,757,504,774,501,811,499,849,492,869,478,888,463,900"/>
-<area shape="rect" id="Node000029" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title="True when the last run executed every stage, also if a stop arrived after its last check." alt="" coords="560,752,709,796"/>
-<area shape="poly" id="edge44_Node000007_Node000029" title=" " alt="" coords="456,896,474,884,490,865,497,846,505,826,522,806,547,794,543,797,526,811,510,829,502,848,495,868,478,888,459,900"/>
-<area shape="rect" id="Node000030" href="$class_dispatch_controller.html#a67c2bc73f24aa64755af89e8344315e8" title="Why the last run ended with an error, or empty when it did not. Read it after the run has returned." alt="" coords="563,821,705,866"/>
-<area shape="poly" id="edge45_Node000007_Node000030" title=" " alt="" coords="451,895,550,867,546,870,453,900"/>
-<area shape="rect" id="Node000031" href="$class_dispatch_controller.html#a36418dfc2831a157cf9fe1158307ecdc" title=" " alt="" coords="538,890,731,951"/>
-<area shape="poly" id="edge46_Node000007_Node000031" title=" " alt="" coords="476,918,524,919,520,922,478,923"/>
-<area shape="rect" id="Node000034" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="814,967,985,994"/>
-<area shape="poly" id="edge53_Node000007_Node000034" title=" " alt="" coords="442,941,524,961,595,970,667,976,801,981,796,983,667,981,595,975,524,966,443,946"/>
-<area shape="rect" id="Node000035" href="$class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" title="Drops the replay history of the last run. The thread rule of takeReplayCandidate applies." alt="" coords="548,1026,721,1071"/>
-<area shape="poly" id="edge52_Node000007_Node000035" title=" " alt="" coords="410,941,465,973,525,1005,556,1020,550,1020,523,1010,462,977,410,946"/>
-<area shape="rect" id="Node000036" href="$class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328" title=" " alt="" coords="550,1096,718,1140"/>
-<area shape="poly" id="edge54_Node000007_Node000036" title=" " alt="" coords="394,941,462,1019,497,1057,526,1081,538,1090,533,1090,522,1085,493,1061,458,1023,393,946"/>
-<area shape="poly" id="edge30_Node000008_Node000008" title=" " alt="" coords="590,333,583,324,588,315,606,309,634,307,665,309,682,317,677,319,663,314,634,312,607,314,592,319,588,324,595,333"/>
-<area shape="rect" id="Node000009" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="798,105,1001,133"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="640,332,661,294,693,243,737,189,763,165,791,144,805,138,801,141,794,148,766,169,741,193,698,246,665,296,645,334"/>
-<area shape="rect" id="Node000010" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="836,181,963,209"/>
-<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="647,331,706,277,747,246,791,219,824,209,819,212,794,224,750,250,710,281,651,334"/>
-<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="798,257,1001,285"/>
-<area shape="poly" id="edge21_Node000008_Node000015" title=" " alt="" coords="677,331,792,295,826,288,821,291,793,300,680,335"/>
-<area shape="rect" id="Node000018" href="$_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f" title=" " alt="" coords="816,333,983,361"/>
-<area shape="poly" id="edge27_Node000008_Node000018" title=" " alt="" coords="717,345,802,346,798,348,719,350"/>
-<area shape="rect" id="Node000020" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title="The route as the nodes of its path, with the stations of the scene when it is given." alt="" coords="830,409,969,437"/>
-<area shape="poly" id="edge31_Node000008_Node000020" title=" " alt="" coords="685,359,836,404,832,406,686,364"/>
-<area shape="rect" id="Node000021" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="825,485,974,513"/>
-<area shape="poly" id="edge33_Node000008_Node000021" title=" " alt="" coords="655,359,718,400,794,446,854,478,849,479,791,451,715,404,656,364"/>
-<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="854,105,847,96,853,87,871,81,900,79,930,81,949,89,944,91,929,86,899,84,872,86,856,91,852,96,859,105"/>
-<area shape="poly" id="edge12_Node000010_Node000010" title=" " alt="" coords="854,181,847,172,853,163,871,157,900,155,930,157,949,165,944,167,929,162,899,160,872,162,856,167,852,172,859,181"/>
-<area shape="rect" id="Node000011" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="1111,29,1222,57"/>
-<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="943,179,975,163,1005,143,1020,124,1027,105,1036,86,1053,68,1073,56,1098,50,1093,53,1075,61,1056,72,1040,89,1032,107,1024,126,1008,146,978,168,946,183"/>
-<area shape="rect" id="Node000012" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="1081,105,1252,133"/>
-<area shape="poly" id="edge15_Node000010_Node000012" title=" " alt="" coords="942,178,1054,143,1089,136,1085,139,1055,148,944,183"/>
-<area shape="rect" id="Node000013" href="$_trajectory_util_8cpp.html#a3628a4e34ea58c9a4584537a7a605751" title=" " alt="" coords="1075,181,1258,209"/>
-<area shape="poly" id="edge17_Node000010_Node000013" title=" " alt="" coords="962,193,1062,194,1057,196,964,198"/>
-<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="1124,29,1117,20,1123,11,1139,5,1166,3,1195,5,1213,13,1207,15,1194,10,1166,8,1140,10,1126,15,1122,20,1129,29"/>
-<area shape="poly" id="edge16_Node000012_Node000012" title=" " alt="" coords="1124,105,1117,96,1123,87,1139,81,1166,79,1195,81,1213,89,1207,91,1194,86,1166,84,1140,86,1126,91,1122,96,1129,105"/>
-<area shape="poly" id="edge20_Node000013_Node000013" title=" " alt="" coords="1124,181,1117,172,1123,163,1139,157,1166,155,1195,157,1213,165,1207,167,1194,162,1166,160,1140,162,1126,167,1122,172,1129,181"/>
-<area shape="rect" id="Node000014" href="$_trajectory_util_8cpp.html#afe4ec1b3791e49b8d8c64a911abe693d" title=" " alt="" coords="1326,181,1503,209"/>
-<area shape="poly" id="edge18_Node000013_Node000014" title=" " alt="" coords="1257,193,1313,194,1308,196,1259,198"/>
-<area shape="poly" id="edge19_Node000014_Node000014" title=" " alt="" coords="1372,181,1365,172,1371,163,1388,157,1415,155,1444,157,1461,166,1456,166,1442,162,1415,160,1389,162,1374,167,1371,172,1377,181"/>
-<area shape="poly" id="edge22_Node000015_Node000015" title=" " alt="" coords="854,257,847,248,853,239,871,233,900,231,930,233,949,241,944,243,929,238,899,236,872,238,856,243,852,248,859,257"/>
-<area shape="rect" id="Node000016" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1055,257,1278,285"/>
-<area shape="poly" id="edge23_Node000015_Node000016" title=" " alt="" coords="1000,269,1042,270,1037,272,1002,274"/>
-<area shape="rect" id="Node000017" href="$_section_reference_8cpp.html#a05ef6e971eba5d4ecbf2f1e9ce1dea38" title=" " alt="" coords="1084,333,1249,361"/>
-<area shape="poly" id="edge25_Node000015_Node000017" title=" " alt="" coords="960,283,1007,295,1109,327,1104,329,1006,300,961,288"/>
-<area shape="poly" id="edge24_Node000016_Node000016" title=" " alt="" coords="1124,257,1117,248,1123,239,1139,233,1166,231,1195,233,1213,242,1207,243,1194,238,1166,236,1140,238,1126,243,1122,248,1129,257"/>
-<area shape="poly" id="edge26_Node000017_Node000017" title=" " alt="" coords="1124,333,1117,324,1123,315,1139,309,1166,307,1195,309,1213,318,1207,318,1194,314,1166,312,1140,314,1126,319,1122,324,1129,333"/>
-<area shape="poly" id="edge28_Node000018_Node000018" title=" " alt="" coords="854,333,847,324,853,315,871,309,900,307,930,309,949,317,944,319,929,314,899,312,872,314,856,319,852,324,859,333"/>
-<area shape="rect" id="Node000019" href="$class_train.html#a23977edf7b951918b731c0164af29425" title="Name of stop stationIndex for the arrival statistics; &quot;None&quot; for an index outside the stops." alt="" coords="1063,385,1270,430"/>
-<area shape="poly" id="edge29_Node000018_Node000019" title=" " alt="" coords="964,359,1052,380,1047,382,965,364"/>
-<area shape="poly" id="edge32_Node000020_Node000020" title=" " alt="" coords="854,409,847,400,853,391,871,385,900,383,930,385,949,393,944,395,929,390,899,388,872,390,856,395,852,400,859,409"/>
-<area shape="poly" id="edge36_Node000021_Node000021" title=" " alt="" coords="854,485,847,476,853,467,871,461,900,459,930,461,949,469,944,471,929,466,899,464,872,466,856,471,852,476,859,485"/>
-<area shape="rect" id="Node000022" href="$_section_inventory_8cpp.html#a51767c3e1d490b330b50d4a4ba4d4388" title=" " alt="" coords="1095,485,1238,513"/>
-<area shape="poly" id="edge34_Node000021_Node000022" title=" " alt="" coords="974,497,1082,498,1077,500,976,502"/>
-<area shape="poly" id="edge35_Node000022_Node000022" title=" " alt="" coords="1124,484,1117,476,1123,467,1139,461,1166,459,1195,461,1213,470,1207,470,1194,466,1166,464,1140,466,1126,471,1122,476,1129,485"/>
-<area shape="rect" id="Node000024" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title="Asks the run to stop. Returns whether a run existed." alt="" coords="801,537,998,565"/>
-<area shape="poly" id="edge38_Node000023_Node000024" title=" " alt="" coords="744,549,788,550,783,552,746,554"/>
-<area shape="rect" id="Node000025" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="806,589,993,634"/>
-<area shape="poly" id="edge39_Node000023_Node000025" title=" " alt="" coords="735,572,794,586,789,588,737,577"/>
-<area shape="poly" id="edge42_Node000027_Node000028" title=" " alt="" coords="727,671,792,679,787,681,728,676"/>
-<area shape="rect" id="Node000032" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="828,898,971,943"/>
-<area shape="poly" id="edge47_Node000031_Node000032" title=" " alt="" coords="731,918,815,920,810,921,732,923"/>
-<area shape="poly" id="edge50_Node000031_Node000034" title=" " alt="" coords="731,940,823,962,818,963,732,945"/>
-<area shape="rect" id="Node000033" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="1120,937,1212,965"/>
-<area shape="poly" id="edge48_Node000032_Node000033" title=" " alt="" coords="971,926,1107,944,1102,945,972,931"/>
-<area shape="poly" id="edge49_Node000033_Node000033" title=" " alt="" coords="1124,936,1117,928,1123,919,1139,913,1166,911,1195,913,1213,922,1207,922,1194,918,1166,916,1140,918,1126,923,1122,928,1129,937"/>
-<area shape="poly" id="edge51_Node000034_Node000033" title=" " alt="" coords="985,968,1107,957,1102,959,986,974"/>
-<area shape="rect" id="Node000037" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="795,1096,1004,1140"/>
-<area shape="poly" id="edge55_Node000036_Node000037" title=" " alt="" coords="719,1115,782,1117,777,1118,719,1120"/>
-<area shape="rect" id="Node000038" href="$class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a" title="The budget of accounted payload, in bytes." alt="" coords="1073,1096,1260,1140"/>
-<area shape="poly" id="edge56_Node000037_Node000038" title=" " alt="" coords="1004,1115,1060,1117,1055,1118,1005,1120"/>
-<area shape="poly" id="edge58_Node000039_Node000040" title=" " alt="" coords="457,1185,515,1187,510,1188,457,1190"/>
-<area shape="rect" id="Node000041" href="$class_simulation_worker.html#ad09e766733a52b80bd0d8397e02d323d" title="Emitted by run() on the thread of the run before the simulation starts." alt="" coords="528,1234,741,1279"/>
-<area shape="poly" id="edge59_Node000039_Node000041" title=" " alt="" coords="429,1199,536,1229,530,1230,428,1204"/>
-<area shape="poly" id="edge60_Node000041_Node000042" title=" " alt="" coords="741,1266,780,1272,774,1272,741,1271"/>
-<area shape="poly" id="edge61_Node000042_Node000042" title=" " alt="" coords="850,1261,848,1253,856,1244,874,1239,900,1237,928,1239,947,1249,941,1248,927,1245,899,1242,875,1244,859,1249,853,1255,854,1264"/>
+<area shape="rect" id="Node000001" title="Starts the run on a worker thread. The scene has to be prepared." alt="" coords="5,1291,224,1318"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="303,748,445,792"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,1290,118,1207,125,1146,138,1077,158,1005,185,932,222,863,270,803,290,789,287,793,274,806,226,866,190,934,163,1006,143,1078,131,1147,123,1208,119,1291"/>
+<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#ad19c9b2ae386006cd197ff8481d4f290" title=" " alt="" coords="303,817,445,862"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,1290,122,1217,146,1105,166,1043,193,982,227,923,270,872,290,859,287,863,274,876,231,926,197,984,171,1045,151,1107,128,1218,119,1291"/>
+<area shape="rect" id="Node000004" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run..." alt="" coords="299,886,448,931"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="115,1290,127,1227,154,1134,175,1082,200,1031,232,983,270,941,287,930,284,935,273,945,236,987,205,1034,179,1084,159,1135,133,1228,120,1291"/>
+<area shape="rect" id="Node000005" href="$class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c" title=" " alt="" coords="298,956,450,1000"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="117,1290,133,1238,162,1163,183,1122,208,1082,237,1044,270,1010,286,1001,283,1005,273,1015,241,1047,212,1085,188,1125,167,1165,138,1240,122,1291"/>
+<area shape="rect" id="Node000006" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="287,1048,460,1076"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="120,1289,140,1250,173,1197,217,1141,242,1114,270,1092,294,1080,290,1084,273,1096,246,1118,221,1144,177,1200,145,1253,125,1291"/>
+<area shape="rect" id="Node000007" href="$class_run_controller.html#a2a777afc9c09e3e57b2955098ca67b2c" title="The results of the run are kept or discarded, and the window follows." alt="" coords="272,1150,476,1195"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="142,1288,316,1200,313,1205,146,1292"/>
+<area shape="rect" id="Node000027" href="$class_run_controller.html#aa756f9ef50f3341bad1748f201818222" title="Pause and Stop mean something while a run exists, and Output Folder only while none does." alt="" coords="799,633,1035,661"/>
+<area shape="poly" id="edge63_Node000001_Node000027" title=" " alt="" coords="122,1289,145,1257,178,1215,221,1172,270,1136,300,1122,329,1117,381,1119,405,1119,429,1116,451,1105,474,1085,484,1069,491,1049,498,995,498,931,494,861,491,792,492,729,501,676,510,656,522,640,543,628,572,620,646,615,731,619,815,629,810,632,730,624,646,620,573,625,545,633,526,644,514,658,506,678,497,729,496,792,499,861,503,931,503,995,496,1050,489,1072,478,1089,454,1110,430,1121,406,1124,381,1124,329,1122,302,1127,273,1140,224,1176,182,1219,149,1260,127,1291"/>
+<area shape="rect" id="Node000050" href="$class_simulation_worker.html#a8672bbf61be0e0fe558e06080ccfe739" title=" " alt="" coords="291,1573,456,1601"/>
+<area shape="poly" id="edge57_Node000001_Node000050" title=" " alt="" coords="130,1316,352,1561,347,1563,128,1321"/>
+<area shape="rect" id="Node000051" href="$class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d" title=" " alt="" coords="531,1668,744,1712"/>
+<area shape="poly" id="edge65_Node000001_Node000051" title=" " alt="" coords="144,1316,211,1352,299,1407,393,1477,437,1517,478,1560,494,1586,501,1610,508,1632,526,1653,531,1659,526,1658,522,1657,503,1634,495,1611,489,1588,474,1563,434,1521,389,1481,296,1412,209,1357,145,1321"/>
+<area shape="rect" id="Node000053" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title="A worker without a controller runs the controller of the process, the global simulation." alt="" coords="810,1766,1024,1811"/>
+<area shape="poly" id="edge66_Node000001_Node000053" title=" " alt="" coords="119,1316,135,1373,164,1453,184,1496,209,1538,238,1577,273,1610,300,1626,325,1634,375,1634,400,1632,426,1634,451,1643,478,1661,492,1678,498,1695,501,1730,504,1764,511,1778,526,1792,561,1811,599,1824,640,1832,681,1834,762,1828,831,1816,836,1815,762,1833,681,1839,639,1837,598,1830,559,1816,522,1796,507,1781,499,1765,496,1731,493,1697,487,1681,474,1665,449,1648,424,1640,400,1638,375,1639,324,1639,298,1631,270,1615,234,1581,204,1541,179,1498,159,1455,130,1375,119,1321"/>
+<area shape="rect" id="Node000054" href="$class_run_controller.html#a4e1d9ea8c7d41ec2ca46615254a72ddf" title="The editors, the infrastructure dock and the actions follow the run state." alt="" coords="283,1676,464,1720"/>
+<area shape="poly" id="edge62_Node000001_Node000054" title=" " alt="" coords="118,1316,134,1379,162,1468,182,1518,207,1567,238,1613,274,1655,288,1667,282,1667,270,1658,233,1617,203,1570,177,1520,157,1470,129,1380,118,1321"/>
+<area shape="rect" id="Node000055" href="$class_run_controller.html#acea75df242d1780f39e4d803a5e4f855" title="The run starts: the window ends the replay of an earlier run and shows the progress." alt="" coords="279,1744,469,1772"/>
+<area shape="poly" id="edge64_Node000001_Node000055" title=" " alt="" coords="117,1316,126,1392,135,1445,149,1504,169,1565,195,1626,230,1682,274,1731,278,1736,272,1735,270,1734,226,1685,191,1628,164,1567,144,1505,130,1446,121,1393,116,1322"/>
+<area shape="rect" id="Node000056" href="$class_run_controller.html#a2890337e28bf728da886d2a4913fb2e6" title="The worker of the run. Qt deletes it when its thread has finished; null while no run exists." alt="" coords="293,1796,455,1824"/>
+<area shape="poly" id="edge67_Node000001_Node000056" title=" " alt="" coords="116,1316,123,1399,131,1458,143,1524,163,1593,190,1662,226,1726,249,1755,273,1781,282,1790,277,1789,270,1785,244,1758,222,1729,185,1664,158,1595,138,1525,125,1459,118,1400,116,1321"/>
+<area shape="rect" id="Node000057" href="$class_run_controller.html#a6f0ced36a2788e89528270cdc8a6087c" title="The worker is set up and its thread starts next." alt="" coords="272,1848,476,1876"/>
+<area shape="poly" id="edge68_Node000001_Node000057" title=" " alt="" coords="116,1316,120,1407,126,1472,137,1546,156,1623,184,1699,223,1771,246,1804,274,1833,279,1840,274,1838,270,1837,242,1807,218,1774,179,1702,151,1624,132,1547,121,1473,115,1407,115,1322"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="329,1048,323,1039,328,1029,346,1023,374,1021,404,1024,422,1032,417,1034,403,1029,374,1027,347,1029,332,1034,328,1039,335,1047"/>
+<area shape="rect" id="Node000008" href="$_completed_run_capture_8cpp.html#a28ef20b66f910d15773edc1894e07444" title=" " alt="" coords="554,257,721,285"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="413,1148,447,1121,474,1086,484,1060,492,1028,502,952,505,864,505,770,504,586,509,508,521,446,540,402,564,361,615,295,613,299,569,364,545,405,527,448,514,509,509,586,510,770,510,865,507,953,497,1029,489,1061,478,1088,451,1125,417,1152"/>
+<area shape="rect" id="Node000023" href="$_run_outcome_8h.html#a852ef9fc4a216b7c25e149a21e0baeca" title=" " alt="" coords="560,483,715,510"/>
+<area shape="poly" id="edge26_Node000007_Node000023" title=" " alt="" coords="413,1148,447,1121,474,1086,483,1063,489,1034,494,965,488,798,485,713,487,634,498,568,508,541,522,520,548,503,545,507,526,524,513,544,503,570,492,635,490,713,493,798,499,965,494,1035,488,1064,478,1088,451,1125,417,1152"/>
+<area shape="rect" id="Node000024" href="$class_run_controller.html#a7800e103e0f9e83da53b0ae2b98a6618" title=" " alt="" coords="528,534,748,579"/>
+<area shape="poly" id="edge28_Node000007_Node000024" title=" " alt="" coords="413,1148,446,1121,474,1086,488,1054,498,1024,506,968,504,915,496,864,488,813,486,760,495,703,506,672,522,640,546,610,580,585,576,590,550,613,526,643,511,675,500,704,491,760,493,812,501,863,509,914,512,968,503,1025,493,1056,478,1089,450,1124,417,1151"/>
+<area shape="rect" id="Node000029" href="$class_playback_profiler.html#a661afe92bbd8a1ed34e064b1e364b5d3" title=" " alt="" coords="530,653,746,681"/>
+<area shape="poly" id="edge33_Node000007_Node000029" title=" " alt="" coords="453,1148,474,1129,492,1101,504,1074,510,1046,512,1019,507,966,494,913,482,860,478,807,481,780,488,753,502,725,522,697,536,687,533,692,526,701,506,728,493,755,486,781,483,807,487,860,499,912,512,965,518,1019,516,1047,509,1075,497,1104,478,1133,457,1151"/>
+<area shape="rect" id="Node000030" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="544,755,731,782"/>
+<area shape="poly" id="edge34_Node000007_Node000030" title=" " alt="" coords="453,1148,474,1129,488,1108,498,1086,506,1044,502,1002,494,960,486,918,484,876,494,834,505,813,522,792,533,785,530,789,526,796,510,816,499,836,489,877,491,918,499,959,508,1001,511,1044,503,1088,493,1110,478,1133,457,1152"/>
+<area shape="rect" id="Node000031" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="822,729,1012,757"/>
+<area shape="poly" id="edge36_Node000007_Node000031" title=" " alt="" coords="453,1148,474,1129,482,1115,488,1096,494,1049,493,933,491,873,494,818,503,773,511,755,522,741,543,729,571,721,643,715,726,718,810,727,805,729,726,723,643,720,572,727,545,734,526,745,516,758,508,774,499,819,497,873,498,933,499,1050,493,1098,487,1117,478,1133,457,1151"/>
+<area shape="rect" id="Node000032" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title="True when the last run executed every stage, also if a stop arrived after its last check." alt="" coords="563,806,712,851"/>
+<area shape="poly" id="edge37_Node000007_Node000032" title=" " alt="" coords="452,1148,474,1129,494,1095,502,1062,501,1029,496,996,491,963,491,930,500,896,522,861,550,843,547,847,526,865,504,898,496,930,496,963,501,995,506,1029,507,1063,499,1097,478,1133,456,1151"/>
+<area shape="rect" id="Node000033" href="$class_dispatch_controller.html#a67c2bc73f24aa64755af89e8344315e8" title="Why the last run ended with an error, or empty when it did not. Read it after the run has returned." alt="" coords="566,876,709,920"/>
+<area shape="poly" id="edge38_Node000007_Node000033" title=" " alt="" coords="452,1148,474,1129,490,1104,497,1080,498,1056,496,1031,494,1006,496,981,504,956,522,931,554,911,550,915,526,934,509,958,501,982,500,1006,502,1031,503,1055,502,1081,495,1107,478,1133,455,1151"/>
+<area shape="rect" id="Node000034" href="$class_run_controller.html#a6f15e4bc2547a040d9be32dff564c0d3" title="The loaded data shows the state of the run." alt="" coords="541,945,734,990"/>
+<area shape="poly" id="edge39_Node000007_Node000034" title=" " alt="" coords="449,1148,474,1129,486,1113,493,1098,497,1065,501,1033,509,1016,522,1000,530,996,527,1000,526,1004,513,1019,506,1034,502,1066,498,1099,491,1116,478,1133,453,1151"/>
+<area shape="rect" id="Node000035" href="$class_dispatch_controller.html#a36418dfc2831a157cf9fe1158307ecdc" title=" " alt="" coords="541,1014,734,1075"/>
+<area shape="poly" id="edge40_Node000007_Node000035" title=" " alt="" coords="437,1148,475,1129,498,1111,523,1092,547,1081,543,1084,525,1096,502,1115,477,1133,440,1152"/>
+<area shape="rect" id="Node000038" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="831,1091,1003,1118"/>
+<area shape="poly" id="edge51_Node000007_Node000038" title=" " alt="" coords="463,1147,524,1135,677,1117,818,1108,814,1110,677,1122,524,1140,465,1152"/>
+<area shape="rect" id="Node000039" href="$class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" title="Drops the replay history of the last run. The thread rule of takeReplayCandidate applies." alt="" coords="551,1150,724,1195"/>
+<area shape="poly" id="edge46_Node000007_Node000039" title=" " alt="" coords="475,1170,538,1171,533,1174,478,1175"/>
+<area shape="rect" id="Node000040" href="$class_run_controller.html#a4ab71663fd2e781b122a664f0d929787" title="The last run completed and its results are valid for the scene as it is." alt="" coords="526,1219,749,1246"/>
+<area shape="poly" id="edge47_Node000007_Node000040" title=" " alt="" coords="472,1193,525,1205,560,1214,555,1216,523,1210,474,1198"/>
+<area shape="rect" id="Node000041" href="$class_run_controller.html#a55a4e029877dfeb91e9efa943bbfd44c" title="The run kept no results. The Run Results dock says why and hides." alt="" coords="524,1271,751,1298"/>
+<area shape="poly" id="edge48_Node000007_Node000041" title=" " alt="" coords="408,1193,463,1225,525,1255,550,1265,545,1267,523,1260,460,1230,409,1198"/>
+<area shape="rect" id="Node000042" href="$class_run_controller.html#acb17691cee163bb94a9a01dd5985976d" title="The run kept results, which the Run Results dock shows." alt="" coords="542,1323,733,1350"/>
+<area shape="poly" id="edge49_Node000007_Node000042" title=" " alt="" coords="393,1193,449,1251,486,1282,525,1307,542,1316,537,1317,523,1312,482,1286,446,1255,393,1198"/>
+<area shape="rect" id="Node000043" href="$struct_run_outcome.html#afcea8bb41ffb9892dd1d5336ed2be1ba" title="The results of the run are kept." alt="" coords="544,1375,731,1402"/>
+<area shape="poly" id="edge50_Node000007_Node000043" title=" " alt="" coords="390,1193,458,1286,495,1331,526,1360,538,1368,533,1369,522,1364,491,1335,453,1289,390,1198"/>
+<area shape="rect" id="Node000044" href="$class_run_controller.html#af5d585fa9dac2f6b6097675bc669fc2e" title="The window follows the trains of the finished run again and enables what the run disabled." alt="" coords="548,1427,727,1454"/>
+<area shape="poly" id="edge52_Node000007_Node000044" title=" " alt="" coords="393,1193,435,1248,478,1314,491,1343,498,1368,506,1390,526,1412,537,1421,531,1421,522,1416,502,1393,493,1370,486,1345,474,1316,431,1251,393,1198"/>
+<area shape="rect" id="Node000045" href="$class_run_controller.html#a27030019d13bf55307f6d49554834476" title="The progress of the run is no longer shown." alt="" coords="540,1478,735,1523"/>
+<area shape="poly" id="edge53_Node000007_Node000045" title=" " alt="" coords="395,1193,437,1247,478,1314,488,1337,492,1358,496,1395,502,1429,511,1446,526,1464,530,1469,525,1469,522,1468,507,1449,497,1431,490,1396,487,1359,482,1338,474,1316,433,1250,395,1198"/>
+<area shape="rect" id="Node000046" href="$class_run_controller.html#a91e55d0503fb90486fa1377c5e783419" title="The window has done everything for the run." alt="" coords="545,1547,730,1574"/>
+<area shape="poly" id="edge54_Node000007_Node000046" title=" " alt="" coords="396,1193,439,1246,460,1279,478,1314,489,1347,493,1378,491,1433,491,1458,495,1483,506,1508,526,1533,534,1542,529,1542,522,1537,501,1510,490,1484,486,1459,486,1433,488,1378,484,1349,474,1316,456,1282,435,1250,396,1198"/>
+<area shape="rect" id="Node000047" href="$class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328" title=" " alt="" coords="554,1598,722,1643"/>
+<area shape="poly" id="edge55_Node000007_Node000047" title=" " alt="" coords="396,1193,440,1246,461,1279,478,1314,491,1355,495,1392,490,1459,488,1490,492,1520,503,1551,526,1584,542,1599,537,1599,522,1588,498,1554,486,1521,483,1490,485,1458,489,1392,486,1356,474,1316,456,1282,435,1249,396,1198"/>
+<area shape="poly" id="edge21_Node000008_Node000008" title=" " alt="" coords="593,257,586,248,591,239,609,233,638,231,668,233,687,241,682,243,667,238,638,236,610,238,595,243,591,248,598,256"/>
+<area shape="rect" id="Node000009" href="$_completed_run_capture_8cpp.html#a0d3cef7ef4d61dfb162e57d4952ff1ca" title=" " alt="" coords="816,29,1018,57"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="644,256,665,217,698,166,743,113,769,88,798,68,813,61,809,65,801,72,773,92,747,116,703,169,669,220,648,258"/>
+<area shape="rect" id="Node000010" href="$_run_results_8cpp.html#a36b4eaa98996e5bbe46ca09699115d48" title="The Run Results of the trains. timestepSeconds turns sample indices into seconds; a null train is ski..." alt="" coords="854,105,980,133"/>
+<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="650,255,711,201,753,170,798,143,841,130,837,134,800,148,756,174,714,205,655,259"/>
+<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="816,181,1018,209"/>
+<area shape="poly" id="edge17_Node000008_Node000015" title=" " alt="" coords="681,255,799,219,836,211,832,215,800,224,685,259"/>
+<area shape="rect" id="Node000018" href="$_run_results_8cpp.html#a9ae7edc4c23c80417d0baa9f06fc052f" title=" " alt="" coords="833,257,1001,285"/>
+<area shape="poly" id="edge19_Node000008_Node000018" title=" " alt="" coords="720,269,820,270,815,273,723,273"/>
+<area shape="rect" id="Node000020" href="$_completed_run_capture_8cpp.html#ac6fa406b949ce6e982f46610520698ef" title="The route as the nodes of its path, with the stations of the scene when it is given." alt="" coords="847,333,987,361"/>
+<area shape="poly" id="edge22_Node000008_Node000020" title=" " alt="" coords="691,283,851,328,846,330,693,288"/>
+<area shape="rect" id="Node000021" href="$_section_inventory_8cpp.html#a64c14cbefafa78e81ec551a43f333429" title="The labels of the sections of the inventory (see SceneSectionLabels)." alt="" coords="842,409,992,437"/>
+<area shape="poly" id="edge24_Node000008_Node000021" title=" " alt="" coords="659,283,723,324,801,370,868,402,863,404,798,375,720,329,660,288"/>
+<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="874,29,867,20,873,11,890,5,917,3,946,5,964,13,959,15,945,10,917,8,891,10,876,15,873,20,879,29"/>
+<area shape="poly" id="edge12_Node000010_Node000010" title=" " alt="" coords="874,105,867,96,873,87,890,81,917,79,946,81,964,89,959,91,945,86,917,84,891,86,876,91,873,96,879,105"/>
+<area shape="rect" id="Node000011" href="$_run_results_8h.html#ad86fae6b844959d443eb855f68338ba5" title="An energy in MJ as kWh, with kEnergyMJToKWh." alt="" coords="1113,68,1224,96"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="979,108,1099,91,1095,94,982,112"/>
+<area shape="rect" id="Node000012" href="$_trajectory_util_8cpp.html#aca18c471979da03136d004ac005bad56" title=" " alt="" coords="1083,144,1254,172"/>
+<area shape="poly" id="edge15_Node000010_Node000012" title=" " alt="" coords="979,126,1070,141,1065,144,982,131"/>
+<area shape="poly" id="edge14_Node000011_Node000011" title=" " alt="" coords="1125,68,1119,59,1124,49,1141,43,1168,41,1198,44,1215,52,1210,53,1196,49,1168,47,1142,49,1127,53,1124,59,1130,67"/>
+<area shape="poly" id="edge16_Node000012_Node000012" title=" " alt="" coords="1125,144,1119,135,1124,125,1141,119,1168,117,1198,120,1215,128,1210,129,1196,125,1168,123,1142,125,1127,129,1124,135,1130,143"/>
+<area shape="poly" id="edge18_Node000015_Node000015" title=" " alt="" coords="874,181,867,172,873,163,890,157,917,155,946,157,964,165,959,167,945,162,917,160,891,162,876,167,873,172,879,181"/>
+<area shape="poly" id="edge20_Node000018_Node000018" title=" " alt="" coords="874,257,867,248,873,239,890,233,917,231,946,233,964,241,959,243,945,238,917,236,891,238,876,243,873,248,879,257"/>
+<area shape="poly" id="edge23_Node000020_Node000020" title=" " alt="" coords="874,333,867,324,873,315,890,309,917,307,946,309,964,317,959,319,945,314,917,312,891,314,876,319,873,324,879,333"/>
+<area shape="poly" id="edge25_Node000021_Node000021" title=" " alt="" coords="874,409,867,400,873,391,890,385,917,383,946,385,964,393,959,395,945,390,917,388,891,390,876,395,873,400,879,409"/>
+<area shape="poly" id="edge27_Node000023_Node000023" title=" " alt="" coords="593,483,586,474,591,464,609,458,638,456,668,458,687,466,682,468,667,464,638,461,610,463,595,468,591,473,598,482"/>
+<area shape="rect" id="Node000025" href="$class_run_controller.html#a5a4f214fdefa28c4eb7af56bc93666ad" title="The worker is gone, so the transient states of the canvas end." alt="" coords="808,461,1026,489"/>
+<area shape="poly" id="edge29_Node000024_Node000025" title=" " alt="" coords="715,532,750,519,798,499,831,492,827,495,800,504,752,524,718,536"/>
+<area shape="rect" id="Node000026" href="$class_run_controller.html#a769b96090a8789ffec8bdfbb6b577101" title="Asks the run to stop. Returns whether a run existed." alt="" coords="819,513,1015,541"/>
+<area shape="poly" id="edge30_Node000024_Node000026" title=" " alt="" coords="747,543,805,538,801,541,750,547"/>
+<area shape="poly" id="edge31_Node000024_Node000027" title=" " alt="" coords="704,577,752,595,776,608,800,619,824,628,819,630,798,624,774,613,750,600,706,582"/>
+<area shape="rect" id="Node000028" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="823,565,1011,610"/>
+<area shape="poly" id="edge32_Node000024_Node000028" title=" " alt="" coords="747,566,810,574,806,576,749,571"/>
+<area shape="poly" id="edge35_Node000030_Node000031" title=" " alt="" coords="730,758,809,752,805,755,732,762"/>
+<area shape="rect" id="Node000036" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title="The same run with write access, for the stages of the controller and for tests. The thread rules of r..." alt="" coords="846,1022,988,1067"/>
+<area shape="poly" id="edge41_Node000035_Node000036" title=" " alt="" coords="734,1042,833,1043,828,1046,736,1047"/>
+<area shape="poly" id="edge44_Node000035_Node000038" title=" " alt="" coords="734,1063,837,1086,832,1088,736,1068"/>
+<area shape="rect" id="Node000037" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="1122,1060,1214,1088"/>
+<area shape="poly" id="edge42_Node000036_Node000037" title=" " alt="" coords="988,1050,1109,1066,1104,1068,989,1055"/>
+<area shape="poly" id="edge43_Node000037_Node000037" title=" " alt="" coords="1125,1059,1119,1051,1124,1041,1141,1035,1168,1033,1198,1036,1215,1044,1210,1045,1196,1041,1168,1039,1142,1041,1127,1045,1124,1051,1130,1060"/>
+<area shape="poly" id="edge45_Node000038_Node000037" title=" " alt="" coords="1002,1092,1109,1080,1104,1082,1004,1097"/>
+<area shape="rect" id="Node000048" href="$class_gui_replay_history.html#a893d5a3f40cb78d5fb1329659dadb9ae" title="An empty history that keeps at most budgetBytes bytes of accounted payload." alt="" coords="812,1598,1022,1643"/>
+<area shape="poly" id="edge56_Node000047_Node000048" title=" " alt="" coords="722,1618,799,1620,794,1621,723,1623"/>
+<area shape="poly" id="edge58_Node000050_Node000051" title=" " alt="" coords="432,1599,477,1617,502,1635,525,1653,540,1661,535,1661,523,1657,498,1639,475,1621,432,1604"/>
+<area shape="rect" id="Node000052" href="$class_simulation_worker.html#ad09e766733a52b80bd0d8397e02d323d" title="Emitted by run() on the thread of the run before the simulation starts." alt="" coords="531,1737,744,1782"/>
+<area shape="poly" id="edge59_Node000050_Node000052" title=" " alt="" coords="447,1599,478,1617,490,1631,497,1644,503,1671,508,1698,515,1710,526,1723,531,1728,525,1727,522,1726,510,1713,503,1699,497,1672,492,1646,485,1634,474,1621,447,1604"/>
+<area shape="poly" id="edge60_Node000052_Node000053" title=" " alt="" coords="745,1768,797,1776,792,1776,745,1773"/>
+<area shape="poly" id="edge61_Node000053_Node000053" title=" " alt="" coords="870,1764,868,1756,876,1747,892,1741,917,1740,944,1742,962,1751,957,1751,943,1747,917,1745,893,1747,879,1752,873,1758,874,1767"/>
 </map>

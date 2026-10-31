@@ -1,0 +1,5 @@
+<map id="StopDraftCheck" name="StopDraftCheck">
+<area shape="rect" id="Node000001" title="What validateStopDraft() found: the finished stop, or the first problem with its message and the fiel..." alt="" coords="5,106,128,134"/>
+<area shape="rect" id="Node000002" href="$struct_scene_stop.html" title="A planned call of a service at a station. Times are seconds after the base time of the scene." alt="" coords="22,5,111,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,47,69,106,64,105,64,50"/>
+</map>

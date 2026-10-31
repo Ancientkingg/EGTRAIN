@@ -4,6 +4,7 @@ var _network_presenter_8h =
     [ "NetworkPresenter::PreviewOptions", "struct_network_presenter_1_1_preview_options.html", "struct_network_presenter_1_1_preview_options" ],
     [ "NetworkPresenter::PreviewOutcome", "struct_network_presenter_1_1_preview_outcome.html", "struct_network_presenter_1_1_preview_outcome" ],
     [ "NetworkPresenter::FrameHost", "class_network_presenter_1_1_frame_host.html", "class_network_presenter_1_1_frame_host" ],
+    [ "NetworkPresenter::PreviewFit", "struct_network_presenter_1_1_preview_fit.html", "struct_network_presenter_1_1_preview_fit" ],
     [ "NetworkPresenter::FindTarget", "struct_network_presenter_1_1_find_target.html", "struct_network_presenter_1_1_find_target" ],
     [ "PreviewStationMembership", "struct_preview_station_membership.html", "struct_preview_station_membership" ],
     [ "connectionPen", "_network_presenter_8h.html#ab86c30f8ddd372850bdc390b9e58d813", null ],

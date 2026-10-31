@@ -1,6 +1,6 @@
 <map id="SceneDocument::markChanged" name="SceneDocument::markChanged">
 <area shape="rect" id="Node000001" title="Records that an editor has changed kinds of the model, and what the change was called." alt="" coords="5,32,232,60"/>
-<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated." alt="" coords="280,5,470,33"/>
+<area shape="rect" id="Node000002" href="$class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title=" " alt="" coords="280,5,470,33"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,31,266,30,261,31,233,37"/>
 <area shape="rect" id="Node000003" href="$class_scene_document.html#a01d765c1bc087b8ba050fd566730929b" title="Sets the dirty state, and emits dirtyChanged() when it changes." alt="" coords="281,57,468,85"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,54,268,60,263,60,232,60"/>

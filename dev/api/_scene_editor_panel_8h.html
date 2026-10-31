@@ -113,18 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_scene_editor_
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_scene_document_8h_source.html">editors/SceneDocument.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_run_selection_8h_source.html">app/RunSelection.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_user_prompts_8h_source.html">widgets/UserPrompts.h</a>&quot;</code><br />
 <code>#include &lt;QListWidget&gt;</code><br />
+<code>#include &lt;QMetaObject&gt;</code><br />
+<code>#include &lt;QPointer&gt;</code><br />
+<code>#include &lt;QSignalBlocker&gt;</code><br />
 <code>#include &lt;QString&gt;</code><br />
 <code>#include &lt;QWidget&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for SceneEditorPanel.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_editor_panel_8h__incl.svg" width="808" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_editor_panel_8h__incl.svg" width="2379" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_editor_panel_8h__dep__incl.svg" width="3020" height="300"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_editor_panel_8h__dep__incl.svg" width="3196" height="300"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="_scene_editor_panel_8h_source.html">Go to the source code of this file.</a></p>
@@ -136,8 +144,49 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a24357fc7a22bbf4aac051aa82a1ef016" id="r_a24357fc7a22bbf4aac051aa82a1ef016"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a24357fc7a22bbf4aac051aa82a1ef016">rowOfEntry</a> (const QListWidget *list, const QString &amp;text, int row)</td></tr>
+<tr class="memitem:a4b3a696283f2f614706656bafc6c2860" id="r_a4b3a696283f2f614706656bafc6c2860"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b3a696283f2f614706656bafc6c2860">restoreListSelection</a> (QListWidget *list, const QString &amp;text, int row)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a4b3a696283f2f614706656bafc6c2860" name="a4b3a696283f2f614706656bafc6c2860"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b3a696283f2f614706656bafc6c2860">&#9670;&#160;</a></span>restoreListSelection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void restoreListSelection </td>
+          <td>(</td>
+          <td class="paramtype">QListWidget *</td>          <td class="paramname"><span class="paramname"><em>list</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>text</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>row</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Selects an entry of a list that was filled again: the one that reads <span class="tt">text</span> (see rowOfEntry), or else the entry at <span class="tt">row</span>, which was selected before. That is the last entry when the list has become shorter, and the first when none was selected. An empty <span class="tt">text</span> selects by the row alone, for a list whose text is not the identity of its entries. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_scene_editor_panel_8h_a4b3a696283f2f614706656bafc6c2860_cgraph.svg" width="304" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a24357fc7a22bbf4aac051aa82a1ef016" name="a24357fc7a22bbf4aac051aa82a1ef016"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a24357fc7a22bbf4aac051aa82a1ef016">&#9670;&#160;</a></span>rowOfEntry()</h2>
 

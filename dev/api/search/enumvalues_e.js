@@ -8,13 +8,14 @@ var searchData=
   ['olderunsupported_5',['OlderUnsupported',['../_scene_compatibility_8h.html#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa106b40fc1c944c62d0042c69db7c0584',1,'SceneCompatibility.h']]],
   ['ontime_6',['OnTime',['../_delay_analysis_8h.html#afe53c7e8b1bb1e80283aca935ee2c1c7a978b537ecd05b58ea2afd9fa402ddc24',1,'DelayAnalysis.h']]],
   ['openable_7',['Openable',['../_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a742f329f2a5a15fe2fd823a1e65fa149',1,'RecoveryStore.h']]],
-  ['openselected_8',['OpenSelected',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4',1,'CaseChooserDialog']]],
-  ['operationfailed_9',['OperationFailed',['../namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2',1,'telemetry']]],
-  ['opposingtrain_10',['OpposingTrain',['../_area_capacity_8h.html#ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae',1,'AreaCapacity.h']]],
-  ['ordinary_11',['Ordinary',['../_train_colors_8h.html#ad085b8ab25c7060dfbb67c5b737f4da6a5681660b68aa20365a8e3279790ea419',1,'TrainColors.h']]],
-  ['other_12',['Other',['../_section_reference_8h.html#ac1a6b30a958d088fa4976659e4884493a6311ae17c1ee52b36e68aaf4ad066387',1,'SectionReference.h']]],
-  ['othersceneversion_13',['OtherSceneVersion',['../_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7',1,'RecoveryStore.h']]],
-  ['outoforder_14',['OutOfOrder',['../_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a126667d3723cdd75c5386d245727e1e8',1,'SectionInventory.h']]],
-  ['overview_15',['Overview',['../class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba3b878279a04dc47d60932cb294d96259',1,'TrainBadgeItem']]],
-  ['owner_16',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]]
+  ['openduringrun_8',['OpenDuringRun',['../class_scene_document.html#a91f74e5143e65d144b7e484152ee01d0a2c7155c7dc5deb950ae7c43db96ed159',1,'SceneDocument']]],
+  ['openselected_9',['OpenSelected',['../class_case_chooser_dialog.html#a780b44e946d7556c0277e51559b11a00a2c331a209142bd8ee854073934b3c6b4',1,'CaseChooserDialog']]],
+  ['operationfailed_10',['OperationFailed',['../namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2',1,'telemetry']]],
+  ['opposingtrain_11',['OpposingTrain',['../_area_capacity_8h.html#ab6015ecca101bd676809ab10e59392d0a85b9ae7f3ddf17509296e46f631608ae',1,'AreaCapacity.h']]],
+  ['ordinary_12',['Ordinary',['../_train_colors_8h.html#ad085b8ab25c7060dfbb67c5b737f4da6a5681660b68aa20365a8e3279790ea419',1,'TrainColors.h']]],
+  ['other_13',['Other',['../_section_reference_8h.html#ac1a6b30a958d088fa4976659e4884493a6311ae17c1ee52b36e68aaf4ad066387',1,'SectionReference.h']]],
+  ['othersceneversion_14',['OtherSceneVersion',['../_recovery_store_8h.html#a7cfcac1adb88c96a29cd956701508400a487574203cc3954f5f2f06ff28b331b7',1,'RecoveryStore.h']]],
+  ['outoforder_15',['OutOfOrder',['../_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399a126667d3723cdd75c5386d245727e1e8',1,'SectionInventory.h']]],
+  ['overview_16',['Overview',['../class_train_badge_item.html#af7590fcbb1cdc275ae631a1ef2704c7ba3b878279a04dc47d60932cb294d96259',1,'TrainBadgeItem']]],
+  ['owner_17',['Owner',['../classtelemetry_1_1_telemetry_queue.html#a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3',1,'telemetry::TelemetryQueue']]]
 ];

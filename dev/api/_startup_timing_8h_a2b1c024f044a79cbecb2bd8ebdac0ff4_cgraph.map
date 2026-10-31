@@ -1,0 +1,11 @@
+<map id="configurePlaybackProfile" name="configurePlaybackProfile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,57,187,85"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="55,57,49,48,54,39,70,33,96,31,124,33,140,42,135,42,122,38,96,36,71,38,58,43,54,48,61,57"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled()." alt="" coords="235,5,429,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,54,253,36,248,38,163,59"/>
+<area shape="rect" id="Node000003" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="239,57,425,85"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="187,69,226,71,220,72,187,74"/>
+<area shape="rect" id="Node000004" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="477,83,666,110"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="162,83,235,94,352,100,464,101,459,102,352,105,234,99,162,88"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="426,78,464,85,459,85,425,84"/>
+</map>

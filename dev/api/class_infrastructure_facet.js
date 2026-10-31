@@ -1,5 +1,10 @@
 var class_infrastructure_facet =
 [
+    [ "Capability", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9", [
+      [ "TrackFilter", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9aa8c764d408d15a5b6f8b2e25d4aceab3", null ],
+      [ "InsertAndMove", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a2665198455233842906ff0552c11b3b2", null ],
+      [ "RouteSections", "class_infrastructure_facet.html#aed4e8cca9f65e056704bccc4b37817f9a4bbe5408bbda88213b08d905933cdead", null ]
+    ] ],
     [ "Edit", "class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11", [
       [ "Unchanged", "class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a5ff3c6978f87d96febfdc8ed3899a97e", null ],
       [ "Changed", "class_infrastructure_facet.html#aeb7ce8db82d9ecedf99d50aed54a0c11a820dbd2b8f606aff866c0bbfb6b737c1", null ],
@@ -11,6 +16,7 @@ var class_infrastructure_facet =
     [ "~InfrastructureFacet", "class_infrastructure_facet.html#a1159b25888d91082ac427a97095813b3", null ],
     [ "add", "class_infrastructure_facet.html#a59ef82d561cda5d6590da834599652b2", null ],
     [ "addSection", "class_infrastructure_facet.html#abfeec33ab7ce714e7c67d99115ffe5b5", null ],
+    [ "capabilities", "class_infrastructure_facet.html#a1918c6757b3db77a5ea28ed59e76353a", null ],
     [ "columns", "class_infrastructure_facet.html#a1bcf515fa43eaf66f879c75970f36875", null ],
     [ "commitCell", "class_infrastructure_facet.html#ae6e8b73a3c6c40dd3b750f5d4d727288", null ],
     [ "commitPendingEdits", "class_infrastructure_facet.html#ade0c153239bac056442822ccd1dacada", null ],

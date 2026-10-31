@@ -1,15 +1,18 @@
 <map id="TrainUnitPanel::duplicateUnit" name="TrainUnitPanel::duplicateUnit">
-<area shape="rect" id="Node000001" title="Inserts a copy of the selected unit, with a new unique id, after it." alt="" coords="5,96,215,124"/>
+<area shape="rect" id="Node000001" title="Inserts a copy of the selected unit, with a new unique id, after it." alt="" coords="5,57,215,85"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="263,5,459,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,93,262,43,290,36,286,39,264,48,143,98"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,54,278,35,273,38,181,59"/>
 <area shape="rect" id="Node000003" href="$class_train_unit_panel.html#a530ffa6566d39357f7e5155f2a491ad4" title="Lists the units again and shows the selected one." alt="" coords="277,57,445,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,93,264,85,259,88,205,98"/>
-<area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" title="A free train unit id." alt="" coords="273,133,448,161"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="207,122,260,131,255,132,208,127"/>
-<area shape="rect" id="Node000006" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="268,185,454,230"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="145,122,264,170,283,179,278,179,262,175,144,127"/>
-<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="507,57,601,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="445,69,494,71,489,72,446,74"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="520,56,515,48,520,39,533,33,554,31,577,33,591,42,586,42,576,38,554,36,534,38,523,43,521,48,526,58"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="327,132,322,124,326,115,340,109,361,107,384,109,398,118,392,118,382,114,361,112,341,114,330,119,327,124,332,134"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,69,264,71,259,72,216,74"/>
+<area shape="rect" id="Node000007" href="$_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" title="A free train unit id." alt="" coords="273,133,448,161"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="159,83,300,127,296,130,158,88"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="507,20,710,48"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="445,56,500,50,495,51,446,61"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="534,96,684,124"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="446,82,521,96,515,96,445,87"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="575,94,569,87,574,77,587,71,609,69,632,72,646,81,641,80,630,77,609,75,588,77,577,81,574,87,579,97"/>
+<area shape="rect" id="Node000006" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="758,96,853,124"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="684,107,745,110,740,110,684,112"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="771,94,766,87,770,77,784,71,806,69,829,72,843,81,838,80,827,77,805,75,785,77,774,81,771,87,776,97"/>
+<area shape="poly" id="edge9_Node000007_Node000007" title=" " alt="" coords="318,132,312,124,317,115,334,109,361,107,390,109,407,118,402,118,389,114,361,112,335,114,321,119,317,124,323,134"/>
 </map>

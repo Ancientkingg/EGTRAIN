@@ -1,5 +1,16 @@
 <map id="IncidentPanel::addIncident" name="IncidentPanel::addIncident">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,198,33"/>
-<area shape="rect" id="Node000002" href="$class_incident_panel.html#adb1a4d2555c5de0dbcda217609cd9695" title=" " alt="" coords="246,5,439,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,17,232,19,227,19,198,22"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,32,198,60"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b" title="False while no scene is loaded or a run uses it." alt="" coords="248,5,437,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,33,234,31,229,32,199,38"/>
+<area shape="rect" id="Node000004" href="$class_incident_panel.html#adb1a4d2555c5de0dbcda217609cd9695" title=" " alt="" coords="246,57,439,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,53,233,59,228,60,198,59"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="487,5,690,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="437,17,474,19,469,19,438,22"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="411,54,502,37,507,36,412,59"/>
+<area shape="rect" id="Node000005" href="$_editor_rules_8cpp.html#a49605e4d111fa3fd34c0b7164d44f69b" title="The signals and then the blocks of the scene, each id once: what a signal failure can have as its tar..." alt="" coords="514,81,664,109"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="440,78,501,86,495,86,440,83"/>
+<area shape="poly" id="edge8_Node000005_Node000005" title=" " alt="" coords="554,80,548,72,553,63,566,57,589,55,613,57,627,67,622,66,611,62,589,60,568,62,556,67,553,72,558,82"/>
+<area shape="rect" id="Node000006" href="$_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303" title=" " alt="" coords="738,81,845,109"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="664,93,725,95,720,95,664,98"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="756,80,751,72,755,63,769,57,792,55,815,57,830,67,825,65,814,62,791,60,771,62,759,67,756,72,761,82"/>
 </map>

@@ -26,6 +26,7 @@ var class_service_panel =
     [ "compositionCombo", "class_service_panel.html#aec0dc24d96c6c2748346770a3a9cf6e2", null ],
     [ "deleteButton", "class_service_panel.html#ac7aadfe4592df0327bdaa1151bdf3dfb", null ],
     [ "deleteService", "class_service_panel.html#a8bdbff0bbf3dd4d8c17349885263b254", null ],
+    [ "documentChanged", "class_service_panel.html#abff1b7c90ae6799951ed7a27ba89b354", null ],
     [ "duplicateButton", "class_service_panel.html#ae4e33448f57dde18e7d7026f15a4198e", null ],
     [ "duplicateService", "class_service_panel.html#a3c94766eeee29aa92581d5f646f520c9", null ],
     [ "emptyStateLabel", "class_service_panel.html#a0cd98db81f333e7dcd693440e1af9058", null ],
@@ -57,10 +58,6 @@ var class_service_panel =
     [ "selectNoneButton", "class_service_panel.html#a985ef15a691f8bf2ff7faf6948c774db", null ],
     [ "selectNoneOccurrences", "class_service_panel.html#a1676d8e741844b1aca79e0317588fda5", null ],
     [ "serviceRenamed", "class_service_panel.html#a4593da10a1c4c7b2454290e3abbb7105", null ],
-    [ "setDocument", "class_service_panel.html#ad5f5db4c176efeee1f9f6d85ca199bdd", null ],
-    [ "setOccurrenceDuration", "class_service_panel.html#a99c6859f6b61b07c5681b5e45ddfd25b", null ],
-    [ "setPrompts", "class_service_panel.html#ad1d4ff78c0afdcd70151662c1821ea77", null ],
-    [ "setRunSelection", "class_service_panel.html#a7ec0f61c5272a367fd326edaec083802", null ],
     [ "setTimetableWidget", "class_service_panel.html#ae34eb49457b47037c9a101e151deb820", null ],
     [ "updateDetail", "class_service_panel.html#a6d80c86200fe6fc36908a0cd4026c539", null ]
 ];

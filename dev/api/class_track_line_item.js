@@ -10,7 +10,7 @@ var class_track_line_item =
     [ "setOperationalState", "class_track_line_item.html#aaacd7649b9cd2d927adc09130f3755b9", null ],
     [ "shape", "class_track_line_item.html#a135b451641170649ed6200d8ebc870e1", null ],
     [ "type", "class_track_line_item.html#aac3bf401b47bbf7217dda952c8ec9114", null ],
-    [ "arc", "class_track_line_item.html#a84d7bb78192bc9fbd97486b0ed82297b", null ],
+    [ "arc", "class_track_line_item.html#ac621fd8ff0dc8840a9be217c18dbd079", null ],
     [ "selectionOffset", "class_track_line_item.html#a60bc26211bc068d2674d44d5e962a6c4", null ],
     [ "selectionPolygon", "class_track_line_item.html#adf5050e55ef4244cc57469475a71a009", null ],
     [ "track", "class_track_line_item.html#a321ce4cea8904657d6a7665fb7044334", null ]

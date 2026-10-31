@@ -480,7 +480,7 @@ of folders, the libraries and the renames.</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>The main window, menus, docks and the glue between them</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/MainWindow.h</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app/MainWindow.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/MainWindow.h</span></code>; the editor docks and the wiring of their panels in <code class="docutils literal notranslate"><span class="pre">app/EditorDocks.cpp</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>The scene editor panels and the open scene with its unsaved state</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">editors/</span></code> (<code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>, <code class="docutils literal notranslate"><span class="pre">*Panel</span></code>, <code class="docutils literal notranslate"><span class="pre">infrastructure/</span></code>)</p></td>
@@ -531,7 +531,7 @@ path from the user’s side, and <a class="reference internal" href="../architec
 <li><p><strong>Open.</strong> <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case...</span></code> (a <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> bundle), <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Open</span> <span class="pre">Case</span> <span class="pre">Folder...</span></code> or the
 case chooser lead to <code class="docutils literal notranslate"><span class="pre">SceneSession::openSceneDirectory</span></code>. It probes the scene format, and the window
 loads the scene with <code class="docutils literal notranslate"><span class="pre">loadScenePath</span></code> into a <code class="docutils literal notranslate"><span class="pre">SceneModel</span></code> and hands it to its <code class="docutils literal notranslate"><span class="pre">SceneDocument</span></code>.</p></li>
-<li><p><strong>Edit.</strong> An editor panel changes the model in place and calls <code class="docutils literal notranslate"><span class="pre">SceneDocument::markChanged</span></code>.
+<li><p><strong>Edit.</strong> An editor panel changes the model with <code class="docutils literal notranslate"><span class="pre">SceneDocument::edit</span></code>, which refuses most edits while a run uses the scene.
 <code class="docutils literal notranslate"><span class="pre">MainWindow::sceneDocumentChanged</span></code> records the step for Undo and Redo, discards the results of an
 earlier run and schedules the recovery copy.</p></li>
 <li><p><strong>Validate.</strong> <code class="docutils literal notranslate"><span class="pre">MainWindow::refreshValidationPanel</span></code> asks <code class="docutils literal notranslate"><span class="pre">ValidationPanel::refresh</span></code>, which calls

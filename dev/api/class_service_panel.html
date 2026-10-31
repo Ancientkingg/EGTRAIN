@@ -122,7 +122,7 @@ Inheritance diagram for ServicePanel:</div>
 <div class="dynheader">
 Collaboration diagram for ServicePanel:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel__coll__graph.svg" width="144" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel__coll__graph.svg" width="384" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
@@ -132,17 +132,12 @@ Signals</h2></td></tr>
 <tr class="memitem:a8a400164f094d35a68eff39d27d55480" id="r_a8a400164f094d35a68eff39d27d55480"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8a400164f094d35a68eff39d27d55480">selectedServiceChanged</a> (const QString &amp;serviceId)</td></tr>
 <tr class="inherit_header signals_class_scene_editor_panel"><td colspan="2">Signals inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel" id="r_ab57b6ba8b04710b122cf09ac57e34b52"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52">changed</a> ()</td></tr>
-<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f" title="Emitted once for each markChanged(), after the revision and the dirty state are updated.">SceneDocument::changed()</a>.  <br /></td></tr>
+<tr class="memdesc:ab57b6ba8b04710b122cf09ac57e34b52 signals_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The panel has changed the document. Emitted after <a class="el" href="class_scene_document.html#a66de48a8dd0dc3d1036d1ad5ccce450f">SceneDocument::changed()</a>.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a98efafccb64e54ce3c129d8cf85549fb" id="r_a98efafccb64e54ce3c129d8cf85549fb"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a98efafccb64e54ce3c129d8cf85549fb">ServicePanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:a98efafccb64e54ce3c129d8cf85549fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the widgets, empty until a loaded document is set.  <br /></td></tr>
-<tr class="memitem:ad5f5db4c176efeee1f9f6d85ca199bdd" id="r_ad5f5db4c176efeee1f9f6d85ca199bdd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad5f5db4c176efeee1f9f6d85ca199bdd">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document) override</td></tr>
-<tr class="memdesc:ad5f5db4c176efeee1f9f6d85ca199bdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refreshes when the document is replaced.  <br /></td></tr>
-<tr class="memitem:ad1d4ff78c0afdcd70151662c1821ea77" id="r_ad1d4ff78c0afdcd70151662c1821ea77"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad1d4ff78c0afdcd70151662c1821ea77">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
-<tr class="memitem:a7ec0f61c5272a367fd326edaec083802" id="r_a7ec0f61c5272a367fd326edaec083802"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7ec0f61c5272a367fd326edaec083802">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
-<tr class="memitem:a99c6859f6b61b07c5681b5e45ddfd25b" id="r_a99c6859f6b61b07c5681b5e45ddfd25b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a99c6859f6b61b07c5681b5e45ddfd25b">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
 <tr class="memitem:ae34eb49457b47037c9a101e151deb820" id="r_ae34eb49457b47037c9a101e151deb820"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae34eb49457b47037c9a101e151deb820">setTimetableWidget</a> (QWidget *widget)</td></tr>
 <tr class="memdesc:ae34eb49457b47037c9a101e151deb820"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel.  <br /></td></tr>
 <tr class="memitem:ad6eca861c006bbbbb05317549b14f618" id="r_ad6eca861c006bbbbb05317549b14f618"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad6eca861c006bbbbb05317549b14f618">refresh</a> () override</td></tr>
@@ -254,10 +249,38 @@ Public Member Functions</h2></td></tr>
 <tr class="inherit_header pub_methods_class_scene_editor_panel"><td colspan="2">Public Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
 <tr class="memitem:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel" id="r_aa11edba490c33cf21b24cc32f333ad88"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa11edba490c33cf21b24cc32f333ad88">SceneEditorPanel</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memdesc:aa11edba490c33cf21b24cc32f333ad88 pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">A panel without a document.  <br /></td></tr>
+<tr class="memitem:a0623bcc36861d2ecf6ad1f0aff59fb7d pub_methods_class_scene_editor_panel" id="r_a0623bcc36861d2ecf6ad1f0aff59fb7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a0623bcc36861d2ecf6ad1f0aff59fb7d">setDocument</a> (<a class="el" href="class_scene_document.html">SceneDocument</a> *document)</td></tr>
+<tr class="memitem:a58adc7c4da3c0681dc6264496a8df4f2 pub_methods_class_scene_editor_panel" id="r_a58adc7c4da3c0681dc6264496a8df4f2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts</a> (<a class="el" href="class_user_prompts.html">UserPrompts</a> *prompts)</td></tr>
+<tr class="memitem:af13cca73366a245163487f9a06d72bdf pub_methods_class_scene_editor_panel" id="r_af13cca73366a245163487f9a06d72bdf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection</a> (<a class="el" href="class_run_selection.html">RunSelection</a> *selection)</td></tr>
+<tr class="memitem:a5a1e0ed680110c0ebcaaadae5c6bb795 pub_methods_class_scene_editor_panel" id="r_a5a1e0ed680110c0ebcaaadae5c6bb795"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a5a1e0ed680110c0ebcaaadae5c6bb795">setOccurrenceDuration</a> (std::function&lt; double()&gt; duration)</td></tr>
+<tr class="memitem:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel" id="r_af9647734cc3da5fead984dc7c8b70c0f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f">hasScene</a> () const</td></tr>
+<tr class="memdesc:af9647734cc3da5fead984dc7c8b70c0f pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a scene is loaded.  <br /></td></tr>
+<tr class="memitem:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel" id="r_a1a8b6da5077b8326131e15cb93ce964b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a1a8b6da5077b8326131e15cb93ce964b">canEdit</a> () const</td></tr>
+<tr class="memdesc:a1a8b6da5077b8326131e15cb93ce964b pub_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">False while no scene is loaded or a run uses it.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a102353b015ec1123d7cb6832739e787e" id="r_a102353b015ec1123d7cb6832739e787e"><td class="memItemLeft">static QString&#160;</td><td class="memItemRight"><a class="el" href="#a102353b015ec1123d7cb6832739e787e">occurrenceSummaryText</a> (int total, int selected, int selectedInPeriod, int shown)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:abff1b7c90ae6799951ed7a27ba89b354" id="r_abff1b7c90ae6799951ed7a27ba89b354"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abff1b7c90ae6799951ed7a27ba89b354">documentChanged</a> (SceneDocument::ChangeKinds kinds) override</td></tr>
+<tr class="inherit_header pro_methods_class_scene_editor_panel"><td colspan="2">Protected Member Functions inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
+<tr class="memitem:aa13f46339c1a46209bbbd3b2b7ff13fd pro_methods_class_scene_editor_panel" id="r_aa13f46339c1a46209bbbd3b2b7ff13fd"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#aa13f46339c1a46209bbbd3b2b7ff13fd">documentReplaced</a> ()</td></tr>
+<tr class="memdesc:aa13f46339c1a46209bbbd3b2b7ff13fd pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document has been replaced. The panel shows it again.  <br /></td></tr>
+<tr class="memitem:abd663bc6b6425c64c8b23ef2e1d776a2 pro_methods_class_scene_editor_panel" id="r_abd663bc6b6425c64c8b23ef2e1d776a2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2">takePendingText</a> ()</td></tr>
+<tr class="memitem:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel" id="r_af9755fee94e360ddd2d2489013b426ce"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#af9755fee94e360ddd2d2489013b426ce">occurrenceDuration</a> () const</td></tr>
+<tr class="memdesc:af9755fee94e360ddd2d2489013b426ce pro_methods_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The time in seconds over which the occurrences of a service are counted. The panel must have a document.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-inherited" class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pro_attribs_class_scene_editor_panel"><td colspan="2">Protected Attributes inherited from <a class="el" href="class_scene_editor_panel.html">SceneEditorPanel</a></td></tr>
+<tr class="memitem:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel" id="r_a24c4a36acd25b52de025dbf518d84b94"><td class="memItemLeft">QPointer&lt; <a class="el" href="class_scene_document.html">SceneDocument</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a24c4a36acd25b52de025dbf518d84b94">m_document</a></td></tr>
+<tr class="memdesc:a24c4a36acd25b52de025dbf518d84b94 pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The document that the panel works on; null without one.  <br /></td></tr>
+<tr class="memitem:ae17302f3547a021119c99a951597235d pro_attribs_class_scene_editor_panel" id="r_ae17302f3547a021119c99a951597235d"><td class="memItemLeft"><a class="el" href="class_user_prompts.html">UserPrompts</a> *&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#ae17302f3547a021119c99a951597235d">m_prompts</a> = &amp;m_ownPrompts</td></tr>
+<tr class="memdesc:ae17302f3547a021119c99a951597235d pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The prompts of <a class="el" href="class_scene_editor_panel.html#a58adc7c4da3c0681dc6264496a8df4f2">setPrompts()</a>.  <br /></td></tr>
+<tr class="memitem:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel" id="r_a57a02e26e706794cd4afd7191d43737b"><td class="memItemLeft"><a class="el" href="class_run_selection.html">RunSelection</a> *&#160;</td><td class="memItemRight"><a class="el" href="class_scene_editor_panel.html#a57a02e26e706794cd4afd7191d43737b">m_runSelection</a> = &amp;m_ownRunSelection</td></tr>
+<tr class="memdesc:a57a02e26e706794cd4afd7191d43737b pro_attribs_class_scene_editor_panel"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selection of <a class="el" href="class_scene_editor_panel.html#af13cca73366a245163487f9a06d72bdf">setRunSelection()</a>.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The services of the scene: a list to pick one and three tabs. The first holds the fields of the selected service, the second the place for its timetable, and the third lists the occurrences the services generate and lets the user leave some out of the next run. Renaming a service rewrites the entities that refer to it, and deleting one that is referred to is refused. The entry time and the headway are whole seconds, the entry time counted from the base time; the performance is in percent and the maximum speed in km/h. </p>
@@ -289,7 +312,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a98efafccb64e54ce3c129d8cf85549fb_cgraph.svg" width="1692" height="1835"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a98efafccb64e54ce3c129d8cf85549fb_cgraph.svg" width="1638" height="1768"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -341,7 +364,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a17feafc030f7ea0e4f86b46fac99a04e_cgraph.svg" width="1739" height="692"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a17feafc030f7ea0e4f86b46fac99a04e_cgraph.svg" width="2636" height="1300"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -467,7 +490,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a785a7896dc8890e24e5319873bad4335_cgraph.svg" width="1079" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a785a7896dc8890e24e5319873bad4335_cgraph.svg" width="355" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -488,11 +511,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Sets whether the service has an entry time. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a5ecb8f09c12dafff2c02ec82db882598_cgraph.svg" width="1136" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -515,7 +533,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_adc2ecaaac7b74cda1a5797cae2db777f_cgraph.svg" width="1135" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_adc2ecaaac7b74cda1a5797cae2db777f_cgraph.svg" width="754" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -539,7 +557,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a5f31261334a1922b4c7353fa4ce44544_cgraph.svg" width="1134" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a5f31261334a1922b4c7353fa4ce44544_cgraph.svg" width="751" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -563,7 +581,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_af9781db5f458e0440f10a6fd3a0ea647_cgraph.svg" width="1115" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_af9781db5f458e0440f10a6fd3a0ea647_cgraph.svg" width="734" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -587,7 +605,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ae62a32c64f7c7416d7efbe8ec65afb76_cgraph.svg" width="1115" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ae62a32c64f7c7416d7efbe8ec65afb76_cgraph.svg" width="734" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -611,7 +629,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ab1f00e35aa9b739296f66e66fc877d33_cgraph.svg" width="1106" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ab1f00e35aa9b739296f66e66fc877d33_cgraph.svg" width="382" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -635,7 +653,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_aaf5de4ccfa7af1694719ae9a556e80b9_cgraph.svg" width="1082" height="515"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_aaf5de4ccfa7af1694719ae9a556e80b9_cgraph.svg" width="436" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -659,7 +677,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a0761e558153379882120fe741760f45a_cgraph.svg" width="1111" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a0761e558153379882120fe741760f45a_cgraph.svg" width="387" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -680,11 +698,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Takes the service code (the operating code) from its field, trimmed. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a5927be489e40c621d79f382842ffaaa1_cgraph.svg" width="1142" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -704,11 +717,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Takes the step of the service code from its field; text that is no number, and 0, become 1. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ac75d7eeafcb94d6cb01bd6f79a30f275_cgraph.svg" width="1108" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -741,7 +749,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_aeeffa55bfd36911b4c668c2bf8cb768c_cgraph.svg" width="1404" height="648"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_aeeffa55bfd36911b4c668c2bf8cb768c_cgraph.svg" width="784" height="631"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -765,7 +773,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_afedb2b0383252f1538dc5d4c7ff2be38_cgraph.svg" width="1127" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_afedb2b0383252f1538dc5d4c7ff2be38_cgraph.svg" width="404" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -786,11 +794,6 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Takes the number of occurrences, including the first, from its field; text that is no number counts as 1. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ae3c8883d6ef76b0c4f71ddbb705b8dcc_cgraph.svg" width="1091" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -813,7 +816,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_af95206d6b08f3ffca4b8f4f4dcc4456e_cgraph.svg" width="1083" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_af95206d6b08f3ffca4b8f4f4dcc4456e_cgraph.svg" width="2443" height="1263"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -915,7 +918,40 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a8bdbff0bbf3dd4d8c17349885263b254_cgraph.svg" width="1787" height="984"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a8bdbff0bbf3dd4d8c17349885263b254_cgraph.svg" width="2719" height="1286"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abff1b7c90ae6799951ed7a27ba89b354" name="abff1b7c90ae6799951ed7a27ba89b354"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abff1b7c90ae6799951ed7a27ba89b354">&#9670;&#160;</a></span>documentChanged()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ServicePanel::documentChanged </td>
+          <td>(</td>
+          <td class="paramtype">SceneDocument::ChangeKinds</td>          <td class="paramname"><span class="paramname"><em>kinds</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Shows the choices of the fields again when the infrastructure or the compositions change, and the occurrences when the case settings change. </p>
+
+<p>Reimplemented from <a class="el" href="class_scene_editor_panel.html#a146f3ad4e046cdd8290757d3d03bff76">SceneEditorPanel</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_abff1b7c90ae6799951ed7a27ba89b354_cgraph.svg" width="1935" height="1334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -966,7 +1002,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a3c94766eeee29aa92581d5f646f520c9_cgraph.svg" width="1775" height="692"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a3c94766eeee29aa92581d5f646f520c9_cgraph.svg" width="2672" height="1168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1525,7 +1561,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ad6eca861c006bbbbb05317549b14f618_cgraph.svg" width="1470" height="692"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ad6eca861c006bbbbb05317549b14f618_cgraph.svg" width="2366" height="1168"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1549,7 +1585,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_abb04a680a10c17d91c623056dd91f4ba_cgraph.svg" width="834" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_abb04a680a10c17d91c623056dd91f4ba_cgraph.svg" width="1352" height="974"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1654,7 +1690,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a2eb6b32f3916a21d5b88001e4b8fd36c_cgraph.svg" width="1131" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a2eb6b32f3916a21d5b88001e4b8fd36c_cgraph.svg" width="1650" height="948"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1682,6 +1718,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The timetable of this service, or of none when the id is empty, has to be shown again: another service is selected, or the id or the route of the selected one has changed. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a8a400164f094d35a68eff39d27d55480_cgraph.svg" width="2195" height="1320"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -1731,7 +1772,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a1676d8e741844b1aca79e0317588fda5_cgraph.svg" width="1067" height="464"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a1676d8e741844b1aca79e0317588fda5_cgraph.svg" width="1586" height="935"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1763,94 +1804,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The service has got another id and the entities that referred to it have followed. Emitted after the document is marked changed. </p>
-
-</div>
-</div>
-<a id="ad5f5db4c176efeee1f9f6d85ca199bdd" name="ad5f5db4c176efeee1f9f6d85ca199bdd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5f5db4c176efeee1f9f6d85ca199bdd">&#9670;&#160;</a></span>setDocument()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ServicePanel::setDocument </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_scene_document.html">SceneDocument</a> *</td>          <td class="paramname"><span class="paramname"><em>document</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Refreshes when the document is replaced. </p>
-
-<p>Implements <a class="el" href="class_scene_editor_panel.html#a8512aeeb40be039d5a4da46e71b26268">SceneEditorPanel</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_ad5f5db4c176efeee1f9f6d85ca199bdd_cgraph.svg" width="1750" height="692"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a99c6859f6b61b07c5681b5e45ddfd25b" name="a99c6859f6b61b07c5681b5e45ddfd25b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99c6859f6b61b07c5681b5e45ddfd25b">&#9670;&#160;</a></span>setOccurrenceDuration()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ServicePanel::setOccurrenceDuration </td>
-          <td>(</td>
-          <td class="paramtype">std::function&lt; double()&gt;</td>          <td class="paramname"><span class="paramname"><em>duration</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the scene settings is used. </p>
-
-</div>
-</div>
-<a id="ad1d4ff78c0afdcd70151662c1821ea77" name="ad1d4ff78c0afdcd70151662c1821ea77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1d4ff78c0afdcd70151662c1821ea77">&#9670;&#160;</a></span>setPrompts()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ServicePanel::setPrompts </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_user_prompts.html">UserPrompts</a> *</td>          <td class="paramname"><span class="paramname"><em>prompts</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The messages and questions go through these prompts. The panel uses its own until it is given others; null brings its own back. The prompts must outlive the panel. </p>
-
-</div>
-</div>
-<a id="a7ec0f61c5272a367fd326edaec083802" name="a7ec0f61c5272a367fd326edaec083802"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ec0f61c5272a367fd326edaec083802">&#9670;&#160;</a></span>setRunSelection()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ServicePanel::setRunSelection </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_run_selection.html">RunSelection</a> *</td>          <td class="paramname"><span class="paramname"><em>selection</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The occurrences that the next run leaves out are kept here. The panel uses its own until it is given another; null brings its own back. The selection must outlive the panel. </p>
 
 </div>
 </div>
@@ -1892,7 +1845,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a6d80c86200fe6fc36908a0cd4026c539_cgraph.svg" width="1171" height="260"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_service_panel_a6d80c86200fe6fc36908a0cd4026c539_cgraph.svg" width="2439" height="1298"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

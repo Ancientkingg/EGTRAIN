@@ -1,10 +1,15 @@
 <map id="CompositionPanel::moveUnitDown" name="CompositionPanel::moveUnitDown">
 <area shape="rect" id="Node000001" title="Moves the selected unit one place towards the back of the composition." alt="" coords="5,32,253,60"/>
 <area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title="The panel has changed the document. Emitted after SceneDocument::changed()." alt="" coords="301,5,497,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="253,31,287,30,282,31,253,36"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,31,287,30,282,31,253,36"/>
 <area shape="rect" id="Node000003" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="303,57,495,85"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,55,290,61,284,61,253,60"/>
-<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="545,57,639,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="495,69,532,71,527,71,496,74"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="559,56,553,48,558,39,571,33,592,31,615,33,629,43,624,41,614,38,592,36,572,38,561,43,559,48,563,58"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,55,290,60,284,61,253,60"/>
+<area shape="rect" id="Node000004" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="545,19,748,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="491,54,536,50,541,49,492,59"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="572,95,722,122"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="495,83,559,95,554,95,495,88"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="613,93,607,86,612,76,625,70,647,68,670,71,684,80,679,79,668,76,647,73,626,75,615,80,612,85,617,95"/>
+<area shape="rect" id="Node000006" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="796,95,891,122"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="722,106,783,108,778,109,722,111"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="809,93,804,86,808,76,822,70,844,68,867,71,881,80,876,79,865,76,843,73,823,75,812,80,809,85,814,95"/>
 </map>

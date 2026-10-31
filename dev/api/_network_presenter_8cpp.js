@@ -1,5 +1,6 @@
 var _network_presenter_8cpp =
 [
+    [ "NetworkPresenter::PreviewDrawing", "struct_network_presenter_1_1_preview_drawing.html", "struct_network_presenter_1_1_preview_drawing" ],
     [ "connectionPen", "_network_presenter_8cpp.html#ab86c30f8ddd372850bdc390b9e58d813", null ],
     [ "passengerStateIn", "_network_presenter_8cpp.html#a1b57662dc5e3aac38290b652a37de442", null ],
     [ "previewPointAtNode", "_network_presenter_8cpp.html#a90871b99822ad821aef490a21ffd9272", null ],

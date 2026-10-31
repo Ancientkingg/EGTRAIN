@@ -114,11 +114,6 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_network_
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="_network_presenter_8h_source.html">graphics/NetworkPresenter.h</a>&gt;</code></p>
-<div class="dynheader">
-Collaboration diagram for NetworkPresenter:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter__coll__graph.svg" width="694" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -127,8 +122,12 @@ Classes</h2></td></tr>
 <tr class="memitem:PreviewOutcome" id="r_PreviewOutcome"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_outcome.html">PreviewOutcome</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What showPreview drew.  <a href="struct_network_presenter_1_1_preview_outcome.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FrameHost" id="r_FrameHost"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_network_presenter_1_1_frame_host.html">FrameHost</a></td></tr>
+<tr class="memitem:PreviewFit" id="r_PreviewFit"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">How the view fits the preview.  <a href="struct_network_presenter_1_1_preview_fit.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FindTarget" id="r_FindTarget"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_find_target.html">FindTarget</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An item that Find offers.  <a href="struct_network_presenter_1_1_find_target.html#details">More...</a><br /></td></tr>
+<tr class="memitem:PreviewDrawing" id="r_PreviewDrawing"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_network_presenter_1_1_preview_drawing.html">PreviewDrawing</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the stages of <a class="el" href="#a583bd2b439a923f2d17f3e3e16040cc3">showPreview()</a> share.  <a href="struct_network_presenter_1_1_preview_drawing.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -179,7 +178,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a58fe73a4dac419d214616a42ecd2c579" id="r_a58fe73a4dac419d214616a42ecd2c579"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a58fe73a4dac419d214616a42ecd2c579">trainCenter</a> (int train) const</td></tr>
 <tr class="memitem:ae54fdba41ce03f924c296935280af3b2" id="r_ae54fdba41ce03f924c296935280af3b2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae54fdba41ce03f924c296935280af3b2">getTrainPolygonItemList</a> (QList&lt; <a class="el" href="class_train_body_item.html">TrainBodyItem</a> * &gt; *trainPolygonItemList, const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train)</td></tr>
 <tr class="memitem:a78a21f60ad47ed52be80d6f91c2558d3" id="r_a78a21f60ad47ed52be80d6f91c2558d3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a78a21f60ad47ed52be80d6f91c2558d3">getTrainPolygon</a> (QPolygonF *trainPolygon, int wagon, const <a class="el" href="struct_gui_train_state.html">GuiTrainState</a> &amp;train)</td></tr>
-<tr class="memitem:a152f22b7b0623fcce6acc1b01bf0452b" id="r_a152f22b7b0623fcce6acc1b01bf0452b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a152f22b7b0623fcce6acc1b01bf0452b">paintStationNode</a> (QPointF coord, int size, int track, <a class="el" href="class_node.html">Node</a> *node, bool lineEnd)</td></tr>
+<tr class="memitem:a17d5c88a45a26bda413ae77ee46edeb9" id="r_a17d5c88a45a26bda413ae77ee46edeb9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a17d5c88a45a26bda413ae77ee46edeb9">paintStationNode</a> (QPointF coord, int size, int track, const <a class="el" href="class_node.html">Node</a> *node, bool lineEnd)</td></tr>
 <tr class="memitem:ae2cdcf7d81884df2a6fdb675a43d8805" id="r_ae2cdcf7d81884df2a6fdb675a43d8805"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae2cdcf7d81884df2a6fdb675a43d8805">paintTrainPassengerInfo</a> (<a class="el" href="class_train_item_group.html">TrainItemGroup</a> *trainItem)</td></tr>
 <tr class="memitem:aa360cc99d5a45dcfab687ea8408a9825" id="r_aa360cc99d5a45dcfab687ea8408a9825"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa360cc99d5a45dcfab687ea8408a9825">paintPassengerInfoIcon</a> (<a class="el" href="class_passenger_item.html">PassengerItem</a> *paxItem, const <a class="el" href="struct_gui_passenger_state.html">GuiPassengerState</a> &amp;passenger, bool replayActive)</td></tr>
 <tr class="memitem:a7b6aab59fe03b18a17758a3e54e94045" id="r_a7b6aab59fe03b18a17758a3e54e94045"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7b6aab59fe03b18a17758a3e54e94045">paintVCouplingMsg</a> (<a class="el" href="class_train_item_group.html">TrainItemGroup</a> *trainItem, const std::string &amp;message)</td></tr>
@@ -189,6 +188,59 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a5f67f677150140ed39c81306cc727372"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, with the selection of the infrastructure panel of options.  <br /></td></tr>
 <tr class="memitem:a1bdb6293c1982c3cb74603bb6d4263ea" id="r_a1bdb6293c1982c3cb74603bb6d4263ea"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a1bdb6293c1982c3cb74603bb6d4263ea">resetPreviewFit</a> ()</td></tr>
 <tr class="memdesc:a1bdb6293c1982c3cb74603bb6d4263ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the fit and the selection of the last preview; the preview itself stays.  <br /></td></tr>
+<tr class="memitem:a1775dc3bc8cf9636cca7ac0bb27bd645" id="r_a1775dc3bc8cf9636cca7ac0bb27bd645"><td class="memItemLeft"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645">previewFit</a> () const</td></tr>
+<tr class="memdesc:a1775dc3bc8cf9636cca7ac0bb27bd645"><td class="mdescLeft">&#160;</td><td class="mdescRight">The fit of the last preview.  <br /></td></tr>
+<tr class="memitem:a27fdf6ebad71d5b664470a1d71590299" id="r_a27fdf6ebad71d5b664470a1d71590299"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a27fdf6ebad71d5b664470a1d71590299">restorePreviewFit</a> (const <a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a> &amp;fit)</td></tr>
+<tr class="memdesc:a27fdf6ebad71d5b664470a1d71590299"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts back a fit that <a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645" title="The fit of the last preview.">previewFit()</a> returned, after a clear that the view of a run must not see.  <br /></td></tr>
+<tr class="memitem:a252c44e30f1c533a1374efb9605e0082" id="r_a252c44e30f1c533a1374efb9605e0082"><td class="memItemLeft">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a252c44e30f1c533a1374efb9605e0082">trackPreview</a> () const</td></tr>
+<tr class="memdesc:a252c44e30f1c533a1374efb9605e0082"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview that the scene shows.  <br /></td></tr>
+<tr class="memitem:afc091dbdff1a40501487e8f7863a861c" id="r_afc091dbdff1a40501487e8f7863a861c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc091dbdff1a40501487e8f7863a861c">previewHasSelectedTrack</a> () const</td></tr>
+<tr class="memdesc:afc091dbdff1a40501487e8f7863a861c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last preview marks a selected track.  <br /></td></tr>
+<tr class="memitem:ad0c1b8f4e0ccf59478f22850766dcbf7" id="r_ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad0c1b8f4e0ccf59478f22850766dcbf7">previewHasSignals</a> () const</td></tr>
+<tr class="memdesc:ad0c1b8f4e0ccf59478f22850766dcbf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The last preview has signals.  <br /></td></tr>
+<tr class="memitem:a0eb5faed83650e23ee94ddf3ec76bf11" id="r_a0eb5faed83650e23ee94ddf3ec76bf11"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0eb5faed83650e23ee94ddf3ec76bf11">hasContent</a> () const</td></tr>
+<tr class="memitem:a51e810dc1da2e2d20b65ab9c49bd4b82" id="r_a51e810dc1da2e2d20b65ab9c49bd4b82"><td class="memItemLeft">const QList&lt; <a class="el" href="class_train_item_group.html">TrainItemGroup</a> * &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a51e810dc1da2e2d20b65ab9c49bd4b82">runTrains</a> () const</td></tr>
+<tr class="memdesc:a51e810dc1da2e2d20b65ab9c49bd4b82"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train groups of the run, in the order in which they were added.  <br /></td></tr>
+<tr class="memitem:ac301e75d6af4cbd4b5124be77b1af7d8" id="r_ac301e75d6af4cbd4b5124be77b1af7d8"><td class="memItemLeft">const QList&lt; <a class="el" href="class_signal_item.html">SignalItem</a> * &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ac301e75d6af4cbd4b5124be77b1af7d8">runSignals</a> () const</td></tr>
+<tr class="memdesc:ac301e75d6af4cbd4b5124be77b1af7d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal heads of the run.  <br /></td></tr>
+<tr class="memitem:aaa9994b756b10a3e520d0f08e6d91c92" id="r_aaa9994b756b10a3e520d0f08e6d91c92"><td class="memItemLeft">const QList&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> * &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aaa9994b756b10a3e520d0f08e6d91c92">stationOverlays</a> () const</td></tr>
+<tr class="memdesc:aaa9994b756b10a3e520d0f08e6d91c92"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station overlays of the preview and of the run.  <br /></td></tr>
+<tr class="memitem:a0941684bdd89ac48b9a4594375056fd2" id="r_a0941684bdd89ac48b9a4594375056fd2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0941684bdd89ac48b9a4594375056fd2">setStationLayerVisible</a> (bool visible)</td></tr>
+<tr class="memdesc:a0941684bdd89ac48b9a4594375056fd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides the station layer: the overlays, their pictures and their names.  <br /></td></tr>
+<tr class="memitem:a7a05116feef277dd932f4cd45e9de888" id="r_a7a05116feef277dd932f4cd45e9de888"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7a05116feef277dd932f4cd45e9de888">setStationNamesVisible</a> (bool visible)</td></tr>
+<tr class="memdesc:a7a05116feef277dd932f4cd45e9de888"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides the station names.  <br /></td></tr>
+<tr class="memitem:a8eeb325a9a941ceaef3bbe52adabd94f" id="r_a8eeb325a9a941ceaef3bbe52adabd94f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8eeb325a9a941ceaef3bbe52adabd94f">setTrainLayerVisible</a> (bool visible, const std::function&lt; bool(const <a class="el" href="class_train_item_group.html">TrainItemGroup</a> &amp;)&gt; &amp;present)</td></tr>
+<tr class="memitem:ac104ede33cd0d1b9a335a52ed1d14ab6" id="r_ac104ede33cd0d1b9a335a52ed1d14ab6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac104ede33cd0d1b9a335a52ed1d14ab6">trainLayerVisible</a> () const</td></tr>
+<tr class="memdesc:ac104ede33cd0d1b9a335a52ed1d14ab6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train layer is shown.  <br /></td></tr>
+<tr class="memitem:a574d8d0e3e4e33bcfc7d90a9e519185c" id="r_a574d8d0e3e4e33bcfc7d90a9e519185c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a574d8d0e3e4e33bcfc7d90a9e519185c">setTrainSpeedLabelsVisible</a> (bool visible)</td></tr>
+<tr class="memdesc:a574d8d0e3e4e33bcfc7d90a9e519185c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides the speed on the badges of the trains.  <br /></td></tr>
+<tr class="memitem:a912f19b1376d3157ec793bb3735c71df" id="r_a912f19b1376d3157ec793bb3735c71df"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a912f19b1376d3157ec793bb3735c71df">setSignalLayerVisible</a> (bool visible)</td></tr>
+<tr class="memdesc:a912f19b1376d3157ec793bb3735c71df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether the signal layer is shown. <a class="el" href="#ace1060d28ab411f74b41b5f92a7afe7f" title="Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its a...">updateSignalCues()</a> shows or hides the signals.  <br /></td></tr>
+<tr class="memitem:a568863837afc5a45a5158f4adccbbad0" id="r_a568863837afc5a45a5158f4adccbbad0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a568863837afc5a45a5158f4adccbbad0">setPassengerLayerVisible</a> (bool visible)</td></tr>
+<tr class="memitem:a27d7e743600b081579ee0a9f75929178" id="r_a27d7e743600b081579ee0a9f75929178"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a27d7e743600b081579ee0a9f75929178">passengerLayerVisible</a> () const</td></tr>
+<tr class="memdesc:a27d7e743600b081579ee0a9f75929178"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger layer is shown.  <br /></td></tr>
+<tr class="memitem:add2708ca729aa7caf6d6afd06e168d72" id="r_add2708ca729aa7caf6d6afd06e168d72"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#add2708ca729aa7caf6d6afd06e168d72">updateViewOverlays</a> (const std::function&lt; bool(const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *)&gt; &amp;selected, const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *followed)</td></tr>
+<tr class="memitem:ace1060d28ab411f74b41b5f92a7afe7f" id="r_ace1060d28ab411f74b41b5f92a7afe7f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ace1060d28ab411f74b41b5f92a7afe7f">updateSignalCues</a> ()</td></tr>
+<tr class="memdesc:ace1060d28ab411f74b41b5f92a7afe7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its anchor.  <br /></td></tr>
+<tr class="memitem:ab6fe598215d4540f7fa7eaadc84dbb3c" id="r_ab6fe598215d4540f7fa7eaadc84dbb3c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab6fe598215d4540f7fa7eaadc84dbb3c">updateTrainBadges</a> ()</td></tr>
+<tr class="memitem:a0b94382f29ca785e950df6dcd378360e" id="r_a0b94382f29ca785e950df6dcd378360e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0b94382f29ca785e950df6dcd378360e">setHighlight</a> (QGraphicsItem *item)</td></tr>
+<tr class="memdesc:a0b94382f29ca785e950df6dcd378360e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts the highlight on item, which replaces it on any other item. The item keeps it until it is deleted.  <br /></td></tr>
+<tr class="memitem:a3f3285a559b0624cc1bfec4b5fd9f936" id="r_a3f3285a559b0624cc1bfec4b5fd9f936"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3f3285a559b0624cc1bfec4b5fd9f936">clearHighlight</a> ()</td></tr>
+<tr class="memdesc:a3f3285a559b0624cc1bfec4b5fd9f936"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the highlight from its item.  <br /></td></tr>
+<tr class="memitem:ab2245666158e71611fb0960ee5aac2fb" id="r_ab2245666158e71611fb0960ee5aac2fb"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab2245666158e71611fb0960ee5aac2fb">hasHighlight</a> () const</td></tr>
+<tr class="memdesc:ab2245666158e71611fb0960ee5aac2fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">An item has the highlight.  <br /></td></tr>
+<tr class="memitem:ac00aae7f3082ee5e81acff67feee2897" id="r_ac00aae7f3082ee5e81acff67feee2897"><td class="memItemLeft"><a class="el" href="class_signal_item.html">SignalItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ac00aae7f3082ee5e81acff67feee2897">inspectedSignal</a> () const</td></tr>
+<tr class="memdesc:ac00aae7f3082ee5e81acff67feee2897"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal whose details are shown, or null, also for a signal that is no longer on the canvas.  <br /></td></tr>
+<tr class="memitem:af85347f74c4d5c2b3d3f8fb9eaf0ebf5" id="r_af85347f74c4d5c2b3d3f8fb9eaf0ebf5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af85347f74c4d5c2b3d3f8fb9eaf0ebf5">setInspectedSignal</a> (<a class="el" href="class_signal_item.html">SignalItem</a> *signal)</td></tr>
+<tr class="memdesc:af85347f74c4d5c2b3d3f8fb9eaf0ebf5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the signal whose details are shown, or none for null.  <br /></td></tr>
+<tr class="memitem:ac7b3c45caaf56354a17e565d9297c582" id="r_ac7b3c45caaf56354a17e565d9297c582"><td class="memItemLeft"><a class="el" href="class_train_item_group.html">TrainItemGroup</a> *&#160;</td><td class="memItemRight"><a class="el" href="#ac7b3c45caaf56354a17e565d9297c582">selectedTrain</a> () const</td></tr>
+<tr class="memdesc:ac7b3c45caaf56354a17e565d9297c582"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected train, or null.  <br /></td></tr>
+<tr class="memitem:a928f3238a807018b27e9eba514b4c3ac" id="r_a928f3238a807018b27e9eba514b4c3ac"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a928f3238a807018b27e9eba514b4c3ac">clearSelectedTrain</a> ()</td></tr>
+<tr class="memdesc:a928f3238a807018b27e9eba514b4c3ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the selected train. Its passenger information stays until <a class="el" href="#abea8a1cdd4332b161fa39b5a0d4b8f86" title="Deletes the passenger information of the selected train. The train stays selected.">removeTrainPaxInfoIcon()</a>.  <br /></td></tr>
+<tr class="memitem:a86918a96b380eca1145762cc91d513dd" id="r_a86918a96b380eca1145762cc91d513dd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a86918a96b380eca1145762cc91d513dd">hasTrainPaxInfo</a> () const</td></tr>
+<tr class="memdesc:a86918a96b380eca1145762cc91d513dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger information of the selected train is on the canvas.  <br /></td></tr>
+<tr class="memitem:a6985017fbf6637b82b7af9e7e7b738a8" id="r_a6985017fbf6637b82b7af9e7e7b738a8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6985017fbf6637b82b7af9e7e7b738a8">clearSelectedPassengerIcon</a> ()</td></tr>
+<tr class="memdesc:a6985017fbf6637b82b7af9e7e7b738a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets the selected passenger icon. Its information stays until <a class="el" href="#a7f9a72f4a0c0a5ca7c5d13ebccbd30ba" title="Deletes the passenger information of the selected passenger icon. The icon stays selected.">removePaxInfoIcon()</a>.  <br /></td></tr>
 <tr class="memitem:a5f78a87194bcc3035cf1dcc1508e312e" id="r_a5f78a87194bcc3035cf1dcc1508e312e"><td class="memItemLeft">QList&lt; <a class="el" href="struct_network_presenter_1_1_find_target.html">FindTarget</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5f78a87194bcc3035cf1dcc1508e312e">findTargets</a> () const</td></tr>
 <tr class="memitem:a09450afaffb9d037218c7abb50bb7de1" id="r_a09450afaffb9d037218c7abb50bb7de1"><td class="memItemLeft">const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a09450afaffb9d037218c7abb50bb7de1">trackLine</a> (const std::string &amp;sceneTrackId) const</td></tr>
 <tr class="memdesc:a09450afaffb9d037218c7abb50bb7de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The line of the preview with this track id in the scene, or null.  <br /></td></tr>
@@ -196,85 +248,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:adfe420d058e2c0c5744c87b169758121"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal of the preview on this track at the start of this section, or null.  <br /></td></tr>
 <tr class="memitem:a11bfc2063067289eeb11c990cbf6da16" id="r_a11bfc2063067289eeb11c990cbf6da16"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a11bfc2063067289eeb11c990cbf6da16">presentationScale</a> () const</td></tr>
 <tr class="memitem:a940cc4f74ea079443f06f3f593793372" id="r_a940cc4f74ea079443f06f3f593793372"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a940cc4f74ea079443f06f3f593793372">paintStationOverlay</a> (QPointF coord, const <a class="el" href="struct_station_visual.html">StationVisual</a> &amp;visual, const std::string &amp;sname, qreal scale=1.0, QPointF decorationOffset=QPointF(), int platformCount=0)</td></tr>
+<tr class="memitem:a0981c1526a5cb274de56a7debabaefc6" id="r_a0981c1526a5cb274de56a7debabaefc6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0981c1526a5cb274de56a7debabaefc6">bindStationOverlaySources</a> ()</td></tr>
+<tr class="memitem:a64d92b84f500abaca19faa8a5438af24" id="r_a64d92b84f500abaca19faa8a5438af24"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a64d92b84f500abaca19faa8a5438af24">updateStationOverlayDegrees</a> ()</td></tr>
 <tr class="memitem:a5bc0d727c2c7e6d21a69ad76cd2cf3dc" id="r_a5bc0d727c2c7e6d21a69ad76cd2cf3dc"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a5bc0d727c2c7e6d21a69ad76cd2cf3dc">stationArtworkOffset</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, const std::vector&lt; <a class="el" href="struct_scene_station_view.html">SceneStationView</a> &gt; &amp;views, const std::string &amp;stationId, const std::string &amp;name) const</td></tr>
-<tr class="memitem:acf3b03609be222495d95c736bce343e5" id="r_acf3b03609be222495d95c736bce343e5"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acf3b03609be222495d95c736bce343e5">measureStationTrackSpacing</a> ()</td></tr>
-<tr class="memitem:a52875962293632ebc6a67397e0331bbe" id="r_a52875962293632ebc6a67397e0331bbe"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a52875962293632ebc6a67397e0331bbe">setStationNearLook</a> (bool nearLook)</td></tr>
-<tr class="memdesc:a52875962293632ebc6a67397e0331bbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (<a class="el" href="#a6d8deda55ae2e242a015f71bf6384507">applyPlatformVisibility()</a>).  <br /></td></tr>
-<tr class="memitem:a6d8deda55ae2e242a015f71bf6384507" id="r_a6d8deda55ae2e242a015f71bf6384507"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6d8deda55ae2e242a015f71bf6384507">applyPlatformVisibility</a> ()</td></tr>
-<tr class="memitem:acd9ae8da79343e2686907d5f71fb86f0" id="r_acd9ae8da79343e2686907d5f71fb86f0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acd9ae8da79343e2686907d5f71fb86f0">platformBarsVisible</a> () const</td></tr>
-<tr class="memdesc:acd9ae8da79343e2686907d5f71fb86f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A platform bar shows with the stations in the near look.  <br /></td></tr>
-<tr class="memitem:a25054ca92ca10e3228c384769e6fcf90" id="r_a25054ca92ca10e3228c384769e6fcf90"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a25054ca92ca10e3228c384769e6fcf90">platformPassengersVisible</a> () const</td></tr>
-<tr class="memdesc:a25054ca92ca10e3228c384769e6fcf90"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers on a platform show where its bar shows, with the passenger layer.  <br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
-Public Attributes</h2></td></tr>
-<tr class="memitem:a95236a0fb1030d50a420ab1ce5264105" id="r_a95236a0fb1030d50a420ab1ce5264105"><td class="memItemLeft">QList&lt; <a class="el" href="class_train_item_group.html">TrainItemGroup</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a95236a0fb1030d50a420ab1ce5264105">allTrains</a></td></tr>
-<tr class="memdesc:a95236a0fb1030d50a420ab1ce5264105"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train groups of the run, in the order in which they were added.  <br /></td></tr>
-<tr class="memitem:aa525ac7d249b70dbcb2eae645b35b938" id="r_aa525ac7d249b70dbcb2eae645b35b938"><td class="memItemLeft">QMap&lt; int, <a class="el" href="class_train_badge_item.html">TrainBadgeItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa525ac7d249b70dbcb2eae645b35b938">m_trainBadges</a></td></tr>
-<tr class="memdesc:aa525ac7d249b70dbcb2eae645b35b938"><td class="mdescLeft">&#160;</td><td class="mdescRight">The badge of each train by train index.  <br /></td></tr>
-<tr class="memitem:ab6efab9273d8de8056818705fd33343b" id="r_ab6efab9273d8de8056818705fd33343b"><td class="memItemLeft">QList&lt; <a class="el" href="class_signal_item.html">SignalItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab6efab9273d8de8056818705fd33343b">allSignals</a></td></tr>
-<tr class="memdesc:ab6efab9273d8de8056818705fd33343b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal heads of a run.  <br /></td></tr>
-<tr class="memitem:a1374a65cddbc05775443a5e3a49dddd6" id="r_a1374a65cddbc05775443a5e3a49dddd6"><td class="memItemLeft">std::unordered_map&lt; std::string, QList&lt; <a class="el" href="class_signal_item.html">SignalItem</a> * &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1374a65cddbc05775443a5e3a49dddd6">m_signalsByAheadId</a></td></tr>
-<tr class="memdesc:a1374a65cddbc05775443a5e3a49dddd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal heads of a run by the id of the section ahead of them.  <br /></td></tr>
-<tr class="memitem:ac728e3469a4486b6cde8bfd03342678c" id="r_ac728e3469a4486b6cde8bfd03342678c"><td class="memItemLeft">QList&lt; QGraphicsItem * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac728e3469a4486b6cde8bfd03342678c">m_signalDecorations</a></td></tr>
-<tr class="memdesc:ac728e3469a4486b6cde8bfd03342678c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The heads, posts and bases of the signals of the preview and of a run.  <br /></td></tr>
-<tr class="memitem:a0ed28a73c33ce77ef01ca2a0175759e2" id="r_a0ed28a73c33ce77ef01ca2a0175759e2"><td class="memItemLeft">QList&lt; <a class="el" href="class_track_line_item.html">TrackLineItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ed28a73c33ce77ef01ca2a0175759e2">allArcs</a></td></tr>
-<tr class="memdesc:a0ed28a73c33ce77ef01ca2a0175759e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track lines of a run.  <br /></td></tr>
-<tr class="memitem:a4c87fb2282c532555a523f75ac4cdc68" id="r_a4c87fb2282c532555a523f75ac4cdc68"><td class="memItemLeft">std::map&lt; std::string, std::vector&lt; <a class="el" href="class_track_line_item.html">TrackLineItem</a> * &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4c87fb2282c532555a523f75ac4cdc68">m_tracksBySectionId</a></td></tr>
-<tr class="memdesc:a4c87fb2282c532555a523f75ac4cdc68"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track lines of each signalling section by section id.  <br /></td></tr>
-<tr class="memitem:a2d1cd3ab9deca88432e352cc75b1442a" id="r_a2d1cd3ab9deca88432e352cc75b1442a"><td class="memItemLeft">std::map&lt; std::pair&lt; int, double &gt;, <a class="el" href="class_track_line_item.html">TrackLineItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2d1cd3ab9deca88432e352cc75b1442a">m_tracksByOccupiedArc</a></td></tr>
-<tr class="memdesc:a2d1cd3ab9deca88432e352cc75b1442a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track line of each arc by track line index and the position of the start node of the arc in kilometres.  <br /></td></tr>
-<tr class="memitem:a76d8090af56651d0dab57c1fbfaa2212" id="r_a76d8090af56651d0dab57c1fbfaa2212"><td class="memItemLeft">std::set&lt; <a class="el" href="class_track_line_item.html">TrackLineItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a76d8090af56651d0dab57c1fbfaa2212">m_activeTrackItems</a></td></tr>
-<tr class="memdesc:a76d8090af56651d0dab57c1fbfaa2212"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track lines whose state is not free.  <br /></td></tr>
-<tr class="memitem:a7ad0a9fbb018d2d00e385222c56e1697" id="r_a7ad0a9fbb018d2d00e385222c56e1697"><td class="memItemLeft">QList&lt; <a class="el" href="class_platform_item.html">PlatformItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7ad0a9fbb018d2d00e385222c56e1697">allPlatforms</a></td></tr>
-<tr class="memdesc:a7ad0a9fbb018d2d00e385222c56e1697"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platforms of a run.  <br /></td></tr>
-<tr class="memitem:ada2dc54e8e278c42af9f98b0983dbdb5" id="r_ada2dc54e8e278c42af9f98b0983dbdb5"><td class="memItemLeft">QList&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ada2dc54e8e278c42af9f98b0983dbdb5">m_stationOverlays</a></td></tr>
-<tr class="memdesc:ada2dc54e8e278c42af9f98b0983dbdb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station overlays of the preview and of a run.  <br /></td></tr>
-<tr class="memitem:a185d6779f32410a2b25f06af024941d6" id="r_a185d6779f32410a2b25f06af024941d6"><td class="memItemLeft">QList&lt; QGraphicsItem * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a185d6779f32410a2b25f06af024941d6">m_stationDecorations</a></td></tr>
-<tr class="memdesc:a185d6779f32410a2b25f06af024941d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Everything that the station layer shows.  <br /></td></tr>
-<tr class="memitem:ac8737b1c4733c4ab0e35dc86e7375622" id="r_ac8737b1c4733c4ab0e35dc86e7375622"><td class="memItemLeft">QList&lt; QGraphicsItem * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac8737b1c4733c4ab0e35dc86e7375622">m_stationLabels</a></td></tr>
-<tr class="memdesc:ac8737b1c4733c4ab0e35dc86e7375622"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station names.  <br /></td></tr>
-<tr class="memitem:a85da2dcfb943468a77fa962b153688f2" id="r_a85da2dcfb943468a77fa962b153688f2"><td class="memItemLeft">QMap&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *, QGraphicsPixmapItem * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a85da2dcfb943468a77fa962b153688f2">m_stationPictures</a></td></tr>
-<tr class="memdesc:a85da2dcfb943468a77fa962b153688f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The picture of each overlay.  <br /></td></tr>
-<tr class="memitem:a6deb6e62a96f5cc72bcdda0139f714d5" id="r_a6deb6e62a96f5cc72bcdda0139f714d5"><td class="memItemLeft">qreal&#160;</td><td class="memItemRight"><a class="el" href="#a6deb6e62a96f5cc72bcdda0139f714d5">m_stationTrackSpacing</a> = 0.0</td></tr>
-<tr class="memitem:abf00ef0b77fe25141e6fb08afc48257b" id="r_abf00ef0b77fe25141e6fb08afc48257b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#abf00ef0b77fe25141e6fb08afc48257b">m_stationNearLook</a> = false</td></tr>
-<tr class="memitem:a13bd66e4de60a69ceaf98bc93da24493" id="r_a13bd66e4de60a69ceaf98bc93da24493"><td class="memItemLeft">QMap&lt; int, QGraphicsItemGroup * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a13bd66e4de60a69ceaf98bc93da24493">m_vcMessageItems</a></td></tr>
-<tr class="memdesc:a13bd66e4de60a69ceaf98bc93da24493"><td class="mdescLeft">&#160;</td><td class="mdescRight">The virtual coupling message of each train by train index.  <br /></td></tr>
-<tr class="memitem:a5dffc881c7497fd1e4d53502a9e08335" id="r_a5dffc881c7497fd1e4d53502a9e08335"><td class="memItemLeft"><a class="el" href="class_signal_item.html">SignalItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a5dffc881c7497fd1e4d53502a9e08335">m_inspectedSignal</a> = nullptr</td></tr>
-<tr class="memdesc:a5dffc881c7497fd1e4d53502a9e08335"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal whose details are shown, or null.  <br /></td></tr>
-<tr class="memitem:a53297240da6e834c56b99d33a056c4d2" id="r_a53297240da6e834c56b99d33a056c4d2"><td class="memItemLeft"><a class="el" href="class_train_item_group.html">TrainItemGroup</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a53297240da6e834c56b99d33a056c4d2">trainPaxItem</a> = nullptr</td></tr>
-<tr class="memdesc:a53297240da6e834c56b99d33a056c4d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected train, or null.  <br /></td></tr>
-<tr class="memitem:aacc9dbe7da8696db1c6af94969e88157" id="r_aacc9dbe7da8696db1c6af94969e88157"><td class="memItemLeft">QGraphicsItemGroup *&#160;</td><td class="memItemRight"><a class="el" href="#aacc9dbe7da8696db1c6af94969e88157">trainPaxInfoItem</a> = nullptr</td></tr>
-<tr class="memdesc:aacc9dbe7da8696db1c6af94969e88157"><td class="mdescLeft">&#160;</td><td class="mdescRight">The group that shows the passenger information of the selected train, or null.  <br /></td></tr>
-<tr class="memitem:a4e4d2c3bc6a98fd3e431ee7a0413c0c9" id="r_a4e4d2c3bc6a98fd3e431ee7a0413c0c9"><td class="memItemLeft"><a class="el" href="class_passenger_item.html">PassengerItem</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a4e4d2c3bc6a98fd3e431ee7a0413c0c9">paxIconItem</a> = nullptr</td></tr>
-<tr class="memdesc:a4e4d2c3bc6a98fd3e431ee7a0413c0c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The selected passenger icon, or null.  <br /></td></tr>
-<tr class="memitem:a79f57ae5d59ce81bdc109ab2ff838d58" id="r_a79f57ae5d59ce81bdc109ab2ff838d58"><td class="memItemLeft">QGraphicsItemGroup *&#160;</td><td class="memItemRight"><a class="el" href="#a79f57ae5d59ce81bdc109ab2ff838d58">paxIconInfoItem</a> = nullptr</td></tr>
-<tr class="memdesc:a79f57ae5d59ce81bdc109ab2ff838d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The group that shows the information of the selected passenger icon, or null.  <br /></td></tr>
-<tr class="memitem:a9be8c1d734a96f1d0e0201d020d370d7" id="r_a9be8c1d734a96f1d0e0201d020d370d7"><td class="memItemLeft">QPointer&lt; <a class="el" href="class_highlight_effect.html">HighlightEffect</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9be8c1d734a96f1d0e0201d020d370d7">effect</a></td></tr>
-<tr class="memdesc:a9be8c1d734a96f1d0e0201d020d370d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The effect on the item selected last. The item deletes it with itself.  <br /></td></tr>
-<tr class="memitem:af9dc715ca57c1d4a165c90051437edda" id="r_af9dc715ca57c1d4a165c90051437edda"><td class="memItemLeft"><a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#af9dc715ca57c1d4a165c90051437edda">m_cachedTrackPreview</a></td></tr>
-<tr class="memdesc:af9dc715ca57c1d4a165c90051437edda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview that the scene shows.  <br /></td></tr>
-<tr class="memitem:a3001ccc5570e8ce27e3630f358765401" id="r_a3001ccc5570e8ce27e3630f358765401"><td class="memItemLeft">QRectF&#160;</td><td class="memItemRight"><a class="el" href="#a3001ccc5570e8ce27e3630f358765401">m_previewFitBounds</a></td></tr>
-<tr class="memdesc:a3001ccc5570e8ce27e3630f358765401"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene rectangle, margins included, that the view fits the preview to; empty without one.  <br /></td></tr>
-<tr class="memitem:a5795263abeb7eb3a11de68ed6a33d257" id="r_a5795263abeb7eb3a11de68ed6a33d257"><td class="memItemLeft">QPointF&#160;</td><td class="memItemRight"><a class="el" href="#a5795263abeb7eb3a11de68ed6a33d257">m_previewZoomFocus</a></td></tr>
-<tr class="memdesc:a5795263abeb7eb3a11de68ed6a33d257"><td class="mdescLeft">&#160;</td><td class="mdescRight">The point of the drawn track lines nearest to the centre of the preview, in scene coordinates.  <br /></td></tr>
-<tr class="memitem:ad23a85fe0dc56e2046ede144bd0c64e7" id="r_ad23a85fe0dc56e2046ede144bd0c64e7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad23a85fe0dc56e2046ede144bd0c64e7">m_previewHasSelectedTrack</a> = false</td></tr>
-<tr class="memdesc:ad23a85fe0dc56e2046ede144bd0c64e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview marks a selected track.  <br /></td></tr>
-<tr class="memitem:ad4882a82f1d98cec690b89d8f2541c1a" id="r_ad4882a82f1d98cec690b89d8f2541c1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad4882a82f1d98cec690b89d8f2541c1a">m_previewHasSignals</a> = false</td></tr>
-<tr class="memdesc:ad4882a82f1d98cec690b89d8f2541c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview has signals.  <br /></td></tr>
-<tr class="memitem:af1d6d3fafd89f5b8be65f6defde7eb85" id="r_af1d6d3fafd89f5b8be65f6defde7eb85"><td class="memItemLeft">QPixmap&#160;</td><td class="memItemRight"><a class="el" href="#af1d6d3fafd89f5b8be65f6defde7eb85">pax_pixmap_scaled</a></td></tr>
-<tr class="memitem:acd515b287adef79ce8cf96122a61cf7e" id="r_acd515b287adef79ce8cf96122a61cf7e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acd515b287adef79ce8cf96122a61cf7e">m_stationLayerVisible</a> = true</td></tr>
-<tr class="memdesc:acd515b287adef79ce8cf96122a61cf7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station layer is shown.  <br /></td></tr>
-<tr class="memitem:abc688132b1be31ca939dd91ea2d44594" id="r_abc688132b1be31ca939dd91ea2d44594"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#abc688132b1be31ca939dd91ea2d44594">m_stationNamesVisible</a> = true</td></tr>
-<tr class="memdesc:abc688132b1be31ca939dd91ea2d44594"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station names are shown.  <br /></td></tr>
-<tr class="memitem:ac72f0f91fe3aa3b6d994501d197e19bf" id="r_ac72f0f91fe3aa3b6d994501d197e19bf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac72f0f91fe3aa3b6d994501d197e19bf">m_trainLayerVisible</a> = true</td></tr>
-<tr class="memdesc:ac72f0f91fe3aa3b6d994501d197e19bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train layer is shown.  <br /></td></tr>
-<tr class="memitem:a0f6b6b9b895cdd92e3d622c3f2a398b4" id="r_a0f6b6b9b895cdd92e3d622c3f2a398b4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0f6b6b9b895cdd92e3d622c3f2a398b4">m_trainSpeedLabelsVisible</a> = true</td></tr>
-<tr class="memdesc:a0f6b6b9b895cdd92e3d622c3f2a398b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The badges of the trains hold their speed.  <br /></td></tr>
-<tr class="memitem:a3a1498eafa4b80d529d2a99656040116" id="r_a3a1498eafa4b80d529d2a99656040116"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3a1498eafa4b80d529d2a99656040116">m_signalLayerVisible</a> = true</td></tr>
-<tr class="memdesc:a3a1498eafa4b80d529d2a99656040116"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signal layer is shown.  <br /></td></tr>
-<tr class="memitem:a1d28fa09539f979f5dddbe6126c65573" id="r_a1d28fa09539f979f5dddbe6126c65573"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1d28fa09539f979f5dddbe6126c65573">m_passengerLayerVisible</a> = true</td></tr>
-<tr class="memdesc:a1d28fa09539f979f5dddbe6126c65573"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passenger layer is shown.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -287,9 +263,13 @@ Static Public Attributes</h2></td></tr>
 <tr class="memitem:af9bd2317024cacd35f2df4191ee224f0" id="r_af9bd2317024cacd35f2df4191ee224f0"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af9bd2317024cacd35f2df4191ee224f0">track_separation</a> = 15 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
 <tr class="memitem:a96a96fe243fec584886c6fb0a59e8983" id="r_a96a96fe243fec584886c6fb0a59e8983"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a96a96fe243fec584886c6fb0a59e8983">station_size</a> = 30 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
 <tr class="memitem:a69175b0701d927540dfa19f59d1402ff" id="r_a69175b0701d927540dfa19f59d1402ff"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a69175b0701d927540dfa19f59d1402ff">geo_scale</a> = 80000 * <a class="el" href="#a4956f49a40df96a62d03da526aeab06e">global_scale</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a5a9e448d3c165e384996cbff0928a41e" id="r_a5a9e448d3c165e384996cbff0928a41e"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a5a9e448d3c165e384996cbff0928a41e">NetworkPresenterTestAccess</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Draws the track preview and the items of a run on the network canvas and keeps track of the items on it. The scene owns every item; the lists, maps and pointers below only observe them and are never used to delete one. They are public until all the code that fills them is in this class.</p>
+<div class="textblock"><p>Draws the track preview and the items of a run on the network canvas and keeps track of the items on it. The scene owns every item; the lists, maps and pointers of the class only observe them and are never used to delete one. Only this class fills them: callers read them through const getters and change them through named actions.</p>
 <p><a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> deletes every item of the scene and then forgets all the pointers to them. A pointer that stays after the scene is cleared would dangle, so the registries belong with the code that clears the scene.</p>
 <p>Positions and sizes are in scene units. The preview puts a track line at the normalized coordinates of the track preview. A run without the preview puts it between its stations, which are projected from their latitude and longitude or else placed at their position in kilometres times 1000. A track line in a region of fewer than two stations is at its position in kilometres times 1000. A scene unit therefore has no fixed length in metres. A train is given by its index in the run. </p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
@@ -415,31 +395,26 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a2f2dbeb4415ab81874fff34a4f97b078_cgraph.svg" width="1816" height="1604"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a2f2dbeb4415ab81874fff34a4f97b078_cgraph.svg" width="1816" height="1534"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a6d8deda55ae2e242a015f71bf6384507" name="a6d8deda55ae2e242a015f71bf6384507"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d8deda55ae2e242a015f71bf6384507">&#9670;&#160;</a></span>applyPlatformVisibility()</h2>
+<a id="a0981c1526a5cb274de56a7debabaefc6" name="a0981c1526a5cb274de56a7debabaefc6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0981c1526a5cb274de56a7debabaefc6">&#9670;&#160;</a></span>bindStationOverlaySources()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void NetworkPresenter::applyPlatformVisibility </td>
+          <td class="memname">void NetworkPresenter::bindStationOverlaySources </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Shows or hides the platform bars by <a class="el" href="#acd9ae8da79343e2686907d5f71fb86f0" title="A platform bar shows with the stations in the near look.">platformBarsVisible()</a>, the icons of the passengers on them by <a class="el" href="#a25054ca92ca10e3228c384769e6fcf90" title="The passengers on a platform show where its bar shows, with the passenger layer.">platformPassengersVisible()</a> and their counters by <a class="el" href="#a4ce72c602c2c616cdd0d5dad701b3171">paxTextVisible()</a>. Call it after a change of a layer. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a6d8deda55ae2e242a015f71bf6384507_cgraph.svg" width="995" height="138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>Gives each station overlay the station nodes that belong to it: the nearest overlay with the name of the node. Its source identities then name them, its picture hangs on the nearest of them, and its mark and area are placed by them and their platform bars. Then measures the track spacing of the stations. <a class="el" href="#a2825db26f3e40183fccc23ee6ec1d0ac">showRuntime()</a> has drawn the items. </p>
 
 </div>
 </div>
@@ -490,6 +465,25 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a3f3285a559b0624cc1bfec4b5fd9f936" name="a3f3285a559b0624cc1bfec4b5fd9f936"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f3285a559b0624cc1bfec4b5fd9f936">&#9670;&#160;</a></span>clearHighlight()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::clearHighlight </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Removes the highlight from its item. </p>
+
+</div>
+</div>
 <a id="ae8b9e8d75deef8b3856dc2db860391f0" name="ae8b9e8d75deef8b3856dc2db860391f0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae8b9e8d75deef8b3856dc2db860391f0">&#9670;&#160;</a></span>clearOperationalTrackStates()</h2>
 
@@ -511,6 +505,44 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ae8b9e8d75deef8b3856dc2db860391f0_cgraph.svg" width="530" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a6985017fbf6637b82b7af9e7e7b738a8" name="a6985017fbf6637b82b7af9e7e7b738a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6985017fbf6637b82b7af9e7e7b738a8">&#9670;&#160;</a></span>clearSelectedPassengerIcon()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::clearSelectedPassengerIcon </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Forgets the selected passenger icon. Its information stays until <a class="el" href="#a7f9a72f4a0c0a5ca7c5d13ebccbd30ba" title="Deletes the passenger information of the selected passenger icon. The icon stays selected.">removePaxInfoIcon()</a>. </p>
+
+</div>
+</div>
+<a id="a928f3238a807018b27e9eba514b4c3ac" name="a928f3238a807018b27e9eba514b4c3ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a928f3238a807018b27e9eba514b4c3ac">&#9670;&#160;</a></span>clearSelectedTrain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::clearSelectedTrain </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Forgets the selected train. Its passenger information stays until <a class="el" href="#abea8a1cdd4332b161fa39b5a0d4b8f86" title="Deletes the passenger information of the selected train. The train stays selected.">removeTrainPaxInfoIcon()</a>. </p>
 
 </div>
 </div>
@@ -596,26 +628,99 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="acf3b03609be222495d95c736bce343e5" name="acf3b03609be222495d95c736bce343e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf3b03609be222495d95c736bce343e5">&#9670;&#160;</a></span>measureStationTrackSpacing()</h2>
+<a id="a0eb5faed83650e23ee94ddf3ec76bf11" name="a0eb5faed83650e23ee94ddf3ec76bf11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0eb5faed83650e23ee94ddf3ec76bf11">&#9670;&#160;</a></span>hasContent()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void NetworkPresenter::measureStationTrackSpacing </td>
+          <td class="memname">bool NetworkPresenter::hasContent </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Measures m_stationTrackSpacing from the node centres of the station marks; track_separation times the presentation scale when no station has two nodes. </p>
+<p>The canvas shows something that <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> has to remove: an item that a registry holds, or a train in motion. A preview of track lines alone is not such content. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_acf3b03609be222495d95c736bce343e5_cgraph.svg" width="491" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a0eb5faed83650e23ee94ddf3ec76bf11_cgraph.svg" width="463" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="ab2245666158e71611fb0960ee5aac2fb" name="ab2245666158e71611fb0960ee5aac2fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2245666158e71611fb0960ee5aac2fb">&#9670;&#160;</a></span>hasHighlight()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::hasHighlight </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An item has the highlight. </p>
+
+</div>
+</div>
+<a id="a86918a96b380eca1145762cc91d513dd" name="a86918a96b380eca1145762cc91d513dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86918a96b380eca1145762cc91d513dd">&#9670;&#160;</a></span>hasTrainPaxInfo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::hasTrainPaxInfo </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The passenger information of the selected train is on the canvas. </p>
+
+</div>
+</div>
+<a id="ac00aae7f3082ee5e81acff67feee2897" name="ac00aae7f3082ee5e81acff67feee2897"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac00aae7f3082ee5e81acff67feee2897">&#9670;&#160;</a></span>inspectedSignal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_signal_item.html">SignalItem</a> * NetworkPresenter::inspectedSignal </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The signal whose details are shown, or null, also for a signal that is no longer on the canvas. </p>
 
 </div>
 </div>
@@ -651,8 +756,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a152f22b7b0623fcce6acc1b01bf0452b" name="a152f22b7b0623fcce6acc1b01bf0452b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a152f22b7b0623fcce6acc1b01bf0452b">&#9670;&#160;</a></span>paintStationNode()</h2>
+<a id="a17d5c88a45a26bda413ae77ee46edeb9" name="a17d5c88a45a26bda413ae77ee46edeb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17d5c88a45a26bda413ae77ee46edeb9">&#9670;&#160;</a></span>paintStationNode()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -675,7 +780,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="class_node.html">Node</a> *</td>          <td class="paramname"><span class="paramname"><em>node</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="class_node.html">Node</a> *</td>          <td class="paramname"><span class="paramname"><em>node</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -688,7 +793,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a152f22b7b0623fcce6acc1b01bf0452b_cgraph.svg" width="1079" height="270"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a17d5c88a45a26bda413ae77ee46edeb9_cgraph.svg" width="1079" height="270"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -823,6 +928,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a27d7e743600b081579ee0a9f75929178" name="a27d7e743600b081579ee0a9f75929178"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27d7e743600b081579ee0a9f75929178">&#9670;&#160;</a></span>passengerLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::passengerLayerVisible </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The passenger layer is shown. </p>
+
+</div>
+</div>
 <a id="a4ce72c602c2c616cdd0d5dad701b3171" name="a4ce72c602c2c616cdd0d5dad701b3171"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4ce72c602c2c616cdd0d5dad701b3171">&#9670;&#160;</a></span>paxTextVisible()</h2>
 
@@ -837,71 +969,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Whether the labels of the platforms show: the passengers on the platforms show (<a class="el" href="#a25054ca92ca10e3228c384769e6fcf90" title="The passengers on a platform show where its bar shows, with the passenger layer.">platformPassengersVisible()</a>) and the view is zoomed in far enough to read them, to a zoom ratio of at least 3. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a4ce72c602c2c616cdd0d5dad701b3171_cgraph.svg" width="710" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="acd9ae8da79343e2686907d5f71fb86f0" name="acd9ae8da79343e2686907d5f71fb86f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd9ae8da79343e2686907d5f71fb86f0">&#9670;&#160;</a></span>platformBarsVisible()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::platformBarsVisible </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>A platform bar shows with the stations in the near look. </p>
-
-</div>
-</div>
-<a id="a25054ca92ca10e3228c384769e6fcf90" name="a25054ca92ca10e3228c384769e6fcf90"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25054ca92ca10e3228c384769e6fcf90">&#9670;&#160;</a></span>platformPassengersVisible()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::platformPassengersVisible </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>The passengers on a platform show where its bar shows, with the passenger layer. </p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a25054ca92ca10e3228c384769e6fcf90_cgraph.svg" width="464" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p>Whether the labels of the platforms show: the passengers on the platforms show (platformPassengersVisible()) and the view is zoomed in far enough to read them, to a zoom ratio of at least 3. </p>
 
 </div>
 </div>
@@ -928,6 +996,87 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The factor from the historical presentation distances to the scene coordinates of the preview; 1 when the preview does not project every visible line from the authored station views. </p>
+
+</div>
+</div>
+<a id="a1775dc3bc8cf9636cca7ac0bb27bd645" name="a1775dc3bc8cf9636cca7ac0bb27bd645"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1775dc3bc8cf9636cca7ac0bb27bd645">&#9670;&#160;</a></span>previewFit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a> NetworkPresenter::previewFit </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The fit of the last preview. </p>
+
+</div>
+</div>
+<a id="afc091dbdff1a40501487e8f7863a861c" name="afc091dbdff1a40501487e8f7863a861c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc091dbdff1a40501487e8f7863a861c">&#9670;&#160;</a></span>previewHasSelectedTrack()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::previewHasSelectedTrack </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The last preview marks a selected track. </p>
+
+</div>
+</div>
+<a id="ad0c1b8f4e0ccf59478f22850766dcbf7" name="ad0c1b8f4e0ccf59478f22850766dcbf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0c1b8f4e0ccf59478f22850766dcbf7">&#9670;&#160;</a></span>previewHasSignals()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::previewHasSignals </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The last preview has signals. </p>
 
 </div>
 </div>
@@ -1011,6 +1160,79 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a27fdf6ebad71d5b664470a1d71590299" name="a27fdf6ebad71d5b664470a1d71590299"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27fdf6ebad71d5b664470a1d71590299">&#9670;&#160;</a></span>restorePreviewFit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::restorePreviewFit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_network_presenter_1_1_preview_fit.html">PreviewFit</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>fit</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Puts back a fit that <a class="el" href="#a1775dc3bc8cf9636cca7ac0bb27bd645" title="The fit of the last preview.">previewFit()</a> returned, after a clear that the view of a run must not see. </p>
+
+</div>
+</div>
+<a id="ac301e75d6af4cbd4b5124be77b1af7d8" name="ac301e75d6af4cbd4b5124be77b1af7d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac301e75d6af4cbd4b5124be77b1af7d8">&#9670;&#160;</a></span>runSignals()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const QList&lt; <a class="el" href="class_signal_item.html">SignalItem</a> * &gt; &amp; NetworkPresenter::runSignals </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The signal heads of the run. </p>
+
+</div>
+</div>
+<a id="a51e810dc1da2e2d20b65ab9c49bd4b82" name="a51e810dc1da2e2d20b65ab9c49bd4b82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51e810dc1da2e2d20b65ab9c49bd4b82">&#9670;&#160;</a></span>runTrains()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const QList&lt; <a class="el" href="class_train_item_group.html">TrainItemGroup</a> * &gt; &amp; NetworkPresenter::runTrains </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The train groups of the run, in the order in which they were added. </p>
+
+</div>
+</div>
 <a id="a28d577f5bbbb4e9de524c1beace0a1d1" name="a28d577f5bbbb4e9de524c1beace0a1d1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a28d577f5bbbb4e9de524c1beace0a1d1">&#9670;&#160;</a></span>sceneTrackId()</h2>
 
@@ -1027,6 +1249,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The id in the scene of the track line with this index in the run; empty when the run has none for it. </p>
+
+</div>
+</div>
+<a id="ac7b3c45caaf56354a17e565d9297c582" name="ac7b3c45caaf56354a17e565d9297c582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7b3c45caaf56354a17e565d9297c582">&#9670;&#160;</a></span>selectedTrain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_train_item_group.html">TrainItemGroup</a> * NetworkPresenter::selectedTrain </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The selected train, or null. </p>
 
 </div>
 </div>
@@ -1084,27 +1333,162 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a52875962293632ebc6a67397e0331bbe" name="a52875962293632ebc6a67397e0331bbe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a52875962293632ebc6a67397e0331bbe">&#9670;&#160;</a></span>setStationNearLook()</h2>
+<a id="a0b94382f29ca785e950df6dcd378360e" name="a0b94382f29ca785e950df6dcd378360e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b94382f29ca785e950df6dcd378360e">&#9670;&#160;</a></span>setHighlight()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void NetworkPresenter::setStationNearLook </td>
+          <td class="memname">void NetworkPresenter::setHighlight </td>
           <td>(</td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>nearLook</em></span></td><td>)</td>
+          <td class="paramtype">QGraphicsItem *</td>          <td class="paramname"><span class="paramname"><em>item</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (<a class="el" href="#a6d8deda55ae2e242a015f71bf6384507">applyPlatformVisibility()</a>). </p>
+<p>Puts the highlight on item, which replaces it on any other item. The item keeps it until it is deleted. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a52875962293632ebc6a67397e0331bbe_cgraph.svg" width="1256" height="138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a0b94382f29ca785e950df6dcd378360e_cgraph.svg" width="468" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="af85347f74c4d5c2b3d3f8fb9eaf0ebf5" name="af85347f74c4d5c2b3d3f8fb9eaf0ebf5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af85347f74c4d5c2b3d3f8fb9eaf0ebf5">&#9670;&#160;</a></span>setInspectedSignal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setInspectedSignal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_signal_item.html">SignalItem</a> *</td>          <td class="paramname"><span class="paramname"><em>signal</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the signal whose details are shown, or none for null. </p>
+
+</div>
+</div>
+<a id="a568863837afc5a45a5158f4adccbbad0" name="a568863837afc5a45a5158f4adccbbad0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a568863837afc5a45a5158f4adccbbad0">&#9670;&#160;</a></span>setPassengerLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setPassengerLayerVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Shows or hides the passenger layer: the passengers on the platforms and the passenger information of the selected train. </p>
+
+</div>
+</div>
+<a id="a912f19b1376d3157ec793bb3735c71df" name="a912f19b1376d3157ec793bb3735c71df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a912f19b1376d3157ec793bb3735c71df">&#9670;&#160;</a></span>setSignalLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setSignalLayerVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets whether the signal layer is shown. <a class="el" href="#ace1060d28ab411f74b41b5f92a7afe7f" title="Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its a...">updateSignalCues()</a> shows or hides the signals. </p>
+
+</div>
+</div>
+<a id="a0941684bdd89ac48b9a4594375056fd2" name="a0941684bdd89ac48b9a4594375056fd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0941684bdd89ac48b9a4594375056fd2">&#9670;&#160;</a></span>setStationLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setStationLayerVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shows or hides the station layer: the overlays, their pictures and their names. </p>
+
+</div>
+</div>
+<a id="a7a05116feef277dd932f4cd45e9de888" name="a7a05116feef277dd932f4cd45e9de888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a05116feef277dd932f4cd45e9de888">&#9670;&#160;</a></span>setStationNamesVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setStationNamesVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shows or hides the station names. </p>
+
+</div>
+</div>
+<a id="a8eeb325a9a941ceaef3bbe52adabd94f" name="a8eeb325a9a941ceaef3bbe52adabd94f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8eeb325a9a941ceaef3bbe52adabd94f">&#9670;&#160;</a></span>setTrainLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setTrainLayerVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; bool(const <a class="el" href="class_train_item_group.html">TrainItemGroup</a> &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>present</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Shows or hides the train layer. Shown, a train and its badge appear when present tells that the train has a place at the step on the canvas. </p>
+
+</div>
+</div>
+<a id="a574d8d0e3e4e33bcfc7d90a9e519185c" name="a574d8d0e3e4e33bcfc7d90a9e519185c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a574d8d0e3e4e33bcfc7d90a9e519185c">&#9670;&#160;</a></span>setTrainSpeedLabelsVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::setTrainSpeedLabelsVisible </td>
+          <td>(</td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>visible</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shows or hides the speed on the badges of the trains. </p>
 
 </div>
 </div>
@@ -1154,7 +1538,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a5f67f677150140ed39c81306cc727372_cgraph.svg" width="1300" height="1643"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a5f67f677150140ed39c81306cc727372_cgraph.svg" width="1274" height="378"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1216,6 +1600,33 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a5bc0d727c2c7e6d21a69ad76cd2cf3dc_cgraph.svg" width="694" height="182"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="aaa9994b756b10a3e520d0f08e6d91c92" name="aaa9994b756b10a3e520d0f08e6d91c92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa9994b756b10a3e520d0f08e6d91c92">&#9670;&#160;</a></span>stationOverlays()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const QList&lt; <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> * &gt; &amp; NetworkPresenter::stationOverlays </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The station overlays of the preview and of the run. </p>
 
 </div>
 </div>
@@ -1304,6 +1715,33 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a252c44e30f1c533a1374efb9605e0082" name="a252c44e30f1c533a1374efb9605e0082"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a252c44e30f1c533a1374efb9605e0082">&#9670;&#160;</a></span>trackPreview()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp; NetworkPresenter::trackPreview </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The preview that the scene shows. </p>
+
+</div>
+</div>
 <a id="a58fe73a4dac419d214616a42ecd2c579" name="a58fe73a4dac419d214616a42ecd2c579"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a58fe73a4dac419d214616a42ecd2c579">&#9670;&#160;</a></span>trainCenter()</h2>
 
@@ -1343,6 +1781,33 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>The train group of the run with this index, or null. </p>
+
+</div>
+</div>
+<a id="ac104ede33cd0d1b9a335a52ed1d14ab6" name="ac104ede33cd0d1b9a335a52ed1d14ab6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac104ede33cd0d1b9a335a52ed1d14ab6">&#9670;&#160;</a></span>trainLayerVisible()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool NetworkPresenter::trainLayerVisible </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The train layer is shown. </p>
 
 </div>
 </div>
@@ -1406,7 +1871,67 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a360e2decba3ef60e343d3a95b2c3d1c5_cgraph.svg" width="772" height="270"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_a360e2decba3ef60e343d3a95b2c3d1c5_cgraph.svg" width="772" height="200"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ace1060d28ab411f74b41b5f92a7afe7f" name="ace1060d28ab411f74b41b5f92a7afe7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace1060d28ab411f74b41b5f92a7afe7f">&#9670;&#160;</a></span>updateSignalCues()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::updateSignalCues </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shows or hides the signal heads, posts and bases by the signal layer and puts each head back at its anchor. </p>
+
+</div>
+</div>
+<a id="a64d92b84f500abaca19faa8a5438af24" name="a64d92b84f500abaca19faa8a5438af24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64d92b84f500abaca19faa8a5438af24">&#9670;&#160;</a></span>updateStationOverlayDegrees()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::updateStationOverlayDegrees </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gives each station overlay the highest number of drawn track lines and connections that end at a node of it. The look of a station without a preview follows from it. </p>
+
+</div>
+</div>
+<a id="ab6fe598215d4540f7fa7eaadc84dbb3c" name="ab6fe598215d4540f7fa7eaadc84dbb3c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6fe598215d4540f7fa7eaadc84dbb3c">&#9670;&#160;</a></span>updateTrainBadges()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::updateTrainBadges </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gives each train badge the look of the zoom of the view, promoted for a train that the frame host promotes. Does nothing without a view. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_ab6fe598215d4540f7fa7eaadc84dbb3c_cgraph.svg" width="696" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1467,87 +1992,57 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="add2708ca729aa7caf6d6afd06e168d72" name="add2708ca729aa7caf6d6afd06e168d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add2708ca729aa7caf6d6afd06e168d72">&#9670;&#160;</a></span>updateViewOverlays()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NetworkPresenter::updateViewOverlays </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; bool(const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>selected</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="class_station_overlay_item.html">StationOverlayItem</a> *</td>          <td class="paramname"><span class="paramname"><em>followed</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Brings the station overlays, the highlight and the trains up to the view: each overlay is marked selected as selected tells and followed when it is followed, the items take the scale of the view, the marks and the platform bars take the near look when the tracks of a station are far enough apart on screen, and names that collide go. Does nothing without a view. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_network_presenter_add2708ca729aa7caf6d6afd06e168d72_cgraph.svg" width="848" height="334"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a name="doc-related-members" id="doc-related-members"></a><h2 id="header-doc-related-members" class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a5a9e448d3c165e384996cbff0928a41e" name="a5a9e448d3c165e384996cbff0928a41e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a9e448d3c165e384996cbff0928a41e">&#9670;&#160;</a></span>NetworkPresenterTestAccess</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">friend class NetworkPresenterTestAccess</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel friend">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a0ed28a73c33ce77ef01ca2a0175759e2" name="a0ed28a73c33ce77ef01ca2a0175759e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ed28a73c33ce77ef01ca2a0175759e2">&#9670;&#160;</a></span>allArcs</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;<a class="el" href="class_track_line_item.html">TrackLineItem</a>*&gt; NetworkPresenter::allArcs</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The track lines of a run. </p>
-
-</div>
-</div>
-<a id="a7ad0a9fbb018d2d00e385222c56e1697" name="a7ad0a9fbb018d2d00e385222c56e1697"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ad0a9fbb018d2d00e385222c56e1697">&#9670;&#160;</a></span>allPlatforms</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;<a class="el" href="class_platform_item.html">PlatformItem</a>*&gt; NetworkPresenter::allPlatforms</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The platforms of a run. </p>
-
-</div>
-</div>
-<a id="ab6efab9273d8de8056818705fd33343b" name="ab6efab9273d8de8056818705fd33343b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6efab9273d8de8056818705fd33343b">&#9670;&#160;</a></span>allSignals</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;<a class="el" href="class_signal_item.html">SignalItem</a>*&gt; NetworkPresenter::allSignals</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The signal heads of a run. </p>
-
-</div>
-</div>
-<a id="a95236a0fb1030d50a420ab1ce5264105" name="a95236a0fb1030d50a420ab1ce5264105"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95236a0fb1030d50a420ab1ce5264105">&#9670;&#160;</a></span>allTrains</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;<a class="el" href="class_train_item_group.html">TrainItemGroup</a>*&gt; NetworkPresenter::allTrains</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The train groups of the run, in the order in which they were added. </p>
-
-</div>
-</div>
-<a id="a9be8c1d734a96f1d0e0201d020d370d7" name="a9be8c1d734a96f1d0e0201d020d370d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9be8c1d734a96f1d0e0201d020d370d7">&#9670;&#160;</a></span>effect</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QPointer&lt;<a class="el" href="class_highlight_effect.html">HighlightEffect</a>&gt; NetworkPresenter::effect</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The effect on the item selected last. The item deletes it with itself. </p>
-
-</div>
-</div>
 <a id="a69175b0701d927540dfa19f59d1402ff" name="a69175b0701d927540dfa19f59d1402ff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a69175b0701d927540dfa19f59d1402ff">&#9670;&#160;</a></span>geo_scale</h2>
 
@@ -1618,404 +2113,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a76d8090af56651d0dab57c1fbfaa2212" name="a76d8090af56651d0dab57c1fbfaa2212"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a76d8090af56651d0dab57c1fbfaa2212">&#9670;&#160;</a></span>m_activeTrackItems</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::set&lt;<a class="el" href="class_track_line_item.html">TrackLineItem</a>*&gt; NetworkPresenter::m_activeTrackItems</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The track lines whose state is not free. </p>
-
-</div>
-</div>
-<a id="af9dc715ca57c1d4a165c90051437edda" name="af9dc715ca57c1d4a165c90051437edda"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9dc715ca57c1d4a165c90051437edda">&#9670;&#160;</a></span>m_cachedTrackPreview</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> NetworkPresenter::m_cachedTrackPreview</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The preview that the scene shows. </p>
-
-</div>
-</div>
-<a id="a5dffc881c7497fd1e4d53502a9e08335" name="a5dffc881c7497fd1e4d53502a9e08335"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5dffc881c7497fd1e4d53502a9e08335">&#9670;&#160;</a></span>m_inspectedSignal</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_signal_item.html">SignalItem</a>* NetworkPresenter::m_inspectedSignal = nullptr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The signal whose details are shown, or null. </p>
-
-</div>
-</div>
-<a id="a1d28fa09539f979f5dddbe6126c65573" name="a1d28fa09539f979f5dddbe6126c65573"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d28fa09539f979f5dddbe6126c65573">&#9670;&#160;</a></span>m_passengerLayerVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_passengerLayerVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The passenger layer is shown. </p>
-
-</div>
-</div>
-<a id="a3001ccc5570e8ce27e3630f358765401" name="a3001ccc5570e8ce27e3630f358765401"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3001ccc5570e8ce27e3630f358765401">&#9670;&#160;</a></span>m_previewFitBounds</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QRectF NetworkPresenter::m_previewFitBounds</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The scene rectangle, margins included, that the view fits the preview to; empty without one. </p>
-
-</div>
-</div>
-<a id="ad23a85fe0dc56e2046ede144bd0c64e7" name="ad23a85fe0dc56e2046ede144bd0c64e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad23a85fe0dc56e2046ede144bd0c64e7">&#9670;&#160;</a></span>m_previewHasSelectedTrack</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_previewHasSelectedTrack = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The preview marks a selected track. </p>
-
-</div>
-</div>
-<a id="ad4882a82f1d98cec690b89d8f2541c1a" name="ad4882a82f1d98cec690b89d8f2541c1a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad4882a82f1d98cec690b89d8f2541c1a">&#9670;&#160;</a></span>m_previewHasSignals</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_previewHasSignals = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The preview has signals. </p>
-
-</div>
-</div>
-<a id="a5795263abeb7eb3a11de68ed6a33d257" name="a5795263abeb7eb3a11de68ed6a33d257"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5795263abeb7eb3a11de68ed6a33d257">&#9670;&#160;</a></span>m_previewZoomFocus</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QPointF NetworkPresenter::m_previewZoomFocus</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The point of the drawn track lines nearest to the centre of the preview, in scene coordinates. </p>
-
-</div>
-</div>
-<a id="ac728e3469a4486b6cde8bfd03342678c" name="ac728e3469a4486b6cde8bfd03342678c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac728e3469a4486b6cde8bfd03342678c">&#9670;&#160;</a></span>m_signalDecorations</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;QGraphicsItem*&gt; NetworkPresenter::m_signalDecorations</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The heads, posts and bases of the signals of the preview and of a run. </p>
-
-</div>
-</div>
-<a id="a3a1498eafa4b80d529d2a99656040116" name="a3a1498eafa4b80d529d2a99656040116"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a1498eafa4b80d529d2a99656040116">&#9670;&#160;</a></span>m_signalLayerVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_signalLayerVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The signal layer is shown. </p>
-
-</div>
-</div>
-<a id="a1374a65cddbc05775443a5e3a49dddd6" name="a1374a65cddbc05775443a5e3a49dddd6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1374a65cddbc05775443a5e3a49dddd6">&#9670;&#160;</a></span>m_signalsByAheadId</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::unordered_map&lt;std::string, QList&lt;<a class="el" href="class_signal_item.html">SignalItem</a>*&gt; &gt; NetworkPresenter::m_signalsByAheadId</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The signal heads of a run by the id of the section ahead of them. </p>
-
-</div>
-</div>
-<a id="a185d6779f32410a2b25f06af024941d6" name="a185d6779f32410a2b25f06af024941d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a185d6779f32410a2b25f06af024941d6">&#9670;&#160;</a></span>m_stationDecorations</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;QGraphicsItem*&gt; NetworkPresenter::m_stationDecorations</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Everything that the station layer shows. </p>
-
-</div>
-</div>
-<a id="ac8737b1c4733c4ab0e35dc86e7375622" name="ac8737b1c4733c4ab0e35dc86e7375622"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac8737b1c4733c4ab0e35dc86e7375622">&#9670;&#160;</a></span>m_stationLabels</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;QGraphicsItem*&gt; NetworkPresenter::m_stationLabels</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The station names. </p>
-
-</div>
-</div>
-<a id="acd515b287adef79ce8cf96122a61cf7e" name="acd515b287adef79ce8cf96122a61cf7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd515b287adef79ce8cf96122a61cf7e">&#9670;&#160;</a></span>m_stationLayerVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_stationLayerVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The station layer is shown. </p>
-
-</div>
-</div>
-<a id="abc688132b1be31ca939dd91ea2d44594" name="abc688132b1be31ca939dd91ea2d44594"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abc688132b1be31ca939dd91ea2d44594">&#9670;&#160;</a></span>m_stationNamesVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_stationNamesVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The station names are shown. </p>
-
-</div>
-</div>
-<a id="abf00ef0b77fe25141e6fb08afc48257b" name="abf00ef0b77fe25141e6fb08afc48257b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf00ef0b77fe25141e6fb08afc48257b">&#9670;&#160;</a></span>m_stationNearLook</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_stationNearLook = false</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The station marks are in the near look, in which the platform bars show. <a class="el" href="#a52875962293632ebc6a67397e0331bbe" title="Sets m_stationNearLook and shows or hides the platform bars and the passengers on them (applyPlatform...">setStationNearLook()</a> sets it and <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> resets it to false. </p>
-
-</div>
-</div>
-<a id="ada2dc54e8e278c42af9f98b0983dbdb5" name="ada2dc54e8e278c42af9f98b0983dbdb5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada2dc54e8e278c42af9f98b0983dbdb5">&#9670;&#160;</a></span>m_stationOverlays</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QList&lt;<a class="el" href="class_station_overlay_item.html">StationOverlayItem</a>*&gt; NetworkPresenter::m_stationOverlays</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The station overlays of the preview and of a run. </p>
-
-</div>
-</div>
-<a id="a85da2dcfb943468a77fa962b153688f2" name="a85da2dcfb943468a77fa962b153688f2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85da2dcfb943468a77fa962b153688f2">&#9670;&#160;</a></span>m_stationPictures</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QMap&lt;<a class="el" href="class_station_overlay_item.html">StationOverlayItem</a>*, QGraphicsPixmapItem*&gt; NetworkPresenter::m_stationPictures</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The picture of each overlay. </p>
-
-</div>
-</div>
-<a id="a6deb6e62a96f5cc72bcdda0139f714d5" name="a6deb6e62a96f5cc72bcdda0139f714d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6deb6e62a96f5cc72bcdda0139f714d5">&#9670;&#160;</a></span>m_stationTrackSpacing</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">qreal NetworkPresenter::m_stationTrackSpacing = 0.0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The spacing of the tracks at the stations in scene units, which chooses the look of the station marks: the median, over the stations with two or more station nodes, of the smallest distance between two of their nodes. <a class="el" href="#acf3b03609be222495d95c736bce343e5">measureStationTrackSpacing()</a> sets it and <a class="el" href="#a6a8ccd8567a7794aaff72338d8bea322">clear()</a> resets it to 0. </p>
-
-</div>
-</div>
-<a id="a2d1cd3ab9deca88432e352cc75b1442a" name="a2d1cd3ab9deca88432e352cc75b1442a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2d1cd3ab9deca88432e352cc75b1442a">&#9670;&#160;</a></span>m_tracksByOccupiedArc</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt;std::pair&lt;int, double&gt;, <a class="el" href="class_track_line_item.html">TrackLineItem</a>*&gt; NetworkPresenter::m_tracksByOccupiedArc</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The track line of each arc by track line index and the position of the start node of the arc in kilometres. </p>
-
-</div>
-</div>
-<a id="a4c87fb2282c532555a523f75ac4cdc68" name="a4c87fb2282c532555a523f75ac4cdc68"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c87fb2282c532555a523f75ac4cdc68">&#9670;&#160;</a></span>m_tracksBySectionId</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt;std::string, std::vector&lt;<a class="el" href="class_track_line_item.html">TrackLineItem</a>*&gt; &gt; NetworkPresenter::m_tracksBySectionId</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The track lines of each signalling section by section id. </p>
-
-</div>
-</div>
-<a id="aa525ac7d249b70dbcb2eae645b35b938" name="aa525ac7d249b70dbcb2eae645b35b938"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa525ac7d249b70dbcb2eae645b35b938">&#9670;&#160;</a></span>m_trainBadges</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QMap&lt;int, <a class="el" href="class_train_badge_item.html">TrainBadgeItem</a>*&gt; NetworkPresenter::m_trainBadges</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The badge of each train by train index. </p>
-
-</div>
-</div>
-<a id="ac72f0f91fe3aa3b6d994501d197e19bf" name="ac72f0f91fe3aa3b6d994501d197e19bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac72f0f91fe3aa3b6d994501d197e19bf">&#9670;&#160;</a></span>m_trainLayerVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_trainLayerVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The train layer is shown. </p>
-
-</div>
-</div>
-<a id="a0f6b6b9b895cdd92e3d622c3f2a398b4" name="a0f6b6b9b895cdd92e3d622c3f2a398b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f6b6b9b895cdd92e3d622c3f2a398b4">&#9670;&#160;</a></span>m_trainSpeedLabelsVisible</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool NetworkPresenter::m_trainSpeedLabelsVisible = true</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The badges of the trains hold their speed. </p>
-
-</div>
-</div>
-<a id="a13bd66e4de60a69ceaf98bc93da24493" name="a13bd66e4de60a69ceaf98bc93da24493"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13bd66e4de60a69ceaf98bc93da24493">&#9670;&#160;</a></span>m_vcMessageItems</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QMap&lt;int, QGraphicsItemGroup*&gt; NetworkPresenter::m_vcMessageItems</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The virtual coupling message of each train by train index. </p>
-
-</div>
-</div>
 <a id="a4ce791465fd432994d28b3f3961d273c" name="a4ce791465fd432994d28b3f3961d273c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4ce791465fd432994d28b3f3961d273c">&#9670;&#160;</a></span>node_size</h2>
 
@@ -2036,53 +2133,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The diameter of a node and of a signal head in scene units: 20. It was once written as 2.8 times global_scale with a cast that truncated 2.8 to 2. </p>
-
-</div>
-</div>
-<a id="af1d6d3fafd89f5b8be65f6defde7eb85" name="af1d6d3fafd89f5b8be65f6defde7eb85"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1d6d3fafd89f5b8be65f6defde7eb85">&#9670;&#160;</a></span>pax_pixmap_scaled</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QPixmap NetworkPresenter::pax_pixmap_scaled</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the application resource is missing. </p>
-
-</div>
-</div>
-<a id="a79f57ae5d59ce81bdc109ab2ff838d58" name="a79f57ae5d59ce81bdc109ab2ff838d58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a79f57ae5d59ce81bdc109ab2ff838d58">&#9670;&#160;</a></span>paxIconInfoItem</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QGraphicsItemGroup* NetworkPresenter::paxIconInfoItem = nullptr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The group that shows the information of the selected passenger icon, or null. </p>
-
-</div>
-</div>
-<a id="a4e4d2c3bc6a98fd3e431ee7a0413c0c9" name="a4e4d2c3bc6a98fd3e431ee7a0413c0c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e4d2c3bc6a98fd3e431ee7a0413c0c9">&#9670;&#160;</a></span>paxIconItem</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_passenger_item.html">PassengerItem</a>* NetworkPresenter::paxIconItem = nullptr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The selected passenger icon, or null. </p>
 
 </div>
 </div>
@@ -2175,38 +2225,6 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 <p>The distance in scene units between two display levels of track lines. Signal posts, train bodies and callout lines are sized from it. </p>
-
-</div>
-</div>
-<a id="aacc9dbe7da8696db1c6af94969e88157" name="aacc9dbe7da8696db1c6af94969e88157"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aacc9dbe7da8696db1c6af94969e88157">&#9670;&#160;</a></span>trainPaxInfoItem</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">QGraphicsItemGroup* NetworkPresenter::trainPaxInfoItem = nullptr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The group that shows the passenger information of the selected train, or null. </p>
-
-</div>
-</div>
-<a id="a53297240da6e834c56b99d33a056c4d2" name="a53297240da6e834c56b99d33a056c4d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53297240da6e834c56b99d33a056c4d2">&#9670;&#160;</a></span>trainPaxItem</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_train_item_group.html">TrainItemGroup</a>* NetworkPresenter::trainPaxItem = nullptr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The selected train, or null. </p>
 
 </div>
 </div>

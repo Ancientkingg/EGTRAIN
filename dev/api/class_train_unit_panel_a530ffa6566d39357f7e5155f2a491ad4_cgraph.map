@@ -1,6 +1,11 @@
 <map id="TrainUnitPanel::refresh" name="TrainUnitPanel::refresh">
-<area shape="rect" id="Node000001" title="Lists the units again and shows the selected one." alt="" coords="5,29,174,57"/>
-<area shape="rect" id="Node000002" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="222,29,316,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,41,209,43,203,43,174,46"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="238,28,233,20,237,11,249,5,269,3,290,5,303,14,298,14,289,10,269,8,250,10,240,15,238,20,242,30"/>
+<area shape="rect" id="Node000001" title="Lists the units again and shows the selected one." alt="" coords="5,44,174,72"/>
+<area shape="rect" id="Node000002" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="222,5,425,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,41,223,35,218,37,175,46"/>
+<area shape="rect" id="Node000003" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="248,81,398,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,69,235,80,230,81,174,74"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="289,80,284,72,288,63,302,57,323,55,347,57,361,66,355,66,345,62,323,60,303,62,292,67,289,72,294,82"/>
+<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="473,81,567,109"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="399,93,460,95,455,95,399,98"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="486,80,481,72,485,63,498,57,520,55,543,57,557,67,552,66,542,62,520,60,500,62,489,67,486,72,491,82"/>
 </map>

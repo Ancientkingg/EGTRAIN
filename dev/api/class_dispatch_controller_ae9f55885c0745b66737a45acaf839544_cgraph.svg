@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" target="_top" xlink:title="The same run with write access, for the stages of the controller and for tests. The thread rules of r...">
 <polygon fill="white" stroke="#666666" points="272,-227.12 165.25,-227.12 165.25,-193.62 272,-193.62 272,-227.12"/>
 <text xml:space="preserve" text-anchor="start" x="173.25" y="-213.62" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text xml:space="preserve" text-anchor="middle" x="218.62" y="-200.88" font-family="Helvetica,sans-Serif" font-size="10.00">::mutableRun</text>

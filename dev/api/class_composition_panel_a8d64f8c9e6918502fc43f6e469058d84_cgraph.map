@@ -1,0 +1,17 @@
+<map id="CompositionPanel::documentChanged" name="CompositionPanel::documentChanged">
+<area shape="rect" id="Node000001" title="Shows the units again when the rolling stock changes, with the same unit selected." alt="" coords="5,104,217,148"/>
+<area shape="rect" id="Node000002" href="$class_composition_panel.html#a6cc6f68b9aeab162c200d75cbee14de1" title="Shows the current state of the document." alt="" coords="293,81,485,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,112,280,107,274,108,218,117"/>
+<area shape="rect" id="Node000006" href="$class_scene_editor_panel.html#abd663bc6b6425c64c8b23ef2e1d776a2" title=" " alt="" coords="265,137,513,165"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="217,133,252,138,246,139,217,138"/>
+<area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#af9647734cc3da5fead984dc7c8b70c0f" title="True when a scene is loaded." alt="" coords="561,5,764,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,78,560,43,589,38,594,37,562,48,440,83"/>
+<area shape="rect" id="Node000004" href="$_scene_editor_panel_8h.html#a4b3a696283f2f614706656bafc6c2860" title=" " alt="" coords="588,81,738,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="485,93,575,95,569,95,486,98"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="629,80,623,72,628,63,641,57,663,55,686,57,700,66,695,66,684,62,663,60,642,62,631,67,628,72,633,82"/>
+<area shape="rect" id="Node000005" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="812,81,907,109"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="738,93,799,95,794,95,738,98"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="825,80,820,72,824,63,838,57,860,55,883,57,897,66,892,66,881,62,859,60,839,62,828,67,825,72,830,82"/>
+<area shape="rect" id="Node000007" href="$class_scene_editor_panel.html#a2fbf713650fa347aef6fc025fa1b3e34" title="Takes the text of a field that is being edited into the document, as if the user had left the field." alt="" coords="567,133,758,178"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="513,150,554,153,549,154,513,156"/>
+</map>

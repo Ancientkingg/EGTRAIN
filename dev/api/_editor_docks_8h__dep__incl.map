@@ -1,0 +1,11 @@
+<map id="app/EditorDocks.h" name="app/EditorDocks.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,239,33"/>
+<area shape="rect" id="Node000002" href="$_editor_docks_8cpp.html" title=" " alt="" coords="5,81,160,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,45,100,83,96,79,144,41"/>
+<area shape="rect" id="Node000003" href="$_main_window_8h.html" title=" " alt="" coords="184,81,328,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,41,243,80,238,81,195,46"/>
+<area shape="rect" id="Node000004" href="$_main_window_8cpp.html" title=" " alt="" coords="96,157,256,184"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="233,119,191,158,189,154,228,120"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html" title=" " alt="" coords="280,157,389,184"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="282,117,323,157,318,156,280,122"/>
+</map>
