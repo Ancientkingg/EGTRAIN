@@ -278,6 +278,8 @@ private slots:
 	void markedConversionKeepsTrackFolders();
 	void marksCopenhagenDoubleSwitches_data();
 	void marksCopenhagenDoubleSwitches();
+	void selectsKnownCase_data();
+	void selectsKnownCase();
 	void readsRouteBlockTokens_data();
 	void readsRouteBlockTokens();
 	void warnsAboutBoundaryPartWithoutBlock();
@@ -1156,6 +1158,60 @@ void TestSceneImporter::marksCopenhagenDoubleSwitches() {
 	QVERIFY(importLegacyScene(exported.dir, reimported.dir, name.toStdString()).success());
 	QVERIFY(readJson(fs::path(reimported.dir) / "views.json", reimportedViews));
 	QVERIFY(reimportedViews["tracks"] == views["tracks"]);
+}
+
+void TestSceneImporter::selectsKnownCase_data() {
+	QTest::addColumn<QString>("folder");
+	QTest::addColumn<QString>("name");
+	QTest::addColumn<QString>("baseTime");
+	QTest::addColumn<double>("duration");
+	QTest::addColumn<bool>("doubleSwitches");
+	QTest::addColumn<bool>("arcFix");
+	QTest::newRow("folder of Netherlands") << "Input_EGTRAIN_Netherlands" << "Other" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("name of Netherlands") << "legacy" << "Netherlands" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("folder of Paimpol") << "Input_EGTRAIN_Paimpol" << "Other" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("name of Paimpol") << "legacy" << "Paimpol" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("folder of the alternative journeys") << "Input_EGTRAIN_Paimpol - AlternativeJourneys" << "Other" << "07:10:40" << 9000.0 << false << true;
+	QTest::newRow("name of the alternative journeys") << "legacy" << "Paimpol alternative journeys" << "07:10:40" << 9000.0 << false << false;
+	QTest::newRow("folder that starts as Paimpol") << "Input_EGTRAIN_Paimpol_copy" << "Other" << "" << 0.0 << false << true;
+	QTest::newRow("folder of Copenhagen") << "Input_EGTRAIN_Copenhagen" << "Other" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("name of Copenhagen") << "legacy" << "Copenhagen" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Banedanmark") << "Input_EGTRAIN_Banedanmark" << "Other" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("name of Banedanmark") << "legacy" << "banedanmark" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Milano Brescia") << "INPUT_EGTRAIN_MILANO_BRESCIA" << "Other" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("name of Brescia") << "legacy" << "Brescia" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("name of Milano Brescia") << "legacy" << "Milano_Brescia" << "06:28:20" << 4000.0 << false << false;
+	QTest::newRow("folder of Assignment") << "Input_EGTRAIN_Assignment" << "Other" << "07:00:00" << 10000.0 << false << false;
+	QTest::newRow("name of Assignment") << "legacy" << "Assignment" << "07:00:00" << 10000.0 << false << false;
+	QTest::newRow("folder of one and name of another") << "Input_EGTRAIN_Paimpol" << "Copenhagen" << "07:10:40" << 9000.0 << true << true;
+	QTest::newRow("unknown folder and name") << "legacy" << "Other" << "" << 0.0 << false << false;
+}
+
+// A folder name or a typed name selects a case, whatever the other one says, and a case that neither selects gets
+// nothing. Both rows apply to a folder of one case under the name of another.
+void TestSceneImporter::selectsKnownCase() {
+	QFETCH(QString, folder);
+	QFETCH(QString, name);
+	QFETCH(QString, baseTime);
+	QFETCH(double, duration);
+	QFETCH(bool, doubleSwitches);
+	QFETCH(bool, arcFix);
+	TempDir root, output;
+	const fs::path legacy = fs::path(root.dir) / folder.toStdString();
+	writeSyntheticLegacyCase(legacy);
+	fs::remove(legacy / "EGTRAINInitialParameters.json");
+	writeText(legacy / "TrackLines/B9/NodiCumPari.txt", "1 0 9\n2 0.01 9\n3 0.02 9\n4 0.03 9\n");
+	writeText(legacy / "GUI/caseStudyTrackData.txt", "9\t0\t0\n");
+	const SceneImportResult result = importLegacyScene(legacy.u8string(), output.dir, name.toStdString());
+	QVERIFY(result.wroteScene);
+	json scene, views, infrastructure;
+	QVERIFY(readJson(fs::path(output.dir) / "scene.json", scene));
+	QVERIFY(readJson(fs::path(output.dir) / "views.json", views));
+	QVERIFY(readJson(fs::path(output.dir) / "infrastructure.json", infrastructure));
+	QCOMPARE(QString::fromStdString(scene.value("base_time", std::string())), baseTime);
+	QCOMPARE(scene.value("/simulation_settings/duration_seconds"_json_pointer, 0.0), duration);
+	QCOMPARE(views["tracks"][0].value("double_switch", false), doubleSwitches);
+	QCOMPARE(infrastructure["arcs"].back()["from"] == "B4.node.9", arcFix);
 }
 
 void TestSceneImporter::readsRouteBlockTokens_data() {

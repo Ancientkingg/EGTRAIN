@@ -25,6 +25,46 @@
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
+namespace {
+
+// A legacy case that gets something its files do not hold.
+struct KnownCase {
+	std::vector<std::string> folders; // the names of the case folder that select it, in lower case
+	std::vector<std::string> names;	  // the scene names that select it, in lower case
+	std::string folderPrefix;		  // a case folder whose name starts with this selects it too; empty for none
+	std::string baseTime;			  // empty for none
+	double durationSeconds = 0.0;
+	bool doubleSwitches = false; // the tracks of four nodes are double switches
+	bool paimpolArcFix = false;	 // arc 108 of track B4 continues the chain of nodes
+};
+
+} // namespace
+
+// The known cases. A folder or a scene name selects a row, so a case keeps what it gets under another name and in another
+// folder, which the roundtrip of a committed case needs: an export has no double switches, and only the name brings them
+// back. The original compiled the base time and the duration of a case into InitialParameters, so the legacy folder does
+// not hold them, and an export writes them to EGTRAINInitialParameters.json, which wins over this table. The rename of
+// Tregonnau Squiffiec in passengerStationIdFor and the Guingamp and Paimpol rollout stations in importRollouts are not
+// here, because they apply to every case.
+static const KnownCase kKnownCases[] = {
+	// The first case of InitialParameters.
+	{{"input_egtrain_netherlands"}, {"netherlands"}, "", "06:28:20", 8000.0, false, false},
+	// Its source arc 108 restarts the linear B4 chain at node 1.
+	{{"input_egtrain_paimpol"}, {"paimpol"}, "", "07:10:40", 9000.0, false, true},
+	// The Paimpol timetable with alternative journeys, on the same base time. Only its folder gets the arc fix, by the
+	// next row.
+	{{"input_egtrain_paimpol - alternativejourneys"}, {"paimpol alternative journeys"}, "", "07:10:40", 9000.0, false, false},
+	// Any folder named for the Paimpol network can hold that arc. Only the two folders above have a base time.
+	{{}, {}, "input_egtrain_paimpol", "", 0.0, false, true},
+	// The original also read this case as Input/Input_EGTRAIN_Banedanmark, and drew every track of four nodes of it as a
+	// double switch, which the legacy files cannot hold.
+	{{"input_egtrain_copenhagen", "input_egtrain_banedanmark"}, {"copenhagen", "banedanmark"}, "", "06:28:20", 8000.0, true, false},
+	// The Milano-Brescia line case of InitialParameters.
+	{{"input_egtrain_milano_brescia"}, {"brescia", "milano_brescia"}, "", "06:28:20", 4000.0, false, false},
+	// The Assignment corridor Gvc-Gdg-Ut case of InitialParameters.
+	{{"input_egtrain_assignment"}, {"assignment"}, "", "07:00:00", 10000.0, false, false},
+};
+
 bool SceneImportResult::success() const {
 	return wroteScene && !hasErrors(diagnostics);
 }
@@ -400,44 +440,26 @@ static std::string normaliseServiceSeparators(std::string value) {
 	return value;
 }
 
-// The Copenhagen case, which the original also read as Input/Input_EGTRAIN_Banedanmark.
-static bool copenhagenCase(const std::string& sceneName, const fs::path& legacyPath) {
+// What the case folder and the scene name select: the row of the case, without its folders and names, or an empty row
+// for neither. A folder of one case under the name of another gets the base time of the earlier row and the fixes of both.
+static KnownCase knownCaseFor(const std::string& sceneName, const fs::path& legacyPath) {
 	const std::string name = lowerCopy(sceneName);
 	const std::string folder = lowerCopy(legacyPath.filename().u8string());
-	return name == "copenhagen" || name == "banedanmark" || folder == "input_egtrain_copenhagen"
-		|| folder == "input_egtrain_banedanmark";
-}
-
-static std::string baseTimeForCase(const std::string& sceneName, const fs::path& legacyPath,
-	double& duration, bool& known) {
-	const std::string name = lowerCopy(sceneName);
-	const std::string folder = lowerCopy(legacyPath.filename().u8string());
-	known = true;
-	if (name == "netherlands" || folder == "input_egtrain_netherlands") {
-		duration = 8000.0;
-		return "06:28:20";
+	const auto listed = [](const std::vector<std::string>& values, const std::string& value) {
+		return std::find(values.begin(), values.end(), value) != values.end();
+	};
+	KnownCase found;
+	for (const KnownCase& row : kKnownCases) {
+		const bool byPrefix = !row.folderPrefix.empty() && folder.rfind(row.folderPrefix, 0) == 0;
+		if (!byPrefix && !listed(row.folders, folder) && !listed(row.names, name)) continue;
+		if (found.baseTime.empty()) {
+			found.baseTime = row.baseTime;
+			found.durationSeconds = row.durationSeconds;
+		}
+		found.doubleSwitches = found.doubleSwitches || row.doubleSwitches;
+		found.paimpolArcFix = found.paimpolArcFix || row.paimpolArcFix;
 	}
-	if (name == "paimpol" || name == "paimpol alternative journeys"
-		|| folder == "input_egtrain_paimpol" || folder == "input_egtrain_paimpol - alternativejourneys") {
-		duration = 9000.0;
-		return "07:10:40";
-	}
-	if (copenhagenCase(sceneName, legacyPath)) {
-		duration = 8000.0;
-		return "06:28:20";
-	}
-	if (name == "brescia" || name == "milano_brescia"
-		|| folder == "input_egtrain_milano_brescia") {
-		duration = 4000.0;
-		return "06:28:20";
-	}
-	if (name == "assignment" || folder == "input_egtrain_assignment") {
-		duration = 10000.0;
-		return "07:00:00";
-	}
-	known = false;
-	duration = 0.0;
-	return {};
+	return found;
 }
 
 static bool passengerTimeWindow(const std::string& token, std::pair<double, double>& result) {
@@ -903,6 +925,7 @@ struct ImportContext {
 
 	fs::path legacyPath; // the legacy case folder
 	std::string sceneName;
+	KnownCase knownCase; // what the folder and the name select
 	SceneImportResult result;
 	ReportBuilder report;
 	SceneModel scene; // the scene that the import builds
@@ -1014,7 +1037,9 @@ static void importSettings(ImportContext& context) {
 		}
 	}
 	if (!knownSettings) {
-		context.baseTime = baseTimeForCase(context.sceneName, context.legacyPath, context.settings.durationSeconds, knownSettings);
+		context.baseTime = context.knownCase.baseTime;
+		context.settings.durationSeconds = context.knownCase.durationSeconds;
+		knownSettings = !context.baseTime.empty();
 		context.settings.hasDuration = context.settings.hasBufferTime = context.settings.hasRecoveryTime = knownSettings;
 	}
 	if (knownSettings) {
@@ -1124,8 +1149,6 @@ static void importTrackNodes(ImportContext& context, const std::string& trackId,
 static void importTrackArcs(ImportContext& context, const std::string& trackId, const fs::path& trackDir) {
 	const fs::path arcsPath = findChild(trackDir, "ArchiCumPari.txt");
 	const std::string arcSource = (trackDir / "ArchiCumPari.txt").lexically_normal().u8string();
-	const bool paimpolSource = lowerCopy(context.sceneName) == "paimpol"
-		|| lowerCopy(context.legacyPath.filename().u8string()).rfind("input_egtrain_paimpol", 0) == 0;
 	if (!arcsPath.empty()) {
 		std::string content;
 		context.readLegacyFile(arcsPath, SceneSeverity::Warning, "infrastructure.arcs", arcSource, content);
@@ -1152,7 +1175,7 @@ static void importTrackArcs(ImportContext& context, const std::string& trackId, 
 			}
 			std::string fromToken = tokens[1];
 			const std::string& toToken = tokens[2];
-			if (paimpolSource && trackId == "B4" && tokens[0] == "108"
+			if (context.knownCase.paimpolArcFix && trackId == "B4" && tokens[0] == "108"
 				&& fromToken == "1" && toToken == "10") {
 				// Paimpol's source arc 108 restarts the linear B4 chain at node 1.
 				// This exact source correction restores the validated 9 -> 10 link.
@@ -1458,7 +1481,7 @@ static void importTrackViews(ImportContext& context) {
 		context.report.converted("views.tracks", hiddenTracksPath.u8string());
 	}
 	// The original drew every track of four nodes of this case as a double switch.
-	if (copenhagenCase(context.sceneName, context.legacyPath)) {
+	if (context.knownCase.doubleSwitches) {
 		std::unordered_map<std::string, int> nodeCounts;
 		for (const auto& node : context.scene.nodes)
 			++nodeCounts[node.trackId];
@@ -2377,6 +2400,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	ImportContext context;
 	context.sceneName = sceneName;
 	context.legacyPath = pathFromUtf8(legacyDir);
+	context.knownCase = knownCaseFor(context.sceneName, context.legacyPath);
 	fs::path scenePath = pathFromUtf8(sceneDir);
 	const fs::path comparableLegacyPath = comparablePath(context.legacyPath);
 	const fs::path comparableScenePath = comparablePath(scenePath);
