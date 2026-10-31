@@ -56,12 +56,16 @@ public:
 
 	/// The scene. It is an empty model until the first replace().
 	const SceneModel& model() const { return m_model; }
-	/// The scene for a write that is not an edit by a panel: the loaded data that ValidationPanel derives, the units that
-	/// TrainUnitSourceLinker reloads from their files, what SceneSession records when it saves, the default scenario that the
-	/// window sets when it opens a scene without one, and the setup of tests, such as the historical incident scopes of
-	/// tests/e2e/EditorSmoke.cpp, which no panel can make. A panel, and the infrastructure facets through InfrastructurePanel,
-	/// edit through edit(). A caller that changes what the user authored calls markChanged() afterwards.
-	SceneModel& mutableModel() { return m_model; }
+	/// The scene for a write that is not an edit by a panel: the units that TrainUnitSourceLinker reloads from their files,
+	/// what SceneSession records when it saves, the default scenario that the window sets when it opens a scene without one,
+	/// and the setup of tests, such as the historical incident scopes of tests/e2e/EditorSmoke.cpp, which no panel can make.
+	/// A panel, and the infrastructure facets through InfrastructurePanel, edit through edit(). A caller that changes what
+	/// the user authored calls markChanged() afterwards. Every call counts as a change for modelGeneration(), so a caller
+	/// uses the reference for the write at hand and does not keep it.
+	SceneModel& mutableModel() {
+		++m_modelGeneration;
+		return m_model;
+	}
 
 	/// False until the first replace().
 	bool isLoaded() const { return m_loaded; }
@@ -71,6 +75,10 @@ public:
 	bool isEditable() const { return m_editable; }
 	/// Grows by one with every replace(), restore() and markChanged(), never otherwise.
 	quint64 revision() const { return m_revision; }
+	/// Grows with every replace(), restore(), markChanged() and mutableModel(), so it changes whenever the model can have
+	/// changed, also by a write that is not an edit. A result computed from the model, such as the validation that
+	/// ValidationPanel shows, is current while this stays the same.
+	quint64 modelGeneration() const { return m_modelGeneration; }
 	/// The label of the latest markChanged(), such as "Edit case settings"; empty before the first one.
 	const QString& lastChangeLabel() const { return m_lastChangeLabel; }
 
@@ -113,6 +121,7 @@ private:
 	bool m_dirty = false;
 	bool m_editable = true;
 	quint64 m_revision = 0;
+	quint64 m_modelGeneration = 0;
 	QString m_lastChangeLabel;
 };
 
