@@ -386,6 +386,8 @@ void TestEntranceDelayPanel::addsScenarioOnlyWithAnEdit() {
 	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
 	QCOMPARE(f.document.model().scenarios[0].entranceDelays.size(), std::size_t(1));
 	QVERIFY(f.document.isDirty());
+	QCOMPARE(f.events.log, edit);
+	QCOMPARE(f.events.kinds, SceneDocument::ChangeKinds(SceneDocument::Scenarios));
 }
 
 void TestEntranceDelayPanel::showsOtherScenario() {

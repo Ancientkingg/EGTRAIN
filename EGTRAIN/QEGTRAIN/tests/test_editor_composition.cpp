@@ -78,7 +78,6 @@ struct Events {
 using Log = std::vector<std::string>;
 
 static const Log edit({"documentChanged", "panelChanged"});
-static const Log editIds({"documentChanged", "panelChanged"});
 
 // Closes each message box that opens while `action` runs, and returns how many did.
 static int messageBoxesDuring(const std::function<void()>& action) {
@@ -301,8 +300,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(document.lastChangeLabel(), "Rename composition");
 	QVERIFY2(serviceCompositions(document) == std::vector<std::string>({"c1_renamed", "c1_renamed", "c2"}),
 		"a rename rewrites the services that use the composition and no others");
-	// A rename reports the composition and the service change, and the changed composition ids.
-	QCOMPARE(events.log, editIds);
+	// A rename is one change, which names the compositions and the services.
+	QCOMPARE(events.log, edit);
 	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	QVERIFY(events.kinds.testFlag(SceneDocument::Services));
 	// A rename keeps the selection and shows the new id in the list.
@@ -317,7 +316,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	panel.commitPendingEditors();
 	// Committing the pending editors takes the id that is being typed.
 	QCOMPARE(document.model().compositions[0].id, "c1_pending");
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	QCOMPARE(serviceCompositions(document)[0], "c1_pending");
 
 	// Cancel: text that was typed and not finished is dropped when the panel is refreshed.
@@ -341,7 +341,7 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(document.model().compositions[2].id, "new_composition");
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
 	QCOMPARE(panel.idEdit()->text(), "new_composition");
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
 	QCOMPARE(events.kinds, SceneDocument::ChangeKinds(SceneDocument::Compositions));
 	panel.addComposition();
 	QVERIFY2(document.model().compositions[3].id == "new_composition_2", "a new composition gets an unused id");
@@ -352,7 +352,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2", "c2_copy", "new_composition", "new_composition_2"}));
 	QCOMPARE(document.model().compositions[2].units, document.model().compositions[1].units);
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 
 	// Delete.
 	events.log.clear();
@@ -383,7 +384,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	// Answering Yes deletes the composition and keeps a row selected.
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2", "c2_copy", "new_composition_2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 3);
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	events.log.clear();
 	panel.deleteComposition();
 	panel.deleteComposition();
@@ -464,7 +466,8 @@ void TestCompositionPanel::editableDuringRun() {
 	f.panel.addComposition();
 	// Compositions can be edited while the document is closed for edits.
 	QCOMPARE(f.document.model().compositions.size(), std::size_t(3));
-	QCOMPARE(f.events.log, editIds);
+	QCOMPARE(f.events.log, edit);
+	QVERIFY(f.events.kinds.testFlag(SceneDocument::Compositions));
 }
 
 // Another scene replaces unfinished text without an edit.

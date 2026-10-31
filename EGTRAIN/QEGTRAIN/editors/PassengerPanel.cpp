@@ -108,7 +108,6 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 	combo->setCurrentIndex(selected);
 }
 
-// The row that stays selected when a list is rebuilt with `count` entries.
 // The most lines of one callout. The rest is counted, and the tooltip of the callout lists all of them.
 constexpr int MaxDiagnosticLines = 5;
 

@@ -56,9 +56,11 @@ public:
 
 	/// The scene. It is an empty model until the first replace().
 	const SceneModel& model() const { return m_model; }
-	/// The scene for a write that is not an edit by a panel: data that the application derives or reloads, and the infrastructure
-	/// facets, which only a table and buttons that a run closes can reach. A panel edits through edit(). A caller that changes
-	/// what the user authored calls markChanged() afterwards.
+	/// The scene for a write that is not an edit by a panel: the loaded data that ValidationPanel derives, the units that
+	/// TrainUnitSourceLinker reloads from their files, what SceneSession records when it saves, the default scenario that the
+	/// window sets when it opens a scene without one, and the setup of tests, such as the historical incident scopes of
+	/// tests/e2e/EditorSmoke.cpp, which no panel can make. A panel, and the infrastructure facets through InfrastructurePanel,
+	/// edit through edit(). A caller that changes what the user authored calls markChanged() afterwards.
 	SceneModel& mutableModel() { return m_model; }
 
 	/// False until the first replace().
@@ -92,7 +94,8 @@ public:
 	void setEditable(bool editable);
 
 Q_SIGNALS:
-	/// Emitted once for each markChanged() and edit(), after the revision and the dirty state are updated.
+	/// Emitted once for each markChanged() and for each edit() that is not refused, after the revision and the dirty state
+	/// are updated.
 	void changed(SceneDocument::ChangeKinds kinds);
 	/// Emitted by replace(), after the whole state is set.
 	void replaced();

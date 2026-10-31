@@ -489,6 +489,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(document.model().trainUnits[0].sourceDataFile, "new.data");
 	QCOMPARE(document.model().trainUnits[0].sourceTractionFile, "u.traction");
 	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
+	QVERIFY(events.kinds.testFlag(SceneDocument::TrainUnits));
 	events.log.clear();
 	emit panel.sourceTractionEdit()->editingFinished();
 	QVERIFY2(events.log.empty(), "leaving a source field without changing it does not touch the document");
@@ -514,7 +515,8 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(document.lastChangeLabel(), "Rename rolling stock unit");
 	QVERIFY2(document.model().compositions[0].units == std::vector<std::string>({"u1_renamed", "u2", "u1_renamed"}),
 		"a rename rewrites the compositions that use the unit");
-	// A rename reports the unit ids and the changed units after the document is marked changed.
+	// A rename reports the unit ids after the document is marked changed, and the change names the units and the
+	// compositions.
 	QCOMPARE(events.log, Log({"documentChanged", "unitRenamed", "panelChanged"}));
 	QCOMPARE(events.renamed, QStringList({"u1", "u1_renamed"}));
 	QVERIFY(events.kinds.testFlag(SceneDocument::TrainUnits));
@@ -566,6 +568,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(panel.listWidget()->currentRow(), 1);
 	QCOMPARE_EQ(document.model().trainUnits[1].physical.length_m, 106.0);
 	QCOMPARE(events.log, Log({"documentChanged", "panelChanged"}));
+	QVERIFY(events.kinds.testFlag(SceneDocument::TrainUnits));
 	// A unit is selected by its id.
 	QVERIFY(panel.selectUnit("u2"));
 	QCOMPARE(panel.selectedUnit(), &document.model().trainUnits[2]);
@@ -598,6 +601,7 @@ void TestTrainUnitPanel::editsRenamesAddsAndDeletesUnits() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"u1_pending", "u1_pending_copy", "u2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
 	QCOMPARE(events.log, Log({"documentChanged", "unitDeleted", "panelChanged"}));
+	QVERIFY(events.kinds.testFlag(SceneDocument::TrainUnits));
 	QCOMPARE(events.deleted, QStringList({"new_train_unit"}));
 
 	// The units stay editable while the document is closed for edits.
