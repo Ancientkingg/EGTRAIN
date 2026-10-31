@@ -130,6 +130,11 @@ enum class SignalState : unsigned char {
 
 /// A block section. RunInfrastructure::sections holds the sections of the scene and the sections derived at switches, and
 /// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
+///
+/// Each route copy has its own code, state, exit_speed and, on each arc, speedInBraking and signalSpeedLimit, because the
+/// activation writes them along that route: the aspects come from the occupied sections ahead on the route, and the speed at
+/// the end of a section from its next section on the route. Copies of one section in one direction can therefore differ where
+/// their routes part ahead, and the window shows the most restrictive code (GuiSignalStateList).
 class Section {
 public:
 	std::string ID;					///< ID of the section.
@@ -282,8 +287,10 @@ void setGeoCoordinates(Section* BS, int N_BS);
 /// sections of the route; a train position in metres is X * 1000.
 class Route {
 public:
-	std::string ID;									 ///< ID of the scene route; "None" until built.
-	int N_Block_Sections;							 ///< Number of block sections composing the route
+	std::string ID;		  ///< ID of the scene route; "None" until built.
+	int N_Block_Sections; ///< Number of block sections composing the route
+	/// The copies belong to this route: the activation writes their signal state along it, and a train reads the copies of its
+	/// own route. The copies of a section on two routes can differ (see Section).
 	std::vector<Section> sequence_of_block_sections; ///< Sequence of block sections, N_Block_Sections elements once the route is built
 	double x_of_start_node;							 ///< X in kilometres of the start node of the route.
 	double x_of_end_node;							 ///< X in kilometres of the end node of the route.
