@@ -191,7 +191,9 @@ or silently retarget stops.
 
 Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
 Accept validates the focused fields and commits once; Cancel changes nothing,
-including when adding a stop. The matrix and dialog offer Elapsed/Clock time
+including when adding a stop. An accepted dialog changes nothing either when the
+scene was replaced or closed for edits, or the service changed, while it was
+open. The matrix and dialog offer Elapsed/Clock time
 with the canonical case base time shown. Blank arrival or departure means absent,
 not zero. Clock input uses `HH:MM:SS[.fraction]` and explicit `+Nd ` prefixes for
 later days; a clock before base is not silently interpreted as tomorrow.

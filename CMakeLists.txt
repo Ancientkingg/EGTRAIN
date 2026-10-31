@@ -279,6 +279,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/SceneEditorPanel.h
     ${SRC_DIR}/editors/ScenarioPanel.cpp
     ${SRC_DIR}/editors/ServicePanel.cpp
+    ${SRC_DIR}/editors/StopEditorDialog.cpp
     ${SRC_DIR}/editors/TimetableStopsPanel.cpp
     ${SRC_DIR}/editors/TrainUnitPanel.cpp
     ${SRC_DIR}/editors/TrainUnitSourceLinker.cpp

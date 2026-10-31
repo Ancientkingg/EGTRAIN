@@ -14,8 +14,8 @@ class QPushButton;
 class QTableWidget;
 
 /// The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned
-/// times, and the buttons that add, remove and move them. A stop is added or edited in a dialog on a copy and enters
-/// the service only when the stop still fits the route. The service is the one whose id the panel is given. The five
+/// times, and the buttons that add, remove and move them. A stop is added or edited in a StopEditorDialog on copies and
+/// enters the service only when the stop still fits the route. The service is the one whose id the panel is given. The five
 /// columns fill the width of the table down to their minimum widths: the platform and the times take what their
 /// header and a typical value need and the station takes the rest. A table narrower than that shortens the columns,
 /// and long text is elided. The minimum dwell is in seconds, and the planned arrival and departure are seconds from
@@ -46,7 +46,8 @@ public:
 	/// Moves the selected stop one place later.
 	void moveStopDown();
 	/// Opens the dialog of the stop in this row of the table. A negative row adds a stop at `insertIndex`, or at the end
-	/// when that is negative.
+	/// when that is negative. An accepted dialog changes the service only while the scene can be edited and the service
+	/// is the same as when the dialog opened; otherwise it changes nothing.
 	void editStop(int row, int insertIndex = -1);
 
 	/// The stops: station, stop platform, minimum dwell in seconds, planned arrival and planned departure.
