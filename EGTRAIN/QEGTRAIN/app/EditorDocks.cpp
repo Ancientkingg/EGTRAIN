@@ -373,8 +373,14 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel,
 		&TimetableStopsPanel::setServiceId);
 	QObject::connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
-	QObject::connect(m_timetableStopsPanel, &TimetableStopsPanel::commitPendingEditsRequested, m_window,
-		[this] { m_host.commitPendingEditorValues(); });
+	// The window does not validate the edits that its own commit makes. When the text that it took changed the scene, the
+	// scene is validated here, so that the validation is current also when the dialog is cancelled.
+	QObject::connect(m_timetableStopsPanel, &TimetableStopsPanel::commitPendingEditsRequested, m_window, [this] {
+		const quint64 revision = m_document->revision();
+		m_host.commitPendingEditorValues();
+		if (m_document->revision() != revision)
+			m_host.refreshValidationPanel();
+	});
 	QObject::connect(m_servicePanel, &ServicePanel::changed, m_window, [this] { m_host.refreshValidationPanel(); });
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);

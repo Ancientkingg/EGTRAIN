@@ -191,7 +191,8 @@ or silently retarget stops.
 
 Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
 Before the panel copies the service, it emits `commitPendingEditsRequested`, and
-the window takes the text that is still being typed in the other panels. On
+the window takes the text that is still being typed in the other panels and
+validates the scene when that text changed it. On
 macOS a button does not take the focus, so a composition id typed without Enter
 would otherwise be taken when the dialog takes the focus, and its change of the
 service would keep the stop of the dialog out. Accept validates the focused fields and commits once; Cancel changes nothing,
