@@ -6,8 +6,6 @@ var class_node =
     [ "connectIdBlockSet", "class_node.html#afd1ec961dd28c228e8f7451e863d08df", null ],
     [ "connectXNode", "class_node.html#a9702bb41d5489f9403e1ae0bb253a9ec", null ],
     [ "dwellTime", "class_node.html#adfac506c25da76917b30fb9783c86b1d", null ],
-    [ "graphX", "class_node.html#a17af8258d372ab0d2c0a63022f12c7df", null ],
-    [ "graphY", "class_node.html#abca80823d69b672821840baa596bb53a", null ],
     [ "ID", "class_node.html#a3f004d7828f8d7511d5ed47f9516c2c9", null ],
     [ "IDConnectedBlocks", "class_node.html#a633cd9429e74119f27c859ef2fe93b36", null ],
     [ "indexOrderList", "class_node.html#ad44c73b04d836c889a5bb8ffa56c0af6", null ],

@@ -137,10 +137,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a7130f512aa69623fffa17940ed8cc2bd" id="r_a7130f512aa69623fffa17940ed8cc2bd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a7130f512aa69623fffa17940ed8cc2bd">xSecondNode</a></td></tr>
 <tr class="memdesc:a7130f512aa69623fffa17940ed8cc2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">X of the second node in kilometres.  <br /></td></tr>
 <tr class="memitem:ac12d24778f6af12885f90ba88637e120" id="r_ac12d24778f6af12885f90ba88637e120"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac12d24778f6af12885f90ba88637e120">speedlimit</a></td></tr>
-<tr class="memitem:abe46975eb784942ea18354770c3c82cc" id="r_abe46975eb784942ea18354770c3c82cc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abe46975eb784942ea18354770c3c82cc">graphXFirstNode</a></td></tr>
-<tr class="memitem:a9352ed12816af4521f1af42e6e369aab" id="r_a9352ed12816af4521f1af42e6e369aab"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9352ed12816af4521f1af42e6e369aab">graphYFirstNode</a></td></tr>
-<tr class="memitem:a3f415492e45f45b9214b5160c5081cbc" id="r_a3f415492e45f45b9214b5160c5081cbc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3f415492e45f45b9214b5160c5081cbc">graphXSecondNode</a></td></tr>
-<tr class="memitem:a81598eb96436c1174c8e9e1c2f81c347" id="r_a81598eb96436c1174c8e9e1c2f81c347"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a81598eb96436c1174c8e9e1c2f81c347">graphYSecondNode</a></td></tr>
+<tr class="memdesc:ac12d24778f6af12885f90ba88637e120"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed limit in m/s; 16.667 (60 km/h) when the scene gives none.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A connection between two tracks, such as a switch. </p>
@@ -165,66 +162,6 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="abe46975eb784942ea18354770c3c82cc" name="abe46975eb784942ea18354770c3c82cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe46975eb784942ea18354770c3c82cc">&#9670;&#160;</a></span>graphXFirstNode</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Connections::graphXFirstNode</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Not used: the builder copies them from <a class="el" href="class_node.html#a17af8258d372ab0d2c0a63022f12c7df">Node::graphX</a> and graphY, which are 0, and the network canvas works out the ends of the connection it draws itself. </p>
-
-</div>
-</div>
-<a id="a3f415492e45f45b9214b5160c5081cbc" name="a3f415492e45f45b9214b5160c5081cbc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f415492e45f45b9214b5160c5081cbc">&#9670;&#160;</a></span>graphXSecondNode</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Connections::graphXSecondNode</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>See graphXFirstNode. </p>
-
-</div>
-</div>
-<a id="a9352ed12816af4521f1af42e6e369aab" name="a9352ed12816af4521f1af42e6e369aab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9352ed12816af4521f1af42e6e369aab">&#9670;&#160;</a></span>graphYFirstNode</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Connections::graphYFirstNode</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>See graphXFirstNode. </p>
-
-</div>
-</div>
-<a id="a81598eb96436c1174c8e9e1c2f81c347" name="a81598eb96436c1174c8e9e1c2f81c347"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81598eb96436c1174c8e9e1c2f81c347">&#9670;&#160;</a></span>graphYSecondNode</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double Connections::graphYSecondNode</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>See graphXFirstNode. </p>
-
-</div>
-</div>
 <a id="a3b991cb009aa3fe3c3bb24ea54441bc9" name="a3b991cb009aa3fe3c3bb24ea54441bc9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3b991cb009aa3fe3c3bb24ea54441bc9">&#9670;&#160;</a></span>ID</h2>
 
@@ -313,6 +250,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
 <p>Speed limit in m/s; 16.667 (60 km/h) when the scene gives none. </p>
 
 </div>

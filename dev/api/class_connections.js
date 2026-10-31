@@ -1,10 +1,6 @@
 var class_connections =
 [
     [ "Connections", "class_connections.html#ac88d39f818e8a52e8c630cb388ed520c", null ],
-    [ "graphXFirstNode", "class_connections.html#abe46975eb784942ea18354770c3c82cc", null ],
-    [ "graphXSecondNode", "class_connections.html#a3f415492e45f45b9214b5160c5081cbc", null ],
-    [ "graphYFirstNode", "class_connections.html#a9352ed12816af4521f1af42e6e369aab", null ],
-    [ "graphYSecondNode", "class_connections.html#a81598eb96436c1174c8e9e1c2f81c347", null ],
     [ "ID", "class_connections.html#a3b991cb009aa3fe3c3bb24ea54441bc9", null ],
     [ "idFirstTrackLine", "class_connections.html#af675cd7b4ccf26b19be55d78687b1d04", null ],
     [ "idSecondTrackLine", "class_connections.html#aeed40a32a8dcf417c4e153753be404da", null ],

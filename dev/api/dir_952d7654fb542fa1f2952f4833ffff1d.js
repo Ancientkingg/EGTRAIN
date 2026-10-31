@@ -8,8 +8,6 @@ var dir_952d7654fb542fa1f2952f4833ffff1d =
     [ "InitialParameters.h", "_initial_parameters_8h.html", "_initial_parameters_8h" ],
     [ "NumberGenerator.cpp", "_number_generator_8cpp.html", null ],
     [ "NumberGenerator.h", "_number_generator_8h.html", "_number_generator_8h" ],
-    [ "Optimisation.cpp", "_optimisation_8cpp.html", "_optimisation_8cpp" ],
-    [ "Optimisation.h", "_optimisation_8h.html", "_optimisation_8h" ],
     [ "Passengers.cpp", "_passengers_8cpp.html", "_passengers_8cpp" ],
     [ "Passengers.h", "_passengers_8h.html", "_passengers_8h" ],
     [ "RollingStock.cpp", "_rolling_stock_8cpp.html", "_rolling_stock_8cpp" ],

@@ -27,11 +27,5 @@ var searchData=
   ['gradientexceptioninbraking_24',['GradientExceptionInBraking',['../class_train.html#a7df4fcc91f29f6761248c5fb8b96f321',1,'Train']]],
   ['gradientpercent_25',['gradientPercent',['../struct_scene_arc.html#adfb1e440a94c313c229f2464d4f77835',1,'SceneArc']]],
   ['graphid_26',['graphID',['../class_block_set.html#a98ed98b159b80cf28b2ab33e0afa452c',1,'BlockSet']]],
-  ['graphx_27',['graphX',['../class_node.html#a17af8258d372ab0d2c0a63022f12c7df',1,'Node::graphX'],['../class_stations.html#a02c0f36d291e32c6f9cfe86acc5b288f',1,'Stations::graphX']]],
-  ['graphxfirstnode_28',['graphXFirstNode',['../class_connections.html#abe46975eb784942ea18354770c3c82cc',1,'Connections']]],
-  ['graphxsecondnode_29',['graphXSecondNode',['../class_connections.html#a3f415492e45f45b9214b5160c5081cbc',1,'Connections']]],
-  ['graphy_30',['graphY',['../class_node.html#abca80823d69b672821840baa596bb53a',1,'Node::graphY'],['../class_stations.html#a4175e4445181c9382f8deb4831c28057',1,'Stations::graphY']]],
-  ['graphyfirstnode_31',['graphYFirstNode',['../class_connections.html#a9352ed12816af4521f1af42e6e369aab',1,'Connections']]],
-  ['graphysecondnode_32',['graphYSecondNode',['../class_connections.html#a81598eb96436c1174c8e9e1c2f81c347',1,'Connections']]],
-  ['gui_33',['GUI',['../class_initial_parameters.html#a5cbf6fd961307e3585fd01e24caa51eb',1,'InitialParameters']]]
+  ['gui_27',['GUI',['../class_initial_parameters.html#a5cbf6fd961307e3585fd01e24caa51eb',1,'InitialParameters']]]
 ];
