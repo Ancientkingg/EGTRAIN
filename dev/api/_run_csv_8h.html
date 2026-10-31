@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_run_csv_8h.ht
   <div class="headertitle"><div class="title">RunCsv.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="_blocking_time_diagram_8h_source.html">diagrams/BlockingTimeDiagram.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="_blocking_time_data_8h_source.html">diagrams/BlockingTimeData.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_blocking_time_diagram_8h_source.html">diagrams/BlockingTimeDiagram.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_capacity_analysis_8h_source.html">diagrams/CapacityAnalysis.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_capacity_scope_8h_source.html">diagrams/CapacityScope.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_completed_run_data_8h_source.html">diagrams/CompletedRunData.h</a>&quot;</code><br />
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_run_csv_8h.ht
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for RunCsv.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_csv_8h__incl.svg" width="2162" height="418"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_csv_8h__incl.svg" width="2414" height="492"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -144,7 +145,7 @@ Typedefs</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a30420cc2f51f35b56508a87ebbf6fdc7" id="r_a30420cc2f51f35b56508a87ebbf6fdc7"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30420cc2f51f35b56508a87ebbf6fdc7">csvValue</a> (const <a class="el" href="struct_run_result_value.html">RunResultValue</a> &amp;value)</td></tr>
 <tr class="memdesc:a30420cc2f51f35b56508a87ebbf6fdc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The CSV field of a value: the number, or an empty field when it is unavailable.  <br /></td></tr>
-<tr class="memitem:a587c3daade1504ca9e5d8fd12410f04d" id="r_a587c3daade1504ca9e5d8fd12410f04d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a587c3daade1504ca9e5d8fd12410f04d">buildBlockingTimeCsv</a> (const QStringList &amp;visibleTrainIds, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;plannedReferences, const std::vector&lt; std::vector&lt; std::string &gt; &gt; &amp;trajectories={}, const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents={}, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;unmapped={})</td></tr>
+<tr class="memitem:a5c394f734cf9699b8ad97079bdb6e049" id="r_a5c394f734cf9699b8ad97079bdb6e049"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5c394f734cf9699b8ad97079bdb6e049">buildBlockingTimeCsv</a> (const QStringList &amp;visibleTrainIds, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;segments, const std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &amp;plannedReferences, const std::vector&lt; <a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a> &gt; &amp;trajectories={}, const std::vector&lt; <a class="el" href="struct_block_section_extent.html">BlockSectionExtent</a> &gt; &amp;extents={}, const std::vector&lt; <a class="el" href="struct_blocking_time_diagram_segment.html">BlockingTimeDiagramSegment</a> &gt; &amp;unmapped={})</td></tr>
 <tr class="memitem:acc9e721df4c93951d7c998c7b3851059" id="r_acc9e721df4c93951d7c998c7b3851059"><td class="memItemLeft">QStringList&#160;</td><td class="memItemRight"><a class="el" href="#acc9e721df4c93951d7c998c7b3851059">trainIdsFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:acc9e721df4c93951d7c998c7b3851059"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ids of the trains of the run, in run order.  <br /></td></tr>
 <tr class="memitem:aef3655f13c5de447c146b76cd0783430" id="r_aef3655f13c5de447c146b76cd0783430"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aef3655f13c5de447c146b76cd0783430">trajectoryCsvFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, const QStringList &amp;visibleTrainIds)</td></tr>
@@ -175,8 +176,8 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a587c3daade1504ca9e5d8fd12410f04d" name="a587c3daade1504ca9e5d8fd12410f04d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a587c3daade1504ca9e5d8fd12410f04d">&#9670;&#160;</a></span>buildBlockingTimeCsv()</h2>
+<a id="a5c394f734cf9699b8ad97079bdb6e049" name="a5c394f734cf9699b8ad97079bdb6e049"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c394f734cf9699b8ad97079bdb6e049">&#9670;&#160;</a></span>buildBlockingTimeCsv()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -199,7 +200,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; std::vector&lt; std::string &gt; &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>trajectories</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>trajectories</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -213,11 +214,11 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The blocking-time CSV: the envelopes of the visible trains in <span class="tt">segments</span>, their planned stop references, the recorded trajectory rows, the envelopes that could not be projected and one row for each section in <span class="tt">extents</span>. Every row has the columns of <a class="el" href="_blocking_time_diagram_8cpp.html#a88c7774ff8abc2790f37548811ba11a8">blockingTimeCsvHeader()</a>; the geo X columns map the positions through the <a class="el" href="class_position_scale.html">PositionScale</a> of <span class="tt">extents</span>. </p>
+<p>The blocking-time CSV: the envelopes of the visible trains in <span class="tt">segments</span>, their planned stop references, a row for each recorded sample of their <span class="tt">trajectories</span>, the envelopes that could not be projected and one row for each section in <span class="tt">extents</span>. Every row has the columns of <a class="el" href="_blocking_time_diagram_8cpp.html#a88c7774ff8abc2790f37548811ba11a8">blockingTimeCsvHeader()</a>; the geo X columns map the positions through the <a class="el" href="class_position_scale.html">PositionScale</a> of <span class="tt">extents</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_csv_8h_a587c3daade1504ca9e5d8fd12410f04d_cgraph.svg" width="792" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_run_csv_8h_a5c394f734cf9699b8ad97079bdb6e049_cgraph.svg" width="792" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

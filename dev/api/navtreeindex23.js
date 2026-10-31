@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"struct_network_legend_content.html#a7df3f76f400708b03443494cd79f173f":[2,0,141,5],
 "struct_network_legend_content.html#aa5ca6c4549837edad2c8210214b3c430":[2,0,141,2],
 "struct_network_legend_content.html#ac7e286f2dbeb0e6ab0998bdfae1d2892":[2,0,141,4],
 "struct_network_legend_content.html#af1b4ce9a6e5c071b9150ac09d6d6205c":[2,0,141,3],
@@ -141,9 +142,8 @@ var NAVTREEINDEX23 =
 "struct_route_chart.html#ab7d5916ac4e38b59b1bff0c67684bb3d":[2,0,180,2],
 "struct_route_chart.html#aca7d67e71d0b49b7d2e5c7ea9ee8af52":[2,0,180,3],
 "struct_route_diagram_data.html":[2,0,181],
-"struct_route_diagram_data.html#a0d40e70ad6b32b5ba5978baf9f963342":[2,0,181,2],
-"struct_route_diagram_data.html#a677018b9fdf8ecf8ad643f68eb0b66d8":[2,0,181,1],
-"struct_route_diagram_data.html#ad209dcf018a71de290d815118bfe558d":[2,0,181,0],
+"struct_route_diagram_data.html#a0d40e70ad6b32b5ba5978baf9f963342":[2,0,181,1],
+"struct_route_diagram_data.html#a677018b9fdf8ecf8ad643f68eb0b66d8":[2,0,181,0],
 "struct_route_diagram_node.html":[2,0,182],
 "struct_route_diagram_node.html#a3ee874764653de98ecad064be6a7cba3":[2,0,182,0],
 "struct_route_diagram_node.html#aa229c922e429810d934513eab765f6fc":[2,0,182,2],

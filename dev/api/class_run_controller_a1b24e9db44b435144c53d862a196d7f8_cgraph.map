@@ -1,5 +1,10 @@
 <map id="RunController::hasRunResults" name="RunController::hasRunResults">
-<area shape="rect" id="Node000001" title="Results of a completed run exist and the simulation still holds the trajectories behind them." alt="" coords="5,5,220,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,32,220,60"/>
 <area shape="rect" id="Node000002" href="$class_run_controller.html#a4ab71663fd2e781b122a664f0d929787" title="The last run completed and its results are valid for the scene as it is." alt="" coords="268,5,490,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,17,255,19,250,19,220,22"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,32,255,31,250,32,221,38"/>
+<area shape="rect" id="Node000003" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="293,57,464,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,53,281,61,275,62,220,59"/>
+<area shape="rect" id="Node000004" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="538,57,630,85"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="465,69,525,71,520,71,465,74"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="549,56,543,48,548,39,562,33,584,31,608,33,623,43,618,42,607,38,584,36,563,38,551,43,548,48,553,58"/>
 </map>

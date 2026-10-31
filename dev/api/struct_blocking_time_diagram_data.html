@@ -139,8 +139,7 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac09b3fa31ed1b52180305482a96c3c2f" id="r_ac09b3fa31ed1b52180305482a96c3c2f"><td class="memItemLeft">std::vector&lt; std::vector&lt; <a class="el" href="struct_blocking_time_planned_reference.html">BlockingTimePlannedReference</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac09b3fa31ed1b52180305482a96c3c2f">plannedLines</a></td></tr>
 <tr class="memdesc:ac09b3fa31ed1b52180305482a96c3c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clipped to the scope, for the chart.  <br /></td></tr>
 <tr class="memitem:a6d67e63b924312daad1bbda42adf3861" id="r_a6d67e63b924312daad1bbda42adf3861"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_blocking_time_trajectory.html">BlockingTimeTrajectory</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6d67e63b924312daad1bbda42adf3861">trajectories</a></td></tr>
-<tr class="memdesc:a6d67e63b924312daad1bbda42adf3861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples that lie inside an envelope of their train.  <br /></td></tr>
-<tr class="memitem:a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" id="r_a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">trajectoryRows</a></td></tr>
+<tr class="memdesc:a6d67e63b924312daad1bbda42adf3861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recorded samples that lie inside an envelope of their train. The export writes a row for each of them.  <br /></td></tr>
 <tr class="memitem:a1b70af28b923e32fd73b8f18d56da7bf" id="r_a1b70af28b923e32fd73b8f18d56da7bf"><td class="memItemLeft">std::pair&lt; double, double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1b70af28b923e32fd73b8f18d56da7bf">timeRange</a></td></tr>
 <tr class="memitem:a4c95afc0f6c3e4e2f1e72a98bda997d8" id="r_a4c95afc0f6c3e4e2f1e72a98bda997d8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a4c95afc0f6c3e4e2f1e72a98bda997d8">omitted</a> = 0</td></tr>
 <tr class="memitem:aad9de93696e0dce0837c32060f4dead9" id="r_aad9de93696e0dce0837c32060f4dead9"><td class="memItemLeft">std::map&lt; std::string, std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aad9de93696e0dce0837c32060f4dead9">repeatedTrains</a></td></tr>
@@ -300,22 +299,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Recorded samples that lie inside an envelope of their train. </p>
-
-</div>
-</div>
-<a id="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9" name="a0ce7ad9d3b1e3b5dbceffc5a70b7bab9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ce7ad9d3b1e3b5dbceffc5a70b7bab9">&#9670;&#160;</a></span>trajectoryRows</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;std::vector&lt;std::string&gt; &gt; BlockingTimeDiagramData::trajectoryRows</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The export rows of the trajectories, with geo X from <span class="tt"><a class="el" href="#aa308e64921030b2c12f70594c08e5724" title="The sections of the scope.">extents</a></span> </p>
+<p>Recorded samples that lie inside an envelope of their train. The export writes a row for each of them. </p>
 
 </div>
 </div>

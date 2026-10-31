@@ -463,6 +463,114 @@ because static constructors touched the fixed arrays before any scene was
 loaded (#463).</p>
 </section>
 </section>
+<section id="result-windows-after-a-window-run-recorded-2026-10-31">
+<h2>Result windows after a window run, recorded 2026-10-31<a class="headerlink" href="#result-windows-after-a-window-run-recorded-2026-10-31" title="Link to this heading">¶</a></h2>
+<p>The route and blocking-time windows used to keep a preformatted CSV row for each
+sample they draw, and the simulation kept the samples of every train and step
+after the run had been copied into <code class="docutils literal notranslate"><span class="pre">CompletedRunData</span></code>. These numbers compare a
+Release executable (Qt 6.8.3, macOS 27.0, arm64) built from <code class="docutils literal notranslate"><span class="pre">main</span></code> at
+<code class="docutils literal notranslate"><span class="pre">d0bb18097</span></code> with one that makes the CSV rows only on export and frees the
+samples of the trains when the run ends. Each pair ran one after the other at a
+load average of about 2 to 3, so the elapsed times are not compared.</p>
+<p>The scripted window runs of <a class="reference internal" href="build.html"><span class="std std-doc">build.md</span></a> open the windows and write their
+CSV files. Both run from <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_ROUTE_DIAGRAM=&lt;dir&gt; \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_EXPORT_DIR=&lt;dir&gt; \
+  /usr/bin/time -l &lt;app&gt; --scene Scenes/&lt;case&gt; -g 1 -pax 0
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_ROUTE_DIAGRAM</span></code> opens Train paths and Timetable graph for every route
+that trains use; <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_EXPORT_DIR</span></code> opens the blocking-time window and the
+other result views. Both write their files before the run has finished in the
+window, so they show what the windows hold, not the freed samples. The CSV files of
+both executables were the same byte for byte.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head"><p>Hook</p></th>
+<th class="head text-right"><p>Peak RSS before (MiB)</p></th>
+<th class="head text-right"><p>Peak RSS after (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint before (MiB)</p></th>
+<th class="head text-right"><p>Peak footprint after (MiB)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>1,982.6</p></td>
+<td class="text-right"><p>1,411.6</p></td>
+<td class="text-right"><p>1,466.0</p></td>
+<td class="text-right"><p>1,001.4</p></td>
+</tr>
+<tr class="row-odd"><td><p>Copenhagen</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>2,378.6</p></td>
+<td class="text-right"><p>2,180.3</p></td>
+<td class="text-right"><p>1,827.3</p></td>
+<td class="text-right"><p>1,676.8</p></td>
+</tr>
+<tr class="row-even"><td><p>Netherlands</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>500.0</p></td>
+<td class="text-right"><p>457.2</p></td>
+<td class="text-right"><p>403.5</p></td>
+<td class="text-right"><p>357.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>536.1</p></td>
+<td class="text-right"><p>520.3</p></td>
+<td class="text-right"><p>426.5</p></td>
+<td class="text-right"><p>409.0</p></td>
+</tr>
+<tr class="row-even"><td><p>Paimpol</p></td>
+<td><p>route diagram</p></td>
+<td class="text-right"><p>189.6</p></td>
+<td class="text-right"><p>187.7</p></td>
+<td class="text-right"><p>147.0</p></td>
+<td class="text-right"><p>145.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Paimpol</p></td>
+<td><p>export</p></td>
+<td class="text-right"><p>207.6</p></td>
+<td class="text-right"><p>203.2</p></td>
+<td class="text-right"><p>165.1</p></td>
+<td class="text-right"><p>160.5</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Netherlands route diagram run exits with 2 in both executables, because its
+timetable graph has no planned series; it has written its files by then.</p>
+<p>After a run with only <code class="docutils literal notranslate"><span class="pre">QEGTRAIN_AUTOSTART=1</span></code>, <code class="docutils literal notranslate"><span class="pre">vmmap</span> <span class="pre">--summary</span> <span class="pre">&lt;pid&gt;</span></code> 30 s after
+the Run Results table appeared gave these allocated bytes of the default malloc
+zone:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Case</p></th>
+<th class="head text-right"><p>Allocated before (MB)</p></th>
+<th class="head text-right"><p>Allocated after (MB)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Copenhagen</p></td>
+<td class="text-right"><p>532.3</p></td>
+<td class="text-right"><p>391.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>Netherlands</p></td>
+<td class="text-right"><p>304.1</p></td>
+<td class="text-right"><p>275.1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">footprint</span> <span class="pre">&lt;pid&gt;</span></code> did not fall with them: malloc keeps the freed pages of its
+small regions for the next allocations of the process, such as the result
+windows and the next run.</p>
+</section>
 </section>
 
         </article>
@@ -527,6 +635,7 @@ loaded (#463).</p>
 <li><a class="reference internal" href="#idle-memory-after-startup">Idle memory after startup</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#result-windows-after-a-window-run-recorded-2026-10-31">Result windows after a window run, recorded 2026-10-31</a></li>
 </ul>
 </li>
 </ul>

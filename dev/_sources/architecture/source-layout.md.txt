@@ -56,7 +56,10 @@ When a run ends, `captureCompletedRun` (`diagrams/CompletedRunCapture.cpp`) copi
 simulation into one `CompletedRunData`, and `RunController` holds it as `m_completedRun`, a
 `std::shared_ptr<const CompletedRunData>`. The Run Results dock reads it, and every result window and CSV export keeps
 its own pointer. So a window that was opened for one run goes on showing and exporting that run after another run of the
-same case has replaced the simulation state. Opening or creating a case closes the result windows. The code in `diagrams/` reads the simulation only in `CompletedRunCapture.cpp` and
+same case has replaced the simulation state. Opening or creating a case closes the result windows. Once the capture is
+made and `TrainServicePathDiagram.txt` is written, `RunController` frees the samples that each train of the simulation
+keeps for every step; the trains themselves stay, for Follow and the canvas. A route or blocking-time window keeps the
+data it draws and makes its CSV rows only when it exports. The code in `diagrams/` reads the simulation only in `CompletedRunCapture.cpp` and
 `RunResults.cpp`. `tools/e2e/test_diagrams_no_sim_globals.py` fails when another file of `diagrams/`, or
 `app/MainWindowSupport.h`, includes a header of `simulation/` or names `regional_train`, `train_route`, `numRegions` or
 `initial_variables`. It also fails when `app/MainWindow.cpp` or `app/MainWindow.h` names one of them: the window reads the

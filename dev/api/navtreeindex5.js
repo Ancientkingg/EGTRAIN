@@ -1,5 +1,7 @@
 var NAVTREEINDEX5 =
 {
+"_scene_model_8h.html#a47ec40739fdcf8b8b023d48cc1e371a4":[3,0,7,23,60],
+"_scene_model_8h.html#a542427b235c1ce700a1b79692704626c":[3,0,7,23,49],
 "_scene_model_8h.html#a653cc0151b923200b58f9ba09faa9861":[3,0,7,23,54],
 "_scene_model_8h.html#a69af3c8a54fe5e718e34066cf176e53c":[3,0,7,23,50],
 "_scene_model_8h.html#a70e6d3f731dfc337f8a100a644af72bb":[3,0,7,23,51],
@@ -247,7 +249,5 @@ var NAVTREEINDEX5 =
 "_signal_item_8h_source.html":[3,0,4,0,15],
 "_signal_item_roles_8h.html":[3,0,4,12],
 "_signal_item_roles_8h.html#a3655f423ec7bb0c4dc618cdc1c08b1b6":[3,0,4,12,3],
-"_signal_item_roles_8h.html#aa133f3e3e693051e679fa0ae6b2b12ac":[3,0,4,12,0],
-"_signal_item_roles_8h.html#ad3d8a9e4c600d8f9e7640a0a694133e0":[3,0,4,12,2],
-"_signal_item_roles_8h.html#aef4451f94bc9e42e2c0052d4cd6d58dd":[3,0,4,12,1]
+"_signal_item_roles_8h.html#aa133f3e3e693051e679fa0ae6b2b12ac":[3,0,4,12,0]
 };

@@ -232,7 +232,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4213445d413f256d2f233771f4313f25" id="r_a4213445d413f256d2f233771f4313f25"><td class="memItemLeft">const std::shared_ptr&lt; const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a4213445d413f256d2f233771f4313f25">completedRun</a> () const</td></tr>
 <tr class="memdesc:a4213445d413f256d2f233771f4313f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">The finished run as values. Null while no run has completed.  <br /></td></tr>
 <tr class="memitem:a1b24e9db44b435144c53d862a196d7f8" id="r_a1b24e9db44b435144c53d862a196d7f8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1b24e9db44b435144c53d862a196d7f8">hasRunResults</a> () const</td></tr>
-<tr class="memdesc:a1b24e9db44b435144c53d862a196d7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Results of a completed run exist and the simulation still holds the trajectories behind them.  <br /></td></tr>
 <tr class="memitem:a2f5411f4faf505399e683a85d5ae0d1a" id="r_a2f5411f4faf505399e683a85d5ae0d1a"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a2f5411f4faf505399e683a85d5ae0d1a">lastRunSelectedOccurrences</a> () const</td></tr>
 <tr class="memdesc:a2f5411f4faf505399e683a85d5ae0d1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many service occurrences were selected for the last run.  <br /></td></tr>
 <tr class="memitem:a247b5649bbbf47573a4553ad28c1cccf" id="r_a247b5649bbbf47573a4553ad28c1cccf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a247b5649bbbf47573a4553ad28c1cccf">lastRunTotalOccurrences</a> () const</td></tr>
@@ -263,7 +262,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7800e103e0f9e83da53b0ae2b98a6618" id="r_a7800e103e0f9e83da53b0ae2b98a6618"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7800e103e0f9e83da53b0ae2b98a6618">clearSimulationWorker</a> (bool requestStop)</td></tr>
 <tr class="memitem:a92622bf326dec8c87f0f4f5ed4a7f990" id="r_a92622bf326dec8c87f0f4f5ed4a7f990"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a92622bf326dec8c87f0f4f5ed4a7f990">deferUntilRunStopped</a> (std::function&lt; void()&gt; action)</td></tr>
 <tr class="memitem:a2a777afc9c09e3e57b2955098ca67b2c" id="r_a2a777afc9c09e3e57b2955098ca67b2c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2a777afc9c09e3e57b2955098ca67b2c">onSimulationFinished</a> ()</td></tr>
-<tr class="memdesc:a2a777afc9c09e3e57b2955098ca67b2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The results of the run are kept or discarded, and the window follows.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -652,7 +650,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7150f567d499de328a83340860fe0666_cgraph.svg" width="1788" height="1675"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a7150f567d499de328a83340860fe0666_cgraph.svg" width="1788" height="1656"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -732,12 +730,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Results of a completed run exist and the simulation still holds the trajectories behind them. </p>
+<p>Results of a completed run exist and the simulation still holds the trains behind them. The samples that the trains keep for every step are freed when the run ends: <a class="el" href="#a4213445d413f256d2f233771f4313f25" title="The finished run as values. Null while no run has completed.">completedRun()</a> holds what the result views read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a1b24e9db44b435144c53d862a196d7f8_cgraph.svg" width="496" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a1b24e9db44b435144c53d862a196d7f8_cgraph.svg" width="636" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -902,12 +899,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>The results of the run are kept or discarded, and the window follows. </p>
+<p>The results of the run are kept or discarded, and the window follows. Then the samples that the trains keep for every step are freed, unless a scripted run or the playback profiler has ended the run for the window before. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2a777afc9c09e3e57b2955098ca67b2c_cgraph.svg" width="1296" height="1723"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2a777afc9c09e3e57b2955098ca67b2c_cgraph.svg" width="1296" height="1774"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -930,7 +926,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a28b81efaa43f715c9637330f1e78a2c5_cgraph.svg" width="1443" height="1363"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a28b81efaa43f715c9637330f1e78a2c5_cgraph.svg" width="1583" height="1644"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1093,7 +1089,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2f3f550f14d769ca77cdefdb21fdc034_cgraph.svg" width="1474" height="2179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a2f3f550f14d769ca77cdefdb21fdc034_cgraph.svg" width="1474" height="2180"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1314,7 +1310,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_ae95580dfc5edc30afa6c8030bca9e56c_cgraph.svg" width="1238" height="2178"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_ae95580dfc5edc30afa6c8030bca9e56c_cgraph.svg" width="1238" height="2136"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1533,7 +1529,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9c387653b91bbef62aac81912369ca3b_cgraph.svg" width="2064" height="1747"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9c387653b91bbef62aac81912369ca3b_cgraph.svg" width="2064" height="1676"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1668,7 +1664,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9d280ab444f391dd8b84cbcf9a4c2b51_cgraph.svg" width="1260" height="1882"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_run_controller_a9d280ab444f391dd8b84cbcf9a4c2b51_cgraph.svg" width="1260" height="1903"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

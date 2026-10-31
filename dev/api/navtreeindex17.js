@@ -1,5 +1,7 @@
 var NAVTREEINDEX17 =
 {
+"class_train_badge_item.html#a887694421ef7fd74a6aedb4c0b0397d5":[2,0,341,19],
+"class_train_badge_item.html#a8ef5aae236421b9efacd1ec8922a072a":[2,0,341,20],
 "class_train_badge_item.html#ab2aeb9c3157ea0ef41a8ba7b576b49f2":[2,0,341,2],
 "class_train_badge_item.html#ae9f51fc05516364c2ccae0dfa9c5b985":[2,0,341,10],
 "class_train_badge_item.html#aeb72f511aa1c73b1cdae48c0220d8938":[2,0,341,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX17 =
 "classeglog_1_1_line.html#a4dd656e6d1685ff95700fe79a55b76b6":[2,0,1,0,3],
 "classeglog_1_1_line.html#a5231f8d426fd21a84e2d656d550722b4":[1,0,7,0,2],
 "classeglog_1_1_line.html#a5231f8d426fd21a84e2d656d550722b4":[2,0,1,0,2],
-"classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa":[1,0,7,0,0],
-"classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa":[2,0,1,0,0],
-"classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf":[1,0,7,0,4]
+"classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa":[1,0,7,0,0]
 };

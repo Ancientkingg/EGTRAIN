@@ -133,6 +133,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a23cc6d8743ea6132e2b4601ffaeb5449" id="r_a23cc6d8743ea6132e2b4601ffaeb5449"><td class="memItemLeft">std::vector&lt; std::pair&lt; int, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a23cc6d8743ea6132e2b4601ffaeb5449">usedRouteReferencesFrom</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data)</td></tr>
 <tr class="memdesc:a23cc6d8743ea6132e2b4601ffaeb5449"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes that trains run on, as (route index, route id) in order of first use.  <br /></td></tr>
 <tr class="memitem:a9e66592dd211190d72140e97499e0152" id="r_a9e66592dd211190d72140e97499e0152"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_route_diagram_data.html">RouteDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9e66592dd211190d72140e97499e0152">routeDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
+<tr class="memitem:ad376c9af355aa4a058714e3c2d7c9651" id="r_ad376c9af355aa4a058714e3c2d7c9651"><td class="memItemLeft">std::vector&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad376c9af355aa4a058714e3c2d7c9651">routeDiagramCsvRows</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, bool timetable, int referenceIndex)</td></tr>
 <tr class="memitem:a468a8ade25b052a551e865a5d5b7fbfb" id="r_a468a8ade25b052a551e865a5d5b7fbfb"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_delay_diagram_data.html">DelayDiagramData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a468a8ade25b052a551e865a5d5b7fbfb">delayDiagramData</a> (const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;data, int referenceIndex)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -191,6 +192,38 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="ad376c9af355aa4a058714e3c2d7c9651" name="ad376c9af355aa4a058714e3c2d7c9651"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad376c9af355aa4a058714e3c2d7c9651">&#9670;&#160;</a></span>routeDiagramCsvRows()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::vector&lt; std::string &gt; &gt; routeDiagramCsvRows </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_completed_run_data.html">CompletedRunData</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>timetable</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>referenceIndex</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The export rows of routeDiagramData with the same arguments, one for each sample or stop event in the order of the chart, with the events that have no point; the columns of buildRouteDiagramCsv. Empty when there is no diagram. The rows are made on each call, so that a window keeps only the run until it exports. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_diagram_data_8cpp_ad376c9af355aa4a058714e3c2d7c9651_cgraph.svg" width="182" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a9e66592dd211190d72140e97499e0152" name="a9e66592dd211190d72140e97499e0152"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9e66592dd211190d72140e97499e0152">&#9670;&#160;</a></span>routeDiagramData()</h2>
 
@@ -218,7 +251,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_diagram_data_8cpp_a9e66592dd211190d72140e97499e0152_cgraph.svg" width="684" height="368"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_route_diagram_data_8cpp_a9e66592dd211190d72140e97499e0152_cgraph.svg" width="154" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

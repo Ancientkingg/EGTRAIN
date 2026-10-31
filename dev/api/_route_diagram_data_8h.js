@@ -9,6 +9,7 @@ var _route_diagram_data_8h =
     [ "DelayDiagramData", "struct_delay_diagram_data.html", "struct_delay_diagram_data" ],
     [ "delayDiagramData", "_route_diagram_data_8h.html#a468a8ade25b052a551e865a5d5b7fbfb", null ],
     [ "projectRoutes", "_route_diagram_data_8h.html#a38f74953865aa78b6d52c19d070e44dc", null ],
+    [ "routeDiagramCsvRows", "_route_diagram_data_8h.html#ad376c9af355aa4a058714e3c2d7c9651", null ],
     [ "routeDiagramData", "_route_diagram_data_8h.html#a9e66592dd211190d72140e97499e0152", null ],
     [ "usedRouteReferencesFrom", "_route_diagram_data_8h.html#a23cc6d8743ea6132e2b4601ffaeb5449", null ]
 ];
