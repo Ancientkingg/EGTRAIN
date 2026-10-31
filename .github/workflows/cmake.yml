@@ -157,10 +157,10 @@ jobs:
           restore-keys: |
             ${{ matrix.name }}
 
-      # The ci presets of CMakePresets.json hold the options of all three legs: the tests, warnings as errors and no
-      # interprocedural optimization (EGTRAIN_IPO=OFF), in build/. Linking with interprocedural optimization generates the code
-      # of the whole program again for every test executable, which a compiler cache cannot store. The package and release
-      # workflows still build with it, so the shipped binaries and the package checks use it.
+      # The ci presets of CMakePresets.json hold the options of all three legs: a Release build with the tests, warnings as
+      # errors and no interprocedural optimization (EGTRAIN_IPO=OFF), in build/. Linking with interprocedural optimization
+      # generates the code of the whole program again for every test executable, which a compiler cache cannot store. The
+      # package and release workflows still build with it, so the shipped binaries and the package checks use it.
       # The keg folders, not the Homebrew prefix, whose include folder could hold the headers of a linked Homebrew Qt. Qt 6.8.3
       # links the AGL framework, which the macOS 26 SDK no longer has, so the OpenGL framework stands in for it.
       - name: Configure (macOS)
@@ -174,14 +174,15 @@ jobs:
       - name: Configure (Linux)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
         run: >
-          cmake --preset ci-linux -DCMAKE_BUILD_TYPE=Release
+          cmake --preset ci-linux
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
 
-      # The Visual Studio generator ignores a compiler launcher, so this leg builds with Ninja in the MSVC environment set
-      # up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release configuration
-      # adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
-      # The ci-windows preset installs the packages of the manifest tools/vcpkg/vcpkg.json with the vcpkg of the runner image.
+      # The Visual Studio generator ignores a compiler launcher, so the ci-windows preset builds with Ninja in the MSVC
+      # environment set up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release
+      # configuration adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
+      # The preset also turns on the network tests of this leg, and installs the packages of the manifest
+      # tools/vcpkg/vcpkg.json with the vcpkg of the runner image.
       # The image clones vcpkg in full and a new image updates the clone, so it holds the builtin-baseline commit of the
       # manifest. The packages go into the installed folder of that vcpkg, where the DLL steps of this job read them, and
       # their archives go into the folder of the binary cache.
@@ -191,8 +192,7 @@ jobs:
         env:
           VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite"
         run: >
-          cmake --preset ci-windows -DEGTRAIN_NETWORK_TESTS=ON
-          -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+          cmake --preset ci-windows
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 

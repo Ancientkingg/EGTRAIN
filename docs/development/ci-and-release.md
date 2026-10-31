@@ -762,17 +762,17 @@ removes it with its key. Run it by hand with
 ### Configure options
 
 The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
-`CMakePresets.json`. They inherit `ci-base`: the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in
-`build/`, where the later steps look. The configure step of each leg adds the compiler launcher of the matrix and the
-prefix path of its runner. macOS also passes `WrapOpenGL_AGL` and gets the Release build type as the default of
-`CMakeLists.txt`; Linux passes `CMAKE_BUILD_TYPE=Release`; Windows passes Ninja, `cl`, `CMAKE_BUILD_TYPE=Release` and
-`EGTRAIN_NETWORK_TESTS=ON`. The leak check and the nightly sanitizer jobs keep configure lines of their own.
+`CMakePresets.json`. They inherit `ci-base`: a Release build with the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and
+`EGTRAIN_IPO=OFF`, in `build/`, where the later steps look. The configure step of each leg adds the compiler launcher of
+the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. The leak check and the nightly
+sanitizer jobs keep configure lines of their own.
 
-`ci-windows` also holds the vcpkg options: the toolchain of the vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`),
-the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json` and no DLL copy after each link
-(`VCPKG_APPLOCAL_DEPS=OFF`; the job puts the DLL folders on `PATH`). The configure step installs the packages of the
-manifest at its `builtin-baseline`, into the `installed` folder of that vcpkg (`VCPKG_INSTALLED_DIR`), where the DLL steps
-of the job read them. The Windows package job of `package.yml` passes the same vcpkg options on its configure line. The
+`ci-windows` also holds Ninja, the `cl` compilers, `EGTRAIN_NETWORK_TESTS=ON` and the vcpkg options: the toolchain of the
+vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`), the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json`
+and no DLL copy after each link (`VCPKG_APPLOCAL_DEPS=OFF`; the job puts the DLL folders on `PATH`). The configure step
+installs the packages of the manifest at its `builtin-baseline`, into the `installed` folder of that vcpkg
+(`VCPKG_INSTALLED_DIR`), where the DLL steps of the job read them. The Windows package job of `package.yml` passes the
+same vcpkg options on its configure line. The
 runner image clones vcpkg in full and a new image updates the clone, so the checkout holds the baseline commit. A
 baseline newer than the checkout of the image fails the configure step, because vcpkg reads the port versions from that
 checkout.

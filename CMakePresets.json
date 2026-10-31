@@ -112,6 +112,7 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
         "EGTRAIN_BUILD_TESTS": "ON",
         "EGTRAIN_WARNINGS_AS_ERRORS": "ON",
         "EGTRAIN_IPO": "OFF"
@@ -142,8 +143,9 @@
     {
       "name": "ci-windows",
       "displayName": "CI Windows",
-      "description": "The shared options and the vcpkg manifest of the Windows leg of .github/workflows/cmake.yml, with the vcpkg of the runner image",
+      "description": "The shared options, Ninja with cl, the network tests and the vcpkg manifest of the Windows leg of .github/workflows/cmake.yml, with the vcpkg of the runner image",
       "inherits": "ci-base",
+      "generator": "Ninja",
       "condition": {
         "type": "allOf",
         "conditions": [
@@ -160,6 +162,9 @@
         ]
       },
       "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "EGTRAIN_NETWORK_TESTS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_DIR": "${sourceDir}/tools/vcpkg",

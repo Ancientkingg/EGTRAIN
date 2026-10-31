@@ -132,9 +132,10 @@ harm. The Windows leg of CI (`.github/workflows/cmake.yml`) and the Windows pack
 install the same manifest with the vcpkg of the runner image: the leg through the `ci-windows` preset, and the package
 job with the same options on its configure line.
 
-The `ci-macos`, `ci-linux` and `ci-windows` presets hold the options that the three CI legs share: the tests,
-`EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in `build/`. Each configure step of the workflow adds the
-compiler launcher and the prefix path of its runner; see [Configure options](ci-and-release.md#configure-options).
+The `ci-macos`, `ci-linux` and `ci-windows` presets hold the options that the three CI legs share: a Release build with
+the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and `EGTRAIN_IPO=OFF`, in `build/`. `ci-windows` adds Ninja, `cl` and
+`EGTRAIN_NETWORK_TESTS=ON`. Each configure step of the workflow adds the compiler launcher and the prefix path of its
+runner; see [Configure options](ci-and-release.md#configure-options).
 
 The Start-menu entry **Developer PowerShell for VS** opens a shell that targets 32-bit Windows, and the configure then
 stops with a message that names x64 as the only supported platform. Switch that shell to x64 first.

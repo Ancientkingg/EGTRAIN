@@ -32,6 +32,11 @@ for phase in "$@"; do
 	fi
 done
 
+if [[ ! -x "$APP" ]]; then
+	echo "QEGTRAIN app not found or not executable: $APP" >&2
+	exit 1
+fi
+
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.XXXXXX")"
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
 COLOR_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-color-scene.XXXXXX")"
@@ -69,11 +74,6 @@ STATION_SHOT_BASE="$WORK_DIR/qegtrain-station-overlay"
 STATION_DPR2_OUT="$WORK_DIR/qegtrain-station-overlay-e2e-dpr2.log"
 COLOR_OUT="$WORK_DIR/qegtrain-visual-polish-color-e2e.log"
 COLOR_SHOT="$WORK_DIR/qegtrain-visual-polish-color-e2e.png"
-
-if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app not found or not executable: $APP" >&2
-	exit 1
-fi
 
 # The checks of the Follow explanation and of the Follow camera in a live run, each of which prints its marker when it holds.
 FOLLOW_LIVE_MARKERS=(

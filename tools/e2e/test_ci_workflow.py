@@ -556,21 +556,25 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
         variables = configure_preset(presets, preset)["cacheVariables"]
         expect(
             item and launcher in " ".join(item.get("run", "").split())
+            and not re.search(r"\s-G\s|-DCMAKE_BUILD_TYPE=", item.get("run", ""))
             and configure_preset(presets, preset).get("binaryDir") == "${sourceDir}/build"
+            and variables.get("CMAKE_BUILD_TYPE") == "Release"
             and variables.get("EGTRAIN_WARNINGS_AS_ERRORS") == "ON"
             and variables.get("EGTRAIN_BUILD_TESTS") == "ON"
             and variables.get("EGTRAIN_IPO") == "OFF",
-            f"cmake.yml: a configure step with the preset {preset}: tests, warnings as errors, no interprocedural "
-            "optimization, the compiler cache, in build/",
+            f"cmake.yml: a configure step with the preset {preset}: a Release build with tests, warnings as errors, no "
+            "interprocedural optimization, the compiler cache, in build/",
         )
     # A compiler cache cannot store objects with interprocedural optimization, which the package and release builds keep.
     expect("EGTRAIN_IPO" not in release_text and re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake_lists, re.MULTILINE),
            "interprocedural optimization on by default and left alone by the package and release workflows")
-    windows = " ".join(configure["ci-windows"].get("run", "").split()) + " "
+    windows_leg = configure_preset(presets, "ci-windows")
+    windows_preset = windows_leg["cacheVariables"]
     expect(
-        all(part in windows for part in (" -G Ninja ", " -DCMAKE_BUILD_TYPE=Release ", " -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl "))
+        windows_leg.get("generator") == "Ninja"
+        and windows_preset.get("CMAKE_C_COMPILER") == windows_preset.get("CMAKE_CXX_COMPILER") == "cl"
         and "build/Release" not in flat(build),
-        "cmake.yml: the Windows leg builds with Ninja and cl, so that sccache works, and its programs are not in build/Release",
+        "cmake.yml: the ci-windows preset builds with Ninja and cl, so that sccache works, and its programs are not in build/Release",
     )
     cache = step(build, "hendrikmuhs/ccache-action@")
     expect(
@@ -588,7 +592,9 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     # The network tests are built for the Windows leg only, and run in a step of their own after the other tests.
     https = step(build, "ctest --test-dir build -C Release -L network --no-tests=error")
     expect(
-        cmake_text.count("-DEGTRAIN_NETWORK_TESTS=ON") == 1 and "-DEGTRAIN_NETWORK_TESTS=ON" in windows
+        windows_preset.get("EGTRAIN_NETWORK_TESTS") == "ON"
+        and not any("EGTRAIN_NETWORK_TESTS" in configure_preset(presets, preset)["cacheVariables"] for preset in ("ci-macos", "ci-linux"))
+        and "EGTRAIN_NETWORK_TESTS" not in cmake_text
         and "runner.os == 'Windows'" in https.get("if", "")
         and in_order(build, "--output-log", "-L network --no-tests=error"),
         "cmake.yml: the Windows HTTPS check after the tests, with the network tests of the Windows leg only",
@@ -609,7 +615,6 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     )
     # The Windows leg and the Windows package take the vcpkg options from the ci-windows preset. vcpkg copies no DLL next
     # to each program; the leg puts the DLL folders on PATH.
-    windows_preset = configure_preset(presets, "ci-windows")["cacheVariables"]
     windows_vcpkg = {
         "CMAKE_TOOLCHAIN_FILE": ("$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake", '"$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"'),
         "VCPKG_TARGET_TRIPLET": ("x64-windows", "x64-windows"),
