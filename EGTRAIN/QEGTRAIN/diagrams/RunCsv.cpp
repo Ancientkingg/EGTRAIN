@@ -63,7 +63,7 @@ std::string csvValue(const RunResultValue& value) {
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockingTimePlannedReference>& plannedReferences,
-	const std::vector<std::vector<std::string>>& trajectories,
+	const std::vector<BlockingTimeTrajectory>& trajectories,
 	const std::vector<BlockSectionExtent>& extents,
 	const std::vector<BlockingTimeDiagramSegment>& unmapped) {
 	const auto optional = [](double value) {
@@ -119,8 +119,20 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 		row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble(scale.geoAt(reference.positionKm));
 		rows.push_back(std::move(row));
 	}
-	for (const auto& row : trajectories)
-		if (!row.empty() && trainInVisibleSet(visibleTrainIds, row.front())) rows.push_back(row);
+	for (const BlockingTimeTrajectory& trajectory : trajectories) {
+		if (!trainInVisibleSet(visibleTrainIds, trajectory.trainId))
+			continue;
+		for (const auto& [positionKm, seconds] : trajectory.points) {
+			std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
+			row[BlockingTimeCsv::kTrain] = trajectory.trainId;
+			row[BlockingTimeCsv::kPosition] = csv::formatDouble(positionKm);
+			row[BlockingTimeCsv::kSegmentType] = "recorded sample";
+			row[BlockingTimeCsv::kPlannedTime] = csv::formatDouble(seconds);
+			row[BlockingTimeCsv::kLayer] = "recorded trajectory";
+			row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble(scale.geoAt(positionKm));
+			rows.push_back(std::move(row));
+		}
+	}
 	for (const BlockingTimeDiagramSegment& s : unmapped)
 		if (trainInVisibleSet(visibleTrainIds, s.trainName)) rows.push_back(envelopeRow(s, false));
 	for (auto& row : blockSectionCsvRows(extents))

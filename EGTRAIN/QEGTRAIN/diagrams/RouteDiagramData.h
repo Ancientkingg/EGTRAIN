@@ -54,16 +54,21 @@ struct RouteDiagramSeries {
 	std::vector<RouteDiagramPoint> points; ///< In sample or stop order
 };
 
-/// What the route diagram shows and exports.
+/// What the route diagram shows.
 struct RouteDiagramData {
-	RouteDiagramPath referencePath;				   ///< The reference route
-	std::vector<RouteDiagramSeries> series;		   ///< The lines of the chart
-	std::vector<std::vector<std::string>> csvRows; ///< The export rows, with the events that have no point
+	RouteDiagramPath referencePath;			///< The reference route
+	std::vector<RouteDiagramSeries> series; ///< The lines of the chart
 };
 
 /// The train paths, or the timetable graph when `timetable` is set, on the reference route with the given index.
 /// Empty when the route does not exist or has no nodes.
 std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex);
+
+/// The export rows of routeDiagramData with the same arguments, one for each sample or stop event in the order of the
+/// chart, with the events that have no point; the columns of buildRouteDiagramCsv. Empty when there is no diagram.
+/// The rows are made on each call, so that a window keeps only the run until it exports.
+std::vector<std::vector<std::string>> routeDiagramCsvRows(const CompletedRunData& data, bool timetable,
+	int referenceIndex);
 
 /// One arrival delay of the Delays chart, at a station of the reference route.
 struct DelayDiagramPoint {

@@ -271,11 +271,16 @@ void TestPositionScale::fillsExportColumns() {
 	QVERIFY(nearField(rows[5][25], 18.298));
 	QVERIFY(nearField(rows[6][24], 30.569));
 	QVERIFY(nearField(rows[6][25], 31.271));
-	// A trajectory row that is shorter than the header is padded to its width.
-	const auto padded = csvRows(buildBlockingTimeCsv({"T"}, {}, {}, {{"T", "", "", "", "18.5"}}));
-	QCOMPARE(padded.size(), std::size_t(2));
-	QCOMPARE(padded[1].size(), std::size_t(26));
-	QCOMPARE(padded[1][4], "18.5");
+	// A recorded sample gives a row as wide as the header with its position, its time and the geo X of its position.
+	const auto sampled = csvRows(buildBlockingTimeCsv({"T"}, {}, {}, {BlockingTimeTrajectory{"T", {{18.5, 5.0}}}}, extents));
+	QCOMPARE(sampled.size(), std::size_t(4));
+	QCOMPARE(sampled[1].size(), std::size_t(26));
+	QCOMPARE(sampled[1][0], "T");
+	QCOMPARE(sampled[1][4], "18.5");
+	QCOMPARE(sampled[1][5], "recorded sample");
+	QCOMPARE(sampled[1][8], "5");
+	QCOMPARE(sampled[1][21], "recorded trajectory");
+	QVERIFY(nearField(sampled[1][23], 30.771));
 }
 
 QTEST_APPLESS_MAIN(TestPositionScale)

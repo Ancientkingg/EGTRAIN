@@ -1,8 +1,6 @@
 #include "diagrams/BlockingTimeData.h"
 
-#include "diagrams/PositionScale.h"
 #include "diagrams/RouteDiagramData.h"
-#include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
 
 #include <algorithm>
@@ -29,7 +27,6 @@ int firstRouteOfTrains(const CompletedRunData& data, const std::vector<std::stri
 void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRunData& data,
 	const std::map<std::string, RouteDiagramProjection>& projections, const std::map<std::string, double>& shifts) {
 	const double timestepSeconds = data.settings.timestepSeconds;
-	const PositionScale scale(diagram.extents);
 	std::vector<std::pair<const CompletedTrain*, std::string>> sampled; // A train of the run and the id it has in the chart
 	for (const CompletedTrain& train : data.trains)
 		sampled.emplace_back(&train, train.trainId);
@@ -68,14 +65,6 @@ void addRecordedTrajectories(BlockingTimeDiagramData& diagram, const CompletedRu
 					open = true;
 				}
 				diagram.trajectories.back().points.emplace_back(*x, seconds);
-				std::vector<std::string> row(BlockingTimeCsv::kColumnCount);
-				row[BlockingTimeCsv::kTrain] = trainId;
-				row[BlockingTimeCsv::kPosition] = csv::formatDouble(*x);
-				row[BlockingTimeCsv::kSegmentType] = "recorded sample";
-				row[BlockingTimeCsv::kPlannedTime] = csv::formatDouble(seconds);
-				row[BlockingTimeCsv::kLayer] = "recorded trajectory";
-				row[BlockingTimeCsv::kGeoPosition] = csv::formatDouble(scale.geoAt(*x));
-				diagram.trajectoryRows.push_back(std::move(row));
 			}
 		}
 	}

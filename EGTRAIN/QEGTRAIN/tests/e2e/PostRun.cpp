@@ -32,6 +32,7 @@
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneModel.h"
 #include "ui_MainWindow.h"
+#include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
 #include "util/PlaybackProfiler.h"
 #include "util/TimeFormat.h"
@@ -745,6 +746,14 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		   });
 	if (!clean || ++operationalCompletions > 2) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: final frame or overlay cleanup\n");
+		QCoreApplication::exit(2);
+		return;
+	}
+	// The captured run holds the results, so the trains no longer keep their samples of every step.
+	const auto& trains = simulation.run().trains;
+	if (!w.m_runController->hasRunResults() || trains.empty()
+		|| std::any_of(trains.begin(), trains.end(), [](const Train& train) { return train.trajectorySize() > 0; })) {
+		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: the trains keep their samples after the run\n");
 		QCoreApplication::exit(2);
 		return;
 	}

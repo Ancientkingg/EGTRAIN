@@ -108,3 +108,54 @@ Three runs of the same executable gave a `maximum resident set size` of
 Release v1.0.2 reached about 1.7 GB of resident memory in the same start,
 because static constructors touched the fixed arrays before any scene was
 loaded (#463).
+
+## Result windows after a window run, recorded 2026-10-31
+
+The route and blocking-time windows used to keep a preformatted CSV row for each
+sample they draw, and the simulation kept the samples of every train and step
+after the run had been copied into `CompletedRunData`. These numbers compare a
+Release executable (Qt 6.8.3, macOS 27.0, arm64) built from `main` at
+`d0bb18097` with one that makes the CSV rows only on export and frees the
+samples of the trains when the run ends. Each pair ran one after the other at a
+load average of about 2 to 3, so the elapsed times are not compared.
+
+The scripted window runs of [build.md](build.md) open the windows and write their
+CSV files. Both run from `EGTRAIN/QEGTRAIN`:
+
+```text
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_ROUTE_DIAGRAM=<dir> \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+QT_QPA_PLATFORM=offscreen QEGTRAIN_AUTOSTART=1 QEGTRAIN_E2E_EXPORT_DIR=<dir> \
+  /usr/bin/time -l <app> --scene Scenes/<case> -g 1 -pax 0
+```
+
+`QEGTRAIN_E2E_ROUTE_DIAGRAM` opens Train paths and Timetable graph for every route
+that trains use; `QEGTRAIN_E2E_EXPORT_DIR` opens the blocking-time window and the
+other result views. Both write their files before the run has finished in the
+window, so they show what the windows hold, not the freed samples. The CSV files of
+both executables were the same byte for byte.
+
+| Case | Hook | Peak RSS before (MiB) | Peak RSS after (MiB) | Peak footprint before (MiB) | Peak footprint after (MiB) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Copenhagen | route diagram | 1,982.6 | 1,411.6 | 1,466.0 | 1,001.4 |
+| Copenhagen | export | 2,378.6 | 2,180.3 | 1,827.3 | 1,676.8 |
+| Netherlands | route diagram | 500.0 | 457.2 | 403.5 | 357.6 |
+| Netherlands | export | 536.1 | 520.3 | 426.5 | 409.0 |
+| Paimpol | route diagram | 189.6 | 187.7 | 147.0 | 145.0 |
+| Paimpol | export | 207.6 | 203.2 | 165.1 | 160.5 |
+
+The Netherlands route diagram run exits with 2 in both executables, because its
+timetable graph has no planned series; it has written its files by then.
+
+After a run with only `QEGTRAIN_AUTOSTART=1`, `vmmap --summary <pid>` 30 s after
+the Run Results table appeared gave these allocated bytes of the default malloc
+zone:
+
+| Case | Allocated before (MB) | Allocated after (MB) |
+| --- | ---: | ---: |
+| Copenhagen | 532.3 | 391.2 |
+| Netherlands | 304.1 | 275.1 |
+
+`footprint <pid>` did not fall with them: malloc keeps the freed pages of its
+small regions for the next allocations of the process, such as the result
+windows and the next run.
