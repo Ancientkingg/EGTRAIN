@@ -206,10 +206,13 @@ enum class TrajectoryBranch : int {
 };
 
 /// What one train reuses within the steps of a run: the results of Train::BrakDist_Block of the current step and of the step
-/// before. Such a result depends on the arguments, on the rolling stock values of the train and on the arcs of the sections (their
-/// X, gradient and curvature), which only the builders write. The cache answers only between beginStep and endStep, which
-/// runSimulationStep calls for every train around each step, and keeps the results of a step only for the step that follows it.
-/// A copy starts empty and outside a step, so a result never passes to another train or run.
+/// before, and the route positions of its stops. A braking result depends on the arguments, on the rolling stock values of the
+/// train and on the arcs of the sections (their X, gradient and curvature), which only the builders write. A route position
+/// depends on the route index and the X of the stop, which are part of its key, and on the route, the stops and the stations of
+/// the run, which only the builders write. The cache answers only between beginStep and endStep, which runSimulationStep calls
+/// for every train around each step. It keeps the braking results of a step only for the step that follows it, and the route
+/// positions while each step follows the one before. A copy starts empty and outside a step, so a result never passes to another
+/// train or run.
 class TrainStepCache {
 public:
 	/// The arguments of one Train::BrakDist_Block call. The doubles are compared bit for bit.
@@ -238,13 +241,25 @@ public:
 	bool findBrakingStart(const BrakingQuery& query, double& start);
 	/// Keeps start as the answer to query in this step. Does nothing outside a step.
 	void storeBrakingStart(const BrakingQuery& query, double start);
+	/// True when a route position (m) of stop `stop` was kept for the route index route and the stop X x (km); position receives it.
+	bool findStationPosition(int stop, int route, double x, double& position) const;
+	/// Keeps position (m) as the route position of stop `stop` for the route index route and the stop X x (km). Does nothing outside
+	/// a step.
+	void storeStationPosition(int stop, int route, double x, double position);
 
 private:
 	struct BrakingEntry {
 		BrakingQuery query;
 		double start = 0.0;
 	};
+	struct StationEntry {
+		bool kept = false;
+		int route = 0;
+		double x = 0.0;
+		double position = 0.0;
+	};
 	std::vector<BrakingEntry> m_brakingStarts, m_previousBrakingStarts;
+	std::vector<StationEntry> m_stationPositions; // by stop
 	int m_step = 0;
 	bool m_inStep = false, m_hasStep = false;
 };
@@ -615,7 +630,7 @@ public:
 	double uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS, int Blocks, double cutoff);
 
 	/// The results that the train reuses within the steps of a run.
-	TrainStepCache stepCache;
+	mutable TrainStepCache stepCache;
 
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
 	/// movement could pass the last point where it can still brake for the entry.
@@ -800,8 +815,12 @@ public:
 	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
 
 	/// The route position (m) of stop stationIndex from its geographic position, or -1 when the stop is not on the route. When no
-	/// section holds that position, the geographic position in metres.
+	/// section holds that position, the geographic position in metres. Within a step the result can come from stepCache, except
+	/// for a stop at X 0, whose position comes from its arrival name.
 	double stationRoutePositionMeters(int stationIndex) const;
+
+	/// stationRoutePositionMeters without stepCache.
+	double uncachedStationRoutePositionMeters(int stationIndex) const;
 
 	/// Records time_seconds * timestep as the arrival (s) at each stop without an arrival whose route position lies within 5 m of the
 	/// head's movement in this step.

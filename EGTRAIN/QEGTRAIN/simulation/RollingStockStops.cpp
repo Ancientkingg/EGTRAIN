@@ -2,6 +2,7 @@
 #include "simulation/SimulationRun.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -213,7 +214,39 @@ bool Train::stationIsOnRoute(int stationIndex, const vector<string>& allowedBloc
 	return false;
 }
 
+bool TrainStepCache::findStationPosition(int stop, int route, double x, double& position) const {
+	if (!m_inStep || stop < 0 || stop >= static_cast<int>(m_stationPositions.size()))
+		return false;
+	const StationEntry& entry = m_stationPositions[stop];
+	if (!entry.kept || entry.route != route || entry.x != x)
+		return false;
+	position = entry.position;
+	return true;
+}
+
+void TrainStepCache::storeStationPosition(int stop, int route, double x, double position) {
+	if (!m_inStep || stop < 0)
+		return;
+	if (stop >= static_cast<int>(m_stationPositions.size()))
+		m_stationPositions.resize(static_cast<std::size_t>(stop) + 1);
+	m_stationPositions[stop] = {true, route, x, position};
+}
+
 double Train::stationRoutePositionMeters(int stationIndex) const {
+	// A stop at X 0 takes its position from run.infra.stations by its arrival name, which an arrival can change. Other stops are
+	// kept by their X, which is never 0, so equal values have equal bits.
+	if (stationIndex < 0 || stationIndex >= numStations || stationIndex >= static_cast<int>(Stations.size()) || Stations[stationIndex].X == 0)
+		return uncachedStationRoutePositionMeters(stationIndex);
+	const double x = Stations[stationIndex].X;
+	double position = 0.0;
+	if (stepCache.findStationPosition(stationIndex, indexOfRoute, x, position))
+		return position;
+	position = uncachedStationRoutePositionMeters(stationIndex);
+	stepCache.storeStationPosition(stationIndex, indexOfRoute, x, position);
+	return position;
+}
+
+double Train::uncachedStationRoutePositionMeters(int stationIndex) const {
 	if (!stationIsOnRoute(stationIndex))
 		return -1;
 	const string stationName = stationNameForArrivalStats(stationIndex);

@@ -372,16 +372,19 @@ TrainStepCache::TrainStepCache(const TrainStepCache&) {}
 TrainStepCache& TrainStepCache::operator=(const TrainStepCache&) {
 	m_brakingStarts.clear();
 	m_previousBrakingStarts.clear();
+	m_stationPositions.clear();
 	m_step = 0;
 	m_inStep = m_hasStep = false;
 	return *this;
 }
 
 void TrainStepCache::beginStep(int step) {
-	if (m_hasStep && step == m_step + 1)
+	if (m_hasStep && step == m_step + 1) {
 		m_previousBrakingStarts.swap(m_brakingStarts);
-	else
+	} else {
 		m_previousBrakingStarts.clear();
+		m_stationPositions.clear();
+	}
 	m_brakingStarts.clear();
 	m_step = step;
 	m_inStep = m_hasStep = true;
