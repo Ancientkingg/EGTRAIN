@@ -2538,6 +2538,8 @@ void TestSceneBuilder::buildsAgainAfterFailedBuilds() {
 	// The scene builds again after the failed builds.
 	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())));
 	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	// The new build replaces the station that the failed builds kept.
+	QCOMPARE(defaultRun().infra.stations[0].N_Stopped_Trains, DelayStats().N_Stopped_Trains);
 	QVERIFY(runtimePointersAreValid());
 	resetNativeInfrastructureState(defaultRun());
 }

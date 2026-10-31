@@ -104,7 +104,8 @@ void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order);
 
 /// Runs the stages that follow the steps of run, in this order: the energy totals and their two files, the sort of the recorded
 /// events of the infrastructure, the timetable points, the delays of the trains with the statistics of the stations and the input
-/// delays and their files, the passenger delay file, the computing times, the blocking times, the path diagram with
+/// delays, the station delay file Stats_Stations.txt, the passenger delay file JourneyDelays.txt, the positive and negative delays
+/// with their station delay file Pos&Neg_Stats_Stations.txt, the computing times, the blocking times, the path diagram with
 /// settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders
 /// TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here, and a failure to make it
 /// throws std::runtime_error.

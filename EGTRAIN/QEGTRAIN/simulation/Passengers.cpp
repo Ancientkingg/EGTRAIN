@@ -1,5 +1,6 @@
 #include "simulation/Passengers.h"
 #include <algorithm>
+#include <limits>
 
 using namespace std;
 
@@ -103,7 +104,10 @@ int platformNumber(const string& platformId) {
 	const size_t index = number.find(prefix);
 	if (index != string::npos)
 		number.erase(index, prefix.length());
-	return static_cast<int>(atof(number.c_str()));
+	const double value = atof(number.c_str());
+	// The cast is undefined outside this range, and NaN fails both comparisons.
+	const bool fitsInt = value > numeric_limits<int>::min() - 1.0 && value < numeric_limits<int>::max() + 1.0;
+	return fitsInt ? static_cast<int>(value) : 0;
 }
 
 // When using this function it is necessary that the list of passengers is ordered by entrance time on the network, i.e. by the starting time of the currently selected journey

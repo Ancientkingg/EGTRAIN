@@ -702,7 +702,8 @@ void TestSimulationRun::stepsRunWithoutController() {
 	QVERIFY(sameSnapshot(*reference.lastSnapshot, buildGuiSimulationSnapshot(*other, lastStep)));
 
 	// The stages after the steps also need no controller. They give every train the blocking times of the run of the controller and
-	// write the same files. Without detailed files they look for a stop four times.
+	// write its files, except PassengerStatus.txt, which the controller writes after the steps. Without detailed files they look for
+	// a stop four times.
 	QTemporaryDir output;
 	const std::filesystem::path outputFolder = output.path().toStdString();
 	std::filesystem::create_directories(outputFolder / "TrainTrajectories");
@@ -724,7 +725,9 @@ void TestSimulationRun::stepsRunWithoutController() {
 	const Files written = readFiles(outputFolder);
 	QVERIFY(written.count("TrainTrajectories/TimetablePoints.txt") == 1);
 	QVERIFY(written.count("TrainTrajectories/Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Pos&Neg_Stats_Stations.txt") == 1);
 	QVERIFY(written.count("TrainTrajectories/BlockingTimes.txt") == 1);
+	QVERIFY(written.count("PassengerStatus/JourneyDelays.txt") == 1);
 	for (const auto& [name, content] : written) {
 		const auto found = reference.files.find(name);
 		if (found == reference.files.end())

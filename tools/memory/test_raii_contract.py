@@ -48,6 +48,9 @@ def main() -> None:
         raise SystemExit("obsolete legacy setup path is still compiled")
     if "void DispatchController::prepareSimulation()" in dispatch_controller:
         raise SystemExit("obsolete legacy preparation path is still compiled")
+    for name in ("PrintTrajectory(", "PrintTrainBlockingTimes(", "PrintTimetablePoints("):
+        if name in dispatch_controller:
+            raise SystemExit(f"DispatchController must leave {name[:-1]} to runSimulationPostprocessing")
     check_run_output_written_once(simulation)
 
 

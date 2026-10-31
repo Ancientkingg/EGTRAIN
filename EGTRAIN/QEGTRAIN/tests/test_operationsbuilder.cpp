@@ -87,6 +87,7 @@ private slots:
 	void invalidScenarioKeepsRuntimeState();
 	void reversedRouteResolvesStopNodes();
 	void resolvesPlatformsInRouteOrder();
+	void stopsKeepPlatformNumbers();
 	void routeExternalRowsKeepPlannedTimes();
 	void shortHorizonOmitsLateJourneys();
 	void durationOverrideSizesRuntimeVectors();
@@ -371,6 +372,13 @@ void TestOperationsBuilder::platformNumberOfId_data() {
 	QTest::newRow("short id") << "P1" << 0;
 	QTest::newRow("no platform") << "None" << 0;
 	QTest::newRow("empty") << "" << 0;
+	QTest::newRow("reads as not a number") << "Nantes.platform.1" << 0;
+	QTest::newRow("reads as infinity") << "INF.platform.2" << 0;
+	QTest::newRow("hex prefix") << "0x1A.platform.1" << 26;
+	QTest::newRow("beyond int") << "Platform_1e30" << 0;
+	QTest::newRow("below int") << "Platform_-1e30" << 0;
+	QTest::newRow("largest int") << "Platform_2147483647.9" << std::numeric_limits<int>::max();
+	QTest::newRow("lowest int") << "Platform_-2147483648.9" << std::numeric_limits<int>::min();
 }
 
 void TestOperationsBuilder::platformNumberOfId() {
@@ -1103,6 +1111,34 @@ void TestOperationsBuilder::resolvesPlatformsInRouteOrder() {
 	ordered.services[0].stops[1].platformId = "platform.other";
 	QVERIFY2(hasCode(buildOperationsFromScene(defaultRun(), ordered, "scenario.base"), "scene.native.ref.stop.order"),
 		"an explicit late platform cannot be followed by an earlier station");
+}
+
+// The number that the walking time of a transfer starts from: a stopped train has the number of its stop, and of its last stop at a
+// station that it calls at twice.
+void TestOperationsBuilder::stopsKeepPlatformNumbers() {
+	SceneModel scene = completeScene();
+	scene.passengers.clear();
+	scene.stations[0].platforms[0].nodeIds = {"node.3"};
+	scene.stations[1].platforms[0].id = "Platform_4";
+	scene.stations[2].platforms = {{"Platform_3", {"node.0"}}, {"Platform_5", {"node.2"}}};
+	scene.services[0].stops = {
+		{"station.2", "Platform_3", true, true, 100.0, 110.0, 0.0},
+		{"station.1", "Platform_4", true, true, 120.0, 130.0, 0.0},
+		{"station.2", "Platform_5", true, true, 140.0, 150.0, 0.0}};
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	Train train = defaultRun().trains[0];
+	QCOMPARE(train.stationPlatformNumber[0], 3);
+	QCOMPARE(train.stationPlatformNumber[1], 4);
+	QCOMPARE(train.stationPlatformNumber[2], 5);
+
+	Arc arrival;
+	arrival.endNode = train.Stations[1];
+	train.serviceStopStep(1, arrival, 0, false);
+	QCOMPARE(train.currentServiceStopPlatformNumber, 4);
+	arrival.endNode = train.Stations[0];
+	train.serviceStopStep(1, arrival, 0, false);
+	QCOMPARE(train.currentServiceStopPlatformNumber, 5);
 }
 
 void TestOperationsBuilder::routeExternalRowsKeepPlannedTimes() {

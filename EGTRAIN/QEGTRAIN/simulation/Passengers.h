@@ -187,7 +187,8 @@ void printPassengerTotalJourneyDelay(const std::list<Passenger>& ALLPAX, std::st
 
 /// The number of a platform, which the walking time of a transfer compares: the first "Platform_" in platformId is cut out and what is
 /// left is read as a number with atof and truncated. "Platform_4" gives 4 and "2" gives 2. An ID that does not then start with a
-/// number, such as "None", "P1" or "B.platform.1", gives 0.
+/// number, such as "None", "P1" or "B.platform.1", gives 0. An ID read as NaN, infinity or a value outside int also gives 0, such as
+/// "Nantes.platform.1", "INF.platform.2" or "Platform_1e30". atof also reads a hex prefix, so "0x1A.platform.1" gives 26.
 int platformNumber(const std::string& platformId);
 
 #endif
