@@ -169,10 +169,6 @@ private:
 /// titles of the axes.
 void styleResultChart(QChart* chart, const QPalette& palette);
 
-/// The step of the ticks of an axis over `span`: the smallest of 1, 2 or 5 times a power of ten that divides `span` into
-/// no more than `steps` steps. `span` and `steps` are greater than 0.
-double roundTickStep(double span, int steps);
-
 /// Writes the content of an export to `path` as a file of the kind `suffix` names, "csv" or "png", and returns whether
 /// it did, such as writeRunArtifactWithProvenance.
 using ExportWriter = std::function<bool(const QString& path, const char* suffix, const std::string& bytes)>;

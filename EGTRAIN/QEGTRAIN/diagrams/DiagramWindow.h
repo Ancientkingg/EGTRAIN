@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "diagrams/BlockingTimeDiagram.h"
+#include "diagrams/ChartTicks.h"
 #include "diagrams/DiagramKey.h"
 #include "diagrams/PositionScale.h"
 #include "diagrams/SeriesMeta.h"
@@ -36,14 +37,6 @@ class QPainter;
 class QPushButton;
 class ResultFrame;
 class TrainKeyList;
-
-/// A station along the distance axis of a route chart: its position on that axis, the plain-text labels it can
-/// have, from the longest to the shortest, and the number of calls that the chart shows there.
-struct StationTick {
-	double position = 0.0; ///< On the distance axis, in the unit of that axis
-	QStringList spellings; ///< Plain-text labels, longest first
-	int calls = 0;		   ///< Calls of the trains of the chart at the station
-};
 
 /// A column that an exported figure draws at the right of the chart, such as the trains and the key of the chart.
 struct FigureColumn {

@@ -1,4 +1,5 @@
 #include "diagrams/BlockSectionOverlay.h"
+#include "diagrams/ChartTicks.h"
 
 #include <QFontMetricsF>
 #include <QPainter>
@@ -19,7 +20,6 @@ const QColor kStationBar(91, 104, 113);
 const QColor kSwitchHatch(160, 172, 180);
 const QColor kCriticalBar(227, 162, 26);
 const QColor kConflictBar(158, 27, 27);
-constexpr double kStripLabelGap = 6;   // between two ids in a row of the strip
 constexpr double kStripMarkHeight = 3; // the bars of a station, a critical block and a conflict
 constexpr double kStripGap = 4;		   // below the strip
 constexpr double kBreakMarkReach = 7;  // how near the pointer must be to a break mark for its hover
@@ -307,74 +307,24 @@ QRectF BlockSectionOverlay::headerRect() const {
 	return QRectF(plot.left(), plot.top() - headerHeight(), plot.width(), headerHeight());
 }
 
-// The ids that the strip shows for the distance range low to high across the plot, in `rows` rows from the top of
-// the strip. Each id is centred in the part of its cell that lies in the plot and kept inside the plot, and goes in the
-// first row where it keeps clear of the ids placed there. The ids are placed in route order when that names every
-// section. Otherwise the ids of critical and conflict sections are placed first, then those of the first and last
-// section, of switch sections and of station sections, then the others in route order, and an id that keeps clear in
-// no row is left out. `candidates` gets the number of ids that could be shown.
+// The ids that the strip shows for the distance range low to high across the plot, in `rows` rows from the top of the
+// strip (placedStripLabels). `candidates` gets the number of ids that could be shown.
 std::vector<BlockSectionOverlay::Label> BlockSectionOverlay::placedLabels(double low, double high, bool reverse, int rows, std::size_t* candidates) const {
 	std::vector<Label> placed;
 	if (candidates) *candidates = 0;
+	if (!(high > low)) return placed;
 	const QRectF plot = m_chart->plotArea();
-	if (plot.width() <= 8 || !(high > low)) return placed;
 	const auto xAt = [&](double km) {
 		const double fraction = (km - low) / (high - low);
 		return plot.left() + (reverse ? 1 - fraction : fraction) * plot.width();
 	};
-	struct Candidate {
-		int priority;
-		std::size_t index;
-		double centre;
-		double width;
+	const auto idWidth = [this](const BlockSectionExtent& section, bool strong) {
+		return QFontMetricsF(strong ? m_strongFont : m_font).horizontalAdvance(shortId(section));
 	};
-	std::vector<Candidate> found;
-	std::size_t first = m_sections.size(), last = 0;
-	for (std::size_t i = 0; i < m_sections.size(); ++i)
-		if (m_sections[i].geometryValid) {
-			first = std::min(first, i);
-			last = i;
-		}
-	for (std::size_t i = 0; i < m_sections.size(); ++i) {
-		const BlockSectionExtent& section = m_sections[i];
-		if (!section.geometryValid) continue;
-		const double left = std::max(plot.left(), std::min(xAt(section.startKm), xAt(section.endKm)));
-		const double right = std::min(plot.right(), std::max(xAt(section.startKm), xAt(section.endKm)));
-		if (right <= left) continue;
-		const bool strong = m_marks[i].critical || m_marks[i].conflict;
-		const double width = QFontMetricsF(strong ? m_strongFont : m_font).horizontalAdvance(shortId(section));
-		if (width > plot.width()) continue;
-		int priority = 4;
-		if (strong) priority = 0;
-		else if (i == first || i == last) priority = 1;
-		else if (section.isSwitch) priority = 2;
-		else if (m_marks[i].station) priority = 3;
-		found.push_back({priority, i, std::clamp((left + right) / 2, plot.left() + width / 2, plot.right() - width / 2), width});
+	for (const StripLabel& label : placedStripLabels(m_sections, m_marks, plot, headerRect().top(), rowHeight(), rows, xAt, idWidth, candidates)) {
+		const BlockSectionExtent& section = m_sections[label.section];
+		placed.push_back({&section, label.rect, shortId(section), label.strong});
 	}
-	if (candidates) *candidates = found.size();
-	const double top = headerRect().top();
-	const auto place = [&] {
-		placed.clear();
-		std::vector<std::vector<std::pair<double, double>>> taken(static_cast<std::size_t>(std::max(1, rows)));
-		for (const Candidate& candidate : found) {
-			const double from = candidate.centre - candidate.width / 2, to = candidate.centre + candidate.width / 2;
-			for (std::size_t row = 0; row < taken.size(); ++row) {
-				const bool clear = std::all_of(taken[row].begin(), taken[row].end(), [&](const std::pair<double, double>& other) {
-					return to + kStripLabelGap <= other.first || from - kStripLabelGap >= other.second;
-				});
-				if (!clear) continue;
-				taken[row].emplace_back(from, to);
-				const BlockSectionExtent& section = m_sections[candidate.index];
-				placed.push_back({&section, QRectF(from, top + static_cast<double>(row) * rowHeight(), candidate.width, rowHeight()),
-					shortId(section), m_marks[candidate.index].critical || m_marks[candidate.index].conflict});
-				break;
-			}
-		}
-	};
-	place();
-	if (placed.size() == found.size()) return placed;
-	std::stable_sort(found.begin(), found.end(), [](const Candidate& a, const Candidate& b) { return a.priority < b.priority; });
-	place();
 	return placed;
 }
 

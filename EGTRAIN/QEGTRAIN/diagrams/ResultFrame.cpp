@@ -35,7 +35,6 @@
 #include <QtCharts/QChart>
 
 #include <algorithm>
-#include <cmath>
 #include <initializer_list>
 #include <utility>
 
@@ -339,14 +338,6 @@ void styleResultChart(QChart* chart, const QPalette& palette) {
 		axis->setTitleBrush(palette.brush(QPalette::WindowText));
 		axis->setLinePen(QPen(lineColor));
 	}
-}
-
-double roundTickStep(double span, int steps) {
-	const double power = std::pow(10.0, std::floor(std::log10(span / steps)));
-	double step = power;
-	for (const double factor : {2.0, 5.0, 10.0})
-		if (span / step > steps) step = factor * power;
-	return step;
 }
 
 QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const QString& title, const QString& suggestedName,

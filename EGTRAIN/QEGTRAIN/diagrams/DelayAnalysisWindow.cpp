@@ -1,5 +1,6 @@
 #include "diagrams/DelayAnalysisWindow.h"
 
+#include "diagrams/ChartTicks.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/TrainFilterButton.h"

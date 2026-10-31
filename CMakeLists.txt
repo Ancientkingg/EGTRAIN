@@ -384,6 +384,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/CapacityWindow.cpp
+    ${SRC_DIR}/diagrams/ChartTicks.cpp
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DelayAnalysis.cpp
     ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp

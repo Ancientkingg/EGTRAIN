@@ -454,6 +454,11 @@ egtrain_add_test(test_routecharts
 	LIBS egtrain_diagrams
 	LABELS unit gui)
 
+egtrain_add_test(test_charticks
+	SOURCES ${SRC_DIR}/tests/test_charticks.cpp
+	LIBS egtrain_diagrams
+	LABELS unit)
+
 egtrain_add_test(test_timetabletablewindow
 	SOURCES ${SRC_DIR}/tests/test_timetabletablewindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets

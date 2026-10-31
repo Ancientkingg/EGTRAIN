@@ -49,7 +49,6 @@
 
 #include <cmath>
 #include <limits>
-#include <optional>
 namespace {
 
 // A colour of something that is not the pinned train: mixed with the background as an alpha of 60 would show it, and
@@ -145,48 +144,19 @@ struct NearestSample {
 	}
 };
 
-// Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
-// into at most eight steps, labelled with as many decimals as the step has.
+// Puts the ticks of a numeric axis on round values (roundTickPlan), labelled with as many decimals as the step has.
 void roundTicks(QValueAxis* axis) {
-	const double low = axis->min();
-	const double high = axis->max();
-	const double span = high - low;
-	if (!(span > 0.0) || !std::isfinite(span)) return;
-	const double step = roundTickStep(span, 8);
+	const auto plan = roundTickPlan(axis->min(), axis->max());
+	if (!plan) return;
 	axis->setTickType(QValueAxis::TicksDynamic);
-	// Qt reaches each tick by adding the interval to the one before. The interval is the step cut to 31 significant bits,
-	// a hair shorter, so the sums from an anchor at zero are exact and zero reads "0.0", not "-0.0", and each tick lies a
-	// hair nearer the anchor than its round value, so an end of the range on a round value keeps its tick. The anchor is
-	// zero when the range holds it, else a round value inside the range.
-	const int exponent = std::ilogb(step) - 30;
-	axis->setTickInterval(std::ldexp(std::floor(std::ldexp(step, -exponent)), exponent));
-	axis->setTickAnchor(low <= 0 && high >= 0 ? 0.0 : std::round((low + high) / 2 / step) * step);
-	const int decimals = std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9)));
-	axis->setLabelFormat(QStringLiteral("%.%1f").arg(decimals));
+	axis->setTickInterval(plan->interval);
+	axis->setTickAnchor(plan->anchor);
+	axis->setLabelFormat(QStringLiteral("%.%1f").arg(plan->decimals));
 }
 
-// Widens the range of a numeric axis to round ticks past its ends, so that both ends carry a label and a line at an end
-// keeps clear of the plot edge. Each end moves out to the first tick beyond it; an end within a thousandth of the range of
-// a tick counts as on it. A range that starts at zero keeps zero as its start, also when it starts a little below zero, as
-// a chart builder's margin of 0.01 km does: up to a thousandth of the range or a tenth of the step. The step is the
-// smallest one that keeps the widened range to eight steps, which is the step that roundTicks gives the widened range.
+// Widens the range of a numeric axis to round ticks past its ends (widenedTickRange).
 void widenToRoundTicks(QValueAxis* axis) {
-	const double low = axis->min();
-	const double high = axis->max();
-	const double span = high - low;
-	if (!(span > 0.0) || !std::isfinite(span)) return;
-	const double hair = span / 1000;
-	const double power = std::pow(10.0, std::floor(std::log10(span / 8)));
-	for (const double factor : {1.0, 2.0, 5.0, 10.0, 20.0}) {
-		const double step = factor * power;
-		double start = std::floor((low - hair) / step) * step;
-		if (low >= -std::max(hair, step / 10)) start = std::max(start, 0.0);
-		const double end = std::ceil((high + hair) / step) * step;
-		if (std::lround((end - start) / step) <= 8) {
-			axis->setRange(start, end);
-			return;
-		}
-	}
+	if (const auto range = widenedTickRange(axis->min(), axis->max())) axis->setRange(range->first, range->second);
 }
 
 // A dark outline around the selected blocking time, 1.5 px outside its box as the chart maps the box at the moment, and
@@ -263,106 +233,6 @@ private:
 const QStringList kKeyOrder{QStringLiteral("Blocking time"), QStringLiteral("Critical block"), QStringLiteral("Conflict"),
 	QStringLiteral("Planned"), QStringLiteral("Simulated"), QStringLiteral("Stop"), QStringLiteral("Dwell"),
 	QStringLiteral("Station section"), QStringLiteral("Switch section"), QStringLiteral("Block boundary")};
-
-// The label each station gets above the plot, as (position, plain text). Every label is centred on its station, must lie
-// within the chart and may not touch its neighbour. The chart hides a label whose text starts left of `labelsLeft`, the
-// left edge of its axes. The chart shortens a label that is wider than the share of the plot
-// width that it gives each of the labels, so a label is only used when it is narrower than that share. Of the stations
-// in the range, every first, second, third and so on is tried until the labels fit. That gives the number of labels.
-// When stations have calls, that many labels go to the stations with the most calls, as long as the labels keep apart;
-// between choices with as many calls the stations of the stride win. A station gets the longest spelling that fits.
-std::vector<std::pair<double, QString>> labelledStations(const std::vector<StationTick>& stations, const QValueAxis& axis,
-	const QRectF& plot, double labelsLeft, double chartWidth, const QFontMetricsF& metrics) {
-	constexpr double edge = 4.0, gap = 8.0, slack = 16.0;
-	// A pixel for the rounding of the label position.
-	const double leftEdge = std::max(edge, labelsLeft + 1.0);
-	struct Candidate {
-		double x;
-		const StationTick* station;
-	};
-	const double span = axis.max() - axis.min();
-	if (!(span > 0.0) || plot.width() <= 0.0) return {};
-	std::vector<Candidate> inRange;
-	for (const StationTick& station : stations) {
-		if (station.spellings.isEmpty() || station.position < axis.min() || station.position > axis.max()) continue;
-		const double fraction = (station.position - axis.min()) / span;
-		inRange.push_back({plot.left() + (axis.isReverse() ? 1.0 - fraction : fraction) * plot.width(), &station});
-	}
-	std::sort(inRange.begin(), inRange.end(), [](const Candidate& a, const Candidate& b) { return a.x < b.x; });
-	struct Placed {
-		double x;
-		double width;
-		std::pair<double, QString> label;
-	};
-	const auto keepApart = [&](const Placed& left, const Placed& right) { return right.x - left.x - (right.width + left.width) / 2.0 >= gap; };
-	const bool anyCalls = std::any_of(inRange.begin(), inRange.end(), [](const Candidate& one) { return one.station->calls > 0; });
-	for (std::size_t stride = 1; stride <= inRange.size(); ++stride) {
-		const std::size_t named = (inRange.size() + stride - 1) / stride;
-		const double share = plot.width() / static_cast<double>(named + 1) - slack;
-		// The label of each station: its longest spelling that fits its room and its share, if one does.
-		std::vector<std::optional<Placed>> fitting(inRange.size());
-		for (std::size_t i = 0; i < inRange.size(); ++i) {
-			const double x = inRange[i].x;
-			const double room = std::min(share, 2.0 * std::min(x - leftEdge, chartWidth - edge - x));
-			const QStringList& spellings = inRange[i].station->spellings;
-			const auto spelling = std::find_if(spellings.begin(), spellings.end(),
-				[&](const QString& text) { return metrics.horizontalAdvance(text) <= room; });
-			if (spelling != spellings.end())
-				fitting[i] = Placed{x, metrics.horizontalAdvance(*spelling), {inRange[i].station->position, *spelling}};
-		}
-		std::vector<Placed> placed;
-		bool fits = true;
-		for (std::size_t i = 0; i < inRange.size() && fits; i += stride) {
-			const std::optional<Placed>& label = fitting[i];
-			if (label) {
-				placed.push_back(*label);
-				continue;
-			}
-			// A station near the edge of the chart may stay unlabelled, one that is too wide for its share may not.
-			fits = metrics.horizontalAdvance(inRange[i].station->spellings.last()) <= share;
-		}
-		bool apart = fits && !placed.empty();
-		for (std::size_t i = 1; i < placed.size(); ++i) apart = apart && keepApart(placed[i - 1], placed[i]);
-		if (!apart) continue;
-		if (anyCalls) {
-			// The stations that can have a label. best[c][a] is the highest score of c + 1 labels that keep apart and end
-			// at option a, from[c][a] the option before a. A call outweighs any number of stations of the stride.
-			std::vector<std::pair<std::size_t, Placed>> options;
-			for (std::size_t i = 0; i < inRange.size(); ++i) {
-				const std::optional<Placed>& label = fitting[i];
-				if (label) options.emplace_back(i, *label);
-			}
-			const auto score = [&](std::size_t a) {
-				const std::size_t i = options[a].first;
-				return static_cast<long long>(inRange[i].station->calls) * static_cast<long long>(inRange.size() + 1) + (i % stride == 0 ? 1 : 0);
-			};
-			const std::size_t count = placed.size();
-			std::vector<std::vector<long long>> best(count, std::vector<long long>(options.size(), -1));
-			std::vector<std::vector<std::size_t>> from(count, std::vector<std::size_t>(options.size(), 0));
-			for (std::size_t a = 0; a < options.size(); ++a) {
-				best[0][a] = score(a);
-				for (std::size_t c = 1; c < count; ++c)
-					for (std::size_t b = 0; b < a; ++b)
-						if (best[c - 1][b] >= 0 && keepApart(options[b].second, options[a].second) && best[c - 1][b] + score(a) > best[c][a]) {
-							best[c][a] = best[c - 1][b] + score(a);
-							from[c][a] = b;
-						}
-			}
-			std::size_t last = static_cast<std::size_t>(std::max_element(best.back().begin(), best.back().end()) - best.back().begin());
-			for (std::size_t c = count; c > 0; --c) {
-				placed[c - 1] = options[last].second;
-				last = from[c - 1][last];
-			}
-		}
-		std::vector<std::pair<double, QString>> labels;
-		for (const Placed& one : placed) labels.push_back(one.label);
-		return labels;
-	}
-	// No label fits whole: the middle station keeps the start of its shortest spelling.
-	if (inRange.empty()) return {};
-	const StationTick& middle = *inRange[inRange.size() / 2].station;
-	return {{middle.position, metrics.elidedText(middle.spellings.last(), Qt::ElideRight, plot.width() / 2.0 - slack)}};
-}
 
 // Removes `axis` from `chart` with what it drew. QChart hides the items of a removed axis only when it deletes them, on
 // the next turn of the event loop, and until then they follow the visibility of the axis. So the axis hides first, and
@@ -912,8 +782,11 @@ void DiagramWindow::layoutStationAxis() {
 	// The axes start inside the margins of the chart and of its layout, which depend on the style.
 	qreal contentsLeft = 0, contentsTop = 0, contentsRight = 0, contentsBottom = 0;
 	if (chart->layout()) chart->layout()->getContentsMargins(&contentsLeft, &contentsTop, &contentsRight, &contentsBottom);
-	const auto shown = labelledStations(m_stations, *axis, chart->plotArea(), contentsLeft + chart->margins().left(), chart->size().width(),
-		QFontMetricsF(axis->labelsFont()));
+	const QFontMetricsF metrics(axis->labelsFont());
+	const auto textWidth = [&metrics](const QString& text) { return metrics.horizontalAdvance(text); };
+	const auto elide = [&metrics](const QString& text, double width) { return metrics.elidedText(text, Qt::ElideRight, width); };
+	const auto shown = labelledStations(m_stations, axis->min(), axis->max(), axis->isReverse(), chart->plotArea(),
+		contentsLeft + chart->margins().left(), chart->size().width(), textWidth, elide);
 	QStringList labels;
 	for (const auto& station : shown) labels << station.second.toHtmlEscaped();
 	if (labels == axis->categoriesLabels()) return;
@@ -1057,41 +930,13 @@ void DiagramWindow::applyTimeAxis() {
 	const QPointer<QChart> owner(chart);
 	const auto updateLabels = [this, clock, owner, vertical](qreal low, qreal high) {
 		for (const QString& label : clock->categoriesLabels()) clock->remove(label);
-		const double raw = (high - low) / 6;
-		const double power = std::pow(10.0, std::floor(std::log10(std::max(1.0, raw))));
-		double interval = std::max(1.0, std::ceil(raw / power) * power);
-		for (double candidate : {1., 5., 10., 30., 60., 120., 300., 600., 900., 1800., 3600., 7200., 14400., 21600., 43200.})
-			if ((high - low) / candidate <= 8) {
-				interval = candidate;
-				break;
-			}
+		const double interval = clockTickInterval(low, high);
 		clock->setStartValue(low - interval);
-		// A tick on a whole minute reads HH:MM while the ticks are a minute apart or more, so that no two ticks read the
-		// same minute; every other tick keeps its seconds.
-		const bool minutes = interval >= 60;
-		const auto clockLabel = [this, minutes](double tick) {
-			const auto elapsed = static_cast<long long>(tick);
-			QString text = QString::fromStdString(formatSimTime(elapsed, m_startOffset));
-			if (minutes && (elapsed + m_startOffset) % 60 == 0) text.truncate(5);
-			return text;
-		};
-		// Ticks fall on round clock times. Elapsed zero, the run start, keeps a tick of its own while it is in range, and a
-		// round tick less than a step from it is left out where its label would overlap the label of the run start in the
-		// plot as it is laid out, or while the plot has no size.
-		const bool runStart = low <= 0 && high >= 0;
-		const double offset = static_cast<double>(m_startOffset);
 		const QFontMetricsF metrics(clock->labelsFont());
 		const QRectF plot = owner ? owner->plotArea() : QRectF();
 		const double pixelsPerSecond = (vertical ? plot.height() : plot.width()) / (high - low);
-		std::vector<std::pair<double, QString>> ticks;
-		if (runStart) ticks.emplace_back(0, clockLabel(0));
-		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
-		for (double tick = std::ceil((low + offset) / interval) * interval - offset; tick <= high; tick += interval) {
-			const QString label = clockLabel(tick);
-			const double room = vertical ? metrics.height() : metrics.horizontalAdvance(label);
-			if (!runStart || std::abs(tick) >= interval || std::abs(tick) * pixelsPerSecond >= room) ticks.emplace_back(tick, label);
-		}
-		std::sort(ticks.begin(), ticks.end());
+		const auto ticks = clockTicks(low, high, interval, m_startOffset, pixelsPerSecond,
+			[&metrics, vertical](const QString& label) { return vertical ? metrics.height() : metrics.horizontalAdvance(label); });
 		QStringList texts;
 		for (const auto& tick : ticks) texts << tick.second;
 		// A day later the clock reads the same again.
@@ -1155,7 +1000,7 @@ void DiagramWindow::layoutPositionAxis() {
 	const double width = chart->plotArea().width();
 	const auto labels = m_positionScale.roundLabels(axis->min(), axis->max(), width);
 	const double step = m_positionScale.labelStepKm(axis->min(), axis->max(), width);
-	const int decimals = step > 0 ? std::max(0, static_cast<int>(-std::floor(std::log10(step) + 1e-9))) : 0;
+	const int decimals = step > 0 ? roundTickDecimals(step) : 0;
 	QStringList texts;
 	for (const PositionScale::Label& label : labels)
 		texts << QString::number(std::abs(label.geoKm) < 0.5 * std::pow(10.0, -decimals) ? 0.0 : label.geoKm, 'f', decimals);

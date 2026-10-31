@@ -6,6 +6,7 @@
 // asks for, and closes the warning of an export that fails itself.
 
 #include "diagrams/DelayAnalysisWindow.h"
+#include "diagrams/ChartTicks.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/TrainFilterButton.h"
 #include "widgets/DisplayPath.h"
