@@ -49,7 +49,10 @@ public:
 	void refresh() override;
 	/// The same; no row is selected afterwards when `resetSelection` is true, as when another scene has been opened.
 	void refresh(bool resetSelection);
-	/// Takes the cells that are being edited into the document.
+	/// Takes the cells that are being edited into the document: first the text of a cell whose editor is open, as leaving
+	/// the cell does, then the fields that the chosen facet puts in cells (InfrastructureFacet::commitPendingEdits). The
+	/// editor is left open while the panel tells an edit of its own, whose rows can differ from the model until the table
+	/// is filled again.
 	void commitPendingEditors() override;
 	/// The same as refresh(bool) without the state of the combo and the add button. The facets call it after a change.
 	void refreshTable(bool resetSelection = false);
@@ -161,6 +164,8 @@ protected:
 	void documentReplaced() override {}
 
 private:
+	class CellDelegate;
+
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
 	InfrastructureFacet* currentFacet() const;
@@ -180,6 +185,10 @@ private:
 	QPushButton* m_moveBlockDownButton = nullptr;
 	QLabel* m_guidanceLabel = nullptr;
 	QTableWidget* m_table = nullptr;
+	// The delegate of the table, which knows its open editor.
+	CellDelegate* m_cellDelegate = nullptr;
+	// True while editInPlace() changes the document and tells changed().
+	bool m_editing = false;
 	QWidget* m_routeSectionDetailWidget = nullptr;
 	QComboBox* m_routeSectionCatalogCombo = nullptr;
 	QListWidget* m_routeSectionListWidget = nullptr;

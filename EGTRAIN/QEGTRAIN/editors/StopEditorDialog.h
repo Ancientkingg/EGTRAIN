@@ -1,6 +1,7 @@
 #pragma once
 
-// SceneDocument.h first: it includes the scene model, which has a member named signals, before any Qt header.
+// SceneDocument.h first: it includes the scene model, which has a member named signals, with the signals keyword of Qt
+// undefined, so SectionInventory.h below finds the model included.
 #include "editors/SceneDocument.h"
 #include "scene/SectionInventory.h"
 

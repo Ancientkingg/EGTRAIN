@@ -9,9 +9,12 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
+#include <QPointer>
 #include <QPushButton>
+#include <QScopedValueRollback>
 #include <QSignalBlocker>
 #include <QSplitter>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -60,6 +63,41 @@ const SceneModel& emptyScene() {
 
 } // namespace
 
+/// The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with
+/// setCellWidget are not its editors.
+class InfrastructurePanel::CellDelegate : public QStyledItemDelegate {
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+
+	/// Makes the editor of a cell as QStyledItemDelegate does, and keeps it as the open editor.
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		m_editor = QStyledItemDelegate::createEditor(parent, option, index);
+		return m_editor;
+	}
+
+	/// Forgets the open editor when the view lets it go, and destroys it as QStyledItemDelegate does.
+	void destroyEditor(QWidget* editor, const QModelIndex& index) const override {
+		if (editor == m_editor)
+			m_editor = nullptr;
+		QStyledItemDelegate::destroyEditor(editor, index);
+	}
+
+	/// Takes the text of the open editor into its cell and closes the editor, as leaving it does: the view writes the text
+	/// with setModelData(), and the table tells itemChanged() when it differs. Does nothing without an open editor.
+	void commitOpenEditor() {
+		QWidget* editor = m_editor;
+		if (!editor)
+			return;
+		emit commitData(editor);
+		// A commit that fills the table again has closed the editor already.
+		if (editor == m_editor)
+			emit closeEditor(editor);
+	}
+
+private:
+	mutable QPointer<QWidget> m_editor;
+};
+
 InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("infrastructurePanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
@@ -98,6 +136,8 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
+	m_cellDelegate = new CellDelegate(m_table);
+	m_table->setItemDelegate(m_cellDelegate);
 	// Tab leaves the table and the arrow keys move between the cells.
 	m_table->setTabKeyNavigation(false);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -245,6 +285,10 @@ void InfrastructurePanel::refresh(bool resetSelection) {
 }
 
 void InfrastructurePanel::commitPendingEditors() {
+	// The window answers changed() by taking the text of every panel, also while the panel tells an edit of its own. The
+	// table then still shows the rows from before the edit, and the cell of the open editor can stand for another entity.
+	if (!m_editing)
+		m_cellDelegate->commitOpenEditor();
 	if (InfrastructureFacet* current = currentFacet())
 		current->commitPendingEdits(*this);
 }
@@ -495,6 +539,7 @@ bool InfrastructurePanel::edit(const QString& label, const std::function<void(Sc
 }
 
 bool InfrastructurePanel::editInPlace(const QString& label, const std::function<void(SceneModel&)>& apply) {
+	const QScopedValueRollback<bool> editing(m_editing, true);
 	if (!m_document || !m_document->edit(SceneDocument::Infrastructure, label, apply))
 		return false;
 	emit changed();

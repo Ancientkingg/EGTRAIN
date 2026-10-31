@@ -1,6 +1,7 @@
 #include "editors/InfrastructurePanel.h"
 #include "editors/infrastructure/BlockRouteFacets.h"
 #include "editors/infrastructure/SignalFacets.h"
+#include "editors/infrastructure/TopologyFacets.h"
 
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
@@ -309,6 +310,8 @@ private slots:
 	void laysOutControls();
 	void dropsEditorsOnFacetChange();
 	void returnAndAddLeaveNoEditor();
+	void commitsOpenCellEditor();
+	void leavesOpenEditorDuringOwnEdit();
 };
 
 // The facets, the combo and a panel without a scene.
@@ -1142,6 +1145,127 @@ void TestInfrastructurePanel::returnAndAddLeaveNoEditor() {
 	QCOMPARE(document.model().tracks.size(), std::size_t(3));
 	QCOMPARE(table->currentRow(), 2);
 	QCOMPARE(shownEditors(), 0);
+}
+
+// The window's commit takes the text of a cell whose editor is still open, as leaving the cell does, and closes the
+// editor. Without an open editor it takes nothing, it leaves the combos that facets put in cells alone, and while the
+// scene is closed for edits the text changes nothing.
+void TestInfrastructurePanel::commitsOpenCellEditor() {
+	SceneDocument document;
+	InfrastructurePanel panel;
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		panel.setFacet(std::move(facet));
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeSignalFacets())
+		panel.setFacet(std::move(facet));
+	panel.setDocument(&document);
+	SceneModel scene = infrastructureScene();
+	SceneSignal signal;
+	signal.id = "sig1";
+	sceneSignals(scene) = {signal};
+	document.replace(scene, false);
+	chooseFacet(panel, "tracks");
+	panel.refresh();
+	panel.show();
+	panel.activateWindow();
+	QApplication::processEvents();
+	Events events(panel, document);
+	QTableWidget* table = panel.table();
+	const SceneModel& model = document.model();
+	const auto openEditor = [table](int row) {
+		table->editItem(table->item(row, 0));
+		return qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(row, 0)));
+	};
+	const auto hasEditor = [table](int row) { return table->indexWidget(table->model()->index(row, 0)) != nullptr; };
+
+	panel.commitPendingEditors();
+	// Without an open editor nothing is taken.
+	QVERIFY(events.log.empty());
+
+	QLineEdit* editor = openEditor(0);
+	if (editor == nullptr)
+		QFAIL("the cell has no editor");
+	editor->setText("T9");
+	panel.commitPendingEditors();
+	// The typed id renames the track and what lies on it, as one edit, and the editor is closed.
+	QCOMPARE(model.tracks[0].id, "T9");
+	QCOMPARE(model.nodes[0].trackId, "T9");
+	QCOMPARE(model.arcs[0].trackId, "T9");
+	QCOMPARE(model.blocks[0].trackId, "T9");
+	QCOMPARE(events.log, edit);
+	QCOMPARE(document.lastChangeLabel(), "Rename track");
+	QCOMPARE(firstColumn(table), QStringList({"T9", "T2"}));
+	QVERIFY(!hasEditor(0));
+	panel.commitPendingEditors();
+	QVERIFY2(events.log == edit, "committing again changes nothing");
+
+	events.log.clear();
+	if (openEditor(1) == nullptr)
+		QFAIL("the cell has no editor");
+	panel.commitPendingEditors();
+	// An open editor that holds the stored id changes nothing, and is closed.
+	QVERIFY(events.log.empty());
+	QVERIFY(!hasEditor(1));
+
+	chooseFacet(panel, "signals");
+	auto* section = qobject_cast<QComboBox*>(table->cellWidget(0, 1));
+	if (section == nullptr)
+		QFAIL("the signal has no section combo");
+	section->setCurrentIndex(section->findData("@b1@"));
+	QCOMPARE(sceneSignals(model)[0].protectedSection, "@b1@");
+	events.log.clear();
+	table->setCurrentCell(0, 1);
+	panel.commitPendingEditors();
+	// The combo, which the table returns as the widget of the current cell, keeps its value, and its cell gets no text.
+	QVERIFY(events.log.empty());
+	QCOMPARE(sceneSignals(model)[0].protectedSection, "@b1@");
+	QVERIFY(table->cellWidget(0, 1) == section);
+	QCOMPARE(section->currentData().toString(), "@b1@");
+	QVERIFY(table->item(0, 1) == nullptr);
+
+	chooseFacet(panel, "tracks");
+	editor = openEditor(1);
+	if (editor == nullptr)
+		QFAIL("the cell has no editor");
+	editor->setText("T7");
+	const quint64 revision = document.revision();
+	document.setEditable(false);
+	panel.commitPendingEditors();
+	// While the scene is closed for edits the text of the editor changes nothing.
+	QCOMPARE(model.tracks[1].id, "T2");
+	QCOMPARE(document.revision(), revision);
+	QVERIFY(events.log.empty());
+}
+
+// The window answers changed() by taking the text of every panel, also during an edit of the panel itself. The table then
+// still shows the rows from before the edit, so the open editor is left alone, and filling the table again closes it.
+void TestInfrastructurePanel::leavesOpenEditorDuringOwnEdit() {
+	SceneDocument document;
+	InfrastructurePanel panel;
+	auto tracks = std::make_unique<ListFacet>(ListFacet::Kind::Tracks);
+	ListFacet* trackFacet = tracks.get();
+	panel.setFacet(std::move(tracks));
+	panel.setDocument(&document);
+	document.replace(infrastructureScene(), false);
+	panel.refresh();
+	panel.show();
+	panel.activateWindow();
+	QApplication::processEvents();
+	Events events(panel, document);
+	QObject::connect(&panel, &InfrastructurePanel::changed, &panel, [&panel] { panel.commitPendingEditors(); });
+	QTableWidget* table = panel.table();
+	table->editItem(table->item(0, 0));
+	auto* editor = qobject_cast<QLineEdit*>(table->indexWidget(table->model()->index(0, 0)));
+	if (editor == nullptr)
+		QFAIL("the cell has no editor");
+	editor->setText("T9");
+	panel.addButton()->click();
+	// The track is added as the only edit and is selected, and the first track keeps its id.
+	QCOMPARE(events.log, edit);
+	QCOMPARE(document.lastChangeLabel(), "Add entity");
+	QVERIFY(trackFacet->committed.empty());
+	QCOMPARE(firstColumn(table), QStringList({"T1", "T2", "T3"}));
+	QCOMPARE(panel.selectionId(), "T3");
+	QVERIFY(table->indexWidget(table->model()->index(0, 0)) == nullptr);
 }
 
 QTEST_MAIN(TestInfrastructurePanel)
