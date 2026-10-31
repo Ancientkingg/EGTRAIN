@@ -138,6 +138,12 @@ QVector<DiagramKeyEntry> BlockSectionOverlay::keyEntries() const {
 	return entries;
 }
 
+QStringList BlockSectionOverlay::stripLabels() const {
+	QStringList shown;
+	for (const auto& label : renderedLabels()) shown << label.text;
+	return shown;
+}
+
 QString BlockSectionOverlay::inspect(const QPointF& point, bool headerOnly) const {
 	const auto* axis = distanceAxis();
 	const QRectF plot = m_chart->plotArea();
@@ -232,14 +238,11 @@ void BlockSectionOverlay::paint(QPainter* painter, const QStyleOptionGraphicsIte
 		painter->drawLine(QPointF(strip.left(), strip.top() + rowHeight()), QPointF(strip.right(), strip.top() + rowHeight()));
 	}
 	const std::vector<Label> labels = renderedLabels();
-	QStringList shown;
 	for (const auto& label : labels) {
-		shown << label.text;
 		painter->setFont(label.strong ? m_strongFont : m_font);
 		painter->setPen(label.strong ? kStripStrongText : kStripText);
 		painter->drawText(label.rect, Qt::AlignCenter, label.text);
 	}
-	setProperty("stripLabels", shown);
 	painter->setFont(m_font);
 	painter->setPen(QPen(m_palette.color(QPalette::Text), 1));
 	const QFontMetricsF metrics(m_font);

@@ -160,8 +160,10 @@ void widenToRoundTicks(QValueAxis* axis) {
 }
 
 // A dark outline around the selected blocking time, 1.5 px outside its box as the chart maps the box at the moment, and
-// cut at the edges of the plot. The rectangle it draws is in the dynamic property "outline", for the tests.
+// cut at the edges of the plot. The property "outline" gives the rectangle it draws, for the tests.
 class SelectionOutline : public QGraphicsObject {
+	Q_OBJECT
+	Q_PROPERTY(QRectF outline READ outlineRect)
 public:
 	SelectionOutline(QChart* chart, QXYSeries* series)
 		: QGraphicsObject(chart), m_chart(chart), m_series(series) {
@@ -179,20 +181,23 @@ public:
 	QRectF boundingRect() const override { return m_chart->plotArea(); }
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
 		if (!m_series) return;
-		QPolygonF corners;
-		for (const QPointF& point : m_series->points()) corners << m_chart->mapToPosition(point, m_series);
-		const QRectF outline = corners.boundingRect().adjusted(-1.5, -1.5, 1.5, 1.5);
-		setProperty("outline", outline);
 		painter->save();
 		painter->setClipRect(m_chart->plotArea());
 		painter->setRenderHint(QPainter::Antialiasing);
 		painter->setPen(QPen(kStripStrongText, 2));
 		painter->setBrush(Qt::NoBrush);
-		painter->drawRoundedRect(outline, 1, 1);
+		painter->drawRoundedRect(outlineRect(), 1, 1);
 		painter->restore();
 	}
 
 private:
+	QRectF outlineRect() const {
+		if (!m_series) return {};
+		QPolygonF corners;
+		for (const QPointF& point : m_series->points()) corners << m_chart->mapToPosition(point, m_series);
+		return corners.boundingRect().adjusted(-1.5, -1.5, 1.5, 1.5);
+	}
+
 	QChart* m_chart;
 	QPointer<QXYSeries> m_series;
 };
@@ -1700,3 +1705,5 @@ void DiagramWindow::keyPressEvent(QKeyEvent* event) {
 	}
 	QDialog::keyPressEvent(event);
 }
+
+#include "DiagramWindow.moc"

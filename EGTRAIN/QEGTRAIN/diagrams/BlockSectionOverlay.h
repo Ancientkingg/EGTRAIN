@@ -16,6 +16,7 @@
 #include <QSet>
 #include <QSizeF>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 #include <cstddef>
@@ -38,6 +39,9 @@ inline const QColor kStripStrongText(36, 49, 58);
 /// the plot and the break marks of the position axis on the bottom edge of the plot over the series, and the boundaries of
 /// the sections in the plot under the series, in a layer of its own.
 class BlockSectionOverlay : public QGraphicsObject {
+	Q_OBJECT
+	/// The ids that the strip draws as the chart is now, read by the tests.
+	Q_PROPERTY(QStringList stripLabels READ stripLabels)
 public:
 	/// The overlay of `sections` on `chart`, which owns it. `marks` has one entry per section or none, `routeSectionCount`
 	/// is the M of "Section N of M" (the number of sections when 0), `route` is the route that the hover names, and
@@ -59,6 +63,8 @@ public:
 	/// The rows of the Key for what the overlay draws: a cell with the bar of a station section, a hatched cell of a switch
 	/// section and the dotted line of a boundary, each while the strip draws one.
 	QVector<DiagramKeyEntry> keyEntries() const;
+	/// The ids that the strip draws as the chart is now, in the order that it draws them.
+	QStringList stripLabels() const;
 	/// The hover at `point` in chart pixels, one fact per line: a break mark, the sections and the notice in the header
 	/// and, without `headerOnly`, the boundaries in the plot. Empty where the overlay shows nothing.
 	QString inspect(const QPointF& point, bool headerOnly) const;

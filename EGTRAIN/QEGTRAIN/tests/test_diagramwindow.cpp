@@ -1407,7 +1407,7 @@ void TestDiagramWindow::drawsPhysicalSections() {
 	crowdedLabels.byReference = {{"@section-n0@", "T 0.000 to 0.250 km"}};
 	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded", &crowdedLabels);
 	QApplication::processEvents();
-	view->grab(); // paints the strip, which records its labels
+	view->grab(); // paints the strip
 	hover(QPointF(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5));
 	const auto* crowdedStrip = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 	// the strip names a section by its id, and the hover by its id and label
@@ -3684,7 +3684,7 @@ void TestDiagramWindow::namesSectionsInStrip() {
 		QChart* chart = showBlockingWindow(window, extents, width, height);
 		*idPx = QFontMetricsF(window.font()).horizontalAdvance("70-B0") + 6;
 		auto* view = window.findChild<QChartView*>();
-		(void)view->grab(); // paints the strip, which records its ids
+		(void)view->grab(); // paints the strip
 		const auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
 		const auto bounds = blockSectionBounds(extents).value();
 		*cellPx = 0.3 * chart->plotArea().width() / (bounds.second - bounds.first);
