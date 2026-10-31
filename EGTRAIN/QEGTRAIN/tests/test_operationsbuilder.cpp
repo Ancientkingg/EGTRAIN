@@ -2,7 +2,6 @@
 #include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
 #include "simulation/Passengers.h"
-#include "simulation/Optimisation.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"

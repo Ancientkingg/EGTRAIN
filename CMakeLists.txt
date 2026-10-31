@@ -189,7 +189,6 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Infrastructure.cpp
     ${SRC_DIR}/simulation/InitialParameters.cpp
     ${SRC_DIR}/simulation/NumberGenerator.cpp
-    ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/simulation/RollingStock.cpp
     ${SRC_DIR}/simulation/builders/OperationsBuilder.cpp
@@ -486,7 +485,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
-    ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Log.h
     ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/simulation/Passengers.h
