@@ -331,6 +331,21 @@ void InspectorPanel::handleCloseInfoDockWidget() {
 	m_host.inspectionChanged();
 }
 
+void InspectorPanel::showForm(QWidget* form, const QString& title, QGraphicsItem* highlighted) {
+	for (QWidget* other : {m_arcInfoWidget, m_nodeInfoWidget, m_connectionInfoWidget, m_signallingInfoWidget, m_trainInfoWidget})
+		if (other != form)
+			other->hide();
+	if (form) {
+		m_infoDockWidget->setWindowTitle(title);
+		m_infoDockWidget->show();
+		form->show();
+	}
+	if (highlighted)
+		m_presenter->setHighlight(highlighted);
+	else
+		m_presenter->clearHighlight();
+}
+
 void InspectorPanel::showIncidentAction(const QString& text, const QString& blocked) {
 	m_incidentButton->setText(text);
 	m_incidentButton->setAccessibleName(text);
@@ -382,6 +397,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 	// Resolve the values of the case at interaction; no pointers survive an edit/rebuild.
 	clearPreviewInspection();
 	QString title;
+	QWidget* form = nullptr;
 	if (kind == "node" || kind == "station-node" || kind == "station") {
 		const SceneNode* node = nullptr;
 		const SceneStation* station = nullptr;
@@ -442,7 +458,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		title = kind == "station" ? "Station " + text(id) : "Node " + text(id);
 		if (kind != "station" && membership != memberships.end() && !membership->second.platformId.empty())
 			title += ", platform " + text(membership->second.platformId);
-		m_nodeInfoWidget->show();
+		form = m_nodeInfoWidget;
 	} else if (kind == "arc" || kind == "track") {
 		if (kind == "arc") {
 			const auto arc = std::find_if(model.arcs.begin(), model.arcs.end(),
@@ -476,7 +492,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 		afterRun(m_arcOperationalStateText);
 		afterRun(m_arcConnectedSignalsText);
 		title = kind == "arc" ? "Arc " + text(id) : "Track " + text(id);
-		m_arcInfoWidget->show();
+		form = m_arcInfoWidget;
 	} else if (kind == "connection") {
 		const auto connection = std::find_if(model.connections.begin(), model.connections.end(),
 			[&](const SceneConnection& value) { return value.id == id; });
@@ -493,7 +509,7 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 			}
 		}
 		title = "Connection " + text(id);
-		m_connectionInfoWidget->show();
+		form = m_connectionInfoWidget;
 	} else if (kind == "signal") {
 		const std::string track = item->data(PreviewGraphics::TrackId).toString().toStdString();
 		const TrackPreviewSignal* head = m_presenter->previewSignal(track, id);
@@ -516,17 +532,13 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 			details += QStringLiteral("\nSignals: %1").arg(ids.join(", "));
 		m_signallingGroupDetails->setPlainText(details);
 		title = "Signal " + text(head->label);
-		m_signallingInfoWidget->show();
+		form = m_signallingInfoWidget;
 	} else {
 		return;
 	}
-	m_infoDockWidget->setWindowTitle(title);
-	m_infoDockWidget->show();
+	showForm(form, title, item);
 	m_previewSelectionKind = kind;
 	m_previewSelectionId = text(id);
-
-	// effect on clicked item
-	m_presenter->setHighlight(item);
 	m_host.inspectionChanged();
 	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
 }
@@ -547,21 +559,7 @@ void InspectorPanel::displayNodeInfo(NodeItem* nodeItem) {
 	m_nodeConnectedTracksText->clear();
 	m_nodeSignalledText->clear();
 
-	// hide other widgets
-	m_arcInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Node %1").arg(m_nodeIDText->text()));
-	m_infoDockWidget->show();
-	m_nodeInfoWidget->show();
-
-	// effect on clicked item
-	m_presenter->setHighlight(nodeItem);
+	showForm(m_nodeInfoWidget, QStringLiteral("Node %1").arg(m_nodeIDText->text()), nodeItem);
 }
 
 // shows station Node info on dock widget
@@ -603,21 +601,7 @@ void InspectorPanel::displayStationNodeInfo(StationNodeItem* stationItem) {
 	setTrackText(m_nodeConnectedTracksText, *m_presenter, connectedTracks);
 	m_nodeSignalledText->setText(stationItem->node->isSignalled ? "Yes" : "No");
 
-	// hide other widgets
-	m_arcInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Station %1").arg(m_nodeStationNameText->text()).trimmed());
-	m_infoDockWidget->show();
-	m_nodeInfoWidget->show();
-
-	// effect on clicked item
-	m_presenter->setHighlight(stationItem);
+	showForm(m_nodeInfoWidget, QStringLiteral("Station %1").arg(m_nodeStationNameText->text()).trimmed(), stationItem);
 }
 
 // shows Arc info on dock widget
@@ -682,21 +666,7 @@ void InspectorPanel::displayArcInfo(TrackLineItem* line) {
 		setTextWithTip(m_arcConnectedSignalsText, sectionLabels.join(QStringLiteral(", ")),
 			(sectionIds.size() == 1 ? QStringLiteral("Section ID: %1") : QStringLiteral("Section IDs: %1")).arg(sectionIds.join(QStringLiteral(", "))));
 
-	// hide other widgets
-	m_nodeInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Arc %1").arg(m_arcIDText->text()));
-	m_infoDockWidget->show();
-	m_arcInfoWidget->show();
-
-	// effect on clicked item
-	m_presenter->setHighlight(line);
+	showForm(m_arcInfoWidget, QStringLiteral("Arc %1").arg(m_arcIDText->text()), line);
 }
 
 // shows connection info on dock widget
@@ -711,21 +681,7 @@ void InspectorPanel::displayConnectionInfo(ConnectionItem* line) {
 	m_connectionXFirstNodeText->setText(QString::fromStdString(toStringPrecision(1000 * line->connection->xFirstNode, 2)));	  // km to m
 	m_connectionXSecondNodeText->setText(QString::fromStdString(toStringPrecision(1000 * line->connection->xSecondNode, 2))); // km to m
 
-	// hide other widgets
-	m_arcInfoWidget->hide();
-	m_nodeInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Connection"));
-	m_infoDockWidget->show();
-	m_connectionInfoWidget->show();
-
-	// effect on clicked item
-	m_presenter->setHighlight(line);
+	showForm(m_connectionInfoWidget, QStringLiteral("Connection"), line);
 }
 
 // shows signalling info on dock widget
@@ -757,21 +713,7 @@ void InspectorPanel::displaySignallingInfo(SignalItem* signal) {
 			? QString::fromStdString(toStringPrecision(1000 * signal->sectionAheadLength, 2)) // km to m
 			: QStringLiteral("None"));
 
-	// hide other widgets
-	m_arcInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_nodeInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Signal"));
-	m_infoDockWidget->show();
-	m_signallingInfoWidget->show();
-
-	// effect on clicked item
-	m_presenter->setHighlight(signal);
+	showForm(m_signallingInfoWidget, QStringLiteral("Signal"), signal);
 	m_host.signalInspected();
 }
 
@@ -790,30 +732,17 @@ void InspectorPanel::displayTrainDetails(TrainBodyItem* trainItem, bool changeFo
 	m_trainLengthText->setText(QString::fromStdString(toStringPrecision(groupItem->trainLength, 0)));
 	m_trainWagonsText->setText(QString::fromStdString(toStringPrecision(groupItem->wagonCount, 0)));
 
-	// hide other widgets
-	m_arcInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_nodeInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
 	// show pax info only while its layer is enabled
 	if (m_host.passengerGui() && m_presenter->passengerLayerVisible())
 		m_presenter->paintTrainPassengerInfo(groupItem);
 
-	// show widget
-	m_infoDockWidget->setWindowTitle(QStringLiteral("Train %1").arg(m_trainNameText->text()));
-	m_infoDockWidget->show();
-	m_trainInfoWidget->show();
+	showForm(m_trainInfoWidget, QStringLiteral("Train %1").arg(m_trainNameText->text()), nullptr);
 	if (changeFollowMode)
 		m_host.followTrain(trainItem->index);
 	m_host.inspectionChanged();
 
-	// effect on clicked item
-	if (trainItem->parentItem()) {
-		m_presenter->setHighlight(trainItem->parentItem());
-	} // effect on entire train
+	// effect on entire train
+	m_presenter->setHighlight(groupItem);
 }
 
 // shows train info on dock widget
@@ -826,21 +755,12 @@ void InspectorPanel::displayPassengerInfo(PassengerItem* paxItem) {
 	if (!paxItem)
 		return;
 	handleCloseInfoDockWidget();
-	// hide other widgets
 	m_infoDockWidget->hide();
-	m_arcInfoWidget->hide();
-	m_nodeInfoWidget->hide();
-	m_connectionInfoWidget->hide();
-	m_signallingInfoWidget->hide();
-	m_trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
 
 	// show pax info
 	m_presenter->paintPassengerInfoIcon(paxItem, m_host.passengerState(paxItem->passengerId), m_host.replayActive());
 
-	// effect on clicked item
-	m_presenter->setHighlight(paxItem);
+	showForm(nullptr, QString(), paxItem);
 }
 
 void InspectorPanel::handleDisableHighlight() {

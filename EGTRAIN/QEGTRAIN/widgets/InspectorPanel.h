@@ -146,6 +146,10 @@ private:
 	// the scripted GUI runs in tests/e2e
 	friend class MainWindowTestAccess;
 
+	// Hides the other forms and shows form with title in the dock; a null form leaves the dock as it is. Puts the
+	// highlight on highlighted, or removes it for null.
+	void showForm(QWidget* form, const QString& title, QGraphicsItem* highlighted);
+
 	QPointer<QGraphicsScene> m_scene;
 	// Never null. The presenter stays valid while the panel is in use.
 	NetworkPresenter* m_presenter;
