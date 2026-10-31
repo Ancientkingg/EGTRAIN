@@ -441,7 +441,8 @@ static std::string normaliseServiceSeparators(std::string value) {
 }
 
 // What the case folder and the scene name select: the row of the case, without its folders and names, or an empty row
-// for neither. A folder of one case under the name of another gets the base time of the earlier row and the fixes of both.
+// for neither. A folder of one case under the name of another takes the base time and the duration of the earlier row
+// that has a base time, and the fixes of both rows.
 static KnownCase knownCaseFor(const std::string& sceneName, const fs::path& legacyPath) {
 	const std::string name = lowerCopy(sceneName);
 	const std::string folder = lowerCopy(legacyPath.filename().u8string());

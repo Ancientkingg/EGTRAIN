@@ -72,7 +72,6 @@
 #include <limits>
 #include <tuple>
 
-// Runs the event loop until `done` is true, for at most about a second.
 // Sets one field of the description of a series.
 template <typename Field, typename Value>
 static void setMeta(QAbstractSeries* series, Field SeriesMeta::* field, const Value& value) {
@@ -81,12 +80,14 @@ static void setMeta(QAbstractSeries* series, Field SeriesMeta::* field, const Va
 	describeSeries(series, meta);
 }
 
+// Describes the axis with only AxisMeta::exactRange set, so that setChart keeps its range.
 static void keepExactRange(QAbstractAxis* axis) {
 	AxisMeta meta;
 	meta.exactRange = true;
 	describeAxis(axis, meta);
 }
 
+// Runs the event loop until `done` is true, for at most about a second.
 static bool waitFor(const std::function<bool()>& done) {
 	for (int round = 0; round < 200 && !done(); ++round) {
 		QApplication::processEvents(QEventLoop::AllEvents, 5);
@@ -3182,8 +3183,9 @@ void TestDiagramWindow::readsValueUnderPointer() {
 	const QString speedAtTime = pointAt(QPointF(3, 40));
 	QVERIFY2(QRegularExpression(QStringLiteral("^\\d+\\.\\d+ km/h at 08:00:0[234]$")).match(speedAtTime).hasMatch(), qPrintable("with the clock along the bottom the readout gives the speed at the clock time: " + speedAtTime));
 
-	// A distance axis with "readoutStation" gives the station at the nearest position that a shown series has a sample at,
-	// as the Delays chart has it: Charlie at 6 km is named at 5.1 km, not Foxtrot at 5 km, where no train has a delay.
+	// A distance axis with AxisMeta::readoutStation gives the station at the nearest position that a shown series has a
+	// sample at, as the Delays chart has it: Charlie at 6 km is named at 5.1 km, not Foxtrot at 5 km, where no train has a
+	// delay.
 	DiagramWindow delays("Delays");
 	auto* delayChart = new QChart;
 	auto* delay = new QLineSeries;
@@ -3988,9 +3990,9 @@ void TestDiagramWindow::saysChartIsEmpty() {
 }
 
 // Inside a blocking box a click selects a line only within 4 px of it: a click on or very near the line selects its
-// train, one further away in the box outlines the box, which names itself by its "inspectionTitle". The selected train
-// is drawn over the others: its series go last in the chart and keep their axes. A click just outside the box, near its
-// outline, selects the box by its title too, with its own lines only and without an outline.
+// train, one further away in the box outlines the box, which names itself by its SeriesMeta::inspectionTitle. The
+// selected train is drawn over the others: its series go last in the chart and keep their axes. A click just outside the
+// box, near its outline, selects the box by its title too, with its own lines only and without an outline.
 void TestDiagramWindow::selectsLinesInsideBoxes() {
 	DiagramWindow window("Box precedence");
 	auto* chart = new QChart;

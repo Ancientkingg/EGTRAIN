@@ -40,12 +40,14 @@ struct RouteChart {
 /// out the point of the tractive effort chart, and counts as 0 in the others.
 TrajectoryChartResult buildTrajectoryChart(const CompletedRunData& run, TrajectoryChart kind);
 
-/// The Delays chart: a line with a marker per call for each train that has a call at a station of the reference route.
+/// The Delays chart: for each train with an arrival delay at a station of the reference route, a line with a marker per
+/// such call.
 RouteChart buildDelayChart(const DelayDiagramData& diagram);
 
-/// The route diagram: the lines of `diagram` over the distance along its reference route and the time of the run, from 0
-/// to `horizonSeconds`. `calls` gives the stops of the trains that count at each station, so that the busiest stations are
-/// named first; a train path chart passes the timetable graph of its reference route, a timetable graph itself.
+/// The route diagram: the lines of `diagram` over the distance along its reference route and the time of the run. The
+/// time axis runs from 0 to `horizonSeconds`, and to at least 1 s. `calls` gives the stops of the trains that count at
+/// each station, so that the busiest stations are named first; a train path chart passes the timetable graph of its
+/// reference route, a timetable graph itself.
 RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDiagramData& calls, double horizonSeconds);
 
 /// The blocking-time chart: the blocks, the planned lines and the simulated lines of `diagram`, over the route distance
@@ -66,9 +68,9 @@ QCategoryAxis* addRouteAxes(QChart* chart, const RouteDiagramPath& referencePath
 /// chart, whose blocks move and whose times do not, each time starts with "Simulated".
 QStringList blockingComponentLines(const BlockingTimeDiagramSegment& segment, bool compressed);
 
-/// Adds a filled box and its outline for each of `segments`, and only the outline of a block of no width. The Trains list
-/// gets one legend entry per train and type of block. `useCapacityCriticalStyle` draws the capacity-critical blocks of a
-/// compressed chart.
+/// Adds a filled box and its outline for each of `segments`, and only the outline of a block of no width. The legend keeps
+/// one marker per train and type of block, and none for a fill. `useCapacityCriticalStyle` draws the capacity-critical
+/// blocks of a compressed chart.
 void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramSegment>& segments,
 	bool useCapacityCriticalStyle, const SceneSectionLabels& labels, const PositionScale& scale);
 

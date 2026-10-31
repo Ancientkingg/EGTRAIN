@@ -1184,11 +1184,16 @@ void TestSceneImporter::selectsKnownCase_data() {
 	QTest::newRow("folder of Assignment") << "Input_EGTRAIN_Assignment" << "Other" << "07:00:00" << 10000.0 << false << false;
 	QTest::newRow("name of Assignment") << "legacy" << "Assignment" << "07:00:00" << 10000.0 << false << false;
 	QTest::newRow("folder of one and name of another") << "Input_EGTRAIN_Paimpol" << "Copenhagen" << "07:10:40" << 9000.0 << true << true;
+	QTest::newRow("folder that starts as Paimpol and name of Copenhagen") << "Input_EGTRAIN_Paimpol_copy" << "Copenhagen" << "06:28:20" << 8000.0 << true << true;
+	QTest::newRow("folder of Netherlands and name of Assignment") << "Input_EGTRAIN_Netherlands" << "Assignment" << "06:28:20" << 8000.0 << false << false;
+	QTest::newRow("folder of Copenhagen and name of Brescia") << "Input_EGTRAIN_Copenhagen" << "Brescia" << "06:28:20" << 8000.0 << true << false;
+	QTest::newRow("folder of Assignment and name of Brescia") << "Input_EGTRAIN_Assignment" << "Brescia" << "06:28:20" << 4000.0 << false << false;
 	QTest::newRow("unknown folder and name") << "legacy" << "Other" << "" << 0.0 << false << false;
 }
 
 // A folder name or a typed name selects a case, whatever the other one says, and a case that neither selects gets
-// nothing. Both rows apply to a folder of one case under the name of another.
+// nothing. Both rows apply to a folder of one case under the name of another: the earlier of them in the table that has
+// a base time gives the base time and the duration, and both give their fixes.
 void TestSceneImporter::selectsKnownCase() {
 	QFETCH(QString, folder);
 	QFETCH(QString, name);
