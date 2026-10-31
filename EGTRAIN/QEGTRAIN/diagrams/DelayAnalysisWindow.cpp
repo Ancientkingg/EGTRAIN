@@ -2,7 +2,7 @@
 
 #include "diagrams/ChartTicks.h"
 #include "diagrams/ResultFrame.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"

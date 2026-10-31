@@ -1,8 +1,9 @@
 #ifndef ROUTECHARTS_H
 #define ROUTECHARTS_H
 
+#include "diagrams/BlockingTimeData.h"
 #include "diagrams/DiagramWindow.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RouteDiagramData.h"
 
 #include <QString>
 #include <QStringList>

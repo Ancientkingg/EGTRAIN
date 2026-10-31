@@ -3,7 +3,7 @@
 
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/PositionScale.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RunCsv.h"
 
 #include <QStringList>
 #include <QTest>

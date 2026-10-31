@@ -378,6 +378,7 @@ target_link_libraries(egtrain_dispatch
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/AreaCapacity.cpp
     ${SRC_DIR}/diagrams/AreaCapacityWindow.cpp
+    ${SRC_DIR}/diagrams/BlockingTimeData.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/BlockingTimeScope.cpp
     ${SRC_DIR}/diagrams/BlockSectionOverlay.cpp
@@ -394,8 +395,9 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/ResultFrame.cpp
     ${SRC_DIR}/diagrams/RouteCharts.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
+    ${SRC_DIR}/diagrams/RouteDiagramData.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
-    ${SRC_DIR}/diagrams/RunExports.cpp
+    ${SRC_DIR}/diagrams/RunCsv.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/diagrams/SeriesMeta.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp

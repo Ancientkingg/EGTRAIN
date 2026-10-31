@@ -1,6 +1,5 @@
 #include "diagrams/TimetableTableWindow.h"
 #include "diagrams/ResultFrame.h"
-#include "diagrams/RunExports.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
