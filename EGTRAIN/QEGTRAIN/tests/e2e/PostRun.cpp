@@ -498,7 +498,8 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 						if (line && ((window->windowTitle().startsWith("Timetable") && !line->name().contains("dwell")) || line->count() == 1))
 							ok &= line->pointsVisible();
 					}
-					// A line is planned as its data says, not by the name of its train.
+					// A line is planned as its data says, not by the name of its train. The timetable graph of a case with
+					// planned times has planned lines; a case without any, such as Netherlands, has none.
 					const bool timetable = window->windowTitle().startsWith("Timetable");
 					const auto shown = routeDiagramData(*w.m_runController->m_completedRun, timetable, reference);
 					long long plannedLines = 0, plannedSeries = 0;
@@ -506,7 +507,12 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 						plannedLines += seriesMeta(series).planned ? 1 : 0;
 					for (const RouteDiagramSeries& series : shown ? shown->series : std::vector<RouteDiagramSeries>())
 						plannedSeries += series.planned ? 1 : 0;
-					if (plannedLines != plannedSeries || (timetable && plannedSeries == 0)) {
+					const auto& sceneServices = w.m_document->model().services;
+					const bool plannedTimes = std::any_of(sceneServices.begin(), sceneServices.end(), [](const SceneService& service) {
+						return std::any_of(service.stops.begin(), service.stops.end(),
+							[](const SceneStop& stop) { return stop.hasPlannedArrival || stop.hasPlannedDeparture; });
+					});
+					if (plannedLines != plannedSeries || (timetable && plannedTimes && plannedSeries == 0)) {
 						std::fprintf(stderr, "E2E_ROUTE_DIAGRAM_PLANNED %s: %lld planned lines for %lld planned series\n",
 							window->windowTitle().toStdString().c_str(), plannedLines, plannedSeries);
 						ok = false;
