@@ -266,6 +266,7 @@ target_link_libraries(egtrain_widgets
 add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/CaseSettingsPanel.cpp
     ${SRC_DIR}/editors/CompositionPanel.cpp
+    ${SRC_DIR}/editors/EditorRules.cpp
     ${SRC_DIR}/editors/EntranceDelayPanel.cpp
     ${SRC_DIR}/editors/IncidentPanel.cpp
     ${SRC_DIR}/editors/InfrastructurePanel.cpp

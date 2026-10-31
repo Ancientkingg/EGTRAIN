@@ -1,9 +1,8 @@
 #include "editors/IncidentPanel.h"
 
 #include "editors/EditorHelpers.h"
-#include "scene/RuntimeLimits.h"
+#include "editors/EditorRules.h"
 #include "scene/SceneIds.h"
-#include "scene/SectionInventory.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
@@ -14,7 +13,6 @@
 #include <QGridLayout>
 #include <QFrame>
 #include <QHBoxLayout>
-#include <QHash>
 #include <QHideEvent>
 #include <QIcon>
 #include <QLabel>
@@ -30,38 +28,9 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
-#include <set>
 #include <string>
 
 namespace {
-
-// The signals and blocks that a signal failure can have as its target.
-std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
-	std::vector<std::string> targets;
-	std::set<std::string> seen;
-	const auto add = [&targets, &seen](const std::string& target) {
-		if (!target.empty() && seen.insert(target).second)
-			targets.push_back(target);
-	};
-	for (const auto& signal : sceneSignals(sceneModel))
-		add(signal.id);
-	for (const auto& block : sceneModel.blocks)
-		add(block.id);
-	return targets;
-}
-
-// The text of a signal failure target in the list: a signal by its id and the label of the section it protects, and a
-// block by the label of its section.
-QString signalFailureTargetText(const SceneModel& sceneModel, const SceneSectionLabels& labels, const std::string& target) {
-	for (const auto& signal : sceneSignals(sceneModel)) {
-		if (signal.id != target)
-			continue;
-		if (signal.protectedSection.empty())
-			return QString::fromStdString(target);
-		return QStringLiteral("%1 (%2)").arg(QString::fromStdString(target), QString::fromStdString(labels.label(signal.protectedSection)));
-	}
-	return QString::fromStdString(labels.label(target));
-}
 
 // The speed cap that the field shows: the stored one, or 40 km/h to start from when none is stored.
 double shownReducedSpeed(const QDoubleSpinBox* edit, const SceneIncident* incident) {
@@ -395,92 +364,20 @@ void IncidentPanel::updateDetail() {
 
 void IncidentPanel::refreshTargets() {
 	const SceneIncident* incident = shownIncident();
+	const bool signalFailure = incident && incident->type == "signal_failure";
+	const SceneModel noScene;
+	const IncidentTargetChoices choices = incident ? incidentTargetChoices(m_document->model(), incident, occurrenceDuration())
+												   : incidentTargetChoices(noScene, nullptr, 0.0);
 	const QSignalBlocker blocker(m_targetCombo);
 	m_targetCombo->clear();
-	m_targetCombo->addItem(QStringLiteral("Choose target"), QString());
-	int current = 0;
-	const bool signalFailure = incident && incident->type == "signal_failure";
-	if (incident) {
-		const SceneModel& model = m_document->model();
-		const QString target = QString::fromStdString(incident->target);
-		bool found = false;
-		if (signalFailure) {
-			const SceneSectionLabels labels = sceneSectionLabels(buildSceneSectionInventory(model));
-			for (const std::string& value : signalFailureTargets(model))
-				m_targetCombo->addItem(signalFailureTargetText(model, labels, value), QString::fromStdString(value));
-			current = m_targetCombo->findData(target);
-			if (current < 0 && !target.isEmpty()) {
-				m_targetCombo->addItem(QStringLiteral("%1 (missing)").arg(target), target);
-				current = m_targetCombo->count() - 1;
-			}
-		} else {
-			const bool singular = incident->hasOccurrence || incident->occurrence != 1;
-			if (!singular && !incident->target.empty()) {
-				const bool exists = std::any_of(model.services.begin(), model.services.end(),
-					[&](const SceneService& service) { return service.id == incident->target; });
-				m_targetCombo->addItem((exists ? QStringLiteral("All runs of %1") : QStringLiteral("%1 (missing)")).arg(target), target);
-				const int index = m_targetCombo->count() - 1;
-				m_targetCombo->setItemData(index, 0, Qt::UserRole + 1);
-				current = index;
-			}
-			int shown = 0;
-			for (const SceneService& service : model.services) {
-				const int count = std::max(0, sceneServiceOccurrenceCount(service, occurrenceDuration()));
-				for (int occurrence = 1; occurrence <= count && shown < RuntimeLimits::kMaxExpandedTrains; ++occurrence, ++shown) {
-					m_targetCombo->addItem(generatedServiceLabel(service, occurrence), QString::fromStdString(service.id));
-					const int index = m_targetCombo->count() - 1;
-					m_targetCombo->setItemData(index, occurrence, Qt::UserRole + 1);
-					if (singular && service.id == incident->target && occurrence == incident->occurrence) {
-						current = index;
-						found = true;
-					}
-				}
-				if (shown >= RuntimeLimits::kMaxExpandedTrains)
-					break;
-			}
-			if (singular && !found && !incident->target.empty()) {
-				for (const SceneService& service : model.services) {
-					if (service.id != incident->target)
-						continue;
-					const int count = std::max(0, sceneServiceOccurrenceCount(service, occurrenceDuration()));
-					if (incident->occurrence < 1 || incident->occurrence > count)
-						break;
-					m_targetCombo->addItem(generatedServiceLabel(service, incident->occurrence),
-						QString::fromStdString(service.id));
-					current = m_targetCombo->count() - 1;
-					m_targetCombo->setItemData(current, incident->occurrence, Qt::UserRole + 1);
-					found = true;
-					break;
-				}
-			}
-		}
-		if (!signalFailure && !incident->target.empty()
-			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
-			m_targetCombo->addItem(QStringLiteral("%1 #%2 (missing)").arg(target).arg(incident->occurrence), target);
-			current = m_targetCombo->count() - 1;
-			m_targetCombo->setItemData(current, incident->hasOccurrence || incident->occurrence != 1 ? incident->occurrence : 0,
-				Qt::UserRole + 1);
-		}
+	for (const IncidentTargetChoice& entry : choices.entries) {
+		m_targetCombo->addItem(entry.text, entry.target);
+		const int index = m_targetCombo->count() - 1;
+		if (entry.occurrence)
+			m_targetCombo->setItemData(index, *entry.occurrence, Qt::UserRole + 1);
+		m_targetCombo->setItemData(index, entry.toolTip, Qt::ToolTipRole);
 	}
-	QHash<QString, int> labelCounts;
-	for (int index = 0; index < m_targetCombo->count(); ++index)
-		++labelCounts[m_targetCombo->itemText(index)];
-	for (int index = 0; index < m_targetCombo->count(); ++index) {
-		const QString label = m_targetCombo->itemText(index);
-		const QString serviceId = m_targetCombo->itemData(index).toString();
-		const int occurrence = m_targetCombo->itemData(index, Qt::UserRole + 1).toInt();
-		const QString identity = serviceId.isEmpty() ? QString()
-			: occurrence > 0						 ? QString("service %1, run %2").arg(serviceId).arg(occurrence)
-													 : QString("service %1, all runs").arg(serviceId);
-		if (labelCounts.value(label) > 1 && !identity.isEmpty())
-			m_targetCombo->setItemText(index, QString("%1 (%2)").arg(label, identity));
-		// A signal or block shows its id, a train its text and, on a line of its own, its service and run.
-		QString tooltip = signalFailure ? serviceId : label;
-		if (!signalFailure && !identity.isEmpty())
-			tooltip += QStringLiteral("\n") + identity.left(1).toUpper() + identity.mid(1);
-		m_targetCombo->setItemData(index, tooltip, Qt::ToolTipRole);
-	}
-	m_targetCombo->setCurrentIndex(std::max(0, current));
+	m_targetCombo->setCurrentIndex(choices.current);
 	const bool editable = incident != nullptr && canEdit();
 	if (!editable)
 		endTargetPick();

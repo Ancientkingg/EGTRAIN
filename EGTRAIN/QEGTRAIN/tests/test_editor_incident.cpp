@@ -1,3 +1,4 @@
+#include "editors/EditorRules.h"
 #include "editors/IncidentPanel.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneWriter.h"
@@ -12,6 +13,7 @@
 #include <QHelpEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QList>
 #include <QListWidget>
 #include <QLoggingCategory>
 #include <QProxyStyle>
@@ -24,6 +26,7 @@
 #include <QToolTip>
 
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -154,6 +157,22 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 }
 
 // The text field of a number field.
+// The texts of the entries of target choices.
+static QStringList texts(const IncidentTargetChoices& choices) {
+	QStringList result;
+	for (const IncidentTargetChoice& entry : choices.entries)
+		result << entry.text;
+	return result;
+}
+
+// The run of each entry of target choices, -1 for an entry without one.
+static QList<int> runs(const IncidentTargetChoices& choices) {
+	QList<int> result;
+	for (const IncidentTargetChoice& entry : choices.entries)
+		result << entry.occurrence.value_or(-1);
+	return result;
+}
+
 static QLineEdit* spinText(QDoubleSpinBox* edit) {
 	return edit->findChild<QLineEdit*>();
 }
@@ -227,6 +246,10 @@ private slots:
 	void givesNewIncidentTarget();
 	void takesOccurrenceThatComboDoesNotList();
 	void namesTargetsByLabels();
+	void choicesListSignalFailureTargetsOnce();
+	void choicesListRunsOfBreakdown();
+	void choicesStopAtRunLimit();
+	void choicesNameRepeatedTexts();
 	void fieldsGrowInFormOfMacOs();
 };
 
@@ -1236,6 +1259,133 @@ void TestIncidentPanel::namesTargetsByLabels() {
 	// A block chosen by its label is saved by its id.
 	QCOMPARE(f.document.model().scenarios[0].incidents[0].target, "s2");
 	QCOMPARE(panel.targetCombo()->currentText(), "T1 1.000 to 2.000 km");
+}
+
+// A signal failure is offered each signal and then each block once, without an empty id, and a target that the scene does
+// not have as missing. Its entries name no run and have the id as tooltip.
+void TestIncidentPanel::choicesListSignalFailureTargetsOnce() {
+	SceneModel scene = incidentScene();
+	SceneSignal again;
+	again.id = "sig1";
+	SceneSignal unnamed;
+	SceneSignal other;
+	other.id = "sig2";
+	sceneSignals(scene) = {sceneSignals(scene)[0], again, unnamed, other};
+	SceneBlock sameAsSignal;
+	sameAsSignal.id = "sig2";
+	scene.blocks.push_back(sameAsSignal);
+	scene.blocks.push_back(SceneBlock());
+	QCOMPARE(signalFailureTargets(scene), std::vector<std::string>({"sig1", "sig2", "blk1", "s2"}));
+
+	SceneIncident incident = signalFailure("i1", "sig2");
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "sig1", "sig2", "blk1", "s2"}));
+	QCOMPARE(choices.current, 2);
+	QCOMPARE(runs(choices), QList<int>({-1, -1, -1, -1, -1}));
+	QCOMPARE(choices.entries[3].target, "blk1");
+	QCOMPARE(choices.entries[3].toolTip, "blk1");
+	QCOMPARE(choices.entries[0].toolTip, QString());
+
+	incident.target = "gone";
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices).last(), "gone (missing)");
+	QCOMPARE(choices.entries.back().target, "gone");
+	QCOMPARE(choices.current, 5);
+
+	incident.target.clear();
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(choices.entries.size(), std::size_t(5));
+	QCOMPARE(choices.current, 0);
+
+	choices = incidentTargetChoices(scene, nullptr, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}));
+	QCOMPARE(choices.current, 0);
+}
+
+// A breakdown is offered all runs of its service when it names no run, then each run of each service, counted over the
+// duration given. A service or run that the scene does not have is listed as missing.
+void TestIncidentPanel::choicesListRunsOfBreakdown() {
+	const SceneModel scene = incidentScene();
+	SceneIncident incident = breakdown("i3", "s1");
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	const QStringList listed({"s1-1 (route r1, +0 s)", "s1-2 (route r1, +1200 s)", "s1-3 (route r1, +2400 s)", "s2 (route r1, +0 s)"});
+	QCOMPARE(texts(choices), QStringList({"Choose target", "All runs of s1"}) + listed);
+	QCOMPARE(runs(choices), QList<int>({-1, 0, 1, 2, 3, 1}));
+	QCOMPARE(choices.current, 1);
+	QCOMPARE(choices.entries[1].toolTip, "All runs of s1\nService s1, all runs");
+	QCOMPARE(choices.entries[3].toolTip, "s1-2 (route r1, +1200 s)\nService s1, run 2");
+	QCOMPARE(choices.entries[0].toolTip, "Choose target");
+	QCOMPARE(texts(incidentTargetChoices(scene, &incident, 1200.0)), QStringList({"Choose target", "All runs of s1", "s1-1 (route r1, +0 s)", "s2 (route r1, +0 s)"}));
+
+	incident.target = "gone";
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "gone (missing)"}) + listed);
+	QCOMPARE(choices.entries[1].occurrence, std::optional<int>(0));
+	QCOMPARE(choices.current, 1);
+
+	incident.target = "s1";
+	incident.hasOccurrence = true;
+	incident.occurrence = 3;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}) + listed);
+	QCOMPARE(choices.current, 3);
+
+	incident.occurrence = 4;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}) + listed + QStringList({"s1 #4 (missing)"}));
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(4));
+	QCOMPARE(choices.current, 5);
+
+	incident.target = "gone";
+	incident.occurrence = 2;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices).last(), "gone #2 (missing)");
+	QCOMPARE(choices.current, 5);
+}
+
+// The runs offered stop at the limit of runs of all services together. A run past it that the incident names is added
+// after them.
+void TestIncidentPanel::choicesStopAtRunLimit() {
+	SceneModel scene = incidentScene();
+	SceneService many = service("many");
+	many.hasRepeat = true;
+	many.hasRepeatCount = true;
+	many.repeatCount = RuntimeLimits::kMaxExpandedTrains;
+	many.headwaySeconds = 60.0;
+	scene.services.insert(scene.services.begin() + 1, many);
+	SceneIncident incident = breakdown("i3", "many");
+	incident.hasOccurrence = true;
+	incident.occurrence = 2;
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	const std::size_t limit = static_cast<std::size_t>(RuntimeLimits::kMaxExpandedTrains);
+	QCOMPARE(choices.entries.size(), 1 + limit);
+	QCOMPARE(choices.entries[4].text, "many-1 (route r1, +0 s)");
+	QCOMPARE(choices.current, 5);
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(RuntimeLimits::kMaxExpandedTrains - 3));
+	QVERIFY2(!texts(choices).contains("s2 (route r1, +0 s)"), "a service after the limit is not offered");
+
+	incident.occurrence = RuntimeLimits::kMaxExpandedTrains;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(choices.entries.size(), 2 + limit);
+	QCOMPARE(choices.current, static_cast<int>(1 + limit));
+	QCOMPARE(choices.entries.back().text, QString("many-%1 (route r1, +%2 s)").arg(RuntimeLimits::kMaxExpandedTrains).arg((RuntimeLimits::kMaxExpandedTrains - 1) * 60));
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(RuntimeLimits::kMaxExpandedTrains));
+}
+
+// Entries that read the same name their service and run, in the text and on a line of the tooltip of their own.
+void TestIncidentPanel::choicesNameRepeatedTexts() {
+	SceneModel scene = incidentScene();
+	SceneService first = service("a");
+	first.operatingCode = "X";
+	SceneService second = service("b");
+	second.operatingCode = "X";
+	scene.services = {first, second};
+	SceneIncident incident = breakdown("i3", "b");
+	incident.hasOccurrence = true;
+	const IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "X (route r1, +0 s) (service a, run 1)", "X (route r1, +0 s) (service b, run 1)"}));
+	QCOMPARE(choices.current, 2);
+	QCOMPARE(choices.entries[2].toolTip, "X (route r1, +0 s)\nService b, run 1");
 }
 
 // In the form of macOS the fields grow to the width of the panel, and a long target is cut in the middle. The

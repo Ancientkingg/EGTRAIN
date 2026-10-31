@@ -1,3 +1,4 @@
+#include "editors/EditorRules.h"
 #include "editors/ScenarioPanel.h"
 
 #include "scene/SceneWriter.h"
@@ -133,6 +134,8 @@ private slots:
 	void forgetsDeletedDocument();
 	void headerFollowsSelectedScenario();
 	void pendingEditsAddNoScenario();
+	void importGetsFreeIds();
+	void importChecksOnlyImportedScenario();
 };
 
 void TestScenarioPanel::showsNothingWithoutScene() {
@@ -757,6 +760,49 @@ void TestScenarioPanel::pendingEditsAddNoScenario() {
 	QVERIFY(f.document.model().scenarios.empty());
 	QVERIFY(f.document.model().defaultScenarioId.empty());
 	QVERIFY(!f.document.isDirty());
+}
+
+// An imported scenario keeps its id and the ids of its incidents while the scene does not use them, and gets free ones
+// otherwise, with what it asked for and how many incidents were renamed.
+void TestScenarioPanel::importGetsFreeIds() {
+	const SceneModel scene = scenarioScene();
+	SceneScenario imported;
+	imported.id = "new";
+	imported.incidents = {breakdown("i5", "s1"), breakdown("i6", "s1")};
+	ScenarioImport prepared = prepareScenarioImport(scene, imported);
+	QCOMPARE(prepared.scenario.id, "new");
+	QCOMPARE(prepared.requestedId, "new");
+	QVERIFY(!prepared.idTaken);
+	QCOMPARE(prepared.renamedIncidents, 0);
+	QCOMPARE(prepared.scenario.incidents[0].id, "i5");
+
+	imported.id = "alt";
+	imported.incidents = {breakdown("i1", "s1"), breakdown("i6", "s1")};
+	prepared = prepareScenarioImport(scene, imported);
+	QCOMPARE(prepared.scenario.id, "alt_2");
+	QCOMPARE(prepared.requestedId, "alt");
+	QVERIFY(prepared.idTaken);
+	QCOMPARE(prepared.renamedIncidents, 1);
+	QCOMPARE(prepared.scenario.incidents[0].id, "i1_2");
+	QCOMPARE(prepared.scenario.incidents[1].id, "i6");
+	QVERIFY(prepared.errors.empty());
+}
+
+// Only errors in the imported scenario refuse it. The scenario alt of the scene has an entrance delay at a station that
+// the scene does not have.
+void TestScenarioPanel::importChecksOnlyImportedScenario() {
+	const SceneModel scene = scenarioScene();
+	SceneScenario imported;
+	imported.id = "new";
+	imported.incidents = {breakdown("i5", "s1")};
+	QVERIFY2(prepareScenarioImport(scene, imported).errors.empty(), "an error of another scenario does not count");
+
+	imported.incidents.push_back(breakdown("i6", "gone"));
+	const ScenarioImport prepared = prepareScenarioImport(scene, imported);
+	QCOMPARE(prepared.errors.size(), std::size_t(1));
+	QCOMPARE(prepared.errors[0].message, "Train breakdown refers to unknown service");
+	QCOMPARE(prepared.errors[0].path, "scenarios[2].incidents[1].target");
+	QCOMPARE(prepared.scenario.id, "new");
 }
 
 QTEST_MAIN(TestScenarioPanel)

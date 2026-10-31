@@ -2,6 +2,7 @@
 
 #include "editors/CountText.h"
 #include "editors/EditorHelpers.h"
+#include "editors/EditorRules.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
@@ -963,51 +964,15 @@ void PassengerPanel::importPassengers() {
 		return;
 	}
 
-	std::set<std::string> passengerIds;
-	std::set<std::string> journeyIds;
-	std::set<std::string> legIds;
-	for (const auto& passenger : model.passengers) {
-		passengerIds.insert(passenger.id);
-		for (const auto& journey : passenger.journeys) {
-			journeyIds.insert(journey.id);
-			for (const auto& leg : journey.legs)
-				legIds.insert(leg.id);
-		}
-	}
-	std::vector<ScenePassenger> acceptedPassengers;
-	int rejectedPassengers = 0;
-	std::set<std::string> rejectedPassengerIds;
-	for (const auto& passenger : imported.passengers) {
-		bool collision = passenger.id.empty() || passengerIds.count(passenger.id) > 0;
-		std::set<std::string> candidateJourneyIds;
-		std::set<std::string> candidateLegIds;
-		for (const auto& journey : passenger.journeys) {
-			if (journey.id.empty() || journeyIds.count(journey.id) > 0
-				|| !candidateJourneyIds.insert(journey.id).second)
-				collision = true;
-			for (const auto& leg : journey.legs) {
-				if (leg.id.empty() || legIds.count(leg.id) > 0
-					|| !candidateLegIds.insert(leg.id).second)
-					collision = true;
-			}
-		}
-		if (collision) {
-			++rejectedPassengers;
-			if (!passenger.id.empty())
-				rejectedPassengerIds.insert(passenger.id);
-			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), sourcePath, 0,
-				QString::fromStdString(passenger.id), QStringLiteral("Rejected"),
-				QStringLiteral("Passenger, journey or leg ID already exists"));
-			continue;
-		}
-		passengerIds.insert(passenger.id);
-		journeyIds.insert(candidateJourneyIds.begin(), candidateJourneyIds.end());
-		legIds.insert(candidateLegIds.begin(), candidateLegIds.end());
-		acceptedPassengers.push_back(passenger);
+	const PassengerImportMerge merge = mergeImportedPassengers(model, imported, sourcePath.toStdString());
+	for (const std::string& passengerId : merge.rejected) {
+		addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), sourcePath, 0,
+			QString::fromStdString(passengerId), QStringLiteral("Rejected"),
+			QStringLiteral("Passenger, journey or leg ID already exists"));
 	}
 	for (const auto& row : imported.rows) {
 		const QString file = QString::fromStdString(row.sourceFile);
-		const bool rejectedByBatch = rejectedPassengerIds.count(row.passengerId) > 0;
+		const bool rejectedByBatch = merge.rejects(row.passengerId);
 		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
 																: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
 		const QString detail = rejectedByBatch
@@ -1018,15 +983,12 @@ void PassengerPanel::importPassengers() {
 	if (imported.rows.empty() && imported.diagnostics.empty())
 		addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
 			QStringLiteral("No passengers found"));
-	const int acceptedCount = static_cast<int>(acceptedPassengers.size());
-	if (acceptedCount > 0 || rejectedPassengers > 0 || !imported.report.empty()) {
-		if (!m_document->edit(SceneDocument::Passengers, "Import passengers", [&](SceneModel& edited) {
-				edited.passengers.insert(edited.passengers.end(), acceptedPassengers.begin(), acceptedPassengers.end());
-				edited.importReport.insert(edited.importReport.end(), imported.report.begin(), imported.report.end());
-				if (rejectedPassengers > 0) {
-					edited.importReport.push_back({"passengers.editor", sourcePath.toStdString(),
-						acceptedCount + rejectedPassengers, acceptedCount, rejectedPassengers, 0});
-				}
+	const int acceptedCount = static_cast<int>(merge.accepted.size());
+	const int rejectedPassengers = static_cast<int>(merge.rejected.size());
+	if (merge.changesScene()) {
+		if (!m_document->edit(SceneDocument::Passengers, "Import passengers", [&merge](SceneModel& edited) {
+				edited.passengers.insert(edited.passengers.end(), merge.accepted.begin(), merge.accepted.end());
+				edited.importReport.insert(edited.importReport.end(), merge.report.begin(), merge.report.end());
 			}))
 			return;
 		refresh();

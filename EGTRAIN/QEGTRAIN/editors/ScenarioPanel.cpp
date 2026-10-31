@@ -3,9 +3,9 @@
 #include "app/DialogFolders.h"
 #include "editors/CountText.h"
 #include "editors/EditorHelpers.h"
+#include "editors/EditorRules.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
-#include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 
 #include <QDir>
@@ -369,51 +369,27 @@ void ScenarioPanel::importScenario() {
 		m_prompts->showError(this, "Scenario Import Failed", firstDiagnosticDialogText(loaded.diagnostics), true);
 		return;
 	}
-	const SceneModel& model = m_document->model();
-	SceneScenario imported = loaded.scenario;
-	const std::string requestedId = imported.id;
-	const std::string uniqueId = sceneUniqueScenarioId(model, imported.id);
-	const bool scenarioConflict = uniqueId != imported.id;
-	if (scenarioConflict)
-		imported.id = uniqueId;
-	int adjustedIncidentCount = 0;
-	for (auto& incident : imported.incidents) {
-		const std::string uniqueIncident = sceneUniqueIncidentId(model, incident.id);
-		if (uniqueIncident != incident.id) {
-			incident.id = uniqueIncident;
-			++adjustedIncidentCount;
-		}
-	}
-
-	SceneModel candidate = model;
-	candidate.scenarios.push_back(imported);
-	const std::size_t candidateIndex = candidate.scenarios.size() - 1;
-	const std::string prefix = "scenarios[" + std::to_string(candidateIndex) + "]";
+	ScenarioImport prepared = prepareScenarioImport(m_document->model(), loaded.scenario);
 	// One error gives its message and its fix, several give their messages, one per line.
-	std::vector<SceneDiagnostic> errors;
-	for (const auto& diagnostic : validateScene(candidate)) {
-		if (diagnostic.severity == SceneSeverity::Error && diagnostic.path.rfind(prefix, 0) == 0)
-			errors.push_back(diagnostic);
-	}
-	if (!errors.empty()) {
+	if (!prepared.errors.empty()) {
 		QStringList messages;
-		for (const auto& error : errors)
+		for (const auto& error : prepared.errors)
 			messages << QString::fromStdString(error.message);
 		m_prompts->showError(this, "Scenario Import Failed",
-			errors.size() == 1 ? QString::fromStdString(toDialogText(errors.front())) : messages.join("\n"), true);
+			prepared.errors.size() == 1 ? QString::fromStdString(toDialogText(prepared.errors.front())) : messages.join("\n"), true);
 		return;
 	}
-	if (!addScenario("Import scenario", std::move(imported)))
+	if (!addScenario("Import scenario", std::move(prepared.scenario)))
 		return;
 	const QString importedId = QString::fromStdString(m_runSelection->scenarioId());
 	QString message = QString("Imported scenario %1.").arg(importedId);
-	if (scenarioConflict)
-		message += QString(" %1 was taken, so it is now %2.").arg(QString::fromStdString(requestedId), importedId);
-	if (adjustedIncidentCount > 0)
-		message += adjustedIncidentCount == 1 ? QStringLiteral(" 1 incident ID was renamed to stay unique.")
-											  : QString(" %1 incident IDs were renamed to stay unique.").arg(adjustedIncidentCount);
+	if (prepared.idTaken)
+		message += QString(" %1 was taken, so it is now %2.").arg(QString::fromStdString(prepared.requestedId), importedId);
+	if (prepared.renamedIncidents > 0)
+		message += prepared.renamedIncidents == 1 ? QStringLiteral(" 1 incident ID was renamed to stay unique.")
+												  : QString(" %1 incident IDs were renamed to stay unique.").arg(prepared.renamedIncidents);
 	emit statusMessage(message, 7000);
-	if (scenarioConflict || adjustedIncidentCount > 0)
+	if (prepared.idTaken || prepared.renamedIncidents > 0)
 		m_prompts->showInfo(this, "Scenario ID Adjusted", message);
 }
 
