@@ -2995,10 +2995,11 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				return false;
 			// On the canvas the pin stands on the top edge of the hull of the station nodes at the middle of their
 			// footprint, also in the near look, which draws no mark. The name lies under the box or above it, centred on the
-			// pin, or beside the box.
+			// pin, or beside the box. Both views draw the first point of a line as a plain node, so First, whose platform is
+			// there, has no square, and its pin stands on its anchor.
 			const auto* mark = dynamic_cast<const StationMarkItem*>(picture);
-			if (!mark || mark->nodeCentres().isEmpty()) return false;
-			const QList<QPointF> centres = mark->nodeCentres();
+			if (!mark || mark->nodeCentres().isEmpty() != (source->id == "parity-first-station")) return false;
+			const QList<QPointF> centres = mark->nodeCentres().isEmpty() ? QList<QPointF>{overlay->stableAnchor()} : mark->nodeCentres();
 			QRectF box(centres.first(), centres.first());
 			for (const QPointF& centre : centres)
 				box = QRectF(QPointF(std::min(box.left(), centre.x()), std::min(box.top(), centre.y())),
