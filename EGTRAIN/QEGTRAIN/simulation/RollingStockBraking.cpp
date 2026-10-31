@@ -276,8 +276,8 @@ bool Train::inverseBrakingStep(double nextHead, double nextSpeed, Section* secti
 }
 
 bool Train::predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
-	double& end, std::vector<double>* positions, std::vector<double>* speeds) {
-	BrakingArcCursor cursor;
+	double& end, std::vector<double>* positions, std::vector<double>* speeds, const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
 	for (int step = 0; step < 1999; ++step) {
 		end = head; // An above-target route exit can reject a shooting bracket, never validate a plan.
 		if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
@@ -300,10 +300,10 @@ bool Train::predictBraking(double head, double speed, double targetSpeed, Sectio
 }
 
 bool Train::predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
-	double& end, double& endSpeed, std::vector<double>* positions, std::vector<double>* speeds) {
+	double& end, double& endSpeed, std::vector<double>* positions, std::vector<double>* speeds, const BrakingArcCursor* from) {
 	if (steps < 0 || steps >= 1999)
 		return false;
-	BrakingArcCursor cursor;
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
 	for (int step = 0; step <= steps; ++step) {
 		end = head;
 		endSpeed = speed;
@@ -324,8 +324,10 @@ bool Train::predictBrakingPrefix(double head, double speed, int steps, Section* 
 	return false;
 }
 
-bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper) {
-	const Arc* arc = brakingArc(head, sections, count);
+bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper,
+	const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
+	const Arc* arc = cursor.find(head, sections, count);
 	if (!arc) {
 		upper = head;
 		return false;
@@ -335,8 +337,10 @@ bool Train::brakingTerminalUpper(double head, double speed, double ceiling, Sect
 	return std::isfinite(upper);
 }
 
-bool Train::constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal) {
-	const Arc* arc = brakingArc(head, sections, count);
+bool Train::constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal,
+	const BrakingArcCursor* from) {
+	BrakingArcCursor cursor = from ? *from : BrakingArcCursor{};
+	const Arc* arc = cursor.find(head, sections, count);
 	if (!arc || !std::isfinite(head) || !std::isfinite(speed) || speed < 0 || !std::isfinite(anchor)
 		|| anchor < head || !std::isfinite(ceiling) || ceiling < 0 || timestep <= 0 || total_train_mass <= 0 || massFactor <= 0)
 		return false;
@@ -489,12 +493,16 @@ double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS
 		if (speed >= V1) {
 			if (head >= cutoff)
 				return head; // The refined point is -1 or lies in [head, nextHead].
+			// Every arc lookup of the search below is at head or beyond, so each starts from a copy of a cursor at the arc of head.
+			BrakingArcCursor fromHead;
+			fromHead.find(head, BS, Blocks);
 			if (V2 > 0) {
 				const double anchor = X0 - kBrakingCurveEndMarginM;
 				double low = head, high = nextHead, end, endSpeed, upper;
-				if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed) || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper) || upper > anchor) return -1;
-				const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed);
-				if (!completeUpper || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+				if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead)
+					|| !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead) || upper > anchor) return -1;
+				const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead);
+				if (!completeUpper || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead)) {
 					if (!(end > anchor)) return -1;
 					upper = end;
 				}
@@ -502,31 +510,31 @@ double Train::uncachedBrakDistBlock(double V1, double V2, double X0, Section* BS
 				for (int iteration = 0; iteration < 64; ++iteration) {
 					const double middle = low + (high - low) / 2;
 					if (middle == low || middle == high) break;
-					const bool complete = predictBrakingPrefix(middle, V1, step - 1, BS, Blocks, end, endSpeed);
-					if (!complete || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+					const bool complete = predictBrakingPrefix(middle, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead);
+					if (!complete || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper, &fromHead)) {
 						if (!(end > anchor)) return -1;
 						upper = end;
 					}
 					if (upper < anchor) low = middle;
 					else high = middle;
 				}
-				if (!predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed)) return -1;
+				if (!predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed, nullptr, nullptr, &fromHead)) return -1;
 				double terminal;
-				if (!constructBrakingTerminal(end, endSpeed, anchor, V2, BS, Blocks, terminal)) return -1;
+				if (!constructBrakingTerminal(end, endSpeed, anchor, V2, BS, Blocks, terminal, &fromHead)) return -1;
 				return high;
 			}
 			double low = head, high = nextHead, end;
 			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - kBrakingCurveEndMarginM));
-			if (!predictBraking(low, V1, V2, BS, Blocks, end) || end > X0 - kBrakingCurveEndMarginM + roundoff)
+			if (!predictBraking(low, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead) || end > X0 - kBrakingCurveEndMarginM + roundoff)
 				return -1;
-			const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end);
+			const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead);
 			if ((!completeUpper && !(end > X0 - kBrakingCurveEndMarginM)) || end < X0 - kBrakingCurveEndMarginM - roundoff)
 				return -1;
 			for (int iteration = 0; iteration < 64; ++iteration) {
 				const double middle = low + (high - low) / 2;
 				if (middle == low || middle == high)
 					break;
-				if (!predictBraking(middle, V1, V2, BS, Blocks, end) && !(end > X0 - kBrakingCurveEndMarginM))
+				if (!predictBraking(middle, V1, V2, BS, Blocks, end, nullptr, nullptr, &fromHead) && !(end > X0 - kBrakingCurveEndMarginM))
 					return -1;
 				if (end <= X0 - kBrakingCurveEndMarginM)
 					low = middle;
