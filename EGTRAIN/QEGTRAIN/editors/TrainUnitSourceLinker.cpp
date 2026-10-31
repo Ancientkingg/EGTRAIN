@@ -284,13 +284,16 @@ void TrainUnitSourceLinker::processChanges() {
 void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 	if (!loaded() || runActive())
 		return;
-	emit commitPendingEditsRequested();
-	std::vector<std::string> affected;
-	for (const auto& entry : m_links) {
-		const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
-		if (linkedPath == path)
-			affected.push_back(entry.first);
-	}
+	const auto linkedUnits = [this, &path, traction]() {
+		std::vector<std::string> units;
+		for (const auto& entry : m_links) {
+			const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
+			if (linkedPath == path)
+				units.push_back(entry.first);
+		}
+		return units;
+	};
+	std::vector<std::string> affected = linkedUnits();
 	if (affected.empty()) {
 		refreshWatches();
 		return;
@@ -317,6 +320,10 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		emit statusChanged();
 		return;
 	}
+	// The units are first read below, so a file that holds what it held before, or a change of another file in its folder,
+	// takes no text. An id that is still being typed renames its unit when it is taken, and its links go with it.
+	emit commitPendingEditsRequested();
+	affected = linkedUnits();
 
 	SceneTrainPhysicalSourceResult physicalResult;
 	SceneTrainTractionSourceResult tractionResult;
@@ -375,9 +382,12 @@ void TrainUnitSourceLinker::processFile(const QString& path, bool traction) {
 		refreshWatches();
 		return;
 	}
+	const bool asks = !conflicts.isEmpty() || deferredChange;
+	if (asks)
+		emit commitAllPendingEditsRequested();
 	const quint64 sceneRevisionAtDecision = m_document->revision();
 	bool reload = true;
-	if (!conflicts.isEmpty() || deferredChange) {
+	if (asks) {
 		QMessageBox dialog(m_dialogParent);
 		dialog.setIcon(QMessageBox::Question);
 		dialog.setWindowTitle("Linked File Changed");

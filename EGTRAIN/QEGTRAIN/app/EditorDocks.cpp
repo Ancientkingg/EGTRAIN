@@ -147,8 +147,18 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_trainUnitSourceLinker->setDocument(m_document);
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusChanged, m_window,
 		[this] { m_host.updateTrainUnitSourceStatus(); });
-	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::commitPendingEditsRequested, m_window,
-		[this] { m_host.commitPendingEditorValues(); });
+	// A changed file is taken without a user action, so a field that is being typed in another panel keeps its text, also
+	// an open cell of the infrastructure table. The comparison with the file reads only the units.
+	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::commitPendingEditsRequested, m_trainUnitPanel,
+		&TrainUnitPanel::commitPendingEditors);
+	// The question about a changed file takes the focus, which would take the text of the focused field. The window does
+	// not validate the edits that its own commit makes, so the scene is validated here when that text changed it.
+	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::commitAllPendingEditsRequested, m_window, [this] {
+		const quint64 revision = m_document->revision();
+		m_host.commitPendingEditorValues();
+		if (m_document->revision() != revision)
+			m_host.refreshValidationPanel();
+	});
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusMessage, m_window,
 		[this](const QString& message, int milliseconds) { m_window->statusBar()->showMessage(message, milliseconds); });
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::linksCleared, m_window, [this] {
@@ -160,7 +170,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	QObject::connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::reloaded, m_window,
 		[this](const QStringList& tractionUnitIds) {
 			m_trainUnitPanel->refresh();
-			m_host.refreshValidationPanel();
+			m_host.commitScenarioAndPassengerEditsAndValidate();
 			for (const QString& unitId : tractionUnitIds)
 				m_host.refreshInputTractionDiagrams(unitId.toStdString());
 		});

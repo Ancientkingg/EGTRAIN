@@ -1931,6 +1931,19 @@ void MainWindow::refreshValidationPanel() {
 	m_validation->refresh();
 }
 
+void MainWindow::commitScenarioAndPassengerEditsAndValidate() {
+	if (m_committingPendingEditorValues)
+		return;
+	// Validation refreshes these two panels, which would write the stored values over their text. Under the guard, the
+	// changed() of either panel validates nothing and takes no text of the other panels.
+	if (!m_restoringHistory) {
+		const QScopedValueRollback<bool> committing(m_committingPendingEditorValues, true);
+		m_editorDocks.scenarioPanel()->commitPendingEditors();
+		m_editorDocks.passengerPanel()->commitPendingEditors();
+	}
+	m_validation->refresh();
+}
+
 void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item) {
 	const auto operation = captureTelemetryOperation();
 	const QString targetId = item->text(0);

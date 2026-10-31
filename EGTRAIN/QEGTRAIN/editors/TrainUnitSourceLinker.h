@@ -106,8 +106,15 @@ Q_SIGNALS:
 	/// A file has been handled. The traction curves of the units in `tractionUnitIds` have changed. Emitted after the
 	/// document is marked changed.
 	void reloaded(const QStringList& tractionUnitIds);
-	/// Pending edits have to be taken into the model before the linker compares the model with a file.
+	/// The pending edits of the train units have to be taken into the model before the linker compares the model with a
+	/// file. Not emitted while the file holds what it held when it was last handled and no retry asks for it.
 	void commitPendingEditsRequested();
+	/// The pending edits of every editor have to be taken into the model before the linker asks whether to reload a
+	/// changed file. The question takes the focus, and a field that takes its text when it loses the focus would change
+	/// the scene while the question is open: the answer would then be stale, and the question would be asked again. Only
+	/// the editor of the train units edits them, and its edits are taken before the comparison, so the conflicts that the
+	/// question names stay as they are.
+	void commitAllPendingEditsRequested();
 	/// A message for the status line, shown for `milliseconds`.
 	void statusMessage(const QString& message, int milliseconds);
 

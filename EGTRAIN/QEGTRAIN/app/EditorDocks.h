@@ -46,6 +46,10 @@ public:
 		virtual void commitPendingEditorValues() = 0;
 		/// Takes the pending edits and validates the scene again, after an edit in a panel.
 		virtual void refreshValidationPanel() = 0;
+		/// Takes the pending edits of the Scenario and Passenger panels only, which validation shows again from the scene,
+		/// and validates the scene again, after a change that no user action made, such as the reload of a linked file. A
+		/// field that is being typed in another panel keeps its text.
+		virtual void commitScenarioAndPassengerEditsAndValidate() = 0;
 		/// The base time of the case changed: the clock of a run starts this many seconds after midnight.
 		virtual void setStartOffset(long long seconds) = 0;
 		/// Enables the Infrastructure dock as far as the scene and the run allow, and shows the panel again.

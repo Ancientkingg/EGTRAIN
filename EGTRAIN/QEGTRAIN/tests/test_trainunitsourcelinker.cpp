@@ -93,6 +93,7 @@ struct Events {
 	int statusChanged = 0;
 	int linksCleared = 0;
 	int commitRequests = 0;
+	int commitAllRequests = 0;
 	QStringList messages;
 	std::vector<QStringList> reloaded;
 	std::vector<std::string> documentChanges;
@@ -101,6 +102,8 @@ struct Events {
 		QObject::connect(&linker, &TrainUnitSourceLinker::statusChanged, &linker, [this] { ++statusChanged; });
 		QObject::connect(&linker, &TrainUnitSourceLinker::linksCleared, &linker, [this] { ++linksCleared; });
 		QObject::connect(&linker, &TrainUnitSourceLinker::commitPendingEditsRequested, &linker, [this] { ++commitRequests; });
+		QObject::connect(
+			&linker, &TrainUnitSourceLinker::commitAllPendingEditsRequested, &linker, [this] { ++commitAllRequests; });
 		QObject::connect(&linker, &TrainUnitSourceLinker::statusMessage, &linker,
 			[this](const QString& message, int) { messages << message; });
 		QObject::connect(&linker, &TrainUnitSourceLinker::reloaded, &linker,
@@ -129,6 +132,7 @@ private slots:
 	void changeDuringRunNeedsAgreement();
 	void sharedFileAndUnlinking();
 	void otherSceneDropsLinks();
+	void questionTakesEveryPendingEdit();
 
 private:
 	QTemporaryDir m_directory;
@@ -592,6 +596,62 @@ void TestTrainUnitSourceLinker::otherSceneDropsLinks() {
 	linker.setDocument(nullptr);
 	document.replace(unitScene(), false);
 	QVERIFY2(linker.linkOf("u1") != nullptr, "a detached linker does not follow the document");
+}
+
+// what the linker takes before it compares and before it asks
+void TestTrainUnitSourceLinker::questionTakesEveryPendingEdit() {
+	const QString& physicalPath = m_physicalPath;
+	SceneDocument document;
+	TrainUnitSourceLinker linker;
+	linker.setDocument(&document);
+	Events events(linker, document);
+	document.replace(unitScene(), false);
+	// Another editor held text, which changes the scene when every pending edit is taken.
+	QObject::connect(&linker, &TrainUnitSourceLinker::commitAllPendingEditsRequested, &linker,
+		[&document] { document.markChanged(SceneDocument::Services, "Edit service"); });
+	writeFile(physicalPath, physicalFile(71.0));
+	linker.linkFile("u1", false, physicalPath);
+	linker.processChanges();
+	// A reload without a question asks for the edits of the units only.
+	QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 71.0);
+	QCOMPARE(events.commitRequests, 1);
+	QCOMPARE(events.commitAllRequests, 0);
+
+	writeFile(m_directory.filePath("notes.txt"), "notes\n");
+	linker.scheduleChange(m_directory.path());
+	linker.processChanges();
+	// A change of another file in the folder asks for no edits.
+	QCOMPARE(events.commitRequests, 1);
+	QCOMPARE(events.commitAllRequests, 0);
+
+	document.mutableModel().trainUnits[0].physical.length_m = 99.0;
+	document.markChanged(SceneDocument::TrainUnits);
+	{
+		DialogAnswerer answer("Reload");
+		writeFile(physicalPath, physicalFile(72.0));
+		linker.scheduleChange(physicalPath);
+		linker.processChanges();
+		// The question about a hand edit asks for every pending edit first, and the change of the scene that this makes
+		// does not make the answer stale.
+		QVERIFY(answer.prompted);
+		QCOMPARE(events.commitRequests, 2);
+		QCOMPARE(events.commitAllRequests, 1);
+		QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 72.0);
+		QCOMPARE(linker.linkOf("u1")->dataStatus, QStringLiteral("Reloaded"));
+	}
+
+	document.setEditable(false);
+	writeFile(physicalPath, physicalFile(73.0));
+	linker.scheduleChange(physicalPath);
+	document.setEditable(true);
+	{
+		DialogAnswerer answer("Reload");
+		linker.processChanges();
+		// So does the question about a change during a run.
+		QVERIFY(answer.prompted);
+		QCOMPARE(events.commitAllRequests, 2);
+		QCOMPARE_EQ(unitOf(document, 0).physical.length_m, 73.0);
+	}
 }
 
 QTEST_MAIN(TestTrainUnitSourceLinker)

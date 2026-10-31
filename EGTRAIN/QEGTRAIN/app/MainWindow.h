@@ -454,6 +454,7 @@ private:
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false) override;
 	void refreshValidationPanel() override;
+	void commitScenarioAndPassengerEditsAndValidate() override;
 	// Opens the editor or the view that a row of the loaded data tree stands for.
 	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
 	void sceneDocumentChanged();

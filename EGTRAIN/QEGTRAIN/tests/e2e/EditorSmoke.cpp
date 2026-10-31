@@ -2333,6 +2333,103 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 220000
 			|| !trainUnitSourceLinker(w)->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
+		// A reload takes the text of the units only: a cell of the infrastructure table that is being typed stays open.
+		infrastructureDock(w)->show();
+		infrastructureDock(w)->raise();
+		w.activateWindow();
+		QTableWidget* infrastructureTable = infrastructurePanel(w)->table();
+		infrastructurePanel(w)->facetCombo()->setCurrentIndex(infrastructurePanel(w)->facetCombo()->findData("tracks"));
+		const QString cellTrackId = infrastructureTable->item(0, 0) ? infrastructureTable->item(0, 0)->text() : QString();
+		const QString typedTrackId = cellTrackId + "_typed";
+		const auto trackExists = [&w](const QString& id) {
+			return std::any_of(w.m_document->model().tracks.begin(), w.m_document->model().tracks.end(),
+				[&id](const auto& track) { return track.id == id.toStdString(); });
+		};
+		const auto openTrackEditor = [infrastructureTable]() {
+			infrastructureTable->editItem(infrastructureTable->item(0, 0));
+			return QPointer<QLineEdit>(
+				qobject_cast<QLineEdit*>(infrastructureTable->indexWidget(infrastructureTable->model()->index(0, 0))));
+		};
+		QPointer<QLineEdit> trackEditor = cellTrackId.isEmpty() ? QPointer<QLineEdit>() : openTrackEditor();
+		if (!trackEditor) {
+			facetFailure(facetOk, "source links", "the id cell of a track has no editor");
+		} else {
+			trackEditor->setText(typedTrackId);
+			writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 74\n");
+			trainUnitSourceLinker(w)->processFile(sourcePhysicalPath, false);
+			if (w.m_document->model().trainUnits.front().physical.length_m != 74.0 || !trackExists(cellTrackId)
+				|| !trackEditor || infrastructureTable->indexWidget(infrastructureTable->model()->index(0, 0)) != trackEditor
+				|| trackEditor->text() != typedTrackId)
+				facetFailure(facetOk, "source links", "a reload took the text of an open infrastructure cell");
+			if (trackEditor) {
+				QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+				QApplication::sendEvent(trackEditor, &escape);
+			}
+		}
+		settle();
+		// The question takes the text of every panel first. The focus that it takes would take that text otherwise, which
+		// makes the answer stale, and the question would be asked again.
+		w.m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit",
+			[](SceneModel& model) { model.trainUnits.front().physical.length_m = 75.0; });
+		trackEditor = cellTrackId.isEmpty() ? QPointer<QLineEdit>() : openTrackEditor();
+		if (!trackEditor) {
+			facetFailure(facetOk, "source links", "the id cell of a track has no editor before the question");
+		} else {
+			int prompts = 0;
+			QTimer keepEdits;
+			QObject::connect(&keepEdits, &QTimer::timeout, &w, [&prompts]() {
+				for (QWidget* widget : QApplication::topLevelWidgets()) {
+					auto* dialog = qobject_cast<QMessageBox*>(widget);
+					if (!dialog || !dialog->isVisible())
+						continue;
+					++prompts;
+					for (QAbstractButton* button : dialog->buttons())
+						if (button->text() == "Keep Edits")
+							button->click();
+				}
+			});
+			keepEdits.start(25);
+			trackEditor->setText(typedTrackId);
+			writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 76\n");
+			trainUnitSourceLinker(w)->processFile(sourcePhysicalPath, false);
+			settle();
+			keepEdits.stop();
+			if (prompts != 1 || w.m_document->model().trainUnits.front().physical.length_m != 75.0
+				|| trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).dataStatus != "Kept your edits")
+				facetFailure(facetOk, "source links",
+					QString("a conflict with an open infrastructure cell asked %1 times, status %2")
+						.arg(prompts)
+						.arg(trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).dataStatus));
+			if (trackExists(typedTrackId)) {
+				if (QPointer<QLineEdit> renameBack = openTrackEditor()) {
+					renameBack->setText(cellTrackId);
+					infrastructurePanel(w)->commitPendingEditors();
+				}
+			}
+			if (!trackExists(cellTrackId))
+				facetFailure(facetOk, "source links", "the track kept the id typed before the question");
+		}
+		// The validation after a reload shows the Scenario panel again from the scene, so a name that is being typed there
+		// is taken first.
+		incidentDock(w)->show();
+		incidentDock(w)->raise();
+		if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
+			tabs->setCurrentWidget(scenarioPanel(w));
+		QLineEdit* scenarioNameEdit = scenarioPanel(w)->nameEdit();
+		const QString storedScenarioName = scenarioNameEdit->text();
+		scenarioNameEdit->setFocus();
+		QApplication::processEvents();
+		scenarioNameEdit->setText(storedScenarioName + " typed");
+		// The file holds the length of the unit, so it is reloaded without a question.
+		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 75\n");
+		trainUnitSourceLinker(w)->processFile(sourcePhysicalPath, false);
+		if (trainUnitSourceLinker(w)->m_links.at(sourceLinkUnitId).dataStatus != "Up to date" || !w.selectedScenario()
+			|| QString::fromStdString(w.selectedScenario()->name) != storedScenarioName + " typed"
+			|| scenarioNameEdit->text() != storedScenarioName + " typed")
+			facetFailure(facetOk, "source links", "the validation after a reload lost the scenario name being typed");
+		scenarioNameEdit->setText(storedScenarioName);
+		scenarioPanel(w)->commitPendingEditors();
+		settle();
 		// The focused editor must commit before comparing with the accepted source.
 		trainUnitDock(w)->show();
 		trainUnitDock(w)->raise();
