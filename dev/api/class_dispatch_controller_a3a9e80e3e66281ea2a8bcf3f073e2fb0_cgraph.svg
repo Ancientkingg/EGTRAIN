@@ -691,38 +691,38 @@
 </a>
 </g>
 </g>
-<!-- Node31 -->
-<g id="Node000031" class="node">
-<title>Node31</title>
-<g id="a_Node000031"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title=" ">
+<!-- Node30 -->
+<g id="Node000030" class="node">
+<title>Node30</title>
+<g id="a_Node000030"><a xlink:href="class_train.html#a8e62345b2e57ad32280b8c1953ece34c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1742.25,-657.12 1646.75,-657.12 1646.75,-623.62 1742.25,-623.62 1742.25,-657.12"/>
 <text xml:space="preserve" text-anchor="start" x="1654.75" y="-643.62" font-family="Helvetica,sans-Serif" font-size="10.00">Train::total_train</text>
 <text xml:space="preserve" text-anchor="middle" x="1694.5" y="-630.88" font-family="Helvetica,sans-Serif" font-size="10.00">_resistances</text>
 </a>
 </g>
 </g>
-<!-- Node23&#45;&gt;Node31 -->
-<g id="edge47_Node000023_Node000031" class="edge">
-<title>Node23&#45;&gt;Node31</title>
-<g id="a_edge47_Node000023_Node000031"><a xlink:title=" ">
+<!-- Node23&#45;&gt;Node30 -->
+<g id="edge47_Node000023_Node000030" class="edge">
+<title>Node23&#45;&gt;Node30</title>
+<g id="a_edge47_Node000023_Node000030"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M972.29,-645.57C1050.33,-628.49 1199.94,-596.64 1254,-591.38 1325.11,-584.45 1343.58,-585.17 1414.75,-591.38 1491.69,-598.09 1579.22,-615.03 1635.34,-627.11"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1634.49,-630.5 1645,-629.21 1635.98,-623.66 1634.49,-630.5"/>
 </a>
 </g>
 </g>
-<!-- Node36 -->
-<g id="Node000036" class="node">
-<title>Node36</title>
-<g id="a_Node000036"><a xlink:href="class_train.html#a0d15f6d3dc453d6aba319e852f21714e" target="_top" xlink:title=" ">
+<!-- Node35 -->
+<g id="Node000035" class="node">
+<title>Node35</title>
+<g id="a_Node000035"><a xlink:href="class_train.html#a0d15f6d3dc453d6aba319e852f21714e" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1749,-743.75 1640,-743.75 1640,-723 1749,-723 1749,-743.75"/>
 <text xml:space="preserve" text-anchor="middle" x="1694.5" y="-730.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::tractiveEffort</text>
 </a>
 </g>
 </g>
-<!-- Node23&#45;&gt;Node36 -->
-<g id="edge48_Node000023_Node000036" class="edge">
-<title>Node23&#45;&gt;Node36</title>
-<g id="a_edge48_Node000023_Node000036"><a xlink:title=" ">
+<!-- Node23&#45;&gt;Node35 -->
+<g id="edge48_Node000023_Node000035" class="edge">
+<title>Node23&#45;&gt;Node35</title>
+<g id="a_edge48_Node000023_Node000035"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M936.38,-667.15C958.48,-684.87 1005.81,-719.47 1052.75,-732.38 1256.73,-788.45 1511.23,-761.77 1628.64,-744.33"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1629.05,-747.81 1638.41,-742.85 1628,-740.89 1629.05,-747.81"/>
 </a>
@@ -805,7 +805,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="class_train.html#a8845fd02024c04e5f02f9f87e352c57d" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="class_train.html#a8070c5044ded72b3b296045f333abf9d" target="_top" xlink:title=" ">
 <polygon fill="#fff0f0" stroke="red" points="1604,-724.75 1450.75,-724.75 1450.75,-704 1604,-704 1604,-724.75"/>
 <text xml:space="preserve" text-anchor="middle" x="1527.38" y="-711.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::brakingTerminalUpper</text>
 </a>
@@ -820,92 +820,92 @@
 </a>
 </g>
 </g>
-<!-- Node28&#45;&gt;Node31 -->
-<g id="edge39_Node000028_Node000031" class="edge">
-<title>Node28&#45;&gt;Node31</title>
-<g id="a_edge39_Node000028_Node000031"><a xlink:title=" ">
+<!-- Node28&#45;&gt;Node30 -->
+<g id="edge39_Node000028_Node000030" class="edge">
+<title>Node28&#45;&gt;Node30</title>
+<g id="a_edge39_Node000028_Node000030"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M1552.39,-703.61C1576.47,-692.82 1614.25,-675.89 1644.66,-662.26"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1646,-665.5 1653.69,-658.21 1643.13,-659.11 1646,-665.5"/>
 </a>
 </g>
 </g>
-<!-- Node28&#45;&gt;Node36 -->
-<g id="edge44_Node000028_Node000036" class="edge">
-<title>Node28&#45;&gt;Node36</title>
-<g id="a_edge44_Node000028_Node000036"><a xlink:title=" ">
+<!-- Node28&#45;&gt;Node35 -->
+<g id="edge44_Node000028_Node000035" class="edge">
+<title>Node28&#45;&gt;Node35</title>
+<g id="a_edge44_Node000028_Node000035"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M1604.17,-723.1C1612.35,-724.04 1620.63,-724.99 1628.66,-725.91"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1628,-729.36 1638.33,-727.03 1628.8,-722.41 1628,-729.36"/>
+</a>
+</g>
+</g>
+<!-- Node31 -->
+<g id="Node000031" class="node">
+<title>Node31</title>
+<g id="a_Node000031"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
+<polygon fill="white" stroke="#666666" points="1937.5,-712.75 1785,-712.75 1785,-692 1937.5,-692 1937.5,-712.75"/>
+<text xml:space="preserve" text-anchor="middle" x="1861.25" y="-699.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
+</a>
+</g>
+</g>
+<!-- Node30&#45;&gt;Node31 -->
+<g id="edge40_Node000030_Node000031" class="edge">
+<title>Node30&#45;&gt;Node31</title>
+<g id="a_edge40_Node000030_Node000031"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1728.47,-657.58C1745.12,-665.82 1765.81,-675.39 1785,-682.38 1790.8,-684.49 1796.91,-686.48 1803.06,-688.33"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1802.05,-691.68 1812.63,-691.08 1803.99,-684.95 1802.05,-691.68"/>
 </a>
 </g>
 </g>
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="class_train.html#aaaf0df103f25cbe3d3289775c570d18e" target="_top" xlink:title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0).">
-<polygon fill="white" stroke="#666666" points="1937.5,-712.75 1785,-712.75 1785,-692 1937.5,-692 1937.5,-712.75"/>
-<text xml:space="preserve" text-anchor="middle" x="1861.25" y="-699.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::curvature_resistances</text>
+<g id="a_Node000032"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
+<polygon fill="white" stroke="#666666" points="1934.5,-673.75 1788,-673.75 1788,-653 1934.5,-653 1934.5,-673.75"/>
+<text xml:space="preserve" text-anchor="middle" x="1861.25" y="-660.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
 </a>
 </g>
 </g>
-<!-- Node31&#45;&gt;Node32 -->
-<g id="edge40_Node000031_Node000032" class="edge">
-<title>Node31&#45;&gt;Node32</title>
-<g id="a_edge40_Node000031_Node000032"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1728.47,-657.58C1745.12,-665.82 1765.81,-675.39 1785,-682.38 1790.8,-684.49 1796.91,-686.48 1803.06,-688.33"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1802.05,-691.68 1812.63,-691.08 1803.99,-684.95 1802.05,-691.68"/>
+<!-- Node30&#45;&gt;Node32 -->
+<g id="edge41_Node000030_Node000032" class="edge">
+<title>Node30&#45;&gt;Node32</title>
+<g id="a_edge41_Node000030_Node000032"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1742.71,-646.97C1753.3,-648.44 1764.85,-650.06 1776.44,-651.67"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1775.64,-655.1 1786.03,-653.01 1776.61,-648.16 1775.64,-655.1"/>
 </a>
 </g>
 </g>
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" target="_top" xlink:title="Resistance in N of the gradient G, as rise per length (Arc::gradient).">
-<polygon fill="white" stroke="#666666" points="1934.5,-673.75 1788,-673.75 1788,-653 1934.5,-653 1934.5,-673.75"/>
-<text xml:space="preserve" text-anchor="middle" x="1861.25" y="-660.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::gradient_resistances</text>
-</a>
-</g>
-</g>
-<!-- Node31&#45;&gt;Node33 -->
-<g id="edge41_Node000031_Node000033" class="edge">
-<title>Node31&#45;&gt;Node33</title>
-<g id="a_edge41_Node000031_Node000033"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1742.71,-646.97C1753.3,-648.44 1764.85,-650.06 1776.44,-651.67"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1775.64,-655.1 1786.03,-653.01 1776.61,-648.16 1775.64,-655.1"/>
-</a>
-</g>
-</g>
-<!-- Node34 -->
-<g id="Node000034" class="node">
-<title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_train.html#ab101610ad7c3a484b47d1b921a06748c" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="class_train.html#ab101610ad7c3a484b47d1b921a06748c" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="1914.62,-635.12 1807.88,-635.12 1807.88,-601.62 1914.62,-601.62 1914.62,-635.12"/>
 <text xml:space="preserve" text-anchor="start" x="1815.88" y="-621.62" font-family="Helvetica,sans-Serif" font-size="10.00">Train::traction_unit</text>
 <text xml:space="preserve" text-anchor="middle" x="1861.25" y="-608.88" font-family="Helvetica,sans-Serif" font-size="10.00">_resistences</text>
 </a>
 </g>
 </g>
-<!-- Node31&#45;&gt;Node34 -->
-<g id="edge42_Node000031_Node000034" class="edge">
-<title>Node31&#45;&gt;Node34</title>
-<g id="a_edge42_Node000031_Node000034"><a xlink:title=" ">
+<!-- Node30&#45;&gt;Node33 -->
+<g id="edge42_Node000030_Node000033" class="edge">
+<title>Node30&#45;&gt;Node33</title>
+<g id="a_edge42_Node000030_Node000033"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M1742.71,-634.07C1759.4,-631.84 1778.47,-629.3 1796.32,-626.91"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1796.58,-630.41 1806.03,-625.61 1795.66,-623.47 1796.58,-630.41"/>
 </a>
 </g>
 </g>
-<!-- Node35 -->
-<g id="Node000035" class="node">
-<title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.">
+<!-- Node34 -->
+<g id="Node000034" class="node">
+<title>Node34</title>
+<g id="a_Node000034"><a xlink:href="class_train.html#adc2f8f8003ca203b515b9e1e497464b8" target="_top" xlink:title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula.">
 <polygon fill="white" stroke="#666666" points="1933,-583.75 1789.5,-583.75 1789.5,-563 1933,-563 1933,-583.75"/>
 <text xml:space="preserve" text-anchor="middle" x="1861.25" y="-570.25" font-family="Helvetica,sans-Serif" font-size="10.00">Train::wagons_resistances</text>
 </a>
 </g>
 </g>
-<!-- Node31&#45;&gt;Node35 -->
-<g id="edge43_Node000031_Node000035" class="edge">
-<title>Node31&#45;&gt;Node35</title>
-<g id="a_edge43_Node000031_Node000035"><a xlink:title=" ">
+<!-- Node30&#45;&gt;Node34 -->
+<g id="edge43_Node000030_Node000034" class="edge">
+<title>Node30&#45;&gt;Node34</title>
+<g id="a_edge43_Node000030_Node000034"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M1723.27,-623.19C1740.53,-613.1 1763.46,-600.72 1785,-592.38 1789.65,-590.57 1794.53,-588.9 1799.47,-587.34"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="1800.27,-590.76 1808.87,-584.57 1798.29,-584.04 1800.27,-590.76"/>
 </a>

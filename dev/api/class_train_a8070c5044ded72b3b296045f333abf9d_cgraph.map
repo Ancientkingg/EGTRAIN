@@ -1,0 +1,17 @@
+<map id="Train::brakingTerminalUpper" name="Train::brakingTerminalUpper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,88,210,116"/>
+<area shape="rect" id="Node000002" href="$struct_train_1_1_braking_arc_cursor.html#a34c2af035d590de6e1d94a0589d91e19" title="The arc under head, or null. safeUpper, when given, receives the position up to which the result hold..." alt="" coords="258,10,431,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,85,253,58,249,61,158,90"/>
+<area shape="rect" id="Node000003" href="$class_train.html#a8e62345b2e57ad32280b8c1953ece34c" title=" " alt="" coords="281,80,408,124"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,99,268,101,262,103,211,104"/>
+<area shape="rect" id="Node000008" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="272,148,417,176"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="165,114,274,142,269,145,165,119"/>
+<area shape="rect" id="Node000004" href="$class_train.html#aaaf0df103f25cbe3d3289775c570d18e" title="Resistance in N of a curve of radius R in metres; 0 for a straight track (R = 0)." alt="" coords="479,5,682,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,76,430,65,478,43,507,37,502,39,480,48,432,70,404,81"/>
+<area shape="rect" id="Node000005" href="$class_train.html#adbe28d64621aaaba05c0c29d9617bfd9" title="Resistance in N of the gradient G, as rise per length (Arc::gradient)." alt="" coords="483,57,678,85"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="408,91,470,85,465,86,409,96"/>
+<area shape="rect" id="Node000006" href="$class_train.html#ab101610ad7c3a484b47d1b921a06748c" title=" " alt="" coords="510,109,652,154"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="408,107,497,120,491,121,408,112"/>
+<area shape="rect" id="Node000007" href="$class_train.html#adc2f8f8003ca203b515b9e1e497464b8" title="Resistance in N of the wagons at speed V in m/s, using the Sauthoff Formula." alt="" coords="485,177,676,205"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="406,122,432,134,456,149,480,163,499,173,493,172,478,168,453,154,430,139,405,127"/>
+</map>

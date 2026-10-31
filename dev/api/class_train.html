@@ -171,10 +171,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a57f7e9d2d2b854fa1214fda170635bbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The arc under head in metres on the given sections, or null; a fresh <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> lookup.  <br /></td></tr>
 <tr class="memitem:ab5547152846ad249a7121a1678375531" id="r_ab5547152846ad249a7121a1678375531"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab5547152846ad249a7121a1678375531">brakingCurveSpeed</a> (double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc)</td></tr>
 <tr class="memitem:a445980e7edb09908b9e165d7b934459b" id="r_a445980e7edb09908b9e165d7b934459b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a445980e7edb09908b9e165d7b934459b">inverseBrakingStep</a> (double nextHead, double nextSpeed, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;head, double &amp;speed, <a class="el" href="struct_train_1_1_backward_braking_arc_cursor.html">BackwardBrakingArcCursor</a> *cursor=nullptr)</td></tr>
-<tr class="memitem:a9af946ff334ff93ba3b214da13ae0050" id="r_a9af946ff334ff93ba3b214da13ae0050"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9af946ff334ff93ba3b214da13ae0050">predictBraking</a> (double head, double speed, double targetSpeed, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr)</td></tr>
-<tr class="memitem:a518c09b45fe8dd0df01a9ce6be22c2c7" id="r_a518c09b45fe8dd0df01a9ce6be22c2c7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a518c09b45fe8dd0df01a9ce6be22c2c7">predictBrakingPrefix</a> (double head, double speed, int steps, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, double &amp;endSpeed, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr)</td></tr>
-<tr class="memitem:a8845fd02024c04e5f02f9f87e352c57d" id="r_a8845fd02024c04e5f02f9f87e352c57d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8845fd02024c04e5f02f9f87e352c57d">brakingTerminalUpper</a> (double head, double speed, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;upper)</td></tr>
-<tr class="memitem:a34b9e3944d6a89b3ce1310cfa1e07633" id="r_a34b9e3944d6a89b3ce1310cfa1e07633"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a34b9e3944d6a89b3ce1310cfa1e07633">constructBrakingTerminal</a> (double head, double speed, double anchor, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;terminal)</td></tr>
+<tr class="memitem:a0f0fd2140acb433a3825331a39fa07de" id="r_a0f0fd2140acb433a3825331a39fa07de"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0f0fd2140acb433a3825331a39fa07de">predictBraking</a> (double head, double speed, double targetSpeed, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr, const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *from=nullptr)</td></tr>
+<tr class="memitem:a937d6aed32a9e7c46ddaeda776c2bd13" id="r_a937d6aed32a9e7c46ddaeda776c2bd13"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a937d6aed32a9e7c46ddaeda776c2bd13">predictBrakingPrefix</a> (double head, double speed, int steps, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;end, double &amp;endSpeed, std::vector&lt; double &gt; *positions=nullptr, std::vector&lt; double &gt; *speeds=nullptr, const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *from=nullptr)</td></tr>
+<tr class="memitem:a8070c5044ded72b3b296045f333abf9d" id="r_a8070c5044ded72b3b296045f333abf9d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8070c5044ded72b3b296045f333abf9d">brakingTerminalUpper</a> (double head, double speed, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;upper, const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *from=nullptr)</td></tr>
+<tr class="memitem:a0bf7e5a01e5162da299cf67b0a74154a" id="r_a0bf7e5a01e5162da299cf67b0a74154a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0bf7e5a01e5162da299cf67b0a74154a">constructBrakingTerminal</a> (double head, double speed, double anchor, double ceiling, <a class="el" href="class_section.html">Section</a> *sections, int count, double &amp;terminal, const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *from=nullptr)</td></tr>
 <tr class="memitem:ab7c0931ae832319456ae4b4f65acd580" id="r_ab7c0931ae832319456ae4b4f65acd580"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab7c0931ae832319456ae4b4f65acd580">planPositiveBraking</a> (double head, double speed, const <a class="el" href="class_arc.html">Arc</a> &amp;arc, <a class="el" href="class_section.html">Section</a> *sections, int count, int suggested)</td></tr>
 <tr class="memdesc:ab7c0931ae832319456ae4b4f65acd580"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.  <br /></td></tr>
 <tr class="memitem:a86fe06b963d9fe57ec35dae0764265aa" id="r_a86fe06b963d9fe57ec35dae0764265aa"><td class="memItemLeft">virtual double&#160;</td><td class="memItemRight"><a class="el" href="#a86fe06b963d9fe57ec35dae0764265aa">BrakDist_Block</a> (double V1, double V2, double X0, <a class="el" href="class_section.html">Section</a> *BS, int Blocks, double cutoff=std::numeric_limits&lt; double &gt;::infinity())</td></tr>
@@ -650,7 +650,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a93dc18f9c8625c62958099e9dda4931b_cgraph.svg" width="1680" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a93dc18f9c8625c62958099e9dda4931b_cgraph.svg" width="1680" height="608"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -705,7 +705,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a86fe06b963d9fe57ec35dae0764265aa_cgraph.svg" width="1423" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a86fe06b963d9fe57ec35dae0764265aa_cgraph.svg" width="1423" height="608"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -882,13 +882,13 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a1af634b7447d29cd8696899f0d900f03_cgraph.svg" width="1378" height="815"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a1af634b7447d29cd8696899f0d900f03_cgraph.svg" width="1378" height="858"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a8845fd02024c04e5f02f9f87e352c57d" name="a8845fd02024c04e5f02f9f87e352c57d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8845fd02024c04e5f02f9f87e352c57d">&#9670;&#160;</a></span>brakingTerminalUpper()</h2>
+<a id="a8070c5044ded72b3b296045f333abf9d" name="a8070c5044ded72b3b296045f333abf9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8070c5044ded72b3b296045f333abf9d">&#9670;&#160;</a></span>brakingTerminalUpper()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -921,15 +921,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>upper</em></span>&#160;)</td>
+          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>upper</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *</td>          <td class="paramname"><span class="paramname"><em>from</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The furthest head (m) that one step from head and speed (m/s) reaches with at most full traction and a speed capped at ceiling (m/s); upper receives it. False when no arc holds head. </p>
+<p>The furthest head (m) that one step from head and speed (m/s) reaches with at most full traction and a speed capped at ceiling (m/s); upper receives it. False when no arc holds head. from as for predictBraking. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a8845fd02024c04e5f02f9f87e352c57d_cgraph.svg" width="660" height="279"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a8070c5044ded72b3b296045f333abf9d_cgraph.svg" width="688" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1011,7 +1016,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a3cee16d7b79429212cc01bb58a293ada_cgraph.svg" width="2186" height="524"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a3cee16d7b79429212cc01bb58a293ada_cgraph.svg" width="2186" height="642"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1159,7 +1164,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0b81efa472d1b11149ad5cf4d2588f60_cgraph.svg" width="1934" height="428"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0b81efa472d1b11149ad5cf4d2588f60_cgraph.svg" width="1934" height="608"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1560,8 +1565,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a34b9e3944d6a89b3ce1310cfa1e07633" name="a34b9e3944d6a89b3ce1310cfa1e07633"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a34b9e3944d6a89b3ce1310cfa1e07633">&#9670;&#160;</a></span>constructBrakingTerminal()</h2>
+<a id="a0bf7e5a01e5162da299cf67b0a74154a" name="a0bf7e5a01e5162da299cf67b0a74154a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bf7e5a01e5162da299cf67b0a74154a">&#9670;&#160;</a></span>constructBrakingTerminal()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1599,15 +1604,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>terminal</em></span>&#160;)</td>
+          <td class="paramtype">double &amp;</td>          <td class="paramname"><span class="paramname"><em>terminal</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *</td>          <td class="paramname"><span class="paramname"><em>from</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above ceiling; terminal receives it. False when the step cannot end at anchor up to rounding. Rounded addition need not be exactly inverted by subtraction and division. </p>
+<p>The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above ceiling; terminal receives it. False when the step cannot end at anchor up to rounding. Rounded addition need not be exactly inverted by subtraction and division. from as for predictBraking. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a34b9e3944d6a89b3ce1310cfa1e07633_cgraph.svg" width="946" height="222"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0bf7e5a01e5162da299cf67b0a74154a_cgraph.svg" width="899" height="267"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1845,7 +1855,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a8bbd8024d51e2509fdd3ccc748d14ecb_cgraph.svg" width="1966" height="550"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a8bbd8024d51e2509fdd3ccc748d14ecb_cgraph.svg" width="1966" height="711"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1892,7 +1902,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="2198" height="472"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ad8b349c94f8a0f31bdff97899672573d_cgraph.svg" width="2198" height="804"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2241,7 +2251,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a54fc076df66c661dccd1a701273efd19_cgraph.svg" width="1723" height="550"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a54fc076df66c661dccd1a701273efd19_cgraph.svg" width="1723" height="688"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2357,7 +2367,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ab7c0931ae832319456ae4b4f65acd580_cgraph.svg" width="1184" height="336"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_ab7c0931ae832319456ae4b4f65acd580_cgraph.svg" width="1138" height="315"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -2389,8 +2399,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a9af946ff334ff93ba3b214da13ae0050" name="a9af946ff334ff93ba3b214da13ae0050"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9af946ff334ff93ba3b214da13ae0050">&#9670;&#160;</a></span>predictBraking()</h2>
+<a id="a0f0fd2140acb433a3825331a39fa07de" name="a0f0fd2140acb433a3825331a39fa07de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f0fd2140acb433a3825331a39fa07de">&#9670;&#160;</a></span>predictBraking()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2433,21 +2443,26 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; double &gt; *</td>          <td class="paramname"><span class="paramname"><em>speeds</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype">std::vector&lt; double &gt; *</td>          <td class="paramname"><span class="paramname"><em>speeds</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *</td>          <td class="paramname"><span class="paramname"><em>from</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m). False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every state in driving order. </p>
+<p>Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m). False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every state in driving order. from, when given, is a cursor that looked up arcs of the same sections, and the lookups go on from a copy of it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a9af946ff334ff93ba3b214da13ae0050_cgraph.svg" width="828" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a0f0fd2140acb433a3825331a39fa07de_cgraph.svg" width="828" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a518c09b45fe8dd0df01a9ce6be22c2c7" name="a518c09b45fe8dd0df01a9ce6be22c2c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a518c09b45fe8dd0df01a9ce6be22c2c7">&#9670;&#160;</a></span>predictBrakingPrefix()</h2>
+<a id="a937d6aed32a9e7c46ddaeda776c2bd13" name="a937d6aed32a9e7c46ddaeda776c2bd13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a937d6aed32a9e7c46ddaeda776c2bd13">&#9670;&#160;</a></span>predictBrakingPrefix()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2495,15 +2510,20 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; double &gt; *</td>          <td class="paramname"><span class="paramname"><em>speeds</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype">std::vector&lt; double &gt; *</td>          <td class="paramname"><span class="paramname"><em>speeds</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="struct_train_1_1_braking_arc_cursor.html">BrakingArcCursor</a> *</td>          <td class="paramname"><span class="paramname"><em>from</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Runs steps full braking steps from head (m) and speed (m/s), even below a positive target; end and endSpeed receive the last state. False when the steps leave the arcs of the sections. positions and speeds as for predictBraking. </p>
+<p>Runs steps full braking steps from head (m) and speed (m/s), even below a positive target; end and endSpeed receive the last state. False when the steps leave the arcs of the sections. positions, speeds and from as for predictBraking. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a518c09b45fe8dd0df01a9ce6be22c2c7_cgraph.svg" width="866" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a937d6aed32a9e7c46ddaeda776c2bd13_cgraph.svg" width="866" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -3281,7 +3301,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a6f9098733d2c43d0f6f645ef766ac289_cgraph.svg" width="1216" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_train_a6f9098733d2c43d0f6f645ef766ac289_cgraph.svg" width="1216" height="598"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

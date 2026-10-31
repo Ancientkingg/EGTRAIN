@@ -138,7 +138,7 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Finds the arc of the route under a head position in metres, continuing from the previous lookup.</p>
-<p>Call-local first-match lookup. Earlier future starts invalidate forward progress, so unordered and overlapping routes retain the linear scan's precedence. </p>
+<p>First-match lookup on one list of sections, with the result of a fresh scan. Earlier future starts invalidate forward progress, so unordered and overlapping routes retain the linear scan's precedence. A copy goes on from the last lookup of the cursor that it copies, so walks that all start at or beyond one head can each start from a copy of a cursor that found that head, on the same sections, and skip the arcs before it. </p>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a34c2af035d590de6e1d94a0589d91e19" name="a34c2af035d590de6e1d94a0589d91e19"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a34c2af035d590de6e1d94a0589d91e19">&#9670;&#160;</a></span>find()</h2>

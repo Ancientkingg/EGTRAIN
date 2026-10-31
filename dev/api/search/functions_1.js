@@ -44,7 +44,7 @@ var searchData=
   ['brakingdistancefastcomputation_41',['BrakingDistanceFastComputation',['../class_train.html#ae67e8c5e364a38ec05fe9fd268b1a064',1,'Train']]],
   ['brakingeffort_42',['brakingEffort',['../class_train.html#a82de975c4acc0c503964ccce89396d74',1,'Train']]],
   ['brakingstep_43',['brakingStep',['../class_train.html#a1af634b7447d29cd8696899f0d900f03',1,'Train']]],
-  ['brakingterminalupper_44',['brakingTerminalUpper',['../class_train.html#a8845fd02024c04e5f02f9f87e352c57d',1,'Train']]],
+  ['brakingterminalupper_44',['brakingTerminalUpper',['../class_train.html#a8070c5044ded72b3b296045f333abf9d',1,'Train']]],
   ['breakablename_45',['breakableName',['../namespace_editor_layout.html#a10e8ca3d606ad57832120603f5cd67ac',1,'EditorLayout']]],
   ['bringtofront_46',['bringToFront',['../class_scene_session_1_1_host.html#a556ffacfce1bfa3e0fa054f567360b18',1,'SceneSession::Host']]],
   ['budgetbytes_47',['budgetBytes',['../class_gui_replay_history.html#a5ca9e9f603b51b875385dc41f2cfef1a',1,'GuiReplayHistory']]],
