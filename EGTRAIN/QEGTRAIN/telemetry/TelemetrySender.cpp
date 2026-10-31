@@ -626,6 +626,7 @@ public:
 				return;
 			}
 		}
+		if (disabled) return; // The abort above handles the response at once, which can disable the worker.
 		const qint64 time = monotonic();
 		if (!owner) {
 			if (time < nextOwnership) return;

@@ -230,6 +230,7 @@ private slots:
 	void otherCategoryRevokedBeforeRequest();
 	void consentForAnotherReceiver();
 	void unreadableConsent();
+	void disabledDuringRevocationStaysClosed();
 	void workerFailureRefusesOldTokens();
 	void nonWaitingCallsUnderContention();
 	void ringTakes128Events();
@@ -1889,6 +1890,61 @@ void TestTelemetrySender::unreadableConsent() {
 	pump.release();
 	QVERIFY(exited.tryAcquire(1, 3000));
 	QCOMPARE(readDurableEvents(storage + QStringLiteral("/usage.json")).size(), 1);
+	QVERIFY(!sender.tryEnqueue({}));
+	sender.stop();
+}
+
+void TestTelemetrySender::disabledDuringRevocationStaysClosed() {
+	// The pump that takes a revocation aborts the running request, and the consent read of that response fails, which
+	// disables the worker. The worker leaves that pump: it does not open the queue again, although the time for another
+	// ownership attempt has come, and no category opens, although the consent can be read again by then.
+	QTemporaryDir directory;
+	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
+	QSettings settings(settingsFile, QSettings::IniFormat);
+	TelemetryConsent consent(settings, m_context);
+	QVERIFY(consent.save(true, false));
+	const QString key = QStringLiteral("telemetry/consentV1");
+	const QVariant saved = settings.value(key);
+	auto clock = std::make_shared<std::atomic<qint64>>(0);
+	const QDateTime base = QDateTime::currentDateTimeUtc().addSecs(10);
+	Semaphore posted, exited;
+	PumpHold pump;
+	std::atomic<int> ownershipAttempts{0};
+	std::atomic<telemetry::TelemetrySender*> probe{nullptr};
+	telemetry::TelemetrySender::TestOptions options;
+	options.settingsFactory = [settingsFile] { return std::make_unique<QSettings>(settingsFile, QSettings::IniFormat); };
+	options.utcNow = [base, clock] { return base.addMSecs(clock->load()); };
+	options.monotonicMs = [clock] { return clock->load(); };
+	options.beforeFlagsRead = [&] { pump.atPump(); };
+	options.afterOwnershipAttempt = [&](bool) { ++ownershipAttempts; };
+	options.afterCompletion = [&] {
+		QSettings restored(settingsFile, QSettings::IniFormat);
+		restored.setValue(key, saved);
+		restored.sync();
+	};
+	// A poll after the revocation must not find the usage category open.
+	options.afterPoll = [&] {
+		if (auto* target = probe.load()) RECORD_VERIFY(!target->tryEnqueue({}));
+	};
+	options.onWorkerExit = [&] { exited.release(); };
+	options.post = [&](QNetworkAccessManager& manager, const QNetworkRequest& request, const QByteArray&) {
+		posted.release();
+		return new ScriptedReply(request, 202, &manager, {}, QNetworkReply::NoError, {}, true);
+	};
+	telemetry::TelemetrySender sender(m_context, m_metadata, directory.filePath(QStringLiteral("queue")), options);
+	QVERIFY(waitForGate(sender, {}));
+	// The first batch is due, and so is the next ownership attempt of a worker that is no longer the owner.
+	*clock = 60001;
+	QVERIFY(posted.tryAcquire(1, 3000));
+	QVERIFY(pump.holdNext());
+	settings.setValue(key, QByteArrayLiteral("not json"));
+	settings.sync();
+	sender.invalidateConsent(true, false);
+	sender.requestConsentRefresh();
+	probe = &sender;
+	pump.release();
+	QVERIFY(exited.tryAcquire(1, 3000));
+	QCOMPARE(ownershipAttempts.load(), 1);
 	QVERIFY(!sender.tryEnqueue({}));
 	sender.stop();
 }
