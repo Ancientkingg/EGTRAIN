@@ -1265,9 +1265,6 @@ static void fillSection(Section& s, const NodeList& nodes, TDS* tds) {
 	s.IDConnectedBS[0] = "section.a";
 	s.IDConnectedBS[1] = "section.b";
 	s.N_ConnectedBS = 2;
-	s.ETCS3BrakingPoints[0] = 85.5;
-	s.ETCS3BrakingPointsTrainID[0] = "train.sample";
-	s.N_ETCS3BrakingPoints = 1;
 	s.TDS_in_block = {tds};
 }
 
@@ -1298,13 +1295,11 @@ static bool sameSection(const Section& a, const Section& b) {
 		&& a.XStartSwitch == b.XStartSwitch && a.XEndSwitch == b.XEndSwitch && a.GeoXBegNode == b.GeoXBegNode && a.GeoXEndNode == b.GeoXEndNode
 		&& a.SignallingLevel == b.SignallingLevel && a.state == b.state && a.Occupied == b.Occupied
 		&& a.Occup_By_Train == b.Occup_By_Train && a.withSwitchDiv == b.withSwitchDiv && a.N_ConnectedBS == b.N_ConnectedBS
-		&& a.N_ETCS3BrakingPoints == b.N_ETCS3BrakingPoints && a.TDS_in_block == b.TDS_in_block;
+		&& a.TDS_in_block == b.TDS_in_block;
 	for (int i = 0; same && i < a.total_arcs; i++)
 		same = sameArc(a.arcs_in_signalling_block_section[i], b.arcs_in_signalling_block_section[i]);
 	for (int i = 0; same && i < a.N_ConnectedBS; i++)
 		same = a.IDConnectedBS[i] == b.IDConnectedBS[i];
-	for (int i = 0; same && i < a.N_ETCS3BrakingPoints; i++)
-		same = a.ETCS3BrakingPoints[i] == b.ETCS3BrakingPoints[i] && a.ETCS3BrakingPointsTrainID[i] == b.ETCS3BrakingPointsTrainID[i];
 	return same;
 }
 

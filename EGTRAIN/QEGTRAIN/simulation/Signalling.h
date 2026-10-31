@@ -155,24 +155,20 @@ public:
 	/// Signalling level 0 to 5 (enum SignallingLevel in scene/SignallingLevel.h); kSignallingLevelUnset (-99999999)
 	/// means no level (default)
 	int SignallingLevel;
-	double ETCS3BrakingPoints[40];			   ///< Set to -1 by the constructor and never given another value.
-	std::string ETCS3BrakingPointsTrainID[40]; ///< Set to "None" by the constructor and never given another value.
-	int N_ETCS3BrakingPoints;				   ///< Set to 0 by the constructor and never given another value.
-	SignalState state;						   ///< Main signal aspect; Green by default.
-	bool Occupied;							   ///< Block section occupied by a train
-	bool Occup_By_Train;					   ///< Set to false by the constructor and never given another value.
-	bool withSwitchDiv;						   ///< Block section contains a diverging switch
+	SignalState state;	 ///< Main signal aspect; Green by default.
+	bool Occupied;		 ///< Block section occupied by a train
+	bool Occup_By_Train; ///< Set to false by the constructor and never given another value.
+	bool withSwitchDiv;	 ///< Block section contains a diverging switch
 	/// IDs of the sections that depend on this one, which are occupied and released with it.
 	std::string IDConnectedBS[RuntimeLimits::kNativeMaxDependencies];
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
-	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs and
-	/// the ETCS3 braking points are -1.
+	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.
 	Section();
 
-	/// Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints):
-	/// the entries after those keep their values. The copy constructor copies every entry. The node list stays shared.
+	/// Copies the members, but the two arrays only up to their counts (total_arcs and N_ConnectedBS): the entries after those
+	/// keep their values. The copy constructor copies every entry. The node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -204,12 +200,6 @@ public:
 		XEndSwitch = ob2.XEndSwitch;
 		for (int i = 0; i < N_ConnectedBS; i++) {
 			IDConnectedBS[i] = ob2.IDConnectedBS[i];
-		}
-		// Copy ETCS3 braking points
-		N_ETCS3BrakingPoints = ob2.N_ETCS3BrakingPoints;
-		for (int i = 0; i < N_ETCS3BrakingPoints; i++) {
-			ETCS3BrakingPoints[i] = ob2.ETCS3BrakingPoints[i];
-			ETCS3BrakingPointsTrainID[i] = ob2.ETCS3BrakingPointsTrainID[i];
 		}
 		TDS_in_block.clear();
 

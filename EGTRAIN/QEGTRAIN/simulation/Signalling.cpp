@@ -244,12 +244,7 @@ Section::Section() {
 	XStartSwitch = XEndSwitch = 0;
 	GeoXEndNode = GeoXBegNode = 0;
 	SignallingLevel = kSignallingLevelUnset;
-	N_ETCS3BrakingPoints = 0;
 	FirstConnectedTrackLineID = SecondConnectedTrackLineID = -1;
-	for (int i = 0; i < 40; i++) {
-		ETCS3BrakingPoints[i] = -1;
-		ETCS3BrakingPointsTrainID[i] = "None";
-	} // All the ETCS3 Braking Points are initialized to -1
 }
 
 // Function to cut the block section
