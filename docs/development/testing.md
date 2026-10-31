@@ -389,7 +389,7 @@ request. The program reads no rate-limit header, so every 403 counts as a rate l
 `test_updatetransport_https_cases` runs the same program against a server on `127.0.0.1`
 that gives each kind of answer, and runs in every configuration without the internet.
 
-The Windows leg of the CMake workflow configures with `-DEGTRAIN_NETWORK_TESTS=ON`, leaves the
+The Windows leg of the CMake workflow configures with `EGTRAIN_NETWORK_TESTS=ON` through the `ci-windows` preset, leaves the
 network tests out of the Test step with `-LE network`, and runs them in the step
 Check HTTPS (Windows). The Windows package job builds the program with the package and runs
 it in the step Check HTTPS from the package. That step copies the program into the copy of the
