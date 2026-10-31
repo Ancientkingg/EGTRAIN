@@ -50,8 +50,8 @@ struct BlockingTimeDiagramData {
 	std::vector<BlockingTimePlannedReference> plannedReferences;
 	/// Clipped to the scope, for the chart.
 	std::vector<std::vector<BlockingTimePlannedReference>> plannedLines;
-	std::vector<BlockingTimeTrajectory> trajectories;	  ///< Recorded samples that lie inside an envelope of their train
-	std::vector<std::vector<std::string>> trajectoryRows; ///< The export rows of the trajectories, with geo X from `extents`
+	/// Recorded samples that lie inside an envelope of their train. The export writes a row for each of them.
+	std::vector<BlockingTimeTrajectory> trajectories;
 	/// Elapsed seconds that the chart spans: the interval of the scope, at least 1 s. For a compressed diagram, the
 	/// envelopes with a margin (see compressedBlockingTimeDiagramData).
 	std::pair<double, double> timeRange;

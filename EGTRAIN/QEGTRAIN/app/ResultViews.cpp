@@ -244,10 +244,11 @@ void ResultViews::buildRouteDiagram(const std::shared_ptr<const CompletedRunData
 	if (route.stationAxis) win->setStationAxis(route.stationAxis, std::move(route.stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(trainServicesForRun(run->results));
-	const auto graphCsv = [csvRows = diagram->csvRows](const QStringList& visible) {
+	// The rows are made from the run when the window exports.
+	const auto graphCsv = [run, timetable, referenceIndex](const QStringList& visible) {
 		std::vector<std::string> ids;
 		for (const QString& id : visible) ids.push_back(id.toStdString());
-		return buildRouteDiagramCsv(csvRows, ids);
+		return buildRouteDiagramCsv(routeDiagramCsvRows(*run, timetable, referenceIndex), ids);
 	};
 	win->setCsvProvider(graphCsv, timetable ? "timetable_graph.csv" : "train_path_graph.csv");
 	if (const auto routeDiagramBuilt = mainWindowTestHooks().routeDiagramBuilt)
@@ -269,7 +270,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(*run);
 	if (!m_host.dialogsSuppressed() && !chooseBlockingTimeScope(m_window, blockingTimeScopeChoicesFrom(*run), scope))
 		return;
-	const std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(*run, scope);
+	std::optional<BlockingTimeDiagramData> diagram = blockingTimeDiagramData(*run, scope);
 	if (!diagram)
 		return;
 	// The route and blocks as the Capacity window names its section: "route0 (A), blocks 36 to 72".
@@ -278,7 +279,7 @@ void ResultViews::showBlockingTimeDiagram() {
 	blocks.blockIds = scope.blockIds;
 	blocks.sectionIndices = scope.sectionIndices;
 	const QString route = run->hasRoute(scope.routeIndex) ? capacityScopeTextFrom(*run, blocks) : QStringLiteral("All routes");
-	showBlockingTimeWindow(run, *diagram, false,
+	showBlockingTimeWindow(run, std::make_shared<const BlockingTimeDiagramData>(std::move(*diagram)), false,
 		QString("%1, %2 to %3")
 			.arg(route, QString::fromStdString(formatSimTime(static_cast<long long>(scope.startTime), run->settings.startOffsetSeconds)),
 				QString::fromStdString(formatSimTime(static_cast<long long>(scope.endTime), run->settings.startOffsetSeconds))),
@@ -286,15 +287,16 @@ void ResultViews::showBlockingTimeDiagram() {
 }
 
 void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRunData>& run,
-	const BlockingTimeDiagramData& diagram, bool compressed, const QString& context, const QString& contextToolTip) {
+	const std::shared_ptr<const BlockingTimeDiagramData>& data, bool compressed, const QString& context,
+	const QString& contextToolTip) {
 	const QString title = compressed ? QStringLiteral("Compressed blocking time") : QString(ResultViewName::kBlockingTime);
+	const BlockingTimeDiagramData& diagram = *data;
 	const RouteDiagramPath& referencePath = diagram.referencePath;
 	const std::vector<BlockingTimeDiagramSegment>& segments = diagram.segments;
 	const std::vector<BlockingTimeDiagramSegment>& unmapped = diagram.unmapped;
 	const std::vector<BlockSectionExtent>& extents = diagram.extents;
 	const std::vector<BlockingTimePlannedReference>& plannedReferences = diagram.plannedReferences;
 	const auto& plottedPlanned = diagram.plannedLines;
-	const auto& trajectoryRows = diagram.trajectoryRows;
 
 	const PositionScale scale(extents);
 	QChart* chart = buildBlockingTimeChart(diagram, compressed, run->sectionLabels, scale);
@@ -325,16 +327,21 @@ void ResultViews::showBlockingTimeWindow(const std::shared_ptr<const CompletedRu
 	win->setTrainCopies(copies);
 	win->setTrainColors(trainColorsForRun(run->results, m_host.sceneModel()));
 	win->setTrainServices(services);
-	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
+	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && diagram.trajectories.empty();
 	// The header names the run before the scope of the chart.
 	win->setPresentation(title, completedRunContext(run->provenance) + QStringLiteral(" \u00b7 ") + context,
 		QString::fromStdString(blockingTimeNote(diagram.omitted, nothingPlotted, !unmapped.empty(), referencePath.id)), contextToolTip);
-	const std::function<std::string(const QStringList&)> scopedCsv =
-		[segments, plannedReferences, trajectoryRows, extents, unmapped](const QStringList& visibleTrainIds) {
-			return buildBlockingTimeCsv(visibleTrainIds, segments, plannedReferences, trajectoryRows, extents, unmapped);
-		};
+	// The window shares the diagram with its export, which makes the rows when it runs.
+	const auto scopedCsv = [data](const QStringList& visibleTrainIds) {
+		return buildBlockingTimeCsv(visibleTrainIds, data->segments, data->plannedReferences, data->trajectories, data->extents,
+			data->unmapped);
+	};
+	// blockingTimeTrainIds reads the train of each trajectory row, so one row for each recorded line names them all.
+	std::vector<std::vector<std::string>> trajectoryTrains;
+	for (const BlockingTimeTrajectory& trajectory : diagram.trajectories)
+		trajectoryTrains.push_back({trajectory.trainId});
 	win->setCsvProvider(scopedCsv, compressed ? "capacity_compressed_blocking_time.csv" : "blocking_time.csv",
-		blockingTimeTrainIds(segments, plannedReferences, trajectoryRows, unmapped));
+		blockingTimeTrainIds(segments, plannedReferences, trajectoryTrains, unmapped));
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &ResultViews::trainSelected);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
@@ -410,11 +417,12 @@ void ResultViews::showCapacityAnalysis() {
 			});
 	});
 	connect(dialog->diagramButton(), &QPushButton::clicked, dialog, [this, run, scope, result, sectionText, sectionTip]() {
-		const std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
+		std::optional<BlockingTimeDiagramData> diagram = compressedBlockingTimeDiagramData(*run, scope, result);
 		if (!diagram)
 			return;
 		// The header has the key figures of the Capacity window; the tooltip names the trains of the cycle.
-		showBlockingTimeWindow(run, *diagram, true, sectionText + QStringLiteral(" \u00b7 ") + capacityCycleText(result),
+		showBlockingTimeWindow(run, std::make_shared<const BlockingTimeDiagramData>(std::move(*diagram)), true,
+			sectionText + QStringLiteral(" \u00b7 ") + capacityCycleText(result),
 			QStringList({QString("Cycle from %1 to %2").arg(QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity)),
 							sectionTip})
 				.join('\n')

@@ -1,6 +1,7 @@
 #ifndef RUNCSV_H
 #define RUNCSV_H
 
+#include "diagrams/BlockingTimeData.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
@@ -24,13 +25,14 @@
 /// The CSV field of a value: the number, or an empty field when it is unavailable.
 std::string csvValue(const RunResultValue& value);
 
-/// The blocking-time CSV: the envelopes of the visible trains in `segments`, their planned stop references, the recorded
-/// trajectory rows, the envelopes that could not be projected and one row for each section in `extents`. Every row has
-/// the columns of blockingTimeCsvHeader(); the geo X columns map the positions through the PositionScale of `extents`.
+/// The blocking-time CSV: the envelopes of the visible trains in `segments`, their planned stop references, a row for
+/// each recorded sample of their `trajectories`, the envelopes that could not be projected and one row for each section
+/// in `extents`. Every row has the columns of blockingTimeCsvHeader(); the geo X columns map the positions through the
+/// PositionScale of `extents`.
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockingTimePlannedReference>& plannedReferences,
-	const std::vector<std::vector<std::string>>& trajectories = {},
+	const std::vector<BlockingTimeTrajectory>& trajectories = {},
 	const std::vector<BlockSectionExtent>& extents = {},
 	const std::vector<BlockingTimeDiagramSegment>& unmapped = {});
 

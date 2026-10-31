@@ -47,7 +47,11 @@ std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const Completed
 	return used;
 }
 
-std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex) {
+namespace {
+
+// routeDiagramData, which adds the export row of each sample or stop event to `csvRows` when it is given.
+std::optional<RouteDiagramData> buildRouteDiagram(const CompletedRunData& data, bool timetable, int referenceIndex,
+	std::vector<std::vector<std::string>>* csvRows) {
 	if (!data.hasRoute(referenceIndex))
 		return std::nullopt;
 	RouteDiagramData result;
@@ -57,7 +61,9 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 	const RouteProjections maps = projectRoutes(data, result.referencePath);
 	const auto record = [&](const CompletedTrain& train, const char* kind, const std::string& station,
 							int journey, int call, const RunResultValue& time, std::optional<double> x) {
-		result.csvRows.push_back({train.trainId, result.referencePath.id, data.routes[static_cast<std::size_t>(train.routeIndex)].id,
+		if (!csvRows)
+			return;
+		csvRows->push_back({train.trainId, result.referencePath.id, data.routes[static_cast<std::size_t>(train.routeIndex)].id,
 			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
 			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
 	};
@@ -144,6 +150,19 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 		}
 	}
 	return result;
+}
+
+} // namespace
+
+std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex) {
+	return buildRouteDiagram(data, timetable, referenceIndex, nullptr);
+}
+
+std::vector<std::vector<std::string>> routeDiagramCsvRows(const CompletedRunData& data, bool timetable,
+	int referenceIndex) {
+	std::vector<std::vector<std::string>> rows;
+	buildRouteDiagram(data, timetable, referenceIndex, &rows);
+	return rows;
 }
 
 std::optional<DelayDiagramData> delayDiagramData(const CompletedRunData& data, int referenceIndex) {

@@ -183,7 +183,7 @@ std::string describe(const BlockingTimeDiagramData& d, const QStringList& visibl
 		for (const auto& point : line.points)
 			text << "  " << num(point.first) << '|' << num(point.second) << '\n';
 	}
-	text << buildBlockingTimeCsv(visible, d.segments, d.plannedReferences, d.trajectoryRows, d.extents, d.unmapped);
+	text << buildBlockingTimeCsv(visible, d.segments, d.plannedReferences, d.trajectories, d.extents, d.unmapped);
 	return text.str();
 }
 
@@ -195,7 +195,7 @@ std::string describe(const std::optional<BlockingTimeDiagramData>& d, const QStr
 // exports it.
 std::string blockingTimeCsvOf(const CompletedRunData& data, const QStringList& visible) {
 	const std::optional<BlockingTimeDiagramData> d = blockingTimeDiagramData(data, defaultBlockingTimeScopeFrom(data));
-	return d ? buildBlockingTimeCsv(visible, d->segments, d->plannedReferences, d->trajectoryRows, d->extents, d->unmapped)
+	return d ? buildBlockingTimeCsv(visible, d->segments, d->plannedReferences, d->trajectories, d->extents, d->unmapped)
 			 : std::string();
 }
 
@@ -208,8 +208,6 @@ std::string describe(const RouteDiagramData& d) {
 		for (const auto& point : series.points)
 			text << "  " << num(point.positionKm) << '|' << num(point.seconds) << '|' << point.station << '|' << point.journey << '|' << point.call << '\n';
 	}
-	for (const auto& row : d.csvRows)
-		text << csv::makeRow(row) << '\n';
 	return text.str();
 }
 
@@ -552,7 +550,13 @@ void checkBlockingDiagrams(const CapturedRun& run) {
 				inScope = inScope && point.second >= scopes[k].startTime && point.second <= scopes[k].endTime;
 			}
 		const std::string samples = label + ": the recorded samples are those of the scope";
-		QVERIFY2(points == diagram->trajectoryRows.size(), samples.c_str());
+		// The export has a row for each of them.
+		const std::string exported = buildBlockingTimeCsv(trainIdsFrom(run.data), diagram->segments, diagram->plannedReferences,
+			diagram->trajectories, diagram->extents, diagram->unmapped);
+		const std::vector<std::string> lines = dataLines(exported);
+		const auto sampleRows = static_cast<std::size_t>(std::count_if(lines.begin(), lines.end(),
+			[](const std::string& line) { return line.find(",recorded sample,") != std::string::npos; }));
+		QVERIFY2(points == sampleRows, samples.c_str());
 		QVERIFY2(inScope, samples.c_str());
 		bool ofScope = true;
 		for (const BlockingTimeDiagramSegment& segment : diagram->segments)
@@ -734,7 +738,8 @@ void checkRouteDiagrams(const CapturedRun& run) {
 			const auto diagram = routeDiagramData(run.data, timetable, used.first);
 			QVERIFY2(diagram.has_value(), label.c_str());
 			QVERIFY2(diagram->referencePath.id == used.second, (label + ": reference route").c_str());
-			QVERIFY2(diagram->csvRows.size() == (timetable ? 4 * timetableRows : samples), (label + ": export rows").c_str());
+			QVERIFY2(routeDiagramCsvRows(run.data, timetable, used.first).size() == (timetable ? 4 * timetableRows : samples),
+				(label + ": export rows").c_str());
 			withSeries += diagram->series.empty() ? 0 : 1;
 		}
 	QVERIFY2(withSeries >= 2, (scene + ": route diagrams have lines").c_str());
@@ -809,8 +814,11 @@ std::string exportsOf(const CompletedRunData& data) {
 	std::string text = trajectoryCsvFrom(data, ids) + timetableCsvFrom(data, ids) + blockingTimeCsvOf(data, ids)
 		+ capacityCsvFrom(data, firstCapacityScopeWithPairFrom(data));
 	for (const auto& used : usedRouteReferencesFrom(data))
-		for (bool timetable : {false, true})
+		for (bool timetable : {false, true}) {
 			text += describe(routeDiagramData(data, timetable, used.first));
+			for (const auto& row : routeDiagramCsvRows(data, timetable, used.first))
+				text += csv::makeRow(row) + '\n';
+		}
 	text += describe(blockingTimeDiagramData(data, defaultBlockingTimeScopeFrom(data)), ids);
 	return text;
 }
@@ -1600,7 +1608,7 @@ void TestCompletedRun::placesRepeatedStops() {
 	for (const auto& line : expectedRows)
 		expectedText += line + "\n";
 	std::string actualText;
-	for (const auto& line : diagram->csvRows)
+	for (const auto& line : routeDiagramCsvRows(data, true, 0))
 		actualText += row(line) + "\n";
 	checkSame("export rows of the repeated stops", expectedText, actualText);
 	if (QTest::currentTestFailed())
@@ -1752,8 +1760,9 @@ void TestCompletedRun::mirrorsReversedRoutes() {
 	QCOMPARE_EQ(paths->series[1].points[0].positionKm, 1.0);
 	QCOMPARE_EQ(paths->series[1].points[0].seconds, 4.0);
 	// the unprojectable sample is an export row without a position
-	QCOMPARE(paths->csvRows.size(), std::size_t(5));
-	QCOMPARE(paths->csvRows[3], std::vector<std::string>({"W", "east", "west", "trajectory", "", "", "", f(3.0), ""}));
+	const auto pathRows = routeDiagramCsvRows(data, false, 0);
+	QCOMPARE(pathRows.size(), std::size_t(5));
+	QCOMPARE(pathRows[3], std::vector<std::string>({"W", "east", "west", "trajectory", "", "", "", f(3.0), ""}));
 
 	const auto timetable = routeDiagramData(data, true, 0);
 	QVERIFY2(timetable.has_value(), "timetable graph on the east route");
@@ -2057,14 +2066,24 @@ void TestCompletedRun::compressesDiagram() {
 	QCOMPARE(diagram->trajectories.size(), std::size_t(1));
 	QCOMPARE(diagram->trajectories[0].trainId, "b");
 	QVERIFY((diagram->trajectories[0].points == std::vector<std::pair<double, double>>({{0.5, 700.0}, {1.5, 701.0}})));
-	// the export rows of the samples have the moved times
-	QCOMPARE(diagram->trajectoryRows.size(), std::size_t(2));
-	QCOMPARE(diagram->trajectoryRows[1][8], f(701.0));
-	// the export rows of the samples have the geo X of their position
-	QCOMPARE(diagram->trajectoryRows.size(), std::size_t(2));
-	QCOMPARE(diagram->trajectoryRows[0].size(), blockingTimeCsvHeader().size());
-	QCOMPARE(diagram->trajectoryRows[0][23], f(36.0));
-	QCOMPARE(diagram->trajectoryRows[1][23], f(35.0));
+	// the export rows of the samples have the moved times and the geo X of their position
+	std::vector<std::string> sampleRows;
+	for (const std::string& line : dataLines(buildBlockingTimeCsv({"a", "b"}, {}, {}, diagram->trajectories, diagram->extents)))
+		if (line.find(",recorded sample,") != std::string::npos)
+			sampleRows.push_back(line);
+	std::vector<std::string> expectedRow(blockingTimeCsvHeader().size());
+	expectedRow[BlockingTimeCsv::kTrain] = "b";
+	expectedRow[BlockingTimeCsv::kSegmentType] = "recorded sample";
+	expectedRow[BlockingTimeCsv::kLayer] = "recorded trajectory";
+	QCOMPARE(sampleRows.size(), std::size_t(2));
+	expectedRow[BlockingTimeCsv::kPosition] = f(0.5);
+	expectedRow[BlockingTimeCsv::kPlannedTime] = f(700.0);
+	expectedRow[BlockingTimeCsv::kGeoPosition] = f(36.0);
+	QCOMPARE(sampleRows[0], row(expectedRow));
+	expectedRow[BlockingTimeCsv::kPosition] = f(1.5);
+	expectedRow[BlockingTimeCsv::kPlannedTime] = f(701.0);
+	expectedRow[BlockingTimeCsv::kGeoPosition] = f(35.0);
+	QCOMPARE(sampleRows[1], row(expectedRow));
 	// the time axis spans the compressed envelopes, 500 s to 900 s, with a margin of 5 %
 	QVERIFY(std::abs(diagram->timeRange.first - 480.0) < 1e-9);
 	QVERIFY(std::abs(diagram->timeRange.second - 920.0) < 1e-9);
