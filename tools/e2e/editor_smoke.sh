@@ -4,6 +4,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
+if [[ ! -x "$APP" ]]; then
+	echo "QEGTRAIN app not found or not executable: $APP" >&2
+	exit 1
+fi
+
+if [[ ! -d "$ALT_SCENE" ]]; then
+	echo "Alternate scene not found: $ALT_SCENE" >&2
+	exit 1
+fi
+
 # The log and the files that the check writes go into a folder of the run's own, which is kept when the check fails.
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.XXXXXX")"
 OUT="$WORK_DIR/qegtrain-editor-smoke-e2e"
@@ -22,20 +32,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app not found or not executable: $APP" >&2
-	exit 1
-fi
-
 if [[ $# -gt 0 ]]; then
 	SCENE="$1"
 else
 	SCENE="$ROOT/EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut"
-fi
-
-if [[ ! -d "$ALT_SCENE" ]]; then
-	echo "Alternate scene not found: $ALT_SCENE" >&2
-	exit 1
 fi
 
 mkdir -p "$OUT"

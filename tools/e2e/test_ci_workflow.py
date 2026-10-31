@@ -65,9 +65,9 @@ def release_pipeline_text() -> str:
 
 
 # A reader of the YAML that the workflows use: block mappings and sequences, flow sequences, block scalars and plain or
-# quoted scalars on one line. Every scalar is a string, as yaml.BaseLoader reads it. It stops at an anchor, a tag, a
-# flow mapping, a quoted item of a flow sequence, text after a quoted value or a plain scalar over several lines, which
-# the workflows do not use.
+# quoted scalars on one line. Every scalar is a string, as yaml.BaseLoader reads it. It stops at an anchor, an alias, a
+# tag, a flow mapping, a quoted item or a key in a flow sequence, text after a quoted value or a plain scalar over
+# several lines, which the workflows do not use.
 KEY = re.compile(r"^([^\s'\"#][^:#]*?|'[^']*'|\"[^\"]*\"):(?: +|$)(.*)$")
 QUOTED = re.compile(r"""'(?:[^']|'')*'|"(?:[^"\\]|\\.)*\"""")
 AFTER_VALUE = re.compile(r"\s*|\s+#.*")
@@ -188,7 +188,11 @@ def _inline(text: str):
         items, closed, rest = text[1:].partition("]")
         if not closed or not AFTER_VALUE.fullmatch(rest) or set(items) & set("'\"[{"):
             raise ValueError(f"unsupported YAML: {text!r}")
-        return [item.strip() for item in items.split(",") if item.strip()]
+        items = [item.strip() for item in items.split(",") if item.strip()]
+        # An item with an anchor, an alias, a tag or a key is not a plain string.
+        if any(item[:1] in ("&", "*", "!", "?") or re.search(r":(\s|$)", item) for item in items):
+            raise ValueError(f"unsupported YAML: {text!r}")
+        return items
     if text[:1] in ("'", '"'):
         quoted = QUOTED.match(text)
         if not quoted or not AFTER_VALUE.fullmatch(text[quoted.end():]):
@@ -309,7 +313,8 @@ def check_reader(checks: Checks) -> None:
     expect = checks.expect
     text = "a: 'x' # note\nb: \"y # z\" # note\nc: 'it''s'\nd: [e, f] # note\n"
     expect(load_yaml(text) == {"a": "x", "b": "y # z", "c": "it's", "d": ["e", "f"]}, "the YAML reader leaves out a comment")
-    for text in ('a: ["b,c"]\n', "a: ['b', c]\n", "a: 'b' c\n", 'a: "b\n', "a: [b\n", "a: [b] c\n", "a: [{b: c}]\n"):
+    for text in ('a: ["b,c"]\n', "a: ['b', c]\n", "a: 'b' c\n", 'a: "b\n', "a: [b\n", "a: [b] c\n", "a: [{b: c}]\n", "a: [b: c]\n",
+                 "a: [&b c]\n"):
         try:
             load_yaml(text)
         except ValueError:
@@ -439,14 +444,16 @@ def check_every_workflow(checks: Checks, workflows: dict) -> None:
 def check_credentials(checks: Checks, workflows: dict) -> None:
     """A credential reaches only the steps of a push to production or a v* tag: through a job or a step with that
     condition, or a job that runs only after such a job succeeded. Every other key of a job applies to the whole job, and
-    the top-level env to every job. A call passes a credential by name, never all of them, and no step that reads one
-    traces its commands."""
+    the top-level env to every job. The secrets of a call of a workflow of the repository are the exception: this check
+    reads the jobs of that workflow in turn. A call passes a credential by name, never all of them, and no step that
+    reads one traces its commands."""
     expect = checks.expect
     for name, workflow in workflows.items():
         push_jobs = push_only_jobs(workflow["jobs"])
         expect("secrets." not in flat(workflow.get("env", {})), f"{name}: no credential in the top-level env, which reaches every job")
         for job_id, job in workflow["jobs"].items():
-            settings = {key: value for key, value in job.items() if key not in ("steps", "if") and not (key == "secrets" and "uses" in job)}
+            local_call = re.fullmatch(r"\./\.github/workflows/[^/]+\.yml", job.get("uses", ""))
+            settings = {key: value for key, value in job.items() if key not in ("steps", "if") and not (key == "secrets" and local_call)}
             expect("secrets." not in flat(settings) or job_id in push_jobs,
                    f"{name}: job {job_id} reads a credential outside its steps and a pull request runs it")
             if "uses" in job:
@@ -554,16 +561,19 @@ def check_build(checks: Checks, cmake: dict, cmake_text: str, presets: list, pac
     launcher = "-DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}"
     for preset, item in configure.items():
         variables = configure_preset(presets, preset)["cacheVariables"]
+        run = item.get("run", "")
+        # The configure line keeps the generator and the cache variables of its preset.
+        overrides = re.search(r"(^|\s)[\"']?-G", run) or any(re.search(rf"-D\s*[\"']?{re.escape(name)}(:\w+)?=", run) for name in variables)
         expect(
-            item and launcher in " ".join(item.get("run", "").split())
-            and not re.search(r"\s-G\s|-DCMAKE_BUILD_TYPE=", item.get("run", ""))
+            item and launcher in " ".join(run.split())
+            and not overrides
             and configure_preset(presets, preset).get("binaryDir") == "${sourceDir}/build"
             and variables.get("CMAKE_BUILD_TYPE") == "Release"
             and variables.get("EGTRAIN_WARNINGS_AS_ERRORS") == "ON"
             and variables.get("EGTRAIN_BUILD_TESTS") == "ON"
             and variables.get("EGTRAIN_IPO") == "OFF",
-            f"cmake.yml: a configure step with the preset {preset}: a Release build with tests, warnings as errors, no "
-            "interprocedural optimization, the compiler cache, in build/",
+            f"cmake.yml: a configure step with the preset {preset}, which keeps its generator and cache variables: a Release "
+            "build with tests, warnings as errors, no interprocedural optimization, the compiler cache, in build/",
         )
     # A compiler cache cannot store objects with interprocedural optimization, which the package and release builds keep.
     expect("EGTRAIN_IPO" not in release_text and re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake_lists, re.MULTILINE),
@@ -709,8 +719,10 @@ def check_sanitizers(checks: Checks, cmake: dict, release: dict, tests_cmake: st
         and f"ctest --test-dir build --parallel {linux_jobs} --timeout 1500" in nightly_test.get("run", ""),
         "cmake.yml: the nightly sanitizer job has the options and the environment of the release sanitizer job",
     )
-    expect(all("halt_on_error=1" in release_test.get("env", {}).get(option, "").split(":") for option in ("UBSAN_OPTIONS", "ASAN_OPTIONS")),
-           "release.yml: the sanitizer job stops a test at the first finding")
+    # A sanitizer takes the last value of an option.
+    halts = [[item.split("=", 1)[1] for item in release_test.get("env", {}).get(option, "").split(":") if item.startswith("halt_on_error=")]
+             for option in ("UBSAN_OPTIONS", "ASAN_OPTIONS")]
+    expect(all(values[-1:] == ["1"] for values in halts), "release.yml: the sanitizer job stops a test at the first finding")
     # An instrumented build runs slower: the release sanitizer job scales the time limits and runs as many tests at once as
     # the macOS leg. Only the sanitizer jobs pass the scale, so every other build keeps its limits.
     macos_jobs = next((leg["jobs"] for leg in jobs["build"]["strategy"]["matrix"]["include"] if leg["name"] == "macOS"), "")

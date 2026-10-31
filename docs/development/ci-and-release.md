@@ -292,9 +292,9 @@ workflow keeps:
 - A credential or an environment reaches only a job or a step of a push to `production` or a `v*` tag. Such a job has
   that condition or runs only when such a job succeeded; the Windows finalize job, which also runs when the signing was
   skipped, is not one. In any other job only a step with that condition reads a credential: no other key of the job,
-  such as `env`, `container` or `services`, reads one, and neither does the top-level `env` of a workflow. A call of
-  `package.yml` passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs
-  ask for.
+  such as `env`, `container` or `services`, reads one, except the `secrets` of a call of a workflow in this repository,
+  whose jobs this rule checks in turn. The top-level `env` of a workflow reads none either. A call of `package.yml`
+  passes the inputs and credentials that it declares, by name, and grants the permissions that its jobs ask for.
 - The files, actions and tests that the workflows name exist, and every test script in `tools/ci/` and
   `tools/release/` is registered in CTest or run by a workflow.
 
@@ -764,8 +764,9 @@ removes it with its key. Run it by hand with
 The three legs of `cmake.yml` configure with the presets `ci-macos`, `ci-linux` and `ci-windows` of
 `CMakePresets.json`. They inherit `ci-base`: a Release build with the tests, `EGTRAIN_WARNINGS_AS_ERRORS=ON` and
 `EGTRAIN_IPO=OFF`, in `build/`, where the later steps look. The configure step of each leg adds the compiler launcher of
-the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. The leak check and the nightly
-sanitizer jobs keep configure lines of their own.
+the matrix and the prefix path of its runner, and macOS also passes `WrapOpenGL_AGL`. A configure step names no
+generator and no variable that its preset sets. The leak check and the nightly sanitizer jobs keep configure lines of
+their own.
 
 `ci-windows` also holds Ninja, the `cl` compilers, `EGTRAIN_NETWORK_TESTS=ON` and the vcpkg options: the toolchain of the
 vcpkg of the runner image (`VCPKG_INSTALLATION_ROOT`), the `x64-windows` triplet, the manifest `tools/vcpkg/vcpkg.json`
