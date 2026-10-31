@@ -327,6 +327,7 @@ private slots:
 	void editAppliesNothingWhenServiceChanged();
 	void editAppliesAfterChangeOutsideServices();
 	void takesPendingTextBeforeCopyingService();
+	void addTakesPendingTextBeforeCopyingService();
 	void addAppliesNothingWhenStopNoLongerFits();
 	void leavesNoEmptyBandInFormOfMacOs();
 };
@@ -1551,6 +1552,47 @@ void TestTimetableStopsPanel::takesPendingTextBeforeCopyingService() {
 	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 45.0);
 	QCOMPARE(f.events.log, editLog);
 	QCOMPARE(f.document.lastChangeLabel(), "Edit timetable stop");
+	QCOMPARE(requests, 1);
+}
+
+// The same for Add Stop, which is where text is still pending in the window: a click on a row moves the focus to the
+// table first, but on macOS a button does not take the focus. The added stop enters the service that the taken text
+// changed.
+void TestTimetableStopsPanel::addTakesPendingTextBeforeCopyingService() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	bool pending = true;
+	const auto takePendingText = [&f, &pending] {
+		if (!pending)
+			return;
+		pending = false;
+		QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Rename composition",
+			[](SceneModel& model) { model.services[0].composition = "composition-2"; }));
+	};
+	int requests = 0;
+	QObject::connect(&f.panel, &TimetableStopsPanel::commitPendingEditsRequested, &f.panel, [&] {
+		++requests;
+		takePendingText();
+	});
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			// The field that kept the focus loses it to the dialog.
+			takePendingText();
+			QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
+			platform->setCurrentIndex(platform->findData("platform-d"));
+			edit(dialog, "stopEditorDwellEdit")->setText("20");
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.addStop(); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(f.document.model().services[0].composition, "composition-2");
+	QCOMPARE(stationsOf(f.document.model().services[0]), std::vector<std::string>({"station-a", "station-b", "station-c", "station-d"}));
+	QCOMPARE_EQ(f.document.model().services[0].stops[3].dwellSeconds, 20.0);
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.document.lastChangeLabel(), "Add timetable stop");
 	QCOMPARE(requests, 1);
 }
 
