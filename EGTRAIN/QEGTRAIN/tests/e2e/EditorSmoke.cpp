@@ -2469,13 +2469,31 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					.arg(w.m_document->mutableModel().trainUnits[0].tractionCurve.front()[2])
 					.arg(w.m_document->mutableModel().trainUnits[1].tractionCurve.front()[2])
 					.arg(trainUnitSourceLinker(w)->m_links.at(duplicateId).tractionStatus));
+		// The traction curve window of the duplicate follows its rename, in the header and in the key of the chart.
+		trainUnitPanel(w)->plotButton()->click();
+		QApplication::processEvents();
+		QPointer<DiagramWindow> duplicatePlot;
+		for (DiagramWindow* window : w.findChildren<DiagramWindow*>()) {
+			if (window->rollingStockSubject() == QString::fromStdString(duplicateId))
+				duplicatePlot = window;
+		}
 		trainUnitPanel(w)->idEdit()->setText(QString::fromStdString(duplicateId + "_renamed"));
 		trainUnitPanel(w)->commitIdEdit();
 		if (trainUnitSourceLinker(w)->m_links.count(duplicateId)
 			|| !trainUnitSourceLinker(w)->m_links.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
+		const QString renamedId = QString::fromStdString(duplicateId + "_renamed");
+		QChartView* duplicateView = duplicatePlot ? duplicatePlot->findChild<QChartView*>() : nullptr;
+		QAbstractSeries* duplicateSeries = duplicateView && duplicateView->chart() ? duplicateView->chart()->series().value(0) : nullptr;
+		if (!duplicatePlot || duplicatePlot->rollingStockSubject() != renamedId || !duplicateSeries
+			|| duplicateSeries->name() != renamedId)
+			facetFailure(facetOk, "source links",
+				QString("traction curve window after the rename: %1").arg(duplicateSeries ? duplicateSeries->name() : QString("no chart")));
 		acceptConfirmation();
 		trainUnitPanel(w)->deleteUnit();
+		QApplication::processEvents();
+		if (duplicatePlot && duplicatePlot->isVisible())
+			facetFailure(facetOk, "source links", "deleting the renamed unit left its traction curve window open");
 		if (trainUnitSourceLinker(w)->m_links.size() != 1
 			|| !trainUnitSourceLinker(w)->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");

@@ -2268,13 +2268,12 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 }
 
 void MainWindow::renameTractionDiagrams(const QString& oldId, const QString& newId) {
-	const SceneTrainUnit* unit = sceneTrainUnitById(m_document->model(), newId.toStdString());
 	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-		if (window && unit && window->rollingStockSubject() == oldId) {
+		if (window && window->rollingStockSubject() == oldId)
 			window->setRollingStockSubject(newId);
-			window->setPresentation("Traction Curve", inputTractionContext(*unit), inputTractionWarning(*unit));
-		}
 	}
+	// The series of the chart is named after the unit, so the chart is drawn again.
+	refreshInputTractionDiagrams(newId.toStdString());
 }
 
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
