@@ -498,18 +498,19 @@ private:
 	// The preview has signals.
 	bool m_previewHasSignals = false;
 
-	// The stages of showPreview(), in the order in which it runs them, and what they share. Between drawPreviewStations()
-	// and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above.
+	// The stages of showPreview(), in the order in which it runs them, and what they share. Before them it finds the tracks
+	// that the infrastructure panel selects, which drawPreviewTrackLines() draws with the selection pen, and between
+	// drawPreviewStations() and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above.
 	struct PreviewDrawing;
-	static std::set<std::string> previewSelectedTracks(const SceneModel& sceneModel, const PreviewOptions& options);
 	void collectPreviewLines(PreviewDrawing& drawing) const;
 	void drawPreviewConnections(PreviewDrawing& drawing);
-	void drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing);
+	void drawPreviewTrackLines(const SceneModel& sceneModel, const std::set<std::string>& selectedTrackIds,
+		const PreviewDrawing& drawing);
 	void drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing);
 	void markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options, const PreviewDrawing& drawing);
 	void drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing);
-	void fitPreview(PreviewDrawing& drawing);
+	void fitPreview(const PreviewDrawing& drawing);
 	// Not a stage: markPreviewSelection() draws the mark of a selected arc or connection with it.
 	void addSelectionLine(const QPointF& start, const QPointF& end);
 
@@ -667,8 +668,8 @@ private:
 	void calculateStationCoordAndShift();
 	bool hasTrackGeometry(int track) const;
 	void neighbourStations(double X, int tracklineID, int* stationIdx) const;
-	void interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level, double separation,
-		double& graphX, double& graphY) const;
+	QPointF interpolateBetweenStations(int firstIndex, int secondIndex, int region, double X, double level,
+		double separation) const;
 	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const;
 	QPointF egtrainPoint2Screen(const Node& node, int track, double separation) const;
 	QLineF egtrainPoint2Screen(const Connections& connection, int track1, int track2, double separation) const;
