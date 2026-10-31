@@ -3,6 +3,7 @@
 
 #include "app/ResultViews.h"
 
+#include <QObject>
 #include <QString>
 #include <array>
 
@@ -44,7 +45,9 @@ inline constexpr std::array<ResultViewEntry, 12> kResultViewEntries{{
 /// The Run Results dock: the table of the completed run, the lines that say which run it is, the menu that opens the result
 /// views, the exports of the table, and the delay baseline. It sits at the bottom of the window and stays hidden until a
 /// run has results.
-class RunResultsDock {
+class RunResultsDock : public QObject {
+	Q_OBJECT
+
 public:
 	/// What the dock asks of the window.
 	class Host {
@@ -55,8 +58,6 @@ public:
 		virtual telemetry::OperationObservation captureTelemetryOperation() const noexcept = 0;
 		/// The summary adds the incident evidence and the number of destination terminations.
 		virtual bool advancedDetailsEnabled() const = 0;
-		/// The table of a completed run has been written and the dock is shown.
-		virtual void runResultsRefreshed() = 0;
 	};
 
 	/// Builds the dock and adds it to the bottom of the window, hidden. The entries of its result view menu open the
@@ -88,6 +89,10 @@ public:
 	void updateAvailability(bool resultsAvailable);
 	/// A number of seconds as H:MM:SS. The hours do not wrap at a day.
 	static QString durationText(long long seconds);
+
+signals:
+	/// The table of a completed run has been written and the dock is shown.
+	void refreshed();
 
 private:
 	QMainWindow* const m_window;

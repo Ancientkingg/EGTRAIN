@@ -1,6 +1,7 @@
 #ifndef INFRASTRUCTUREFACET_H
 #define INFRASTRUCTUREFACET_H
 
+#include <QFlags>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -16,10 +17,12 @@ class InfrastructurePanel;
 
 /// One kind of entity that the infrastructure panel lists, such as the tracks. The panel owns the facet combo, the
 /// table, the selection and the facets. A facet knows the columns of the table, the rows that show the entities of the
-/// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. When it has
-/// changed the model it calls InfrastructurePanel::entityChanged, and when it refuses an edit
-/// InfrastructurePanel::refuseEdit. The panel calls a facet only while the scene is loaded and open for edits, except
-/// for fillRows.
+/// scene, and what an edited cell, an addition and a deletion do to the model of the panel's document. It changes the
+/// model only through InfrastructurePanel::edit or InfrastructurePanel::editInPlace, which refuse while the document is
+/// not open for edits, and when it refuses an edit it calls InfrastructurePanel::refuseEdit. The panel calls key(),
+/// capabilities(), columns(), fillRows(), selectionId() and commitPendingEdits() at any time, and commitCell(), add(),
+/// remove(), insert(), move(), addSection(), removeSection() and moveSection() only while the scene is loaded and open
+/// for edits. A widget that a facet puts in the table can still change while the scene is closed for edits.
 class InfrastructureFacet {
 public:
 	/// Makes the base of a facet, which holds nothing.
@@ -31,8 +34,23 @@ public:
 	/// The panel deletes its facets through this base.
 	virtual ~InfrastructureFacet() = default;
 
+	/// The controls next to the table that a facet uses besides the Add and Delete buttons.
+	enum Capability {
+		/// The filter on a track above the table. Add then needs a track of the scene chosen in it.
+		TrackFilter = 0x1,
+		/// The Insert, Move Up and Move Down buttons, which call insert() and move().
+		InsertAndMove = 0x2,
+		/// The sections of the selected route below the table, whose buttons call addSection(), removeSection() and
+		/// moveSection().
+		RouteSections = 0x4,
+	};
+	// A combination of Capability values.
+	Q_DECLARE_FLAGS(Capabilities, Capability)
+
 	/// The value that the facet combo stores for this facet, such as "tracks".
 	virtual QString key() const = 0;
+	/// The controls that the panel shows for this facet. The default is none.
+	virtual Capabilities capabilities() const { return {}; }
 	/// The headers of the table.
 	virtual QStringList columns() const = 0;
 	/// Sets the rows of the table of the panel, one for each entity of the model. The columns are set and the cells are
@@ -53,7 +71,8 @@ public:
 	/// Takes the values of the cells that are being edited into the model, as if the user had left them. The default does
 	/// nothing.
 	virtual void commitPendingEdits(InfrastructurePanel&) {}
-	// The next five belong to buttons that only some facets have, and do nothing for the others.
+	// The next five belong to the buttons of InsertAndMove and RouteSections. The panel calls them only for a facet with
+	// that capability, and they do nothing by default.
 	/// Inserts an entity before the selected one.
 	virtual void insert(InfrastructurePanel&) {}
 	/// Moves the selected entity down by `offset` rows, up when it is negative.
@@ -138,5 +157,7 @@ protected:
 		return true;
 	}
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(InfrastructureFacet::Capabilities)
 
 #endif // INFRASTRUCTUREFACET_H

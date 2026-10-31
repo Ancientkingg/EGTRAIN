@@ -5,6 +5,7 @@
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "graphics/NetworkPresenter.h"
+#include "tests/NetworkPresenterTestAccess.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
@@ -79,12 +80,12 @@ public:
 	}
 
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
-	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	const BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
 	int regionOfTrack(int) const override { return 0; }
 	int stationCount() const override { return 0; }
-	Stations& station(int) const override { return m_station; }
+	const Stations& station(int) const override { return m_station; }
 	int connectionCount() const override { return 0; }
-	Connections& connection(int) const override { return m_connection; }
+	const Connections& connection(int) const override { return m_connection; }
 	int sectionCount() const override { return 0; }
 	const Section& section(int) const override { return m_section; }
 	const Route* route(int) const override { return nullptr; }
@@ -92,9 +93,9 @@ public:
 	bool passengerGui() const override { return false; }
 
 private:
-	mutable std::vector<BlockSet> m_tracks;
-	mutable Stations m_station;
-	mutable Connections m_connection;
+	std::vector<BlockSet> m_tracks;
+	Stations m_station;
+	Connections m_connection;
 	Section m_section;
 };
 
@@ -191,7 +192,7 @@ struct PanelFixture {
 
 	// Puts a signal head of the run on the canvas and in the signal layer, and selects it.
 	void inspectSignal(SignalItem& signal) {
-		presenter.m_signalDecorations.append(&signal);
+		PresenterAccess::signalDecorations(presenter).append(&signal);
 		scene.addItem(&signal);
 		panel.displaySignallingInfo(&signal);
 	}
@@ -310,7 +311,7 @@ void TestInspectorPanel::inspectsPreviewSignal() {
 	head.sectionId = "@b1@";
 	head.sectionLabel = "T1 0.000 to 1.000 km";
 	head.label = "sig1 (T1 0.000 to 1.000 km)";
-	f.presenter.m_cachedTrackPreview.previewSignals.push_back(head);
+	PresenterAccess::trackPreview(f.presenter).previewSignals.push_back(head);
 	sceneSignals(f.host.model).push_back({"sig1", "@b1@"});
 	f.panel.displayPreviewInfo(signalPreview);
 	// A selected signal head of the preview is known by the section it stands at.
@@ -347,7 +348,7 @@ void TestInspectorPanel::clearsPreviewInspection() {
 	QVERIFY(!f.panel.dock()->isVisible());
 	QVERIFY(formHidden(f.panel, "Arc"));
 	QVERIFY(arcPreview->graphicsEffect() == nullptr);
-	QVERIFY(!f.presenter.effect);
+	QVERIFY(!f.presenter.hasHighlight());
 	// Clearing the highlight forgets the selected item of the preview.
 	QVERIFY(f.panel.previewSelectionKind().isEmpty());
 	QVERIFY(f.panel.previewSelectionId().isEmpty());
@@ -636,7 +637,7 @@ void TestInspectorPanel::listsSectionsOfArcSignals() {
 	runArc.arc = &arcData;
 	runArc.track = 2;
 	f.scene.addItem(&runArc);
-	f.presenter.allSignals.append(&signal);
+	PresenterAccess::allSignals(f.presenter).append(&signal);
 	f.panel.displayArcInfo(&runArc);
 	// An arc of a run names its track by its id in the scene.
 	QCOMPARE(f.panel.dock()->windowTitle(), "Arc 3");

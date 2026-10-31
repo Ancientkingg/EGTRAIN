@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/DispatchController.h"
+#include "editors/CaseSettingsPanel.h"
 #include "scene/SceneBundle.h"
 #include "simulation/SimulationWorker.h"
 #include <QAction>
@@ -131,12 +132,12 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	// A rename in Case Settings moves the folder of the run. A folder left by an earlier run must not make the check pass.
 	const QString renamedFolder = outputFolderOf(run->base, run->renamedName);
 	QDir(renamedFolder).removeRecursively();
-	if (!w.m_caseNameEdit) {
+	if (!caseSettingsPanel(w)->nameEdit()) {
 		fail(QStringLiteral("Case Settings has no name field"));
 		finish();
 		return;
 	}
-	w.m_caseNameEdit->setText(QString::fromStdString(run->renamedName));
+	caseSettingsPanel(w)->nameEdit()->setText(QString::fromStdString(run->renamedName));
 	w.commitCaseSettings();
 	if (w.m_document->mutableModel().name != run->renamedName) {
 		fail(QStringLiteral("the second scene was not renamed"));
@@ -168,7 +169,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		};
 		const auto caseUsable = [&w, run]() {
 			return w.m_document->isLoaded() && w.m_document->isEditable() && w.m_document->mutableModel().name == run->thirdName
-				&& w.m_runSceneAction->isEnabled() && w.m_runController->m_runtimeStatus == QStringLiteral("Failed");
+				&& w.m_runSceneAction->isEnabled() && w.m_runController->state() == RunController::RunState::Failed;
 		};
 		w.m_runController->m_worker->requestStop();
 		if (!runEnded()) {

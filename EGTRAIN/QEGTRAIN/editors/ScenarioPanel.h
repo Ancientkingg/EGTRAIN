@@ -2,13 +2,8 @@
 #define SCENARIOPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
 #include "scene/SceneDiagnostic.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -32,14 +27,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit ScenarioPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced, and writes the labels of the list again when scenarios are edited.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The selected scenario and the scenarios that are edited are kept here. The panel uses its own until it is given
-	/// another; null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
 	/// The validation messages that the list shows as the state of each scenario. The vector must outlive the panel or be
 	/// replaced first; null shows none. Call updatePresentation() after the diagnostics have changed.
 	void setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics);
@@ -116,28 +103,24 @@ Q_SIGNALS:
 	/// A message for the status bar, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
+protected:
+	/// Writes the labels of the list again when scenarios are edited, and shows the scenarios again when the infrastructure
+	/// changes.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
-	// The selected scenario. The second form adds the baseline scenario to a scene that has none, and is null unless the
-	// scene can be edited.
+	// The selected scenario. The second form is null unless the scene can be edited.
 	const SceneScenario* selectedScenario() const;
-	SceneScenario* selectedScenarioForEdit();
+	const SceneScenario* editableScenario() const;
 	// The scenario of the latest run, or else the selected one, as the run results name it.
 	QString scenarioContext() const;
-	// Records that the selected scenario is edited and tells the document.
-	void markEdited(const QString& label);
-	// A scenario has been added and selected: records it, and tells those who show the entries of the selected scenario.
-	void finishAddition(const QString& label);
+	// Applies `mutate` to the selected scenario in one edit of the document and records that the scenario is edited. A scene
+	// without a scenario gets the baseline scenario first. False when the document refuses the edit.
+	bool editSelected(const QString& label, const std::function<void(SceneScenario&)>& mutate);
+	// Adds `scenario` in one edit of the document, selects it, records that it is edited, and tells those who show the entries
+	// of the selected scenario. False when the document refuses the edit.
+	bool addScenario(const QString& label, SceneScenario scenario);
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	QMetaObject::Connection m_changedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
 	const std::vector<SceneDiagnostic>* m_diagnostics = nullptr;
 	std::function<bool()> m_advancedDetails;
 	std::function<QString()> m_importFileChooser;

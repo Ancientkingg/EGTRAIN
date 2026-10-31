@@ -65,11 +65,9 @@ public:
 
 	/// The run that prepareScene made, with the results after it has been run. While a SimulationWorker is running,
 	/// the thread that steps the run owns its state, and the window reads only what a step does not change (the
-	/// infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the
-	/// worker has joined.
+	/// infrastructure) and sees the rest through the snapshots. Results are read after the worker has joined.
 	const SimulationRun& run() const;
-	/// The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The
-	/// thread rules of run() apply.
+	/// The same run with write access, for the stages of the controller and for tests. The thread rules of run() apply.
 	SimulationRun& mutableRun();
 
 	/// Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics,

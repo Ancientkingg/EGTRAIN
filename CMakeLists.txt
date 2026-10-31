@@ -266,6 +266,7 @@ target_link_libraries(egtrain_widgets
 add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/CaseSettingsPanel.cpp
     ${SRC_DIR}/editors/CompositionPanel.cpp
+    ${SRC_DIR}/editors/EditorRules.cpp
     ${SRC_DIR}/editors/EntranceDelayPanel.cpp
     ${SRC_DIR}/editors/IncidentPanel.cpp
     ${SRC_DIR}/editors/InfrastructurePanel.cpp
@@ -279,6 +280,7 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/SceneEditorPanel.h
     ${SRC_DIR}/editors/ScenarioPanel.cpp
     ${SRC_DIR}/editors/ServicePanel.cpp
+    ${SRC_DIR}/editors/StopEditorDialog.cpp
     ${SRC_DIR}/editors/TimetableStopsPanel.cpp
     ${SRC_DIR}/editors/TrainUnitPanel.cpp
     ${SRC_DIR}/editors/TrainUnitSourceLinker.cpp
@@ -447,12 +449,14 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/GuardedApplication.cpp
     ${SRC_DIR}/app/MainWindow.cpp
+    ${SRC_DIR}/app/EditorDocks.cpp
     ${SRC_DIR}/app/ResultViews.cpp
     ${SRC_DIR}/app/RunController.cpp
     ${SRC_DIR}/app/RunResultsDock.cpp
     ${SRC_DIR}/app/RuntimeGeometryFromRun.cpp
     ${SRC_DIR}/app/SceneOutputDirectory.cpp
     ${SRC_DIR}/app/SceneSession.cpp
+    ${SRC_DIR}/app/StartupTiming.cpp
     ${SRC_DIR}/app/UpdateTelemetryController.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
@@ -477,6 +481,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/RuntimeGeometryFromRun.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
     ${SRC_DIR}/app/SceneSession.h
+    ${SRC_DIR}/app/StartupTiming.h
     ${SRC_DIR}/app/UpdateTelemetryController.h
     ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h

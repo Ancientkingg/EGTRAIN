@@ -104,7 +104,7 @@ constexpr qreal kSignalDetailZoom = 8.0;
 void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	if (scenarioStarted)
 		return;
-	if (w.m_presenter->allTrains.isEmpty() && scenarioAttempts < 20) {
+	if (w.m_presenter->runTrains().isEmpty() && scenarioAttempts < 20) {
 		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runVisualPolish(w); });
 		return;
@@ -122,8 +122,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const auto isColored = [&serviceColors](const TrainItemGroup* train) {
 			return train && serviceColors.contains(QString::fromStdString(train->serviceId));
 		};
-		const bool anyColored = std::any_of(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(), isColored);
-		const bool anyDefault = std::any_of(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
+		const bool anyColored = std::any_of(w.m_presenter->runTrains().cbegin(), w.m_presenter->runTrains().cend(), isColored);
+		const bool anyDefault = std::any_of(w.m_presenter->runTrains().cbegin(), w.m_presenter->runTrains().cend(),
 			[&isColored](const TrainItemGroup* train) { return train && !isColored(train); });
 		if (!anyColored || !anyDefault)
 			return;
@@ -191,7 +191,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.m_followTrainCombo->setCurrentIndex(0);
 	}
 
-	if (w.m_presenter->allTrains.isEmpty()) {
+	if (w.m_presenter->runTrains().isEmpty()) {
 		ok = false;
 		failures << "no train items rendered";
 	}
@@ -222,7 +222,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	int coloredTrains = 0;
 	int defaultTrains = 0;
 	QSet<QString> coloredTrainServices;
-	for (const TrainItemGroup* train : w.m_presenter->allTrains) {
+	for (const TrainItemGroup* train : w.m_presenter->runTrains()) {
 		const TrainBodyItem* body = train && train->trainPolygonItemList && !train->trainPolygonItemList->isEmpty()
 			? train->trainPolygonItemList->first()
 			: nullptr;
@@ -279,8 +279,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		failures << "runtime key has no row for the occupied sections";
 	}
 
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && w.scene && !w.m_presenter->allTrains.isEmpty()) {
-		TrainItemGroup* testTrain = w.m_presenter->allTrains.first();
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH") && w.scene && !w.m_presenter->runTrains().isEmpty()) {
+		TrainItemGroup* testTrain = w.m_presenter->runTrains().first();
 		if (!testTrain || !testTrain->trainPolygonItemList || testTrain->trainPolygonItemList->isEmpty()
 			|| !testTrain->trainPolygonItemList->first()
 			|| testTrain->trainPolygonItemList->first()->polygon().isEmpty()) {
@@ -295,7 +295,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << "virtual coupling overlay recreated between updates";
 			}
-			if (auto* overlay = w.m_presenter->m_vcMessageItems.value(testTrain->index, nullptr))
+			if (auto* overlay = PresenterAccess::vcMessageItems(*w.m_presenter).value(testTrain->index, nullptr))
 				overlay->setVisible(false);
 		}
 	}
@@ -558,8 +558,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		return dock && !dock->isVisible();
 	};
 	if (!secondaryDockHidden(w.m_logPane) || !secondaryDockHidden(w.m_validationDock)
-		|| !secondaryDockHidden(w.m_compositionDock) || !secondaryDockHidden(w.m_serviceDock)
-		|| !secondaryDockHidden(w.m_incidentDock)) {
+		|| !secondaryDockHidden(compositionDock(w)) || !secondaryDockHidden(serviceDock(w))
+		|| !secondaryDockHidden(incidentDock(w))) {
 		ok = false;
 		failures << "secondary diagnostics docks are visible by default";
 	}
@@ -810,7 +810,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	// The selected item has a cue that is seen around it, is gone when its opacity is zero and
 	// leaves the picture of the item itself as it is.
 	const auto checkCueSeen = [&](const char* what, const QRectF& sceneRect, int* seen, int* withoutCue) {
-		SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
+		SelectionCueItem* cue = PresenterAccess::effect(*w.m_presenter) ? PresenterAccess::effect(*w.m_presenter)->cue() : nullptr;
 		if (!cue || !cue->isVisible()) {
 			ok = false;
 			failures << QString("%1 has no visible selection cue").arg(what);
@@ -859,7 +859,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	} else {
 		w.networkView->zoomBy(4.0);
 		QApplication::processEvents();
-		for (auto* candidate : w.m_presenter->allTrains) {
+		for (auto* candidate : w.m_presenter->runTrains()) {
 			if (!candidate || !candidate->isVisible() || !candidate->trainPolygonItemList)
 				continue;
 			for (auto* body : *candidate->trainPolygonItemList) {
@@ -936,8 +936,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			QApplication::processEvents();
 		}
 	}
-	if (!w.m_presenter->allArcs.isEmpty() && w.m_presenter->allArcs.first() && w.m_presenter->allArcs.first()->arc) {
-		w.m_inspector->displayArcInfo(w.m_presenter->allArcs.first());
+	if (!PresenterAccess::allArcs(*w.m_presenter).isEmpty() && PresenterAccess::allArcs(*w.m_presenter).first() && PresenterAccess::allArcs(*w.m_presenter).first()->arc) {
+		w.m_inspector->displayArcInfo(PresenterAccess::allArcs(*w.m_presenter).first());
 		if (!w.m_inspector->m_arcOperationalStateText || w.m_inspector->m_arcOperationalStateText->text().trimmed().isEmpty()
 			|| !w.m_inspector->m_arcConnectedSignalsText || w.m_inspector->m_arcConnectedSignalsText->text().trimmed().isEmpty()) {
 			ok = false;
@@ -965,7 +965,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	SignalItem* inspectorSignal = nullptr;
-	for (auto* candidate : w.m_presenter->allSignals) {
+	for (auto* candidate : w.m_presenter->runSignals()) {
 		if (candidate && candidate->isVisible()) {
 			inspectorSignal = candidate;
 			break;
@@ -1016,8 +1016,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			std::function<void()> select;
 		};
 		QList<Selection> selections;
-		if (!w.m_presenter->allArcs.isEmpty() && w.m_presenter->allArcs.first() && w.m_presenter->allArcs.first()->arc)
-			selections.push_back({"arc", w.m_presenter->allArcs.first(), [&w]() { w.m_inspector->displayArcInfo(w.m_presenter->allArcs.first()); }});
+		if (!PresenterAccess::allArcs(*w.m_presenter).isEmpty() && PresenterAccess::allArcs(*w.m_presenter).first() && PresenterAccess::allArcs(*w.m_presenter).first()->arc)
+			selections.push_back({"arc", PresenterAccess::allArcs(*w.m_presenter).first(), [&w]() { w.m_inspector->displayArcInfo(PresenterAccess::allArcs(*w.m_presenter).first()); }});
 		if (nodeItem)
 			selections.push_back({"node", nodeItem, [&w, nodeItem]() { w.m_inspector->displayNodeInfo(nodeItem); }});
 		if (connectionItem)
@@ -1034,26 +1034,26 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		for (const Selection& selection : selections) {
 			selection.select();
 			QApplication::processEvents();
-			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
+			SelectionCueItem* cue = PresenterAccess::effect(*w.m_presenter) ? PresenterAccess::effect(*w.m_presenter)->cue() : nullptr;
 			if (cue)
 				cue->sync();
 			const QRectF itemRect = selection.item->sceneBoundingRect().adjusted(-1, -1, 1, 1);
 			const bool around = cue
 				&& (cue->followsLine() ? itemRect.contains(cue->targetLine().center())
 									   : cue->targetRect().adjusted(-1, -1, 1, 1).intersects(itemRect));
-			if (!cue || selectionCueCount() != 1 || !around || selection.item->graphicsEffect() != w.m_presenter->effect) {
+			if (!cue || selectionCueCount() != 1 || !around || selection.item->graphicsEffect() != PresenterAccess::effect(*w.m_presenter)) {
 				cueOk = false;
 				failures << QString("selecting a %1 does not give exactly one cue around it (cue %2, count %3, around %4, own effect %5)")
 								.arg(selection.what)
 								.arg(cue != nullptr)
 								.arg(selectionCueCount())
 								.arg(around)
-								.arg(selection.item->graphicsEffect() == w.m_presenter->effect);
+								.arg(selection.item->graphicsEffect() == PresenterAccess::effect(*w.m_presenter));
 			}
 			// A station node is surrounded together with the pictogram of its station, which the near look does not draw.
 			if (cue && selection.item == stationItem) {
 				bool pictogramSurrounded = false;
-				for (const StationOverlayItem* overlay : w.m_presenter->m_stationOverlays) {
+				for (const StationOverlayItem* overlay : w.m_presenter->stationOverlays()) {
 					const QGraphicsItem* picture = overlay && overlay->hasSourceIdentity()
 							&& overlay->matchesSourceIdentity(stationItem->node->ID, stationItem->track)
 						? overlay->pictureItem()
@@ -1071,7 +1071,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 		w.m_inspector->handleDisableHighlight();
 		QApplication::processEvents();
-		if (selectionCueCount() != 0 || w.m_presenter->effect) {
+		if (selectionCueCount() != 0 || PresenterAccess::effect(*w.m_presenter)) {
 			cueOk = false;
 			failures << "a click on empty canvas left a selection cue";
 		}
@@ -1079,7 +1079,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (selectedTrain && selectedTrainBody && w.m_trainLayerCheck) {
 			w.m_inspector->displayTrainDetails(selectedTrainBody, false);
 			QApplication::processEvents();
-			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
+			SelectionCueItem* cue = PresenterAccess::effect(*w.m_presenter) ? PresenterAccess::effect(*w.m_presenter)->cue() : nullptr;
 			// The scene emits its change signal some events after an item changes.
 			const auto settle = []() {
 				for (int pass = 0; pass < 3; ++pass)
@@ -1109,22 +1109,22 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 
-	if (!w.networkView || !w.m_incidentDock) {
+	if (!w.networkView || !incidentDock(w)) {
 		ok = false;
 		failures << "incident geometry controls are missing";
 	} else {
-		w.m_incidentDock->show();
-		w.m_incidentDock->raise();
+		incidentDock(w)->show();
+		incidentDock(w)->raise();
 		QApplication::processEvents();
 		const int incidentNetworkWidth = w.networkView->width();
-		const int incidentDockWidth = w.m_incidentDock->width();
+		const int incidentDockWidth = incidentDock(w)->width();
 		if (incidentNetworkWidth < 560 || incidentNetworkWidth <= incidentDockWidth || incidentDockWidth > 360) {
 			ok = false;
 			failures << QString("incident geometry network=%1px, dock=%2px violates 560px/wider/360px limits")
 							.arg(incidentNetworkWidth)
 							.arg(incidentDockWidth);
 		}
-		w.m_incidentDock->hide();
+		incidentDock(w)->hide();
 		QApplication::processEvents();
 		const int restoredNetworkWidth = w.networkView->width();
 		if (qAbs(restoredNetworkWidth - defaultNetworkWidth) > 8) {
@@ -1136,13 +1136,13 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	}
 
 	// Signal heads retain distinct authored positions and aspects at both scales.
-	if (w.networkView && w.scene && !w.m_presenter->allSignals.isEmpty()) {
+	if (w.networkView && w.scene && !w.m_presenter->runSignals().isEmpty()) {
 		for (const qreal zoom : {1.0, kSignalDetailZoom}) {
 			w.networkView->fitToTopology();
 			if (zoom > 1.0)
 				w.networkView->zoomBy(zoom);
 			w.updateViewportOverlays();
-			for (auto* signal : w.m_presenter->allSignals) {
+			for (auto* signal : w.m_presenter->runSignals()) {
 				if (!signal || !signal->isVisible() || signal->groupedSignalCount() != 0
 					|| signal->scenePos() != signal->data(kSignalAnchorRole).toPointF()) {
 					ok = false;
@@ -1178,9 +1178,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		// Checkbox slots run synchronously. Do not deliver unrelated simulation
 		// frames between the ownership counts for this layer-only assertion.
 		const int initialItems = w.scene ? w.scene->items().size() : 0;
-		const bool initialTrainVisible = !w.m_presenter->allTrains.isEmpty() && w.m_presenter->allTrains.first()->isVisible();
+		const bool initialTrainVisible = !w.m_presenter->runTrains().isEmpty() && w.m_presenter->runTrains().first()->isVisible();
 		trainLayer->setChecked(!trainLayer->isChecked());
-		if (w.m_presenter->allTrains.isEmpty() || w.m_presenter->allTrains.first()->isVisible() == initialTrainVisible) {
+		if (w.m_presenter->runTrains().isEmpty() || w.m_presenter->runTrains().first()->isVisible() == initialTrainVisible) {
 			ok = false;
 			failures << "train layer toggle is not functional";
 		}
@@ -1218,12 +1218,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				failures << QString("%1 layer did not restore its items").arg(name);
 			}
 		};
-		checkItemLayer(stationLayer, w.m_presenter->m_stationDecorations, "station decorations");
-		if (w.m_presenter->m_stationOverlays.isEmpty()) {
+		checkItemLayer(stationLayer, PresenterAccess::stationDecorations(*w.m_presenter), "station decorations");
+		if (w.m_presenter->stationOverlays().isEmpty()) {
 			ok = false;
 			failures << "station-name layer has no station overlay to verify";
 		} else {
-			StationOverlayItem* station = w.m_presenter->m_stationOverlays.first();
+			StationOverlayItem* station = w.m_presenter->stationOverlays().first();
 			const bool stationVisible = station && station->isVisible();
 			stationNames->setChecked(false);
 			QApplication::processEvents();
@@ -1233,11 +1233,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			}
 			stationNames->setChecked(true);
 		}
-		if (w.m_presenter->m_trainBadges.isEmpty()) {
+		if (PresenterAccess::trainBadges(*w.m_presenter).isEmpty()) {
 			ok = false;
 			failures << "train speed-label layer has no badge to verify";
 		} else {
-			TrainBadgeItem* badge = w.m_presenter->m_trainBadges.first();
+			TrainBadgeItem* badge = PresenterAccess::trainBadges(*w.m_presenter).first();
 			const bool badgeVisible = badge && badge->isVisible();
 			trainSpeedLabels->setChecked(false);
 			QApplication::processEvents();
@@ -1247,9 +1247,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			}
 			trainSpeedLabels->setChecked(true);
 		}
-		checkItemLayer(signalLayer, w.m_presenter->m_signalDecorations, "signal groups");
+		checkItemLayer(signalLayer, PresenterAccess::signalDecorations(*w.m_presenter), "signal groups");
 		QList<QGraphicsItem*> passengerItems;
-		for (auto* platform : w.m_presenter->allPlatforms) {
+		for (auto* platform : PresenterAccess::allPlatforms(*w.m_presenter)) {
 			if (!platform)
 				continue;
 			if (platform->textIcon)
@@ -1265,7 +1265,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "PAX enabled but no visible passenger-owned graphics rendered";
 		}
 		checkItemLayer(passengerLayer, passengerItems, "passenger load");
-		for (auto* platform : w.m_presenter->allPlatforms) {
+		for (auto* platform : PresenterAccess::allPlatforms(*w.m_presenter)) {
 			if (!platform || platform->passengerIcons.isEmpty() || !w.networkView)
 				continue;
 			PassengerItem* icon = platform->passengerIcons.first();
@@ -1347,7 +1347,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		failures << "network viewport is missing before default capture";
 	} else {
 		const QRectF visibleViewport = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
-		const bool visibleTrain = std::any_of(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
+		const bool visibleTrain = std::any_of(w.m_presenter->runTrains().cbegin(), w.m_presenter->runTrains().cend(),
 			[&visibleViewport](const TrainItemGroup* item) {
 				return item && item->isVisible() && visibleViewport.intersects(item->sceneBoundingRect());
 			});
@@ -1356,11 +1356,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "no historical train polygon is visible in default viewport";
 		}
 
-		const bool operationalTrack = std::any_of(w.m_presenter->allArcs.cbegin(), w.m_presenter->allArcs.cend(),
+		const bool operationalTrack = std::any_of(PresenterAccess::allArcs(*w.m_presenter).cbegin(), PresenterAccess::allArcs(*w.m_presenter).cend(),
 			[](const TrackLineItem* item) {
 				return item && item->operationalState() != TrackOperationalState::Free;
 			});
-		const bool operationalTrackInViewport = std::any_of(w.m_presenter->allArcs.cbegin(), w.m_presenter->allArcs.cend(),
+		const bool operationalTrackInViewport = std::any_of(PresenterAccess::allArcs(*w.m_presenter).cbegin(), PresenterAccess::allArcs(*w.m_presenter).cend(),
 			[&visibleViewport](const TrackLineItem* item) {
 				return item && item->operationalState() != TrackOperationalState::Free
 					&& visibleViewport.intersects(item->sceneBoundingRect());
@@ -1406,9 +1406,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		QApplication::processEvents();
 	}
 	captureScreenshot("QEGTRAIN_E2E_MEDIUM_SCREENSHOT", "medium");
-	if (w.networkView && !w.m_presenter->allTrains.isEmpty()) {
+	if (w.networkView && !w.m_presenter->runTrains().isEmpty()) {
 		w.networkView->fitToTopology();
-		w.networkView->centerOn(w.m_presenter->allTrains.first()->sceneBoundingRect().center());
+		w.networkView->centerOn(w.m_presenter->runTrains().first()->sceneBoundingRect().center());
 		w.networkView->zoomBy(3.0);
 		if (qAbs(w.networkView->zoomRatio() - 3.0) > 1e-5) {
 			ok = false;
@@ -1428,8 +1428,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.networkView->fitToTopology();
 		w.m_inspector->displayTrainDetails(selectedTrainBody, false);
 		QApplication::processEvents();
-		TrainBadgeItem* selectedBadge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr);
-		const bool ordinaryMarkers = std::all_of(w.m_presenter->m_trainBadges.cbegin(), w.m_presenter->m_trainBadges.cend(),
+		TrainBadgeItem* selectedBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
+		const bool ordinaryMarkers = std::all_of(PresenterAccess::trainBadges(*w.m_presenter).cbegin(), PresenterAccess::trainBadges(*w.m_presenter).cend(),
 			[](const TrainBadgeItem* badge) {
 				return !badge || badge->isPromoted()
 					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
@@ -1473,7 +1473,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	SignalItem* visibleSignal = nullptr;
 	QGraphicsItem* signalHit = nullptr;
 	bool anyVisibleSignal = false;
-	for (auto* signal : w.m_presenter->allSignals) {
+	for (auto* signal : w.m_presenter->runSignals()) {
 		if (!signal || !signal->isVisible())
 			continue;
 		anyVisibleSignal = true;
@@ -1543,7 +1543,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	selectedTrain = nullptr;
 	selectedTrainBody = nullptr;
-	for (auto* candidate : w.m_presenter->allTrains) {
+	for (auto* candidate : w.m_presenter->runTrains()) {
 		if (!candidate || !candidate->isVisible() || !candidate->trainPolygonItemList)
 			continue;
 		for (auto* body : *candidate->trainPolygonItemList) {
@@ -1627,7 +1627,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const bool infoVisibleBefore = w.m_inspector->dock() && w.m_inspector->dock()->isVisible();
 		const bool trainInfoVisibleBefore = w.m_inspector->m_trainInfoWidget && w.m_inspector->m_trainInfoWidget->isVisible();
 		const QString infoTitleBefore = w.m_inspector->dock() ? w.m_inspector->dock()->windowTitle() : QString();
-		const bool effectPresentBefore = w.m_presenter->effect != nullptr;
+		const bool effectPresentBefore = w.m_presenter->hasHighlight();
 		// The bounds of a train group are those of its bodies, so the scene has to hear
 		// of the change before the body leaves.
 		staleGroup->prepareForChildGeometryChange();
@@ -1639,7 +1639,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) != infoVisibleBefore
 			|| (w.m_inspector->m_trainInfoWidget && w.m_inspector->m_trainInfoWidget->isVisible()) != trainInfoVisibleBefore
 			|| (w.m_inspector->dock() && w.m_inspector->dock()->windowTitle() != infoTitleBefore)
-			|| (w.m_presenter->effect != nullptr) != effectPresentBefore) {
+			|| (w.m_presenter->hasHighlight()) != effectPresentBefore) {
 			ok = false;
 			failures << "stale train context action changed application state";
 		}
@@ -1693,7 +1693,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	TrackLineItem* contextArc = nullptr;
 	QMenu* trackMenu = nullptr;
-	for (auto* candidate : w.m_presenter->allArcs) {
+	for (auto* candidate : PresenterAccess::allArcs(*w.m_presenter)) {
 		if (candidate && candidate->scene() == w.scene && candidate->arc) {
 			contextArc = candidate;
 			break;
@@ -1735,7 +1735,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	}
 
 	visibleSignal = nullptr;
-	for (auto* signal : w.m_presenter->allSignals) {
+	for (auto* signal : w.m_presenter->runSignals()) {
 		if (!signal || !signal->isVisible())
 			continue;
 		QGraphicsItem* hit = w.scene->itemAt(signal->sceneBoundingRect().center(),
@@ -1797,7 +1797,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		temporarySignal->setReversedDirection(temporarySignalReversed);
 		temporarySignal->setPos(w.scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
 		w.scene->addItem(temporarySignal);
-		w.m_presenter->allSignals.push_back(temporarySignal);
+		PresenterAccess::allSignals(*w.m_presenter).push_back(temporarySignal);
 		QMenu* menu = requestContextMenu(temporarySignal->sceneBoundingRect().center(), false);
 		QAction* copy = findMenuAction(menu, "Copy signal location");
 		const QString expectedSignalLocation = QStringLiteral(
@@ -1813,7 +1813,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			? QApplication::clipboard()->text()
 			: QString();
 		// The presenter must not keep the deleted signal: a frame drawn during processEvents() below would update it.
-		w.m_presenter->allSignals.removeOne(temporarySignal);
+		PresenterAccess::allSignals(*w.m_presenter).removeOne(temporarySignal);
 		w.scene->removeItem(temporarySignal);
 		delete temporarySignal;
 		if (copy)
@@ -1838,7 +1838,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	if (!contextPassenger) {
-		contextPassenger = new PassengerItem(w.m_presenter->pax_pixmap_scaled);
+		contextPassenger = new PassengerItem(PresenterAccess::passengerPixmap(*w.m_presenter));
 		contextPassenger->passengerId = "__e2e_context_passenger__";
 		contextPassenger->setPos(w.scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
 		w.scene->addItem(contextPassenger);
@@ -1870,7 +1870,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			delete contextPassenger;
 		}
 		w.m_presenter->removePaxInfoIcon();
-		w.m_presenter->paxIconItem = nullptr;
+		w.m_presenter->clearSelectedPassengerIcon();
 	}
 
 	if (w.scene && w.networkView) {
@@ -1890,7 +1890,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			selectionEvent.setWidget(w.networkView->viewport());
 			w.scene->mousePressEvent(&selectionEvent);
 			QApplication::processEvents();
-			if (!w.m_presenter->effect || !w.m_inspector->dock() || !w.m_inspector->dock()->isVisible()
+			if (!w.m_presenter->hasHighlight() || !w.m_inspector->dock() || !w.m_inspector->dock()->isVisible()
 				|| !w.m_followAction || !w.m_followAction->isChecked() || w.m_followTrainIndex != selectedTrain->index) {
 				ok = false;
 				failures << "empty-space context menu could not establish selection and follow mode";
@@ -1911,7 +1911,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			QApplication::processEvents();
 			stop->trigger();
 			QApplication::processEvents();
-			if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) || w.m_presenter->effect
+			if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) || PresenterAccess::effect(*w.m_presenter)
 				|| (w.m_followAction && w.m_followAction->isChecked()) || w.m_followTrainIndex != -1) {
 				ok = false;
 				failures << "empty-space context actions did not clear selection and follow mode";
@@ -1931,7 +1931,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	if (w.scene && w.networkView) {
 		const std::string stalePassengerId = "__e2e_stale_passenger__";
-		auto* temporaryPassenger = new PassengerItem(w.m_presenter->pax_pixmap_scaled);
+		auto* temporaryPassenger = new PassengerItem(PresenterAccess::passengerPixmap(*w.m_presenter));
 		temporaryPassenger->passengerId = stalePassengerId;
 		temporaryPassenger->setPos(w.scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
 		w.scene->addItem(temporaryPassenger);
@@ -1961,17 +1961,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	if (w.m_followAction && w.m_followTrainCombo && w.m_followTrainCombo->count() > 0) {
 		w.setFollowTrain(-1);
-		if (std::any_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+		if (std::any_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 				[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 			ok = false;
 			failures << "follow deactivation left a stale station priority";
 		}
 
 		TrainItemGroup* activeFollowTrain = selectedTrain;
-		if (w.networkView && !w.m_presenter->allTrains.isEmpty()) {
+		if (w.networkView && !w.m_presenter->runTrains().isEmpty()) {
 			const QPointF viewCenter = w.networkView->sceneRect().center();
 			qreal bestDistance = std::numeric_limits<qreal>::max();
-			for (TrainItemGroup* candidate : w.m_presenter->allTrains) {
+			for (TrainItemGroup* candidate : w.m_presenter->runTrains()) {
 				if (!candidate || !candidate->isVisible())
 					continue;
 				const qreal distance = QLineF(candidate->sceneBoundingRect().center(), viewCenter).length();
@@ -2039,7 +2039,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			w.m_followAction->setChecked(false);
 			QApplication::processEvents();
 			if (w.m_followAction->isChecked() || w.m_followTrainIndex != -1
-				|| std::any_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+				|| std::any_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 					[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 				ok = false;
 				failures << "follow disable did not clear the target and station priority";
@@ -2293,7 +2293,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					// Trains layer off: the sentence and the list entry say so, the station emphasis goes, and the view
 					// stays where the user put it, also when the next frame arrives. On again: the view returns to the train.
 					const auto stationEmphasised = [&w]() {
-						return std::any_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+						return std::any_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 							[](const StationOverlayItem* overlay) { return overlay && overlay->isFollowed(); });
 					};
 					const bool emphasisBefore = stationEmphasised();
@@ -2328,7 +2328,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					if (enteredTrain) {
 						const QPointF separation(1000.0, 1000.0);
 						enteredTrain->setPos(enteredTrain->pos() + separation);
-						if (TrainBadgeItem* badge = w.m_presenter->m_trainBadges.value(futureFollowIndex, nullptr))
+						if (TrainBadgeItem* badge = PresenterAccess::trainBadges(*w.m_presenter).value(futureFollowIndex, nullptr))
 							badge->setPos(badge->pos() + separation);
 					}
 				}
@@ -2352,8 +2352,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.networkView->fitToTopology();
 		w.updateViewportOverlays();
 		QApplication::processEvents();
-		TrainBadgeItem* followedBadge = w.m_presenter->m_trainBadges.value(w.m_followTrainIndex, nullptr);
-		const bool ordinaryMarkers = std::all_of(w.m_presenter->m_trainBadges.cbegin(), w.m_presenter->m_trainBadges.cend(),
+		TrainBadgeItem* followedBadge = PresenterAccess::trainBadges(*w.m_presenter).value(w.m_followTrainIndex, nullptr);
+		const bool ordinaryMarkers = std::all_of(PresenterAccess::trainBadges(*w.m_presenter).cbegin(), PresenterAccess::trainBadges(*w.m_presenter).cend(),
 			[](const TrainBadgeItem* badge) {
 				return !badge || badge->isPromoted()
 					|| badge->presentation() == TrainBadgeItem::Presentation::Overview;
@@ -2533,7 +2533,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					ok = false;
 					failures << "second follow delivery did not go on with the glide";
 				}
-				TrainBadgeItem* interruptedBadge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr);
+				TrainBadgeItem* interruptedBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
 				const qreal interruptedAnchorError = interruptedBadge
 					? QLineF(interruptedBadge->scenePos(), selectedTrain->sceneBoundingRect().center()).length()
 					: std::numeric_limits<qreal>::max();
@@ -2570,7 +2570,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 									.arg(headApart, 0, 'f', 3);
 				}
 				const QPointF finalBodyCenter = selectedTrainBody->sceneBoundingRect().center();
-				TrainBadgeItem* finalBadge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr);
+				TrainBadgeItem* finalBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
 				const QPointF finalCameraCenter = w.networkView->mapToScene(
 					w.networkView->viewport()->rect().center());
 				const QPointF finalGroupCenter = selectedTrain->sceneBoundingRect().center();
@@ -2596,7 +2596,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				// changes. A name that is hidden by hand stays hidden over a frame in which the train keeps its station.
 				w.updateViewportOverlays();
 				StationOverlayItem* namedStation = nullptr;
-				for (StationOverlayItem* overlay : w.m_presenter->m_stationOverlays)
+				for (StationOverlayItem* overlay : w.m_presenter->stationOverlays())
 					if (!namedStation && overlay && overlay->nameItem() && overlay->nameItem()->isVisible())
 						namedStation = overlay;
 				if (namedStation)
@@ -2924,8 +2924,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.networkView->fitToTopology();
 		w.updateViewportOverlays();
 		QApplication::processEvents();
-		TrainBadgeItem* selectedBadge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr);
-		if (!w.m_presenter->effect || selectedTrain->graphicsEffect() != w.m_presenter->effect || !selectedBadge
+		TrainBadgeItem* selectedBadge = PresenterAccess::trainBadges(*w.m_presenter).value(selectedTrain->index, nullptr);
+		if (!w.m_presenter->hasHighlight() || selectedTrain->graphicsEffect() != PresenterAccess::effect(*w.m_presenter) || !selectedBadge
 			|| !selectedBadge->isPromoted()
 			|| selectedBadge->presentation() != TrainBadgeItem::Presentation::Detailed) {
 			ok = false;
@@ -2988,7 +2988,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		emptyRelease.setWidget(w.networkView->viewport());
 		w.scene->mouseReleaseEvent(&emptyRelease);
 		QApplication::processEvents();
-		if (w.m_presenter->effect || (w.m_inspector->dock() && w.m_inspector->dock()->isVisible())) {
+		if (PresenterAccess::effect(*w.m_presenter) || (w.m_inspector->dock() && w.m_inspector->dock()->isVisible())) {
 			ok = false;
 			failures << "empty scene click did not clear selection";
 		}
@@ -2997,14 +2997,14 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "empty scene click left an entity pane visible";
 		}
-		if (w.m_presenter->trainPaxInfoItem || w.m_presenter->paxIconInfoItem) {
+		if (PresenterAccess::trainPaxInfoItem(*w.m_presenter) || PresenterAccess::paxIconInfoItem(*w.m_presenter)) {
 			ok = false;
 			failures << "empty scene click left a temporary passenger overlay";
 		}
 	}
 	if (w.m_followAction) {
 		w.m_followAction->setChecked(false);
-		if (std::any_of(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
+		if (std::any_of(w.m_presenter->stationOverlays().cbegin(), w.m_presenter->stationOverlays().cend(),
 				[](const auto* overlay) { return overlay && overlay->isFollowed(); })) {
 			ok = false;
 			failures << "follow toggle left a stale station priority";
@@ -3066,12 +3066,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	// Keep a selected operational track so clearing transient states cannot
 	// accidentally clear independent graphics selection. Re-enable delivery
 	// with a unique connection to cover a late queued snapshot as well.
-	if (!w.m_runController->m_worker || w.m_presenter->allArcs.isEmpty()) {
+	if (!w.m_runController->m_worker || PresenterAccess::allArcs(*w.m_presenter).isEmpty()) {
 		ok = false;
 		failures << "operational track lifecycle fixture lost its running scene";
 	} else {
 		TrackLineItem* lifecycleTrack = nullptr;
-		for (TrackLineItem* track : w.m_presenter->allArcs) {
+		for (TrackLineItem* track : PresenterAccess::allArcs(*w.m_presenter)) {
 			if (track && track->operationalState() != TrackOperationalState::Free) {
 				lifecycleTrack = track;
 				break;
@@ -3141,11 +3141,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << QString("Stop left the inspector open (shown before=%1)").arg(inspectorShownBeforeStop);
 			}
-			if (w.m_runController->m_runtimeStatus != QStringLiteral("Stopped") || w.m_runController->m_resultsAvailable
+			if (w.m_runController->state() != RunController::RunState::Stopped || w.m_runController->resultsAvailable()
 				|| w.statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;
-			} else if (!w.m_showingTrackPreview || !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allTrains.isEmpty()) {
+			} else if (!w.m_showingTrackPreview || !PresenterAccess::allArcs(*w.m_presenter).isEmpty() || !w.m_presenter->runTrains().isEmpty()) {
 				// The stopped run is replaced by the track preview, so the queued delivery
 				// has no runtime track or train left to paint.
 				failures << "a stopped run left runtime graphics on the canvas";
@@ -3159,8 +3159,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const auto* track = qgraphicsitem_cast<const TrackLineItem*>(item);
 					return track && track->pen().color() == kSelectionCueColor;
 				});
-				if (w.m_infrastructureTable->currentRow() != -1 || !w.m_infrastructurePanel->selectionId().isEmpty()
-					|| w.m_presenter->m_previewHasSelectedTrack || cueDrawn) {
+				if (infrastructurePanel(w)->table()->currentRow() != -1 || !infrastructurePanel(w)->selectionId().isEmpty()
+					|| w.m_presenter->previewHasSelectedTrack() || cueDrawn) {
 					ok = false;
 					failures << "Stop selected a track without a selection in the infrastructure editor";
 				} else {
@@ -3209,7 +3209,7 @@ void MainWindowTestAccess::updateTrainPosition(MainWindow& w, int t) {
 
 // renderSnapshot reports every frame it draws. A scenario that waits for trains starts on the first live frame that has some.
 void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
-	if (!historical && !scenarioStarted && !w.m_presenter->allTrains.isEmpty())
+	if (!historical && !scenarioStarted && !w.m_presenter->runTrains().isEmpty())
 		runVisualPolish(w);
 }
 
@@ -3275,7 +3275,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 		// The ring of a train is on its group.
 		auto* body = qgraphicsitem_cast<TrainBodyItem*>(shown.item);
 		const QGraphicsItem* ringed = body && body->parentItem() ? body->parentItem() : shown.item;
-		const bool selected = w.m_presenter->effect && ringed && ringed->graphicsEffect() == w.m_presenter->effect
+		const bool selected = PresenterAccess::effect(*w.m_presenter) && ringed && ringed->graphicsEffect() == PresenterAccess::effect(*w.m_presenter)
 			&& w.m_inspector->dock()->isVisible() && (!body || w.m_inspector->selectedTrainIndex() == body->index);
 		if (w.m_findDialog->isVisible() || !shown.item || w.networkView->zoomRatio() < TrainBadgeItem::detailedZoomThreshold() - 1e-5
 			|| !visible.contains(shown.center) || !selected) {

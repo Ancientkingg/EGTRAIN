@@ -110,27 +110,22 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	CompositionPanel::refresh();
 }
 
-void CompositionPanel::setDocument(SceneDocument* document) {
-	QObject::disconnect(m_replacedConnection);
-	m_document = document;
-	if (m_document)
-		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &CompositionPanel::refresh);
-	refresh();
-}
-
-void CompositionPanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
-bool CompositionPanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
 int CompositionPanel::selectedRow() const {
 	const int row = m_listWidget->currentRow();
 	if (!hasScene() || row < 0 || row >= static_cast<int>(m_document->model().compositions.size()))
 		return -1;
 	return row;
+}
+
+void CompositionPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The units of a composition show the rolling stock. The panel does not edit the rolling stock, so this is an edit of
+	// another panel.
+	if (!kinds.testFlag(SceneDocument::TrainUnits))
+		return;
+	takePendingText();
+	const int unitRow = m_unitsListWidget->currentRow();
+	refresh();
+	m_unitsListWidget->setCurrentRow(unitRow);
 }
 
 void CompositionPanel::refresh() {
@@ -144,19 +139,7 @@ void CompositionPanel::refresh() {
 			for (const auto& composition : m_document->model().compositions)
 				m_listWidget->addItem(QString::fromStdString(composition.id));
 		}
-		const int rowCount = m_listWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		if (const int sameComposition = rowOfEntry(m_listWidget, previousId, previousRow); sameComposition >= 0)
-			rowToSelect = sameComposition;
-		m_listWidget->setCurrentRow(rowToSelect);
+		restoreListSelection(m_listWidget, previousId, previousRow);
 		m_listWidget->setEnabled(loaded);
 	}
 	m_addButton->setEnabled(loaded);
@@ -240,31 +223,30 @@ void CompositionPanel::plotSelectedUnitTraction() {
 void CompositionPanel::addComposition() {
 	if (!hasScene())
 		return;
-	SceneModel& model = m_document->mutableModel();
 	SceneComposition composition;
-	composition.id = sceneUniqueCompositionId(model, "new_composition");
-	model.compositions.push_back(composition);
+	composition.id = sceneUniqueCompositionId(m_document->model(), "new_composition");
+	if (!m_document->edit(SceneDocument::Compositions, "Add composition",
+			[&composition](SceneModel& model) { model.compositions.push_back(composition); }))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Add composition");
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 
-	m_listWidget->setCurrentRow(static_cast<int>(model.compositions.size()) - 1);
+	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().compositions.size()) - 1);
 }
 
 void CompositionPanel::duplicateComposition() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneComposition duplicate = model.compositions[static_cast<std::size_t>(row)];
-	duplicate.id = sceneUniqueCompositionId(model, duplicate.id + "_copy");
-	model.compositions.insert(model.compositions.begin() + row + 1, duplicate);
+	SceneComposition duplicate = m_document->model().compositions[static_cast<std::size_t>(row)];
+	duplicate.id = sceneUniqueCompositionId(m_document->model(), duplicate.id + "_copy");
+	if (!m_document->edit(SceneDocument::Compositions, "Duplicate composition", [row, &duplicate](SceneModel& model) {
+			model.compositions.insert(model.compositions.begin() + row + 1, duplicate);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Duplicate composition");
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 
 	m_listWidget->setCurrentRow(row + 1);
@@ -274,7 +256,7 @@ void CompositionPanel::deleteComposition() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const std::string id = model.compositions[static_cast<std::size_t>(row)].id;
 	QStringList consumers;
 	for (const std::string& consumer : sceneDirectDeleteConsumers(model, "composition", id))
@@ -289,11 +271,11 @@ void CompositionPanel::deleteComposition() {
 	if (!m_prompts->confirm(this, "Delete Composition", QString("Delete composition '%1'?").arg(QString::fromStdString(id))))
 		return;
 
-	model.compositions.erase(model.compositions.begin() + row);
+	if (!m_document->edit(SceneDocument::Compositions, "Delete composition",
+			[row](SceneModel& edited) { edited.compositions.erase(edited.compositions.begin() + row); }))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Delete composition");
 	refresh();
-	emit compositionIdsChanged();
 	emit changed();
 }
 
@@ -301,10 +283,9 @@ void CompositionPanel::commitIdEdit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneComposition& composition = model.compositions[static_cast<std::size_t>(row)];
+	const SceneModel& model = m_document->model();
 
-	const std::string oldId = composition.id;
+	const std::string oldId = model.compositions[static_cast<std::size_t>(row)].id;
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
 	if (newId == oldId)
 		return;
@@ -314,18 +295,19 @@ void CompositionPanel::commitIdEdit() {
 		return;
 	}
 
-	composition.id = newId;
-	sceneRewriteCompositionReferences(model, oldId, newId);
+	if (!m_document->edit(SceneDocument::Compositions | SceneDocument::Services, "Rename composition", [&](SceneModel& edited) {
+			edited.compositions[static_cast<std::size_t>(row)].id = newId;
+			sceneRewriteCompositionReferences(edited, oldId, newId);
 
-	// update the list row label in place instead of rebuilding the panel, so a
-	// focus-out that lands on another control keeps that pending click intact
-	if (QListWidgetItem* item = m_listWidget->item(row)) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(QString::fromStdString(newId));
-	}
+			// update the list row label in place instead of rebuilding the panel, so a
+			// focus-out that lands on another control keeps that pending click intact
+			if (QListWidgetItem* item = m_listWidget->item(row)) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(QString::fromStdString(newId));
+			}
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions | SceneDocument::Services, "Rename composition");
-	emit compositionIdsChanged();
 	emit changed();
 }
 
@@ -333,7 +315,7 @@ void CompositionPanel::addUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	if (model.trainUnits.empty()) {
 		m_prompts->showInfo(this, "Add Rolling Stock Unit", "This case has no rolling stock units.");
 		return;
@@ -346,9 +328,11 @@ void CompositionPanel::addUnit() {
 	if (chosen.isEmpty())
 		return;
 
-	model.compositions[static_cast<std::size_t>(row)].units.push_back(chosen.toStdString());
+	if (!m_document->edit(SceneDocument::Compositions, "Add unit to composition", [row, &chosen](SceneModel& edited) {
+			edited.compositions[static_cast<std::size_t>(row)].units.push_back(chosen.toStdString());
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Add unit to composition");
 	refresh();
 	emit changed();
 
@@ -359,14 +343,16 @@ void CompositionPanel::removeUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	std::vector<std::string>& units = m_document->mutableModel().compositions[static_cast<std::size_t>(row)].units;
 	const int unitRow = m_unitsListWidget->currentRow();
-	if (unitRow < 0 || unitRow >= static_cast<int>(units.size()))
+	if (unitRow < 0 || unitRow >= static_cast<int>(m_document->model().compositions[static_cast<std::size_t>(row)].units.size()))
 		return;
 
-	units.erase(units.begin() + unitRow);
+	if (!m_document->edit(SceneDocument::Compositions, "Remove unit from composition", [row, unitRow](SceneModel& model) {
+			std::vector<std::string>& units = model.compositions[static_cast<std::size_t>(row)].units;
+			units.erase(units.begin() + unitRow);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Remove unit from composition");
 	refresh();
 	emit changed();
 
@@ -379,14 +365,16 @@ void CompositionPanel::moveUnitUp() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	std::vector<std::string>& units = m_document->mutableModel().compositions[static_cast<std::size_t>(row)].units;
 	const int unitRow = m_unitsListWidget->currentRow();
-	if (unitRow <= 0 || unitRow >= static_cast<int>(units.size()))
+	if (unitRow <= 0 || unitRow >= static_cast<int>(m_document->model().compositions[static_cast<std::size_t>(row)].units.size()))
 		return;
 
-	std::swap(units[static_cast<std::size_t>(unitRow)], units[static_cast<std::size_t>(unitRow) - 1]);
+	if (!m_document->edit(SceneDocument::Compositions, "Move composition unit up", [row, unitRow](SceneModel& model) {
+			std::vector<std::string>& units = model.compositions[static_cast<std::size_t>(row)].units;
+			std::swap(units[static_cast<std::size_t>(unitRow)], units[static_cast<std::size_t>(unitRow) - 1]);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Move composition unit up");
 	refresh();
 	emit changed();
 
@@ -397,14 +385,16 @@ void CompositionPanel::moveUnitDown() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	std::vector<std::string>& units = m_document->mutableModel().compositions[static_cast<std::size_t>(row)].units;
 	const int unitRow = m_unitsListWidget->currentRow();
-	if (unitRow < 0 || unitRow + 1 >= static_cast<int>(units.size()))
+	if (unitRow < 0 || unitRow + 1 >= static_cast<int>(m_document->model().compositions[static_cast<std::size_t>(row)].units.size()))
 		return;
 
-	std::swap(units[static_cast<std::size_t>(unitRow)], units[static_cast<std::size_t>(unitRow) + 1]);
+	if (!m_document->edit(SceneDocument::Compositions, "Move composition unit down", [row, unitRow](SceneModel& model) {
+			std::vector<std::string>& units = model.compositions[static_cast<std::size_t>(row)].units;
+			std::swap(units[static_cast<std::size_t>(unitRow)], units[static_cast<std::size_t>(unitRow) + 1]);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::Compositions, "Move composition unit down");
 	refresh();
 	emit changed();
 

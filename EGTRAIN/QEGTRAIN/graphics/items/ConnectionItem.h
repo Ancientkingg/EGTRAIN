@@ -30,7 +30,7 @@ public:
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	/// The connection of the run, which belongs to the run; null in the preview.
-	Connections* connection;
+	const Connections* connection;
 
 	enum { Type = UserType + 4 /**< The item type for qgraphicsitem_cast. */ };
 	/// Returns Type.

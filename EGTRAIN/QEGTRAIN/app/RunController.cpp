@@ -5,8 +5,10 @@
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/PathMessages.h"
+#include "app/RunOutcome.h"
 #include "app/RunResultsDock.h"
 #include "app/SceneOutputDirectory.h"
+#include "app/StartupTiming.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/ResultFrame.h"
@@ -25,7 +27,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QGridLayout>
-#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMainWindow>
@@ -33,14 +34,12 @@
 #include <QPushButton>
 #include <QStandardPaths>
 #include <QStatusBar>
-#include <QSysInfo>
 #include <QToolButton>
 #include <QVBoxLayout>
 // SceneSession.h holds a pointer to a QMenu that has to be complete.
 #include "app/SceneSession.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <exception>
 
 QString completedRunContext(const RunProvenance& provenance) {
@@ -109,6 +108,36 @@ void RunController::setDelayMs(int delayMs) {
 		m_worker->setDelayMs(delayMs);
 }
 
+const QString& RunController::runtimeStatus() const {
+	static const QString notBuiltText = QStringLiteral("Not built");
+	static const QString readyText = QStringLiteral("Ready");
+	static const QString runningText = QStringLiteral("Running");
+	static const QString completedText = QStringLiteral("Completed");
+	static const QString stoppedText = QStringLiteral("Stopped");
+	static const QString failedText = QStringLiteral("Failed");
+	switch (m_state) {
+		case RunState::NotBuilt:
+			return notBuiltText;
+		case RunState::Ready:
+			return readyText;
+		case RunState::Running:
+			return runningText;
+		case RunState::Completed:
+			return completedText;
+		case RunState::Stopped:
+			return stoppedText;
+		case RunState::Failed:
+			return failedText;
+	}
+	return notBuiltText;
+}
+
+void RunController::setState(RunState state) {
+	m_state = state;
+	if (state == RunState::Ready || state == RunState::Running)
+		emit loadedDataChanged();
+}
+
 bool RunController::hasRawRunResults() {
 	for (int i = 0; i < simulation.run().numTrains; ++i)
 		if (simulation.run().trains[i].trajectorySize() > 0)
@@ -116,10 +145,10 @@ bool RunController::hasRawRunResults() {
 	return false;
 }
 
-// Raw trajectories can survive a scene edit; the explicit availability flag is
-// the ownership boundary for result actions.
+// Raw trajectories can survive a scene edit; the state of the run is the
+// ownership boundary for result actions.
 bool RunController::hasRunResults() const {
-	return m_resultsAvailable && m_completedRun && hasRawRunResults();
+	return resultsAvailable() && m_completedRun && hasRawRunResults();
 }
 
 void RunController::showError(const QString& title, const QString& message) {
@@ -141,12 +170,12 @@ void RunController::clearSimulationWorker(bool requestStop) {
 	// thread has stopped. Drop it with the other transient playback state so a
 	// queued snapshotAvailable callback cannot repaint an old run.
 	simulation.takeSimulationSnapshot();
-	m_host.playbackEnded();
+	emit playbackEnded();
 	// Retain the final frame for passenger inspection until scene teardown.
 	m_worker = nullptr;
 	m_workerThread = nullptr;
 	m_document->setEditable(true);
-	m_host.runPhaseChanged(RunPhase::Idle);
+	emit runPhaseChanged(RunPhase::Idle);
 }
 
 // The Run action always prepares the currently loaded canonical scene first.
@@ -393,7 +422,7 @@ RunProvenance RunController::captureRunProvenance() const {
 
 DelayRunSnapshot RunController::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
-	if (!m_resultsAvailable || !m_completedRun || m_completedRun->results.trains.empty())
+	if (!resultsAvailable() || !m_completedRun || m_completedRun->results.trains.empty())
 		return snapshot;
 	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_document->revision());
@@ -447,7 +476,7 @@ void RunController::setDelayBaseline() {
 	m_delayBaseline = snapshot;
 	m_delayBaselineStatus.clear();
 	m_window->statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
-	m_host.delayBaselineChanged();
+	emit delayBaselineChanged();
 }
 
 void RunController::clearDelayBaseline(const QString& reason) {
@@ -477,14 +506,12 @@ bool RunController::sceneChanged() {
 	if (!m_worker)
 		return false;
 	m_sceneChangedDuringRun = true;
-	m_resultsAvailable = false;
 	return true;
 }
 
 void RunController::discardResults() {
-	m_runtimeStatus = QStringLiteral("Not built");
+	setState(RunState::NotBuilt);
 	m_runtimeDiagnostics.clear();
-	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
 	m_selection.clearAppliedScenario();
 	m_completedRun.reset();
@@ -502,13 +529,13 @@ void RunController::startSimulation(const telemetry::OperationObservation& opera
 	if (m_worker)
 		return; // already running
 
-	m_host.runStarting();
+	emit runStarting();
 
 	// create worker and thread; sync slider before run() starts
 	m_worker = new SimulationWorker();
 	m_document->setEditable(false);
 	m_worker->setDelayMs(m_host.stepDelayMs());
-	m_host.runPanelsChanged();
+	emit runPanelsChanged();
 	m_workerThread = new QThread(this);
 	m_worker->moveToThread(m_workerThread);
 
@@ -567,9 +594,10 @@ void RunController::startSimulation(const telemetry::OperationObservation& opera
 			rollback();
 		}
 	}
-	m_host.workerReady();
+	// A slot of workerReady can connect to the worker, so it runs before the thread starts.
+	emit workerReady();
 	m_workerThread->start();
-	m_host.runPhaseChanged(RunPhase::Running);
+	emit runPhaseChanged(RunPhase::Running);
 }
 
 bool RunController::deferUntilRunStopped(std::function<void()> action) {
@@ -577,7 +605,7 @@ bool RunController::deferUntilRunStopped(std::function<void()> action) {
 		return false;
 	m_afterRunAction = std::move(action);
 	m_worker->requestStop();
-	m_host.runPhaseChanged(RunPhase::Stopping);
+	emit runPhaseChanged(RunPhase::Stopping);
 	m_window->statusBar()->showMessage(QStringLiteral("Stopping simulation..."));
 	return true;
 }
@@ -599,62 +627,66 @@ void RunController::onSimulationFinished() {
 		QCoreApplication::exit(0);
 		return;
 	}
-	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
-	m_sceneChangedDuringRun = false;
 	// Why an exception ended the run, or empty.
 	const QString failure = QString::fromStdString(simulation.lastRunError());
-	// A stop that arrives after the last stage leaves a completed run.
-	const bool stopped = failure.isEmpty() && m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
-	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
-	m_resultsAvailable = failure.isEmpty() && !sceneChangedDuringRun && !stopped && hasRawRunResults();
-	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
-		: stoppedByUser					 ? QStringLiteral("Stopped")
-										 : QStringLiteral("Failed");
-	if (m_resultsAvailable) {
+	RunEnd end;
+	end.failed = !failure.isEmpty();
+	end.stopRequested = m_worker && m_worker->isStopRequested();
+	end.lastStageCompleted = simulation.lastRunCompleted();
+	end.sceneChangedDuringRun = m_sceneChangedDuringRun;
+	end.hasTrajectories = hasRawRunResults();
+	m_sceneChangedDuringRun = false;
+	const RunOutcome outcome = classifyRunOutcome(end);
+	const bool stoppedByUser = outcome.discard == RunDiscard::Stopped;
+	if (outcome.resultsKept())
+		setState(RunState::Completed);
+	else
+		setState(stoppedByUser ? RunState::Stopped : RunState::Failed);
+	if (resultsAvailable()) {
 		// Freeze result values before a subsequent run replaces the runtime trains.
 		m_completedRun = std::make_shared<const CompletedRunData>(
 			captureCompletedRun(simulation.run(), &m_document->model(), m_startOffsetSeconds, m_pendingRunProvenance));
-		m_host.resultsKept();
+		emit resultsKept();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
 		m_completedRun.reset();
-		m_host.resultsDiscarded(stoppedByUser, sceneChangedDuringRun);
+		emit resultsDiscarded(stoppedByUser, outcome.discard == RunDiscard::SceneChanged);
 	}
 	m_pendingRunProvenance = RunProvenance();
-	m_host.loadedDataChanged();
+	emit loadedDataChanged();
 
 	if (m_host.runFinished())
 		return;
 
 	// print last services
-	if (!stopped && failure.isEmpty())
+	if (!outcome.stopped && !end.failed)
 		simulation.printLastTrainServicePathDiagram();
 
-	m_host.runProgressEnded();
-	const QString status = sceneChangedDuringRun
+	emit runProgressEnded();
+	const QString status = outcome.discard == RunDiscard::SceneChanged
 		? QStringLiteral("Results discarded: the case changed during the run")
-		: !failure.isEmpty()  ? QStringLiteral("Simulation failed")
-		: stopped			  ? QStringLiteral("Simulation stopped")
-		: !m_resultsAvailable ? QStringLiteral("Simulation ended without results")
-							  : QStringLiteral("Simulation complete");
+		: outcome.discard == RunDiscard::Failed	 ? QStringLiteral("Simulation failed")
+		: outcome.discard == RunDiscard::Stopped ? QStringLiteral("Simulation stopped")
+		: !resultsAvailable()					 ? QStringLiteral("Simulation ended without results")
+												 : QStringLiteral("Simulation complete");
 	m_window->statusBar()->showMessage(status);
 	// The Run Results dock raised by resultsKept is the completion notice;
 	// diagram entries switch on here instead of a modal prompt chain.
 	// cleanup thread
 	clearSimulationWorker(false);
-	if (m_resultsAvailable && !stopped)
+	if (resultsAvailable() && !outcome.stopped)
 		m_host.replayReady(simulation.takeReplayCandidate());
 	else
 		simulation.resetReplayCandidate();
-	m_host.runEnded();
+	emit runEnded();
 	// The track preview that replaces a run without results cleared the status bar.
-	if (!m_resultsAvailable)
+	if (!resultsAvailable())
 		m_window->statusBar()->showMessage(status);
 	if (!failure.isEmpty())
 		showError(QStringLiteral("Simulation Failed"),
 			QStringLiteral("The run stopped because of an error:\n\n%1").arg(failure));
 
-	m_host.runSettled();
+	emit runSettled();
 }
 
 // The choice is stored in the controller and applied when the next run is prepared, so the
@@ -675,26 +707,8 @@ void RunController::runScene() {
 	if (!m_document->isLoaded())
 		return;
 
-	if (PlaybackProfiler::enabled()) {
-		const std::string requested = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-										  .toStdString();
-		const SceneScenario* configured = requested == "default"
-			? defaultScenario(m_document->model())
-			: nullptr;
-		if (requested != "default") {
-			const auto match = std::find_if(m_document->model().scenarios.cbegin(), m_document->model().scenarios.cend(),
-				[&requested](const SceneScenario& scenario) { return scenario.id == requested; });
-			if (match != m_document->model().scenarios.cend())
-				configured = &*match;
-		}
-		if (!configured) {
-			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"scenario_unavailable\"}\n");
-			QCoreApplication::exit(2);
-			return;
-		}
-		m_selection.selectScenario(configured->id);
-	}
+	if (!selectPlaybackProfileScenario(m_document->model(), m_selection))
+		return;
 
 	m_host.validateScene();
 	if (hasErrors(m_session->diagnostics())) {
@@ -714,7 +728,7 @@ void RunController::runScene() {
 	if (!showRunReview())
 		return;
 
-	m_host.runPreparing();
+	emit runPreparing();
 	m_host.teardownForRun();
 	selectSceneOutputFolder(m_document->model().name);
 	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
@@ -747,57 +761,29 @@ void RunController::runScene() {
 	m_runtimeDiagnostics = diagnostics;
 	if (hasErrors(diagnostics)) {
 		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(diagnostics));
-		m_runtimeStatus = QStringLiteral("Failed");
-		m_host.sceneActionsChanged();
+		setState(RunState::Failed);
+		emit sceneActionsChanged();
 		m_host.validateScene();
 		showError("Cannot Run Case", firstDiagnosticMessage(diagnostics));
 		return;
 	}
-	m_runtimeStatus = QStringLiteral("Ready");
-	m_host.loadedDataChanged();
+	setState(RunState::Ready);
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_document->model().baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 	m_pendingRunProvenance = captureRunProvenance();
 
 	m_host.buildRunCanvas();
-	if (PlaybackProfiler::enabled()) {
-		PlaybackProfiler::RunConfig config;
-		config.trial = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_TRIAL");
-		config.view = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW").toStdString();
-#if defined(Q_OS_MACOS)
-		config.platform = "macOS";
-#elif defined(Q_OS_WIN)
-		config.platform = "Windows";
-#else
-		config.platform = "Linux";
-#endif
-		config.architecture = QSysInfo::currentCpuArchitecture().toStdString();
-		config.qtPlatform = QGuiApplication::platformName().toStdString();
-		config.buildType = EGTRAIN_BUILD_TYPE;
-		config.caseName = m_document->model().name;
-		config.requestedScenario = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-									   .toStdString();
-		config.scenario = m_selection.appliedScenarioId();
-		config.defaultScenario = m_document->model().defaultScenarioId;
-		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
-		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");
-		config.delayMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS");
-		config.passengerGui = initial_variables.PAX_GUI;
-		config.horizon = static_cast<int>(initial_variables.times);
-		config.structural = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_STRUCTURAL") == QLatin1String("1");
-		PlaybackProfiler::instance().configure(config);
-	}
+	configurePlaybackProfile(m_document->model(), m_selection.appliedScenarioId(), initial_variables.PAX_GUI,
+		static_cast<int>(initial_variables.times));
 	if (m_host.startupTimingHoldsRun(timingIdentityOk))
 		return;
 
 	// scene stays loaded; only the case-study load path clears it
 	m_session->updateSceneWindowTitle();
-	m_host.caseLayersChanged();
-	m_host.sceneActionsChanged();
+	emit caseLayersChanged();
+	emit sceneActionsChanged();
 
-	m_runtimeStatus = QStringLiteral("Running");
-	m_host.loadedDataChanged();
+	setState(RunState::Running);
 	startSimulation(operation);
 	m_window->statusBar()->showMessage(QStringLiteral("Running"));
 }

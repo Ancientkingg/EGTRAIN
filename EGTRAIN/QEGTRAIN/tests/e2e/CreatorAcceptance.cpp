@@ -9,11 +9,20 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/ResultFrame.h"
 #include "diagrams/RouteDiagramCoordinates.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/RouteDiagramData.h"
+#include "diagrams/RunCsv.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
+#include "editors/CaseSettingsPanel.h"
+#include "editors/CompositionPanel.h"
+#include "editors/EntranceDelayPanel.h"
+#include "editors/IncidentPanel.h"
 #include "editors/InfrastructurePanel.h"
+#include "editors/PassengerPanel.h"
+#include "editors/ScenarioPanel.h"
+#include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
+#include "editors/TrainUnitPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
@@ -178,8 +187,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			if (!accepted) dialog->reject();
 		});
 		timer.start(0);
-		if (row < 0) w.m_addStopButton->click();
-		else w.m_timetableStopsPanel->editStop(row);
+		if (row < 0) timetableStopsPanel(w)->addButton()->click();
+		else timetableStopsPanel(w)->editStop(row);
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };
@@ -443,24 +452,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	};
 	auto emitPath = [](const QString& value) { return QFileInfo(value).absoluteFilePath(); };
 	auto facet = [&](const char* name) {
-		const int index = w.m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
+		const int index = infrastructurePanel(w)->facetCombo()->findData(QString::fromLatin1(name));
 		if (index < 0)
 			return false;
-		w.m_infrastructureFacetCombo->setCurrentIndex(index);
+		infrastructurePanel(w)->facetCombo()->setCurrentIndex(index);
 		process();
-		return w.m_infrastructureFacetCombo->currentData().toString() == QString::fromLatin1(name);
+		return infrastructurePanel(w)->facetCombo()->currentData().toString() == QString::fromLatin1(name);
 	};
 	auto addRow = [&](const char* name) {
-		if (!facet(name) || !w.m_addInfrastructureButton->isEnabled())
+		if (!facet(name) || !infrastructurePanel(w)->addButton()->isEnabled())
 			return false;
-		w.m_addInfrastructureButton->click();
+		infrastructurePanel(w)->addButton()->click();
 		process();
-		return w.m_infrastructureTable->rowCount() > 0;
+		return infrastructurePanel(w)->table()->rowCount() > 0;
 	};
 	auto rowFor = [&](const QString& id) {
-		for (int row = 0; row < w.m_infrastructureTable->rowCount(); ++row)
-			if (w.m_infrastructureTable->item(row, 0)
-				&& w.m_infrastructureTable->item(row, 0)->text() == id)
+		for (int row = 0; row < infrastructurePanel(w)->table()->rowCount(); ++row)
+			if (infrastructurePanel(w)->table()->item(row, 0)
+				&& infrastructurePanel(w)->table()->item(row, 0)->text() == id)
 				return row;
 		return -1;
 	};
@@ -468,17 +477,17 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		if (!facet(name))
 			return false;
 		const int row = rowFor(id);
-		if (row < 0 || !w.m_infrastructureTable->item(row, column))
+		if (row < 0 || !infrastructurePanel(w)->table()->item(row, column))
 			return false;
-		w.m_infrastructureTable->setCurrentCell(row, column);
-		w.m_infrastructureTable->item(row, column)->setText(value);
+		infrastructurePanel(w)->table()->setCurrentCell(row, column);
+		infrastructurePanel(w)->table()->item(row, column)->setText(value);
 		process();
 		return true;
 	};
 	auto setSection = [&](const char* name, int row, int column, const QString& prefix) {
 		if (!facet(name))
 			return QString();
-		auto* combo = qobject_cast<QComboBox*>(w.m_infrastructureTable->cellWidget(row, column));
+		auto* combo = qobject_cast<QComboBox*>(infrastructurePanel(w)->table()->cellWidget(row, column));
 		if (!combo)
 			return QString();
 		for (int index = 0; index < combo->count(); ++index) {
@@ -505,36 +514,36 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 1) {
-		if (!w.m_document->isLoaded() || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
-			|| !w.m_addInfrastructureButton || !w.m_caseSettingsDock) {
+		if (!w.m_document->isLoaded() || !infrastructurePanel(w)->facetCombo() || !infrastructurePanel(w)->table()
+			|| !infrastructurePanel(w)->addButton() || !caseSettingsDock(w)) {
 			fail(QStringLiteral("blank case or creator controls did not load"));
 			return;
 		}
-		w.m_caseSettingsDock->show();
-		w.m_caseSettingsDock->raise();
-		if (!editLine(w.m_caseNameEdit, QStringLiteral("creator_acceptance_case"))
-			|| !editLine(w.m_caseDescriptionEdit, QStringLiteral("synthetic creator acceptance"))
-			|| !editLine(w.m_caseBaseTimeEdit, QStringLiteral("09:15:30"))) {
+		caseSettingsDock(w)->show();
+		caseSettingsDock(w)->raise();
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QStringLiteral("creator_acceptance_case"))
+			|| !editLine(caseSettingsPanel(w)->descriptionEdit(), QStringLiteral("synthetic creator acceptance"))
+			|| !editLine(caseSettingsPanel(w)->baseTimeEdit(), QStringLiteral("09:15:30"))) {
 			fail(QStringLiteral("case metadata editing did not commit"));
 			return;
 		}
-		w.m_caseDurationSecondsEdit->setValue(900.0);
-		w.m_caseBufferSecondsEdit->setValue(30.0);
-		w.m_caseRecoveryPercentEdit->setValue(5.0);
+		caseSettingsPanel(w)->durationSecondsEdit()->setValue(900.0);
+		caseSettingsPanel(w)->bufferSecondsEdit()->setValue(30.0);
+		caseSettingsPanel(w)->recoveryPercentEdit()->setValue(5.0);
 		process();
 
 		if (!addRow("tracks")) {
 			fail(QStringLiteral("track add 1 failed"));
 			return;
 		}
-		if (!facet("tracks") || w.m_infrastructureTable->rowCount() < 1
-			|| !w.m_infrastructureTable->item(0, 0)) {
+		if (!facet("tracks") || infrastructurePanel(w)->table()->rowCount() < 1
+			|| !infrastructurePanel(w)->table()->item(0, 0)) {
 			fail(QStringLiteral("track row 1 unavailable"));
 			return;
 		}
-		w.m_infrastructureTable->item(0, 0)->setText("creator-main");
+		infrastructurePanel(w)->table()->item(0, 0)->setText("creator-main");
 		process();
-		if (w.m_infrastructureTable->item(0, 0)->text() != "creator-main") {
+		if (infrastructurePanel(w)->table()->item(0, 0)->text() != "creator-main") {
 			fail(QStringLiteral("track rename 1 failed"));
 			return;
 		}
@@ -542,14 +551,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("track add 2 failed"));
 			return;
 		}
-		if (!facet("tracks") || w.m_infrastructureTable->rowCount() < 2
-			|| !w.m_infrastructureTable->item(1, 0)) {
+		if (!facet("tracks") || infrastructurePanel(w)->table()->rowCount() < 2
+			|| !infrastructurePanel(w)->table()->item(1, 0)) {
 			fail(QStringLiteral("track row 2 unavailable"));
 			return;
 		}
-		w.m_infrastructureTable->item(1, 0)->setText("creator-yard");
+		infrastructurePanel(w)->table()->item(1, 0)->setText("creator-yard");
 		process();
-		if (w.m_infrastructureTable->item(1, 0)->text() != "creator-yard") {
+		if (infrastructurePanel(w)->table()->item(1, 0)->text() != "creator-yard") {
 			fail(QStringLiteral("track rename 2 failed"));
 			return;
 		}
@@ -561,9 +570,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				fail(QStringLiteral("node row add failed"));
 				return;
 			}
-			const int createdRow = w.m_infrastructureTable->rowCount() - 1;
-			const QString generated = w.m_infrastructureTable->item(createdRow, 0)
-				? w.m_infrastructureTable->item(createdRow, 0)->text()
+			const int createdRow = infrastructurePanel(w)->table()->rowCount() - 1;
+			const QString generated = infrastructurePanel(w)->table()->item(createdRow, 0)
+				? infrastructurePanel(w)->table()->item(createdRow, 0)->text()
 				: QString();
 			const QString track = row < 3 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
 			if (!setCell("nodes", generated, 0, nodeIds[static_cast<std::size_t>(row)])
@@ -580,9 +589,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				fail(QStringLiteral("arc row add failed"));
 				return;
 			}
-			const int createdRow = w.m_infrastructureTable->rowCount() - 1;
-			const QString generated = w.m_infrastructureTable->item(createdRow, 0)
-				? w.m_infrastructureTable->item(createdRow, 0)->text()
+			const int createdRow = infrastructurePanel(w)->table()->rowCount() - 1;
+			const QString generated = infrastructurePanel(w)->table()->item(createdRow, 0)
+				? infrastructurePanel(w)->table()->item(createdRow, 0)->text()
 				: QString();
 			const QString track = row < 2 ? QStringLiteral("creator-main") : QStringLiteral("creator-yard");
 			const int nodeOffset = row < 2 ? 0 : 3;
@@ -614,26 +623,26 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		for (const QString& track : {QStringLiteral("creator-main"), QStringLiteral("creator-yard")}) {
-			const int filterIndex = w.m_blockTrackFilterCombo->findData(track);
+			const int filterIndex = infrastructurePanel(w)->blockTrackFilterCombo()->findData(track);
 			if (filterIndex < 0) {
 				fail(QStringLiteral("block track selector unavailable"));
 				return;
 			}
-			w.m_blockTrackFilterCombo->setCurrentIndex(filterIndex);
+			infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(filterIndex);
 			process();
 			for (int count = 0; count < 2; ++count) {
-				w.m_addInfrastructureButton->click();
+				infrastructurePanel(w)->addButton()->click();
 				process();
 			}
-			if (w.m_infrastructureTable->rowCount() != 2) {
+			if (infrastructurePanel(w)->table()->rowCount() != 2) {
 				fail(QStringLiteral("base block rows did not add"));
 				return;
 			}
-			const QString firstGenerated = w.m_infrastructureTable->item(0, 0)
-				? w.m_infrastructureTable->item(0, 0)->text()
+			const QString firstGenerated = infrastructurePanel(w)->table()->item(0, 0)
+				? infrastructurePanel(w)->table()->item(0, 0)->text()
 				: QString();
-			const QString secondGenerated = w.m_infrastructureTable->item(1, 0)
-				? w.m_infrastructureTable->item(1, 0)->text()
+			const QString secondGenerated = infrastructurePanel(w)->table()->item(1, 0)
+				? infrastructurePanel(w)->table()->item(1, 0)->text()
 				: QString();
 			const bool yard = track == QStringLiteral("creator-yard");
 			QString blockFailure;
@@ -652,15 +661,15 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 						.arg(track, blockFailure));
 				return;
 			}
-			w.m_infrastructureTable->setCurrentCell(1, 0);
-			w.m_insertBlockButton->click();
+			infrastructurePanel(w)->table()->setCurrentCell(1, 0);
+			infrastructurePanel(w)->insertBlockButton()->click();
 			process();
-			if (w.m_infrastructureTable->rowCount() != 3) {
+			if (infrastructurePanel(w)->table()->rowCount() != 3) {
 				fail(QStringLiteral("block insert did not create the third visible block"));
 				return;
 			}
-			const QString insertedGenerated = w.m_infrastructureTable->item(1, 0)
-				? w.m_infrastructureTable->item(1, 0)->text()
+			const QString insertedGenerated = infrastructurePanel(w)->table()->item(1, 0)
+				? infrastructurePanel(w)->table()->item(1, 0)->text()
 				: QString();
 			if (!setCell("blocks", insertedGenerated, 0, track + QStringLiteral("-block-1"))
 				|| !setCell("blocks", track + QStringLiteral("-block-1"), 2,
@@ -668,10 +677,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				fail(QStringLiteral("inserted block fields did not commit"));
 				return;
 			}
-			w.m_infrastructureTable->setCurrentCell(1, 0);
-			w.m_moveBlockDownButton->click();
+			infrastructurePanel(w)->table()->setCurrentCell(1, 0);
+			infrastructurePanel(w)->moveBlockDownButton()->click();
 			process();
-			w.m_moveBlockUpButton->click();
+			infrastructurePanel(w)->moveBlockUpButton()->click();
 			process();
 		}
 		marker("E2E_CREATOR_INFRASTRUCTURE_OK");
@@ -680,8 +689,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 2) {
-		if (!w.m_document->isLoaded() || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
-			|| !w.m_addInfrastructureButton || !w.m_deleteInfrastructureButton) {
+		if (!w.m_document->isLoaded() || !infrastructurePanel(w)->facetCombo() || !infrastructurePanel(w)->table()
+			|| !infrastructurePanel(w)->addButton() || !infrastructurePanel(w)->deleteButton()) {
 			fail(QStringLiteral("infrastructure controls disappeared before signalling authoring"));
 			return;
 		}
@@ -697,16 +706,16 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (!addRow("platforms") || !addRow("platforms")
-			|| w.m_infrastructureTable->rowCount() != 2) {
+			|| infrastructurePanel(w)->table()->rowCount() != 2) {
 			fail(QStringLiteral("platform rows did not add"));
 			return;
 		}
 		auto setPlatformCell = [&](int row, int column, const QString& value) {
-			if (!facet("platforms") || row < 0 || row >= w.m_infrastructureTable->rowCount()
-				|| !w.m_infrastructureTable->item(row, column))
+			if (!facet("platforms") || row < 0 || row >= infrastructurePanel(w)->table()->rowCount()
+				|| !infrastructurePanel(w)->table()->item(row, column))
 				return false;
-			w.m_infrastructureTable->setCurrentCell(row, column);
-			w.m_infrastructureTable->item(row, column)->setText(value);
+			infrastructurePanel(w)->table()->setCurrentCell(row, column);
+			infrastructurePanel(w)->table()->item(row, column)->setText(value);
 			process();
 			return true;
 		};
@@ -723,10 +732,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("platform facet unavailable for geometry"));
 			return;
 		}
-		for (int row = 0; row < w.m_infrastructureTable->rowCount(); ++row) {
-			if (auto* length = qobject_cast<QDoubleSpinBox*>(w.m_infrastructureTable->cellWidget(row, 3)))
+		for (int row = 0; row < infrastructurePanel(w)->table()->rowCount(); ++row) {
+			if (auto* length = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 3)))
 				length->setValue(123.75);
-			if (auto* width = qobject_cast<QDoubleSpinBox*>(w.m_infrastructureTable->cellWidget(row, 4)))
+			if (auto* width = qobject_cast<QDoubleSpinBox*>(infrastructurePanel(w)->table()->cellWidget(row, 4)))
 				width->setValue(4.25);
 			process();
 		}
@@ -765,8 +774,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("route metadata authoring failed"));
 			return;
 		}
-		if (!facet("routes") || !w.m_routeSectionCatalogCombo || !w.m_addRouteSectionButton
-			|| !w.m_routeSectionListWidget) {
+		if (!facet("routes") || !infrastructurePanel(w)->routeSectionCatalogCombo() || !infrastructurePanel(w)->addRouteSectionButton()
+			|| !infrastructurePanel(w)->routeSectionListWidget()) {
 			fail(QStringLiteral("route section controls unavailable"));
 			return;
 		}
@@ -776,10 +785,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			QStringLiteral("creator-yard 1.750 to 2.000 km")};
 		for (const QString& prefix : routePrefixes) {
 			QString raw;
-			for (int index = 0; index < w.m_routeSectionCatalogCombo->count(); ++index) {
-				if (w.m_routeSectionCatalogCombo->itemText(index).startsWith(prefix)) {
-					w.m_routeSectionCatalogCombo->setCurrentIndex(index);
-					raw = w.m_routeSectionCatalogCombo->itemData(index).toString();
+			for (int index = 0; index < infrastructurePanel(w)->routeSectionCatalogCombo()->count(); ++index) {
+				if (infrastructurePanel(w)->routeSectionCatalogCombo()->itemText(index).startsWith(prefix)) {
+					infrastructurePanel(w)->routeSectionCatalogCombo()->setCurrentIndex(index);
+					raw = infrastructurePanel(w)->routeSectionCatalogCombo()->itemData(index).toString();
 					break;
 				}
 			}
@@ -787,10 +796,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				fail(QStringLiteral("route catalog lacked creator-facing section: ") + prefix);
 				return;
 			}
-			w.m_addRouteSectionButton->click();
+			infrastructurePanel(w)->addRouteSectionButton()->click();
 			process();
 		}
-		if (w.m_routeSectionListWidget->count() != 3) {
+		if (infrastructurePanel(w)->routeSectionListWidget()->count() != 3) {
 			fail(QStringLiteral("route section order was not authored"));
 			return;
 		}
@@ -838,19 +847,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("block facet unavailable for reference rename"));
 			return;
 		}
-		const int mainTrackIndex = w.m_blockTrackFilterCombo->findData("creator-main");
+		const int mainTrackIndex = infrastructurePanel(w)->blockTrackFilterCombo()->findData("creator-main");
 		if (mainTrackIndex < 0) {
 			fail(QStringLiteral("main block filter disappeared"));
 			return;
 		}
-		w.m_blockTrackFilterCombo->setCurrentIndex(mainTrackIndex);
+		infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(mainTrackIndex);
 		process();
 		const int mainBlockRow = rowFor(QStringLiteral("creator-main-block-0"));
-		if (mainBlockRow < 0 || !w.m_infrastructureTable->item(mainBlockRow, 0)) {
+		if (mainBlockRow < 0 || !infrastructurePanel(w)->table()->item(mainBlockRow, 0)) {
 			fail(QStringLiteral("referenced block row was not visible"));
 			return;
 		}
-		w.m_infrastructureTable->item(mainBlockRow, 0)->setText(renamedBlock);
+		infrastructurePanel(w)->table()->item(mainBlockRow, 0)->setText(renamedBlock);
 		process();
 		bool referenceStillValid = false;
 		if (w.m_document->mutableModel().routes.size() == 1 && w.m_document->mutableModel().routes.front().blocks.size() == 3
@@ -879,8 +888,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("renamed block could not be selected for delete check"));
 			return;
 		}
-		w.m_infrastructureTable->setCurrentCell(renamedRow, 0);
-		w.m_deleteInfrastructureButton->click();
+		infrastructurePanel(w)->table()->setCurrentCell(renamedRow, 0);
+		infrastructurePanel(w)->deleteButton()->click();
 		process();
 		if (w.m_document->mutableModel().blocks.size() != blockCount) {
 			fail(QStringLiteral("referenced delete changed canonical data"));
@@ -892,70 +901,70 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 3) {
-		if (!w.m_document->isLoaded() || !w.m_trainUnitDock || !w.m_trainUnitListWidget
-			|| !w.m_addTrainUnitButton || !w.m_trainUnitIdEdit || !w.m_compositionDock
-			|| !w.m_addCompositionButton || !w.m_addUnitButton || !w.m_addTrainUnitTractionButton) {
+		if (!w.m_document->isLoaded() || !trainUnitDock(w) || !trainUnitPanel(w)->listWidget()
+			|| !trainUnitPanel(w)->addButton() || !trainUnitPanel(w)->idEdit() || !compositionDock(w)
+			|| !compositionPanel(w)->addButton() || !compositionPanel(w)->addUnitButton() || !trainUnitPanel(w)->addTractionRowButton()) {
 			fail(QStringLiteral("rolling-stock creator controls are unavailable"));
 			return;
 		}
-		w.m_trainUnitDock->show();
-		w.m_trainUnitDock->raise();
+		trainUnitDock(w)->show();
+		trainUnitDock(w)->raise();
 		auto setUnit = [&](int row, const QString& id, double seed) {
-			w.m_trainUnitListWidget->setCurrentRow(row);
+			trainUnitPanel(w)->listWidget()->setCurrentRow(row);
 			process();
-			if (!editLine(w.m_trainUnitIdEdit, id))
+			if (!editLine(trainUnitPanel(w)->idEdit(), id))
 				return false;
 			const std::array<double, 9> values = {90000.0 + seed, 22000.0 + seed,
 				2.0, 30.0, 0.8, 9.0, 0.002, 0.4, 80.0};
 			for (std::size_t index = 0; index < values.size(); ++index) {
-				if (!w.m_trainUnitPhysicalEdits[index])
+				if (!trainUnitPanel(w)->physicalEdits()[index])
 					return false;
-				w.m_trainUnitPhysicalEdits[index]->setValue(values[index]);
+				trainUnitPanel(w)->physicalEdits()[index]->setValue(values[index]);
 			}
-			if (!editLine(w.m_trainUnitSourceDataEdit, QStringLiteral("creator-parameters.csv"))
-				|| !editLine(w.m_trainUnitSourceTractionEdit, QStringLiteral("creator-traction.csv")))
+			if (!editLine(trainUnitPanel(w)->sourceDataEdit(), QStringLiteral("creator-parameters.csv"))
+				|| !editLine(trainUnitPanel(w)->sourceTractionEdit(), QStringLiteral("creator-traction.csv")))
 				return false;
-			w.m_addTrainUnitTractionButton->click();
+			trainUnitPanel(w)->addTractionRowButton()->click();
 			process();
-			if (!w.m_trainUnitTractionTable || w.m_trainUnitTractionTable->rowCount() < 1)
+			if (!trainUnitPanel(w)->tractionTable() || trainUnitPanel(w)->tractionTable()->rowCount() < 1)
 				return false;
 			const std::array<double, 5> traction = {0.0, 30.0, 220000.0, -3500.0, 0.0};
 			for (int column = 0; column < 5; ++column)
-				if (QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(0, column))
+				if (QTableWidgetItem* tractionCell = trainUnitPanel(w)->tractionTable()->item(0, column))
 					tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(column)]);
 				else
 					return false;
 			process();
 			return true;
 		};
-		w.m_addTrainUnitButton->click();
+		trainUnitPanel(w)->addButton()->click();
 		process();
-		if (w.m_trainUnitListWidget->count() != 1 || !setUnit(0, QStringLiteral("creator-unit-a"), 0.0)) {
+		if (trainUnitPanel(w)->listWidget()->count() != 1 || !setUnit(0, QStringLiteral("creator-unit-a"), 0.0)) {
 			fail(QStringLiteral("first train unit did not author through controls"));
 			return;
 		}
-		w.m_addTrainUnitButton->click();
+		trainUnitPanel(w)->addButton()->click();
 		process();
-		if (w.m_trainUnitListWidget->count() != 2 || !setUnit(1, QStringLiteral("creator-unit-b"), 5000.0)) {
+		if (trainUnitPanel(w)->listWidget()->count() != 2 || !setUnit(1, QStringLiteral("creator-unit-b"), 5000.0)) {
 			fail(QStringLiteral("second train unit did not author through controls"));
 			return;
 		}
-		w.m_compositionDock->show();
-		w.m_compositionDock->raise();
-		w.m_addCompositionButton->click();
+		compositionDock(w)->show();
+		compositionDock(w)->raise();
+		compositionPanel(w)->addButton()->click();
 		process();
-		if (w.m_compositionListWidget->count() != 1
-			|| !editLine(w.m_compositionIdEdit, QStringLiteral("creator-composition"))) {
+		if (compositionPanel(w)->listWidget()->count() != 1
+			|| !editLine(compositionPanel(w)->idEdit(), QStringLiteral("creator-composition"))) {
 			fail(QStringLiteral("composition row did not author through controls"));
 			return;
 		}
 		acceptInputDialog(QStringLiteral("creator-unit-a"));
-		w.m_addUnitButton->click();
+		compositionPanel(w)->addUnitButton()->click();
 		process();
 		acceptInputDialog(QStringLiteral("creator-unit-b"));
-		w.m_addUnitButton->click();
+		compositionPanel(w)->addUnitButton()->click();
 		process();
-		if (w.m_compositionUnitsListWidget->count() != 2
+		if (compositionPanel(w)->unitsListWidget()->count() != 2
 			|| w.m_document->mutableModel().compositions.empty()
 			|| w.m_document->mutableModel().compositions.front().units.size() != 2
 			|| w.m_document->mutableModel().compositions.front().units.front() != "creator-unit-a"
@@ -969,16 +978,16 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 4) {
-		if (!w.m_document->isLoaded() || !w.m_serviceDock || !w.m_serviceListWidget || !w.m_addServiceButton
-			|| !w.m_serviceIdEdit || !w.m_serviceOperatingCodeEdit || !w.m_serviceCompositionCombo
-			|| !w.m_serviceRouteCombo || !w.m_addStopButton || !w.m_stopTableWidget) {
+		if (!w.m_document->isLoaded() || !serviceDock(w) || !servicePanel(w)->listWidget() || !servicePanel(w)->addButton()
+			|| !servicePanel(w)->idEdit() || !servicePanel(w)->operatingCodeEdit() || !servicePanel(w)->compositionCombo()
+			|| !servicePanel(w)->routeCombo() || !timetableStopsPanel(w)->addButton() || !timetableStopsPanel(w)->table()) {
 			fail(QStringLiteral("service creator controls are unavailable"));
 			return;
 		}
-		w.m_serviceDock->show();
-		w.m_serviceDock->raise();
+		serviceDock(w)->show();
+		serviceDock(w)->raise();
 		const bool noServicesBefore = w.m_followTrainCombo->currentText() == "No trains to follow" && !w.m_followAction->isEnabled();
-		w.m_addServiceButton->click();
+		servicePanel(w)->addButton()->click();
 		process();
 		// The first service changes why Follow is off: the case has trains to run but has not run.
 		if (!noServicesBefore || w.m_followTrainCombo->currentText() != "Run the case first" || w.m_followAction->isEnabled()
@@ -987,34 +996,34 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		marker("E2E_FOLLOW_SERVICE_ADDED_OK");
-		if (w.m_serviceListWidget->count() != 1
-			|| !editLine(w.m_serviceIdEdit, QStringLiteral("creator-service"))
-			|| !editLine(w.m_serviceOperatingCodeEdit, QStringLiteral("1701"))
-			|| !choose(w.m_serviceCompositionCombo, QStringLiteral("creator-composition"))
-			|| !choose(w.m_serviceRouteCombo, QStringLiteral("creator-route"))) {
+		if (servicePanel(w)->listWidget()->count() != 1
+			|| !editLine(servicePanel(w)->idEdit(), QStringLiteral("creator-service"))
+			|| !editLine(servicePanel(w)->operatingCodeEdit(), QStringLiteral("1701"))
+			|| !choose(servicePanel(w)->compositionCombo(), QStringLiteral("creator-composition"))
+			|| !choose(servicePanel(w)->routeCombo(), QStringLiteral("creator-route"))) {
 			fail(QStringLiteral("service identity or typed references did not commit"));
 			return;
 		}
-		w.m_serviceHasEntryTimeCheck->setChecked(true);
-		if (!editNumber(w.m_serviceEntryTimeSecondsEdit, 60)) {
+		servicePanel(w)->hasEntryTimeCheck()->setChecked(true);
+		if (!editNumber(servicePanel(w)->entryTimeSecondsEdit(), 60)) {
 			fail(QStringLiteral("service entry time did not commit"));
 			return;
 		}
-		w.m_serviceHasRepeatCheck->setChecked(true);
-		if (!editNumber(w.m_serviceHeadwaySecondsEdit, 300)) {
+		servicePanel(w)->hasRepeatCheck()->setChecked(true);
+		if (!editNumber(servicePanel(w)->headwaySecondsEdit(), 300)) {
 			fail(QStringLiteral("service headway did not commit"));
 			return;
 		}
-		w.m_serviceHasRepeatCountCheck->setChecked(true);
-		if (!editLine(w.m_serviceRepeatCountEdit, QStringLiteral("3"))) {
+		servicePanel(w)->hasRepeatCountCheck()->setChecked(true);
+		if (!editLine(servicePanel(w)->repeatCountEdit(), QStringLiteral("3"))) {
 			fail(QStringLiteral("service repeat count did not commit"));
 			return;
 		}
-		w.m_servicePerformancePercentEdit->setValue(92.0);
-		w.m_serviceHasMaximumSpeedCheck->setChecked(true);
-		w.m_serviceMaximumSpeedKmhEdit->setValue(100.0);
-		w.m_serviceHasOperatingCodeStepCheck->setChecked(true);
-		if (!editLine(w.m_serviceOperatingCodeStepEdit, QStringLiteral("1"))) {
+		servicePanel(w)->performancePercentEdit()->setValue(92.0);
+		servicePanel(w)->hasMaximumSpeedCheck()->setChecked(true);
+		servicePanel(w)->maximumSpeedKmhEdit()->setValue(100.0);
+		servicePanel(w)->hasOperatingCodeStepCheck()->setChecked(true);
+		if (!editLine(servicePanel(w)->operatingCodeStepEdit(), QStringLiteral("1"))) {
 			fail(QStringLiteral("service operating-code increment did not commit"));
 			return;
 		}
@@ -1073,7 +1082,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(service && !service->stops.empty() ? service->stops.front().dwellSeconds : -1.0));
 			return;
 		}
-		if (w.m_serviceOccurrenceTable->rowCount() != 3 || hasErrors(w.m_session->m_sceneDiagnostics)) {
+		if (servicePanel(w)->occurrenceTable()->rowCount() != 3 || hasErrors(w.m_session->m_sceneDiagnostics)) {
 			QString detail;
 			for (const SceneDiagnostic& diagnostic : w.m_session->m_sceneDiagnostics)
 				if (diagnostic.severity == SceneSeverity::Error) {
@@ -1081,7 +1090,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					break;
 				}
 			fail(QStringLiteral("service occurrence preview or validation is not runnable: rows=%1 %2")
-					.arg(w.m_serviceOccurrenceTable->rowCount())
+					.arg(servicePanel(w)->occurrenceTable()->rowCount())
 					.arg(detail));
 			return;
 		}
@@ -1091,69 +1100,69 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 5) {
-		if (!w.m_document->isLoaded() || !w.m_incidentDock || !w.m_scenarioListWidget
-			|| !w.m_blankScenarioButton || !w.m_addIncidentButton || !w.m_addEntranceDelayButton
-			|| !w.m_incidentHasReducedSpeedCheck || !w.m_incidentReducedSpeedKmhEdit) {
+		if (!w.m_document->isLoaded() || !incidentDock(w) || !scenarioPanel(w)->listWidget()
+			|| !scenarioPanel(w)->blankButton() || !incidentPanel(w)->addButton() || !entranceDelayPanel(w)->addButton()
+			|| !incidentPanel(w)->hasReducedSpeedCheck() || !incidentPanel(w)->reducedSpeedKmhEdit()) {
 			fail(QStringLiteral("scenario creator controls are unavailable"));
 			return;
 		}
-		w.m_incidentDock->show();
-		w.m_incidentDock->raise();
-		w.m_blankScenarioButton->click();
+		incidentDock(w)->show();
+		incidentDock(w)->raise();
+		scenarioPanel(w)->blankButton()->click();
 		process();
-		if (!editLine(w.m_scenarioIdEdit, QStringLiteral("incident"))
-			|| !editLine(w.m_scenarioNameEdit, QStringLiteral("Incident scenario"))
-			|| !editLine(w.m_scenarioDescriptionEdit, QStringLiteral("signal and breakdown evidence"))) {
+		if (!editLine(scenarioPanel(w)->idEdit(), QStringLiteral("incident"))
+			|| !editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Incident scenario"))
+			|| !editLine(scenarioPanel(w)->descriptionEdit(), QStringLiteral("signal and breakdown evidence"))) {
 			fail(QStringLiteral("incident scenario metadata did not commit"));
 			return;
 		}
-		w.m_addIncidentButton->click();
+		incidentPanel(w)->addButton()->click();
 		process();
-		if (!editLine(w.m_incidentIdEdit, QStringLiteral("creator-signal-failure"))
-			|| !choose(w.m_incidentTargetCombo, QStringLiteral("creator-signal"))
-			|| !editNumber(w.m_incidentStartSecondsEdit, 350)
-			|| !editNumber(w.m_incidentEndSecondsEdit, 500)) {
+		if (!editLine(incidentPanel(w)->idEdit(), QStringLiteral("creator-signal-failure"))
+			|| !choose(incidentPanel(w)->targetCombo(), QStringLiteral("creator-signal"))
+			|| !editNumber(incidentPanel(w)->startSecondsEdit(), 350)
+			|| !editNumber(incidentPanel(w)->endSecondsEdit(), 500)) {
 			fail(QStringLiteral("signal failure incident did not bind through controls"));
 			return;
 		}
-		w.m_addIncidentButton->click();
+		incidentPanel(w)->addButton()->click();
 		process();
-		w.m_incidentTypeCombo->setCurrentIndex(w.m_incidentTypeCombo->findData(QStringLiteral("train_breakdown")));
+		incidentPanel(w)->typeCombo()->setCurrentIndex(incidentPanel(w)->typeCombo()->findData(QStringLiteral("train_breakdown")));
 		process();
-		if (!editLine(w.m_incidentIdEdit, QStringLiteral("creator-breakdown"))
-			|| !choose(w.m_incidentTargetCombo, QStringLiteral("creator-service"))
-			|| !editNumber(w.m_incidentStartSecondsEdit, 60)
-			|| !editNumber(w.m_incidentEndSecondsEdit, 100)) {
+		if (!editLine(incidentPanel(w)->idEdit(), QStringLiteral("creator-breakdown"))
+			|| !choose(incidentPanel(w)->targetCombo(), QStringLiteral("creator-service"))
+			|| !editNumber(incidentPanel(w)->startSecondsEdit(), 60)
+			|| !editNumber(incidentPanel(w)->endSecondsEdit(), 100)) {
 			fail(QStringLiteral("breakdown incident target or finite interval did not commit"));
 			return;
 		}
-		w.m_incidentHasReducedSpeedCheck->setChecked(true);
-		w.m_incidentReducedSpeedKmhEdit->setValue(10.0);
-		QMetaObject::invokeMethod(w.m_incidentReducedSpeedKmhEdit, "editingFinished", Qt::DirectConnection);
+		incidentPanel(w)->hasReducedSpeedCheck()->setChecked(true);
+		incidentPanel(w)->reducedSpeedKmhEdit()->setValue(10.0);
+		QMetaObject::invokeMethod(incidentPanel(w)->reducedSpeedKmhEdit(), "editingFinished", Qt::DirectConnection);
 		process();
-		w.m_blankScenarioButton->click();
+		scenarioPanel(w)->blankButton()->click();
 		process();
-		if (!editLine(w.m_scenarioIdEdit, QStringLiteral("entrance"))
-			|| !editLine(w.m_scenarioNameEdit, QStringLiteral("Entrance delay"))
-			|| !editLine(w.m_scenarioDescriptionEdit, QStringLiteral("positive entrance delay at station A"))) {
+		if (!editLine(scenarioPanel(w)->idEdit(), QStringLiteral("entrance"))
+			|| !editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Entrance delay"))
+			|| !editLine(scenarioPanel(w)->descriptionEdit(), QStringLiteral("positive entrance delay at station A"))) {
 			fail(QStringLiteral("entrance scenario metadata did not commit"));
 			return;
 		}
-		w.m_addEntranceDelayButton->click();
+		entranceDelayPanel(w)->addButton()->click();
 		process();
-		if (!choose(w.m_entranceDelayServiceCombo, QStringLiteral("creator-service"))) {
+		if (!choose(entranceDelayPanel(w)->serviceCombo(), QStringLiteral("creator-service"))) {
 			fail(QStringLiteral("entrance delay service selector lacked authored service"));
 			return;
 		}
-		w.m_entranceDelayOccurrenceEdit->setValue(2);
-		QMetaObject::invokeMethod(w.m_entranceDelayOccurrenceEdit, "editingFinished", Qt::DirectConnection);
+		entranceDelayPanel(w)->occurrenceEdit()->setValue(2);
+		QMetaObject::invokeMethod(entranceDelayPanel(w)->occurrenceEdit(), "editingFinished", Qt::DirectConnection);
 		process();
-		if (!choose(w.m_entranceDelayStationCombo, QStringLiteral("creator-station-a"))) {
+		if (!choose(entranceDelayPanel(w)->stationCombo(), QStringLiteral("creator-station-a"))) {
 			fail(QStringLiteral("entrance delay station selector lacked station A"));
 			return;
 		}
-		w.m_entranceDelaySecondsEdit->setValue(90.0);
-		QMetaObject::invokeMethod(w.m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
+		entranceDelayPanel(w)->secondsEdit()->setValue(90.0);
+		QMetaObject::invokeMethod(entranceDelayPanel(w)->secondsEdit(), "editingFinished", Qt::DirectConnection);
 		process();
 		if (w.m_document->mutableModel().scenarios.size() != 3
 			|| w.m_document->mutableModel().scenarios[1].incidents.size() != 2
@@ -1182,47 +1191,47 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 6) {
-		if (!w.m_document->isLoaded() || !w.m_passengerDock || !w.m_passengerListWidget
-			|| !w.m_addPassengerButton || !w.m_addPassengerJourneyButton
-			|| !w.m_addPassengerLegButton || !w.m_passengerTabs) {
+		if (!w.m_document->isLoaded() || !passengerDock(w) || !passengerPanel(w)->passengerList()
+			|| !passengerPanel(w)->addPassengerButton() || !passengerPanel(w)->addJourneyButton()
+			|| !passengerPanel(w)->addLegButton() || !passengerPanel(w)->tabs()) {
 			fail(QStringLiteral("passenger creator controls are unavailable"));
 			return;
 		}
-		w.m_passengerDock->show();
-		w.m_passengerDock->raise();
-		w.m_addPassengerButton->click();
+		passengerDock(w)->show();
+		passengerDock(w)->raise();
+		passengerPanel(w)->addPassengerButton()->click();
 		process();
-		if (w.m_passengerListWidget->count() != 1
-			|| !editLine(w.m_passengerIdEdit, QStringLiteral("creator-passenger"))) {
+		if (passengerPanel(w)->passengerList()->count() != 1
+			|| !editLine(passengerPanel(w)->passengerIdEdit(), QStringLiteral("creator-passenger"))) {
 			fail(QStringLiteral("passenger ID did not commit"));
 			return;
 		}
-		w.m_addPassengerJourneyButton->click();
+		passengerPanel(w)->addJourneyButton()->click();
 		process();
-		if (!editLine(w.m_passengerJourneyIdEdit, QStringLiteral("creator-journey"))
-			|| !editLine(w.m_passengerJourneyActivityEdit, QStringLiteral("creator commute"))
-			|| !choose(w.m_passengerJourneyOriginCombo, QStringLiteral("creator-station-a"))
-			|| !choose(w.m_passengerJourneyDestinationCombo, QStringLiteral("creator-station-b"))) {
+		if (!editLine(passengerPanel(w)->journeyIdEdit(), QStringLiteral("creator-journey"))
+			|| !editLine(passengerPanel(w)->journeyActivityEdit(), QStringLiteral("creator commute"))
+			|| !choose(passengerPanel(w)->journeyOriginCombo(), QStringLiteral("creator-station-a"))
+			|| !choose(passengerPanel(w)->journeyDestinationCombo(), QStringLiteral("creator-station-b"))) {
 			fail(QStringLiteral("journey station or metadata controls did not commit"));
 			return;
 		}
 		const std::array<double, 4> windows = {120.0, 420.0, 300.0, 720.0};
 		for (std::size_t index = 0; index < windows.size(); ++index)
-			w.m_passengerJourneyWindowEdits[index]->setValue(windows[index]);
+			passengerPanel(w)->journeyWindowEdits()[index]->setValue(windows[index]);
 		process();
-		w.m_passengerTabs->setCurrentIndex(1);
-		w.m_addPassengerLegButton->click();
+		passengerPanel(w)->tabs()->setCurrentIndex(1);
+		passengerPanel(w)->addLegButton()->click();
 		process();
-		if (!editLine(w.m_passengerLegIdEdit, QStringLiteral("creator-leg"))
-			|| !choose(w.m_passengerLegOriginCombo, QStringLiteral("creator-station-a"))
-			|| !choose(w.m_passengerLegDestinationCombo, QStringLiteral("creator-station-b"))
-			|| !choose(w.m_passengerLegServiceCombo, QStringLiteral("creator-service"))) {
+		if (!editLine(passengerPanel(w)->legIdEdit(), QStringLiteral("creator-leg"))
+			|| !choose(passengerPanel(w)->legOriginCombo(), QStringLiteral("creator-station-a"))
+			|| !choose(passengerPanel(w)->legDestinationCombo(), QStringLiteral("creator-station-b"))
+			|| !choose(passengerPanel(w)->legServiceCombo(), QStringLiteral("creator-service"))) {
 			fail(QStringLiteral("passenger leg public CRUD did not commit references"));
 			return;
 		}
-		w.m_passengerLegOccurrenceEdit->setFocus(Qt::OtherFocusReason);
-		w.m_passengerLegOccurrenceEdit->setValue(1);
-		w.m_passengerLegOccurrenceEdit->clearFocus();
+		passengerPanel(w)->legOccurrenceEdit()->setFocus(Qt::OtherFocusReason);
+		passengerPanel(w)->legOccurrenceEdit()->setValue(1);
+		passengerPanel(w)->legOccurrenceEdit()->clearFocus();
 		process();
 		if (w.m_document->mutableModel().passengers.size() != 1
 			|| w.m_document->mutableModel().passengers.front().journeys.size() != 1
@@ -1240,18 +1249,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	if (creatorAcceptance.phase == 7) {
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
 		if (!w.m_document->isLoaded() || folder.isEmpty() || !w.m_saveSceneAsFolderAction
-			|| !w.m_newSceneAction || !w.m_trainUnitListWidget) {
+			|| !w.m_newSceneAction || !trainUnitPanel(w)->listWidget()) {
 			fail(QStringLiteral("folder persistence controls or target are unavailable"));
 			return;
 		}
 		w.activateWindow();
-		w.m_trainUnitDock->show();
-		w.m_trainUnitDock->raise();
+		trainUnitDock(w)->show();
+		trainUnitDock(w)->raise();
 		process();
-		w.m_trainUnitListWidget->setCurrentRow(0);
+		trainUnitPanel(w)->listWidget()->setCurrentRow(0);
 		process();
-		QLineEdit* pendingMass = w.m_trainUnitPhysicalEdits[0]
-			? w.m_trainUnitPhysicalEdits[0]->findChild<QLineEdit*>()
+		QLineEdit* pendingMass = trainUnitPanel(w)->physicalEdits()[0]
+			? trainUnitPanel(w)->physicalEdits()[0]->findChild<QLineEdit*>()
 			: nullptr;
 		if (!pendingMass) {
 			fail(QStringLiteral("focused train-unit mass editor is unavailable"));
@@ -1316,7 +1325,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				++previewConnections;
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
-			|| !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allSignals.isEmpty() || !w.m_presenter->allPlatforms.isEmpty()
+			|| !PresenterAccess::allArcs(*w.m_presenter).isEmpty() || !w.m_presenter->runSignals().isEmpty() || !PresenterAccess::allPlatforms(*w.m_presenter).isEmpty()
 			|| w.m_runController->m_worker || w.m_document->isDirty() || !w.m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
 					.arg(previewArcs)
@@ -1379,8 +1388,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		};
 		for (QMessageBox::StandardButton decision : {QMessageBox::Cancel,
 				 QMessageBox::Discard, QMessageBox::Save}) {
-			w.m_caseNameEdit->setFocus(Qt::OtherFocusReason);
-			w.m_caseNameEdit->setText(QStringLiteral("pending case name"));
+			caseSettingsPanel(w)->nameEdit()->setFocus(Qt::OtherFocusReason);
+			caseSettingsPanel(w)->nameEdit()->setText(QStringLiteral("pending case name"));
 			acceptMessageBox(decision);
 			if (!openRecent(folder)) {
 				fail(QStringLiteral("pending-open test could not find recent folder"));
@@ -1406,12 +1415,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				}
 			}
 		}
-		if (!editLine(w.m_caseNameEdit, QString::fromStdString(originalName))) {
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QString::fromStdString(originalName))) {
 			fail(QStringLiteral("could not restore case name after pending-open checks"));
 			return;
 		}
 		w.m_saveSceneAction->trigger();
-		w.m_caseNameEdit->setText(QStringLiteral("chooser pending edit"));
+		caseSettingsPanel(w)->nameEdit()->setText(QStringLiteral("chooser pending edit"));
 		QTimer::singleShot(0, &w, [&w, folder]() {
 			auto* chooser = w.findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
 			auto* list = chooser
@@ -1435,7 +1444,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("chooser bypassed the pending-open cancellation boundary"));
 			return;
 		}
-		if (!editLine(w.m_caseNameEdit, QString::fromStdString(originalName))) {
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QString::fromStdString(originalName))) {
 			fail(QStringLiteral("could not restore case name after chooser check"));
 			return;
 		}
@@ -1450,7 +1459,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 			file.close();
 			w.m_session->addRecentScene(invalidBundle);
-			w.m_caseNameEdit->setText(QStringLiteral("retained after failed open"));
+			caseSettingsPanel(w)->nameEdit()->setText(QStringLiteral("retained after failed open"));
 			acceptMessageBox(QMessageBox::Discard);
 			if (!openRecent(invalidBundle)) {
 				fail(QStringLiteral("invalid incoming bundle was not offered as a recent scene"));
@@ -1463,7 +1472,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		}
 		w.m_session->rebuildRecentScenesMenu();
-		if (!editLine(w.m_caseNameEdit, QString::fromStdString(originalName))) {
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QString::fromStdString(originalName))) {
 			fail(QStringLiteral("could not restore case name after failed-load check"));
 			return;
 		}
@@ -1479,7 +1488,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		w.m_session->m_sceneDir = failedSave;
 		w.m_session->m_sceneIsBundle = true;
-		w.m_caseNameEdit->setText(QStringLiteral("retained after failed save"));
+		caseSettingsPanel(w)->nameEdit()->setText(QStringLiteral("retained after failed save"));
 		acceptMessageBox(QMessageBox::Save);
 		if (!openRecent(bundle)) {
 			fail(QStringLiteral("failed-save replacement was not offered as a recent scene"));
@@ -1692,7 +1701,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		while ((w.m_runController->m_worker || w.m_runController->m_afterRunAction) && reloadWait.elapsed() < 15000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		process();
-		if (w.m_runController->m_worker || w.m_runController->m_resultsAvailable || w.m_runController->m_runtimeStatus != "Not built"
+		if (w.m_runController->m_worker || w.m_runController->resultsAvailable() || w.m_runController->state() != RunController::RunState::NotBuilt
 			|| w.m_followAction->isChecked() || followButton->isChecked() || w.m_followTrainIndex != -1
 			|| w.progressBar->isVisible()
 			|| w.ui->actionSimulationPause->text() != "Pause"
@@ -1701,14 +1710,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		w.m_speedSlider->setValue(500);
-		if (!w.m_document->isLoaded() || !w.m_runSceneAction || !w.m_serviceOccurrenceTable
-			|| !w.m_scenarioListWidget || !w.m_setDelayBaselineButton || !w.m_compareDelayButton
-			|| !w.m_delayFeedbackLabel) {
+		if (!w.m_document->isLoaded() || !w.m_runSceneAction || !servicePanel(w)->occurrenceTable()
+			|| !scenarioPanel(w)->listWidget() || !w.m_runResultsPanel->setDelayBaselineButton() || !w.m_runResultsPanel->compareDelayButton()
+			|| !w.m_runResultsPanel->delayFeedbackLabel()) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
 			return;
 		}
-		if (w.m_setDelayBaselineButton->isEnabled() || w.m_compareDelayButton->isEnabled()
-			|| w.m_delayFeedbackLabel->text() != QStringLiteral("No baseline set")) {
+		if (w.m_runResultsPanel->setDelayBaselineButton()->isEnabled() || w.m_runResultsPanel->compareDelayButton()->isEnabled()
+			|| w.m_runResultsPanel->delayFeedbackLabel()->text() != QStringLiteral("No baseline set")) {
 			fail(QStringLiteral("delay controls are enabled, or the delay line names a baseline, before any run"));
 			return;
 		}
@@ -1720,14 +1729,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("baseline scenario was not retained after bundle reopen"));
 			return;
 		}
-		w.m_scenarioListWidget->setCurrentRow(baselineRow);
+		scenarioPanel(w)->listWidget()->setCurrentRow(baselineRow);
 		process();
-		if (w.m_serviceOccurrenceTable->rowCount() != 3) {
+		if (servicePanel(w)->occurrenceTable()->rowCount() != 3) {
 			fail(QStringLiteral("three service occurrences were not exposed after reopen"));
 			return;
 		}
-		for (int row = 0; row < w.m_serviceOccurrenceTable->rowCount(); ++row) {
-			if (auto* item = w.m_serviceOccurrenceTable->item(row, 0))
+		for (int row = 0; row < servicePanel(w)->occurrenceTable()->rowCount(); ++row) {
+			if (auto* item = servicePanel(w)->occurrenceTable()->item(row, 0))
 				item->setCheckState(row == 2 ? Qt::Unchecked : Qt::Checked);
 		}
 		process();
@@ -1746,7 +1755,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 10) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("baseline simulation did not complete"));
 				return;
@@ -1760,11 +1769,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
 			return;
 		}
-		if (!w.tabifiedDockWidgets(w.m_loadedDataDock).contains(w.m_runResultsDock)) {
+		if (!w.tabifiedDockWidgets(w.m_loadedDataDock).contains(w.m_runResultsPanel->dock())) {
 			fail(QStringLiteral("run results do not share the loaded-data dock area"));
 			return;
 		}
-		QAction* timeDistance = w.m_runResultsDock->findChild<QAction*>("resultView_Time/distance");
+		QAction* timeDistance = w.m_runResultsPanel->dock()->findChild<QAction*>("resultView_Time/distance");
 		if (!timeDistance) {
 			fail(QStringLiteral("public Time / distance result control is unavailable"));
 			return;
@@ -1792,10 +1801,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("baseline result diagram has nothing to export"));
 			return;
 		}
-		w.m_setDelayBaselineButton->click();
-		if (!w.m_runController->m_delayBaseline || !w.m_runResultsSummaryLabel || !w.m_delayFeedbackLabel
-			|| !w.m_runResultsSummaryLabel->text().contains(QStringLiteral("Delay baseline:"))
-			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline:"))) {
+		w.m_runResultsPanel->setDelayBaselineButton()->click();
+		if (!w.m_runController->m_delayBaseline || !w.m_runResultsPanel->summaryLabel() || !w.m_runResultsPanel->delayFeedbackLabel()
+			|| !w.m_runResultsPanel->summaryLabel()->text().contains(QStringLiteral("Delay baseline:"))
+			|| !w.m_runResultsPanel->delayFeedbackLabel()->text().startsWith(QStringLiteral("Baseline:"))) {
 			fail(QStringLiteral("public delay baseline control did not freeze baseline"));
 			return;
 		}
@@ -1809,11 +1818,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
 			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "entrance")
 				entranceRow = row;
-		if (entranceRow < 0 || !w.m_scenarioListWidget || !w.m_runSceneAction) {
+		if (entranceRow < 0 || !scenarioPanel(w)->listWidget() || !w.m_runSceneAction) {
 			fail(QStringLiteral("entrance scenario was not available for public run"));
 			return;
 		}
-		w.m_scenarioListWidget->setCurrentRow(entranceRow);
+		scenarioPanel(w)->listWidget()->setCurrentRow(entranceRow);
 		process();
 		creatorAcceptance.polls = 0;
 		w.m_runSceneAction->trigger();
@@ -1822,7 +1831,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 12) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("entrance-delay simulation did not complete"));
 				return;
@@ -1889,12 +1898,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		// The comparison accepts a scenario with entrance delays and shows the entrance delay as the input delay.
-		if (!w.m_delayFeedbackLabel || !w.m_compareDelayButton->isEnabled()
-			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline: "))) {
+		if (!w.m_runResultsPanel->delayFeedbackLabel() || !w.m_runResultsPanel->compareDelayButton()->isEnabled()
+			|| !w.m_runResultsPanel->delayFeedbackLabel()->text().startsWith(QStringLiteral("Baseline: "))) {
 			fail(QStringLiteral("entrance-delay result did not enable the delay comparison"));
 			return;
 		}
-		w.m_compareDelayButton->click();
+		w.m_runResultsPanel->compareDelayButton()->click();
 		process();
 		DelayAnalysisWindow* entranceWindow = newestDelayWindow();
 		const auto* entranceTabs = entranceWindow ? entranceWindow->findChild<QTabWidget*>("delayAnalysisTabs") : nullptr;
@@ -1919,11 +1928,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
 			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "incident")
 				incidentRow = row;
-		if (incidentRow < 0 || !w.m_scenarioListWidget || !w.m_runSceneAction) {
+		if (incidentRow < 0 || !scenarioPanel(w)->listWidget() || !w.m_runSceneAction) {
 			fail(QStringLiteral("incident scenario was not available for final public run"));
 			return;
 		}
-		w.m_scenarioListWidget->setCurrentRow(incidentRow);
+		scenarioPanel(w)->listWidget()->setCurrentRow(incidentRow);
 		process();
 		creatorAcceptance.polls = 0;
 		w.m_runSceneAction->trigger();
@@ -1932,7 +1941,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 13) {
-		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->resultsAvailable()) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("incident simulation did not complete"));
 				return;
@@ -1949,8 +1958,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("final incident run lacked direct incident evidence"));
 			return;
 		}
-		if (!w.m_compareDelayButton->isEnabled() || !w.m_delayFeedbackLabel
-			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline: "))) {
+		if (!w.m_runResultsPanel->compareDelayButton()->isEnabled() || !w.m_runResultsPanel->delayFeedbackLabel()
+			|| !w.m_runResultsPanel->delayFeedbackLabel()->text().startsWith(QStringLiteral("Baseline: "))) {
 			fail(QStringLiteral("incident result did not expose an enabled delay comparison next step"));
 			return;
 		}
@@ -1959,7 +1968,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (const auto& train : w.m_runController->m_completedRun->results.trains)
 			trainsWithEvidence += train.directIncidentIds.empty() ? 0 : 1;
 		w.m_advancedDetailsAction->setChecked(true);
-		const QString evidenceSummary = w.m_runResultsSummaryLabel->text();
+		const QString evidenceSummary = w.m_runResultsPanel->summaryLabel()->text();
 		w.m_advancedDetailsAction->setChecked(false);
 		if (!evidenceSummary.contains(QString("Incidents acted on %1 of %2 train")
 					.arg(trainsWithEvidence)
@@ -1974,7 +1983,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 14) {
 		const QString exportDir = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_EXPORT_DIR"));
-		if (!w.m_runController->m_resultsAvailable || exportDir.isEmpty() || !w.m_runResultsDock) {
+		if (!w.m_runController->resultsAvailable() || exportDir.isEmpty() || !w.m_runResultsPanel->dock()) {
 			fail(QStringLiteral("public result controls or export target are unavailable"));
 			return;
 		}
@@ -2004,7 +2013,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return nullptr;
 		};
 		auto findResultAction = [&](const QString& text) -> QAction* {
-			for (QAction* action : w.m_runResultsDock->findChildren<QAction*>())
+			for (QAction* action : w.m_runResultsPanel->dock()->findChildren<QAction*>())
 				if (action->text() == text && action->objectName().startsWith("resultView_"))
 					return action;
 			return nullptr;
@@ -2256,8 +2265,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		summaryPng->click();
 		process();
 		int summaryColumnsWidth = 0;
-		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column)
-			summaryColumnsWidth += w.m_runResultsTable->columnWidth(column);
+		for (int column = 0; column < w.m_runResultsPanel->table()->columnCount(); ++column)
+			summaryColumnsWidth += w.m_runResultsPanel->table()->columnWidth(column);
 		const QImage summaryImage(path("run_summary.png"));
 		if (summaryImage.isNull() || summaryImage.width() / summaryImage.devicePixelRatio() < summaryColumnsWidth) {
 			fail(QStringLiteral("the run summary picture does not show every column of the table"));
@@ -2826,13 +2835,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 15) {
-		if (!w.m_caseSettingsDock || !w.m_caseDescriptionEdit || !w.m_runResultsDock) {
+		if (!caseSettingsDock(w) || !caseSettingsPanel(w)->descriptionEdit() || !w.m_runResultsPanel->dock()) {
 			fail(QStringLiteral("stale-result invalidation controls are unavailable"));
 			return;
 		}
-		w.m_caseSettingsDock->show();
-		w.m_caseSettingsDock->raise();
-		if (!editLine(w.m_caseDescriptionEdit,
+		caseSettingsDock(w)->show();
+		caseSettingsDock(w)->raise();
+		if (!editLine(caseSettingsPanel(w)->descriptionEdit(),
 				QStringLiteral("creator acceptance edited after incident exports"))) {
 			fail(QStringLiteral("description editing did not commit through editingFinished"));
 			return;
@@ -2842,18 +2851,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (QPushButton* button : w.findChildren<QPushButton*>())
 			if (button->objectName().startsWith(QStringLiteral("resultView_")))
 				resultButtonsDisabled = resultButtonsDisabled && !button->isEnabled();
-		for (QAction* action : w.m_runResultsDock->findChildren<QAction*>())
+		for (QAction* action : w.m_runResultsPanel->dock()->findChildren<QAction*>())
 			if (action->objectName().startsWith("resultView_"))
 				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
-		if (w.m_runController->m_resultsAvailable || w.m_runController->m_delayBaseline || w.m_runResultsDock->isVisible() || !resultButtonsDisabled
-			|| !w.m_delayFeedbackLabel || w.m_delayFeedbackLabel->text() != QStringLiteral("Baseline cleared: the case changed")) {
+		if (w.m_runController->resultsAvailable() || w.m_runController->m_delayBaseline || w.m_runResultsPanel->dock()->isVisible() || !resultButtonsDisabled
+			|| !w.m_runResultsPanel->delayFeedbackLabel() || w.m_runResultsPanel->delayFeedbackLabel()->text() != QStringLiteral("Baseline cleared: the case changed")) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
 		if (!w.m_session->requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
 			|| !w.m_runController->m_delayBaselineStatus.isEmpty()
-			|| w.m_delayFeedbackLabel->text() != QStringLiteral("No baseline set")) {
+			|| w.m_runResultsPanel->delayFeedbackLabel()->text() != QStringLiteral("No baseline set")) {
 			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));
 			return;
 		}
@@ -2902,7 +2911,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	const qreal expectedScale = 0.45;
 	const auto checkPresentation = [&]() {
 		const auto closeTo = [](qreal a, qreal b) { return qAbs(a - b) < 1e-6; };
-		if (!closeTo(w.m_presenter->m_cachedTrackPreview.presentationScale, expectedScale)) return false;
+		if (!closeTo(w.m_presenter->trackPreview().presentationScale, expectedScale)) return false;
 		int squares = 0, dots = 0, heads = 0, platforms = 0;
 		for (auto* item : w.scene->items()) {
 			if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
@@ -2913,12 +2922,12 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				++dots;
 			} else if (auto* head = qgraphicsitem_cast<SignalItem*>(item)) {
 				if (!closeTo(head->rect().width(), w.m_presenter->node_size * expectedScale)) return false;
-				const auto line = std::find_if(w.m_presenter->m_cachedTrackPreview.lines.begin(), w.m_presenter->m_cachedTrackPreview.lines.end(),
+				const auto line = std::find_if(w.m_presenter->trackPreview().lines.begin(), w.m_presenter->trackPreview().lines.end(),
 					[&](const auto& candidate) {
 						return w.m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
 													   : &candidate == w.m_presenter->cachedTrackLine(head->trackID);
 					});
-				if (line == w.m_presenter->m_cachedTrackPreview.lines.end()) return false;
+				if (line == w.m_presenter->trackPreview().lines.end()) return false;
 				QPointF center, before, after, normal;
 				if (!previewPointAtX(*line, head->X, line->displayOffset, center)
 					|| !previewPointAtX(*line, head->X - 0.008, line->displayOffset, before)
@@ -2947,18 +2956,18 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
 				if (stroke->pen().width() > 0 && !stroke->pen().isCosmetic()) return false;
 		}
-		if (!squares || !dots || !heads || !platforms || w.m_presenter->m_stationPictures.isEmpty()
-			|| w.m_presenter->m_stationLabels.size() != w.m_presenter->m_stationOverlays.size()) return false;
-		for (int i = 0; i < w.m_presenter->m_stationOverlays.size(); ++i) {
-			const auto* overlay = w.m_presenter->m_stationOverlays[i];
-			const auto* picture = w.m_presenter->m_stationPictures.value(w.m_presenter->m_stationOverlays[i], nullptr);
-			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_presenter->m_stationLabels[i]);
+		if (!squares || !dots || !heads || !platforms || PresenterAccess::stationPictures(*w.m_presenter).isEmpty()
+			|| PresenterAccess::stationLabels(*w.m_presenter).size() != w.m_presenter->stationOverlays().size()) return false;
+		for (int i = 0; i < w.m_presenter->stationOverlays().size(); ++i) {
+			const auto* overlay = w.m_presenter->stationOverlays()[i];
+			const auto* picture = PresenterAccess::stationPictures(*w.m_presenter).value(w.m_presenter->stationOverlays()[i], nullptr);
+			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(PresenterAccess::stationLabels(*w.m_presenter)[i]);
 			const auto source = std::find_if(w.m_document->mutableModel().stations.begin(), w.m_document->mutableModel().stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_document->mutableModel().stations.end() || !picture || !label) return false;
 			// At the scene size the artwork stands where the rule of the cached line that holds the node of the station
 			// puts it.
-			const auto& cached = w.m_presenter->m_cachedTrackPreview;
+			const auto& cached = w.m_presenter->trackPreview();
 			const auto anchor = std::find_if(cached.stations.begin(), cached.stations.end(),
 				[&](const TrackPreviewStation& station) { return station.id == source->id; });
 			const auto line = std::find_if(cached.lines.begin(), cached.lines.end(), [&](const TrackPreviewLine& candidate) {
@@ -3198,9 +3207,9 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const SceneModel saved = w.m_document->mutableModel();
 	const bool savedDirty = w.m_document->isDirty();
 	const quint64 initialRevision = w.m_document->revision();
-	const QString editorSelection = w.m_infrastructurePanel->selectionId();
+	const QString editorSelection = infrastructurePanel(w)->selectionId();
 	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
-	for (const auto& line : w.m_presenter->m_cachedTrackPreview.lines) {
+	for (const auto& line : w.m_presenter->trackPreview().lines) {
 		for (const auto& point : line.points) {
 			auto* item = find("node", QString::fromStdString(point.nodeId));
 			if (!item) item = find("station-node", QString::fromStdString(point.nodeId));
@@ -3246,8 +3255,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.m_inspector->m_connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_document->revision() == initialRevision && w.m_document->isDirty() == savedDirty
-				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
-				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
+				&& infrastructurePanel(w)->selectionId() == editorSelection && !w.m_runController->m_worker && PresenterAccess::allArcs(*w.m_presenter).isEmpty()
+				&& w.m_presenter->runSignals().isEmpty() && PresenterAccess::allPlatforms(*w.m_presenter).isEmpty(),
 			"inspection mutated Open state")) return false;
 
 	const bool unchangedNodes = w.m_document->mutableModel().nodes.size() == saved.nodes.size()
@@ -3282,7 +3291,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	w.m_document->mutableModel() = fixture;
 	++w.m_document->m_revision;
 	w.renderTrackPreview(w.m_document->mutableModel());
-	const QRectF topologyBounds = w.m_presenter->m_previewFitBounds;
+	const QRectF topologyBounds = w.m_presenter->previewFit().bounds;
 	auto* z0 = qgraphicsitem_cast<NodeItem*>(find("node", "z0"));
 	auto* z1 = qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z1"));
 	auto* z3 = qgraphicsitem_cast<NodeItem*>(find("node", "z3"));
@@ -3304,16 +3313,16 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				.arg(w.m_inspector->m_nodeStationNameText->text(), w.m_inspector->m_nodeXText->text(), w.m_inspector->dock()->windowTitle()))) return false;
 	StationOverlayItem* earlier = nullptr;
 	StationOverlayItem* between = nullptr;
-	for (auto* overlay : w.m_presenter->m_stationOverlays) {
+	for (auto* overlay : w.m_presenter->stationOverlays()) {
 		if (overlay->data(PreviewGraphics::Id).toString() == "earlier") earlier = overlay;
 		if (overlay->data(PreviewGraphics::Id).toString() == "between") between = overlay;
 	}
-	const auto& line = w.m_presenter->m_cachedTrackPreview.lines.front();
+	const auto& line = w.m_presenter->trackPreview().lines.front();
 	QPointF expectedBetween;
 	previewPointAtX(line, 1.5, line.displayOffset, expectedBetween);
 	if (!require(earlier && between && between->stableAnchor() == expectedBetween,
 			"position-only artwork uses authored Z-before-A track")) return false;
-	auto* picture = w.m_presenter->m_stationPictures.value(earlier, nullptr);
+	auto* picture = PresenterAccess::stationPictures(*w.m_presenter).value(earlier, nullptr);
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
 	// At this zoom the squares of the fixture are far enough apart for the near look: a station with squares draws no
 	// artwork, and its own square, not the square that holds the artwork, gives its canonical identity.
@@ -3338,7 +3347,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	w.networkView->scale(2, 2);
 	w.updateViewportOverlays();
 	// Position-only artwork has a real station, not an invented node. Without a square it keeps its pin in the near look.
-	auto* positionPicture = w.m_presenter->m_stationPictures.value(between, nullptr);
+	auto* positionPicture = PresenterAccess::stationPictures(*w.m_presenter).value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
 	const auto* positionMark = dynamic_cast<const StationMarkItem*>(positionPicture);
 	if (!require(positionMark && !positionMark->isNearLook() && !positionMark->shape().isEmpty(),
@@ -3348,19 +3357,19 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(w.m_inspector->m_nodeIDText->text() == "None" && w.m_inspector->m_nodeXText->text().toDouble() == 1500
 				&& w.m_inspector->m_nodeStationNameText->text() == "Duplicate [between]",
 			"position-only canonical inspection")) return false;
-	const bool oldLayer = w.m_presenter->m_stationLayerVisible, oldNames = w.m_presenter->m_stationNamesVisible;
-	w.m_presenter->m_stationLayerVisible = false;
-	w.m_presenter->m_stationNamesVisible = false;
-	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(false);
+	const bool oldLayer = PresenterAccess::stationLayerVisible(*w.m_presenter), oldNames = PresenterAccess::stationNamesVisible(*w.m_presenter);
+	PresenterAccess::stationLayerVisible(*w.m_presenter) = false;
+	PresenterAccess::stationNamesVisible(*w.m_presenter) = false;
+	for (auto* decoration : PresenterAccess::stationDecorations(*w.m_presenter)) decoration->setVisible(false);
 	w.updateViewportOverlays();
-	if (!require(z1->isVisible() && !picture->isVisible() && !w.m_presenter->m_stationLabels.front()->isVisible(),
+	if (!require(z1->isVisible() && !picture->isVisible() && !PresenterAccess::stationLabels(*w.m_presenter).front()->isVisible(),
 			"station layers must not hide structural squares")) return false;
-	w.m_presenter->m_stationLayerVisible = true;
+	PresenterAccess::stationLayerVisible(*w.m_presenter) = true;
 	w.updateViewportOverlays();
-	if (!require(!w.m_presenter->m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
-	w.m_presenter->m_stationLayerVisible = oldLayer;
-	w.m_presenter->m_stationNamesVisible = oldNames;
-	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(oldLayer);
+	if (!require(!PresenterAccess::stationLabels(*w.m_presenter).front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
+	PresenterAccess::stationLayerVisible(*w.m_presenter) = oldLayer;
+	PresenterAccess::stationNamesVisible(*w.m_presenter) = oldNames;
+	for (auto* decoration : PresenterAccess::stationDecorations(*w.m_presenter)) decoration->setVisible(oldLayer);
 	w.updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
 	if (!require(w.m_inspector->m_arcIDText->text() == "None" && w.m_inspector->m_arcFirstNodeIDText->text().isEmpty()
@@ -3377,8 +3386,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 					&& w.m_inspector->m_signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}
-	if (!require(w.m_presenter->m_previewFitBounds == topologyBounds && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
-				&& w.m_presenter->allPlatforms.isEmpty() && w.m_presenter->allSignals.isEmpty(),
+	if (!require(w.m_presenter->previewFit().bounds == topologyBounds && !w.m_runController->m_worker && PresenterAccess::allArcs(*w.m_presenter).isEmpty()
+				&& PresenterAccess::allPlatforms(*w.m_presenter).isEmpty() && w.m_presenter->runSignals().isEmpty(),
 			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.
 	const auto held = [&w, fixtureRevision]() {

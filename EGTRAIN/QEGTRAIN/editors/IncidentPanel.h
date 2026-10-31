@@ -2,12 +2,7 @@
 #define INCIDENTPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way RunSelection.h needs it.
-#include "app/RunSelection.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <functional>
@@ -43,18 +38,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit IncidentPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced, and shows the choices of targets again when the case settings, the
-	/// infrastructure or the services change.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
-	/// The scenario that is shown and the scenarios that are edited are kept here. The panel uses its own until it is
-	/// given another; null brings its own back. The selection must outlive the panel.
-	void setRunSelection(RunSelection* selection);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Gives the target that addIncident() gives a new incident. It is asked before the incident is added. A target that the
 	/// combo does not offer, or none, leaves the new incident a signal failure without a target.
 	void setDefaultTarget(std::function<IncidentTarget()> target);
@@ -114,9 +97,8 @@ public:
 	/// Sets the terminate-at-destination request of a breakdown (see the scene schema).
 	void commitTerminateAtDestination(bool checked);
 
-	/// The selected incident for an edit, or null when none is selected or the scene cannot be edited. A scene without a
-	/// scenario gets the baseline scenario first.
-	SceneIncident* selectedIncident();
+	/// The selected incident, or null when none is selected or the scene cannot be edited.
+	const SceneIncident* selectedIncident() const;
 
 	/// The incidents of the selected scenario, one row each.
 	QListWidget* listWidget() const { return m_listWidget; }
@@ -160,35 +142,27 @@ Q_SIGNALS:
 protected:
 	/// Ends picking, unless the window system hid the panel, as when the window is minimized.
 	void hideEvent(QHideEvent* event) override;
+	/// Shows the choices of targets again when the case settings or the services change, and the incidents with them when the
+	/// infrastructure changes.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
-	double occurrenceDuration() const;
 	// Gives the incident another type: a signal failure loses what only a breakdown has, and a target that is not valid for
 	// the type is dropped.
 	void changeType(SceneIncident& incident, const std::string& type) const;
-	// The incidents of the selected scenario. The second form adds the baseline scenario to a scene that has none, and
-	// is null unless the scene can be edited.
+	// The incidents of the selected scenario.
 	const std::vector<SceneIncident>& scenarioIncidents() const;
-	std::vector<SceneIncident>* scenarioIncidentsForEdit();
 	// The incident in the selected row of the list, or null.
 	const SceneIncident* shownIncident() const;
-	// Records that the selected scenario is edited and tells the document.
-	void markEdited(const QString& label);
+	// Applies `mutate` to the incidents of the selected scenario in one edit of the document and records that the scenario is
+	// edited. A scene without a scenario gets the baseline scenario first. False when the document refuses the edit.
+	bool editIncidents(const QString& label, const std::function<void(std::vector<SceneIncident>&)>& mutate);
+	// As editIncidents(), for the incident in the selected row of the list, which there must be.
+	bool editSelected(const QString& label, const std::function<void(SceneIncident&)>& mutate);
 	// Appends and selects a new incident with the target, or a signal failure without one for an empty type, in one edit.
 	// The scene must be editable and have the selected scenario.
 	void appendIncident(const IncidentTarget& target);
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	QMetaObject::Connection m_changedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
-	RunSelection m_ownRunSelection;
-	RunSelection* m_runSelection = &m_ownRunSelection;
-	std::function<double()> m_occurrenceDuration;
 	std::function<IncidentTarget()> m_defaultTarget;
 
 	QListWidget* m_listWidget = nullptr;

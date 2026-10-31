@@ -4,7 +4,14 @@
 #include "app/MainWindowTestHooks.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainKeyList.h"
+#include "editors/CaseSettingsPanel.h"
+#include "editors/CompositionPanel.h"
+#include "editors/IncidentPanel.h"
+#include "editors/InfrastructurePanel.h"
+#include "editors/ScenarioPanel.h"
+#include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
+#include "editors/TrainUnitPanel.h"
 #include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
@@ -341,7 +348,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	// a focused table, with no editor open on one of its cells. Clearing the current cell first closes an editor that an
 	// earlier edit left open.
 	const auto selectRow = [&w](int row) {
-		QTableWidget* table = w.m_infrastructureTable;
+		QTableWidget* table = infrastructurePanel(w)->table();
 		const QAbstractItemView::EditTriggers triggers = table->editTriggers();
 		table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		table->setCurrentIndex(QModelIndex());
@@ -350,11 +357,11 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		table->setFocus(Qt::MouseFocusReason);
 		table->setEditTriggers(triggers);
 		settle();
-		return w.m_deleteInfrastructureButton->isEnabled();
+		return infrastructurePanel(w)->deleteButton()->isEnabled();
 	};
 	const auto facet = [&w](const char* name) {
-		const int index = w.m_infrastructureFacetCombo->findData(QString::fromLatin1(name));
-		w.m_infrastructureFacetCombo->setCurrentIndex(index);
+		const int index = infrastructurePanel(w)->facetCombo()->findData(QString::fromLatin1(name));
+		infrastructurePanel(w)->facetCombo()->setCurrentIndex(index);
 		settle();
 		return index >= 0;
 	};
@@ -362,16 +369,16 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		if (!facet(name))
 			return false;
 		for (int row = 0; row < count; ++row) {
-			w.m_addInfrastructureButton->click();
+			infrastructurePanel(w)->addButton()->click();
 			settle();
 		}
 		return true;
 	};
 	const auto setCell = [&w](int row, int column, const QString& value) {
-		QTableWidgetItem* item = w.m_infrastructureTable->item(row, column);
+		QTableWidgetItem* item = infrastructurePanel(w)->table()->item(row, column);
 		if (!item)
 			return false;
-		w.m_infrastructureTable->setCurrentCell(row, column);
+		infrastructurePanel(w)->table()->setCurrentCell(row, column);
 		item->setText(value);
 		settle();
 		return true;
@@ -394,7 +401,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				if (dialog.isVisible())
 					dialog.reject();
 			});
-		w.m_addStopButton->click();
+		timetableStopsPanel(w)->addButton()->click();
 		return dialogOpened(poll, QStringLiteral("Add Timetable Stop")) && chosen;
 	};
 
@@ -476,7 +483,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 
 	// The results: the menu Open result view of Run Results, and the context menu of a train in the replay at 3500 s.
 	steps.push_back([&w, showOnly] {
-		showOnly({w.m_runResultsDock});
+		showOnly({w.m_runResultsPanel->dock()});
 		w.fitView();
 		auto* button = w.findChild<QToolButton*>(QStringLiteral("runResultsViewsButton"));
 		if (!button || !button->menu())
@@ -497,7 +504,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w] {
 		const TrainBodyItem* body = nullptr;
-		for (const TrainItemGroup* train : w.m_presenter->allTrains)
+		for (const TrainItemGroup* train : w.m_presenter->runTrains())
 			if (train && train->isVisible() && train->trainPolygonItemList
 				&& QString::fromStdString(train->trainDescription).contains(QStringLiteral("ALL-STOPS")))
 				for (const TrainBodyItem* candidate : *train->trainPolygonItemList)
@@ -527,15 +534,15 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	// Modify a case: the case gets the name of the copy, then the stop Pontrieaux of the express in Edit Timetable Stop,
 	// whose dwell becomes 180 s, and the warning that this gives in Case Validation.
 	steps.push_back([&w] {
-		if (!editLine(w.m_caseNameEdit, QStringLiteral("Paimpol practice")))
+		if (!editLine(caseSettingsPanel(w)->nameEdit(), QStringLiteral("Paimpol practice")))
 			return failCaptures(QStringLiteral("the case could not be named Paimpol practice"));
-		w.revealEditorDock(w.m_serviceDock);
-		const QList<QListWidgetItem*> services = w.m_serviceListWidget->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
+		w.revealEditorDock(serviceDock(w));
+		const QList<QListWidgetItem*> services = servicePanel(w)->listWidget()->findItems(QStringLiteral("Guin-Paim-EXPRESS-1"), Qt::MatchExactly);
 		if (services.isEmpty())
 			return failCaptures(QStringLiteral("Services lists no Guin-Paim-EXPRESS-1"));
-		w.m_serviceListWidget->setCurrentItem(services.first());
-		showTab(w.m_serviceDock, QStringLiteral("Timetable"));
-		const int row = rowWithText(w.m_stopTableWidget, 0, QStringLiteral("Pontrieaux"));
+		servicePanel(w)->listWidget()->setCurrentItem(services.first());
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
+		const int row = rowWithText(timetableStopsPanel(w)->table(), 0, QStringLiteral("Pontrieaux"));
 		if (row < 0)
 			return failCaptures(QStringLiteral("the express has no stop Pontrieaux"));
 		const QPointer<QTimer> poll = whenShown(
@@ -549,7 +556,7 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				if (dialog.isVisible())
 					dialog.reject();
 			});
-		w.m_timetableStopsPanel->editStop(row);
+		timetableStopsPanel(w)->editStop(row);
 		return dialogOpened(poll, QStringLiteral("Edit Timetable Stop"));
 	});
 	steps.push_back([&w, showOnly, windowShot] {
@@ -560,26 +567,26 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 
 	// Modify a case: the scenario Express breakdown with its incident, after a run of baseline that is the delay baseline.
 	steps.push_back([&w, showOnly] {
-		showOnly({w.m_incidentDock, w.m_runResultsDock});
-		w.revealEditorDock(w.m_incidentDock);
-		w.m_scenarioListWidget->setCurrentRow(0);
-		w.m_duplicateScenarioButton->click();
+		showOnly({incidentDock(w), w.m_runResultsPanel->dock()});
+		w.revealEditorDock(incidentDock(w));
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
+		scenarioPanel(w)->duplicateButton()->click();
 		settle();
-		bool ok = editLine(w.m_scenarioNameEdit, QStringLiteral("Express breakdown"));
-		showTab(w.m_incidentDock, QStringLiteral("Incidents"));
-		w.m_addIncidentButton->click();
+		bool ok = editLine(scenarioPanel(w)->nameEdit(), QStringLiteral("Express breakdown"));
+		showTab(incidentDock(w), QStringLiteral("Incidents"));
+		incidentPanel(w)->addButton()->click();
 		settle();
-		ok = ok && chooseText(w.m_incidentTypeCombo, QStringLiteral("Train breakdown"))
-			&& chooseText(w.m_incidentTargetCombo, QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
-			&& editNumber(w.m_incidentStartSecondsEdit, 900);
-		w.m_incidentHasEndSecondsCheck->setChecked(true);
-		ok = ok && editNumber(w.m_incidentEndSecondsEdit, 1200);
+		ok = ok && chooseText(incidentPanel(w)->typeCombo(), QStringLiteral("Train breakdown"))
+			&& chooseText(incidentPanel(w)->targetCombo(), QStringLiteral("Guin-Paim-EXPRESS-1-1 (route route6, +10 s)"))
+			&& editNumber(incidentPanel(w)->startSecondsEdit(), 900);
+		incidentPanel(w)->hasEndSecondsCheck()->setChecked(true);
+		ok = ok && editNumber(incidentPanel(w)->endSecondsEdit(), 1200);
 		if (!ok)
 			return failCaptures(QStringLiteral("the incident of Express breakdown could not be entered"));
 		// The tutorial saves the case here. Saving is not needed for the pictures, and the case on disk stays as it is.
 		w.m_runSelection.clearModifiedScenarios();
 		w.m_document->markSaved();
-		w.m_scenarioListWidget->setCurrentRow(0);
+		scenarioPanel(w)->listWidget()->setCurrentRow(0);
 		settle();
 		w.m_runController->runCurrent();
 		return true;
@@ -587,9 +594,9 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	steps.push_back(runEnded);
 	steps.push_back([&w, showOnly, windowShot] {
 		w.m_runController->setDelayBaseline();
-		w.m_scenarioListWidget->setCurrentRow(1);
-		showOnly({w.m_incidentDock, w.m_runResultsDock});
-		showTab(w.m_incidentDock, QStringLiteral("Scenario"));
+		scenarioPanel(w)->listWidget()->setCurrentRow(1);
+		showOnly({incidentDock(w), w.m_runResultsPanel->dock()});
+		showTab(incidentDock(w), QStringLiteral("Scenario"));
 		return saveCapture(windowShot(), QStringLiteral("tutorial-modify-incident-baseline.png"), QStringLiteral("Paimpol"),
 			QStringLiteral("Express breakdown selected after a run of baseline set the delay baseline"));
 	});
@@ -636,8 +643,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 		return true;
 	});
 	steps.push_back([&w, showOnly, windowShot, addRows, selectRow] {
-		const bool built = editLine(w.m_caseNameEdit, QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
-		showOnly({w.m_infrastructureDock});
+		const bool built = editLine(caseSettingsPanel(w)->nameEdit(), QStringLiteral("Minimal line")) && addRows("tracks", 1) && addRows("nodes", 3);
+		showOnly({infrastructureDock(w)});
 		return built && selectRow(2)
 			? saveCapture(windowShot(), QStringLiteral("tutorial-minimal-nodes.png"), QStringLiteral("Minimal line"),
 				  QStringLiteral("new case with one track and three nodes, Infrastructure on Nodes"))
@@ -645,8 +652,8 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w, windowShot, facet, addRows, setCell, selectRow] {
 		bool built = addRows("arcs", 2) && facet("blocks");
-		const int track = w.m_blockTrackFilterCombo->findData(QStringLiteral("track"));
-		w.m_blockTrackFilterCombo->setCurrentIndex(track);
+		const int track = infrastructurePanel(w)->blockTrackFilterCombo()->findData(QStringLiteral("track"));
+		infrastructurePanel(w)->blockTrackFilterCombo()->setCurrentIndex(track);
 		built = built && track >= 0 && addRows("blocks", 2) && addRows("stations", 2) && addRows("platforms", 2)
 			&& setCell(1, 0, QStringLiteral("station_2")) && setCell(0, 2, QStringLiteral("node")) && setCell(1, 2, QStringLiteral("node_3"));
 		return built && selectRow(1)
@@ -656,38 +663,38 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 	});
 	steps.push_back([&w, addRows] {
 		bool built = addRows("signalling_areas", 1);
-		auto* system = qobject_cast<QComboBox*>(w.m_infrastructureTable->cellWidget(0, 3));
+		auto* system = qobject_cast<QComboBox*>(infrastructurePanel(w)->table()->cellWidget(0, 3));
 		built = built && system && chooseText(system, QStringLiteral("0 ATB fixed block")) && addRows("routes", 1);
 		for (const QString& section : {QStringLiteral("track 0.000 to 1.000 km"), QStringLiteral("track 1.000 to 2.000 km")}) {
-			built = built && chooseText(w.m_routeSectionCatalogCombo, section);
-			w.m_addRouteSectionButton->click();
+			built = built && chooseText(infrastructurePanel(w)->routeSectionCatalogCombo(), section);
+			infrastructurePanel(w)->addRouteSectionButton()->click();
 			settle();
 		}
 		return built || failCaptures(QStringLiteral("the signalling and route of Minimal line could not be added"));
 	});
 	// The placeholder unit SLT_Sprinter of Assignment_Gvc_Gdg_Ut, as the tutorial copies it.
 	steps.push_back([&w] {
-		w.revealEditorDock(w.m_trainUnitDock);
-		w.m_addTrainUnitButton->click();
+		w.revealEditorDock(trainUnitDock(w));
+		trainUnitPanel(w)->addButton()->click();
 		settle();
 		const std::array<double, 9> physical = {151000, 0, 0, 36.111111111111, 0.75, 1.45, 0.004, 0.75, 70};
-		for (std::size_t field = 0; field < w.m_trainUnitPhysicalEdits.size(); ++field)
-			w.m_trainUnitPhysicalEdits[field]->setValue(physical[field]);
+		for (std::size_t field = 0; field < trainUnitPanel(w)->physicalEdits().size(); ++field)
+			trainUnitPanel(w)->physicalEdits()[field]->setValue(physical[field]);
 		const std::array<std::array<double, 5>, 2> traction = {
 			{{0, 8.611111111111, 209000, 0, 0}, {8.611111111111, 36.111111111111, 324607.2915, -17671.4923, 292.9005}}};
 		for (int row = 0; row < 2; ++row) {
-			w.m_addTrainUnitTractionButton->click();
+			trainUnitPanel(w)->addTractionRowButton()->click();
 			settle();
 			for (int column = 0; column < 5; ++column) {
-				QTableWidgetItem* tractionCell = w.m_trainUnitTractionTable->item(row, column);
+				QTableWidgetItem* tractionCell = trainUnitPanel(w)->tractionTable()->item(row, column);
 				if (!tractionCell)
 					return failCaptures(QStringLiteral("the traction table of new_train_unit has no row %1").arg(row + 1));
 				tractionCell->setData(Qt::EditRole, traction[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)]);
 			}
 		}
 		settle();
-		w.revealEditorDock(w.m_compositionDock);
-		w.m_addCompositionButton->click();
+		w.revealEditorDock(compositionDock(w));
+		compositionPanel(w)->addButton()->click();
 		settle();
 		const QPointer<QTimer> poll = whenShown(
 			w, [] { return qobject_cast<QDialog*>(QApplication::activeModalWidget()); },
@@ -700,22 +707,22 @@ void MainWindowTestAccess::runCaptures(MainWindow& w) {
 				input->setTextValue(QStringLiteral("new_train_unit"));
 				dialog.accept();
 			});
-		w.m_addUnitButton->click();
+		compositionPanel(w)->addUnitButton()->click();
 		return dialogOpened(poll, QStringLiteral("Add Rolling Stock Unit"));
 	});
 	steps.push_back([&w, showOnly, windowShot, addStop] {
-		w.revealEditorDock(w.m_serviceDock);
-		w.m_addServiceButton->click();
+		w.revealEditorDock(serviceDock(w));
+		servicePanel(w)->addButton()->click();
 		settle();
-		if (!chooseText(w.m_serviceCompositionCombo, QStringLiteral("new_composition"))
-			|| !chooseText(w.m_serviceRouteCombo, QStringLiteral("route")))
+		if (!chooseText(servicePanel(w)->compositionCombo(), QStringLiteral("new_composition"))
+			|| !chooseText(servicePanel(w)->routeCombo(), QStringLiteral("route")))
 			return failCaptures(QStringLiteral("new_service cannot take new_composition and route"));
-		showTab(w.m_serviceDock, QStringLiteral("Timetable"));
+		showTab(serviceDock(w), QStringLiteral("Timetable"));
 		if (!addStop(QStringLiteral("station"), QStringLiteral("platform"), -1, 120)
 			|| !addStop(QStringLiteral("station_2"), QStringLiteral("platform_2"), 250, -1))
 			return failCaptures(QStringLiteral("the stops of new_service could not be added"));
-		showOnly({w.m_trainUnitDock, w.m_compositionDock, w.m_serviceDock});
-		w.resizeDocks({w.m_serviceDock}, {760}, Qt::Horizontal);
+		showOnly({trainUnitDock(w), compositionDock(w), serviceDock(w)});
+		w.resizeDocks({serviceDock(w)}, {760}, Qt::Horizontal);
 		return saveCapture(windowShot(), QStringLiteral("tutorial-minimal-service.png"), QStringLiteral("Minimal line"),
 			QStringLiteral("the finished case, Services on the timetable of new_service"));
 	});

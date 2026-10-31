@@ -354,6 +354,10 @@ egtrain_add_test(test_followavailability
 	LIBS egtrain_util
 	LABELS unit)
 
+egtrain_add_test(test_runoutcome
+	SOURCES ${SRC_DIR}/tests/test_runoutcome.cpp
+	LABELS unit)
+
 egtrain_add_test(test_replaycoverage
 	SOURCES ${SRC_DIR}/tests/test_replaycoverage.cpp
 	LIBS egtrain_dispatch egtrain_util

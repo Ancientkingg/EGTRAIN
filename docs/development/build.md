@@ -261,8 +261,8 @@ to `1` or `settings` and `QEGTRAIN_E2E_SETTINGS_DIR` set, the `privacyPreview` h
 dialog a fake context, no telemetry starts, and `QEGTRAIN_E2E_SCREENSHOT` names the file that receives a
 picture of the dialog. In the isolated telemetry smoke configuration (`EGTRAIN_ISOLATED_TELEMETRY_SMOKE`,
 described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compiled too. Its hooks
-`telemetryStart` (which gets the `UpdateTelemetryController` of the window), `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
-folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
+`telemetryStart` (which gets the `UpdateTelemetryController` of the window), `observationStep` and `windowDestroyed`, and
+its slot for the `workerReady` signal of `RunController`, start the telemetry in the folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
 stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
 are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.
 
@@ -277,8 +277,9 @@ markers are fixtures.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
 set, the runner starts the run of the case 1.5 s after the first show. The hooks
-`snapshotDelivered`, `snapshotDrawn`, `runResultsRefreshed`, `runFinished`, `runSettled` and
-`routeDiagramBuilt` of `MainWindowTestHooks` call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,
+`snapshotDelivered`, `snapshotDrawn`, `runFinished` and `routeDiagramBuilt` of `MainWindowTestHooks`, and
+the slots that `connectRunSignals` connects to the `refreshed` signal of `RunResultsDock` and the
+`runSettled` signal of `RunController`, call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,
 `QEGTRAIN_E2E_ROUTE_DIAGRAM`, `QEGTRAIN_E2E_SIGNAL_HEADS`, `QEGTRAIN_E2E_PAUSE_STEPS`,
 `QEGTRAIN_E2E_OPERATIONAL_COMPLETION`, `QEGTRAIN_E2E_OPERATIONAL_DISCARD`,
 `QEGTRAIN_E2E_REPLAY_WHOLE_RUN` and `QEGTRAIN_E2E_CLOSE_DURING_RUN`, and the markers

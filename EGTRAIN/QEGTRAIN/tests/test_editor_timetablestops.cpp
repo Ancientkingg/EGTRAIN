@@ -1,6 +1,9 @@
 #include "editors/TimetableStopsPanel.h"
 
+#include "editors/StopEditorDialog.h"
+#include "scene/StopInsertion.h"
 #include "support/FakePrompts.h"
+#include "util/TimeFormat.h"
 #include "widgets/ChoiceComboBox.h"
 
 #include <QAbstractEventDispatcher>
@@ -245,6 +248,32 @@ static bool inView(QDialog& dialog, const QLabel* message) {
 
 static const Log editLog({"documentChanged", "refreshed", "panelChanged"});
 
+// Whether the log names this event.
+static bool logged(const Log& log, const std::string& event) {
+	return std::find(log.begin(), log.end(), event) != log.end();
+}
+
+// lineScene() with a second platform at station B on the node of station C, so that a stop at B without a platform is
+// ambiguous.
+static SceneModel twoPlatformScene() {
+	SceneModel scene = lineScene();
+	scene.stations[1].platforms.push_back({"platform-b2", {"node-3"}});
+	return scene;
+}
+
+// What the fields of the stop dialog hold when it opens on `entry`, with the planned times as seconds after the base time
+// of lineScene().
+static StopDraftFields fieldsOf(const SceneStop& entry) {
+	StopDraftFields fields;
+	fields.hasArrival = entry.hasPlannedArrival;
+	fields.arrivalText = entry.hasPlannedArrival ? QString::number(entry.plannedArrivalSeconds) : QString();
+	fields.hasDeparture = entry.hasPlannedDeparture;
+	fields.departureText = entry.hasPlannedDeparture ? QString::number(entry.plannedDepartureSeconds) : QString();
+	fields.dwellText = QString::number(entry.dwellSeconds);
+	fields.baseOffsetSeconds = 8 * 3600;
+	return fields;
+}
+
 // A panel on a document that shows lineScene(), and the events of both from the opening of the scene on.
 struct StopsFixture {
 	SceneDocument document;
@@ -272,6 +301,7 @@ private slots:
 	void clockTimesStayWhole();
 	void showsStopsOfService();
 	void showsClockTimes();
+	void followsCaseSettings();
 	void movesStops();
 	void removesStopsAndFollowsService();
 	void closesWhileRunUsesScene();
@@ -284,8 +314,32 @@ private slots:
 	void messageRoleFollowsResolution();
 	void showsDashForMissingValues();
 	void showsLongNames();
+	void checksDraftInOrder();
+	void refusesPlannedTimesThatDoNotParse();
+	void refusesDwellThatIsNotZeroOrMore();
+	void refusesAmbiguousPlatformOnlyWhenAssigned();
+	void refusesStopThatInsertionRefuses();
+	void takesDraftWithAbsentPlannedTime();
+	void dialogGivesStopWithoutExec();
+	void editAppliesNothingToReplacedScene();
+	void editAppliesNothingWhileClosedForEdits();
+	void addAppliesNothingToReplacedScene();
+	void editAppliesNothingWhenServiceChanged();
+	void editAppliesAfterChangeOutsideServices();
+	void takesPendingTextBeforeCopyingService();
+	void addTakesPendingTextBeforeCopyingService();
+	void addAppliesNothingWhenStopNoLongerFits();
 	void leavesNoEmptyBandInFormOfMacOs();
 };
+
+// The planned times follow the base time of the case.
+void TestTimetableStopsPanel::followsCaseSettings() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	QCOMPARE(f.panel.timeBaseLabel()->text(), "Seconds after 08:00:00");
+	QVERIFY(f.document.edit(SceneDocument::CaseSettings, "Edit case settings", [](SceneModel& model) { model.baseTime = "09:00:00"; }));
+	QCOMPARE(f.panel.timeBaseLabel()->text(), "Seconds after 09:00:00");
+}
 
 void TestTimetableStopsPanel::showsNothingWithoutScene() {
 	TimetableStopsPanel panel;
@@ -1148,6 +1202,426 @@ void TestTimetableStopsPanel::showsLongNames() {
 	if (QTest::currentTestFailed())
 		return;
 	QVERIFY2(run.opened, "the dialog opens to add a stop after long names");
+}
+
+// The checks of a stop come in a fixed order, and the first problem is reported with the field that it belongs to.
+void TestTimetableStopsPanel::checksDraftInOrder() {
+	const SceneModel scene = twoPlatformScene();
+	const SceneService& service = scene.services[0];
+	SceneStop draft = service.stops[1];
+	draft.stationId.clear();
+	draft.platformId.clear();
+	StopDraftFields fields = fieldsOf(service.stops[1]);
+	fields.arrivalText = "soon";
+	fields.departureText = "later";
+	fields.dwellText = "-5";
+	StopDraftCheck check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "Planned arrival must be seconds after the base time, such as 120.");
+	QVERIFY(check.field == StopDraftField::PlannedArrival);
+	fields.arrivalText = "60";
+	check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QCOMPARE(check.message, "Planned departure must be seconds after the base time, such as 120.");
+	QVERIFY(check.field == StopDraftField::PlannedDeparture);
+	fields.departureText = "90";
+	check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QCOMPARE(check.message, "Minimum dwell must be 0 or more seconds.");
+	QVERIFY(check.field == StopDraftField::Dwell);
+	fields.dwellText = "30";
+	check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QCOMPARE(check.message, "Choose a station for this timetable stop.");
+	QVERIFY(check.field == StopDraftField::Station);
+	draft.stationId = "station-b";
+	check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QCOMPARE(check.message, "Choose a platform: the route reaches more than one here.");
+	QVERIFY(check.field == StopDraftField::Platform);
+	draft.platformId = "platform-b";
+	check = validateStopDraft(scene, service, 1, false, draft, fields);
+	QVERIFY(check.ok);
+	QVERIFY(check.message.isEmpty());
+
+	// A position that offers no station comes before every field.
+	StopDraftFields bad;
+	bad.hasArrival = true;
+	bad.arrivalText = "soon";
+	bad.dwellText = "-1";
+	check = validateStopDraft(scene, service, 1, true, SceneStop(), bad);
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "The route has no station here between the stops before and after.");
+	QVERIFY(check.field == StopDraftField::Position);
+}
+
+// A planned time whose box is checked must parse as seconds after the base time or as a clock time, as the display shows.
+void TestTimetableStopsPanel::refusesPlannedTimesThatDoNotParse() {
+	const SceneModel scene = lineScene();
+	const SceneService& service = scene.services[0];
+	StopDraftFields fields = fieldsOf(service.stops[1]);
+	fields.arrivalText = "no time";
+	StopDraftCheck check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "Planned arrival must be seconds after the base time, such as 120.");
+	QVERIFY(check.field == StopDraftField::PlannedArrival);
+	fields.clockMode = true;
+	fields.arrivalText = "08:01:00";
+	fields.departureText = "eight";
+	check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "Planned departure must be a time such as 08:15:00, or +1d 00:10:00 for the next day.");
+	QVERIFY(check.field == StopDraftField::PlannedDeparture);
+	fields.departureText = "08:01:30";
+	check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(check.ok);
+	QCOMPARE_EQ(check.stop.plannedArrivalSeconds, 60.0);
+	QCOMPARE_EQ(check.stop.plannedDepartureSeconds, 90.0);
+}
+
+// The minimum dwell is a finite number of 0 or more.
+void TestTimetableStopsPanel::refusesDwellThatIsNotZeroOrMore() {
+	const SceneModel scene = lineScene();
+	const SceneService& service = scene.services[0];
+	StopDraftFields fields = fieldsOf(service.stops[1]);
+	for (const char* dwell : {"-1", "inf", "1e999", "thirty", ""}) {
+		fields.dwellText = dwell;
+		const StopDraftCheck check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+		QVERIFY2(!check.ok, dwell);
+		QCOMPARE(check.message, "Minimum dwell must be 0 or more seconds.");
+		QVERIFY(check.field == StopDraftField::Dwell);
+	}
+	fields.dwellText = " 0 ";
+	const StopDraftCheck check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(check.ok);
+	QCOMPARE_EQ(check.stop.dwellSeconds, 0.0);
+}
+
+// A platform that the route reaches more than once is refused for a new stop and for a stop whose station or platform
+// changed, and kept for a stop that the dialog does not move.
+void TestTimetableStopsPanel::refusesAmbiguousPlatformOnlyWhenAssigned() {
+	SceneModel scene = twoPlatformScene();
+	SceneStop atB = scene.services[0].stops[1];
+	atB.platformId.clear();
+	StopDraftCheck check = validateStopDraft(scene, scene.services[1], 1, true, atB, fieldsOf(atB));
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "Choose a platform: the route reaches more than one here.");
+	QVERIFY(check.field == StopDraftField::Platform);
+	check = validateStopDraft(scene, scene.services[0], 1, false, atB, fieldsOf(atB));
+	QVERIFY(!check.ok);
+	QCOMPARE(check.message, "Choose a platform: the route reaches more than one here.");
+	QVERIFY(check.field == StopDraftField::Platform);
+	scene.services[0].stops[1].platformId.clear();
+	check = validateStopDraft(scene, scene.services[0], 1, false, atB, fieldsOf(atB));
+	QVERIFY2(check.ok, qPrintable(check.message));
+	QVERIFY(check.stop.platformId.empty());
+}
+
+// An added stop that the timetable cannot take is refused with the reason of insertSceneStop, and the service stays as it
+// was.
+void TestTimetableStopsPanel::refusesStopThatInsertionRefuses() {
+	const SceneModel scene = lineScene();
+	const SceneService& service = scene.services[0];
+	const SceneStop atA = stop("station-a", "platform-a", 200.0, 230.0);
+	SceneService copy = service;
+	const SceneStopInsertionResult refusal = insertSceneStop(scene, copy, 3, atA);
+	QVERIFY(!refusal.inserted);
+	const StopDraftCheck check = validateStopDraft(scene, service, 3, true, atA, fieldsOf(atA));
+	QVERIFY(!check.ok);
+	QVERIFY(!check.message.isEmpty());
+	QCOMPARE(check.message, QString::fromStdString(refusal.error));
+	QVERIFY(check.field == StopDraftField::None);
+	QCOMPARE(stationsOf(service), std::vector<std::string>({"station-a", "station-b", "station-c"}));
+}
+
+// A planned time without a checked box or without text is absent, and a time whose text still shows the stored value
+// keeps that value exactly. The clock time read back from that text would differ from it in the last digits.
+void TestTimetableStopsPanel::takesDraftWithAbsentPlannedTime() {
+	SceneModel scene = lineScene();
+	scene.services[0].stops[1].plannedDepartureSeconds = 90.123456789;
+	const SceneService& service = scene.services[0];
+	StopDraftFields fields = fieldsOf(service.stops[1]);
+	fields.clockMode = true;
+	fields.hasArrival = false;
+	fields.departureText = QString::fromStdString(formatPlannedTime(90.123456789, true, 8 * 3600));
+	fields.dwellText = " 35 ";
+	StopDraftCheck check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(check.ok);
+	QVERIFY(check.message.isEmpty());
+	QVERIFY(check.field == StopDraftField::None);
+	QVERIFY(!check.stop.hasPlannedArrival);
+	QVERIFY(check.stop.hasPlannedDeparture);
+	QCOMPARE_EQ(check.stop.plannedDepartureSeconds, 90.123456789);
+	QCOMPARE_EQ(check.stop.dwellSeconds, 35.0);
+	QCOMPARE(check.stop.stationId, "station-b");
+	QCOMPARE(check.stop.platformId, "platform-b");
+	fields.hasArrival = true;
+	fields.arrivalText = "  ";
+	check = validateStopDraft(scene, service, 1, false, service.stops[1], fields);
+	QVERIFY(check.ok);
+	QVERIFY(!check.stop.hasPlannedArrival);
+}
+
+// The dialog can be driven without being shown: it gives the stop and the position that OK accepted.
+void TestTimetableStopsPanel::dialogGivesStopWithoutExec() {
+	const SceneModel scene = lineScene();
+	StopEditorDialog editDialog(scene, scene.services[0], 1, false, false);
+	edit(editDialog, "stopEditorDwellEdit")->setText("-1");
+	click(editDialog, "stopEditorAcceptButton");
+	// A refused stop leaves the dialog open with the message.
+	QCOMPARE(editDialog.result(), int(QDialog::Rejected));
+	QCOMPARE(label(editDialog, "stopEditorErrorLabel")->text(), "Minimum dwell must be 0 or more seconds.");
+	edit(editDialog, "stopEditorDwellEdit")->setText("45");
+	edit(editDialog, "stopEditorArrivalEdit")->setText("70");
+	click(editDialog, "stopEditorAcceptButton");
+	QCOMPARE(editDialog.result(), int(QDialog::Accepted));
+	QCOMPARE(editDialog.position(), std::size_t(1));
+	QCOMPARE(editDialog.stop().stationId, "station-b");
+	QCOMPARE_EQ(editDialog.stop().dwellSeconds, 45.0);
+	QCOMPARE_EQ(editDialog.stop().plannedArrivalSeconds, 70.0);
+	QCOMPARE_EQ(editDialog.stop().plannedDepartureSeconds, 90.0);
+
+	// An added stop takes the position chosen in the dialog.
+	StopEditorDialog addDialog(scene, scene.services[0], 1, true, false);
+	QVERIFY(!combo(addDialog, "stopEditorStationCombo")->isEnabled());
+	combo(addDialog, "stopEditorPositionCombo")->setCurrentIndex(3);
+	QCOMPARE(combo(addDialog, "stopEditorStationCombo")->currentData().toString(), "station-d");
+	QComboBox* platform = combo(addDialog, "stopEditorPlatformCombo");
+	platform->setCurrentIndex(platform->findData("platform-d"));
+	edit(addDialog, "stopEditorDwellEdit")->setText("20");
+	click(addDialog, "stopEditorAcceptButton");
+	QCOMPARE(addDialog.result(), int(QDialog::Accepted));
+	QCOMPARE(addDialog.position(), std::size_t(3));
+	QCOMPARE(addDialog.stop().stationId, "station-d");
+	QCOMPARE(addDialog.stop().platformId, "platform-d");
+	QCOMPARE_EQ(addDialog.stop().dwellSeconds, 20.0);
+}
+
+// A scene that replaces the open one while the dialog is open, with a service of that id that differs from the copy that
+// the dialog started from, keeps its stops when the dialog is accepted. A service equal to the copy would take the stop.
+void TestTimetableStopsPanel::editAppliesNothingToReplacedScene() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	SceneModel replacement = lineScene();
+	replacement.services[0].stops[0].dwellSeconds = 50.0;
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			f.document.replace(replacement, false);
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE_EQ(f.document.model().services[0].stops[0].dwellSeconds, 50.0);
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 30.0);
+	QVERIFY(!f.document.isDirty());
+	QVERIFY(!logged(f.events.log, "documentChanged"));
+	QVERIFY(!logged(f.events.log, "panelChanged"));
+}
+
+// A scene that a run closes for edits while the dialog is open takes nothing from it.
+void TestTimetableStopsPanel::editAppliesNothingWhileClosedForEdits() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	f.events.log.clear();
+	const quint64 revision = f.document.revision();
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			f.document.setEditable(false);
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 30.0);
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(!f.document.isDirty());
+	QVERIFY(f.events.log.empty());
+}
+
+// An added stop does not enter a scene that replaced the open one while the dialog was open.
+void TestTimetableStopsPanel::addAppliesNothingToReplacedScene() {
+	StopsFixture f;
+	f.panel.setServiceId("service-2");
+	f.panel.table()->setCurrentCell(0, 0);
+	SceneModel replacement = lineScene();
+	replacement.services[1].stops[0].dwellSeconds = 50.0;
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			QCOMPARE(combo(dialog, "stopEditorStationCombo")->currentData().toString(), "station-b");
+			f.document.replace(replacement, false);
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.insertStopAfterSelected(); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(stationsOf(f.document.model().services[1]), std::vector<std::string>({"station-a", "station-d"}));
+	QCOMPARE_EQ(f.document.model().services[1].stops[0].dwellSeconds, 50.0);
+	QVERIFY(!f.document.isDirty());
+	QVERIFY(!logged(f.events.log, "documentChanged"));
+	QVERIFY(!logged(f.events.log, "panelChanged"));
+}
+
+// A service that changed while the dialog was open does not take the stop of the dialog, which was checked against the
+// service as it was, and keeps the other change.
+void TestTimetableStopsPanel::editAppliesNothingWhenServiceChanged() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	quint64 revision = 0;
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			QVERIFY(f.document.edit(SceneDocument::Services, "Edit timetable stop", [](SceneModel& model) { model.services[0].stops[0].dwellSeconds = 50.0; }));
+			revision = f.document.revision();
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE_EQ(f.document.model().services[0].stops[0].dwellSeconds, 50.0);
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 30.0);
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(!logged(f.events.log, "documentChanged"));
+	QVERIFY(!logged(f.events.log, "panelChanged"));
+}
+
+// A change outside the services while the dialog is open, as a reload of a linked rolling stock file makes, does not keep
+// the stop of the dialog out.
+void TestTimetableStopsPanel::editAppliesAfterChangeOutsideServices() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			QVERIFY(f.document.edit(SceneDocument::TrainUnits, "Reload linked source", [](SceneModel& model) {
+				SceneTrainUnit unit;
+				unit.id = "unit-1";
+				model.trainUnits.push_back(unit);
+			}));
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 45.0);
+	QCOMPARE(f.document.model().trainUnits.size(), std::size_t(1));
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit timetable stop");
+	QCOMPARE(f.panel.table()->currentRow(), 1);
+}
+
+// The text that another panel still holds is taken before the dialog copies the service. Here it renames the
+// composition of the service, as the composition panel does with a typed id. Without the request the field would give
+// its text up only when the dialog takes the focus, and that change of the service would keep the stop of the dialog out.
+void TestTimetableStopsPanel::takesPendingTextBeforeCopyingService() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	bool pending = true;
+	const auto takePendingText = [&f, &pending] {
+		if (!pending)
+			return;
+		pending = false;
+		QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Rename composition",
+			[](SceneModel& model) { model.services[0].composition = "composition-2"; }));
+	};
+	int requests = 0;
+	QObject::connect(&f.panel, &TimetableStopsPanel::commitPendingEditsRequested, &f.panel, [&] {
+		++requests;
+		takePendingText();
+	});
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			// The field that kept the focus loses it to the dialog.
+			takePendingText();
+			edit(dialog, "stopEditorDwellEdit")->setText("45");
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.editStop(1); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(f.document.model().services[0].composition, "composition-2");
+	QCOMPARE_EQ(f.document.model().services[0].stops[1].dwellSeconds, 45.0);
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.document.lastChangeLabel(), "Edit timetable stop");
+	QCOMPARE(requests, 1);
+}
+
+// The same for Add Stop, which is where text is still pending in the window: a click on a row moves the focus to the
+// table first, but on macOS a button does not take the focus. The added stop enters the service that the taken text
+// changed.
+void TestTimetableStopsPanel::addTakesPendingTextBeforeCopyingService() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	bool pending = true;
+	const auto takePendingText = [&f, &pending] {
+		if (!pending)
+			return;
+		pending = false;
+		QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Rename composition",
+			[](SceneModel& model) { model.services[0].composition = "composition-2"; }));
+	};
+	int requests = 0;
+	QObject::connect(&f.panel, &TimetableStopsPanel::commitPendingEditsRequested, &f.panel, [&] {
+		++requests;
+		takePendingText();
+	});
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			// The field that kept the focus loses it to the dialog.
+			takePendingText();
+			QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
+			platform->setCurrentIndex(platform->findData("platform-d"));
+			edit(dialog, "stopEditorDwellEdit")->setText("20");
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.addStop(); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(f.document.model().services[0].composition, "composition-2");
+	QCOMPARE(stationsOf(f.document.model().services[0]), std::vector<std::string>({"station-a", "station-b", "station-c", "station-d"}));
+	QCOMPARE_EQ(f.document.model().services[0].stops[3].dwellSeconds, 20.0);
+	QCOMPARE(f.events.log, editLog);
+	QCOMPARE(f.document.lastChangeLabel(), "Add timetable stop");
+	QCOMPARE(requests, 1);
+}
+
+// An added stop that the infrastructure no longer takes after a change while the dialog was open stays out of the
+// service, although the service is the one that the dialog opened on.
+void TestTimetableStopsPanel::addAppliesNothingWhenStopNoLongerFits() {
+	StopsFixture f;
+	f.panel.setServiceId("service-1");
+	quint64 revision = 0;
+	const DialogRun run = runDialog(
+		f.panel,
+		[&](QDialog& dialog) {
+			QCOMPARE(combo(dialog, "stopEditorStationCombo")->currentData().toString(), "station-d");
+			QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
+			platform->setCurrentIndex(platform->findData("platform-d"));
+			edit(dialog, "stopEditorDwellEdit")->setText("20");
+			QVERIFY(f.document.edit(SceneDocument::Infrastructure, "Delete station", [](SceneModel& model) { model.stations.pop_back(); }));
+			f.document.markSaved();
+			revision = f.document.revision();
+			f.events.log.clear();
+			click(dialog, "stopEditorAcceptButton");
+		},
+		[&] { f.panel.addStop(); });
+	QVERIFY(run.opened);
+	QVERIFY(run.accepted);
+	QCOMPARE(stationsOf(f.document.model().services[0]), std::vector<std::string>({"station-a", "station-b", "station-c"}));
+	QCOMPARE(f.document.revision(), revision);
+	QVERIFY(!f.document.isDirty());
+	QVERIFY(f.events.log.empty());
 }
 
 // With the form of macOS the messages of the stop dialog still take the width of their column, so that no row of the

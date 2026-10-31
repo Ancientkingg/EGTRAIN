@@ -83,19 +83,22 @@ void commitGeometry(InfrastructurePanel& panel, int row, int column, double valu
 	const PlatformPlace place = platformPlace(panel.model(), row);
 	if (place.station < 0)
 		return;
-	ScenePlatform& platform = panel.mutableModel().stations[static_cast<std::size_t>(place.station)].platforms[static_cast<std::size_t>(place.platform)];
-	bool changed = false;
-	if (column == kLengthColumn) {
-		changed = !platform.hasLength || platform.lengthM != value;
-		platform.hasLength = true;
-		platform.lengthM = value;
-	} else {
-		changed = !platform.hasWidth || platform.widthM != value;
-		platform.hasWidth = true;
-		platform.widthM = value;
-	}
-	if (changed)
-		panel.entityEdited(QStringLiteral("Edit platform"));
+	const std::size_t station = static_cast<std::size_t>(place.station);
+	const std::size_t index = static_cast<std::size_t>(place.platform);
+	const ScenePlatform& platform = panel.model().stations[station].platforms[index];
+	const bool length = column == kLengthColumn;
+	if (length ? platform.hasLength && platform.lengthM == value : platform.hasWidth && platform.widthM == value)
+		return;
+	panel.editInPlace(QStringLiteral("Edit platform"), [station, index, length, value](SceneModel& model) {
+		ScenePlatform& edited = model.stations[station].platforms[index];
+		if (length) {
+			edited.hasLength = true;
+			edited.lengthM = value;
+		} else {
+			edited.hasWidth = true;
+			edited.widthM = value;
+		}
+	});
 }
 
 // A field for the length or the width of a platform. The model takes the value when the field is stepped or left, and
@@ -205,11 +208,12 @@ public:
 		const PlatformPlace place = platformPlace(panel.model(), row);
 		if (place.station < 0)
 			return;
-		SceneModel& model = panel.mutableModel();
-		SceneStation& station = model.stations[static_cast<std::size_t>(place.station)];
-		ScenePlatform& platform = station.platforms[static_cast<std::size_t>(place.platform)];
+		const SceneModel& model = panel.model();
+		const std::size_t stationIndex = static_cast<std::size_t>(place.station);
+		const std::size_t platformIndex = static_cast<std::size_t>(place.platform);
+		const SceneStation& station = model.stations[stationIndex];
+		const ScenePlatform& platform = station.platforms[platformIndex];
 		const QString value = panel.table()->item(row, column)->text().trimmed();
-		Edit edit = Edit::Unchanged;
 		if (column == 0) {
 			// The platform moves to the station that the text names.
 			const std::string targetId = value.toStdString();
@@ -219,76 +223,78 @@ public:
 				panel.refuseEdit(QStringLiteral("Platform Station ID must name an existing station"));
 				return;
 			}
-			if (&*target != &station) {
-				const std::string platformId = platform.id;
-				if (std::any_of(target->platforms.begin(), target->platforms.end(),
-						[&platformId](const ScenePlatform& other) { return other.id == platformId; })) {
-					panel.refuseEdit(QStringLiteral("Platform ID already exists on the target station"));
-					return;
-				}
-				const std::string sourceId = station.id;
-				ScenePlatform moved = std::move(platform);
-				station.platforms.erase(station.platforms.begin() + place.platform);
-				target->platforms.push_back(std::move(moved));
-				sceneMovePlatformReferences(model, platformId, sourceId, targetId);
-				panel.setSelectionId(QString::fromStdString(platformSelectionKey(targetId, platformId)));
-				edit = Edit::Changed;
+			if (&*target == &station)
+				return;
+			const std::string platformId = platform.id;
+			if (std::any_of(target->platforms.begin(), target->platforms.end(),
+					[&platformId](const ScenePlatform& other) { return other.id == platformId; })) {
+				panel.refuseEdit(QStringLiteral("Platform ID already exists on the target station"));
+				return;
 			}
+			const std::string sourceId = station.id;
+			const std::size_t targetIndex = static_cast<std::size_t>(target - model.stations.begin());
+			panel.setSelectionId(QString::fromStdString(platformSelectionKey(targetId, platformId)));
+			panel.edit(QStringLiteral("Edit platform"), [&](SceneModel& edited) {
+				std::vector<ScenePlatform>& from = edited.stations[stationIndex].platforms;
+				ScenePlatform moved = std::move(from[platformIndex]);
+				from.erase(from.begin() + place.platform);
+				edited.stations[targetIndex].platforms.push_back(std::move(moved));
+				sceneMovePlatformReferences(edited, platformId, sourceId, targetId);
+			});
 		} else if (column == 1) {
+			const std::string oldId = platform.id;
 			const std::string newId = value.toStdString();
-			if (platform.id != newId) {
-				const bool taken = std::any_of(station.platforms.begin(), station.platforms.end(),
-					[&newId](const ScenePlatform& other) { return other.id == newId; });
-				if (newId.empty() || taken) {
-					edit = Edit::UnsafeId;
-				} else {
-					const std::string oldId = platform.id;
-					platform.id = newId;
-					sceneRewritePlatformReferences(model, station.id, oldId, newId);
-					panel.setSelectionId(QString::fromStdString(platformSelectionKey(station.id, newId)));
-					edit = Edit::Changed;
-				}
+			if (oldId == newId)
+				return;
+			const bool taken = std::any_of(station.platforms.begin(), station.platforms.end(),
+				[&newId](const ScenePlatform& other) { return other.id == newId; });
+			if (newId.empty() || taken) {
+				panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
+				return;
 			}
+			const std::string stationId = station.id;
+			panel.setSelectionId(QString::fromStdString(platformSelectionKey(stationId, newId)));
+			panel.edit(QStringLiteral("Rename platform"), [&](SceneModel& edited) {
+				edited.stations[stationIndex].platforms[platformIndex].id = newId;
+				sceneRewritePlatformReferences(edited, stationId, oldId, newId);
+			});
 		} else if (column == 2) {
-			const std::vector<std::string> nodes = splitCommaList(value);
-			if (platform.nodeIds != nodes) {
-				platform.nodeIds = nodes;
-				edit = Edit::Changed;
-			}
+			std::vector<std::string> nodes = splitCommaList(value);
+			if (platform.nodeIds == nodes)
+				return;
+			panel.edit(QStringLiteral("Edit platform"),
+				[&](SceneModel& edited) { edited.stations[stationIndex].platforms[platformIndex].nodeIds = std::move(nodes); });
 		}
-		if (edit == Edit::Changed)
-			panel.entityChanged(column == 1 ? QStringLiteral("Rename platform") : QStringLiteral("Edit platform"));
-		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("IDs must be unique and not empty"));
 	}
 
 	// A platform goes to the first station.
 	void add(InfrastructurePanel& panel) override {
-		SceneModel& model = panel.mutableModel();
+		const SceneModel& model = panel.model();
 		if (model.stations.empty()) {
 			panel.showStatus(QStringLiteral("Add a station before adding a platform"));
 			return;
 		}
-		SceneStation& station = model.stations.front();
 		const std::string id = sceneUniqueInfrastructureId(model, "platform", "platforms");
-		station.platforms.push_back({id, {}});
-		panel.setSelectionId(QString::fromStdString(platformSelectionKey(station.id, id)));
-		panel.entityChanged(QStringLiteral("Add platform"));
+		panel.setSelectionId(QString::fromStdString(platformSelectionKey(model.stations.front().id, id)));
+		panel.edit(QStringLiteral("Add platform"), [&id](SceneModel& edited) { edited.stations.front().platforms.push_back({id, {}}); });
 	}
 
 	void remove(InfrastructurePanel& panel) override {
 		const PlatformPlace place = platformPlace(panel.model(), panel.table()->currentRow());
 		if (place.station < 0)
 			return;
-		SceneStation& station = panel.mutableModel().stations[static_cast<std::size_t>(place.station)];
+		const std::size_t stationIndex = static_cast<std::size_t>(place.station);
+		const SceneStation& station = panel.model().stations[stationIndex];
 		const std::string id = station.platforms[static_cast<std::size_t>(place.platform)].id;
 		if (id.empty())
 			return;
 		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), "platforms", id, station.id)))
 			return;
-		station.platforms.erase(station.platforms.begin() + place.platform);
 		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete platform"));
+		panel.edit(QStringLiteral("Delete platform"), [stationIndex, place](SceneModel& edited) {
+			std::vector<ScenePlatform>& platforms = edited.stations[stationIndex].platforms;
+			platforms.erase(platforms.begin() + place.platform);
+		});
 	}
 
 	// A number field that has been typed in and not left yet takes its value into the model.

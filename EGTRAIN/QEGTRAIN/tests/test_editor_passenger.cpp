@@ -1,4 +1,9 @@
 #include "editors/PassengerPanel.h"
+#include "editors/CompositionPanel.h"
+#include "editors/EditorRules.h"
+#include "editors/InfrastructurePanel.h"
+#include "editors/ServicePanel.h"
+#include "editors/infrastructure/TopologyFacets.h"
 
 #include "scene/SceneDiagnostic.h"
 #include "support/FakePrompts.h"
@@ -23,7 +28,10 @@
 #include <QTest>
 
 #include <algorithm>
+#include <cstddef>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 static SceneStop stopAt(const char* stationId) {
@@ -160,6 +168,27 @@ static std::vector<std::string> legIds(const ScenePassengerJourney& journey) {
 	return ids;
 }
 
+// A passenger of an import with one journey per entry of `journeys`, each with the legs that its entry names.
+static ScenePassenger importedPassenger(const char* id, const std::vector<std::pair<const char*, std::vector<const char*>>>& journeys) {
+	ScenePassenger passenger;
+	passenger.id = id;
+	for (const auto& entry : journeys) {
+		ScenePassengerJourney journey;
+		journey.id = entry.first;
+		for (const char* legName : entry.second)
+			journey.legs.push_back(leg(legName, "S1", "A", "B"));
+		passenger.journeys.push_back(journey);
+	}
+	return passenger;
+}
+
+static std::vector<std::string> passengerIds(const std::vector<ScenePassenger>& passengers) {
+	std::vector<std::string> ids;
+	for (const auto& passenger : passengers)
+		ids.push_back(passenger.id);
+	return ids;
+}
+
 static bool writeFile(const QString& path, const char* text) {
 	QFile file(path);
 	return file.open(QIODevice::WriteOnly) && file.write(text) == static_cast<qint64>(std::string(text).size());
@@ -192,6 +221,31 @@ struct PassengerFixture {
 	}
 };
 
+// The passenger panel and a service panel, with prompts that answer Yes, on one document that shows passengerScene(). The
+// labels and kinds of the changes of the document are kept in their order, by a connection made before those of the
+// panels, as the window keeps its undo steps.
+struct ServiceEditFixture {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	FakePrompts prompts;
+	PassengerPanel passengers;
+	ServicePanel services;
+
+	ServiceEditFixture() {
+		QObject::connect(&document, &SceneDocument::changed, &document, [this](SceneDocument::ChangeKinds changedKinds) {
+			labels.push_back(document.lastChangeLabel().toStdString());
+			kinds.push_back(changedKinds);
+		});
+		prompts.confirmAnswer = true;
+		passengers.setPrompts(&prompts);
+		services.setPrompts(&prompts);
+		passengers.setDocument(&document);
+		services.setDocument(&document);
+		document.replace(passengerScene(), false);
+	}
+};
+
 class TestPassengerPanel : public QObject {
 	Q_OBJECT
 
@@ -208,10 +262,17 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void keepsSelectionOfReorderedScene();
+	void keepsTypedTextWhenServiceIsAdded();
+	void takesTypedTextQuietlyDuringOtherEdit();
+	void keepsTypedServiceAndPassengerWhenTrackIsAdded();
 	void forgetsDeletedDocument();
 	void importsPassengers();
 	void calloutsShowSelectedPassenger();
 	void showsInvalidValues();
+	void importRejectsTakenIds();
+	void importRejectsRepeatedIds();
+	void importRejectsEmptyIds();
+	void importReportsRejectedPassengers();
 };
 
 void TestPassengerPanel::showsNothingWithoutScene() {
@@ -710,6 +771,105 @@ void TestPassengerPanel::keepsSelectionOfReorderedScene() {
 	QCOMPARE(panel.passengerIdEdit()->text(), "P2");
 }
 
+// Text that is still being typed stays when the service panel adds a service, which shows the passengers again: the panel
+// takes the text into the document first, as an edit of its own after the other one.
+void TestPassengerPanel::keepsTypedTextWhenServiceIsAdded() {
+	ServiceEditFixture f;
+	f.passengers.passengerIdEdit()->setText("P1_typed");
+	f.services.addButton()->click();
+	// The service is added, and the typed id is taken in after it.
+	QCOMPARE(f.document.model().services.size(), std::size_t(4));
+	QCOMPARE(f.document.model().passengers[0].id, "P1_typed");
+	QCOMPARE(f.labels, Log({"Add service", "Rename passenger"}));
+	QCOMPARE(f.kinds[0], SceneDocument::ChangeKinds(SceneDocument::Services));
+	QCOMPARE(f.kinds[1], SceneDocument::ChangeKinds(SceneDocument::Passengers));
+	// The field and the list show the typed id.
+	QCOMPARE(f.passengers.passengerIdEdit()->text(), "P1_typed");
+	QCOMPARE(items(f.passengers.passengerList()), std::vector<std::string>({"P1_typed", "P2"}));
+}
+
+// The panel takes the text while the other panel is still in the middle of its edit, and says nothing then. The window
+// answers changed() by taking the text of every panel, and the service panel, whose list still shows a deleted service,
+// would give the service after it the id of the deleted one.
+void TestPassengerPanel::takesTypedTextQuietlyDuringOtherEdit() {
+	ServiceEditFixture f;
+	// As in the window, a change that one panel reports takes the text of the other.
+	QObject::connect(&f.passengers, &PassengerPanel::changed, &f.services, [&f] { f.services.commitPendingEditors(); });
+	QObject::connect(&f.services, &ServicePanel::changed, &f.passengers, [&f] { f.passengers.commitPendingEditors(); });
+	f.services.addButton()->click();
+	f.services.listWidget()->setCurrentRow(2);
+	f.labels.clear();
+	f.passengers.passengerIdEdit()->setText("P1_typed");
+	f.services.deleteButton()->click();
+	// S3 is deleted, the service after it keeps its id, and the typed id is taken in after the delete.
+	std::vector<std::string> serviceIds;
+	for (const SceneService& service : f.document.model().services)
+		serviceIds.push_back(service.id);
+	QCOMPARE(serviceIds, std::vector<std::string>({"S1", "S2", "new_service"}));
+	QCOMPARE(f.document.model().passengers[0].id, "P1_typed");
+	QCOMPARE(f.labels, Log({"Delete service", "Rename passenger"}));
+}
+
+// Text that is still being typed in the service and passenger panels stays when the infrastructure panel adds a track,
+// which shows both again. The service panel follows the document first here, so the rename of the typed service, which
+// changes the passengers too, has the passenger panel take its text inside the take of the service panel. Then a
+// composition that is added has the service panel take its text again.
+void TestPassengerPanel::keepsTypedServiceAndPassengerWhenTrackIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	ServicePanel services;
+	PassengerPanel passengers;
+	InfrastructurePanel infrastructure;
+	CompositionPanel compositions;
+	services.setPrompts(&prompts);
+	passengers.setPrompts(&prompts);
+	infrastructure.setPrompts(&prompts);
+	compositions.setPrompts(&prompts);
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		infrastructure.setFacet(std::move(facet));
+	services.setDocument(&document);
+	passengers.setDocument(&document);
+	infrastructure.setDocument(&document);
+	compositions.setDocument(&document);
+	document.replace(passengerScene(), false);
+	// The window shows the infrastructure of a scene that it opens.
+	infrastructure.refresh();
+	infrastructure.facetCombo()->setCurrentIndex(infrastructure.facetCombo()->findData("tracks"));
+	services.idEdit()->setText("S1_typed");
+	passengers.passengerIdEdit()->setText("P1_typed");
+	infrastructure.addButton()->click();
+	// The track is added, then the typed service id, which the legs of P1 follow, and then the typed passenger id.
+	QCOMPARE(document.model().tracks.size(), std::size_t(1));
+	QCOMPARE(document.model().services[0].id, "S1_typed");
+	const ScenePassenger& passenger = document.model().passengers[0];
+	QCOMPARE(passenger.id, "P1_typed");
+	QCOMPARE(passenger.journeys[0].legs[0].serviceId, "S1_typed");
+	QCOMPARE(labels, Log({"Add track", "Rename service", "Rename passenger"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Services | SceneDocument::Scenarios | SceneDocument::Passengers));
+	QCOMPARE(kinds[2], SceneDocument::ChangeKinds(SceneDocument::Passengers));
+	// The fields and the lists show the typed ids.
+	QCOMPARE(services.idEdit()->text(), "S1_typed");
+	QCOMPARE(passengers.passengerIdEdit()->text(), "P1_typed");
+	QCOMPARE(items(services.listWidget()), std::vector<std::string>({"S1_typed", "S2", "S3"}));
+	QCOMPARE(items(passengers.passengerList()), std::vector<std::string>({"P1_typed", "P2"}));
+
+	labels.clear();
+	services.idEdit()->setText("S1_again");
+	compositions.addButton()->click();
+	// The composition is added, and the typed service id is taken in after it.
+	QCOMPARE(document.model().compositions.size(), std::size_t(1));
+	QCOMPARE(document.model().services[0].id, "S1_again");
+	QCOMPARE(labels, Log({"Add composition", "Rename service"}));
+	QCOMPARE(services.idEdit()->text(), "S1_again");
+}
+
 void TestPassengerPanel::forgetsDeletedDocument() {
 	auto* document = new SceneDocument;
 	PassengerPanel panel;
@@ -999,6 +1159,98 @@ void TestPassengerPanel::showsInvalidValues() {
 	QCOMPARE(document.model().passengers[0].journeys[0].legs[0].serviceId, "S9");
 	QCOMPARE(document.revision(), quint64(1));
 	QVERIFY(!document.isDirty());
+}
+
+// An imported passenger whose id, or the id of one of its journeys or legs, the scene already has is rejected, and the
+// others are added in their order.
+void TestPassengerPanel::importRejectsTakenIds() {
+	const SceneModel scene = passengerScene();
+	ScenePassengerImportResult imported;
+	imported.passengers = {
+		importedPassenger("P1", {{"J10", {"L10"}}}),
+		importedPassenger("P3", {{"J1", {"L11"}}}),
+		importedPassenger("P4", {{"J12", {"L2"}}}),
+		importedPassenger("P5", {{"J13", {"L13", "L14"}}, {"J14", {}}}),
+		importedPassenger("P6", {{"J15", {"L15"}}}),
+	};
+	const PassengerImportMerge merge = mergeImportedPassengers(scene, imported, "/import");
+	QCOMPARE(passengerIds(merge.accepted), std::vector<std::string>({"P5", "P6"}));
+	QCOMPARE(merge.accepted[0].journeys.size(), std::size_t(2));
+	QCOMPARE(merge.rejected, std::vector<std::string>({"P1", "P3", "P4"}));
+	QVERIFY(merge.rejects("P3"));
+	QVERIFY(!merge.rejects("P5"));
+	QVERIFY(merge.changesScene());
+}
+
+// An id that repeats inside one imported passenger, or that an earlier accepted passenger of the import has, rejects the
+// passenger. The ids of a rejected passenger stay free.
+void TestPassengerPanel::importRejectsRepeatedIds() {
+	const SceneModel scene = passengerScene();
+	ScenePassengerImportResult imported;
+	imported.passengers = {
+		importedPassenger("P10", {{"J20", {"L20"}}, {"J20", {"L21"}}}),
+		importedPassenger("P11", {{"J22", {"L22"}}, {"J23", {"L22"}}}),
+		importedPassenger("P12", {{"J24", {"L24"}}}),
+		importedPassenger("P12", {{"J25", {"L25"}}}),
+		importedPassenger("P13", {{"J24", {"L26"}}}),
+		importedPassenger("P14", {{"J27", {"L24"}}}),
+		importedPassenger("P15", {{"J20", {"L22"}}}),
+	};
+	const PassengerImportMerge merge = mergeImportedPassengers(scene, imported, "/import");
+	QCOMPARE(passengerIds(merge.accepted), std::vector<std::string>({"P12", "P15"}));
+	QCOMPARE(merge.accepted[0].journeys[0].id, "J24");
+	QCOMPARE(merge.rejected, std::vector<std::string>({"P10", "P11", "P12", "P13", "P14"}));
+}
+
+// An empty passenger, journey or leg id rejects the passenger. A rejected passenger without an id names no row of the
+// import as rejected.
+void TestPassengerPanel::importRejectsEmptyIds() {
+	const SceneModel scene = passengerScene();
+	ScenePassengerImportResult imported;
+	imported.passengers = {
+		importedPassenger("", {{"J30", {"L30"}}}),
+		importedPassenger("P31", {{"", {"L31"}}}),
+		importedPassenger("P32", {{"J32", {""}}}),
+		importedPassenger("P33", {{"J33", {"L33"}}}),
+	};
+	const PassengerImportMerge merge = mergeImportedPassengers(scene, imported, "/import");
+	QCOMPARE(passengerIds(merge.accepted), std::vector<std::string>({"P33"}));
+	QCOMPARE(merge.rejected, std::vector<std::string>({"", "P31", "P32"}));
+	QVERIFY(!merge.rejects(""));
+	QVERIFY(merge.rejects("P32"));
+}
+
+// The report rows of the import are kept, and a row of the editor counts the accepted and rejected passengers when one was
+// rejected. An import without passengers or rows does not change the scene.
+void TestPassengerPanel::importReportsRejectedPassengers() {
+	const SceneModel scene = passengerScene();
+	ScenePassengerImportResult imported;
+	imported.report = {{"passengers", "/import/DAS.csv", 3, 3, 0, 1}};
+	imported.passengers = {importedPassenger("P1", {{"J40", {"L40"}}}), importedPassenger("P41", {{"J41", {"L41"}}})};
+	PassengerImportMerge merge = mergeImportedPassengers(scene, imported, "/import");
+	QCOMPARE(merge.report.size(), std::size_t(2));
+	QCOMPARE(merge.report[0].category, "passengers");
+	QCOMPARE(merge.report[0].unresolvedReferences, 1);
+	const SceneImportReportRow& editorRow = merge.report[1];
+	QCOMPARE(editorRow.category, "passengers.editor");
+	QCOMPARE(editorRow.sourceFile, "/import");
+	QCOMPARE(editorRow.sourceCount, 2);
+	QCOMPARE(editorRow.convertedCount, 1);
+	QCOMPARE(editorRow.skippedCount, 1);
+	QCOMPARE(editorRow.unresolvedReferences, 0);
+
+	imported.passengers.erase(imported.passengers.begin());
+	merge = mergeImportedPassengers(scene, imported, "/import");
+	QVERIFY2(merge.report.size() == 1, "without a rejected passenger the editor adds no row");
+
+	imported.passengers.clear();
+	merge = mergeImportedPassengers(scene, imported, "/import");
+	QVERIFY2(merge.changesScene(), "report rows alone change the scene");
+	imported.report.clear();
+	merge = mergeImportedPassengers(scene, imported, "/import");
+	QVERIFY(merge.accepted.empty());
+	QVERIFY(merge.report.empty());
+	QVERIFY(!merge.changesScene());
 }
 
 QTEST_MAIN(TestPassengerPanel)

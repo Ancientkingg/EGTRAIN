@@ -2,10 +2,7 @@
 #define COMPOSITIONPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 class QLabel;
@@ -22,11 +19,6 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit CompositionPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The questions and error messages go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	void refresh() override;
 	/// Takes the id that is being edited into the document.
 	void commitPendingEditors() override { commitIdEdit(); }
@@ -86,22 +78,18 @@ public:
 	QPushButton* plotTractionButton() const { return m_plotTractionButton; }
 
 Q_SIGNALS:
-	/// A composition has been added, duplicated, deleted or renamed. Other lists of composition ids are out of date.
-	/// Emitted after the document is marked changed and before changed().
-	void compositionIdsChanged();
 	/// The plot of the traction curve of this train unit is wanted.
 	void tractionPlotRequested(const QString& unitId);
 
+protected:
+	/// Shows the units again when the rolling stock changes, with the same unit selected.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
-	bool hasScene() const;
 	// The selected composition, or -1.
 	int selectedRow() const;
 	void updateDetail();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	QListWidget* m_listWidget = nullptr;
 	QLineEdit* m_idEdit = nullptr;
 	QListWidget* m_unitsListWidget = nullptr;

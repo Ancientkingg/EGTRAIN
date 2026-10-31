@@ -20,13 +20,13 @@ tools/performance/playback_profile.py \
 
 The output directory must be new, non-symlinked, outside the repository, application, and scene input. Each process uses a separate temporary `QEGTRAIN_OUTPUT_DIR` which is removed after the trial.
 
-The recorded settings are Copenhagen, its default baseline scenario, passenger GUI on, an 8000-second horizon, a 250 ms step delay, 30 measured seconds, and three independent processes per view. Fit calls `fitToTopology()`, disables follow, retains the existing speed-label setting, and uses zoom ratio 1. Dense first fits, selects the lowest-index visible train, centers it, applies `zoomBy(3.0)`, and leaves follow off.
+The recorded settings are Copenhagen, its default baseline scenario, the passenger GUI asked for with `-pax 1`, an 8000-second horizon, a 250 ms step delay, 30 measured seconds, and three independent processes per view. Fit calls `fitToTopology()`, disables follow, retains the existing speed-label setting, and uses zoom ratio 1. Dense first fits, selects the lowest-index visible train, centers it, applies `zoomBy(3.0)`, and leaves follow off.
 
 ## Measurement boundary
 
 Scene loading, native preparation, `setupGUI()`, `startSimulation()`, and waiting for the first visible train are outside the window. The requested view is applied before measurement. The first completed viewport paint after that view resets all aggregates and starts the monotonic window. At expiry, aggregates freeze before the worker is asked to stop. Records are emitted only after `simulationFinished` reaches the GUI thread.
 
-The profiler records these paths; the motion of the trains is conditional, so a trial in which no train moves reports `gui/train_motion/step` as an unobserved optional path while every other listed path remains mandatory.
+The profiler records these paths; the motion of the trains is conditional, so a trial in which no train moves reports `gui/train_motion/step` as an unobserved optional path while every other listed path remains mandatory. The window turns the passenger GUI off for a scene without passengers, and Copenhagen has none, so its run record has `passenger_gui` false and the `platforms`, `passenger_icons` and `train_passenger_info` paths are left out. The harness requires those three paths exactly when `passenger_gui` is true, and the report says whether it was on.
 
 - Worker: `worker/playback_step/compute`; its direct children `passenger_entry_platform_refresh`, `train_movement`, `train_passenger_state_payload`, and `infrastructure_signalling_cleanup`; the `release_mixed_signalling` and `activate_mixed_signalling` children of `infrastructure_signalling_cleanup`; `worker/playback_step/snapshot_build_publish`; and its `build_gui_snapshot` and `mailbox_publish` children.
 - GUI: `gui/snapshot_delivery`, `timeline`, throttled `render_frame`, and its `signalling`, `train_position`, `platforms`, `passenger_icons`, and `train_passenger_info` children.

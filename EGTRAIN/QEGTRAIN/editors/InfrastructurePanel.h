@@ -3,12 +3,11 @@
 
 #include "editors/SceneEditorPanel.h"
 #include "editors/infrastructure/InfrastructureFacet.h"
-#include "widgets/UserPrompts.h"
 
-#include <QPointer>
 #include <QString>
 #include <QStringList>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -26,10 +25,11 @@ struct SceneSectionLabels;
 /// (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that
 /// add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals,
 /// signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
-/// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. Blocks come with a filter on the
-/// track under the combo and buttons that insert and move a block. Routes come with the heading "Route sections" and the
-/// list of their sections and the buttons that change it, below the table in a splitter. The buttons call the facet that
-/// is chosen, and only while the scene can be edited.
+/// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. The facet also says which other
+/// controls it uses (InfrastructureFacet::capabilities): a filter on the track under the combo, which blocks use, buttons
+/// that insert and move an entity, which blocks use too, and the heading "Route sections" with the list of the sections
+/// of the selected route and the buttons that change it, below the table in a splitter, which routes use. The buttons
+/// call the facet that is chosen, only when it has their capability and only while the scene can be edited.
 class InfrastructurePanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -37,12 +37,6 @@ public:
 	/// Makes the widgets, without facets and empty until a loaded document is set.
 	explicit InfrastructurePanel(QWidget* parent = nullptr);
 
-	/// The panel shows the scene of this document. It is not refreshed when the document is replaced, because the window
-	/// draws the track preview at that time: call refresh() when the scene has been set up.
-	void setDocument(SceneDocument* document) override;
-	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	/// brings its own back. The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	/// The panel takes the facet, which takes the place of the one with the same key. The key must be one of
 	/// facetKeys(). Null is ignored.
 	void setFacet(std::unique_ptr<InfrastructureFacet> facet);
@@ -55,7 +49,10 @@ public:
 	void refresh() override;
 	/// The same; no row is selected afterwards when `resetSelection` is true, as when another scene has been opened.
 	void refresh(bool resetSelection);
-	/// Takes the cells that are being edited into the document.
+	/// Takes the cells that are being edited into the document: first the text of a cell whose editor is open, as leaving
+	/// the cell does, then the fields that the chosen facet puts in cells (InfrastructureFacet::commitPendingEdits). The
+	/// editor is left open while the panel tells an edit of its own, whose rows can differ from the model until the table
+	/// is filled again.
 	void commitPendingEditors() override;
 	/// The same as refresh(bool) without the state of the combo and the add button. The facets call it after a change.
 	void refreshTable(bool resetSelection = false);
@@ -96,21 +93,16 @@ public:
 	QTableWidget* table() const { return m_table; }
 	/// The model of the document; an empty scene without one.
 	const SceneModel& model() const;
-	/// The model of the document for an edit by a facet. The panel must have a document.
-	SceneModel& mutableModel();
-	/// True when a scene is loaded.
-	bool hasScene() const;
-	/// False while no scene is loaded or a run uses it.
-	bool canEdit() const;
 	/// Shows a message in the status line of the window for `timeoutMs` milliseconds, through statusMessage().
 	void showStatus(const QString& text, int timeoutMs = 4000);
-	/// A facet has changed the model: marks the document changed under `label`, tells changed() and entitiesChanged(), and
-	/// lists the entities again.
-	void entityChanged(const QString& label);
-	/// A facet has changed the model through a widget in the table, which lists the entities again only by being
-	/// replaced: marks the document changed under `label` and tells changed(). The facet lists the entities again when
-	/// it needs to.
-	void entityEdited(const QString& label);
+	/// Changes the infrastructure of the document with `apply` as one edit under `label` (SceneDocument::edit), tells
+	/// changed() and lists the entities again. While the document is not open for edits nothing changes, nothing is told
+	/// and the result is false. A facet decides before the call whether there is a change, so that an edit that changes
+	/// nothing adds no undo step.
+	bool edit(const QString& label, const std::function<void(SceneModel&)>& apply);
+	/// The same for a widget in the table that has changed, without listing the entities again, which would replace the
+	/// widget while it tells of the change. The facet lists the entities again when it needs to.
+	bool editInPlace(const QString& label, const std::function<void(SceneModel&)>& apply);
 	/// A facet has refused an edit and left the model as it was. Shows `message` when there is one, and lists the
 	/// entities again so that the table shows the model.
 	void refuseEdit(const QString& message = {});
@@ -163,19 +155,23 @@ Q_SIGNALS:
 	/// been filled again. `facet` is the key of the chosen facet and `id` the id of the selected entity, empty when no
 	/// row is selected.
 	void selectionChanged(const QString& facet, const QString& id);
-	/// A facet has changed the entities of its kind and listed them again. `facet` is its key.
-	void entitiesChanged(const QString& facet);
 	/// A message for the status line, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
+protected:
+	/// Does nothing: the window draws the track preview when the document is replaced, and calls refresh() when the scene
+	/// has been set up.
+	void documentReplaced() override {}
+
 private:
+	class CellDelegate;
+
 	// Shows the section catalog and the sections of the selected route, while routes are listed.
 	void refreshRouteSectionPanel();
 	InfrastructureFacet* currentFacet() const;
+	// Whether the chosen facet has the capability; false without a facet.
+	bool currentFacetHas(InfrastructureFacet::Capability capability) const;
 
-	QPointer<SceneDocument> m_document;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	std::map<QString, std::unique_ptr<InfrastructureFacet>> m_facets;
 	QString m_selectionId;
 	std::vector<int> m_blockRowModelIndices;
@@ -189,6 +185,10 @@ private:
 	QPushButton* m_moveBlockDownButton = nullptr;
 	QLabel* m_guidanceLabel = nullptr;
 	QTableWidget* m_table = nullptr;
+	// The delegate of the table, which knows its open editor.
+	CellDelegate* m_cellDelegate = nullptr;
+	// True while editInPlace() changes the document and tells changed().
+	bool m_editing = false;
 	QWidget* m_routeSectionDetailWidget = nullptr;
 	QComboBox* m_routeSectionCatalogCombo = nullptr;
 	QListWidget* m_routeSectionListWidget = nullptr;

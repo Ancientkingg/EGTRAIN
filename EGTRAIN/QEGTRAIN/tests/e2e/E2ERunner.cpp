@@ -177,6 +177,7 @@ void checkLightLook() {
 }
 
 void startScenarios(MainWindow& window) {
+	MainWindowTestAccess::connectRunSignals(window);
 	// The scripts of Dialogs.cpp act on the dialogs for which the variables of their scenario are set.
 	mainWindowTestHooks().dialogShown = [&window](QDialog& dialog, const char* kind) {
 		MainWindowTestAccess::dialogShown(window, dialog, kind);
@@ -246,9 +247,7 @@ bool configureProcess() {
 		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
 	mainWindowTestHooks().snapshotDelivered = &MainWindowTestAccess::snapshotDelivered;
 	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::checkSignalHeads;
-	mainWindowTestHooks().runResultsRefreshed = &MainWindowTestAccess::runResultsRefreshed;
 	mainWindowTestHooks().runFinished = &MainWindowTestAccess::runFinished;
-	mainWindowTestHooks().runSettled = &MainWindowTestAccess::runSettled;
 	mainWindowTestHooks().routeDiagramBuilt = &MainWindowTestAccess::routeDiagramBuilt;
 	// A script that answers the run review needs it to open although dialogs are suppressed.
 	mainWindowTestHooks().askRunReview = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL");
@@ -261,7 +260,6 @@ bool configureProcess() {
 		if (!mainWindowTestHooks().telemetryStart)
 			mainWindowTestHooks().telemetryStart = &MainWindowTestAccess::startTelemetrySmoke;
 		mainWindowTestHooks().observationStep = &MainWindowTestAccess::telemetryObservationStep;
-		mainWindowTestHooks().runStarting = &MainWindowTestAccess::telemetryRunStarting;
 		mainWindowTestHooks().windowDestroyed = &MainWindowTestAccess::telemetryWindowDestroyed;
 	}
 #endif

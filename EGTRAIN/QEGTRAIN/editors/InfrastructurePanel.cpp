@@ -9,9 +9,12 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
+#include <QPointer>
 #include <QPushButton>
+#include <QScopedValueRollback>
 #include <QSignalBlocker>
 #include <QSplitter>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -60,6 +63,41 @@ const SceneModel& emptyScene() {
 
 } // namespace
 
+/// The delegate of the table. It knows the editor that it has open on a cell. The widgets that facets put in cells with
+/// setCellWidget are not its editors.
+class InfrastructurePanel::CellDelegate : public QStyledItemDelegate {
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+
+	/// Makes the editor of a cell as QStyledItemDelegate does, and keeps it as the open editor.
+	QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		m_editor = QStyledItemDelegate::createEditor(parent, option, index);
+		return m_editor;
+	}
+
+	/// Forgets the open editor when the view lets it go, and destroys it as QStyledItemDelegate does.
+	void destroyEditor(QWidget* editor, const QModelIndex& index) const override {
+		if (editor == m_editor)
+			m_editor = nullptr;
+		QStyledItemDelegate::destroyEditor(editor, index);
+	}
+
+	/// Takes the text of the open editor into its cell and closes the editor, as leaving it does: the view writes the text
+	/// with setModelData(), and the table tells itemChanged() when it differs. Does nothing without an open editor.
+	void commitOpenEditor() {
+		QWidget* editor = m_editor;
+		if (!editor)
+			return;
+		emit commitData(editor);
+		// A commit that fills the table again has closed the editor already.
+		if (editor == m_editor)
+			emit closeEditor(editor);
+	}
+
+private:
+	mutable QPointer<QWidget> m_editor;
+};
+
 InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("infrastructurePanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
@@ -98,6 +136,8 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
+	m_cellDelegate = new CellDelegate(m_table);
+	m_table->setItemDelegate(m_cellDelegate);
 	// Tab leaves the table and the arrow keys move between the cells.
 	m_table->setTabKeyNavigation(false);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -165,7 +205,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 		refreshTable();
 	});
 	connect(m_blockTrackFilterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
-		if (facetKey() == QStringLiteral("blocks")) {
+		if (currentFacetHas(InfrastructureFacet::TrackFilter)) {
 			m_selectionId.clear();
 			refreshTable();
 		}
@@ -188,15 +228,6 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	InfrastructurePanel::refresh(false);
 }
 
-void InfrastructurePanel::setDocument(SceneDocument* document) {
-	m_document = document;
-	refresh(false);
-}
-
-void InfrastructurePanel::setPrompts(UserPrompts* prompts) {
-	m_prompts = prompts ? prompts : &m_ownPrompts;
-}
-
 void InfrastructurePanel::setFacet(std::unique_ptr<InfrastructureFacet> facet) {
 	if (!facet)
 		return;
@@ -211,6 +242,11 @@ InfrastructureFacet* InfrastructurePanel::facet(const QString& key) const {
 
 InfrastructureFacet* InfrastructurePanel::currentFacet() const {
 	return facet(facetKey());
+}
+
+bool InfrastructurePanel::currentFacetHas(InfrastructureFacet::Capability capability) const {
+	const InfrastructureFacet* current = currentFacet();
+	return current && current->capabilities().testFlag(capability);
 }
 
 QStringList InfrastructurePanel::facetKeys() {
@@ -232,17 +268,6 @@ const SceneModel& InfrastructurePanel::model() const {
 	return m_document ? m_document->model() : emptyScene();
 }
 
-SceneModel& InfrastructurePanel::mutableModel() {
-	return m_document->mutableModel();
-}
-
-bool InfrastructurePanel::hasScene() const {
-	return m_document && m_document->isLoaded();
-}
-
-bool InfrastructurePanel::canEdit() const {
-	return hasScene() && m_document->isEditable();
-}
 
 void InfrastructurePanel::showStatus(const QString& text, int timeoutMs) {
 	emit statusMessage(text, timeoutMs);
@@ -260,6 +285,10 @@ void InfrastructurePanel::refresh(bool resetSelection) {
 }
 
 void InfrastructurePanel::commitPendingEditors() {
+	// The window answers changed() by taking the text of every panel, also while the panel tells an edit of its own. The
+	// table then still shows the rows from before the edit, and the cell of the open editor can stand for another entity.
+	if (!m_editing)
+		m_cellDelegate->commitOpenEditor();
 	if (InfrastructureFacet* current = currentFacet())
 		current->commitPendingEdits(*this);
 }
@@ -270,7 +299,8 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const int previousRow = resetSelection ? -1 : m_table->currentRow();
 	const int previousColumn = resetSelection ? -1 : m_table->currentColumn();
 	const QString previousId = resetSelection ? QString() : m_selectionId;
-	if (key == QStringLiteral("blocks"))
+	const InfrastructureFacet::Capabilities capabilities = current ? current->capabilities() : InfrastructureFacet::Capabilities();
+	if (capabilities.testFlag(InfrastructureFacet::TrackFilter))
 		refreshBlockTrackFilter();
 	m_blockRowModelIndices.clear();
 	const QStringList headers = current ? current->columns() : QStringList();
@@ -323,13 +353,14 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	updateSelection();
 
-	const bool isBlocks = key == QStringLiteral("blocks");
-	m_blockTrackFilterCombo->setVisible(isBlocks);
-	m_insertBlockButton->setVisible(isBlocks);
-	m_moveBlockUpButton->setVisible(isBlocks);
-	m_moveBlockDownButton->setVisible(isBlocks);
+	const bool trackFilter = capabilities.testFlag(InfrastructureFacet::TrackFilter);
+	const bool insertAndMove = capabilities.testFlag(InfrastructureFacet::InsertAndMove);
+	m_blockTrackFilterCombo->setVisible(trackFilter);
+	m_insertBlockButton->setVisible(insertAndMove);
+	m_moveBlockUpButton->setVisible(insertAndMove);
+	m_moveBlockDownButton->setVisible(insertAndMove);
 	bool canAdd = editable;
-	if (isBlocks) {
+	if (trackFilter) {
 		const std::string selectedTrack = m_blockTrackFilterCombo->currentData().toString().toStdString();
 		const std::vector<SceneTrack>& tracks = model().tracks;
 		canAdd = canAdd && !selectedTrack.empty()
@@ -347,7 +378,8 @@ void InfrastructurePanel::updateSelection() {
 	emit selectionChanged(key, m_selectionId);
 	const bool hasRow = canEdit() && row >= 0;
 	m_deleteButton->setEnabled(hasRow);
-	m_insertBlockButton->setEnabled(hasRow && key == QStringLiteral("blocks"));
+	const bool insertAndMove = currentFacetHas(InfrastructureFacet::InsertAndMove);
+	m_insertBlockButton->setEnabled(hasRow && insertAndMove);
 	QString deleteHint;
 	if (!hasScene())
 		deleteHint = QStringLiteral("Open a case to delete infrastructure.");
@@ -358,7 +390,7 @@ void InfrastructurePanel::updateSelection() {
 	else
 		deleteHint = QStringLiteral("Delete the selected row.");
 	m_deleteButton->setToolTip(deleteHint);
-	if (key == QStringLiteral("blocks")) {
+	if (insertAndMove) {
 		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());
 		const bool editable = canEdit() && row >= 0 && row < blockRows;
 		m_moveBlockUpButton->setEnabled(editable && row > 0);
@@ -392,12 +424,12 @@ void InfrastructurePanel::refreshBlockTrackFilter() {
 	if (selected < 0 && m_blockTrackFilterCombo->count() > 0)
 		selected = 0;
 	m_blockTrackFilterCombo->setCurrentIndex(selected);
-	m_blockTrackFilterCombo->setVisible(facetKey() == QStringLiteral("blocks"));
+	m_blockTrackFilterCombo->setVisible(currentFacetHas(InfrastructureFacet::TrackFilter));
 	m_blockTrackFilterCombo->setEnabled(canEdit() && m_blockTrackFilterCombo->count() > 0);
 }
 
 void InfrastructurePanel::refreshRouteSectionPanel() {
-	if (facetKey() != QStringLiteral("routes")) {
+	if (!currentFacetHas(InfrastructureFacet::RouteSections)) {
 		m_routeSectionDetailWidget->setVisible(false);
 		return;
 	}
@@ -442,10 +474,7 @@ void InfrastructurePanel::refreshRouteSectionPanel() {
 				}
 			}
 		}
-		const int row = m_routeSectionListWidget->count() == 0
-			? -1
-			: std::min(std::max(previousListRow, 0), m_routeSectionListWidget->count() - 1);
-		m_routeSectionListWidget->setCurrentRow(row);
+		restoreListSelection(m_routeSectionListWidget, QString(), previousListRow);
 	}
 	m_routeSectionListWidget->setEnabled(editable && hasRoute);
 	const int selectedRow = m_routeSectionListWidget->currentRow();
@@ -478,49 +507,43 @@ void InfrastructurePanel::deleteEntity() {
 }
 
 void InfrastructurePanel::insertEntity() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->insert(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+		currentFacet()->insert(*this);
 }
 
 void InfrastructurePanel::moveEntity(int offset) {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->move(*this, offset);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::InsertAndMove))
+		currentFacet()->move(*this, offset);
 }
 
 void InfrastructurePanel::addSection() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->addSection(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->addSection(*this);
 }
 
 void InfrastructurePanel::removeSection() {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->removeSection(*this);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->removeSection(*this);
 }
 
 void InfrastructurePanel::moveSection(int offset) {
-	if (!canEdit())
-		return;
-	if (InfrastructureFacet* current = currentFacet())
-		current->moveSection(*this, offset);
+	if (canEdit() && currentFacetHas(InfrastructureFacet::RouteSections))
+		currentFacet()->moveSection(*this, offset);
 }
 
-void InfrastructurePanel::entityChanged(const QString& label) {
-	entityEdited(label);
-	emit entitiesChanged(facetKey());
+bool InfrastructurePanel::edit(const QString& label, const std::function<void(SceneModel&)>& apply) {
+	if (!editInPlace(label, apply))
+		return false;
 	refreshTable();
+	return true;
 }
 
-void InfrastructurePanel::entityEdited(const QString& label) {
-	m_document->markChanged(SceneDocument::Infrastructure, label);
+bool InfrastructurePanel::editInPlace(const QString& label, const std::function<void(SceneModel&)>& apply) {
+	const QScopedValueRollback<bool> editing(m_editing, true);
+	if (!m_document || !m_document->edit(SceneDocument::Infrastructure, label, apply))
+		return false;
 	emit changed();
+	return true;
 }
 
 void InfrastructurePanel::refuseEdit(const QString& message) {

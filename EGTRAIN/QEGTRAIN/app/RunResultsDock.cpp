@@ -5,7 +5,7 @@
 #include "app/MainWindowSupport.h"
 #include "app/PathMessages.h"
 #include "app/ResultViews.h"
-#include "diagrams/RunExports.h"
+#include "diagrams/ResultFrame.h"
 #include "diagrams/RunResults.h"
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
@@ -19,6 +19,7 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QImage>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
@@ -242,7 +243,7 @@ void RunResultsDock::refresh() {
 		const int half = (m_dock->height() + canvas->height()) / 2;
 		m_window->resizeDocks({m_dock}, {std::min(std::max(m_dock->height(), besideTable + tableHeight(*m_table, 3)), half)}, Qt::Vertical);
 	}
-	m_host.runResultsRefreshed();
+	emit refreshed();
 }
 
 void RunResultsDock::refreshSummary() {

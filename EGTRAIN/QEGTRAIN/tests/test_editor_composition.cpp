@@ -1,4 +1,5 @@
 #include "editors/CompositionPanel.h"
+#include "editors/TrainUnitPanel.h"
 
 #include "diagrams/TractionCurve.h"
 #include "support/FakePrompts.h"
@@ -69,7 +70,6 @@ struct Events {
 			log.push_back("documentChanged");
 			kinds = changedKinds;
 		});
-		QObject::connect(&panel, &CompositionPanel::compositionIdsChanged, &panel, [this] { log.push_back("idsChanged"); });
 		QObject::connect(&panel, &CompositionPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
 		QObject::connect(&panel, &CompositionPanel::tractionPlotRequested, &panel,
 			[this](const QString& unitId) { plotted << unitId; });
@@ -79,7 +79,6 @@ struct Events {
 using Log = std::vector<std::string>;
 
 static const Log edit({"documentChanged", "panelChanged"});
-static const Log editIds({"documentChanged", "idsChanged", "panelChanged"});
 
 // Closes each message box that opens while `action` runs, and returns how many did.
 static int messageBoxesDuring(const std::function<void()>& action) {
@@ -141,9 +140,11 @@ private slots:
 	void renamesAddsAndDeletesCompositions();
 	void editsUnits();
 	void editableDuringRun();
+	void followsRollingStock();
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void keepsSelectionOfReorderedScene();
+	void keepsTypedTextWhenUnitIsAdded();
 	void forgetsDeletedDocument();
 	void emptyStateFollowsSelection();
 	void unitsEmptyStateFollowsUnits();
@@ -152,6 +153,23 @@ private slots:
 	void reportsUndefinedUnitAsError();
 	void showsMessagesThroughPrompts();
 };
+
+// The units of a composition follow the rolling stock, with the same unit selected.
+void TestCompositionPanel::followsRollingStock() {
+	CompositionFixture f;
+	CompositionPanel& panel = f.panel;
+	panel.listWidget()->setCurrentRow(0);
+	panel.unitsListWidget()->setCurrentRow(1);
+	QVERIFY(f.document.edit(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit", [](SceneModel& model) {
+		model.trainUnits[1].id = "renamed";
+		model.compositions[0].units[1] = "renamed";
+	}));
+	QCOMPARE(panel.unitsListWidget()->currentItem()->text(), "renamed");
+	QVERIFY(f.document.edit(SceneDocument::TrainUnits, "Edit rolling stock unit sources",
+		[](SceneModel& model) { model.trainUnits[1].sourceDataFile = "u2.xml"; }));
+	QCOMPARE(panel.unitsListWidget()->currentRow(), 1);
+	QCOMPARE(panel.unitSourceDataLabel()->text(), "u2.xml");
+}
 
 void TestCompositionPanel::showsNothingWithoutScene() {
 	CompositionPanel panel;
@@ -284,8 +302,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(document.lastChangeLabel(), "Rename composition");
 	QVERIFY2(serviceCompositions(document) == std::vector<std::string>({"c1_renamed", "c1_renamed", "c2"}),
 		"a rename rewrites the services that use the composition and no others");
-	// A rename reports the composition and the service change, and the changed composition ids.
-	QCOMPARE(events.log, editIds);
+	// A rename is one change, which names the compositions and the services.
+	QCOMPARE(events.log, edit);
 	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	QVERIFY(events.kinds.testFlag(SceneDocument::Services));
 	// A rename keeps the selection and shows the new id in the list.
@@ -300,7 +318,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	panel.commitPendingEditors();
 	// Committing the pending editors takes the id that is being typed.
 	QCOMPARE(document.model().compositions[0].id, "c1_pending");
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	QCOMPARE(serviceCompositions(document)[0], "c1_pending");
 
 	// Cancel: text that was typed and not finished is dropped when the panel is refreshed.
@@ -324,7 +343,7 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(document.model().compositions[2].id, "new_composition");
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
 	QCOMPARE(panel.idEdit()->text(), "new_composition");
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
 	QCOMPARE(events.kinds, SceneDocument::ChangeKinds(SceneDocument::Compositions));
 	panel.addComposition();
 	QVERIFY2(document.model().compositions[3].id == "new_composition_2", "a new composition gets an unused id");
@@ -335,7 +354,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2", "c2_copy", "new_composition", "new_composition_2"}));
 	QCOMPARE(document.model().compositions[2].units, document.model().compositions[1].units);
 	QCOMPARE(panel.listWidget()->currentRow(), 2);
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 
 	// Delete.
 	events.log.clear();
@@ -366,7 +386,8 @@ void TestCompositionPanel::renamesAddsAndDeletesCompositions() {
 	// Answering Yes deletes the composition and keeps a row selected.
 	QCOMPARE(items(panel.listWidget()), QStringList({"c1_pending", "c2", "c2_copy", "new_composition_2"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 3);
-	QCOMPARE(events.log, editIds);
+	QCOMPARE(events.log, edit);
+	QVERIFY(events.kinds.testFlag(SceneDocument::Compositions));
 	events.log.clear();
 	panel.deleteComposition();
 	panel.deleteComposition();
@@ -447,7 +468,8 @@ void TestCompositionPanel::editableDuringRun() {
 	f.panel.addComposition();
 	// Compositions can be edited while the document is closed for edits.
 	QCOMPARE(f.document.model().compositions.size(), std::size_t(3));
-	QCOMPARE(f.events.log, editIds);
+	QCOMPARE(f.events.log, edit);
+	QVERIFY(f.events.kinds.testFlag(SceneDocument::Compositions));
 }
 
 // Another scene replaces unfinished text without an edit.
@@ -494,6 +516,40 @@ void TestCompositionPanel::keepsSelectionOfReorderedScene() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"c2", "c1"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 0);
 	QCOMPARE(panel.idEdit()->text(), "c2");
+}
+
+// An id that is still being typed stays when the rolling stock panel adds a unit, which shows the compositions again: the
+// panel takes the text into the document first, as an edit of its own after the other one. The labels and kinds of the
+// changes are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+void TestCompositionPanel::keepsTypedTextWhenUnitIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	CompositionPanel panel;
+	TrainUnitPanel units;
+	panel.setPrompts(&prompts);
+	panel.setDocument(&document);
+	units.setPrompts(&prompts);
+	units.setDocument(&document);
+	document.replace(compositionScene(), false);
+	panel.listWidget()->setCurrentRow(0);
+	panel.idEdit()->setText("c1_typed");
+	units.addButton()->click();
+	// The unit is added, and the typed id is taken in after it with the services that use the composition.
+	QCOMPARE(document.model().trainUnits.size(), std::size_t(4));
+	QCOMPARE(document.model().compositions[0].id, "c1_typed");
+	QCOMPARE(serviceCompositions(document), std::vector<std::string>({"c1_typed", "c1_typed", "c2"}));
+	QCOMPARE(labels, Log({"Add rolling stock unit", "Rename composition"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::TrainUnits));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Compositions | SceneDocument::Services));
+	// The field and the list show the typed id.
+	QCOMPARE(panel.idEdit()->text(), "c1_typed");
+	QCOMPARE(items(panel.listWidget()), QStringList({"c1_typed", "c2"}));
 }
 
 void TestCompositionPanel::forgetsDeletedDocument() {

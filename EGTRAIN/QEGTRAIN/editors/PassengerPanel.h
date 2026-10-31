@@ -2,10 +2,7 @@
 #define PASSENGERPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <array>
@@ -34,22 +31,14 @@ public:
 	/// Makes the widgets, empty until a loaded document is set.
 	explicit PassengerPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
 	/// Shows the passengers of the document and keeps the selected rows where they still exist.
 	void refresh() override;
 	/// Takes the ids, the activity and the numbers that are being edited into the document.
 	void commitPendingEditors() override;
 
-	/// The questions and errors of the panel go through these prompts, which the caller keeps alive. The panel uses its
-	/// own until it is given others; null brings its own back.
-	void setPrompts(UserPrompts* prompts);
 	/// The validation messages that the selection shows. The vector must outlive the panel or be replaced first; null
 	/// shows none. Call refresh() after the diagnostics have changed.
 	void setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics);
-	/// Gives the time in seconds over which the occurrences of a service are counted. Without one the duration of the
-	/// scene settings is used.
-	void setOccurrenceDuration(std::function<double()> duration);
 	/// Gives the folder with the legacy passenger files to Import; an empty path cancels. Without one Import asks with a
 	/// folder dialog.
 	void setImportFolderChooser(std::function<QString()> chooser);
@@ -57,11 +46,11 @@ public:
 	void clearImportResult();
 
 	/// The selected passenger, or null when none is selected or no scene is loaded.
-	ScenePassenger* selectedPassenger();
+	const ScenePassenger* selectedPassenger() const;
 	/// The selected journey of the selected passenger, or null.
-	ScenePassengerJourney* selectedPassengerJourney();
+	const ScenePassengerJourney* selectedPassengerJourney() const;
 	/// The selected leg of the selected journey, or null.
-	ScenePassengerLeg* selectedPassengerLeg();
+	const ScenePassengerLeg* selectedPassengerLeg() const;
 
 	/// The passengers, by id.
 	QListWidget* passengerList() const { return m_passengerList; }
@@ -127,15 +116,22 @@ Q_SIGNALS:
 	/// A message for the status bar, which it shows for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
+protected:
+	/// Shows the passengers again when the case settings, the infrastructure or the services change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
+
 private:
-	bool canEdit() const;
-	double occurrenceDuration() const;
 	// The row of the selected passenger, or -1 when the list has no selection.
 	int selectedPassengerRow() const;
 
 	void updatePassengerDetail();
 	void updateJourneyDetail();
 	void updateLegDetail();
+	// Applies `mutate` to the selected passenger, journey or leg, which there must be, in one edit of the document. False
+	// when the document refuses the edit.
+	bool editPassenger(const QString& label, const std::function<void(ScenePassenger&)>& mutate);
+	bool editJourney(const QString& label, const std::function<void(ScenePassengerJourney&)>& mutate);
+	bool editLeg(const QString& label, const std::function<void(ScenePassengerLeg&)>& mutate);
 
 	void addPassenger();
 	void deletePassenger();
@@ -156,12 +152,7 @@ private:
 	void commitLegService();
 	void commitLegOccurrence();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_defaultPrompts;
-	UserPrompts* m_prompts = &m_defaultPrompts;
 	const std::vector<SceneDiagnostic>* m_diagnostics = nullptr;
-	std::function<double()> m_occurrenceDuration;
 	std::function<QString()> m_importFolderChooser;
 
 	QListWidget* m_passengerList = nullptr;

@@ -98,8 +98,9 @@ public:
 	double tdsbGeoCoordY;						///< Y of the border in metres; -1 when unset.
 	/// Not set for a node; Stations has its own latitude and longitude.
 	double latitude, longitude; ///< Not set for a node.
-	/// X on the canvas, which the network presenter sets for the nodes of BlockSet::member; 0 otherwise.
-	double graphX, graphY; ///< Y on the canvas, set like graphX.
+	/// Stays 0. The builder copies it and graphY into the fields of a connection (Connections::graphXFirstNode and the
+	/// others), and the network canvas works out the point of a node when it draws it.
+	double graphX, graphY; ///< Stays 0, like graphX.
 	bool virtualSignal;	   ///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
 
 	/// Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.
@@ -167,7 +168,7 @@ public:
 	std::vector<Arc> A;		 ///< Runtime arcs populated from the scene model
 	std::vector<Node> N;	 ///< Runtime nodes populated from the scene model
 	std::vector<Arc> member; ///< A second copy of the arcs, which the canvas draws and setVirtualSignals reads.
-	int graphID;			 ///< Display level of the track on the canvas; -1 until set.
+	int graphID;			 ///< Display level of the track on the canvas from the scene views; -1 when they give none.
 	bool hasGraphLayout;	 ///< Whether graphID/region came from authored view data
 	int region;				 ///< Display region of the track; 0 by default.
 	/// Not set by the builders; -1 by default.
@@ -195,8 +196,8 @@ public:
 	/// X of the first node in kilometres.
 	double xFirstNode, xSecondNode; ///< X of the second node in kilometres.
 	double speedlimit;				///< Speed limit in m/s; 16.667 (60 km/h) when the scene gives none.
-	/// Canvas coordinates of the two ends of the connection. The builder copies them from Node::graphX and graphY, which
-	/// are 0 at that point, and the network presenter sets them (egtrainPoint2Screen) before it draws the connection.
+	/// Not used: the builder copies them from Node::graphX and graphY, which are 0, and the network canvas works out the
+	/// ends of the connection it draws itself.
 	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode; ///< See graphXFirstNode.
 	/// \var Connections::graphYFirstNode
 	/// See graphXFirstNode.
@@ -271,12 +272,13 @@ public:
 	std::list<std::string> StationPlatformIDs; ///< IDs of platforms at this station
 	/// Latitude in degrees from the scene views; 0 when there is none.
 	double latitude = 0, longitude = 0; ///< Longitude in degrees from the scene views; 0 when there is none.
-	/// X of the station on the canvas, which the network presenter sets.
-	double graphX = 0, graphY = 0; ///< Y of the station on the canvas, which the network presenter sets.
-	/// Per display region, the unit vector along which the canvas shifts the display levels of the tracks at the station.
-	std::map<int, double> shiftX, shiftY; ///< See shiftX.
-	/// Per display region, the unit vector along which the canvas places trackside signals at the station.
-	std::map<int, double> signalDeltaX, signalDeltaY; ///< See signalDeltaX.
+	/// Not used: the network canvas keeps the positions, shifts and signal offsets of the stations in its own layout
+	/// tables. 0.
+	double graphX = 0, graphY = 0; ///< Not used, like graphX.
+	/// Not used, like graphX; empty.
+	std::map<int, double> shiftX, shiftY; ///< Not used, like graphX; empty.
+	/// Not used, like graphX; empty.
+	std::map<int, double> signalDeltaX, signalDeltaY; ///< Not used, like graphX; empty.
 	std::vector<int> regions;						  ///< Display regions of the station from the scene views.
 	std::map<int, double> regionX;					  ///< Position in kilometres of the station in each display region.
 	std::vector<std::string> corridors;				  ///< Corridors of the station from the scene views.

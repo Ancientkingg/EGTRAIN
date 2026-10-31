@@ -2,10 +2,7 @@
 #define TIMETABLESTOPSPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-#include "widgets/UserPrompts.h"
 
-#include <QMetaObject>
-#include <QPointer>
 #include <QString>
 
 #include <string>
@@ -16,13 +13,15 @@ class QLabel;
 class QPushButton;
 class QTableWidget;
 
-/// The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned
-/// times, and the buttons that add, remove and move them. A stop is added or edited in a dialog on a copy and enters
-/// the service only when the stop still fits the route. The service is the one whose id the panel is given. The five
-/// columns fill the width of the table down to their minimum widths: the platform and the times take what their
-/// header and a typical value need and the station takes the rest. A table narrower than that shortens the columns,
-/// and long text is elided. The minimum dwell is in seconds, and the planned arrival and departure are seconds from
-/// the base time, shown either as such or as clock times; a planned time can be absent.
+/// The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned times,
+/// and the buttons that add, remove and move them. A stop is added or edited in a StopEditorDialog on copies. It enters
+/// the service only while the scene can be edited and the first service with its id still equals the copy that the
+/// dialog started from, and an added stop only when insertSceneStop() takes it on the live model. The service is the
+/// one whose id the panel is given. The five columns fill the width of the table down to their minimum widths: the
+/// platform and the times take what their header and a typical value need and the station takes the rest. A table
+/// narrower than that shortens the columns, and long text is elided. The minimum dwell is in seconds, and the planned
+/// arrival and departure are seconds from the base time, shown either as such or as clock times; a planned time can be
+/// absent.
 class TimetableStopsPanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -30,11 +29,6 @@ public:
 	/// Makes the widgets, empty until a loaded document and a service are set.
 	explicit TimetableStopsPanel(QWidget* parent = nullptr);
 
-	/// Refreshes when the document is replaced.
-	void setDocument(SceneDocument* document) override;
-	/// The messages go through these prompts. The panel uses its own until it is given others; null brings its own back.
-	/// The prompts must outlive the panel.
-	void setPrompts(UserPrompts* prompts);
 	/// Shows the stops of the service with this id, or none when the id is empty or no service has it.
 	void setServiceId(const QString& serviceId);
 	/// Lists the stops of the service again.
@@ -54,7 +48,10 @@ public:
 	/// Moves the selected stop one place later.
 	void moveStopDown();
 	/// Opens the dialog of the stop in this row of the table. A negative row adds a stop at `insertIndex`, or at the end
-	/// when that is negative.
+	/// when that is negative. Before the dialog copies the service, the panel emits commitPendingEditsRequested(). An
+	/// accepted dialog changes the service only while the scene can be edited and the service is the same as when the
+	/// dialog opened, and an added stop only when insertSceneStop() takes it on the live model; otherwise it changes
+	/// nothing.
 	void editStop(int row, int insertIndex = -1);
 
 	/// The stops: station, stop platform, minimum dwell in seconds, planned arrival and planned departure.
@@ -79,23 +76,24 @@ public:
 Q_SIGNALS:
 	/// The table shows the stops again, so what depends on the timetable of the services is out of date.
 	void timetableRefreshed();
+	/// The text that is still being typed in the other panels has to be taken into the document now, because the stop
+	/// dialog is about to copy the service. Otherwise that text is taken when the dialog takes the focus, and a change of
+	/// the service that it makes keeps the stop of the dialog out.
+	void commitPendingEditsRequested();
+
+protected:
+	/// Lists the stops again when the case settings or the infrastructure change.
+	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
 	// Fits the columns again when the table is resized or its font changes.
 	bool eventFilter(QObject* watched, QEvent* event) override;
-	bool hasScene() const;
-	// False while a run uses the scene.
-	bool canEdit() const;
 	// The position of the shown service in the model, or -1.
 	int serviceRow() const;
 	void updateActions();
 	// Gives the columns widths that add up to the width of the table, without a horizontal scroll bar.
 	void fitColumns();
 
-	QPointer<SceneDocument> m_document;
-	QMetaObject::Connection m_replacedConnection;
-	UserPrompts m_ownPrompts;
-	UserPrompts* m_prompts = &m_ownPrompts;
 	std::string m_serviceId;
 	// Whether the planned times are shown as clock times rather than as elapsed seconds.
 	bool m_clockMode = false;

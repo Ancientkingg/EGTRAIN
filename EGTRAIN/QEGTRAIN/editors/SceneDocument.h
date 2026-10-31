@@ -6,6 +6,8 @@
 #include <QString>
 #include <QtGlobal>
 
+#include <functional>
+
 // SceneModel has a member named signals, which the Qt keyword hides.
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
@@ -24,10 +26,10 @@ void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot);
 /// The scene that the editors work on: the model, whether it is loaded, edited since it was saved and open for edits, and
 /// how often it has been changed. The document owns the model by value; the window creates the document as its child.
 ///
-/// An editor changes the model in place through mutableModel() and then calls markChanged(), which counts the revision, marks
-/// the document dirty and emits changed(). The window keeps the undo history: it records a copy of the model on every
-/// changed(), and Undo and Redo put a recorded copy back with restore(), which emits no changed(). Opening or creating a
-/// scene goes through replace(), which emits replaced().
+/// An editor changes the model through edit(), which applies the change, counts the revision, marks the document dirty and
+/// emits changed(), and which refuses most edits while a run uses the model. The window keeps the undo history: it records a
+/// copy of the model on every changed(), and Undo and Redo put a recorded copy back with restore(), which emits no changed().
+/// Opening or creating a scene goes through replace(), which emits replaced().
 class SceneDocument : public QObject {
 	Q_OBJECT
 
@@ -42,7 +44,10 @@ public:
 		Scenarios = 1 << 5,		 ///< The scenarios with their incidents and entrance delays.
 		Passengers = 1 << 6,	 ///< The passengers with their journeys and legs.
 		/// Every part.
-		AllChanges = CaseSettings | Infrastructure | TrainUnits | Compositions | Services | Scenarios | Passengers
+		AllChanges = CaseSettings | Infrastructure | TrainUnits | Compositions | Services | Scenarios | Passengers,
+		/// The parts that stay open for edits while a run uses the model, as the user guide says. An edit there discards the
+		/// results of that run.
+		OpenDuringRun = CaseSettings | TrainUnits | Compositions
 	};
 	Q_DECLARE_FLAGS(ChangeKinds, Change)
 
@@ -51,7 +56,11 @@ public:
 
 	/// The scene. It is an empty model until the first replace().
 	const SceneModel& model() const { return m_model; }
-	/// The scene for an edit. The caller calls markChanged() after it has changed the model.
+	/// The scene for a write that is not an edit by a panel: the loaded data that ValidationPanel derives, the units that
+	/// TrainUnitSourceLinker reloads from their files, what SceneSession records when it saves, the default scenario that the
+	/// window sets when it opens a scene without one, and the setup of tests, such as the historical incident scopes of
+	/// tests/e2e/EditorSmoke.cpp, which no panel can make. A panel, and the infrastructure facets through InfrastructurePanel,
+	/// edit through edit(). A caller that changes what the user authored calls markChanged() afterwards.
 	SceneModel& mutableModel() { return m_model; }
 
 	/// False until the first replace().
@@ -73,6 +82,10 @@ public:
 	void restore(const SceneModel& snapshot, bool dirty);
 	/// Records that an editor has changed `kinds` of the model, and what the change was called.
 	void markChanged(ChangeKinds kinds, const QString& label = {});
+	/// Changes `kinds` of the model with `apply` and records the change as markChanged() does. While a run uses the model
+	/// (isEditable() is false) an edit that touches no part of OpenDuringRun is refused: `apply` is not called, nothing
+	/// changes and the result is false.
+	bool edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply);
 	/// The model is what is saved now: clears the dirty state.
 	void markSaved() { setDirty(false); }
 	/// Sets the dirty state, and emits dirtyChanged() when it changes.
@@ -81,7 +94,8 @@ public:
 	void setEditable(bool editable);
 
 Q_SIGNALS:
-	/// Emitted once for each markChanged(), after the revision and the dirty state are updated.
+	/// Emitted once for each markChanged() and for each edit() that is not refused, after the revision and the dirty state
+	/// are updated.
 	void changed(SceneDocument::ChangeKinds kinds);
 	/// Emitted by replace(), after the whole state is set.
 	void replaced();

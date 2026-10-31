@@ -1,4 +1,7 @@
+#include "editors/EditorRules.h"
 #include "editors/IncidentPanel.h"
+#include "editors/InfrastructurePanel.h"
+#include "editors/infrastructure/TopologyFacets.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneWriter.h"
 #include "support/FakePrompts.h"
@@ -12,11 +15,13 @@
 #include <QHelpEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QList>
 #include <QListWidget>
 #include <QLoggingCategory>
 #include <QProxyStyle>
 #include <QPushButton>
 #include <QScopeGuard>
+#include <QSignalSpy>
 #include <QString>
 #include <QStringList>
 #include <QTest>
@@ -24,7 +29,10 @@
 #include <QToolTip>
 
 #include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 // The macOS style, where a form keeps each field at its size hint.
@@ -153,6 +161,22 @@ static int choice(const QComboBox* combo, const char* id, int occurrence) {
 	return -1;
 }
 
+// The texts of the entries of target choices.
+static QStringList texts(const IncidentTargetChoices& choices) {
+	QStringList result;
+	for (const IncidentTargetChoice& entry : choices.entries)
+		result << entry.text;
+	return result;
+}
+
+// The run of each entry of target choices, -1 for an entry without one.
+static QList<int> runs(const IncidentTargetChoices& choices) {
+	QList<int> result;
+	for (const IncidentTargetChoice& entry : choices.entries)
+		result << entry.occurrence.value_or(-1);
+	return result;
+}
+
 // The text field of a number field.
 static QLineEdit* spinText(QDoubleSpinBox* edit) {
 	return edit->findChild<QLineEdit*>();
@@ -216,16 +240,22 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void targetsFollowDocument();
+	void keepsTypedTextWhenTrackIsAdded();
 	void forgetsDeletedDocument();
 	void emptyStateFollowsSelection();
 	void checkBoxStandsBeforeItsField();
 	void emptyStateWithoutScenario();
+	void addsScenarioOnlyWithAnEdit();
 	void pickButtonStandsByTarget();
 	void picksTargetOnNetworkView();
 	void takesPickedTarget();
 	void givesNewIncidentTarget();
 	void takesOccurrenceThatComboDoesNotList();
 	void namesTargetsByLabels();
+	void choicesListSignalFailureTargetsOnce();
+	void choicesListRunsOfBreakdown();
+	void choicesStopAtRunLimit();
+	void choicesNameRepeatedTexts();
 	void fieldsGrowInFormOfMacOs();
 };
 
@@ -885,6 +915,75 @@ void TestIncidentPanel::targetsFollowDocument() {
 	QVERIFY2(panel.targetCombo()->findText("sig3") < 0, "the targets stay as they are when only scenarios change");
 }
 
+// Text that is still being typed stays when the infrastructure panel adds a track, which shows the incidents again: the
+// panel takes the text into the document first, as edits of its own after the other one. The labels and kinds of the
+// changes are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+// Picking a target ends with a signal that the window hears, also when the taken text ends it.
+void TestIncidentPanel::keepsTypedTextWhenTrackIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	RunSelection selection;
+	IncidentPanel panel;
+	InfrastructurePanel infrastructure;
+	panel.setPrompts(&prompts);
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	infrastructure.setPrompts(&prompts);
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		infrastructure.setFacet(std::move(facet));
+	infrastructure.setDocument(&document);
+	document.replace(incidentScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	// The window shows the infrastructure of a scene that it opens.
+	infrastructure.refresh();
+	infrastructure.facetCombo()->setCurrentIndex(infrastructure.facetCombo()->findData("tracks"));
+	panel.listWidget()->setCurrentRow(0);
+	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	panel.activateWindow();
+	panel.idEdit()->setText("i1_typed");
+	QVERIFY(giveFocus(panel.startSecondsEdit()));
+	spinText(panel.startSecondsEdit())->setText("77");
+	infrastructure.addButton()->click();
+	// The track is added, and the typed id and start are taken in after it, each as an edit of its own.
+	QCOMPARE(document.model().tracks.size(), std::size_t(1));
+	const SceneIncident& incident = document.model().scenarios[0].incidents[0];
+	QCOMPARE(incident.id, "i1_typed");
+	QCOMPARE_EQ(incident.startSeconds, 77.0);
+	QCOMPARE(labels, Log({"Add track", "Rename incident", "Change incident start"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	QCOMPARE(kinds[2], SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	// The fields show the typed values.
+	QCOMPARE(panel.idEdit()->text(), "i1_typed");
+	QCOMPARE(spinText(panel.startSecondsEdit())->text(), "77");
+
+	panel.listWidget()->setCurrentRow(1);
+	QVERIFY(giveFocus(panel.reducedSpeedKmhEdit()));
+	spinText(panel.reducedSpeedKmhEdit())->setText("45");
+	// A click on the pick button leaves the focus in the field.
+	panel.pickTargetButton()->click();
+	QVERIFY(panel.isPickingTarget());
+	QSignalSpy picks(&panel, &IncidentPanel::targetPickToggled);
+	labels.clear();
+	infrastructure.addButton()->click();
+	// The typed speed is taken in after the track. Taking it shows the incidents again, which ends picking a target, and
+	// the window hears that once.
+	QCOMPARE_EQ(document.model().scenarios[0].incidents[1].reducedSpeedKmh, 45.0);
+	QCOMPARE(labels, Log({"Add track", "Change incident reduced speed"}));
+	QVERIFY(!panel.isPickingTarget());
+	QCOMPARE(picks.count(), 1);
+	QCOMPARE(picks.at(0).at(0).toBool(), false);
+}
+
 void TestIncidentPanel::forgetsDeletedDocument() {
 	auto* document = new SceneDocument;
 	IncidentPanel panel;
@@ -988,6 +1087,22 @@ void TestIncidentPanel::emptyStateWithoutScenario() {
 	QVERIFY2(panel.emptyStateLabel()->isHidden(), "without a scenario the empty state does not point to Add Incident");
 }
 
+// A scene without scenarios stays as it is until the first incident adds the baseline scenario in one edit.
+void TestIncidentPanel::addsScenarioOnlyWithAnEdit() {
+	SceneModel scene = incidentScene();
+	scene.scenarios.clear();
+	scene.defaultScenarioId.clear();
+	IncidentFixture f(scene);
+	f.panel.commitPendingEditors();
+	QVERIFY(f.document.model().scenarios.empty());
+	QVERIFY(!f.document.isDirty());
+	f.panel.addIncident();
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
+	QCOMPARE(f.document.model().scenarios[0].incidents.size(), std::size_t(1));
+	QVERIFY(f.document.isDirty());
+	QCOMPARE(f.events.log, edit);
+}
+
 // The target can be picked on the network view.
 void TestIncidentPanel::pickButtonStandsByTarget() {
 	IncidentPanel panel;
@@ -1041,6 +1156,10 @@ void TestIncidentPanel::picksTargetOnNetworkView() {
 	pick->click();
 	panel.refresh();
 	QVERIFY2(!panel.isPickingTarget(), "showing the incidents again, as after another scene or scenario, ends picking");
+	pick->click();
+	QVERIFY(f.document.edit(SceneDocument::Infrastructure, "Edit track", [](SceneModel&) {}));
+	QVERIFY2(!panel.isPickingTarget(), "an infrastructure edit can take away what can be picked, so it ends picking");
+	f.events.log.clear();
 	panel.show();
 	pick->click();
 	panel.hide();
@@ -1215,6 +1334,133 @@ void TestIncidentPanel::namesTargetsByLabels() {
 	// A block chosen by its label is saved by its id.
 	QCOMPARE(f.document.model().scenarios[0].incidents[0].target, "s2");
 	QCOMPARE(panel.targetCombo()->currentText(), "T1 1.000 to 2.000 km");
+}
+
+// A signal failure is offered each signal and then each block once, without an empty id, and a target that the scene does
+// not have as missing. Its entries name no run and have the id as tooltip.
+void TestIncidentPanel::choicesListSignalFailureTargetsOnce() {
+	SceneModel scene = incidentScene();
+	SceneSignal again;
+	again.id = "sig1";
+	SceneSignal unnamed;
+	SceneSignal other;
+	other.id = "sig2";
+	sceneSignals(scene) = {sceneSignals(scene)[0], again, unnamed, other};
+	SceneBlock sameAsSignal;
+	sameAsSignal.id = "sig2";
+	scene.blocks.push_back(sameAsSignal);
+	scene.blocks.push_back(SceneBlock());
+	QCOMPARE(signalFailureTargets(scene), std::vector<std::string>({"sig1", "sig2", "blk1", "s2"}));
+
+	SceneIncident incident = signalFailure("i1", "sig2");
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "sig1", "sig2", "blk1", "s2"}));
+	QCOMPARE(choices.current, 2);
+	QCOMPARE(runs(choices), QList<int>({-1, -1, -1, -1, -1}));
+	QCOMPARE(choices.entries[3].target, "blk1");
+	QCOMPARE(choices.entries[3].toolTip, "blk1");
+	QCOMPARE(choices.entries[0].toolTip, QString());
+
+	incident.target = "gone";
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices).last(), "gone (missing)");
+	QCOMPARE(choices.entries.back().target, "gone");
+	QCOMPARE(choices.current, 5);
+
+	incident.target.clear();
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(choices.entries.size(), std::size_t(5));
+	QCOMPARE(choices.current, 0);
+
+	choices = incidentTargetChoices(scene, nullptr, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}));
+	QCOMPARE(choices.current, 0);
+}
+
+// A breakdown is offered all runs of its service when it names no run, then each run of each service, counted over the
+// duration given. A service or run that the scene does not have is listed as missing.
+void TestIncidentPanel::choicesListRunsOfBreakdown() {
+	const SceneModel scene = incidentScene();
+	SceneIncident incident = breakdown("i3", "s1");
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	const QStringList listed({"s1-1 (route r1, +0 s)", "s1-2 (route r1, +1200 s)", "s1-3 (route r1, +2400 s)", "s2 (route r1, +0 s)"});
+	QCOMPARE(texts(choices), QStringList({"Choose target", "All runs of s1"}) + listed);
+	QCOMPARE(runs(choices), QList<int>({-1, 0, 1, 2, 3, 1}));
+	QCOMPARE(choices.current, 1);
+	QCOMPARE(choices.entries[1].toolTip, "All runs of s1\nService s1, all runs");
+	QCOMPARE(choices.entries[3].toolTip, "s1-2 (route r1, +1200 s)\nService s1, run 2");
+	QCOMPARE(choices.entries[0].toolTip, "Choose target");
+	QCOMPARE(texts(incidentTargetChoices(scene, &incident, 1200.0)), QStringList({"Choose target", "All runs of s1", "s1-1 (route r1, +0 s)", "s2 (route r1, +0 s)"}));
+
+	incident.target = "gone";
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "gone (missing)"}) + listed);
+	QCOMPARE(choices.entries[1].occurrence, std::optional<int>(0));
+	QCOMPARE(choices.current, 1);
+
+	incident.target = "s1";
+	incident.hasOccurrence = true;
+	incident.occurrence = 3;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}) + listed);
+	QCOMPARE(choices.current, 3);
+
+	incident.occurrence = 4;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target"}) + listed + QStringList({"s1 #4 (missing)"}));
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(4));
+	QCOMPARE(choices.current, 5);
+
+	incident.target = "gone";
+	incident.occurrence = 2;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices).last(), "gone #2 (missing)");
+	QCOMPARE(choices.current, 5);
+}
+
+// The runs offered stop at the limit of runs of all services together. A run past it that the incident names is added
+// after them.
+void TestIncidentPanel::choicesStopAtRunLimit() {
+	SceneModel scene = incidentScene();
+	SceneService many = service("many");
+	many.hasRepeat = true;
+	many.hasRepeatCount = true;
+	many.repeatCount = RuntimeLimits::kMaxExpandedTrains;
+	many.headwaySeconds = 60.0;
+	scene.services.insert(scene.services.begin() + 1, many);
+	SceneIncident incident = breakdown("i3", "many");
+	incident.hasOccurrence = true;
+	incident.occurrence = 2;
+	IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	const std::size_t limit = static_cast<std::size_t>(RuntimeLimits::kMaxExpandedTrains);
+	QCOMPARE(choices.entries.size(), 1 + limit);
+	QCOMPARE(choices.entries[4].text, "many-1 (route r1, +0 s)");
+	QCOMPARE(choices.current, 5);
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(RuntimeLimits::kMaxExpandedTrains - 3));
+	QVERIFY2(!texts(choices).contains("s2 (route r1, +0 s)"), "a service after the limit is not offered");
+
+	incident.occurrence = RuntimeLimits::kMaxExpandedTrains;
+	choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(choices.entries.size(), 2 + limit);
+	QCOMPARE(choices.current, static_cast<int>(1 + limit));
+	QCOMPARE(choices.entries.back().text, QString("many-%1 (route r1, +%2 s)").arg(RuntimeLimits::kMaxExpandedTrains).arg((RuntimeLimits::kMaxExpandedTrains - 1) * 60));
+	QCOMPARE(choices.entries.back().occurrence, std::optional<int>(RuntimeLimits::kMaxExpandedTrains));
+}
+
+// Entries that read the same name their service and run, in the text and on a line of the tooltip of their own.
+void TestIncidentPanel::choicesNameRepeatedTexts() {
+	SceneModel scene = incidentScene();
+	SceneService first = service("a");
+	first.operatingCode = "X";
+	SceneService second = service("b");
+	second.operatingCode = "X";
+	scene.services = {first, second};
+	SceneIncident incident = breakdown("i3", "b");
+	incident.hasOccurrence = true;
+	const IncidentTargetChoices choices = incidentTargetChoices(scene, &incident, 3600.0);
+	QCOMPARE(texts(choices), QStringList({"Choose target", "X (route r1, +0 s) (service a, run 1)", "X (route r1, +0 s) (service b, run 1)"}));
+	QCOMPARE(choices.current, 2);
+	QCOMPARE(choices.entries[2].toolTip, "X (route r1, +0 s)\nService b, run 1");
 }
 
 // In the form of macOS the fields grow to the width of the panel, and a long target is cut in the middle. The

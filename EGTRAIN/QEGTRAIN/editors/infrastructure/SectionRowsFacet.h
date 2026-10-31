@@ -41,31 +41,32 @@ public:
 
 	/// Takes the trimmed text of a text cell into the item through editField().
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		if (row >= static_cast<int>(items.size()))
 			return;
 		const QString value = panel.table()->item(row, column)->text().trimmed();
-		const Edit edit = editField(items[static_cast<std::size_t>(row)], column, value);
+		const std::size_t index = static_cast<std::size_t>(row);
+		Item edited = items[index];
+		const Edit edit = editField(edited, column, value);
 		if (edit == Edit::Changed)
-			panel.entityChanged(editLabel());
+			panel.edit(editLabel(), [this, index, &edited](SceneModel& model) { (model.*m_list)[index] = edited; });
 		else if (edit == Edit::Refused)
 			panel.refuseEdit();
 	}
 
 	/// Appends an empty item and makes its row the current one.
 	void add(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
-		items.push_back(Item());
-		const int newRow = static_cast<int>(items.size()) - 1;
+		const int newRow = static_cast<int>((panel.model().*m_list).size());
 		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
+		if (!panel.edit(QStringLiteral("Add %1").arg(m_noun), [this](SceneModel& model) { (model.*m_list).push_back(Item()); }))
+			return;
 		if (newRow < panel.table()->rowCount())
 			panel.table()->setCurrentCell(newRow, 0);
 	}
 
 	/// Deletes the selected item when the user confirms it.
 	void remove(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
+		const std::vector<Item>& items = panel.model().*m_list;
 		const int row = panel.table()->currentRow();
 		if (row < 0 || row >= static_cast<int>(items.size()))
 			return;
@@ -73,9 +74,11 @@ public:
 		const QString name = title.empty() ? QStringLiteral("incomplete row") : QString::fromStdString(title);
 		if (!panel.confirmDelete(name, {}))
 			return;
-		items.erase(items.begin() + row);
 		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete %1").arg(m_noun));
+		panel.edit(QStringLiteral("Delete %1").arg(m_noun), [this, row](SceneModel& model) {
+			std::vector<Item>& list = model.*m_list;
+			list.erase(list.begin() + row);
+		});
 	}
 
 protected:
@@ -109,11 +112,13 @@ protected:
 		}
 		QObject::connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), &panel,
 			[&panel, list = m_list, label = editLabel(), row, combo, assign = std::move(assign)](int) {
-				std::vector<Item>& items = panel.mutableModel().*list;
+				const std::vector<Item>& items = panel.model().*list;
 				if (row < 0 || row >= static_cast<int>(items.size()))
 					return;
-				if (assign(items[static_cast<std::size_t>(row)], combo->currentData().toString().toStdString()))
-					panel.entityEdited(label);
+				const std::size_t index = static_cast<std::size_t>(row);
+				Item edited = items[index];
+				if (assign(edited, combo->currentData().toString().toStdString()))
+					panel.editInPlace(label, [list, index, &edited](SceneModel& model) { (model.*list)[index] = edited; });
 			});
 		table.setCellWidget(row, column, combo);
 		return combo;
