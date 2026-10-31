@@ -566,8 +566,10 @@ public:
 
 	/// Finds the arc of the route under a head position in metres, continuing from the previous lookup.
 	///
-	/// Call-local first-match lookup. Earlier future starts invalidate forward progress,
-	/// so unordered and overlapping routes retain the linear scan's precedence.
+	/// First-match lookup on one list of sections, with the result of a fresh scan. Earlier future starts invalidate forward
+	/// progress, so unordered and overlapping routes retain the linear scan's precedence. A copy goes on from the last lookup of
+	/// the cursor that it copies, so walks that all start at or beyond one head can each start from a copy of a cursor that found
+	/// that head, on the same sections, and skip the arcs before it.
 	struct BrakingArcCursor {
 		const Arc* arc = nullptr; ///< Arc of the last lookup; null when there is none.
 		/// Index of the section of the last lookup.
@@ -615,23 +617,27 @@ public:
 
 	/// Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m).
 	/// False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every
-	/// state in driving order.
+	/// state in driving order. from, when given, is a cursor that looked up arcs of the same sections, and the lookups go on from a
+	/// copy of it.
 	bool predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
-		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr);
+		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr, const BrakingArcCursor* from = nullptr);
 
 	/// Runs steps full braking steps from head (m) and speed (m/s), even below a positive target; end and endSpeed receive the last
-	/// state. False when the steps leave the arcs of the sections. positions and speeds as for predictBraking.
+	/// state. False when the steps leave the arcs of the sections. positions, speeds and from as for predictBraking.
 	bool predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
-		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr);
+		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr,
+		const BrakingArcCursor* from = nullptr);
 
 	/// The furthest head (m) that one step from head and speed (m/s) reaches with at most full traction and a speed capped at ceiling
-	/// (m/s); upper receives it. False when no arc holds head.
-	bool brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper);
+	/// (m/s); upper receives it. False when no arc holds head. from as for predictBraking.
+	bool brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper,
+		const BrakingArcCursor* from = nullptr);
 
 	/// The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above
 	/// ceiling; terminal receives it. False when the step cannot end at anchor up to rounding. Rounded addition need not be exactly
-	/// inverted by subtraction and division.
-	bool constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal);
+	/// inverted by subtraction and division. from as for predictBraking.
+	bool constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal,
+		const BrakingArcCursor* from = nullptr);
 
 	/// Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.
 	bool planPositiveBraking(double head, double speed, const Arc& arc, Section* sections, int count, int suggested);

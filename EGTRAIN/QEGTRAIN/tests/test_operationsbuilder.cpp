@@ -2741,6 +2741,25 @@ void TestOperationsBuilder::brakingLookupMatchesLinearReference() {
 		QCOMPARE(result, oldResult);
 		QVERIFY(exact(end, oldEnd));
 		QVERIFY(exact(endSpeed, oldSpeed));
+		// Walks from a copy of a cursor that looked up a head before, at or beyond the start equal the linear reference.
+		for (double seedHead : {head - 25, head, head + 25}) {
+			Train::BrakingArcCursor from;
+			from.find(seedHead, sections, count);
+			end = oldEnd = -123;
+			positions = oldPositions = {-123};
+			speeds = oldSpeeds = {-456};
+			result = train.predictBraking(head, speed, 0, sections, count, end, &positions, &speeds, &from);
+			oldResult = reference.predictBraking(head, speed, 0, sections, count, oldEnd, &oldPositions, &oldSpeeds);
+			QCOMPARE(result, oldResult);
+			QVERIFY(exact(end, oldEnd));
+			QVERIFY(exactVector(positions, oldPositions));
+			QVERIFY(exactVector(speeds, oldSpeeds));
+			result = train.predictBrakingPrefix(head, speed, steps, sections, count, end, endSpeed, nullptr, nullptr, &from);
+			oldResult = reference.predictBrakingPrefix(head, speed, steps, sections, count, oldEnd, oldSpeed);
+			QCOMPARE(result, oldResult);
+			QVERIFY(exact(end, oldEnd));
+			QVERIFY(exact(endSpeed, oldSpeed));
+		}
 	};
 	// An earlier-listed future-start overlap must interrupt reuse of the later-listed arc.
 	auto overlap = brakingRouteOfTwoArcs(0.06, 0.1, 0.02, -0.005);
