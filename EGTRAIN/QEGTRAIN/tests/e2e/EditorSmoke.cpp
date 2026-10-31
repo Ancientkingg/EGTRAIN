@@ -1598,7 +1598,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_document->mutableModel(), "e2e_journey");
 					journeyAdd->click();
 					QApplication::processEvents();
-					ScenePassenger* authoredPassenger = passengerPanel(w)->selectedPassenger();
+					const ScenePassenger* authoredPassenger = passengerPanel(w)->selectedPassenger();
 					if (!authoredPassenger || authoredPassenger->journeys.empty()) {
 						facetFailure(facetOk, "passenger", "Journey Add did not create a selected journey");
 					} else {
@@ -3538,7 +3538,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			incidentPanel(w)->commitEndSeconds();
 			if (incidentPanel(w)->hasReducedSpeedCheck())
 				incidentPanel(w)->hasReducedSpeedCheck()->setChecked(true);
-			if (SceneIncident* incident = incidentPanel(w)->selectedIncident(); !incident
+			if (const SceneIncident* incident = incidentPanel(w)->selectedIncident(); !incident
 				|| !incident->hasReducedSpeed || !incidentPanel(w)->reducedSpeedKmhEdit()
 				|| incident->reducedSpeedKmh != incidentPanel(w)->reducedSpeedKmhEdit()->value())
 				facetFailure(facetOk, "incident", "enabling the speed cap did not commit its displayed value");
@@ -3594,7 +3594,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const QString review = w.m_runController->runReviewText(true);
 		if (editedRow >= 0) {
 			incidentPanel(w)->listWidget()->setCurrentRow(editedRow);
-			SceneIncident* incident = incidentPanel(w)->selectedIncident();
+			SceneIncident* incident = &w.selectedScenario()->incidents[static_cast<std::size_t>(editedRow)];
 			const SceneIncident saved = *incident;
 			incident->hasOccurrence = false;
 			incident->occurrence = 1;
@@ -5738,6 +5738,11 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.redoScene();
 		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
+		expect(!serviceDock(w)->isEnabled() && !passengerDock(w)->isEnabled() && !infrastructureDock(w)->isEnabled()
+				&& !incidentDock(w)->isEnabled(),
+			"an editor that cannot edit during a run stayed enabled");
+		expect(caseSettingsDock(w)->isEnabled() && trainUnitDock(w)->isEnabled() && compositionDock(w)->isEnabled(),
+			"an editor that stays open during a run was disabled");
 		// The menu and the inspector of a signal say why they add no incident while the run goes.
 		SignalItem* runSignal = w.m_presenter->runSignals().value(0);
 		{

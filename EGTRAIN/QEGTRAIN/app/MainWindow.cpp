@@ -1901,10 +1901,12 @@ void MainWindow::updateSceneActions() {
 		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
 	}
-	if (m_editorDocks.serviceDock())
-		m_editorDocks.serviceDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
-	if (m_editorDocks.passengerDock())
-		m_editorDocks.passengerDock()->setEnabled(m_document->isLoaded() && !m_runController->running());
+	// The editors of what a run uses. Case Settings, Rolling Stock Units and Compositions stay open during a run, and
+	// refreshInfrastructurePanel() does the same for Infrastructure.
+	for (QDockWidget* dock : {m_editorDocks.serviceDock(), m_editorDocks.passengerDock(), m_editorDocks.incidentDock()}) {
+		if (dock)
+			dock->setEnabled(m_document->isLoaded() && !m_runController->running());
+	}
 	updateUndoRedoActions();
 	updateDiagramActions();
 	if (QMenu* recentScenesMenu = m_session->recentScenesMenu())

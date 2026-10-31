@@ -108,16 +108,17 @@ protected:
 	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
-	// The selected scenario. The second form adds the baseline scenario to a scene that has none, and is null unless the
-	// scene can be edited.
+	// The selected scenario. The second form is null unless the scene can be edited.
 	const SceneScenario* selectedScenario() const;
-	SceneScenario* selectedScenarioForEdit();
+	const SceneScenario* editableScenario() const;
 	// The scenario of the latest run, or else the selected one, as the run results name it.
 	QString scenarioContext() const;
-	// Records that the selected scenario is edited and tells the document.
-	void markEdited(const QString& label);
-	// A scenario has been added and selected: records it, and tells those who show the entries of the selected scenario.
-	void finishAddition(const QString& label);
+	// Applies `mutate` to the selected scenario in one edit of the document and records that the scenario is edited. A scene
+	// without a scenario gets the baseline scenario first. False when the document refuses the edit.
+	bool editSelected(const QString& label, const std::function<void(SceneScenario&)>& mutate);
+	// Adds `scenario` in one edit of the document, selects it, records that it is edited, and tells those who show the entries
+	// of the selected scenario. False when the document refuses the edit.
+	bool addScenario(const QString& label, SceneScenario scenario);
 
 	const std::vector<SceneDiagnostic>* m_diagnostics = nullptr;
 	std::function<bool()> m_advancedDetails;

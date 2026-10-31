@@ -280,27 +280,27 @@ const std::vector<SceneIncident>& IncidentPanel::scenarioIncidents() const {
 	return scenario ? scenario->incidents : none;
 }
 
-std::vector<SceneIncident>* IncidentPanel::scenarioIncidentsForEdit() {
-	SceneScenario* scenario = canEdit() ? m_runSelection->selectedScenario(m_document->mutableModel()) : nullptr;
-	return scenario ? &scenario->incidents : nullptr;
-}
-
 const SceneIncident* IncidentPanel::shownIncident() const {
 	const auto& incidents = scenarioIncidents();
 	const int row = m_listWidget->currentRow();
 	return row >= 0 && row < static_cast<int>(incidents.size()) ? &incidents[static_cast<std::size_t>(row)] : nullptr;
 }
 
-SceneIncident* IncidentPanel::selectedIncident() {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
-	const int row = m_listWidget->currentRow();
-	return incidents && row >= 0 && row < static_cast<int>(incidents->size()) ? &(*incidents)[static_cast<std::size_t>(row)] : nullptr;
+const SceneIncident* IncidentPanel::selectedIncident() const {
+	return canEdit() ? shownIncident() : nullptr;
 }
 
-void IncidentPanel::markEdited(const QString& label) {
-	if (const SceneScenario* scenario = m_runSelection->selectedScenario(m_document->model()))
+bool IncidentPanel::editIncidents(const QString& label, const std::function<void(std::vector<SceneIncident>&)>& mutate) {
+	return m_document->edit(SceneDocument::Scenarios, label, [this, &mutate](SceneModel& model) {
+		SceneScenario* scenario = m_runSelection->selectedScenario(model);
+		mutate(scenario->incidents);
 		m_runSelection->markScenarioModified(scenario->id);
-	m_document->markChanged(SceneDocument::Scenarios, label);
+	});
+}
+
+bool IncidentPanel::editSelected(const QString& label, const std::function<void(SceneIncident&)>& mutate) {
+	const auto row = static_cast<std::size_t>(m_listWidget->currentRow());
+	return editIncidents(label, [row, &mutate](std::vector<SceneIncident>& incidents) { mutate(incidents[row]); });
 }
 
 void IncidentPanel::refresh() {
@@ -494,7 +494,7 @@ void IncidentPanel::refreshTargets() {
 }
 
 void IncidentPanel::addIncident() {
-	if (!scenarioIncidentsForEdit())
+	if (!canEdit())
 		return;
 	// Asked before the edit, which can clear what the target comes from.
 	const IncidentTarget target = m_defaultTarget ? m_defaultTarget() : IncidentTarget();
@@ -502,14 +502,13 @@ void IncidentPanel::addIncident() {
 }
 
 bool IncidentPanel::addIncident(const IncidentTarget& target) {
-	if (!offersTarget(target) || !scenarioIncidentsForEdit())
+	if (!offersTarget(target) || !canEdit())
 		return false;
 	appendIncident(target);
 	return true;
 }
 
 void IncidentPanel::appendIncident(const IncidentTarget& target) {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
 	SceneIncident incident;
 	incident.id = sceneUniqueIncidentId(m_document->model(), "new_incident");
 	incident.type = "signal_failure";
@@ -518,26 +517,28 @@ void IncidentPanel::appendIncident(const IncidentTarget& target) {
 		changeType(incident, target.type.toStdString());
 		setTarget(incident, target.id.toStdString(), target.occurrence);
 	}
-	incidents->push_back(incident);
+	if (!editIncidents("Add incident", [&incident](std::vector<SceneIncident>& incidents) { incidents.push_back(incident); }))
+		return;
 
-	markEdited("Add incident");
 	refresh();
 	emit changed();
 
-	m_listWidget->setCurrentRow(static_cast<int>(incidents->size()) - 1);
+	m_listWidget->setCurrentRow(static_cast<int>(scenarioIncidents().size()) - 1);
 }
 
 void IncidentPanel::duplicateIncident() {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
-	const int row = m_listWidget->currentRow();
-	if (!incidents || row < 0 || row >= static_cast<int>(incidents->size()))
+	const SceneIncident* selected = selectedIncident();
+	if (!selected)
 		return;
 
-	SceneIncident duplicate = (*incidents)[static_cast<std::size_t>(row)];
+	const int row = m_listWidget->currentRow();
+	SceneIncident duplicate = *selected;
 	duplicate.id = sceneUniqueIncidentId(m_document->model(), duplicate.id + "_copy");
-	incidents->insert(incidents->begin() + row + 1, duplicate);
+	if (!editIncidents("Duplicate incident", [row, &duplicate](std::vector<SceneIncident>& incidents) {
+			incidents.insert(incidents.begin() + row + 1, duplicate);
+		}))
+		return;
 
-	markEdited("Duplicate incident");
 	refresh();
 	emit changed();
 
@@ -545,24 +546,24 @@ void IncidentPanel::duplicateIncident() {
 }
 
 void IncidentPanel::deleteIncident() {
-	std::vector<SceneIncident>* incidents = scenarioIncidentsForEdit();
-	const int row = m_listWidget->currentRow();
-	if (!incidents || row < 0 || row >= static_cast<int>(incidents->size()))
+	const SceneIncident* selected = selectedIncident();
+	if (!selected)
 		return;
 
-	const QString id = QString::fromStdString((*incidents)[static_cast<std::size_t>(row)].id);
+	const int row = m_listWidget->currentRow();
+	const QString id = QString::fromStdString(selected->id);
 	if (!m_prompts->confirm(this, "Delete Incident", QString("Delete incident '%1'?").arg(id)))
 		return;
 
-	incidents->erase(incidents->begin() + row);
+	if (!editIncidents("Delete incident", [row](std::vector<SceneIncident>& incidents) { incidents.erase(incidents.begin() + row); }))
+		return;
 
-	markEdited("Delete incident");
 	refresh();
 	emit changed();
 }
 
 void IncidentPanel::commitIdEdit() {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
@@ -579,67 +580,78 @@ void IncidentPanel::commitIdEdit() {
 		return;
 	}
 
-	incident->id = newId;
+	if (!editSelected("Rename incident", [this, &newId](SceneIncident& edited) {
+			edited.id = newId;
 
-	// update the list row label in place instead of rebuilding the panel, so a
-	// focus-out that lands on another control keeps that pending click intact
-	if (QListWidgetItem* item = m_listWidget->currentItem()) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(rowLabel(*incident));
-	}
+			// update the list row label in place instead of rebuilding the panel, so a
+			// focus-out that lands on another control keeps that pending click intact
+			if (QListWidgetItem* item = m_listWidget->currentItem()) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(rowLabel(edited));
+			}
+		}))
+		return;
 
-	markEdited("Rename incident");
 	emit changed();
 }
 
 void IncidentPanel::commitType(const QString& type) {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	const std::string newType = type.toStdString();
 	if (newType == incident->type)
 		return;
 
-	changeType(*incident, newType);
+	if (!editSelected("Change incident type", [this, &newType](SceneIncident& edited) {
+			changeType(edited, newType);
 
-	// update the list row label in place to reflect the new type
-	if (QListWidgetItem* item = m_listWidget->currentItem()) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(rowLabel(*incident));
-	}
+			// update the list row label in place to reflect the new type
+			if (QListWidgetItem* item = m_listWidget->currentItem()) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(rowLabel(edited));
+			}
+		}))
+		return;
 
-	markEdited("Change incident type");
 	// The target choices and breakdown-only controls both depend on the type.
 	updateDetail();
 	emit changed();
 }
 
 void IncidentPanel::commitTarget() {
-	SceneIncident* incident = selectedIncident();
-	if (!incident
-		|| !setTarget(*incident, m_targetCombo->currentData().toString().toStdString(),
+	const SceneIncident* incident = selectedIncident();
+	if (!incident)
+		return;
+	SceneIncident updated = *incident;
+	if (!setTarget(updated, m_targetCombo->currentData().toString().toStdString(),
 			m_targetCombo->currentData(Qt::UserRole + 1).toInt()))
 		return;
-	markEdited("Change incident target");
+	if (!editSelected("Change incident target", [&updated](SceneIncident& edited) { edited = updated; }))
+		return;
 	updateDetail();
 	emit changed();
 }
 
 bool IncidentPanel::applyTarget(const IncidentTarget& target) {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident || !offersTarget(target))
 		return false;
 	const std::string type = target.type.toStdString();
 	const bool typeChanged = incident->type != type;
+	SceneIncident updated = *incident;
 	if (typeChanged)
-		changeType(*incident, type);
-	if (!setTarget(*incident, target.id.toStdString(), target.occurrence) && !typeChanged)
+		changeType(updated, type);
+	if (!setTarget(updated, target.id.toStdString(), target.occurrence) && !typeChanged)
 		return true;
-	if (QListWidgetItem* item = m_listWidget->currentItem()) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(rowLabel(*incident));
-	}
-	markEdited("Change incident target");
+	if (!editSelected("Change incident target", [this, &updated](SceneIncident& edited) {
+			edited = updated;
+			if (QListWidgetItem* item = m_listWidget->currentItem()) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(rowLabel(edited));
+			}
+		}))
+		return false;
 	updateDetail();
 	emit changed();
 	return true;
@@ -660,7 +672,7 @@ void IncidentPanel::hideEvent(QHideEvent* event) {
 }
 
 void IncidentPanel::commitStartSeconds() {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 
@@ -668,14 +680,14 @@ void IncidentPanel::commitStartSeconds() {
 	if (newValue == shownValue(m_startSecondsEdit, incident->startSeconds))
 		return;
 
-	incident->startSeconds = newValue;
+	if (!editSelected("Change incident start", [newValue](SceneIncident& edited) { edited.startSeconds = newValue; }))
+		return;
 
-	markEdited("Change incident start");
 	emit changed();
 }
 
 void IncidentPanel::commitEndSeconds() {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 
@@ -684,65 +696,71 @@ void IncidentPanel::commitEndSeconds() {
 	if (newValue == shownValue(m_endSecondsEdit, incident->endSeconds))
 		return;
 
-	incident->endSeconds = newValue;
-	incident->hasEndSeconds = true;
+	if (!editSelected("Change incident end", [newValue](SceneIncident& edited) {
+			edited.endSeconds = newValue;
+			edited.hasEndSeconds = true;
+		}))
+		return;
 
-	markEdited("Change incident end");
 	emit changed();
 }
 
 void IncidentPanel::commitReducedSpeed() {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	const double speed = m_reducedSpeedKmhEdit->value();
 	if (speed == shownReducedSpeed(m_reducedSpeedKmhEdit, incident))
 		return;
-	incident->reducedSpeedKmh = speed;
-	incident->hasReducedSpeed = true;
-	markEdited("Change incident reduced speed");
+	if (!editSelected("Change incident reduced speed", [speed](SceneIncident& edited) {
+			edited.reducedSpeedKmh = speed;
+			edited.hasReducedSpeed = true;
+		}))
+		return;
 	refresh();
 	emit changed();
 }
 
 void IncidentPanel::commitHasReducedSpeed(bool checked) {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	if (incident->hasReducedSpeed == checked)
 		return;
-	incident->hasReducedSpeed = checked;
-	if (checked)
-		incident->reducedSpeedKmh = m_reducedSpeedKmhEdit->value();
-	else
-		incident->reducedSpeedKmh = 0.0;
-	markEdited("Change incident reduced speed");
+	const double speed = checked ? m_reducedSpeedKmhEdit->value() : 0.0;
+	if (!editSelected("Change incident reduced speed", [checked, speed](SceneIncident& edited) {
+			edited.hasReducedSpeed = checked;
+			edited.reducedSpeedKmh = speed;
+		}))
+		return;
 	updateDetail();
 	emit changed();
 }
 
 void IncidentPanel::commitHasEndSeconds(bool checked) {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	if (incident->hasEndSeconds == checked)
 		return;
-	incident->hasEndSeconds = checked;
-	if (!checked)
-		incident->endSeconds = 0.0;
-	markEdited("Change incident end");
+	if (!editSelected("Change incident end", [checked](SceneIncident& edited) {
+			edited.hasEndSeconds = checked;
+			if (!checked)
+				edited.endSeconds = 0.0;
+		}))
+		return;
 	updateDetail();
 	emit changed();
 }
 
 void IncidentPanel::commitTerminateAtDestination(bool checked) {
-	SceneIncident* incident = selectedIncident();
+	const SceneIncident* incident = selectedIncident();
 	if (!incident)
 		return;
 	if (incident->terminateAtDestination == checked)
 		return;
-	incident->terminateAtDestination = checked;
-	markEdited("Change incident termination");
+	if (!editSelected("Change incident termination", [checked](SceneIncident& edited) { edited.terminateAtDestination = checked; }))
+		return;
 	emit changed();
 }
 

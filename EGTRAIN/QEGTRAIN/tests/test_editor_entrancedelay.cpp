@@ -148,6 +148,7 @@ private slots:
 	void editsAddsAndDeletesDelays();
 	void showsDelayOfMissingService();
 	void addsDelayToSceneWithoutCalls();
+	void addsScenarioOnlyWithAnEdit();
 	void showsOtherScenario();
 	void takesPendingEditOfFocusedField();
 	void choicesFollowDocument();
@@ -368,6 +369,23 @@ void TestEntranceDelayPanel::addsDelayToSceneWithoutCalls() {
 	f.panel.addEntranceDelay();
 	QCOMPARE(f.document.model().scenarios[0].entranceDelays.back().serviceId, "s1");
 	QVERIFY(f.document.model().scenarios[0].entranceDelays.back().stationId.empty());
+}
+
+// A scene without scenarios stays as it is until the first delay adds the baseline scenario in one edit.
+void TestEntranceDelayPanel::addsScenarioOnlyWithAnEdit() {
+	DelayFixture f;
+	SceneModel scene = delayScene();
+	scene.scenarios.clear();
+	scene.defaultScenarioId.clear();
+	f.document.replace(scene, false);
+	f.panel.duplicateEntranceDelay();
+	f.panel.deleteEntranceDelay();
+	QVERIFY(f.document.model().scenarios.empty());
+	QVERIFY(!f.document.isDirty());
+	f.panel.addEntranceDelay();
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
+	QCOMPARE(f.document.model().scenarios[0].entranceDelays.size(), std::size_t(1));
+	QVERIFY(f.document.isDirty());
 }
 
 void TestEntranceDelayPanel::showsOtherScenario() {

@@ -151,7 +151,7 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
 1. **Open.** `File > Open Case...` (a `.egscene` bundle), `File > Open Case Folder...` or the
    case chooser lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
    loads the scene with `loadScenePath` into a `SceneModel` and hands it to its `SceneDocument`.
-2. **Edit.** An editor panel changes the model in place and calls `SceneDocument::markChanged`.
+2. **Edit.** An editor panel changes the model with `SceneDocument::edit`, which refuses most edits while a run uses the scene.
    `MainWindow::sceneDocumentChanged` records the step for Undo and Redo, discards the results of an
    earlier run and schedules the recovery copy.
 3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls

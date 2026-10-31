@@ -32,8 +32,11 @@
 #include <QToolTip>
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 static SceneService service(const char* id, const char* compositionId, const char* routeId) {
@@ -195,6 +198,7 @@ private slots:
 	void editsFieldsOfService();
 	void renamesAddsAndDeletesServices();
 	void closesFieldsWhileRunUsesScene();
+	void refusesEditsWhileRunUsesScene();
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void fieldsAreOneForm();
@@ -769,7 +773,6 @@ void TestServicePanel::renamesAddsAndDeletesServices() {
 	QCOMPARE(panel.listWidget()->count(), 4);
 }
 
-// A run does not close the services for the model but closes the fields.
 void TestServicePanel::closesFieldsWhileRunUsesScene() {
 	ServiceFixture f;
 	SceneDocument& document = f.document;
@@ -801,6 +804,80 @@ void TestServicePanel::closesFieldsWhileRunUsesScene() {
 	QCOMPARE(document.model().services[1].route, before.route);
 	QVERIFY(document.model().services[1].visualizationColor.empty());
 	QVERIFY(selection.isExcluded(SceneServiceOccurrence{"s2", 1}));
+}
+
+// While a run uses the scene no field and no button reaches the services, also when the panel still shows them as open.
+void TestServicePanel::refusesEditsWhileRunUsesScene() {
+	const std::vector<std::pair<QString, std::function<void(ServicePanel&)>>> commits = {
+		{"id", [](ServicePanel& panel) {
+			 panel.idEdit()->setText("renamed");
+			 panel.commitIdEdit();
+		 }},
+		{"code", [](ServicePanel& panel) {
+			 panel.operatingCodeEdit()->setText("999");
+			 panel.commitOperatingCode();
+		 }},
+		{"composition", [](ServicePanel& panel) { panel.commitComposition("c2"); }},
+		{"entry time on", [](ServicePanel& panel) { panel.commitHasEntryTime(true); }},
+		{"entry time", [](ServicePanel& panel) {
+			 typeNumber(panel.entryTimeSecondsEdit(), "60");
+			 panel.commitEntryTimeSeconds();
+		 }},
+		{"repeat off", [](ServicePanel& panel) { panel.commitHasRepeat(false); }},
+		{"headway", [](ServicePanel& panel) {
+			 typeNumber(panel.headwaySecondsEdit(), "60");
+			 panel.commitHeadwaySeconds();
+		 }},
+		{"repeat count on", [](ServicePanel& panel) { panel.commitHasRepeatCount(true); }},
+		{"repeat count", [](ServicePanel& panel) {
+			 panel.repeatCountEdit()->setText("7");
+			 panel.commitRepeatCount();
+		 }},
+		{"performance", [](ServicePanel& panel) { panel.commitPerformancePercent(50.0); }},
+		{"maximum speed on", [](ServicePanel& panel) { panel.commitHasMaximumSpeed(true); }},
+		{"maximum speed", [](ServicePanel& panel) {
+			 typeNumber(panel.maximumSpeedKmhEdit(), "80");
+			 panel.commitMaximumSpeed();
+		 }},
+		{"code step on", [](ServicePanel& panel) { panel.commitHasOperatingCodeStep(true); }},
+		{"code step", [](ServicePanel& panel) {
+			 panel.operatingCodeStepEdit()->setText("3");
+			 panel.commitOperatingCodeStep();
+		 }},
+		{"add", [](ServicePanel& panel) { panel.addService(); }},
+		{"duplicate", [](ServicePanel& panel) { panel.duplicateService(); }},
+		{"delete", [](ServicePanel& panel) { panel.deleteService(); }},
+	};
+	const auto fields = [](const SceneService& s) {
+		return std::tie(s.id, s.operatingCode, s.composition, s.performancePercent, s.hasMaximumSpeed, s.maximumSpeedKmh,
+			s.hasEntryTime, s.entryTimeSeconds, s.hasRepeat, s.headwaySeconds, s.hasRepeatCount, s.repeatCount,
+			s.hasOperatingCodeStep, s.operatingCodeStep);
+	};
+	QStringList reached;
+	for (const auto& [name, commit] : commits) {
+		ServiceFixture f;
+		f.prompts.confirmAnswer = true;
+		f.panel.listWidget()->setCurrentRow(1);
+		f.document.setEditable(false);
+		f.events.log.clear();
+		const SceneService before = f.document.model().services[1];
+		const quint64 revision = f.document.revision();
+		commit(f.panel);
+		if (f.document.model().services.size() != 3 || fields(f.document.model().services[1]) != fields(before)
+			|| f.document.revision() != revision || !f.events.log.empty())
+			reached << name;
+	}
+	QCOMPARE(reached, QStringList());
+
+	// An edit that touches a part that stays open during a run goes through, and any other is refused.
+	ServiceFixture f;
+	f.document.setEditable(false);
+	const auto rename = [](SceneModel& model) { model.name = "edited"; };
+	QVERIFY(!f.document.edit(SceneDocument::Services | SceneDocument::Passengers, "Refused", rename));
+	QVERIFY(f.document.model().name == "Services");
+	QVERIFY(f.document.edit(SceneDocument::Compositions | SceneDocument::Services, "Open", rename));
+	QVERIFY(f.document.model().name == "edited");
+	QCOMPARE(f.document.lastChangeLabel(), "Open");
 }
 
 // Another scene replaces unfinished text without an edit.

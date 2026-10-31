@@ -104,10 +104,6 @@ const SceneScenario* EntranceDelayPanel::scenario() const {
 	return hasScene() ? m_runSelection->selectedScenario(m_document->model()) : nullptr;
 }
 
-SceneScenario* EntranceDelayPanel::scenarioForEdit() {
-	return canEdit() ? m_runSelection->selectedScenario(m_document->mutableModel()) : nullptr;
-}
-
 const SceneEntranceDelay* EntranceDelayPanel::shownDelay() const {
 	const SceneScenario* selected = scenario();
 	const int row = m_listWidget->currentRow();
@@ -116,18 +112,21 @@ const SceneEntranceDelay* EntranceDelayPanel::shownDelay() const {
 		: nullptr;
 }
 
-SceneEntranceDelay* EntranceDelayPanel::selectedEntranceDelay() {
-	SceneScenario* selected = scenarioForEdit();
-	const int row = m_listWidget->currentRow();
-	return selected && row >= 0 && row < static_cast<int>(selected->entranceDelays.size())
-		? &selected->entranceDelays[static_cast<std::size_t>(row)]
-		: nullptr;
+const SceneEntranceDelay* EntranceDelayPanel::selectedEntranceDelay() const {
+	return canEdit() ? shownDelay() : nullptr;
 }
 
-void EntranceDelayPanel::markEdited(const QString& label) {
-	if (const SceneScenario* selected = scenario())
+bool EntranceDelayPanel::editDelays(const QString& label, const std::function<void(std::vector<SceneEntranceDelay>&)>& mutate) {
+	return m_document->edit(SceneDocument::Scenarios, label, [this, &mutate](SceneModel& model) {
+		SceneScenario* selected = m_runSelection->selectedScenario(model);
+		mutate(selected->entranceDelays);
 		m_runSelection->markScenarioModified(selected->id);
-	m_document->markChanged(SceneDocument::Scenarios, label);
+	});
+}
+
+bool EntranceDelayPanel::editSelected(const QString& label, const std::function<void(SceneEntranceDelay&)>& mutate) {
+	const auto row = static_cast<std::size_t>(m_listWidget->currentRow());
+	return editDelays(label, [row, &mutate](std::vector<SceneEntranceDelay>& delays) { mutate(delays[row]); });
 }
 
 void EntranceDelayPanel::refresh() {
@@ -249,8 +248,7 @@ void EntranceDelayPanel::updateDetail() {
 }
 
 void EntranceDelayPanel::addEntranceDelay() {
-	SceneScenario* selected = scenarioForEdit();
-	if (!selected)
+	if (!canEdit())
 		return;
 	const SceneModel& model = m_document->model();
 	SceneEntranceDelay delay;
@@ -264,23 +262,26 @@ void EntranceDelayPanel::addEntranceDelay() {
 	}
 	if (delay.serviceId.empty() && !model.services.empty())
 		delay.serviceId = model.services.front().id;
-	selected->entranceDelays.push_back(std::move(delay));
+	if (!editDelays("Add entrance delay", [&delay](std::vector<SceneEntranceDelay>& delays) { delays.push_back(std::move(delay)); }))
+		return;
 
-	markEdited("Add entrance delay");
 	refresh();
 	emit changed();
 
-	m_listWidget->setCurrentRow(static_cast<int>(selected->entranceDelays.size()) - 1);
+	m_listWidget->setCurrentRow(static_cast<int>(scenario()->entranceDelays.size()) - 1);
 }
 
 void EntranceDelayPanel::duplicateEntranceDelay() {
-	SceneScenario* selected = scenarioForEdit();
-	const int row = m_listWidget->currentRow();
-	if (!selected || row < 0 || row >= static_cast<int>(selected->entranceDelays.size()))
+	const SceneEntranceDelay* selected = selectedEntranceDelay();
+	if (!selected)
 		return;
-	selected->entranceDelays.insert(selected->entranceDelays.begin() + row + 1, selected->entranceDelays[static_cast<std::size_t>(row)]);
+	const int row = m_listWidget->currentRow();
+	const SceneEntranceDelay duplicate = *selected;
+	if (!editDelays("Duplicate entrance delay", [row, &duplicate](std::vector<SceneEntranceDelay>& delays) {
+			delays.insert(delays.begin() + row + 1, duplicate);
+		}))
+		return;
 
-	markEdited("Duplicate entrance delay");
 	refresh();
 	emit changed();
 
@@ -288,16 +289,16 @@ void EntranceDelayPanel::duplicateEntranceDelay() {
 }
 
 void EntranceDelayPanel::deleteEntranceDelay() {
-	SceneScenario* selected = scenarioForEdit();
-	const int row = m_listWidget->currentRow();
-	if (!selected || row < 0 || row >= static_cast<int>(selected->entranceDelays.size()))
+	const SceneEntranceDelay* selected = selectedEntranceDelay();
+	if (!selected)
 		return;
-	const QString description = QString::fromStdString(selected->entranceDelays[static_cast<std::size_t>(row)].serviceId);
+	const int row = m_listWidget->currentRow();
+	const QString description = QString::fromStdString(selected->serviceId);
 	if (!m_prompts->confirm(this, "Delete Entrance Delay", QString("Delete entrance delay for service '%1'?").arg(description)))
 		return;
-	selected->entranceDelays.erase(selected->entranceDelays.begin() + row);
+	if (!editDelays("Delete entrance delay", [row](std::vector<SceneEntranceDelay>& delays) { delays.erase(delays.begin() + row); }))
+		return;
 
-	markEdited("Delete entrance delay");
 	refresh();
 	emit changed();
 }
@@ -305,36 +306,39 @@ void EntranceDelayPanel::deleteEntranceDelay() {
 void EntranceDelayPanel::commitService(int index) {
 	if (index < 0)
 		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
+	const SceneEntranceDelay* delay = selectedEntranceDelay();
 	if (!delay)
 		return;
 	const std::string serviceId = m_serviceCombo->itemData(index).toString().toStdString();
 	if (serviceId == delay->serviceId)
 		return;
-	delay->serviceId = serviceId;
-	delay->occurrence = 1;
-	delay->stationId.clear();
+	std::string stationId;
 	for (const SceneService& service : m_document->model().services) {
 		if (service.id != serviceId)
 			continue;
 		if (const SceneStop* stop = firstDepartureStop(service))
-			delay->stationId = stop->stationId;
+			stationId = stop->stationId;
 		break;
 	}
-	markEdited("Change entrance delay service");
+	if (!editSelected("Change entrance delay service", [&serviceId, &stationId](SceneEntranceDelay& edited) {
+			edited.serviceId = serviceId;
+			edited.occurrence = 1;
+			edited.stationId = stationId;
+		}))
+		return;
 	refresh();
 	emit changed();
 }
 
 void EntranceDelayPanel::commitOccurrence() {
-	SceneEntranceDelay* delay = selectedEntranceDelay();
+	const SceneEntranceDelay* delay = selectedEntranceDelay();
 	if (!delay)
 		return;
 	const int occurrence = m_occurrenceEdit->value();
 	if (delay->occurrence == occurrence)
 		return;
-	delay->occurrence = occurrence;
-	markEdited("Change entrance delay occurrence");
+	if (!editSelected("Change entrance delay occurrence", [occurrence](SceneEntranceDelay& edited) { edited.occurrence = occurrence; }))
+		return;
 	refresh();
 	emit changed();
 }
@@ -342,27 +346,27 @@ void EntranceDelayPanel::commitOccurrence() {
 void EntranceDelayPanel::commitStation(int index) {
 	if (index < 0)
 		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
+	const SceneEntranceDelay* delay = selectedEntranceDelay();
 	if (!delay)
 		return;
 	const std::string stationId = m_stationCombo->itemData(index).toString().toStdString();
 	if (delay->stationId == stationId)
 		return;
-	delay->stationId = stationId;
-	markEdited("Change entrance delay station");
+	if (!editSelected("Change entrance delay station", [&stationId](SceneEntranceDelay& edited) { edited.stationId = stationId; }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void EntranceDelayPanel::commitSeconds() {
-	SceneEntranceDelay* delay = selectedEntranceDelay();
+	const SceneEntranceDelay* delay = selectedEntranceDelay();
 	if (!delay)
 		return;
 	const double seconds = m_secondsEdit->value();
 	if (delay->delaySeconds == seconds)
 		return;
-	delay->delaySeconds = seconds;
-	markEdited("Change entrance delay");
+	if (!editSelected("Change entrance delay", [seconds](SceneEntranceDelay& edited) { edited.delaySeconds = seconds; }))
+		return;
 	refresh();
 	emit changed();
 }

@@ -220,6 +220,7 @@ private slots:
 	void emptyStateFollowsSelection();
 	void checkBoxStandsBeforeItsField();
 	void emptyStateWithoutScenario();
+	void addsScenarioOnlyWithAnEdit();
 	void pickButtonStandsByTarget();
 	void picksTargetOnNetworkView();
 	void takesPickedTarget();
@@ -986,6 +987,22 @@ void TestIncidentPanel::emptyStateWithoutScenario() {
 	panel.setDocument(&document);
 	document.replace(scene, false);
 	QVERIFY2(panel.emptyStateLabel()->isHidden(), "without a scenario the empty state does not point to Add Incident");
+}
+
+// A scene without scenarios stays as it is until the first incident adds the baseline scenario in one edit.
+void TestIncidentPanel::addsScenarioOnlyWithAnEdit() {
+	SceneModel scene = incidentScene();
+	scene.scenarios.clear();
+	scene.defaultScenarioId.clear();
+	IncidentFixture f(scene);
+	f.panel.commitPendingEditors();
+	QVERIFY(f.document.model().scenarios.empty());
+	QVERIFY(!f.document.isDirty());
+	f.panel.addIncident();
+	QCOMPARE(f.document.model().scenarios.size(), std::size_t(1));
+	QCOMPARE(f.document.model().scenarios[0].incidents.size(), std::size_t(1));
+	QVERIFY(f.document.isDirty());
+	QCOMPARE(f.events.log, edit);
 }
 
 // The target can be picked on the network view.

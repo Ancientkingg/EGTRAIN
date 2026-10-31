@@ -277,6 +277,7 @@ void EditorDocks::build(SceneDocument* document, UserPrompts* prompts, RunSelect
 	m_incidentDock->setWidget(incidentWidget);
 	m_window->addDockWidget(Qt::RightDockWidgetArea, m_incidentDock);
 	m_incidentDock->hide();
+	m_incidentDock->setEnabled(false);
 	m_trainUnitDock->hide();
 	m_window->tabifyDockWidget(m_serviceDock, m_incidentDock);
 	m_host.registerEditorDock(m_incidentDock);

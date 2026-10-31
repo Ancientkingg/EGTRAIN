@@ -414,29 +414,30 @@ void TrainUnitPanel::commitPendingEditors() {
 void TrainUnitPanel::addUnit() {
 	if (!hasScene())
 		return;
-	SceneModel& model = m_document->mutableModel();
 	SceneTrainUnit unit;
-	unit.id = sceneUniqueTrainUnitId(model, "new_train_unit");
-	model.trainUnits.push_back(unit);
+	unit.id = sceneUniqueTrainUnitId(m_document->model(), "new_train_unit");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Add rolling stock unit",
+			[&unit](SceneModel& model) { model.trainUnits.push_back(unit); }))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Add rolling stock unit");
 	refresh();
 	emit trainUnitsChanged();
 	emit changed();
 
-	m_listWidget->setCurrentRow(static_cast<int>(model.trainUnits.size()) - 1);
+	m_listWidget->setCurrentRow(static_cast<int>(m_document->model().trainUnits.size()) - 1);
 }
 
 void TrainUnitPanel::duplicateUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneTrainUnit duplicate = model.trainUnits[static_cast<std::size_t>(row)];
-	duplicate.id = sceneUniqueTrainUnitId(model, duplicate.id + "_copy");
-	model.trainUnits.insert(model.trainUnits.begin() + row + 1, duplicate);
+	SceneTrainUnit duplicate = m_document->model().trainUnits[static_cast<std::size_t>(row)];
+	duplicate.id = sceneUniqueTrainUnitId(m_document->model(), duplicate.id + "_copy");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Duplicate rolling stock unit", [row, &duplicate](SceneModel& model) {
+			model.trainUnits.insert(model.trainUnits.begin() + row + 1, duplicate);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Duplicate rolling stock unit");
 	refresh();
 	emit trainUnitsChanged();
 	emit changed();
@@ -448,7 +449,7 @@ void TrainUnitPanel::deleteUnit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const std::string id = model.trainUnits[static_cast<std::size_t>(row)].id;
 	QStringList consumers;
 	for (const std::string& consumer : sceneDirectDeleteConsumers(model, "train_unit", id))
@@ -464,9 +465,10 @@ void TrainUnitPanel::deleteUnit() {
 			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id))))
 		return;
 
-	model.trainUnits.erase(model.trainUnits.begin() + row);
+	if (!m_document->edit(SceneDocument::TrainUnits, "Delete rolling stock unit",
+			[row](SceneModel& edited) { edited.trainUnits.erase(edited.trainUnits.begin() + row); }))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Delete rolling stock unit");
 	emit unitDeleted(QString::fromStdString(id));
 	refresh();
 	emit trainUnitsChanged();
@@ -477,9 +479,8 @@ void TrainUnitPanel::commitIdEdit() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneTrainUnit& unit = model.trainUnits[static_cast<std::size_t>(row)];
-	const std::string oldId = unit.id;
+	const SceneModel& model = m_document->model();
+	const std::string oldId = model.trainUnits[static_cast<std::size_t>(row)].id;
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
 	if (newId.empty()) {
 		const QSignalBlocker blocker(m_idEdit);
@@ -496,14 +497,16 @@ void TrainUnitPanel::commitIdEdit() {
 		}
 	}
 
-	unit.id = newId;
-	sceneRewriteTrainUnitReferences(model, oldId, newId);
-	if (QListWidgetItem* item = m_listWidget->item(row)) {
-		const QSignalBlocker blocker(m_listWidget);
-		item->setText(QString::fromStdString(newId));
-	}
+	if (!m_document->edit(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit", [&](SceneModel& edited) {
+			edited.trainUnits[static_cast<std::size_t>(row)].id = newId;
+			sceneRewriteTrainUnitReferences(edited, oldId, newId);
+			if (QListWidgetItem* item = m_listWidget->item(row)) {
+				const QSignalBlocker blocker(m_listWidget);
+				item->setText(QString::fromStdString(newId));
+			}
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits | SceneDocument::Compositions, "Rename rolling stock unit");
 	emit unitRenamed(QString::fromStdString(oldId), QString::fromStdString(newId));
 	emit trainUnitsChanged();
 	emit changed();
@@ -513,15 +516,18 @@ void TrainUnitPanel::commitSources() {
 	const int row = selectedRow();
 	if (row < 0)
 		return;
-	SceneTrainUnit& unit = m_document->mutableModel().trainUnits[static_cast<std::size_t>(row)];
+	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
 	const std::string sourceDataFile = m_sourceDataEdit->text().toStdString();
 	const std::string sourceTractionFile = m_sourceTractionEdit->text().toStdString();
 	if (unit.sourceDataFile == sourceDataFile && unit.sourceTractionFile == sourceTractionFile)
 		return;
-	unit.sourceDataFile = sourceDataFile;
-	unit.sourceTractionFile = sourceTractionFile;
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit sources", [&](SceneModel& model) {
+			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];
+			edited.sourceDataFile = sourceDataFile;
+			edited.sourceTractionFile = sourceTractionFile;
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit rolling stock unit sources");
 	emit sourceReferencesChanged();
 	emit changed();
 }
@@ -530,21 +536,20 @@ void TrainUnitPanel::commitPhysical(int fieldIndex) {
 	const int row = selectedRow();
 	if (row < 0 || fieldIndex < 0 || fieldIndex >= PhysicalFieldCount)
 		return;
-	SceneTrainUnit& unit = m_document->mutableModel().trainUnits[static_cast<std::size_t>(row)];
-	SceneTrainPhysical& physical = unit.physical;
-	double* values[PhysicalFieldCount] = {
-		&physical.mass_of_traction_unit_kg, &physical.mass_of_a_wagon_kg, &physical.number_of_wagons,
-		&physical.max_speed_ms, &physical.max_deceleration_ms2, &physical.frontal_area_m2,
-		&physical.resistance_coefficient, &physical.jerk_ms3, &physical.length_m};
+	const SceneTrainUnit& unit = m_document->model().trainUnits[static_cast<std::size_t>(row)];
+	const SceneTrainPhysicalField& field = kSceneTrainPhysicalFields[static_cast<std::size_t>(fieldIndex)];
 	const double value = m_physicalEdits[static_cast<std::size_t>(fieldIndex)]->value();
 	// A stored value outside the range is shown at the nearest limit. Showing it is not an edit.
-	const SceneValueRange& range = kSceneTrainPhysicalFields[static_cast<std::size_t>(fieldIndex)].range;
-	if (std::clamp(*values[fieldIndex], range.min, range.max) == value && unit.hasPhysical)
+	if (std::clamp(unit.physical.*field.member, field.range.min, field.range.max) == value && unit.hasPhysical)
 		return;
-	*values[fieldIndex] = value;
-	unit.hasPhysical = true;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit rolling stock unit");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit rolling stock unit", [row, &field, value](SceneModel& model) {
+			SceneTrainUnit& edited = model.trainUnits[static_cast<std::size_t>(row)];
+			edited.physical.*field.member = value;
+			edited.hasPhysical = true;
+		}))
+		return;
+
 	emit changed();
 }
 
@@ -552,15 +557,17 @@ void TrainUnitPanel::addTractionRow() {
 	const int unitRow = selectedRow();
 	if (unitRow < 0)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
-	std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
-	if (!curve.empty()) {
-		row[0] = curve.back()[1];
-		row[1] = row[0] + 1.0;
-	}
-	curve.push_back(row);
+	if (!m_document->edit(SceneDocument::TrainUnits, "Add traction row", [unitRow](SceneModel& model) {
+			std::vector<std::array<double, 5>>& curve = model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+			std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
+			if (!curve.empty()) {
+				row[0] = curve.back()[1];
+				row[1] = row[0] + 1.0;
+			}
+			curve.push_back(row);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Add traction row");
 	emit changed();
 	refreshTractionTable();
 	m_tractionTable->setCurrentCell(m_tractionTable->rowCount() - 1, 0);
@@ -571,12 +578,14 @@ void TrainUnitPanel::removeTractionRow() {
 	const int curveRow = m_tractionTable->currentRow();
 	if (unitRow < 0)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
-	if (curveRow < 0 || curveRow >= static_cast<int>(curve.size()))
+	if (curveRow < 0 || curveRow >= static_cast<int>(m_document->model().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve.size()))
 		return;
-	curve.erase(curve.begin() + curveRow);
+	if (!m_document->edit(SceneDocument::TrainUnits, "Delete traction row", [unitRow, curveRow](SceneModel& model) {
+			std::vector<std::array<double, 5>>& curve = model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+			curve.erase(curve.begin() + curveRow);
+		}))
+		return;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Delete traction row");
 	emit changed();
 	updateDetail();
 }
@@ -585,14 +594,17 @@ void TrainUnitPanel::commitTractionCell(int row, int column, double value) {
 	const int unitRow = selectedRow();
 	if (unitRow < 0 || row < 0 || column < 0 || column >= 5)
 		return;
-	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
+	const std::vector<std::array<double, 5>>& curve = m_document->model().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
 	if (row >= static_cast<int>(curve.size()))
 		return;
 	const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
 	if (std::clamp(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)], range.min, range.max) == value)
 		return;
-	curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] = value;
 
-	m_document->markChanged(SceneDocument::TrainUnits, "Edit traction curve");
+	if (!m_document->edit(SceneDocument::TrainUnits, "Edit traction curve", [unitRow, row, column, value](SceneModel& model) {
+			model.trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] = value;
+		}))
+		return;
+
 	emit changed();
 }

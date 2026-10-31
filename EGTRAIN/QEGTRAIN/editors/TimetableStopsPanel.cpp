@@ -359,8 +359,8 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	const int serviceIndex = serviceRow();
 	if (!canEdit() || serviceIndex < 0)
 		return;
-	SceneModel& model = m_document->mutableModel();
-	SceneService& service = model.services[static_cast<std::size_t>(serviceIndex)];
+	const SceneModel& model = m_document->model();
+	const SceneService& service = model.services[static_cast<std::size_t>(serviceIndex)];
 	const bool append = row < 0;
 	if (!append && row >= static_cast<int>(service.stops.size()))
 		return;
@@ -516,6 +516,8 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 
 	const long long baseOffsetSeconds = baseTimeToSeconds(model.baseTime);
 	bool dialogClockMode = m_clockMode;
+	// The service with the stop that the dialog has accepted.
+	SceneService accepted = service;
 	const auto optionalArrival = [&]() -> std::optional<double> {
 		return draft.hasPlannedArrival ? std::optional<double>(draft.plannedArrivalSeconds) : std::nullopt;
 	};
@@ -725,20 +727,22 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			draft.plannedDepartureSeconds = *departure;
 		draft.dwellSeconds = dwell;
 		if (append) {
-			const auto result = insertSceneStop(model, service, stopIndex, draft);
+			const auto result = insertSceneStop(model, accepted, stopIndex, draft);
 			if (!result.inserted) {
 				showError(QString::fromStdString(result.error));
 				return;
 			}
+		} else {
+			accepted.stops[stopIndex] = draft;
 		}
 		dialog.accept();
 	});
 
 	if (dialog.exec() != QDialog::Accepted)
 		return;
-	if (!append)
-		service.stops[stopIndex] = draft;
-	m_document->markChanged(SceneDocument::Services, append ? "Add timetable stop" : "Edit timetable stop");
+	if (!m_document->edit(SceneDocument::Services, append ? "Add timetable stop" : "Edit timetable stop",
+			[serviceIndex, &accepted](SceneModel& edited) { edited.services[static_cast<std::size_t>(serviceIndex)] = accepted; }))
+		return;
 	refresh();
 	m_table->setCurrentCell(static_cast<int>(stopIndex), 0);
 	emit changed();
@@ -772,11 +776,13 @@ void TimetableStopsPanel::removeStop() {
 	const int stopRow = m_table->currentRow();
 	if (!canEdit() || serviceIndex < 0)
 		return;
-	auto& stops = m_document->mutableModel().services[static_cast<std::size_t>(serviceIndex)].stops;
-	if (stopRow < 0 || stopRow >= static_cast<int>(stops.size()))
+	if (stopRow < 0 || stopRow >= static_cast<int>(m_document->model().services[static_cast<std::size_t>(serviceIndex)].stops.size()))
 		return;
-	stops.erase(stops.begin() + stopRow);
-	m_document->markChanged(SceneDocument::Services, "Remove timetable stop");
+	if (!m_document->edit(SceneDocument::Services, "Remove timetable stop", [serviceIndex, stopRow](SceneModel& model) {
+			auto& stops = model.services[static_cast<std::size_t>(serviceIndex)].stops;
+			stops.erase(stops.begin() + stopRow);
+		}))
+		return;
 	refresh();
 	if (m_table->rowCount() > 0)
 		m_table->setCurrentCell(std::min(stopRow, m_table->rowCount() - 1), 0);
@@ -788,11 +794,13 @@ void TimetableStopsPanel::moveStopUp() {
 	const int stopRow = m_table->currentRow();
 	if (!canEdit() || serviceIndex < 0)
 		return;
-	auto& stops = m_document->mutableModel().services[static_cast<std::size_t>(serviceIndex)].stops;
-	if (stopRow <= 0 || stopRow >= static_cast<int>(stops.size()))
+	if (stopRow <= 0 || stopRow >= static_cast<int>(m_document->model().services[static_cast<std::size_t>(serviceIndex)].stops.size()))
 		return;
-	std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow - 1)]);
-	m_document->markChanged(SceneDocument::Services, "Move timetable stop up");
+	if (!m_document->edit(SceneDocument::Services, "Move timetable stop up", [serviceIndex, stopRow](SceneModel& model) {
+			auto& stops = model.services[static_cast<std::size_t>(serviceIndex)].stops;
+			std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow - 1)]);
+		}))
+		return;
 	refresh();
 	m_table->setCurrentCell(stopRow - 1, 0);
 	emit changed();
@@ -803,11 +811,13 @@ void TimetableStopsPanel::moveStopDown() {
 	const int stopRow = m_table->currentRow();
 	if (!canEdit() || serviceIndex < 0)
 		return;
-	auto& stops = m_document->mutableModel().services[static_cast<std::size_t>(serviceIndex)].stops;
-	if (stopRow < 0 || stopRow + 1 >= static_cast<int>(stops.size()))
+	if (stopRow < 0 || stopRow + 1 >= static_cast<int>(m_document->model().services[static_cast<std::size_t>(serviceIndex)].stops.size()))
 		return;
-	std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow + 1)]);
-	m_document->markChanged(SceneDocument::Services, "Move timetable stop down");
+	if (!m_document->edit(SceneDocument::Services, "Move timetable stop down", [serviceIndex, stopRow](SceneModel& model) {
+			auto& stops = model.services[static_cast<std::size_t>(serviceIndex)].stops;
+			std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow + 1)]);
+		}))
+		return;
 	refresh();
 	m_table->setCurrentCell(stopRow + 1, 0);
 	emit changed();

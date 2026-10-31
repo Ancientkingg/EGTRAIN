@@ -32,6 +32,14 @@ void SceneDocument::markChanged(ChangeKinds kinds, const QString& label) {
 	emit changed(kinds);
 }
 
+bool SceneDocument::edit(ChangeKinds kinds, const QString& label, const std::function<void(SceneModel&)>& apply) {
+	if (!m_editable && !(kinds & OpenDuringRun))
+		return false;
+	apply(m_model);
+	markChanged(kinds, label);
+	return true;
+}
+
 void SceneDocument::setDirty(bool dirty) {
 	if (m_dirty == dirty)
 		return;

@@ -5,6 +5,9 @@
 
 #include <QString>
 
+#include <functional>
+#include <vector>
+
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
@@ -49,9 +52,8 @@ public:
 	/// Takes the delay in seconds from its field.
 	void commitSeconds();
 
-	/// The selected delay for an edit, or null when none is selected or the scene cannot be edited. A scene without a
-	/// scenario gets the baseline scenario first.
-	SceneEntranceDelay* selectedEntranceDelay();
+	/// The selected delay, or null when none is selected or the scene cannot be edited.
+	const SceneEntranceDelay* selectedEntranceDelay() const;
 
 	/// The delays of the selected scenario, one row each.
 	QListWidget* listWidget() const { return m_listWidget; }
@@ -80,14 +82,15 @@ protected:
 	void documentChanged(SceneDocument::ChangeKinds kinds) override;
 
 private:
-	// The selected scenario. The second form adds the baseline scenario to a scene that has none, and is null unless the
-	// scene can be edited.
+	// The selected scenario.
 	const SceneScenario* scenario() const;
-	SceneScenario* scenarioForEdit();
 	// The delay in the selected row of the list, or null.
 	const SceneEntranceDelay* shownDelay() const;
-	// Records that the selected scenario is edited and tells the document.
-	void markEdited(const QString& label);
+	// Applies `mutate` to the delays of the selected scenario in one edit of the document and records that the scenario is
+	// edited. A scene without a scenario gets the baseline scenario first. False when the document refuses the edit.
+	bool editDelays(const QString& label, const std::function<void(std::vector<SceneEntranceDelay>&)>& mutate);
+	// As editDelays(), for the delay in the selected row of the list, which there must be.
+	bool editSelected(const QString& label, const std::function<void(SceneEntranceDelay&)>& mutate);
 
 	QListWidget* m_listWidget = nullptr;
 	QPushButton* m_addButton = nullptr;

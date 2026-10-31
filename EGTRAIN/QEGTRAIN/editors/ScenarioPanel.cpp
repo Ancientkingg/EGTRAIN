@@ -104,8 +104,8 @@ const SceneScenario* ScenarioPanel::selectedScenario() const {
 	return hasScene() ? m_runSelection->selectedScenario(m_document->model()) : nullptr;
 }
 
-SceneScenario* ScenarioPanel::selectedScenarioForEdit() {
-	return canEdit() ? m_runSelection->selectedScenario(m_document->mutableModel()) : nullptr;
+const SceneScenario* ScenarioPanel::editableScenario() const {
+	return canEdit() ? selectedScenario() : nullptr;
 }
 
 QString ScenarioPanel::scenarioContext() const {
@@ -115,17 +115,26 @@ QString ScenarioPanel::scenarioContext() const {
 	return scenario ? QString::fromStdString(scenario->id) : QStringLiteral("(none)");
 }
 
-void ScenarioPanel::markEdited(const QString& label) {
-	if (const SceneScenario* scenario = selectedScenario())
+bool ScenarioPanel::editSelected(const QString& label, const std::function<void(SceneScenario&)>& mutate) {
+	return m_document->edit(SceneDocument::Scenarios, label, [this, &mutate](SceneModel& model) {
+		SceneScenario* scenario = m_runSelection->selectedScenario(model);
+		mutate(*scenario);
 		m_runSelection->markScenarioModified(scenario->id);
-	m_document->markChanged(SceneDocument::Scenarios, label);
+	});
 }
 
-void ScenarioPanel::finishAddition(const QString& label) {
-	markEdited(label);
+bool ScenarioPanel::addScenario(const QString& label, SceneScenario scenario) {
+	const std::string id = scenario.id;
+	if (!m_document->edit(SceneDocument::Scenarios, label, [this, &id, &scenario](SceneModel& model) {
+			model.scenarios.push_back(std::move(scenario));
+			m_runSelection->selectScenario(id);
+			m_runSelection->markScenarioModified(id);
+		}))
+		return false;
 	refresh();
-	emit scenarioSelected(QString::fromStdString(m_runSelection->scenarioId()));
+	emit scenarioSelected(QString::fromStdString(id));
 	emit changed();
+	return true;
 }
 
 void ScenarioPanel::refresh() {
@@ -265,35 +274,30 @@ void ScenarioPanel::selectScenario(int row) {
 void ScenarioPanel::addBlankScenario() {
 	if (!canEdit())
 		return;
-	SceneModel& model = m_document->mutableModel();
 	SceneScenario scenario;
-	scenario.id = sceneUniqueScenarioId(model, "new_scenario");
+	scenario.id = sceneUniqueScenarioId(m_document->model(), "new_scenario");
 	scenario.name = "New scenario";
-	model.scenarios.push_back(std::move(scenario));
-	m_runSelection->selectScenario(model.scenarios.back().id);
-	finishAddition("Add scenario");
+	addScenario("Add scenario", std::move(scenario));
 }
 
 void ScenarioPanel::duplicateScenario() {
-	const SceneScenario* selected = selectedScenarioForEdit();
+	const SceneScenario* selected = editableScenario();
 	if (!selected)
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	SceneScenario copy = *selected;
 	copy.id = sceneUniqueScenarioId(model, copy.id + "_copy");
 	copy.name = "Copy of " + copy.name;
 	for (auto& incident : copy.incidents)
 		incident.id = sceneUniqueIncidentId(model, incident.id + "_copy");
-	model.scenarios.push_back(std::move(copy));
-	m_runSelection->selectScenario(model.scenarios.back().id);
-	finishAddition("Duplicate scenario");
+	addScenario("Duplicate scenario", std::move(copy));
 }
 
 void ScenarioPanel::deleteScenario() {
 	if (!canEdit())
 		return;
-	SceneModel& model = m_document->mutableModel();
-	const SceneScenario* selected = selectedScenarioForEdit();
+	const SceneModel& model = m_document->model();
+	const SceneScenario* selected = editableScenario();
 	const auto persistedDefault = std::find_if(model.scenarios.begin(), model.scenarios.end(),
 		[&model](const SceneScenario& scenario) { return scenario.id == model.defaultScenarioId; });
 	if (!selected || model.defaultScenarioId.empty() || persistedDefault == model.scenarios.end()) {
@@ -312,13 +316,16 @@ void ScenarioPanel::deleteScenario() {
 	if (!m_prompts->confirm(this, "Delete Scenario", QString("Delete scenario '%1'?").arg(QString::fromStdString(deletedId))))
 		return;
 
-	auto it = std::find_if(model.scenarios.begin(), model.scenarios.end(),
+	const auto it = std::find_if(model.scenarios.begin(), model.scenarios.end(),
 		[&deletedId](const SceneScenario& scenario) { return scenario.id == deletedId; });
 	if (it == model.scenarios.end())
 		return;
-	model.scenarios.erase(it);
-	m_runSelection->scenarioDeleted(deletedId, defaultId);
-	m_document->markChanged(SceneDocument::Scenarios, "Delete scenario");
+	const auto row = std::distance(model.scenarios.begin(), it);
+	if (!m_document->edit(SceneDocument::Scenarios, "Delete scenario", [this, row, &deletedId, &defaultId](SceneModel& edited) {
+			edited.scenarios.erase(edited.scenarios.begin() + row);
+			m_runSelection->scenarioDeleted(deletedId, defaultId);
+		}))
+		return;
 	refresh();
 	emit scenarioSelected(QString::fromStdString(defaultId));
 	emit changed();
@@ -360,7 +367,7 @@ void ScenarioPanel::importScenario() {
 		m_prompts->showError(this, "Scenario Import Failed", firstDiagnosticDialogText(loaded.diagnostics), true);
 		return;
 	}
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	SceneScenario imported = loaded.scenario;
 	const std::string requestedId = imported.id;
 	const std::string uniqueId = sceneUniqueScenarioId(model, imported.id);
@@ -394,9 +401,8 @@ void ScenarioPanel::importScenario() {
 			errors.size() == 1 ? QString::fromStdString(toDialogText(errors.front())) : messages.join("\n"), true);
 		return;
 	}
-	model.scenarios.push_back(std::move(imported));
-	m_runSelection->selectScenario(model.scenarios.back().id);
-	finishAddition("Import scenario");
+	if (!addScenario("Import scenario", std::move(imported)))
+		return;
 	const QString importedId = QString::fromStdString(m_runSelection->scenarioId());
 	QString message = QString("Imported scenario %1.").arg(importedId);
 	if (scenarioConflict)
@@ -410,10 +416,9 @@ void ScenarioPanel::importScenario() {
 }
 
 void ScenarioPanel::commitIdEdit() {
-	SceneScenario* scenario = selectedScenarioForEdit();
+	const SceneScenario* scenario = editableScenario();
 	if (!scenario)
 		return;
-	SceneModel& model = m_document->mutableModel();
 	const std::string newId = m_idEdit->text().trimmed().toStdString();
 	if (newId == scenario->id)
 		return;
@@ -422,40 +427,43 @@ void ScenarioPanel::commitIdEdit() {
 		updateDetail();
 		return;
 	}
-	if (sceneUniqueScenarioId(model, newId) != newId) {
+	if (sceneUniqueScenarioId(m_document->model(), newId) != newId) {
 		m_prompts->showError(this, "Duplicate Scenario ID", "Choose a unique scenario ID.", true);
 		updateDetail();
 		return;
 	}
 	const std::string oldId = scenario->id;
-	scenario->id = newId;
-	sceneRewriteScenarioReferences(model, oldId, newId);
-	m_runSelection->scenarioRenamed(oldId, newId);
-	markEdited("Rename scenario");
+	if (!m_document->edit(SceneDocument::Scenarios, "Rename scenario", [this, &oldId, &newId](SceneModel& model) {
+			m_runSelection->selectedScenario(model)->id = newId;
+			sceneRewriteScenarioReferences(model, oldId, newId);
+			m_runSelection->scenarioRenamed(oldId, newId);
+			m_runSelection->markScenarioModified(newId);
+		}))
+		return;
 	emit changed();
 }
 
 void ScenarioPanel::commitNameEdit() {
-	SceneScenario* scenario = selectedScenarioForEdit();
+	const SceneScenario* scenario = editableScenario();
 	if (!scenario)
 		return;
 	const std::string value = m_nameEdit->text().toStdString();
 	if (value == scenario->name)
 		return;
-	scenario->name = value;
-	markEdited("Change scenario name");
+	if (!editSelected("Change scenario name", [&value](SceneScenario& edited) { edited.name = value; }))
+		return;
 	emit changed();
 }
 
 void ScenarioPanel::commitDescriptionEdit() {
-	SceneScenario* scenario = selectedScenarioForEdit();
+	const SceneScenario* scenario = editableScenario();
 	if (!scenario)
 		return;
 	const std::string value = m_descriptionEdit->text().toStdString();
 	if (value == scenario->description)
 		return;
-	scenario->description = value;
-	markEdited("Change scenario description");
+	if (!editSelected("Change scenario description", [&value](SceneScenario& edited) { edited.description = value; }))
+		return;
 	emit changed();
 }
 

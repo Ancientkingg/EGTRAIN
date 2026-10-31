@@ -43,9 +43,9 @@ inline void restoreListSelection(QListWidget* list, const QString& text, int row
 		list->setCurrentRow(count == 0 ? -1 : (row < 0 ? 0 : std::min(row, count - 1)));
 }
 
-/// The widget of one scene editor dock. A panel shows the model of its SceneDocument, edits it there in place, calls
-/// SceneDocument::markChanged and then emits changed(). The window creates the dock and puts the panel in it. The panel
-/// does not own the document. The base keeps what every panel has: the document with its signals, the prompts, the run
+/// The widget of one scene editor dock. A panel shows the model of its SceneDocument, changes it with SceneDocument::edit,
+/// which can refuse while a run uses the scene, and then emits changed(). The window creates the dock and puts the panel in
+/// it. The panel does not own the document. The base keeps what every panel has: the document with its signals, the prompts, the run
 /// selection and the time over which occurrences are counted. A panel that does not need one of them does not use it.
 class SceneEditorPanel : public QWidget {
 	Q_OBJECT

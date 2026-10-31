@@ -97,7 +97,7 @@ void CaseSettingsPanel::commitPendingEditors() {
 void CaseSettingsPanel::commit() {
 	if (!hasScene())
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const std::string name = m_nameEdit->text().toStdString();
 	const std::string description = m_descriptionEdit->text().toStdString();
 	const std::string baseTime = m_baseTimeEdit->text().toStdString();
@@ -113,23 +113,25 @@ void CaseSettingsPanel::commit() {
 		&& !bufferEdited && !recoveryEdited)
 		return;
 
-	model.name = name;
-	model.description = description;
-	model.baseTime = baseTime;
-	if (durationEdited) {
-		model.settings.hasDuration = true;
-		model.settings.durationSeconds = durationSeconds;
-	}
-	if (bufferEdited) {
-		model.settings.hasBufferTime = true;
-		model.settings.bufferTimeSeconds = bufferSeconds;
-	}
-	if (recoveryEdited) {
-		model.settings.hasRecoveryTime = true;
-		model.settings.recoveryTimePercent = recoveryPercent;
-	}
-	if (baseTimeEdited)
-		emit baseTimeChanged(m_baseTimeEdit->text());
-	m_document->markChanged(SceneDocument::CaseSettings, "Edit case settings");
+	if (!m_document->edit(SceneDocument::CaseSettings, "Edit case settings", [&](SceneModel& edited) {
+			edited.name = name;
+			edited.description = description;
+			edited.baseTime = baseTime;
+			if (durationEdited) {
+				edited.settings.hasDuration = true;
+				edited.settings.durationSeconds = durationSeconds;
+			}
+			if (bufferEdited) {
+				edited.settings.hasBufferTime = true;
+				edited.settings.bufferTimeSeconds = bufferSeconds;
+			}
+			if (recoveryEdited) {
+				edited.settings.hasRecoveryTime = true;
+				edited.settings.recoveryTimePercent = recoveryPercent;
+			}
+			if (baseTimeEdited)
+				emit baseTimeChanged(m_baseTimeEdit->text());
+		}))
+		return;
 	emit changed();
 }

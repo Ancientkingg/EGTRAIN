@@ -46,11 +46,11 @@ public:
 	void clearImportResult();
 
 	/// The selected passenger, or null when none is selected or no scene is loaded.
-	ScenePassenger* selectedPassenger();
+	const ScenePassenger* selectedPassenger() const;
 	/// The selected journey of the selected passenger, or null.
-	ScenePassengerJourney* selectedPassengerJourney();
+	const ScenePassengerJourney* selectedPassengerJourney() const;
 	/// The selected leg of the selected journey, or null.
-	ScenePassengerLeg* selectedPassengerLeg();
+	const ScenePassengerLeg* selectedPassengerLeg() const;
 
 	/// The passengers, by id.
 	QListWidget* passengerList() const { return m_passengerList; }
@@ -123,6 +123,11 @@ private:
 	void updatePassengerDetail();
 	void updateJourneyDetail();
 	void updateLegDetail();
+	// Applies `mutate` to the selected passenger, journey or leg, which there must be, in one edit of the document. False
+	// when the document refuses the edit.
+	bool editPassenger(const QString& label, const std::function<void(ScenePassenger&)>& mutate);
+	bool editJourney(const QString& label, const std::function<void(ScenePassengerJourney&)>& mutate);
+	bool editLeg(const QString& label, const std::function<void(ScenePassengerLeg&)>& mutate);
 
 	void addPassenger();
 	void deletePassenger();

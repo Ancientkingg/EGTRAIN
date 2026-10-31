@@ -358,28 +358,43 @@ int PassengerPanel::selectedPassengerRow() const {
 	return current && current->isSelected() ? m_passengerList->currentRow() : -1;
 }
 
-ScenePassenger* PassengerPanel::selectedPassenger() {
+const ScenePassenger* PassengerPanel::selectedPassenger() const {
 	if (!hasScene())
 		return nullptr;
-	auto& passengers = m_document->mutableModel().passengers;
+	const auto& passengers = m_document->model().passengers;
 	const int row = selectedPassengerRow();
 	return row >= 0 && row < static_cast<int>(passengers.size()) ? &passengers[static_cast<std::size_t>(row)] : nullptr;
 }
 
-ScenePassengerJourney* PassengerPanel::selectedPassengerJourney() {
-	ScenePassenger* passenger = selectedPassenger();
+const ScenePassengerJourney* PassengerPanel::selectedPassengerJourney() const {
+	const ScenePassenger* passenger = selectedPassenger();
 	const int row = m_journeyList->currentRow();
 	return passenger && row >= 0 && row < static_cast<int>(passenger->journeys.size())
 		? &passenger->journeys[static_cast<std::size_t>(row)]
 		: nullptr;
 }
 
-ScenePassengerLeg* PassengerPanel::selectedPassengerLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+const ScenePassengerLeg* PassengerPanel::selectedPassengerLeg() const {
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	const int row = m_legList->currentRow();
 	return journey && row >= 0 && row < static_cast<int>(journey->legs.size())
 		? &journey->legs[static_cast<std::size_t>(row)]
 		: nullptr;
+}
+
+bool PassengerPanel::editPassenger(const QString& label, const std::function<void(ScenePassenger&)>& mutate) {
+	const auto row = static_cast<std::size_t>(selectedPassengerRow());
+	return m_document->edit(SceneDocument::Passengers, label, [row, &mutate](SceneModel& model) { mutate(model.passengers[row]); });
+}
+
+bool PassengerPanel::editJourney(const QString& label, const std::function<void(ScenePassengerJourney&)>& mutate) {
+	const auto row = static_cast<std::size_t>(m_journeyList->currentRow());
+	return editPassenger(label, [row, &mutate](ScenePassenger& passenger) { mutate(passenger.journeys[row]); });
+}
+
+bool PassengerPanel::editLeg(const QString& label, const std::function<void(ScenePassengerLeg&)>& mutate) {
+	const auto row = static_cast<std::size_t>(m_legList->currentRow());
+	return editJourney(label, [row, &mutate](ScenePassengerJourney& journey) { mutate(journey.legs[row]); });
 }
 
 void PassengerPanel::refresh() {
@@ -409,7 +424,7 @@ void PassengerPanel::refresh() {
 
 void PassengerPanel::updatePassengerDetail() {
 	const int passengerRow = m_passengerList->currentRow();
-	ScenePassenger* passenger = selectedPassenger();
+	const ScenePassenger* passenger = selectedPassenger();
 	const bool enabled = passenger && canEdit();
 	m_tabs->setVisible(passenger != nullptr);
 	{
@@ -475,7 +490,7 @@ void PassengerPanel::updatePassengerDetail() {
 }
 
 void PassengerPanel::updateJourneyDetail() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	const bool enabled = journey && canEdit();
 	{
 		const int previousRow = m_legList->currentRow();
@@ -526,7 +541,7 @@ void PassengerPanel::updateJourneyDetail() {
 }
 
 void PassengerPanel::updateLegDetail() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const ScenePassengerLeg* leg = selectedPassengerLeg();
 	const bool enabled = leg && canEdit();
 	const SceneModel empty;
 	const SceneModel& model = m_document ? m_document->model() : empty;
@@ -602,8 +617,9 @@ void PassengerPanel::addPassenger() {
 		return;
 	ScenePassenger passenger;
 	passenger.id = sceneUniquePassengerId(m_document->model(), "new_passenger");
-	m_document->mutableModel().passengers.push_back(std::move(passenger));
-	m_document->markChanged(SceneDocument::Passengers, "Add passenger");
+	if (!m_document->edit(SceneDocument::Passengers, "Add passenger",
+			[&passenger](SceneModel& model) { model.passengers.push_back(std::move(passenger)); }))
+		return;
 	refresh();
 	m_passengerList->setCurrentRow(static_cast<int>(m_document->model().passengers.size()) - 1);
 	emit changed();
@@ -612,7 +628,7 @@ void PassengerPanel::addPassenger() {
 void PassengerPanel::deletePassenger() {
 	if (!canEdit())
 		return;
-	auto& passengers = m_document->mutableModel().passengers;
+	const auto& passengers = m_document->model().passengers;
 	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
@@ -620,8 +636,9 @@ void PassengerPanel::deletePassenger() {
 	if (!m_prompts->confirm(this, "Delete Passenger",
 			QString("Delete passenger '%1' and its journeys?").arg(QString::fromStdString(id))))
 		return;
-	passengers.erase(passengers.begin() + row);
-	m_document->markChanged(SceneDocument::Passengers, "Delete passenger");
+	if (!m_document->edit(SceneDocument::Passengers, "Delete passenger",
+			[row](SceneModel& model) { model.passengers.erase(model.passengers.begin() + row); }))
+		return;
 	// Refresh widgets before validation so a shifted row cannot write stale
 	// detail values back into the newly selected passenger.
 	refresh();
@@ -629,7 +646,7 @@ void PassengerPanel::deletePassenger() {
 }
 
 void PassengerPanel::addJourney() {
-	ScenePassenger* passenger = selectedPassenger();
+	const ScenePassenger* passenger = selectedPassenger();
 	if (!passenger || !canEdit())
 		return;
 	const SceneModel& model = m_document->model();
@@ -639,15 +656,15 @@ void PassengerPanel::addJourney() {
 		journey.originStationId = model.stations.front().id;
 		journey.destinationStationId = model.stations.front().id;
 	}
-	passenger->journeys.push_back(std::move(journey));
-	m_document->markChanged(SceneDocument::Passengers, "Add journey");
+	if (!editPassenger("Add journey", [&journey](ScenePassenger& edited) { edited.journeys.push_back(std::move(journey)); }))
+		return;
 	refresh();
 	m_journeyList->setCurrentRow(static_cast<int>(passenger->journeys.size()) - 1);
 	emit changed();
 }
 
 void PassengerPanel::deleteJourney() {
-	ScenePassenger* passenger = selectedPassenger();
+	const ScenePassenger* passenger = selectedPassenger();
 	if (!passenger || !canEdit())
 		return;
 	const int row = m_journeyList->currentRow();
@@ -657,14 +674,14 @@ void PassengerPanel::deleteJourney() {
 	if (!m_prompts->confirm(this, "Delete Journey",
 			QString("Delete journey '%1' and its legs?").arg(QString::fromStdString(id))))
 		return;
-	passenger->journeys.erase(passenger->journeys.begin() + row);
-	m_document->markChanged(SceneDocument::Passengers, "Delete journey");
+	if (!editPassenger("Delete journey", [row](ScenePassenger& edited) { edited.journeys.erase(edited.journeys.begin() + row); }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::addLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit())
 		return;
 	const SceneModel& model = m_document->model();
@@ -684,8 +701,8 @@ void PassengerPanel::addLeg() {
 		leg.originStationId = model.stations.front().id;
 		leg.destinationStationId = model.stations.front().id;
 	}
-	journey->legs.push_back(std::move(leg));
-	m_document->markChanged(SceneDocument::Passengers, "Add leg");
+	if (!editJourney("Add leg", [&leg](ScenePassengerJourney& edited) { edited.legs.push_back(std::move(leg)); }))
+		return;
 	refresh();
 	m_legList->setCurrentRow(static_cast<int>(journey->legs.size()) - 1);
 	m_tabs->setCurrentIndex(1);
@@ -693,7 +710,7 @@ void PassengerPanel::addLeg() {
 }
 
 void PassengerPanel::deleteLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit())
 		return;
 	const int row = m_legList->currentRow();
@@ -702,22 +719,24 @@ void PassengerPanel::deleteLeg() {
 	const std::string id = journey->legs[static_cast<std::size_t>(row)].id;
 	if (!m_prompts->confirm(this, "Delete Leg", QString("Delete passenger leg '%1'?").arg(QString::fromStdString(id))))
 		return;
-	journey->legs.erase(journey->legs.begin() + row);
-	m_document->markChanged(SceneDocument::Passengers, "Delete leg");
+	if (!editJourney("Delete leg", [row](ScenePassengerJourney& edited) { edited.legs.erase(edited.legs.begin() + row); }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::moveLeg(int offset) {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit())
 		return;
 	const int row = m_legList->currentRow();
 	const int target = row + offset;
 	if (row < 0 || target < 0 || target >= static_cast<int>(journey->legs.size()))
 		return;
-	std::swap(journey->legs[static_cast<std::size_t>(row)], journey->legs[static_cast<std::size_t>(target)]);
-	m_document->markChanged(SceneDocument::Passengers, "Move leg");
+	if (!editJourney("Move leg", [row, target](ScenePassengerJourney& edited) {
+			std::swap(edited.legs[static_cast<std::size_t>(row)], edited.legs[static_cast<std::size_t>(target)]);
+		}))
+		return;
 	refresh();
 	m_legList->setCurrentRow(target);
 	emit changed();
@@ -726,7 +745,7 @@ void PassengerPanel::moveLeg(int offset) {
 void PassengerPanel::commitPassengerId() {
 	if (!canEdit())
 		return;
-	auto& passengers = m_document->mutableModel().passengers;
+	const auto& passengers = m_document->model().passengers;
 	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
@@ -745,17 +764,19 @@ void PassengerPanel::commitPassengerId() {
 	}
 	if (newId == oldId)
 		return;
-	passengers[static_cast<std::size_t>(row)].id = newId;
-	if (auto* item = m_passengerList->item(row)) {
-		const QSignalBlocker blocker(m_passengerList);
-		item->setText(QString::fromStdString(newId));
-	}
-	m_document->markChanged(SceneDocument::Passengers, "Rename passenger");
+	if (!editPassenger("Rename passenger", [this, row, &newId](ScenePassenger& edited) {
+			edited.id = newId;
+			if (auto* item = m_passengerList->item(row)) {
+				const QSignalBlocker blocker(m_passengerList);
+				item->setText(QString::fromStdString(newId));
+			}
+		}))
+		return;
 	emit changed();
 }
 
 void PassengerPanel::commitJourneyId() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit())
 		return;
 	const std::string oldId = journey->id;
@@ -774,57 +795,59 @@ void PassengerPanel::commitJourneyId() {
 	}
 	if (newId == oldId)
 		return;
-	journey->id = newId;
-	m_document->markChanged(SceneDocument::Passengers, "Rename journey");
+	if (!editJourney("Rename journey", [&newId](ScenePassengerJourney& edited) { edited.id = newId; }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitJourneyActivity() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit())
 		return;
 	const std::string value = m_journeyActivityEdit->text().toStdString();
 	if (value == journey->activity)
 		return;
-	journey->activity = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit journey");
+	if (!editJourney("Edit journey", [&value](ScenePassengerJourney& edited) { edited.activity = value; }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitJourneyStation(bool origin) {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	QComboBox* combo = origin ? m_journeyOriginCombo : m_journeyDestinationCombo;
 	if (!journey || !canEdit())
 		return;
 	const std::string value = combo->currentData().toString().toStdString();
-	std::string& target = origin ? journey->originStationId : journey->destinationStationId;
-	if (target == value)
+	if ((origin ? journey->originStationId : journey->destinationStationId) == value)
 		return;
-	target = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit journey");
+	if (!editJourney("Edit journey", [origin, &value](ScenePassengerJourney& edited) {
+			(origin ? edited.originStationId : edited.destinationStationId) = value;
+		}))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitJourneyWindow(int index) {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
+	const ScenePassengerJourney* journey = selectedPassengerJourney();
 	if (!journey || !canEdit() || index < 0 || index >= static_cast<int>(m_journeyWindowEdits.size()))
 		return;
 	const double value = m_journeyWindowEdits[static_cast<std::size_t>(index)]->value();
-	double* target = index == 0 ? &journey->plannedDepartureStartSeconds
-								: (index == 1 ? &journey->plannedDepartureEndSeconds
-											  : (index == 2 ? &journey->plannedArrivalStartSeconds : &journey->plannedArrivalEndSeconds));
-	if (*target == value)
+	constexpr std::array<double ScenePassengerJourney::*, 4> fields = {&ScenePassengerJourney::plannedDepartureStartSeconds,
+		&ScenePassengerJourney::plannedDepartureEndSeconds, &ScenePassengerJourney::plannedArrivalStartSeconds,
+		&ScenePassengerJourney::plannedArrivalEndSeconds};
+	const auto field = fields[static_cast<std::size_t>(index)];
+	if (journey->*field == value)
 		return;
-	*target = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit journey");
+	if (!editJourney("Edit journey", [field, value](ScenePassengerJourney& edited) { edited.*field = value; }))
+		return;
 	emit changed();
 }
 
 void PassengerPanel::commitLegId() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const ScenePassengerLeg* leg = selectedPassengerLeg();
 	if (!leg || !canEdit())
 		return;
 	const std::string oldId = leg->id;
@@ -844,50 +867,51 @@ void PassengerPanel::commitLegId() {
 	}
 	if (newId == oldId)
 		return;
-	leg->id = newId;
-	m_document->markChanged(SceneDocument::Passengers, "Rename leg");
+	if (!editLeg("Rename leg", [&newId](ScenePassengerLeg& edited) { edited.id = newId; }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitLegStation(bool origin) {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const ScenePassengerLeg* leg = selectedPassengerLeg();
 	QComboBox* combo = origin ? m_legOriginCombo : m_legDestinationCombo;
 	if (!leg || !canEdit())
 		return;
 	const std::string value = combo->currentData().toString().toStdString();
-	std::string& target = origin ? leg->originStationId : leg->destinationStationId;
-	if (target == value)
+	if ((origin ? leg->originStationId : leg->destinationStationId) == value)
 		return;
-	target = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit leg");
+	if (!editLeg("Edit leg", [origin, &value](ScenePassengerLeg& edited) {
+			(origin ? edited.originStationId : edited.destinationStationId) = value;
+		}))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitLegService() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const ScenePassengerLeg* leg = selectedPassengerLeg();
 	if (!leg || !canEdit())
 		return;
 	const std::string value = m_legServiceCombo->currentData().toString().toStdString();
 	if (leg->serviceId == value)
 		return;
-	leg->serviceId = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit leg");
+	if (!editLeg("Edit leg", [&value](ScenePassengerLeg& edited) { edited.serviceId = value; }))
+		return;
 	refresh();
 	emit changed();
 }
 
 void PassengerPanel::commitLegOccurrence() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
+	const ScenePassengerLeg* leg = selectedPassengerLeg();
 	if (!leg || !canEdit())
 		return;
 	m_legOccurrenceEdit->interpretText();
 	const int value = m_legOccurrenceEdit->value();
 	if (leg->occurrence == value)
 		return;
-	leg->occurrence = value;
-	m_document->markChanged(SceneDocument::Passengers, "Edit leg");
+	if (!editLeg("Edit leg", [value](ScenePassengerLeg& edited) { edited.occurrence = value; }))
+		return;
 	emit changed();
 }
 
@@ -899,7 +923,7 @@ void PassengerPanel::importPassengers() {
 		: QFileDialog::getExistingDirectory(this, "Select Legacy Passenger Folder", QDir::homePath());
 	if (sourcePath.isEmpty())
 		return;
-	SceneModel& model = m_document->mutableModel();
+	const SceneModel& model = m_document->model();
 	const ScenePassengerImportResult imported = importLegacyPassengers(sourcePath.toStdString(), model);
 	clearImportResult();
 	// The tooltip of the source is the path of the file or folder the row is about, and that of every other cell is its text.
@@ -944,7 +968,7 @@ void PassengerPanel::importPassengers() {
 				legIds.insert(leg.id);
 		}
 	}
-	int acceptedPassengers = 0;
+	std::vector<ScenePassenger> acceptedPassengers;
 	int rejectedPassengers = 0;
 	std::set<std::string> rejectedPassengerIds;
 	for (const auto& passenger : imported.passengers) {
@@ -973,8 +997,7 @@ void PassengerPanel::importPassengers() {
 		passengerIds.insert(passenger.id);
 		journeyIds.insert(candidateJourneyIds.begin(), candidateJourneyIds.end());
 		legIds.insert(candidateLegIds.begin(), candidateLegIds.end());
-		model.passengers.push_back(passenger);
-		++acceptedPassengers;
+		acceptedPassengers.push_back(passenger);
 	}
 	for (const auto& row : imported.rows) {
 		const QString file = QString::fromStdString(row.sourceFile);
@@ -989,20 +1012,23 @@ void PassengerPanel::importPassengers() {
 	if (imported.rows.empty() && imported.diagnostics.empty())
 		addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
 			QStringLiteral("No passengers found"));
-	for (const auto& report : imported.report)
-		model.importReport.push_back(report);
-	if (rejectedPassengers > 0) {
-		model.importReport.push_back({"passengers.editor", sourcePath.toStdString(),
-			acceptedPassengers + rejectedPassengers, acceptedPassengers, rejectedPassengers, 0});
-	}
-	if (acceptedPassengers > 0 || rejectedPassengers > 0 || !imported.report.empty()) {
-		m_document->markChanged(SceneDocument::Passengers, "Import passengers");
+	const int acceptedCount = static_cast<int>(acceptedPassengers.size());
+	if (acceptedCount > 0 || rejectedPassengers > 0 || !imported.report.empty()) {
+		if (!m_document->edit(SceneDocument::Passengers, "Import passengers", [&](SceneModel& edited) {
+				edited.passengers.insert(edited.passengers.end(), acceptedPassengers.begin(), acceptedPassengers.end());
+				edited.importReport.insert(edited.importReport.end(), imported.report.begin(), imported.report.end());
+				if (rejectedPassengers > 0) {
+					edited.importReport.push_back({"passengers.editor", sourcePath.toStdString(),
+						acceptedCount + rejectedPassengers, acceptedCount, rejectedPassengers, 0});
+				}
+			}))
+			return;
 		refresh();
 		emit changed();
 	}
 	m_importResultTable->resizeColumnsToContents();
-	QString summary = acceptedPassengers > 0
-		? QStringLiteral("Imported ") + countText(acceptedPassengers, QStringLiteral("passenger"), QStringLiteral("passengers"))
+	QString summary = acceptedCount > 0
+		? QStringLiteral("Imported ") + countText(acceptedCount, QStringLiteral("passenger"), QStringLiteral("passengers"))
 		: QStringLiteral("No passengers imported");
 	if (rejectedPassengers > 0)
 		summary += QStringLiteral(", %1 rejected").arg(rejectedPassengers);

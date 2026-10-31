@@ -132,6 +132,7 @@ private slots:
 	void rowsFitCounts();
 	void forgetsDeletedDocument();
 	void headerFollowsSelectedScenario();
+	void pendingEditsAddNoScenario();
 };
 
 void TestScenarioPanel::showsNothingWithoutScene() {
@@ -743,6 +744,19 @@ void TestScenarioPanel::headerFollowsSelectedScenario() {
 	panel.nameEdit()->setText("");
 	panel.commitNameEdit();
 	QVERIFY2(panel.headerText() == "Scenario: other", "a scenario without a name is named by its id");
+}
+
+// Save and Run commit the pending fields first, which on a scene without scenarios has nothing to change.
+void TestScenarioPanel::pendingEditsAddNoScenario() {
+	ScenarioFixture f;
+	SceneModel scene = scenarioScene();
+	scene.scenarios.clear();
+	scene.defaultScenarioId.clear();
+	f.document.replace(scene, false);
+	f.panel.commitPendingEditors();
+	QVERIFY(f.document.model().scenarios.empty());
+	QVERIFY(f.document.model().defaultScenarioId.empty());
+	QVERIFY(!f.document.isDirty());
 }
 
 QTEST_MAIN(TestScenarioPanel)

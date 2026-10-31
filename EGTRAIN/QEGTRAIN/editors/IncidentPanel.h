@@ -97,9 +97,8 @@ public:
 	/// Sets the terminate-at-destination request of a breakdown (see the scene schema).
 	void commitTerminateAtDestination(bool checked);
 
-	/// The selected incident for an edit, or null when none is selected or the scene cannot be edited. A scene without a
-	/// scenario gets the baseline scenario first.
-	SceneIncident* selectedIncident();
+	/// The selected incident, or null when none is selected or the scene cannot be edited.
+	const SceneIncident* selectedIncident() const;
 
 	/// The incidents of the selected scenario, one row each.
 	QListWidget* listWidget() const { return m_listWidget; }
@@ -150,14 +149,15 @@ private:
 	// Gives the incident another type: a signal failure loses what only a breakdown has, and a target that is not valid for
 	// the type is dropped.
 	void changeType(SceneIncident& incident, const std::string& type) const;
-	// The incidents of the selected scenario. The second form adds the baseline scenario to a scene that has none, and
-	// is null unless the scene can be edited.
+	// The incidents of the selected scenario.
 	const std::vector<SceneIncident>& scenarioIncidents() const;
-	std::vector<SceneIncident>* scenarioIncidentsForEdit();
 	// The incident in the selected row of the list, or null.
 	const SceneIncident* shownIncident() const;
-	// Records that the selected scenario is edited and tells the document.
-	void markEdited(const QString& label);
+	// Applies `mutate` to the incidents of the selected scenario in one edit of the document and records that the scenario is
+	// edited. A scene without a scenario gets the baseline scenario first. False when the document refuses the edit.
+	bool editIncidents(const QString& label, const std::function<void(std::vector<SceneIncident>&)>& mutate);
+	// As editIncidents(), for the incident in the selected row of the list, which there must be.
+	bool editSelected(const QString& label, const std::function<void(SceneIncident&)>& mutate);
 	// Appends and selects a new incident with the target, or a signal failure without one for an empty type, in one edit.
 	// The scene must be editable and have the selected scenario.
 	void appendIncident(const IncidentTarget& target);
