@@ -234,7 +234,7 @@ static bool registriesEmpty(const NetworkPresenter& presenter) {
 }
 
 static bool pointersNull(const NetworkPresenter& presenter) {
-	return !presenter.inspectedSignal() && !presenter.selectedTrain() && !PresenterAccess::trainPaxInfoItem(presenter)
+	return !PresenterAccess::inspectedSignal(presenter) && !presenter.selectedTrain() && !PresenterAccess::trainPaxInfoItem(presenter)
 		&& !PresenterAccess::paxIconItem(presenter) && !PresenterAccess::paxIconInfoItem(presenter) && !presenter.hasHighlight();
 }
 

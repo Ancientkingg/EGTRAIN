@@ -51,6 +51,8 @@ public:
 	template <typename Presenter>
 	static auto& effect(Presenter& presenter) { return presenter.effect; }
 	template <typename Presenter>
+	static auto& inspectedSignal(Presenter& presenter) { return presenter.m_inspectedSignal; }
+	template <typename Presenter>
 	static auto& trackPreview(Presenter& presenter) { return presenter.m_cachedTrackPreview; }
 	template <typename Presenter>
 	static auto& passengerPixmap(Presenter& presenter) { return presenter.pax_pixmap_scaled; }

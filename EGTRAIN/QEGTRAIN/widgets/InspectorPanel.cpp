@@ -536,6 +536,8 @@ void InspectorPanel::displayPreviewInfo(QGraphicsItem* item) {
 	} else {
 		return;
 	}
+	// Show the form before the dock so the dock opens at the form's width.
+	form->show();
 	showForm(form, title, item);
 	m_previewSelectionKind = kind;
 	m_previewSelectionId = text(id);

@@ -472,7 +472,7 @@ static bool presenterEmpty(const NetworkPresenter& presenter) {
 		&& PresenterAccess::allArcs(presenter).isEmpty() && PresenterAccess::tracksBySectionId(presenter).empty()
 		&& PresenterAccess::tracksByOccupiedArc(presenter).empty() && PresenterAccess::activeTrackItems(presenter).empty() && PresenterAccess::allPlatforms(presenter).isEmpty()
 		&& presenter.stationOverlays().isEmpty() && PresenterAccess::stationDecorations(presenter).isEmpty() && PresenterAccess::stationLabels(presenter).isEmpty()
-		&& PresenterAccess::stationPictures(presenter).isEmpty() && PresenterAccess::vcMessageItems(presenter).isEmpty() && !presenter.inspectedSignal()
+		&& PresenterAccess::stationPictures(presenter).isEmpty() && PresenterAccess::vcMessageItems(presenter).isEmpty() && !PresenterAccess::inspectedSignal(presenter)
 		&& !presenter.selectedTrain() && !PresenterAccess::trainPaxInfoItem(presenter) && !PresenterAccess::paxIconItem(presenter) && !PresenterAccess::paxIconInfoItem(presenter)
 		&& !presenter.hasHighlight();
 }

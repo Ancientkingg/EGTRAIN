@@ -42,8 +42,8 @@ qint64 startupTimingNowNanoseconds();
 void recordStartupTiming(const QString& phase, int iteration, int generation,
 	qint64 elapsedNanoseconds, const QString& invocation = {}, const QString& source = {},
 	bool identityOk = true, bool canonicalPreloadNested = false);
-/// Writes why startup timing failed as a QEGTRAIN_TIMING_ERROR line to standard error and ends the application with
-/// exit code 2.
+/// Writes why startup timing failed as a QEGTRAIN_TIMING_ERROR line to standard error and asks the event loop to end
+/// with exit code 2. Before the event loop runs, the request has no effect.
 void failStartupTiming(const QString& message);
 /// Records `identity` as the scene that startup timing expects.
 void setStartupTimingPreloadIdentity(const StartupIdentity& identity);

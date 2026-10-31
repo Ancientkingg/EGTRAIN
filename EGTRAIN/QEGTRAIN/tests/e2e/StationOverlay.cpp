@@ -276,7 +276,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 				}
 				if (!name->isVisible()) {
 					++hiddenNames;
-					if (w.m_presenter->stationLayerVisible() && w.m_presenter->stationNamesVisible() && !overlay->isNameHiddenByCollision())
+					if (PresenterAccess::stationLayerVisible(*w.m_presenter) && PresenterAccess::stationNamesVisible(*w.m_presenter) && !overlay->isNameHiddenByCollision())
 						collisionOk = false;
 					continue;
 				}

@@ -299,12 +299,8 @@ public:
 
 	/// Shows or hides the station layer: the overlays, their pictures and their names.
 	void setStationLayerVisible(bool visible);
-	/// The station layer is shown.
-	bool stationLayerVisible() const { return m_stationLayerVisible; }
 	/// Shows or hides the station names.
 	void setStationNamesVisible(bool visible);
-	/// The station names are shown.
-	bool stationNamesVisible() const { return m_stationNamesVisible; }
 	/// Shows or hides the train layer. Shown, a train and its badge appear when present tells that the train has a place
 	/// at the step on the canvas.
 	void setTrainLayerVisible(bool visible, const std::function<bool(const TrainItemGroup&)>& present);

@@ -3356,7 +3356,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(w.m_inspector->m_nodeIDText->text() == "None" && w.m_inspector->m_nodeXText->text().toDouble() == 1500
 				&& w.m_inspector->m_nodeStationNameText->text() == "Duplicate [between]",
 			"position-only canonical inspection")) return false;
-	const bool oldLayer = w.m_presenter->stationLayerVisible(), oldNames = w.m_presenter->stationNamesVisible();
+	const bool oldLayer = PresenterAccess::stationLayerVisible(*w.m_presenter), oldNames = PresenterAccess::stationNamesVisible(*w.m_presenter);
 	PresenterAccess::stationLayerVisible(*w.m_presenter) = false;
 	PresenterAccess::stationNamesVisible(*w.m_presenter) = false;
 	for (auto* decoration : PresenterAccess::stationDecorations(*w.m_presenter)) decoration->setVisible(false);
