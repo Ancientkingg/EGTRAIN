@@ -2759,8 +2759,9 @@ void TestOperationsBuilder::brakingPhase() {
 	// Measure the real native stock's candidate, not an invented acceleration.
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
 		QFAIL("native crossover stock prepares for crossing detection");
 	Train& native = defaultRun().trains[0];
 	Route& nativeRoute = defaultRun().infra.routes[native.indexOfRoute];
@@ -3362,8 +3363,9 @@ void TestOperationsBuilder::brakingPhase() {
 	{
 		const QString path = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("../Scenes/Copenhagen");
 		const auto copenhagen = loadScene(path.toStdString());
+		const SceneRunSelection firstService{{"A-Hillerod-Hundige", 1}};
 		if (hasErrors(copenhagen.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), copenhagen.scene))
-			|| hasErrors(buildOperationsFromScene(defaultRun(), copenhagen.scene, "baseline", {{"A-Hillerod-Hundige", 1}}))
+			|| hasErrors(buildOperationsFromScene(defaultRun(), copenhagen.scene, "baseline", firstService))
 			|| defaultRun().numTrains != 1)
 			QFAIL("Copenhagen arbitration fixture prepares committed native stock and route");
 		Train live = defaultRun().trains[0];
@@ -3446,8 +3448,9 @@ void TestOperationsBuilder::level4Transitions() {
 	QFETCH(bool, reversed);
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
 		QFAIL("level-4 transition fixture prepares native crossover stock");
 	const Train stock = defaultRun().trains[0];
 	Route& route = defaultRun().infra.routes[stock.indexOfRoute];
@@ -3733,8 +3736,9 @@ void TestOperationsBuilder::level4Transitions() {
 void TestOperationsBuilder::stationaryBrakingCompletesDwell() {
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
 		QFAIL("level-4 transition fixture prepares native crossover stock");
 	const auto savedAuthorities = defaultRun().etcsMa;
 	const auto restoreAuthorities = qScopeGuard([&savedAuthorities] { defaultRun().etcsMa = savedAuthorities; });
@@ -3779,8 +3783,9 @@ void TestOperationsBuilder::signalFailureEvidence() {
 	QFETCH(bool, reversed);
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
+	const SceneRunSelection firstF1{{"F1", 1}};
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", firstF1)) || defaultRun().numTrains != 1)
 		QFAIL("signal failure evidence fixture prepares native crossover stock");
 	const Train stock = defaultRun().trains[0];
 	Route& route = defaultRun().infra.routes[stock.indexOfRoute];

@@ -2066,8 +2066,9 @@ void TestRuntimeCanvas::roundsLeaveNothingBehind() {
 			snapshot.timestep = 11 + step;
 			snapshot.trains = {trainAt(8.0 + step * 0.5)};
 			snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
-			snapshot.virtualCouplingMessages = step == 1 ? std::vector<GuiVirtualCouplingState>{{12, "T1", "message"}}
-														 : std::vector<GuiVirtualCouplingState>{};
+			snapshot.virtualCouplingMessages.clear();
+			if (step == 1)
+				snapshot.virtualCouplingMessages.push_back({12, "T1", "message"});
 			if (source->passengers)
 				snapshot.platforms[0].passengerIds = step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"});
 			presenter.apply(snapshot, NetworkPresenter::Playback::Live);

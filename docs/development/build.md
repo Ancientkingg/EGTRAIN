@@ -30,8 +30,9 @@ Supported toolchains, as used by CI:
 - Windows 10 or 11, x64 only: MSVC (Visual Studio 2022 or newer), Qt 6.8.3
   `msvc2022_64` with Qt Charts, and vcpkg `zeromq cppzmq nlohmann-json` for the
   `x64-windows` triplet. 32-bit Windows is not supported.
-- Linux: Ubuntu (the `ubuntu-latest` runner image) with Qt 6.8.3 and the apt
-  packages in the configure example below.
+- Linux: Ubuntu 24.04 (the `ubuntu-24.04` runner image) with Qt 6.8.3 and the apt
+  packages in the configure example below. The AppImage needs the glibc of the
+  system that builds it, so CI builds and tests on 24.04 and not on `ubuntu-latest`.
 
 CI installs Qt 6.8.3 with the Qt Charts module through `jurplel/install-qt-action`, which runs
 [aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). The same

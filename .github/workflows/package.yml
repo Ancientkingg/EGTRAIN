@@ -963,7 +963,9 @@ jobs:
 
   package-linux:
     name: Package Linux
-    runs-on: ubuntu-latest
+    # The AppImage needs the glibc of the system that builds it, so it is built on the oldest Ubuntu it supports,
+    # 24.04, and not on ubuntu-latest.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
