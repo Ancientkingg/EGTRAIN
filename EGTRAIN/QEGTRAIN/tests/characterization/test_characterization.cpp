@@ -50,7 +50,6 @@
 #include "diagrams/RunResults.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
-#include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"

@@ -31,7 +31,7 @@ Node::Node() {
 	indexOrderList = -1;
 	tdsbGeoCoordX = tdsbGeoCoordY = -1;
 	arcSpeedLimit = 0;
-	latitude = longitude = graphX = graphY = 0;
+	latitude = longitude = 0;
 	virtualSignal = false;
 	stationPlatformId = "None";
 	for (std::size_t i = 0; i < RuntimeLimits::kNativeMaxNodeConnections; i++) {
@@ -71,7 +71,6 @@ Connections::Connections() {
 	idFirstTrackLine = idSecondTrackLine = 0;
 	xFirstNode = xSecondNode = 0;
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h
-	graphXFirstNode = graphYFirstNode = graphXSecondNode = graphYSecondNode = 0;
 }
 
 // Function to order pairs of elements

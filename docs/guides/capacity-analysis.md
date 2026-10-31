@@ -286,7 +286,7 @@ git log --diff-filter=D --format=%H -- EGTRAIN/QEGTRAIN/simulation/Capacity.h
 git show <that commit>~1:EGTRAIN/QEGTRAIN/simulation/Capacity.h
 ```
 
-The callers were in `simulation/Optimisation.cpp` and `app/DispatchController.cpp`.
+The callers were in `simulation/Optimisation.cpp`, which has since been removed as well, and `app/DispatchController.cpp`. The same `git show` reaches both.
 
 ### How it was meant to run
 

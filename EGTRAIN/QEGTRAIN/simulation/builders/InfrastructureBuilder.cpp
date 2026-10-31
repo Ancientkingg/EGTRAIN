@@ -828,10 +828,6 @@ void nativeBuildConnections(SimulationRun& run, const SceneModel& scene, NativeR
 		connection.xFirstNode = fromFirst ? fromNode.X : toNode.X;
 		connection.xSecondNode = fromFirst ? toNode.X : fromNode.X;
 		connection.speedlimit = source.hasSpeedLimit ? source.speedLimitMs : 16.667;
-		connection.graphXFirstNode = fromFirst ? fromNode.graphX : toNode.graphX;
-		connection.graphYFirstNode = fromFirst ? fromNode.graphY : toNode.graphY;
-		connection.graphXSecondNode = fromFirst ? toNode.graphX : fromNode.graphX;
-		connection.graphYSecondNode = fromFirst ? toNode.graphY : fromNode.graphY;
 		nativeUpdateRuntimeNode(run, nodes, source.fromNodeId, [&](Node& node) {
 			const int count = node.numConnections++;
 			node.connectIdBlockSet[count] = secondSlot;

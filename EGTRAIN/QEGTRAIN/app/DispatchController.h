@@ -3,7 +3,7 @@
 
 #include "simulation/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
-#include "simulation/Optimisation.h"
+#include "simulation/RollingStock.h"
 #include "simulation/RunControl.h"
 
 #include <QObject>
