@@ -13,10 +13,11 @@ class Stations;
 /// Where NetworkPresenter takes the infrastructure of a run from: the track lines with their arcs
 /// and nodes, the stations, the connections between track lines, the signalling block sections, the
 /// routes of the trains and the platforms of the stations. The presenter only reads the objects: it
-/// keeps the scene coordinates and display levels that it works out from them in a table of its own.
-/// The objects still stay where they are until the presenter has cleared the scene, because the items
-/// on the canvas point to their arcs, nodes and connections. The objects belong to the run, not to the
-/// presenter.
+/// keeps the display levels of the track lines and the layout of the stations that it works out from
+/// them in two tables of its own, and works out the points of the nodes and the connections when it
+/// draws them. The objects still stay where they are until the presenter has cleared the scene,
+/// because the items on the canvas point to their arcs, nodes and connections. The objects belong to
+/// the run, not to the presenter.
 ///
 /// An index is at least 0 and below the matching count. The source does not check it.
 class RuntimeGeometrySource {

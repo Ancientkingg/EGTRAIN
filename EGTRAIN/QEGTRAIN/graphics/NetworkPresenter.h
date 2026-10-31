@@ -498,7 +498,8 @@ private:
 	// The preview has signals.
 	bool m_previewHasSignals = false;
 
-	// The stages of showPreview(), in the order in which it runs them, and what they share.
+	// The stages of showPreview(), in the order in which it runs them, and what they share. Between drawPreviewStations()
+	// and drawPreviewSignals() it also runs measureStationTrackSpacing(), declared above.
 	struct PreviewDrawing;
 	static std::set<std::string> previewSelectedTracks(const SceneModel& sceneModel, const PreviewOptions& options);
 	void collectPreviewLines(PreviewDrawing& drawing) const;
@@ -506,10 +507,11 @@ private:
 	void drawPreviewTrackLines(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void drawPreviewNodes(const SceneModel& sceneModel, PreviewDrawing& drawing);
 	void markPreviewSelection(const SceneModel& sceneModel, const PreviewOptions& options, const PreviewDrawing& drawing);
-	void addSelectionLine(const QPointF& start, const QPointF& end);
 	void drawPreviewStations(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void drawPreviewSignals(const SceneModel& sceneModel, const PreviewDrawing& drawing);
 	void fitPreview(PreviewDrawing& drawing);
+	// Not a stage: markPreviewSelection() draws the mark of a selected arc or connection with it.
+	void addSelectionLine(const QPointF& start, const QPointF& end);
 
 	// The icon of a passenger on a platform, a tenth of station_size in pixels on each side. It is null when the
 	// application resource is missing.

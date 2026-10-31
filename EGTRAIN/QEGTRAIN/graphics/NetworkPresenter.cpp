@@ -289,7 +289,7 @@ double regionValue(const std::map<int, double>& values, int region) {
 
 // The unit vector along which the display levels of the tracks shift at middle, on a line from previous through middle
 // to next: the direction of the bisector of the angle at middle. The angle of the shift counts from the x axis of the
-// screen, which points down and is positive clockwise.
+// screen and, because the y axis points down, is positive clockwise.
 QPointF bisectorShift(const QPointF& previous, const QPointF& middle, const QPointF& next) {
 	const double x1 = previous.x();
 	const double y1 = previous.y();

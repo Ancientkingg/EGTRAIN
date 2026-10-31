@@ -225,8 +225,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
   sets. The window and `main.cpp` read the run
   through `DispatchController::run()`, and `captureCompletedRun` takes it as a parameter. The canvas
-  reads it through `run()` as well and keeps its layout in tables of its own, so it writes nothing into
-  the tracks, stations and connections. A test that
+  reads it through `run()` as well. It keeps the levels of the tracks and the layout of the stations in
+  tables of its own and works out the points of the nodes and connections when it draws them, so it
+  writes nothing into the tracks, stations and connections. A test that
   calls the builders itself passes them `defaultRun()` or a `SimulationRun` of its own.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the

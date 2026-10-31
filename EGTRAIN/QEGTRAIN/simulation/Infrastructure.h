@@ -98,8 +98,9 @@ public:
 	double tdsbGeoCoordY;						///< Y of the border in metres; -1 when unset.
 	/// Not set for a node; Stations has its own latitude and longitude.
 	double latitude, longitude; ///< Not set for a node.
-	/// Not used: the network canvas keeps the positions it draws in its own layout tables. 0.
-	double graphX, graphY; ///< Not used, like graphX.
+	/// Stays 0. The builder copies it and graphY into the fields of a connection (Connections::graphXFirstNode and the
+	/// others), and the network canvas works out the point of a node when it draws it.
+	double graphX, graphY; ///< Stays 0, like graphX.
 	bool virtualSignal;	   ///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
 
 	/// Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.
