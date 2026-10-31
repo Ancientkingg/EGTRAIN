@@ -283,6 +283,7 @@ private slots:
 	void readsRouteBlockTokens_data();
 	void readsRouteBlockTokens();
 	void warnsAboutBoundaryPartWithoutBlock();
+	void keepsJoinedBoundaryBlocks();
 	void importsUnicodeNames();
 	void lastExportDecidesRoutesAndIncidents();
 	void reportsOddSizedUtf16Files();
@@ -1267,6 +1268,41 @@ void TestSceneImporter::warnsAboutBoundaryPartWithoutBlock() {
 	}
 	QVERIFY(result.success());
 	QCOMPARE(references, std::vector<std::string>{"Station boundary refers to unknown exit block @0-B1@/@@"});
+}
+
+// A station boundary and a single-track restriction keep blocks joined by '/' as the legacy file has them, and a single
+// block without its '@'. An export writes the rows of the legacy files again.
+void TestSceneImporter::keepsJoinedBoundaryBlocks() {
+	TempDir legacyDir, output, exported;
+	const fs::path legacy(legacyDir.dir);
+	writeSyntheticLegacyCase(legacy);
+	// Its passenger legs name a service that the export cannot write.
+	fs::remove_all(legacy / "Passengers");
+	const std::string restrictionRow = "@0-B0@/@0-B1@\t@0-B0@\t@0-B0@\t@0-B1@";
+	const std::string boundaryRow = "@0-B0@/@0-B1@\t@0-B0@\t1";
+	writeText(legacy / "GUI/singleTrackLimits.txt", restrictionRow + "\n");
+	writeText(legacy / "GUI/stationBoundarySections.txt", boundaryRow + "\n");
+	const SceneImportResult result = importLegacyScene(legacyDir.dir, output.dir, "Joined Blocks");
+	QVERIFY(result.success());
+	std::vector<std::string> references;
+	for (const auto& diagnostic : result.diagnostics) {
+		if (diagnostic.code == "scene.import.ref")
+			references.push_back(diagnostic.message);
+	}
+	QCOMPARE(references, std::vector<std::string>());
+	json signalling;
+	QVERIFY(readJson(fs::path(output.dir) / "signalling.json", signalling));
+	const json& restriction = signalling["single_track_restrictions"][0];
+	const json& boundary = signalling["station_boundaries"][0];
+	QCOMPARE(QString::fromStdString(restriction["start_block"].get<std::string>()), QStringLiteral("@0-B0@/@0-B1@"));
+	QCOMPARE(QString::fromStdString(restriction["end_block"].get<std::string>()), QStringLiteral("0-B0"));
+	QCOMPARE(QString::fromStdString(boundary["entrance_block"].get<std::string>()), QStringLiteral("@0-B0@/@0-B1@"));
+	QCOMPARE(QString::fromStdString(boundary["exit_block"].get<std::string>()), QStringLiteral("0-B0"));
+	QVERIFY(exportLegacyScene(output.dir, exported.dir).success());
+	QCOMPARE(QString::fromStdString(readBytes(fs::path(exported.dir) / "GUI/singleTrackLimits.txt")),
+		QString::fromStdString(restrictionRow + "\n"));
+	QCOMPARE(QString::fromStdString(readBytes(fs::path(exported.dir) / "GUI/stationBoundarySections.txt")),
+		QString::fromStdString(boundaryRow + "\n"));
 }
 
 // Legacy data with Unicode names: the case folder, the files that the manifest and the train file name, and the scene

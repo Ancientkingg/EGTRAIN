@@ -421,8 +421,9 @@ static bool parseIntegerToken(const std::string& token, int& value) {
 	}
 }
 
+// Removes the '@' around a single block id. Any other token stays as it is, among them one that joins parts with '/'.
 static std::string stripOuterAt(const std::string& token) {
-	if (token.size() >= 2 && token.front() == '@' && token.back() == '@')
+	if (token.size() >= 2 && token.front() == '@' && token.back() == '@' && token.find('/') == std::string::npos)
 		return token.substr(1, token.size() - 2);
 	return token;
 }
@@ -1747,12 +1748,13 @@ static void importRoutes(ImportContext& context) {
 				continue;
 			}
 			const std::string& token = tokens[0];
-			const bool basic = token.size() >= 2 && token.front() == '@' && token.back() == '@' && token.find('/', 1) == std::string::npos;
-			if (!basic && !isSwitchTransitionReference(token)) {
+			const std::string block = stripOuterAt(token);
+			// A token that stripOuterAt keeps whole is not one block between '@', so it must be a switch transition.
+			if (block == token && !isSwitchTransitionReference(token)) {
 				context.report.skipped("signalling.routes", source);
 				context.addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed route block token at row " + std::to_string(rowIndex), source);
 			}
-			route.blocks.push_back(basic ? stripOuterAt(token) : token);
+			route.blocks.push_back(block);
 			context.report.converted("signalling.routes", source);
 			++rowIndex;
 		}
