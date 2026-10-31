@@ -188,7 +188,7 @@ QString saveExportInteractive(QWidget* parent, telemetry::ExportKind kind, const
 /// The content of a PNG export of `image`, for saveExportInteractive; nothing when the image cannot be encoded.
 std::optional<std::string> pngBytes(const QImage& image);
 
-/// The whole table as an image: every row and column at its natural size, with no scroll bars.
+/// The whole table as an image: every row and column at the size that the table gives it, with no scroll bars.
 QImage fullTableImage(const QTableView& table);
 
 /// The writer of the exports of a run: writeRunArtifactWithProvenance with `provenance`, which it keeps.

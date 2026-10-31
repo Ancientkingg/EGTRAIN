@@ -18,7 +18,8 @@
 // CSV text of a finished run. The functions read nothing but their arguments.
 //
 // Times are seconds from the start of the run and positions on a reference route are km, unless a name or comment
-// says otherwise. A CSV export lists only the trains in `visibleTrainIds` and is empty when it has no row.
+// says otherwise. An export that takes `visibleTrainIds` lists only those trains, and an export is empty when it has no
+// row.
 
 /// The CSV field of a value: the number, or an empty field when it is unavailable.
 std::string csvValue(const RunResultValue& value);

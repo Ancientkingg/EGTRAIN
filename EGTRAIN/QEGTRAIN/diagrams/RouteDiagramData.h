@@ -10,7 +10,8 @@
 #include <utility>
 #include <vector>
 
-// What the route diagrams and the Delays chart of a finished run show. The functions read nothing but their arguments.
+// What the route diagrams of a finished run show and export, and what its Delays chart shows. The functions read
+// nothing but their arguments.
 //
 // Times are seconds from the start of the run and positions on a reference route are km, unless a name or comment
 // says otherwise.
