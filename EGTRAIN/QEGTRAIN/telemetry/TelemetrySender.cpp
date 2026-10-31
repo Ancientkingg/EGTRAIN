@@ -98,14 +98,12 @@ constexpr unsigned kUsageRevoked = 1u;		 // Usage consent was revoked.
 constexpr unsigned kDiagnosticsRevoked = 2u; // Diagnostics consent was revoked.
 constexpr unsigned kReceiverChanged = 4u;	 // The receiver changed or the sender stopped; both categories close.
 constexpr unsigned kRefreshRequested = 8u;	 // Consent is read again at the next tick.
-// The bits of Shared::permits. The two lowest publish the gates; the bits above them count invalidations.
-constexpr quint64 kUsagePermit = 1;								   // Usage events may be taken in.
-constexpr quint64 kDiagnosticsPermit = 2;						   // Diagnostic events may be taken in.
-constexpr quint64 kPermitBits = kUsagePermit | kDiagnosticsPermit; // Both gates; the other bits are the version.
-constexpr quint64 kPermitVersionStep = kPermitBits + 1;			   // One invalidation in the version.
-// The revocation flag and the permit of a category index: 0 for usage, 1 for diagnostics.
+// Every bit that closes a category: all but the refresh request.
+constexpr unsigned kRevocations = kUsageRevoked | kDiagnosticsRevoked | kReceiverChanged;
+// The revocation flag of a category index: 0 for usage, 1 for diagnostics.
 constexpr unsigned revokedFlag(int index) { return index ? kDiagnosticsRevoked : kUsageRevoked; }
-constexpr quint64 permitBit(int index) { return index ? kDiagnosticsPermit : kUsagePermit; }
+// The flags that refuse a category index: its own revocation and a receiver change.
+constexpr unsigned refusingFlags(int index) { return revokedFlag(index) | kReceiverChanged; }
 }
 struct TelemetrySender::Shared {
 	struct Intent {
@@ -113,25 +111,37 @@ struct TelemetrySender::Shared {
 		QDateTime occurred;
 		quint64 epoch = 0;
 	};
+	// The ingress state. Only the worker waits for this lock; every other caller tries it.
 	QMutex mutex;
 	std::array<Intent, kIngress> ring;
 	int head = 0, count = 0;
 	bool gate[2] = {false, false};
 	quint64 epoch[2] = {1, 1};
+	// What a caller that never waits must record when the lock is busy. flags holds kUsageRevoked, kDiagnosticsRevoked,
+	// kReceiverChanged and kRefreshRequested. A revocation stays there until the pump applies it to the gates, the
+	// epochs and the ring in one locked step, so that a holder of the lock finds it either pending or applied.
 	std::atomic<bool> stop{false};
 	std::atomic<bool> interactiveSessionRequested{false};
-	// Category-specific serials close the gap when invalidation cannot take ingress.
-	// The existing global permit version still guards worker/network reservations.
-	std::atomic<quint64> invalidation[2]{};
-	std::atomic<unsigned> flags{0}; // kUsageRevoked, kDiagnosticsRevoked, kReceiverChanged, kRefreshRequested
-	// kUsagePermit and kDiagnosticsPermit publish the gates; the bits above them count invalidations.
-	std::atomic<quint64> permits{0};
+	std::atomic<unsigned> flags{0};
 	TelemetryContext context;
 	Application application;
 	QString directory;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 	TestOptions tests;
 #endif
+	/// Whether category index may take something in under takenEpoch while none of the pending flags is raised, with
+	/// mutex held.
+	bool admits(int index, quint64 takenEpoch, unsigned pending) const {
+		return !stop.load(std::memory_order_acquire) && gate[index] && takenEpoch == epoch[index]
+			&& !(flags.load(std::memory_order_acquire) & pending);
+	}
+	/// Puts input in the ring when its category admits it and the ring has room, with mutex held.
+	bool push(const TelemetryEventInput& input, int index, quint64 takenEpoch) {
+		if (!admits(index, takenEpoch, refusingFlags(index)) || count >= kIngress) return false;
+		ring[(head + count) % kIngress] = {input, utcNow(), epoch[index]};
+		++count;
+		return true;
+	}
 };
 class SenderThread : public QThread {
 public:
@@ -185,11 +195,8 @@ TelemetrySender::OperationToken TelemetrySender::captureOperation() noexcept {
 		std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
 		token.sender = s;
 		for (int i = 0; i < 2; ++i) {
-			token.invalidation[i] = s->invalidation[i].load(std::memory_order_acquire);
 			token.epoch[i] = s->epoch[i];
-			token.eligible[i] = !s->stop.load(std::memory_order_acquire) && s->gate[i]
-				&& (s->permits.load(std::memory_order_acquire) & permitBit(i))
-				&& !(s->flags.load(std::memory_order_acquire) & (revokedFlag(i) | kReceiverChanged));
+			token.eligible[i] = s->admits(i, s->epoch[i], refusingFlags(i));
 		}
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 		if (s->tests.afterOperationCaptureLocked) s->tests.afterOperationCaptureLocked();
@@ -205,15 +212,7 @@ bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input, const Operati
 		const int idx = category == Category::Usage ? 0 : 1;
 		if (!token.eligible[idx] || !validInput(input, category) || !s->mutex.tryLock()) return false;
 		std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
-		if (s->stop.load(std::memory_order_acquire) || !s->gate[idx]
-			|| !(s->permits.load(std::memory_order_acquire) & permitBit(idx))
-			|| (s->flags.load(std::memory_order_acquire) & (revokedFlag(idx) | kReceiverChanged))
-			|| token.epoch[idx] != s->epoch[idx]
-			|| token.invalidation[idx] != s->invalidation[idx].load(std::memory_order_acquire)
-			|| s->count >= kIngress) return false;
-		s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
-		++s->count;
-		return true;
+		return s->push(input, idx, token.epoch[idx]);
 	} catch (...) { return false; }
 }
 void TelemetrySender::requestInteractiveSession() noexcept {
@@ -223,34 +222,20 @@ void TelemetrySender::requestInteractiveSession() noexcept {
 bool TelemetrySender::tryEnqueue(const TelemetryEventInput& input) noexcept {
 	auto s = m_shared;
 	if (!s || s->stop.load(std::memory_order_acquire)) return false;
-	const Category category = categoryOf(input);
 	try {
+		const Category category = categoryOf(input);
+		const int idx = category == Category::Usage ? 0 : 1;
 		if (!validInput(input, category) || !s->mutex.tryLock()) return false;
-		try {
-			const int idx = category == Category::Usage ? 0 : 1;
-			bool accepted = false;
-			if (!s->stop.load(std::memory_order_relaxed) && (s->permits.load(std::memory_order_acquire) & permitBit(idx))
-				&& s->gate[idx] && s->count < kIngress) {
-				s->ring[(s->head + s->count) % kIngress] = {input, utcNow(), s->epoch[idx]};
-				++s->count;
-				accepted = true;
-			}
-			s->mutex.unlock();
-			return accepted;
-		} catch (...) {
-			s->mutex.unlock();
-			throw;
-		}
+		std::unique_lock<QMutex> lock(s->mutex, std::adopt_lock);
+		return s->push(input, idx, s->epoch[idx]);
 	} catch (...) { return false; }
 }
 void TelemetrySender::invalidateConsent(bool usage, bool diagnostics) noexcept {
 	auto s = m_shared;
 	if (!s) return;
-	for (int i = 0; i < 2; ++i)
-		if (i == 0 ? usage : diagnostics)
-			s->invalidation[i].fetch_add(1, std::memory_order_acq_rel);
-	s->permits.fetch_add(kPermitVersionStep, std::memory_order_acq_rel);
-	s->permits.fetch_and(~((usage ? kUsagePermit : 0) | (diagnostics ? kDiagnosticsPermit : 0)), std::memory_order_release);
+	// The flags come first: they refuse at once, also when the lock is busy and for a producer that takes it next. The
+	// worker never holds this lock during storage or network operations.
+	s->flags.fetch_or((usage ? kUsageRevoked : 0u) | (diagnostics ? kDiagnosticsRevoked : 0u), std::memory_order_release);
 	if (s->mutex.tryLock()) {
 		for (int i = 0; i < 2; ++i)
 			if (i == 0 ? usage : diagnostics) {
@@ -259,9 +244,6 @@ void TelemetrySender::invalidateConsent(bool usage, bool diagnostics) noexcept {
 			}
 		s->mutex.unlock();
 	}
-	// The worker never holds this lock during storage or network operations. The flags
-	// fail closed immediately, also when the short producer lock is contended.
-	s->flags.fetch_or((usage ? kUsageRevoked : 0u) | (diagnostics ? kDiagnosticsRevoked : 0u), std::memory_order_release);
 }
 void TelemetrySender::invalidateReceiver() noexcept {
 	auto s = m_shared;
@@ -342,7 +324,6 @@ public:
 	}
 	void failClosed() noexcept {
 		s->stop.store(true, std::memory_order_release);
-		s->permits.fetch_and(~kPermitBits, std::memory_order_release);
 		try {
 			disable();
 		} catch (...) { loop.quit(); }
@@ -353,7 +334,6 @@ public:
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 			if (i && s->tests.betweenObservations) s->tests.betweenObservations();
 #endif
-			const quint64 version = s->permits.load(std::memory_order_acquire) & ~kPermitBits;
 			QString value;
 			TelemetryConsent::ObservationStatus status;
 			if (i) {
@@ -394,13 +374,10 @@ public:
 				lock.relock();
 			}
 			mappedEpoch[i] = s->epoch[i];
-			s->gate[i] = !value.isEmpty();
-			if (!value.isEmpty() && !(s->flags.load(std::memory_order_acquire) & revokedFlag(i))) {
-				quint64 expected = s->permits.load(std::memory_order_acquire);
-				while ((expected & ~kPermitBits) == version
-					&& !s->permits.compare_exchange_weak(expected, expected | permitBit(i),
-						std::memory_order_release, std::memory_order_acquire)) {}
-			}
+			// A revocation raised during this observation is still pending, as only the pump takes it. No gate opens
+			// until a refresh after that pump.
+			if (value.isEmpty()) s->gate[i] = false;
+			else if (!(s->flags.load(std::memory_order_acquire) & kRevocations)) s->gate[i] = true;
 		}
 	}
 	void attemptInteractiveSession() {
@@ -409,9 +386,7 @@ public:
 		QString selectedStamp;
 		{
 			QMutexLocker lock(&s->mutex);
-			if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || stamp[0].isEmpty()
-				|| !(s->permits.load(std::memory_order_acquire) & kUsagePermit)
-				|| (s->flags.load(std::memory_order_acquire) & (kUsageRevoked | kReceiverChanged))) return;
+			if (!s->admits(0, s->epoch[0], refusingFlags(0)) || stamp[0].isEmpty()) return;
 			// This is a lifetime attempt, not a retryable producer intent.
 			sessionAttempted = true;
 			epoch = s->epoch[0];
@@ -426,21 +401,17 @@ public:
 		if (!owner) return;
 		{
 			QMutexLocker lock(&s->mutex);
-			if (s->stop.load(std::memory_order_acquire) || !s->gate[0] || s->epoch[0] != epoch
-				|| stamp[0] != selectedStamp || !(s->permits.load(std::memory_order_acquire) & kUsagePermit)
-				|| (s->flags.load(std::memory_order_acquire) & (kUsageRevoked | kReceiverChanged))) return;
+			if (!s->admits(0, epoch, refusingFlags(0)) || stamp[0] != selectedStamp) return;
 		}
 		if (!queue.enqueueUsage({event, selectedStamp}, now()) && !queue.healthy()) disable();
 	}
-	bool authorized(int index, const QString& selectedStamp, quint64 epoch, quint64 permitVersion) {
+	bool authorized(int index, const QString& selectedStamp, quint64 epoch) {
 		refresh(); // Read-only cross-process consent observation after all storage operations.
-		if (!owner || s->stop.load(std::memory_order_acquire)
-			|| (s->flags.load(std::memory_order_acquire) & (kUsageRevoked | kDiagnosticsRevoked | kReceiverChanged))
-			|| stamp[index] != selectedStamp) return false;
+		if (!owner || stamp[index] != selectedStamp) return false;
 		QMutexLocker lock(&s->mutex);
-		return s->gate[index] && s->epoch[index] == epoch
-			&& (s->permits.load(std::memory_order_acquire) & ~kPermitBits) == permitVersion
-			&& (s->permits.load(std::memory_order_acquire) & permitBit(index));
+		// A revocation of either category refuses: only this thread's pump takes the flags, so every revocation since
+		// the batch was picked is still pending here.
+		return s->admits(index, epoch, kRevocations);
 	}
 	bool reserve(qint64 delay, int failures, int usageLimit = -1, int diagnosticLimit = -1) {
 		auto state = queue.retryState();
@@ -534,7 +505,6 @@ public:
 			const auto state = queue.retryState();
 			const QString selectedStamp = stamp[i];
 			const quint64 selectedEpoch = mappedEpoch[i];
-			const quint64 permitVersion = s->permits.load(std::memory_order_acquire) & ~kPermitBits;
 			active = queue.prepareBatch(category, selectedStamp, s->application, now(), i ? state.diagnosticsBatchLimit : state.usageBatchLimit);
 			if (active.bytes.isEmpty()) continue;
 			const int attemptFailures = std::min(31, state.failures + 1);
@@ -543,7 +513,7 @@ public:
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 			if (s->tests.afterReservation) s->tests.afterReservation();
 #endif
-			if (!authorized(i, selectedStamp, selectedEpoch, permitVersion)) return;
+			if (!authorized(i, selectedStamp, selectedEpoch)) return;
 			HttpRequest request;
 			request.url = QUrl(s->context.endpoint);
 			request.contentType = QByteArrayLiteral("application/json; charset=utf-8");
@@ -599,30 +569,36 @@ public:
 		}
 		reserve(60000, 0);
 	}
+	/// Takes the pending requests. Pending revocations reach the gates, the epochs and the ring in one locked step. A pump
+	/// without any leaves the lock alone, and one raised in between stays pending for the next pump.
+	unsigned takeFlags() {
+		if (!(s->flags.load(std::memory_order_acquire) & kRevocations))
+			return s->flags.fetch_and(~kRefreshRequested, std::memory_order_acq_rel) & kRefreshRequested;
+		QMutexLocker lock(&s->mutex);
+		const unsigned flags = s->flags.exchange(0, std::memory_order_acq_rel);
+		for (int i = 0; i < 2; ++i)
+			if (flags & refusingFlags(i)) {
+				s->gate[i] = false;
+				++s->epoch[i];
+				stamp[i].clear();
+			}
+		s->count = 0;
+		return flags;
+	}
 	void pump() {
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 		if (s->tests.beforeFlagsRead) s->tests.beforeFlagsRead();
 #endif
 		// stop() raises the receiver flag after its stop request. The flags are read
 		// first, so a pump that sees that flag also sees the stop and purges nothing.
-		const unsigned flags = s->flags.exchange(0, std::memory_order_acq_rel);
+		const unsigned flags = takeFlags();
 		if (s->stop.load(std::memory_order_acquire)) {
 			close();
 			tick.stop();
 			loop.quit();
 			return;
 		}
-		if (flags & (kUsageRevoked | kDiagnosticsRevoked | kReceiverChanged)) {
-			{
-				QMutexLocker lock(&s->mutex);
-				for (int i = 0; i < 2; ++i)
-					if (flags & (revokedFlag(i) | kReceiverChanged)) {
-						s->gate[i] = false;
-						++s->epoch[i];
-						stamp[i].clear();
-					}
-				s->count = 0;
-			}
+		if (flags & kRevocations) {
 			if (reply && reply->statusCode() == 410) {
 				const QString retired = requestEndpoint;
 				reply->disconnect();
@@ -650,7 +626,6 @@ public:
 				return;
 			}
 		}
-		if (disabled) return;
 		const qint64 time = monotonic();
 		if (!owner) {
 			if (time < nextOwnership) return;
@@ -765,7 +740,6 @@ void SenderThread::run() {
 		worker.run();
 	} catch (...) {
 		state->stop.store(true, std::memory_order_release);
-		state->permits.fetch_and(~kPermitBits, std::memory_order_release);
 	}
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 	try {
