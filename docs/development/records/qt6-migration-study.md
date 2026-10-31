@@ -5,6 +5,8 @@ ported. Qt 6 was not installed: the code findings come from a Qt 5.15 build with
 searches of the sources, and the Qt 6 facts come from the Qt documentation and the Homebrew formulae cited at each
 point. Estimates are marked as estimates.
 
+EGTRAIN was ported to Qt 6 later: since #1027 (21 October 2026, first released in v1.0.4), CMake requires Qt 6.
+
 ## Summary
 
 - The code already builds against Qt 5.15 with every API that Qt 5.15 deprecates disabled: 0 errors. It uses none of
@@ -54,14 +56,14 @@ without `io/third_party`.
 | A size-changing `QList` call invalidates references to its elements | not countable by search | review |
 
 The warnings matter because CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON`
-([cmake.yml](../../.github/workflows/cmake.yml), lines 197 to 225) and the libraries other than the simulation, and
-the test executables, are strict targets ([CMakeLists.txt](../../CMakeLists.txt), lines 414 to 417, and `egtrain_add_test`
-in [tests/CMakeLists.txt](../../EGTRAIN/QEGTRAIN/tests/CMakeLists.txt)), so a warning in them fails a Qt 6 CI build. The
+([cmake.yml](../../../.github/workflows/cmake.yml), lines 197 to 225) and the libraries other than the simulation, and
+the test executables, are strict targets ([CMakeLists.txt](../../../CMakeLists.txt), lines 414 to 417, and `egtrain_add_test`
+in [tests/CMakeLists.txt](../../../EGTRAIN/QEGTRAIN/tests/CMakeLists.txt)), so a warning in them fails a Qt 6 CI build. The
 `QEGTRAIN` target, which builds most of `app/`, gets no warning flags (lines 418 to 434). The `qsizetype` count is a lower bound: it misses sizes passed as `int` arguments or returned
 from `int` functions, which MSVC at `/W4` reports too. Clang and GCC do not warn about these conversions with `-Wall
 -Wextra`.
 
-Outside the sources: [CMakeLists.txt](../../CMakeLists.txt) names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
+Outside the sources: [CMakeLists.txt](../../../CMakeLists.txt) names Qt 5 on 97 lines (`find_package(Qt5 ...)` on line
 115, `Qt5::` targets, `Qt5::WinMain` on line 626). The MSVC forced include `util/QtMsvcCompat.h` was written for
 the Qt 5.15 headers. Eleven files under `tools/` name Qt 5, among them `tools/tidy.py:70`,
 `tools/release/package_start_smoke.py:70` and `tools/e2e/test_qt_resources.py:62`.
@@ -70,8 +72,8 @@ the Qt 5.15 headers. Eleven files under `tools/` name Qt 5, among them `tools/ti
 
 | Platform | Today | With Qt 6 |
 | --- | --- | --- |
-| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further `qtbase` dependencies on macOS, and step 4 decides which of them `macdeployqt` bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
-| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../.github/workflows/cmake.yml), line 254; [package.yml](../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
+| macOS | `macdeployqt` of Homebrew `qt@5`, then the trimming of #488 removes Qt Quick, QML, the virtual keyboard and the WebP and TIFF plugins ([package.yml](../../../.github/workflows/package.yml), lines 109 to 127) | `macdeployqt` remains. Homebrew Qt 6 is split into formulae: `qtbase`, `qtcharts` and `qtsvg` are enough, and `qtcharts` depends on `qtdeclarative`. `qtbase` depends on `icu4c@78` and `openssl@4` and links OpenSSL (Homebrew `qtbase.rb`, lines 62, 67 and 141), so the bundle can gain ICU and OpenSSL libraries; HarfBuzz, double-conversion, libb2 and D-Bus are further `qtbase` dependencies on macOS, and step 4 decides which of them `macdeployqt` bundles. The trimming steps and the checks on lines 200 to 213 use framework names that Qt 6 keeps. |
+| Windows | `windeployqt` with `--no-angle` and `--no-virtualkeyboard` ([cmake.yml](../../../.github/workflows/cmake.yml), line 254; [package.yml](../../../.github/workflows/package.yml), line 525); checks name `Qt5Core.dll`, `styles/qwindowsvistastyle.dll` and others (lines 569, 575 and 583) | The Qt 6 `windeployqt` has neither option ([Qt for Windows deployment](https://doc.qt.io/qt-6/windows-deployment.html)); `--skip-plugin-types` and `--exclude-plugins` replace them. The DLLs become `Qt6*.dll`, and the style plugin of Qt 6.8.3 `win64_msvc2022_64` is `styles/qmodernwindowsstyle.dll`. TLS is a plugin, `qschannelbackend` ([Qt SSL](https://doc.qt.io/qt-6/ssl.html)). |
 | Linux | `linuxdeploy-plugin-qt` with the Ubuntu Qt 5 packages; the `QMAKE` fallback names `qmake-qt5` (line 1010); the checks look for `libQt5*.so` (lines 1033 to 1035) | The plugin supports Qt 5 and 6 ([README](https://github.com/linuxdeploy/linuxdeploy-plugin-qt)). The `QMAKE` line, the checks and `package_start_smoke.py` need the Qt 6 names. |
 
 Platform support compared with what the README promises:
@@ -119,7 +121,7 @@ Linux were not measured.
   today it does not scale on Windows and X11. On macOS both versions use whole ratios of 1 or 2.
 - Network view: the drawing already uses the device pixel ratio (`graphics/items/SignalItem.cpp:108`,
   `graphics/items/StationOverlayItem.cpp:419`) for Retina screens. Fractional ratios were tried only on Linux with
-  `QT_SCALE_FACTOR=1.5` ([feature status](records/feature-status-2026-10-17.md), runs of 2026-10-17, which found #883 and
+  `QT_SCALE_FACTOR=1.5` ([feature status](feature-status-2026-10-17.md), runs of 2026-10-17, which found #883 and
   #889), not with Windows display scaling: hairlines, cached pixmaps and station pictograms need a look at 125 % and
   150 %.
 - Diagrams: Qt Charts draws in a `QGraphicsView` like the network view, with the same check. The pixel tests run on

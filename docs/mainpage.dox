@@ -11,8 +11,8 @@ The developer pages explain the code around it:
 - <a href="../development/build.html">Build from source</a> and <a href="../development/testing.html">Testing</a>
 - <a href="../architecture/source-layout.html">QEGTRAIN source layout</a>, which says what each folder holds
 - <a href="../architecture/scene-model.html">V1 Scene Model</a>, the data of a case
-- <a href="../development/code-documentation-investigation.html">Code documentation investigation</a>, which records how
-  well each folder is documented
+- <a href="../development/records/code-documentation-investigation.html">Code documentation investigation</a>, which
+  records how well each folder is documented
 
 The user guides are on the <a href="../index.html">documentation home page</a>.
 */
