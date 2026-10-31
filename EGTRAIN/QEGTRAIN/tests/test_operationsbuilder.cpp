@@ -63,6 +63,8 @@ private slots:
 	void recordedDrawsOfFixedSeeds_data();
 	void recordedDrawsOfFixedSeeds();
 	void generatorAdvancesAndLimitsDraws();
+	void platformNumberOfId_data();
+	void platformNumberOfId();
 	void copiedBlockingTimeKeepsOwnTimes();
 	void diagramFixtureSharesReferenceCoordinates();
 	void buildsCompleteFixture();
@@ -85,6 +87,7 @@ private slots:
 	void invalidScenarioKeepsRuntimeState();
 	void reversedRouteResolvesStopNodes();
 	void resolvesPlatformsInRouteOrder();
+	void stopsKeepPlatformNumbers();
 	void routeExternalRowsKeepPlannedTimes();
 	void shortHorizonOmitsLateJourneys();
 	void durationOverrideSizesRuntimeVectors();
@@ -347,6 +350,40 @@ void TestOperationsBuilder::generatorAdvancesAndLimitsDraws() {
 	defaultRun().numberGenerator.getUniformFloat();
 	defaultRun().numberGenerator = NumberGenerator(kSeedA);
 	QVERIFY2(close(defaultRun().numberGenerator.getUniformFloat(), firstRunDraw, 1e-15), "restarting the run generator repeats its draws");
+}
+
+void TestOperationsBuilder::platformNumberOfId_data() {
+	QTest::addColumn<QString>("id");
+	QTest::addColumn<int>("number");
+	QTest::newRow("label") << "Platform_4" << 4;
+	QTest::newRow("two digits") << "Platform_12" << 12;
+	QTest::newRow("number alone") << "3" << 3;
+	QTest::newRow("truncated") << "2.9" << 2;
+	QTest::newRow("trailing text") << "Platform_2a" << 2;
+	QTest::newRow("exponent") << "Platform_1e2" << 100;
+	QTest::newRow("negative") << "Platform_-2" << -2;
+	QTest::newRow("leading space") << " Platform_5" << 5;
+	QTest::newRow("number before the label") << "7_Platform_1" << 7;
+	QTest::newRow("text before the label") << "x_Platform_7" << 0;
+	QTest::newRow("label twice") << "Platform_Platform_3" << 0;
+	QTest::newRow("label alone") << "Platform_" << 0;
+	QTest::newRow("lower case") << "platform_6" << 0;
+	QTest::newRow("scene id") << "B.platform.1" << 0;
+	QTest::newRow("short id") << "P1" << 0;
+	QTest::newRow("no platform") << "None" << 0;
+	QTest::newRow("empty") << "" << 0;
+	QTest::newRow("reads as not a number") << "Nantes.platform.1" << 0;
+	QTest::newRow("reads as infinity") << "INF.platform.2" << 0;
+	QTest::newRow("beyond int") << "Platform_1e30" << 0;
+	QTest::newRow("below int") << "Platform_-1e30" << 0;
+	QTest::newRow("largest int") << "Platform_2147483647.9" << std::numeric_limits<int>::max();
+	QTest::newRow("lowest int") << "Platform_-2147483648.9" << std::numeric_limits<int>::min();
+}
+
+void TestOperationsBuilder::platformNumberOfId() {
+	QFETCH(QString, id);
+	QFETCH(int, number);
+	QCOMPARE(platformNumber(id.toStdString()), number);
 }
 
 void TestOperationsBuilder::copiedBlockingTimeKeepsOwnTimes() {
@@ -1075,6 +1112,34 @@ void TestOperationsBuilder::resolvesPlatformsInRouteOrder() {
 		"an explicit late platform cannot be followed by an earlier station");
 }
 
+// The number that the walking time of a transfer starts from: a stopped train has the number of its stop, and of its last stop at a
+// station that it calls at twice.
+void TestOperationsBuilder::stopsKeepPlatformNumbers() {
+	SceneModel scene = completeScene();
+	scene.passengers.clear();
+	scene.stations[0].platforms[0].nodeIds = {"node.3"};
+	scene.stations[1].platforms[0].id = "Platform_4";
+	scene.stations[2].platforms = {{"Platform_3", {"node.0"}}, {"Platform_5", {"node.2"}}};
+	scene.services[0].stops = {
+		{"station.2", "Platform_3", true, true, 100.0, 110.0, 0.0},
+		{"station.1", "Platform_4", true, true, 120.0, 130.0, 0.0},
+		{"station.2", "Platform_5", true, true, 140.0, 150.0, 0.0}};
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")));
+	Train train = defaultRun().trains[0];
+	QCOMPARE(train.stationPlatformNumber[0], 3);
+	QCOMPARE(train.stationPlatformNumber[1], 4);
+	QCOMPARE(train.stationPlatformNumber[2], 5);
+
+	Arc arrival;
+	arrival.endNode = train.Stations[1];
+	train.serviceStopStep(1, arrival, 0, false);
+	QCOMPARE(train.currentServiceStopPlatformNumber, 4);
+	arrival.endNode = train.Stations[0];
+	train.serviceStopStep(1, arrival, 0, false);
+	QCOMPARE(train.currentServiceStopPlatformNumber, 5);
+}
+
 void TestOperationsBuilder::routeExternalRowsKeepPlannedTimes() {
 	SceneModel routeExternal = completeScene();
 	routeExternal.routes[0].blocks = {"block.0", "block.1"};
@@ -1290,8 +1355,6 @@ void TestOperationsBuilder::stationStatisticsOfSmallPopulations() {
 	QVERIFY(!hasErrors(statisticsInfrastructure));
 	QVERIFY(!hasErrors(statisticsOperations));
 	QCOMPARE(defaultRun().numTrains, 3);
-	// Building a scene names the fictitious station of the final-station statistics.
-	QCOMPARE(defaultRun().finalStation.stationName, "Final_Station");
 	Stations statistics;
 	statistics.stationName = "Final_Station";
 	for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
@@ -1399,14 +1462,18 @@ void TestOperationsBuilder::stationStatisticsOfSmallPopulations() {
 	Print_Station_Delay_Stats(defaultRun(), statisticsOutput.path().toStdString(), "pos");
 	std::ifstream exported(statisticsOutput.filePath("Stats_Stations.txt").toStdString());
 	bool finiteExport = exported.good();
+	int finalStationRows = 0;
 	for (std::string token; exported >> token;) {
 		char* end = nullptr;
 		const double value = std::strtod(token.c_str(), &end);
 		if (end != token.c_str() && *end == '\0' && !std::isfinite(value))
 			finiteExport = false;
+		finalStationRows += token == "Final_Station" ? 1 : 0;
 	}
 	exported.close();
 	QVERIFY2(finiteExport, "one-station statistics export contains no non-finite values");
+	// The export names the fictitious station of the final-station statistics.
+	QCOMPARE(finalStationRows, 1);
 
 	// The statistics take the arrival of the timetable point, the one the timetable results report.
 	Train& train = defaultRun().trains[0];
@@ -3513,6 +3580,20 @@ void TestOperationsBuilder::level4Transitions() {
 		QCOMPARE_EQ(live.Xob[2], 10000.0);
 		QVERIFY(!live.BrakingForEoA);
 		arc.speedInBraking = stock.max_train_speed;
+	}
+	{
+		Train live = actual(1000, 20);
+		defaultRun().etcsMa.clear();
+		live.IsTrainInFollowingMode = true;
+		live.LeadingTrainInFollowingMode = "FRONT";
+		live.Predicted_MA_To_DecoupleAt = authority(1500, "FRONT");
+		bool continueCached = false;
+		live.europeanVitalComputerWithListsImproved(1000, 20, 1, route.sequence_of_block_sections.data(), 1, continueCached);
+		// A stored decoupling authority is a stop target, and the train in following mode that brakes for it is decoupling.
+		QCOMPARE_EQ(live.Xobmin, 1500.0);
+		QCOMPARE_EQ(live.Vobmin, 0.0);
+		QVERIFY(live.BrakingForEoA);
+		QVERIFY(live.IsTrainDecoupling);
 	}
 	{
 		Train live = actual(1000, 10);

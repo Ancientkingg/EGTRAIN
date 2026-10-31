@@ -94,8 +94,8 @@ Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
 		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
-	const auto station = [](const Stations& s) {
-		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
+	const auto statistics = [](const DelayStats& s) {
+		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
 	NumberGenerator draws = generator;
 	const std::string draw = std::to_string(draws.getUniformFloat()) + "/" + std::to_string(draws.getGaussianFloat());
@@ -113,10 +113,10 @@ Description describe(const SimulationRun& run) {
 		{"numPassengers", std::to_string(numPassengers)},
 		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
 		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
-		{"totalInputDelays", station(totalDelays)},
-		{"entranceInputDelays", station(entranceDelays)},
-		{"disturbanceInput", station(disturbances)},
-		{"finalStation", station(finalStation)},
+		{"totalInputDelays", statistics(totalDelays)},
+		{"entranceInputDelays", statistics(entranceDelays)},
+		{"disturbanceInput", statistics(disturbances)},
+		{"finalStation", statistics(finalStation)},
 		{"trains", std::to_string(trains.size()) + "/" + std::to_string(trains.capacity())},
 		{"numTrains", std::to_string(numTrains)},
 		{"numberGenerator", draw},
@@ -158,10 +158,10 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 }
 
 // True when the run is as a new run in every member that the builders do not fill. A prepared scene has its settings, infrastructure,
-// platforms, passengers, incidents and seeded generator, and the name of the final station.
+// platforms, passengers, incidents and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "finalStation", "trains", "numTrains", "numberGenerator"};
+		"passengerIndex", "platformIndex", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (!isInfrastructureMember(name) && builderState.count(name) == 0
@@ -194,10 +194,9 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
-	for (Stations* station : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
-		station->stationName = "Final_Station";
-		station->N_Stopped_Trains = 4;
-		station->totalArrivalDelay = 30;
+	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
+		statistics->N_Stopped_Trains = 4;
+		statistics->totalArrivalDelay = 30;
 	}
 	trains.resize(2);
 	numTrains = 2;
@@ -346,30 +345,6 @@ void checkSameFiles(const std::string& label, const Outcome& expected, const Out
 	}
 }
 
-// The steps of a run that DispatchController runs for the trains and the signalling, on the run that is given.
-void stepRun(SimulationRun& run, int t) {
-	for (std::size_t index = 0; index < run.trains.size(); ++index) {
-		Regional& train = run.trains[index];
-		train.trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
-		train.recordEarliestActiveTrajectoryIndex(t);
-		train.recordStationPassagesAtTime(t);
-		train.checkTrainArrDep(t);
-	}
-	for (Regional& train : run.trains)
-		Simulate_Train_Passenger_Interactions(run, t, run.settings.startingSimulationTime, train, run.passengers, run.platforms);
-	run.etcsMa.clear();
-	Occupy_Block_Sections_Of_Route(run, t);
-	Apply_Signal_Failures_Mixed_Signalling(run, t);
-	Apply_Single_Track_Authorities_Mixed_Signalling(run);
-	ReportAllTrainPositionsToRBC(run, t, 50);
-	protectStationAreas(run, t);
-	releaseMixedSignallingSystem(run);
-	activateMixedSignallingSystem(run);
-	unlockDoubleSwitches(run);
-	run.blocksOccupied.clear();
-	run.blocksConnected.clear();
-}
-
 // The parts of two snapshots that the window draws, compared field by field.
 bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
 	const auto sameTrain = [](const GuiTrainState& x, const GuiTrainState& y) {
@@ -404,6 +379,7 @@ private slots:
 	void laterRunsWriteFilesOfFirstRun();
 	void runKeepsCopyOfSettings();
 	void secondRunFollowsRunOfProcess();
+	void stepsRunWithoutController();
 
 private:
 	SceneModel m_line;
@@ -627,8 +603,9 @@ void TestSimulationRun::secondRunFollowsRunOfProcess() {
 	other->settings = initial_variables;
 	for (Regional& train : other->trains)
 		train.departure_time = train.scheduled_departure_time;
+	TrainMovementOrder order(*other);
 	for (int t = 0; t < setup.horizonSeconds; ++t)
-		stepRun(*other, t);
+		runSimulationStep(*other, t, order);
 	// The second run follows the trajectory of the same scene in the run of the process.
 	QCOMPARE(other->trains[0].trainDescription, description);
 	QVERIFY(other->trains[0].instant_spatial_position == positions);
@@ -657,6 +634,115 @@ void TestSimulationRun::secondRunFollowsRunOfProcess() {
 		QFAIL("the controller published no snapshot");
 	QCOMPARE(reference.lastSnapshot->timestep, lastStep);
 	QVERIFY(sameSnapshot(*reference.lastSnapshot, fromOther));
+}
+
+// The simulation library runs a case without the controller. A run that the builders make and that runSimulationStep steps, from
+// the first step to the last, moves the trains and the passengers of the passenger scene as the controller does in the run of the
+// process, to the end of the routes. runSimulationPostprocessing then gives it the blocking times and the files of that run.
+void TestSimulationRun::stepsRunWithoutController() {
+	RunSetup setup;
+	setup.scene = &m_passengers;
+	// The duration of the scene, in which both trains reach the end of their routes.
+	setup.horizonSeconds = 9000;
+	setup.passengerGui = true;
+	const Outcome reference = runScene(setup);
+	// The controller runs the scene in the run of the process.
+	QVERIFY(reference.prepared);
+	QVERIFY(reference.completed);
+	const SimulationRun& controlled = defaultRun();
+	QCOMPARE_GT(controlled.numTrains, 1);
+	QVERIFY(!controlled.passengers.empty());
+
+	CoutSilencer silencer;
+	const auto other = std::make_unique<SimulationRun>();
+	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(*other, m_passengers)));
+	QVERIFY(!hasErrors(buildOperationsFromScene(*other, m_passengers, "baseline", setup.selection)));
+	other->settings = initial_variables;
+	QCOMPARE_EQ(other->settings.times, controlled.settings.times);
+	QVERIFY(other->settings.PAX_GUI);
+	TrainMovementOrder order(*other);
+	for (int t = 0; t < other->settings.times; ++t)
+		runSimulationStep(*other, t, order);
+
+	// Every train moves as in the run of the controller, and the run ends with the trains out of the network.
+	QCOMPARE(other->numTrains, controlled.numTrains);
+	int finished = 0;
+	for (int i = 0; i < controlled.numTrains; ++i) {
+		const Regional& expected = controlled.trains[i];
+		const Regional& actual = other->trains[i];
+		const std::string label = expected.trainDescription;
+		QCOMPARE(actual.trainDescription, expected.trainDescription);
+		QVERIFY2(actual.instant_spatial_position == expected.instant_spatial_position, (label + ": positions").c_str());
+		QVERIFY2(actual.instant_train_speed == expected.instant_train_speed, (label + ": speeds").c_str());
+		QVERIFY2(actual.Eq == expected.Eq, (label + ": branches of the steps").c_str());
+		QCOMPARE(actual.End_Time, expected.End_Time);
+		QCOMPARE(actual.OutOfSimulation, expected.OutOfSimulation);
+		QCOMPARE(actual.Current_OnBoard_Passengers, expected.Current_OnBoard_Passengers);
+		finished += actual.OutOfSimulation ? 1 : 0;
+	}
+	QCOMPARE_GT(finished, 0);
+	// Every passenger ends the run where the passenger ends it in the run of the controller.
+	QCOMPARE(other->passengers.size(), controlled.passengers.size());
+	int exited = 0;
+	auto expectedPassenger = controlled.passengers.begin();
+	for (const Passenger& actual : other->passengers) {
+		QCOMPARE(actual.ID, expectedPassenger->ID);
+		QCOMPARE(actual.CurrentStatus, expectedPassenger->CurrentStatus);
+		QCOMPARE(actual.IsIntheNetwork, expectedPassenger->IsIntheNetwork);
+		QCOMPARE_EQ(actual.TimeExitedTheNetwork, expectedPassenger->TimeExitedTheNetwork);
+		exited += !actual.IsIntheNetwork && actual.TimeExitedTheNetwork > 0 ? 1 : 0;
+		++expectedPassenger;
+	}
+	QCOMPARE_GT(exited, 0);
+	// The trains and the signalling of the last step are those of the run of the controller.
+	if (reference.lastSnapshot == nullptr)
+		QFAIL("the controller published no snapshot");
+	const int lastStep = static_cast<int>(other->settings.times) - 1;
+	QCOMPARE(reference.lastSnapshot->timestep, lastStep);
+	QVERIFY(sameSnapshot(*reference.lastSnapshot, buildGuiSimulationSnapshot(*other, lastStep)));
+
+	// The stages after the steps also need no controller. They give every train the blocking times of the run of the controller and
+	// write its files, except PassengerStatus.txt, which the controller writes after the steps. Without detailed files they look for
+	// a stop four times.
+	QTemporaryDir output;
+	const std::filesystem::path outputFolder = output.path().toStdString();
+	std::filesystem::create_directories(outputFolder / "TrainTrajectories");
+	std::filesystem::create_directories(outputFolder / "PassengerStatus");
+	other->settings.OutputMainFolder = outputFolder.string();
+	int stopChecks = 0;
+	const bool stagesEnded = runSimulationPostprocessing(*other, [&stopChecks] {
+		++stopChecks;
+		return false;
+	});
+	QVERIFY(stagesEnded);
+	QCOMPARE(stopChecks, 4);
+	int blockingTimes = 0;
+	for (int i = 0; i < controlled.numTrains; ++i) {
+		QCOMPARE(other->trains[i].N_BlockSections, controlled.trains[i].N_BlockSections);
+		blockingTimes += other->trains[i].N_BlockSections;
+	}
+	QCOMPARE_GT(blockingTimes, 0);
+	const Files written = readFiles(outputFolder);
+	QVERIFY(written.count("TrainTrajectories/TimetablePoints.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Pos&Neg_Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/BlockingTimes.txt") == 1);
+	QVERIFY(written.count("PassengerStatus/JourneyDelays.txt") == 1);
+	for (const auto& [name, content] : written) {
+		const auto found = reference.files.find(name);
+		if (found == reference.files.end())
+			QFAIL((name + " is not a file of the run of the controller").c_str());
+		QVERIFY2(found->second == content, (name + " differs").c_str());
+	}
+
+	// A stop at the first check ends the stages after the energy files.
+	QTemporaryDir stoppedOutput;
+	other->settings.OutputMainFolder = stoppedOutput.path().toStdString();
+	QVERIFY(!runSimulationPostprocessing(*other, [] { return true; }));
+	const Files stoppedFiles = readFiles(stoppedOutput.path().toStdString());
+	QCOMPARE(stoppedFiles.size(), std::size_t(2));
+	QVERIFY(stoppedFiles.count("EnergyConsumptionPerTrain.txt") == 1);
+	QVERIFY(stoppedFiles.count("TotalEnergyConsumption.txt") == 1);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)

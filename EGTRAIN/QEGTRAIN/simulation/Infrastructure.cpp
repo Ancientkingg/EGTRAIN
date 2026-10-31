@@ -83,14 +83,6 @@ bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>&
 }
 
 
-Stations::Stations() {
-	Av_Arrival_Delay = Std_Arrival_Delay = Tot_Consec_Delay = Perc_Delayed_T_5min = Perc_Delayed_T_3min = Perc_Delayed_T = Max_TotalDelay = Max_Cons_Delay = -1;
-	totalArrivalDelay = 0;
-	N_Stopped_Trains = N_Delayed_Arr = N_Delayed_Arr_3min = N_Delayed_Arr_5min = -1;
-	latitude = longitude = graphX = graphY = 0;
-	N_StationPlatforms = 0;
-}
-
 void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
 	ofstream FileOutput;
 	string FileOutName;
@@ -151,7 +143,7 @@ void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDela
 
 	FileOutput << "TOTALS" << " " << TotalAV << " " << TotalStd << " " << TOTDelay << " " << MAX_TOTDelay << " " << TOTCONSDelay << " " << MAX_CONSDelay << " " << AV_Punct << " " << AV_Punct_3min << " " << AV_Punct_5min << "\n";
 	// Printing the Final_Delay fittitious station
-	FileOutput << run.finalStation.stationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
+	FileOutput << kFinalStationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
 
 	FileOutput.close();
 }

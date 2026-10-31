@@ -1265,9 +1265,6 @@ static void fillSection(Section& s, const NodeList& nodes, TDS* tds) {
 	s.IDConnectedBS[0] = "section.a";
 	s.IDConnectedBS[1] = "section.b";
 	s.N_ConnectedBS = 2;
-	s.ETCS3BrakingPoints[0] = 85.5;
-	s.ETCS3BrakingPointsTrainID[0] = "train.sample";
-	s.N_ETCS3BrakingPoints = 1;
 	s.TDS_in_block = {tds};
 }
 
@@ -1298,13 +1295,11 @@ static bool sameSection(const Section& a, const Section& b) {
 		&& a.XStartSwitch == b.XStartSwitch && a.XEndSwitch == b.XEndSwitch && a.GeoXBegNode == b.GeoXBegNode && a.GeoXEndNode == b.GeoXEndNode
 		&& a.SignallingLevel == b.SignallingLevel && a.state == b.state && a.Occupied == b.Occupied
 		&& a.Occup_By_Train == b.Occup_By_Train && a.withSwitchDiv == b.withSwitchDiv && a.N_ConnectedBS == b.N_ConnectedBS
-		&& a.N_ETCS3BrakingPoints == b.N_ETCS3BrakingPoints && a.TDS_in_block == b.TDS_in_block;
+		&& a.TDS_in_block == b.TDS_in_block;
 	for (int i = 0; same && i < a.total_arcs; i++)
 		same = sameArc(a.arcs_in_signalling_block_section[i], b.arcs_in_signalling_block_section[i]);
 	for (int i = 0; same && i < a.N_ConnectedBS; i++)
 		same = a.IDConnectedBS[i] == b.IDConnectedBS[i];
-	for (int i = 0; same && i < a.N_ETCS3BrakingPoints; i++)
-		same = a.ETCS3BrakingPoints[i] == b.ETCS3BrakingPoints[i] && a.ETCS3BrakingPointsTrainID[i] == b.ETCS3BrakingPointsTrainID[i];
 	return same;
 }
 
@@ -2291,8 +2286,8 @@ struct InfrastructureSnapshot {
 	std::vector<std::string> routeIds;
 	std::string firstTrackId;
 	std::string firstStationName;
-	bool firstStationVirtualSignal = false;
-	std::string finalStationName;
+	int firstStationStops = 0;
+	int finalStationStops = 0;
 	const Section* sectionStorage = nullptr;
 	const TDS* firstDetectionSection = nullptr;
 	std::vector<const Section*> boundaryEntrances;
@@ -2306,12 +2301,12 @@ struct InfrastructureSnapshot {
 	bool operator==(const InfrastructureSnapshot& other) const {
 		return std::tie(blocks, routeCount, trackLines, connectionCount, stationCount, platformCount, platformListSize, routeListSize,
 				   detectionSectionCount, infraElementCount, singleTrackLimitCount, sectionIds, routeIds, firstTrackId,
-				   firstStationName, firstStationVirtualSignal, finalStationName, sectionStorage, firstDetectionSection, boundaryEntrances,
+				   firstStationName, firstStationStops, finalStationStops, sectionStorage, firstDetectionSection, boundaryEntrances,
 				   trackStorage, trackNodes, trackArcs, connectionStorage, stationStorage)
 			== std::tie(other.blocks, other.routeCount, other.trackLines, other.connectionCount, other.stationCount, other.platformCount,
 				other.platformListSize, other.routeListSize, other.detectionSectionCount, other.infraElementCount,
 				other.singleTrackLimitCount, other.sectionIds, other.routeIds, other.firstTrackId, other.firstStationName,
-				other.firstStationVirtualSignal, other.finalStationName, other.sectionStorage, other.firstDetectionSection,
+				other.firstStationStops, other.finalStationStops, other.sectionStorage, other.firstDetectionSection,
 				other.boundaryEntrances, other.trackStorage, other.trackNodes, other.trackArcs, other.connectionStorage, other.stationStorage);
 	}
 };
@@ -2335,8 +2330,8 @@ static InfrastructureSnapshot takeInfrastructureSnapshot() {
 		snapshot.routeIds.push_back(route.ID);
 	snapshot.firstTrackId = defaultRun().infra.blockSets[0].sceneTrackId;
 	snapshot.firstStationName = defaultRun().infra.stations[0].stationName;
-	snapshot.firstStationVirtualSignal = defaultRun().infra.stations[0].virtualSignal;
-	snapshot.finalStationName = defaultRun().finalStation.stationName;
+	snapshot.firstStationStops = defaultRun().infra.stations[0].N_Stopped_Trains;
+	snapshot.finalStationStops = defaultRun().finalStation.N_Stopped_Trains;
 	snapshot.sectionStorage = defaultRun().infra.sections.data();
 	snapshot.firstDetectionSection = defaultRun().infra.detectionSections.empty() ? nullptr : &defaultRun().infra.detectionSections.front();
 	for (const StationBoundarySection& boundary : defaultRun().infra.stationBoundaries)
@@ -2514,7 +2509,8 @@ void TestSceneBuilder::failedBuildKeepsPreviousRuntime() {
 	const FailedBuild& test = kFailedBuilds[index];
 	const QuietLog quiet;
 	QVERIFY2(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the previous scene builds");
-	defaultRun().infra.stations[0].virtualSignal = true;
+	defaultRun().infra.stations[0].N_Stopped_Trains = 7;
+	defaultRun().finalStation.N_Stopped_Trains = 9;
 	const InfrastructureSnapshot before = takeInfrastructureSnapshot();
 	// The previous runtime holds the scene.
 	QCOMPARE(before.blocks, 2);
@@ -2536,12 +2532,14 @@ void TestSceneBuilder::buildsAgainAfterFailedBuilds() {
 	const QuietLog quiet;
 	for (const FailedBuild& test : kFailedBuilds) {
 		buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
-		defaultRun().infra.stations[0].virtualSignal = true;
+		defaultRun().infra.stations[0].N_Stopped_Trains = 7;
 		buildInfrastructureAndSignallingFromScene(defaultRun(), test.scene());
 	}
 	// The scene builds again after the failed builds.
 	QVERIFY(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())));
 	QCOMPARE(defaultRun().infra.numBlocks, 2);
+	// The new build replaces the station that the failed builds kept.
+	QCOMPARE(defaultRun().infra.stations[0].N_Stopped_Trains, DelayStats().N_Stopped_Trains);
 	QVERIFY(runtimePointersAreValid());
 	resetNativeInfrastructureState(defaultRun());
 }

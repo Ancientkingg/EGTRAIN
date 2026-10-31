@@ -142,9 +142,8 @@ void nativeResetRuntime(SimulationRun& run) {
 	run.numPlatforms = 0;
 	run.platforms.clear();
 	run.platformIndex.clear();
-	// The fictitious station of the delay statistics at the final stop of every train
-	run.finalStation = Stations();
-	run.finalStation.stationName = "Final_Station";
+	// The delay statistics at the final stop of every train
+	run.finalStation = DelayStats();
 }
 
 bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
@@ -182,16 +181,13 @@ private:
 	RunInfrastructure infra_;
 	std::list<StationPlatform> platforms_;
 	int numPlatforms_ = 0;
-	Stations finalStation_;
+	DelayStats finalStation_;
 };
 
-// Checks the whole scene and decides what the runtime will hold, without reading or writing a runtime global.
-// The plan is complete only when the diagnostics hold no error.
-InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<SceneDiagnostic>& diagnostics) {
-	const NativeDiagnosticAdder add{diagnostics};
-
+// The tracks of the scene by ID; orderedTracks receives them sorted by ID.
+std::unordered_map<std::string, const SceneTrack*> nativeIndexTracks(const SceneModel& scene, const NativeDiagnosticAdder& add,
+	std::vector<const SceneTrack*>& orderedTracks) {
 	std::unordered_map<std::string, const SceneTrack*> tracksById;
-	std::vector<const SceneTrack*> orderedTracks;
 	orderedTracks.reserve(scene.tracks.size());
 	for (const auto& track : scene.tracks) {
 		if (track.id.empty()) {
@@ -210,7 +206,11 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		add(SceneSeverity::Error, "scene.native.capacity", "The case has more tracks than the runtime can hold",
 			"infrastructure.json", "track", "", "tracks", std::to_string(kMaxTrackLines),
 			"Reduce tracks or use a runtime with a larger fixed capacity");
+	return tracksById;
+}
 
+std::unordered_map<std::string, const SceneNode*> nativeIndexNodes(const SceneModel& scene, const std::unordered_map<std::string, const SceneTrack*>& tracksById,
+	const NativeDiagnosticAdder& add) {
 	std::unordered_map<std::string, const SceneNode*> nodesById;
 	for (const auto& node : scene.nodes) {
 		if (node.id.empty()) {
@@ -223,8 +223,12 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Node refers to an unknown track",
 				"infrastructure.json", "node", node.id, "nodes.track", node.trackId);
 	}
+	return nodesById;
+}
+
+void nativeCheckArcs(const SceneModel& scene, const std::unordered_map<std::string, const SceneTrack*>& tracksById, const std::unordered_map<std::string, const SceneNode*>& nodesById,
+	const NativeDiagnosticAdder& add) {
 	std::unordered_set<std::string> arcIds;
-	std::unordered_set<std::string> blockIds;
 	for (const auto& arc : scene.arcs) {
 		if (!arcIds.insert(arc.id).second)
 			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate arc id", "infrastructure.json", "arc", arc.id);
@@ -252,6 +256,11 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			add(SceneSeverity::Error, "scene.native.topology.loop", "Arc cannot connect a node to itself",
 				"infrastructure.json", "arc", arc.id);
 	}
+}
+
+// The IDs of the blocks of the scene, once the blocks are checked.
+std::unordered_set<std::string> nativeCheckBlocks(const SceneModel& scene, const std::unordered_map<std::string, const SceneTrack*>& tracksById, const NativeDiagnosticAdder& add) {
+	std::unordered_set<std::string> blockIds;
 	for (const auto& block : scene.blocks) {
 		if (block.id.empty())
 			add(SceneSeverity::Error, "scene.native.id.empty", "Block id is empty", "infrastructure.json", "block");
@@ -266,80 +275,79 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Block refers to an unknown track",
 				"infrastructure.json", "block", block.id, "blocks.track", block.trackId);
 	}
-	if (nativeHasErrors(diagnostics))
-		return {};
+	return blockIds;
+}
 
-	std::vector<NativeTrack> nativeTracks(orderedTracks.size());
-	for (std::size_t slot = 0; slot < orderedTracks.size(); ++slot) {
-		NativeTrack& track = nativeTracks[slot];
-		track.id = orderedTracks[slot]->id;
-		std::vector<const SceneNode*> nodes;
-		for (const auto& node : scene.nodes)
-			if (node.trackId == track.id)
-				nodes.push_back(&node);
-		std::vector<const SceneArc*> arcs;
-		for (const auto& arc : scene.arcs)
-			if (arc.trackId == track.id)
-				arcs.push_back(&arc);
-		if (nodes.size() < 2 || arcs.empty()) {
-			add(SceneSeverity::Error, "scene.native.topology.incomplete", "Track must have at least one arc and two nodes",
-				"infrastructure.json", "track", track.id);
-			continue;
-		}
-
-		std::unordered_map<std::string, std::vector<const SceneArc*>> outgoing;
-		std::unordered_map<std::string, int> incoming;
-		for (const SceneNode* node : nodes)
-			incoming[node->id] = 0;
-		for (const SceneArc* arc : arcs) {
-			outgoing[arc->fromNodeId].push_back(arc);
-			++incoming[arc->toNodeId];
-		}
-		std::vector<const SceneNode*> starts;
-		for (const SceneNode* node : nodes) {
-			if (outgoing[node->id].size() > 1)
-				add(SceneSeverity::Error, "scene.native.topology.ambiguous", "Track has multiple outgoing arcs from a node",
-					"infrastructure.json", "track", track.id, "nodes", node->id);
-			if (incoming[node->id] > 1)
-				add(SceneSeverity::Error, "scene.native.topology.ambiguous", "Track has multiple incoming arcs to a node",
-					"infrastructure.json", "track", track.id, "nodes", node->id);
-			if (incoming[node->id] == 0)
-				starts.push_back(node);
-		}
-		if (starts.size() != 1) {
-			add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track must have exactly one chain start",
-				"infrastructure.json", "track", track.id, "tracks.nodes", std::to_string(starts.size()));
-			continue;
-		}
-		const SceneNode* current = starts.front();
-		std::unordered_set<std::string> visitedNodes;
-		std::unordered_set<std::string> visitedArcs;
-		while (current) {
-			if (!visitedNodes.insert(current->id).second) {
-				add(SceneSeverity::Error, "scene.native.topology.loop", "Track chain revisits a node",
-					"infrastructure.json", "track", track.id, "nodes", current->id);
-				break;
-			}
-			track.chainNodes.push_back(current);
-			const auto next = outgoing.find(current->id);
-			if (next == outgoing.end() || next->second.empty())
-				break;
-			const SceneArc* arc = next->second.front();
-			if (!visitedArcs.insert(arc->id).second)
-				break;
-			track.chainArcs.push_back(arc);
-			current = nodesById[arc->toNodeId];
-		}
-		if (track.chainArcs.size() != arcs.size() || track.chainNodes.size() != nodes.size())
-			add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track arcs do not form one connected linear chain",
-				"infrastructure.json", "track", track.id, "tracks.arcs");
-		for (std::size_t index = 1; index < track.chainNodes.size(); ++index) {
-			if (track.chainNodes[index]->xKm + kNativeCoordinateTolerance < track.chainNodes[index - 1]->xKm)
-				add(SceneSeverity::Error, "scene.native.topology.order", "Track node x coordinates must be nondecreasing",
-					"infrastructure.json", "track", track.id, "tracks.nodes", track.chainNodes[index]->id);
-		}
+// Orders the nodes and arcs of track, whose id is set, into one chain from its single start node.
+void nativeTrackChain(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add, NativeTrack& track) {
+	std::vector<const SceneNode*> nodes;
+	for (const auto& node : scene.nodes)
+		if (node.trackId == track.id)
+			nodes.push_back(&node);
+	std::vector<const SceneArc*> arcs;
+	for (const auto& arc : scene.arcs)
+		if (arc.trackId == track.id)
+			arcs.push_back(&arc);
+	if (nodes.size() < 2 || arcs.empty()) {
+		add(SceneSeverity::Error, "scene.native.topology.incomplete", "Track must have at least one arc and two nodes",
+			"infrastructure.json", "track", track.id);
+		return;
 	}
 
+	std::unordered_map<std::string, std::vector<const SceneArc*>> outgoing;
+	std::unordered_map<std::string, int> incoming;
+	for (const SceneNode* node : nodes)
+		incoming[node->id] = 0;
+	for (const SceneArc* arc : arcs) {
+		outgoing[arc->fromNodeId].push_back(arc);
+		++incoming[arc->toNodeId];
+	}
+	std::vector<const SceneNode*> starts;
+	for (const SceneNode* node : nodes) {
+		if (outgoing[node->id].size() > 1)
+			add(SceneSeverity::Error, "scene.native.topology.ambiguous", "Track has multiple outgoing arcs from a node",
+				"infrastructure.json", "track", track.id, "nodes", node->id);
+		if (incoming[node->id] > 1)
+			add(SceneSeverity::Error, "scene.native.topology.ambiguous", "Track has multiple incoming arcs to a node",
+				"infrastructure.json", "track", track.id, "nodes", node->id);
+		if (incoming[node->id] == 0)
+			starts.push_back(node);
+	}
+	if (starts.size() != 1) {
+		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track must have exactly one chain start",
+			"infrastructure.json", "track", track.id, "tracks.nodes", std::to_string(starts.size()));
+		return;
+	}
+	const SceneNode* current = starts.front();
+	std::unordered_set<std::string> visitedNodes;
+	std::unordered_set<std::string> visitedArcs;
+	while (current) {
+		if (!visitedNodes.insert(current->id).second) {
+			add(SceneSeverity::Error, "scene.native.topology.loop", "Track chain revisits a node",
+				"infrastructure.json", "track", track.id, "nodes", current->id);
+			break;
+		}
+		track.chainNodes.push_back(current);
+		const auto next = outgoing.find(current->id);
+		if (next == outgoing.end() || next->second.empty())
+			break;
+		const SceneArc* arc = next->second.front();
+		if (!visitedArcs.insert(arc->id).second)
+			break;
+		track.chainArcs.push_back(arc);
+		current = nodesById.at(arc->toNodeId);
+	}
+	if (track.chainArcs.size() != arcs.size() || track.chainNodes.size() != nodes.size())
+		add(SceneSeverity::Error, "scene.native.topology.disconnected", "Track arcs do not form one connected linear chain",
+			"infrastructure.json", "track", track.id, "tracks.arcs");
+	for (std::size_t index = 1; index < track.chainNodes.size(); ++index) {
+		if (track.chainNodes[index]->xKm + kNativeCoordinateTolerance < track.chainNodes[index - 1]->xKm)
+			add(SceneSeverity::Error, "scene.native.topology.order", "Track node x coordinates must be nondecreasing",
+				"infrastructure.json", "track", track.id, "tracks.nodes", track.chainNodes[index]->id);
+	}
+}
+
+void nativeCheckConnections(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add) {
 	if (scene.connections.size() > kMaxConnections)
 		add(SceneSeverity::Error, "scene.native.capacity", "The case has more connections than the runtime can hold",
 			"infrastructure.json", "connection", "", "connections", std::to_string(kMaxConnections));
@@ -370,9 +378,11 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 				"infrastructure.json", "connection", connection.id, "connections", connection.fromNodeId,
 				"Reduce connections at the node");
 	}
-	if (nativeHasErrors(diagnostics))
-		return {};
-	SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+}
+
+// Where each block lies on its track, once every track is checked to have a block.
+std::vector<NativeBlockPlan> nativeBlockPlans(const SceneModel& scene, const SceneSectionInventory& sectionInventory,
+	const std::vector<NativeTrack>& nativeTracks, const NativeDiagnosticAdder& add) {
 	std::vector<NativeBlockPlan> blockPlans;
 	blockPlans.reserve(scene.blocks.size());
 	std::unordered_map<std::string, int> trackSlots;
@@ -411,7 +421,12 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 				"infrastructure.json", "block", block->id, "blocks.length_km", block->trackId);
 		blockPlans.push_back({&*block, slot->second, section.startKm, section.endKm});
 	}
-	std::unordered_set<std::string> plannedSectionIds;
+	return blockPlans;
+}
+
+// The sections of the inventory whose runtime IDs are unique; plannedSectionIds receives those IDs.
+std::vector<NativeSectionPlan> nativeSectionPlans(const SceneSectionInventory& sectionInventory, const NativeDiagnosticAdder& add,
+	std::unordered_set<std::string>& plannedSectionIds) {
 	std::vector<NativeSectionPlan> signallingSectionPlans;
 	signallingSectionPlans.reserve(sectionInventory.sections.size());
 	for (const auto& section : sectionInventory.sections) {
@@ -431,16 +446,22 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		signallingSectionPlans.push_back({section.id, section.startKm, section.endKm,
 			section.firstTrackId, section.secondTrackId});
 	}
-	auto plannedRuntimeId = [&](const std::string& reference) {
-		const auto* section = sectionInventory.resolve(reference);
-		return section == nullptr ? std::string() : section->id;
-	};
-	auto validatePlannedReference = [&](const std::string& reference, const std::string& type,
-										const std::string& id, const std::string& path) {
-		if (plannedRuntimeId(reference).empty())
-			add(SceneSeverity::Error, "scene.native.ref.unresolved",
-				"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
-	};
+	return signallingSectionPlans;
+}
+
+std::string nativePlannedRuntimeId(const SceneSectionInventory& sectionInventory, const std::string& reference) {
+	const auto* section = sectionInventory.resolve(reference);
+	return section == nullptr ? std::string() : section->id;
+}
+
+void nativeValidatePlannedReference(const SceneSectionInventory& sectionInventory, const NativeDiagnosticAdder& add,
+	const std::string& reference, const std::string& type, const std::string& id, const std::string& path) {
+	if (nativePlannedRuntimeId(sectionInventory, reference).empty())
+		add(SceneSeverity::Error, "scene.native.ref.unresolved",
+			"Reference does not identify a planned runtime section", "signalling.json", type, id, path, reference);
+}
+
+void nativeCheckStations(const SceneModel& scene, const std::unordered_map<std::string, const SceneNode*>& nodesById, const NativeDiagnosticAdder& add) {
 	std::unordered_set<std::string> stationIds;
 	std::unordered_set<std::string> platformIds;
 	for (const auto& station : scene.stations) {
@@ -462,7 +483,44 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 						"stations.json", "platform", platform.id, "stations.platforms.nodes", nodeId);
 		}
 	}
+}
 
+// The direction of route through its sections, 0 when it changes direction. Adjacent sections that are not joined are
+// reported, except at a region jump of a legacy import.
+int nativeRouteDirection(const SceneModel& scene, const SceneRoute& route,
+	const std::vector<const SceneSectionDescriptor*>& routeSections, bool hasLegacyImport, const NativeDiagnosticAdder& add) {
+	bool forward = false;
+	bool reverse = false;
+	bool directionError = false;
+	for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
+		const SceneSectionTransition transition = classifySceneSectionTransition(scene,
+			*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
+		forward = forward || transition.joinsForward;
+		reverse = reverse || transition.joinsReverse;
+		directionError = directionError || (forward && reverse);
+		if (transition.joinsForward || transition.joinsReverse)
+			continue;
+		if (transition.regionJump && hasLegacyImport) {
+			forward = false;
+			reverse = false;
+			continue;
+		}
+		add(SceneSeverity::Error, "scene.route.disconnected",
+			"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
+			"routes.blocks[" + std::to_string(sectionIndex) + "]",
+			route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
+	}
+	if (directionError) {
+		add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
+			"signalling.json", "route", route.id, "routes.blocks");
+		return 0;
+	}
+	return sceneRouteDirection(scene, routeSections);
+}
+
+// The direction of each route of the scene, once its blocks are checked.
+std::vector<int> nativeRouteDirections(const SceneModel& scene, const std::unordered_set<std::string>& blockIds,
+	const SceneSectionInventory& sectionInventory, const NativeDiagnosticAdder& add) {
 	const bool hasLegacyImport = std::any_of(scene.importReport.begin(), scene.importReport.end(),
 		[](const SceneImportReportRow& row) { return row.category == "legacy_root"; });
 	std::vector<int> routeDirections(scene.routes.size(), 0);
@@ -482,51 +540,26 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 				if (blockIds.find(component) == blockIds.end())
 					add(SceneSeverity::Error, "scene.native.ref.unresolved", "Route refers to an unknown block",
 						"signalling.json", "route", route.id, "routes.blocks", component);
-			validatePlannedReference(token, "route", route.id, "routes.blocks");
+			nativeValidatePlannedReference(sectionInventory, add, token, "route", route.id, "routes.blocks");
 			if (const auto* section = sectionInventory.resolve(token))
 				routeSections.push_back(section);
 		}
-		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1) {
-			bool forward = false;
-			bool reverse = false;
-			bool directionError = false;
-			for (std::size_t sectionIndex = 1; sectionIndex < routeSections.size(); ++sectionIndex) {
-				const SceneSectionTransition transition = classifySceneSectionTransition(scene,
-					*routeSections[sectionIndex - 1], *routeSections[sectionIndex]);
-				forward = forward || transition.joinsForward;
-				reverse = reverse || transition.joinsReverse;
-				directionError = directionError || (forward && reverse);
-				if (transition.joinsForward || transition.joinsReverse)
-					continue;
-				if (transition.regionJump && hasLegacyImport) {
-					forward = false;
-					reverse = false;
-					continue;
-				}
-				add(SceneSeverity::Error, "scene.route.disconnected",
-					"Adjacent route sections are disconnected", "signalling.json", "route", route.id,
-					"routes.blocks[" + std::to_string(sectionIndex) + "]",
-					route.blocks[sectionIndex - 1] + " -> " + route.blocks[sectionIndex]);
-			}
-			if (directionError)
-				add(SceneSeverity::Error, "scene.route.direction", "Route changes direction",
-					"signalling.json", "route", route.id, "routes.blocks");
-			else {
-				routeDirections[index] = sceneRouteDirection(scene, routeSections);
-			}
-		}
+		if (routeSections.size() == route.blocks.size() && routeSections.size() > 1)
+			routeDirections[index] = nativeRouteDirection(scene, route, routeSections, hasLegacyImport, add);
 	}
-	std::unordered_set<std::string> routeIds;
-	for (const auto& route : scene.routes)
-		if (!routeIds.insert(route.id).second)
-			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate route id", "signalling.json", "route", route.id);
+	return routeDirections;
+}
+
+// Checks the blocks of each block dependency, and the number of dependencies of each planned section.
+void nativeCheckDependencies(const SceneModel& scene, const std::unordered_set<std::string>& blockIds,
+	const SceneSectionInventory& sectionInventory, const std::unordered_set<std::string>& plannedSectionIds, const NativeDiagnosticAdder& add) {
 	for (const auto& dependency : scene.blockDependencies) {
 		for (const auto& ref : {dependency.block, dependency.dependsOn}) {
 			for (const auto& component : nativeBlockReferenceComponents(ref))
 				if (blockIds.find(component) == blockIds.end())
 					add(SceneSeverity::Error, "scene.native.ref.unresolved", "Block dependency refers to an unknown block",
 						"signalling.json", "block_dependency", dependency.block, "block_dependencies", component);
-			validatePlannedReference(ref, "block_dependency", dependency.block, "block_dependencies");
+			nativeValidatePlannedReference(sectionInventory, add, ref, "block_dependency", dependency.block, "block_dependencies");
 		}
 	}
 	std::unordered_map<std::string, std::unordered_set<std::string>> plannedDependencies;
@@ -537,8 +570,8 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			plannedDependencies[nativeRuntimeBlockId(component)].insert(target);
 	}
 	for (const auto& dependency : scene.blockDependencies) {
-		const std::string source = plannedRuntimeId(dependency.block);
-		const std::string target = plannedRuntimeId(dependency.dependsOn);
+		const std::string source = nativePlannedRuntimeId(sectionInventory, dependency.block);
+		const std::string target = nativePlannedRuntimeId(sectionInventory, dependency.dependsOn);
 		if (!source.empty() && !target.empty())
 			plannedDependencies[source].insert(target);
 	}
@@ -547,6 +580,10 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			add(SceneSeverity::Error, "scene.native.capacity", "Block dependency exceeds the runtime dependency capacity",
 				"signalling.json", "block_dependency", dependency.first, "block_dependencies",
 				std::to_string(RuntimeLimits::kNativeMaxDependencies));
+}
+
+void nativeCheckRestrictions(const SceneModel& scene, const std::unordered_set<std::string>& blockIds,
+	const SceneSectionInventory& sectionInventory, const NativeDiagnosticAdder& add) {
 	for (const auto& restriction : scene.singleTrackRestrictions) {
 		for (const auto& ref : {restriction.startBlock, restriction.endBlock,
 				 restriction.protectedStartBlock, restriction.protectedEndBlock}) {
@@ -554,13 +591,17 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 				if (blockIds.find(component) == blockIds.end())
 					add(SceneSeverity::Error, "scene.native.ref.unresolved", "Single-track restriction refers to an unknown block",
 						"signalling.json", "single_track_restriction", restriction.startBlock, "single_track_restrictions", component);
-			validatePlannedReference(ref, "single_track_restriction", restriction.startBlock, "single_track_restrictions");
+			nativeValidatePlannedReference(sectionInventory, add, ref, "single_track_restriction", restriction.startBlock, "single_track_restrictions");
 		}
 	}
+}
+
+void nativeCheckBoundaries(const SceneModel& scene, const std::unordered_set<std::string>& blockIds,
+	const SceneSectionInventory& sectionInventory, const NativeDiagnosticAdder& add) {
 	for (const auto& boundary : scene.stationBoundaries) {
 		for (const auto& ref : {boundary.entranceBlock, boundary.hasExitBlock ? boundary.exitBlock : std::string()}) {
 			if (!ref.empty()) {
-				validatePlannedReference(ref, "station_boundary", boundary.entranceBlock, "station_boundaries");
+				nativeValidatePlannedReference(sectionInventory, add, ref, "station_boundary", boundary.entranceBlock, "station_boundaries");
 				for (const auto& component : nativeBlockReferenceComponents(ref))
 					if (blockIds.find(component) == blockIds.end())
 						add(SceneSeverity::Error, "scene.native.ref.unresolved", "Station boundary refers to an unknown block",
@@ -568,6 +609,9 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			}
 		}
 	}
+}
+
+void nativeCheckSignallingAreas(const SceneModel& scene, const std::unordered_map<std::string, const SceneTrack*>& tracksById, const NativeDiagnosticAdder& add) {
 	std::unordered_set<std::string> signallingAreaIds;
 	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
 		const SceneSignallingArea& area = scene.signallingAreas[index];
@@ -592,6 +636,12 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 				"Signalling area refers to an unknown track", "signalling.json", "signalling_area",
 				area.id, path + ".track", area.trackId);
 	}
+}
+
+// The signalling level of each section that lies inside signalling areas of one level. An area of a track counts over one
+// of the whole network.
+std::unordered_map<std::string, int> nativeSignallingLevels(const SceneModel& scene,
+	const std::vector<NativeSectionPlan>& signallingSectionPlans, const NativeDiagnosticAdder& add) {
 	auto sectionSpanInsideArea = [](const NativeSectionPlan& section, const SceneSignallingArea& area) {
 		return section.startX >= area.startKm - kNativeCoordinateTolerance
 			&& section.endX <= area.endKm + kNativeCoordinateTolerance;
@@ -628,6 +678,48 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		if (selectedLevel >= 0)
 			plannedSignallingLevels[section.id] = selectedLevel;
 	}
+	return plannedSignallingLevels;
+}
+
+// Checks the whole scene and decides what the runtime will hold, without reading or writing a runtime global.
+// The plan is complete only when the diagnostics hold no error.
+InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<SceneDiagnostic>& diagnostics) {
+	const NativeDiagnosticAdder add{diagnostics};
+
+	std::vector<const SceneTrack*> orderedTracks;
+	const auto tracksById = nativeIndexTracks(scene, add, orderedTracks);
+	const auto nodesById = nativeIndexNodes(scene, tracksById, add);
+	nativeCheckArcs(scene, tracksById, nodesById, add);
+	const std::unordered_set<std::string> blockIds = nativeCheckBlocks(scene, tracksById, add);
+	if (nativeHasErrors(diagnostics))
+		return {};
+
+	std::vector<NativeTrack> nativeTracks(orderedTracks.size());
+	for (std::size_t slot = 0; slot < orderedTracks.size(); ++slot) {
+		NativeTrack& track = nativeTracks[slot];
+		track.id = orderedTracks[slot]->id;
+		nativeTrackChain(scene, nodesById, add, track);
+	}
+
+	nativeCheckConnections(scene, nodesById, add);
+	if (nativeHasErrors(diagnostics))
+		return {};
+	SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+	std::vector<NativeBlockPlan> blockPlans = nativeBlockPlans(scene, sectionInventory, nativeTracks, add);
+	std::unordered_set<std::string> plannedSectionIds;
+	const std::vector<NativeSectionPlan> signallingSectionPlans = nativeSectionPlans(sectionInventory, add, plannedSectionIds);
+	nativeCheckStations(scene, nodesById, add);
+
+	std::vector<int> routeDirections = nativeRouteDirections(scene, blockIds, sectionInventory, add);
+	std::unordered_set<std::string> routeIds;
+	for (const auto& route : scene.routes)
+		if (!routeIds.insert(route.id).second)
+			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate route id", "signalling.json", "route", route.id);
+	nativeCheckDependencies(scene, blockIds, sectionInventory, plannedSectionIds, add);
+	nativeCheckRestrictions(scene, blockIds, sectionInventory, add);
+	nativeCheckBoundaries(scene, blockIds, sectionInventory, add);
+	nativeCheckSignallingAreas(scene, tracksById, add);
+	std::unordered_map<std::string, int> plannedSignallingLevels = nativeSignallingLevels(scene, signallingSectionPlans, add);
 
 	if (nativeHasErrors(diagnostics))
 		return {};
@@ -642,17 +734,15 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 	return plan;
 }
 
-// Replaces the runtime infrastructure by what the plan describes. A problem that only shows while the runtime is built
-// is added to the diagnostics, and the runtime then holds a partial build.
-void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const InfrastructurePlan& plan, std::vector<SceneDiagnostic>& diagnostics) {
-	const NativeDiagnosticAdder add{diagnostics};
+// The runtime nodes of the scene nodes by node ID, and the track slot of each.
+struct NativeRuntimeNodes {
+	std::unordered_map<std::string, Node> byId;
+	std::unordered_map<std::string, int> track;
+};
 
-	nativeResetRuntime(run);
-	// Base sections plus derived switch sections. A successful build creates exactly this many.
-	run.infra.sections = std::vector<Section>(plan.sectionIds.size());
-	run.infra.numTrackLines = static_cast<int>(plan.tracks.size());
-	std::unordered_map<std::string, Node> runtimeNodeById;
-	std::unordered_map<std::string, int> runtimeNodeTrack;
+// Builds the tracks of the plan into run.infra.blockSets, with their nodes and arcs.
+NativeRuntimeNodes nativeBuildRuntimeTracks(SimulationRun& run, const SceneModel& scene, const InfrastructurePlan& plan) {
+	NativeRuntimeNodes nodes;
 	for (std::size_t slot = 0; slot < plan.tracks.size(); ++slot) {
 		const NativeTrack& track = plan.tracks[slot];
 		BlockSet& runtimeTrack = run.infra.blockSets[slot];
@@ -677,9 +767,9 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 			node.ID = static_cast<double>(slot * 1000000 + index + 1);
 			node.X = track.chainNodes[index]->xKm;
 			node.Y = track.chainNodes[index]->yKm;
-			runtimeNodeTrack[track.chainNodes[index]->id] = static_cast<int>(slot);
+			nodes.track[track.chainNodes[index]->id] = static_cast<int>(slot);
 			runtimeTrack.N[index] = node;
-			runtimeNodeById[track.chainNodes[index]->id] = runtimeTrack.N[index];
+			nodes.byId[track.chainNodes[index]->id] = runtimeTrack.N[index];
 		}
 		for (std::size_t index = 0; index < track.chainArcs.size(); ++index) {
 			const SceneArc& source = *track.chainArcs[index];
@@ -696,39 +786,44 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 			runtimeTrack.member[index] = arc;
 		}
 	}
+	return nodes;
+}
 
-	auto updateRuntimeNode = [&](const std::string& nodeId, const auto& update) {
-		const auto trackIt = runtimeNodeTrack.find(nodeId);
-		if (trackIt == runtimeNodeTrack.end())
-			return;
-		const int slot = trackIt->second;
-		const double targetId = runtimeNodeById[nodeId].ID;
-		for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
-			if (run.infra.blockSets[slot].N[index].ID == targetId)
-				update(run.infra.blockSets[slot].N[index]);
-		for (int index = 0; index < run.infra.blockSets[slot].arcs; ++index) {
-			if (run.infra.blockSets[slot].A[index].startNode.ID == targetId)
-				update(run.infra.blockSets[slot].A[index].startNode);
-			if (run.infra.blockSets[slot].A[index].endNode.ID == targetId)
-				update(run.infra.blockSets[slot].A[index].endNode);
-			if (run.infra.blockSets[slot].member[index].startNode.ID == targetId)
-				update(run.infra.blockSets[slot].member[index].startNode);
-			if (run.infra.blockSets[slot].member[index].endNode.ID == targetId)
-				update(run.infra.blockSets[slot].member[index].endNode);
-		}
-		for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
-			if (run.infra.blockSets[slot].N[index].ID == targetId)
-				runtimeNodeById[nodeId] = run.infra.blockSets[slot].N[index];
-	};
+// Applies update to the runtime node of nodeId on its track, and to the ends of the arcs of the track at that node.
+template <typename Update>
+void nativeUpdateRuntimeNode(SimulationRun& run, NativeRuntimeNodes& nodes, const std::string& nodeId, const Update& update) {
+	const auto trackIt = nodes.track.find(nodeId);
+	if (trackIt == nodes.track.end())
+		return;
+	const int slot = trackIt->second;
+	const double targetId = nodes.byId[nodeId].ID;
+	for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
+		if (run.infra.blockSets[slot].N[index].ID == targetId)
+			update(run.infra.blockSets[slot].N[index]);
+	for (int index = 0; index < run.infra.blockSets[slot].arcs; ++index) {
+		if (run.infra.blockSets[slot].A[index].startNode.ID == targetId)
+			update(run.infra.blockSets[slot].A[index].startNode);
+		if (run.infra.blockSets[slot].A[index].endNode.ID == targetId)
+			update(run.infra.blockSets[slot].A[index].endNode);
+		if (run.infra.blockSets[slot].member[index].startNode.ID == targetId)
+			update(run.infra.blockSets[slot].member[index].startNode);
+		if (run.infra.blockSets[slot].member[index].endNode.ID == targetId)
+			update(run.infra.blockSets[slot].member[index].endNode);
+	}
+	for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
+		if (run.infra.blockSets[slot].N[index].ID == targetId)
+			nodes.byId[nodeId] = run.infra.blockSets[slot].N[index];
+}
 
+void nativeBuildConnections(SimulationRun& run, const SceneModel& scene, NativeRuntimeNodes& nodes) {
 	for (std::size_t index = 0; index < scene.connections.size(); ++index) {
 		const SceneConnection& source = scene.connections[index];
 		Connections& connection = run.infra.connections[index];
-		const int firstSlot = runtimeNodeTrack[source.fromNodeId];
-		const int secondSlot = runtimeNodeTrack[source.toNodeId];
+		const int firstSlot = nodes.track[source.fromNodeId];
+		const int secondSlot = nodes.track[source.toNodeId];
 		connection.ID = source.id;
-		const Node& fromNode = runtimeNodeById[source.fromNodeId];
-		const Node& toNode = runtimeNodeById[source.toNodeId];
+		const Node& fromNode = nodes.byId[source.fromNodeId];
+		const Node& toNode = nodes.byId[source.toNodeId];
 		const bool fromFirst = fromNode.X <= toNode.X;
 		connection.idFirstTrackLine = fromFirst ? firstSlot : secondSlot;
 		connection.idSecondTrackLine = fromFirst ? secondSlot : firstSlot;
@@ -741,19 +836,23 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 		connection.graphYFirstNode = fromFirst ? fromNode.graphY : toNode.graphY;
 		connection.graphXSecondNode = fromFirst ? toNode.graphX : fromNode.graphX;
 		connection.graphYSecondNode = fromFirst ? toNode.graphY : fromNode.graphY;
-		updateRuntimeNode(source.fromNodeId, [&](Node& node) {
+		nativeUpdateRuntimeNode(run, nodes, source.fromNodeId, [&](Node& node) {
 			const int count = node.numConnections++;
 			node.connectIdBlockSet[count] = secondSlot;
-			node.connectXNode[count] = runtimeNodeById[source.toNodeId].X;
+			node.connectXNode[count] = nodes.byId[source.toNodeId].X;
 		});
-		updateRuntimeNode(source.toNodeId, [&](Node& node) {
+		nativeUpdateRuntimeNode(run, nodes, source.toNodeId, [&](Node& node) {
 			const int count = node.numConnections++;
 			node.connectIdBlockSet[count] = firstSlot;
-			node.connectXNode[count] = runtimeNodeById[source.fromNodeId].X;
+			node.connectXNode[count] = nodes.byId[source.fromNodeId].X;
 		});
 	}
 	run.infra.numConnections = static_cast<int>(scene.connections.size());
+}
 
+// Marks the nodes of the stations and their platforms as station nodes, and returns the platform nodes.
+std::vector<NativeStationBinding> nativeBindStations(SimulationRun& run, const SceneModel& scene, NativeRuntimeNodes& nodes,
+	const NativeDiagnosticAdder& add) {
 	std::vector<NativeStationBinding> stationBindings;
 	std::unordered_set<std::string> stationNodeAssignments;
 	for (const auto& station : scene.stations) {
@@ -764,7 +863,7 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 					if (!stationNodeAssignments.insert(key).second)
 						continue;
 					stationBindings.push_back({&station, &platform, nodeId});
-					updateRuntimeNode(nodeId, [&](Node& node) {
+					nativeUpdateRuntimeNode(run, nodes, nodeId, [&](Node& node) {
 						node.station = true;
 						node.stationName = station.name.empty() ? station.id : station.name;
 						node.stationPlatformId = platform.id;
@@ -777,7 +876,7 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 				if (std::fabs(node.xKm - station.positionKm) > kNativeCoordinateTolerance)
 					continue;
 				matched = true;
-				updateRuntimeNode(node.id, [&](Node& runtimeNode) {
+				nativeUpdateRuntimeNode(run, nodes, node.id, [&](Node& runtimeNode) {
 					runtimeNode.station = true;
 					runtimeNode.stationName = station.name.empty() ? station.id : station.name;
 				});
@@ -787,22 +886,26 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 					"stations.json", "station", station.id, "stations.position_km");
 		}
 	}
+	return stationBindings;
+}
 
+// The node of arc at x (km): an end of the arc within the coordinate tolerance, or a new node on the arc.
+Node nativeNodeAtArcCoordinate(const Arc& arc, double x) {
+	if (std::fabs(x - arc.startNode.X) <= kNativeCoordinateTolerance)
+		return arc.startNode;
+	if (std::fabs(x - arc.endNode.X) <= kNativeCoordinateTolerance)
+		return arc.endNode;
+	Node node;
+	node.ID = arc.startNode.ID + (x - arc.startNode.X) * 0.000001;
+	const double span = arc.endNode.X - arc.startNode.X;
+	const double ratio = span == 0.0 ? 0.0 : (x - arc.startNode.X) / span;
+	node.X = x;
+	node.Y = arc.startNode.Y + ratio * (arc.endNode.Y - arc.startNode.Y);
+	return node;
+}
 
-	auto nodeAtArcCoordinate = [&](const Arc& arc, double x) {
-		if (std::fabs(x - arc.startNode.X) <= kNativeCoordinateTolerance)
-			return arc.startNode;
-		if (std::fabs(x - arc.endNode.X) <= kNativeCoordinateTolerance)
-			return arc.endNode;
-		Node node;
-		node.ID = arc.startNode.ID + (x - arc.startNode.X) * 0.000001;
-		const double span = arc.endNode.X - arc.startNode.X;
-		const double ratio = span == 0.0 ? 0.0 : (x - arc.startNode.X) / span;
-		node.X = x;
-		node.Y = arc.startNode.Y + ratio * (arc.endNode.Y - arc.startNode.Y);
-		return node;
-	};
-
+// Builds a section of run.infra.sections for each block of the plan from the pieces of the arcs of its track.
+void nativeBuildBlockSections(SimulationRun& run, const InfrastructurePlan& plan, const NativeDiagnosticAdder& add) {
 	for (const NativeBlockPlan& blockPlan : plan.blocks) {
 		BlockSet& runtimeTrack = run.infra.blockSets[blockPlan.trackSlot];
 		Section& section = run.infra.sections[run.infra.numBlocks++];
@@ -823,8 +926,8 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 			if (endX <= beginX + kNativeCoordinateTolerance)
 				continue;
 			Arc piece = sourceArc;
-			piece.startNode = nodeAtArcCoordinate(sourceArc, beginX);
-			piece.endNode = nodeAtArcCoordinate(sourceArc, endX);
+			piece.startNode = nativeNodeAtArcCoordinate(sourceArc, beginX);
+			piece.endNode = nativeNodeAtArcCoordinate(sourceArc, endX);
 			piece.length = piece.endNode.X - piece.startNode.X;
 			piece.fs = piece.endNode.X * 1000.0;
 			if (nodes.empty())
@@ -847,16 +950,17 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 		for (std::size_t index = 0; index < arcs.size(); ++index)
 			section.arcs_in_signalling_block_section[index] = arcs[index];
 	}
+}
 
+void nativeBuildStations(SimulationRun& run, const SceneModel& scene, NativeRuntimeNodes& nodes) {
 	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
 		const SceneStation& source = scene.stations[stationIndex];
 		Stations& station = run.infra.stations[stationIndex];
 		station.stationName = source.name.empty() ? source.id : source.name;
-		station.station = true;
 		if (source.hasPosition)
 			station.X = source.positionKm;
 		else if (!source.platforms.empty() && !source.platforms.front().nodeIds.empty()) {
-			const Node& anchor = runtimeNodeById[source.platforms.front().nodeIds.front()];
+			const Node& anchor = nodes.byId[source.platforms.front().nodeIds.front()];
 			station.X = anchor.X;
 			station.Y = anchor.Y;
 		}
@@ -876,8 +980,13 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 		}
 	}
 	run.infra.numStations = static_cast<int>(scene.stations.size());
+}
+
+// Adds to run.platforms a platform for each platform node that lies in a block section.
+void nativeBuildPlatforms(SimulationRun& run, const std::vector<NativeStationBinding>& stationBindings, NativeRuntimeNodes& nodes,
+	const NativeDiagnosticAdder& add) {
 	for (const NativeStationBinding& binding : stationBindings) {
-		const Node& node = runtimeNodeById[binding.nodeId];
+		const Node& node = nodes.byId[binding.nodeId];
 		StationPlatform platform;
 		platform.ID = binding.platform->id;
 		platform.StationID = binding.station->id;
@@ -903,64 +1012,47 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 			++run.numPlatforms;
 		}
 	}
+}
 
-	setAllConnections(run);
-	std::unordered_map<std::string, int> sectionAliases;
-	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex)
-		sectionAliases[run.infra.sections[sectionIndex].ID] = sectionIndex;
-	const bool sectionMismatch = run.infra.derivedSectionsExceedPlan
-		|| sectionAliases.size() != static_cast<std::size_t>(run.infra.numBlocks)
-		|| sectionAliases.size() != plan.sectionIds.size()
-		|| std::any_of(plan.sectionIds.begin(), plan.sectionIds.end(),
-			[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
-	if (sectionMismatch) {
-		add(SceneSeverity::Error, "scene.native.sections.mismatch",
-			"Legacy connection construction produced section IDs different from the planned inventory",
-			"infrastructure.json", "section", "", "sections",
-			"planned=" + std::to_string(plan.sectionIds.size())
-				+ ", actual=" + std::to_string(sectionAliases.size()),
-			"Fix topology or block placement so native section identities match the section catalog");
-		return;
-	}
-	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex) {
-		const auto plannedLevel = plan.signallingLevels.find(run.infra.sections[sectionIndex].ID);
-		if (plannedLevel != plan.signallingLevels.end())
-			run.infra.sections[sectionIndex].SignallingLevel = plannedLevel->second;
-	}
-	if (nativeHasErrors(diagnostics))
-		return;
-	setDependenciesBetweenBlocks(run);
+// The index in run.infra.sections of the section of a block reference, -1 when there is none.
+struct NativeSectionResolver {
+	const SceneSectionInventory& inventory;
+	const std::unordered_map<std::string, int>& sectionAliases;
 
-	auto resolveSection = [&](const std::string& reference) -> int {
-		const auto* planned = plan.sectionInventory.resolve(reference);
+	int operator()(const std::string& reference) const {
+		const auto* planned = inventory.resolve(reference);
 		if (planned == nullptr)
 			return -1;
 		const auto section = sectionAliases.find(planned->id);
 		return section == sectionAliases.end() ? -1 : section->second;
-	};
-	auto addSectionDependency = [&](const std::string& sourceRef, const std::string& targetRef,
-									const std::string& itemId) {
-		const int sourceIndex = resolveSection(sourceRef);
-		const int targetIndex = resolveSection(targetRef);
-		if (sourceIndex < 0 || targetIndex < 0) {
-			add(SceneSeverity::Error, "scene.native.ref.unresolved", "Block dependency could not resolve a runtime section",
-				"signalling.json", "block_dependency", itemId, "block_dependencies", sourceIndex < 0 ? sourceRef : targetRef);
+	}
+};
+
+// Lets the section of sourceRef depend on the section of targetRef, once.
+void nativeAddSectionDependency(SimulationRun& run, const NativeSectionResolver& resolveSection, const NativeDiagnosticAdder& add,
+	const std::string& sourceRef, const std::string& targetRef, const std::string& itemId) {
+	const int sourceIndex = resolveSection(sourceRef);
+	const int targetIndex = resolveSection(targetRef);
+	if (sourceIndex < 0 || targetIndex < 0) {
+		add(SceneSeverity::Error, "scene.native.ref.unresolved", "Block dependency could not resolve a runtime section",
+			"signalling.json", "block_dependency", itemId, "block_dependencies", sourceIndex < 0 ? sourceRef : targetRef);
+		return;
+	}
+	Section& source = run.infra.sections[sourceIndex];
+	const std::string target = run.infra.sections[targetIndex].ID;
+	for (int index = 0; index < source.N_ConnectedBS; ++index)
+		if (source.IDConnectedBS[index] == target)
 			return;
-		}
-		Section& source = run.infra.sections[sourceIndex];
-		const std::string target = run.infra.sections[targetIndex].ID;
-		for (int index = 0; index < source.N_ConnectedBS; ++index)
-			if (source.IDConnectedBS[index] == target)
-				return;
-		if (static_cast<std::size_t>(source.N_ConnectedBS) >= RuntimeLimits::kNativeMaxDependencies) {
-			add(SceneSeverity::Error, "scene.native.capacity", "Block dependency exceeds the runtime dependency capacity",
-				"signalling.json", "block_dependency", itemId, "block_dependencies", target);
-			return;
-		}
-		source.IDConnectedBS[source.N_ConnectedBS++] = target;
-	};
-	for (const auto& dependency : scene.blockDependencies)
-		addSectionDependency(dependency.block, dependency.dependsOn, dependency.block);
+	if (static_cast<std::size_t>(source.N_ConnectedBS) >= RuntimeLimits::kNativeMaxDependencies) {
+		add(SceneSeverity::Error, "scene.native.capacity", "Block dependency exceeds the runtime dependency capacity",
+			"signalling.json", "block_dependency", itemId, "block_dependencies", target);
+		return;
+	}
+	source.IDConnectedBS[source.N_ConnectedBS++] = target;
+}
+
+// Lists at the end node of each arc the dependent sections that start at a connection of that node.
+void nativeConnectBlocksAtNodes(SimulationRun& run, const NativeSectionResolver& resolveSection) {
 	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex) {
 		Section& section = run.infra.sections[sectionIndex];
 		for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex) {
@@ -988,7 +1080,10 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 			}
 		}
 	}
+}
 
+void nativeAddSingleTrackLimits(SimulationRun& run, const SceneModel& scene, const NativeSectionResolver& resolveSection,
+	const NativeDiagnosticAdder& add) {
 	for (const auto& restriction : scene.singleTrackRestrictions) {
 		const int start = resolveSection(restriction.startBlock);
 		const int end = resolveSection(restriction.endBlock);
@@ -1002,6 +1097,10 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 		run.infra.singleTrackLimits.emplace_back(run.infra.sections[start].ID, run.infra.sections[end].ID,
 			run.infra.sections[protectedStart].ID, run.infra.sections[protectedEnd].ID);
 	}
+}
+
+void nativeAddStationBoundaries(SimulationRun& run, const SceneModel& scene, const NativeSectionResolver& resolveSection,
+	const NativeDiagnosticAdder& add) {
 	for (const auto& boundary : scene.stationBoundaries) {
 		const int entrance = resolveSection(boundary.entranceBlock);
 		const int exit = boundary.hasExitBlock ? resolveSection(boundary.exitBlock) : -1;
@@ -1013,19 +1112,18 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 		run.infra.stationBoundaries.emplace_back(&run.infra.sections[entrance], boundary.direction,
 			boundary.hasExitBlock ? &run.infra.sections[exit] : nullptr);
 	}
+}
 
-	setVirtualSignals(run);
-	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(run.infra.sections.data(), run.infra.numBlocks);
-	setGeoCoordinates(run.infra.sections.data(), run.infra.numBlocks);
-	createTds(run.infra.sections.data(), run.infra.numBlocks, 3, run.infra.detectionSections);
+void nativeCheckRouteTokens(const SceneModel& scene, const NativeSectionResolver& resolveSection, const NativeDiagnosticAdder& add) {
 	for (const auto& route : scene.routes)
 		for (const auto& token : route.blocks)
 			if (resolveSection(token) < 0)
 				add(SceneSeverity::Error, "scene.native.ref.unresolved", "Route token has no derived runtime section",
 					"signalling.json", "route", route.id, "routes.blocks", token);
-	if (nativeHasErrors(diagnostics))
-		return;
-	setUpRoutesFromScene(run, scene, plan.routeDirections);
+}
+
+// Checks that each built route kept the sections of the scene route in their order.
+void nativeCheckBuiltRoutes(const SimulationRun& run, const SceneModel& scene, const InfrastructurePlan& plan, const NativeDiagnosticAdder& add) {
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		if (index >= run.infra.routes.size()
 			|| run.infra.routes[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
@@ -1044,6 +1142,66 @@ void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const Inf
 					"Keep route tokens in authored order and use exact catalog IDs");
 		}
 	}
+}
+
+// Replaces the runtime infrastructure by what the plan describes. A problem that only shows while the runtime is built
+// is added to the diagnostics, and the runtime then holds a partial build.
+void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const InfrastructurePlan& plan, std::vector<SceneDiagnostic>& diagnostics) {
+	const NativeDiagnosticAdder add{diagnostics};
+
+	nativeResetRuntime(run);
+	// Base sections plus derived switch sections. A successful build creates exactly this many.
+	run.infra.sections = std::vector<Section>(plan.sectionIds.size());
+	run.infra.numTrackLines = static_cast<int>(plan.tracks.size());
+	NativeRuntimeNodes nodes = nativeBuildRuntimeTracks(run, scene, plan);
+	nativeBuildConnections(run, scene, nodes);
+	const std::vector<NativeStationBinding> stationBindings = nativeBindStations(run, scene, nodes, add);
+	nativeBuildBlockSections(run, plan, add);
+	nativeBuildStations(run, scene, nodes);
+	nativeBuildPlatforms(run, stationBindings, nodes, add);
+	setAllConnections(run);
+	std::unordered_map<std::string, int> sectionAliases;
+	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex)
+		sectionAliases[run.infra.sections[sectionIndex].ID] = sectionIndex;
+	const bool sectionMismatch = run.infra.derivedSectionsExceedPlan
+		|| sectionAliases.size() != static_cast<std::size_t>(run.infra.numBlocks)
+		|| sectionAliases.size() != plan.sectionIds.size()
+		|| std::any_of(plan.sectionIds.begin(), plan.sectionIds.end(),
+			[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
+	if (sectionMismatch) {
+		add(SceneSeverity::Error, "scene.native.sections.mismatch",
+			"Legacy connection construction produced section IDs different from the planned inventory",
+			"infrastructure.json", "section", "", "sections",
+			"planned=" + std::to_string(plan.sectionIds.size())
+				+ ", actual=" + std::to_string(sectionAliases.size()),
+			"Fix topology or block placement so native section identities match the section catalog");
+		return;
+	}
+	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex) {
+		const auto plannedLevel = plan.signallingLevels.find(run.infra.sections[sectionIndex].ID);
+		if (plannedLevel != plan.signallingLevels.end())
+			run.infra.sections[sectionIndex].SignallingLevel = plannedLevel->second;
+	}
+	if (nativeHasErrors(diagnostics))
+		return;
+	setDependenciesBetweenBlocks(run);
+
+	const NativeSectionResolver resolveSection{plan.sectionInventory, sectionAliases};
+	for (const auto& dependency : scene.blockDependencies)
+		nativeAddSectionDependency(run, resolveSection, add, dependency.block, dependency.dependsOn, dependency.block);
+	nativeConnectBlocksAtNodes(run, resolveSection);
+
+	nativeAddSingleTrackLimits(run, scene, resolveSection, add);
+	nativeAddStationBoundaries(run, scene, resolveSection, add);
+	setVirtualSignals(run);
+	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(run.infra.sections.data(), run.infra.numBlocks);
+	setGeoCoordinates(run.infra.sections.data(), run.infra.numBlocks);
+	createTds(run.infra.sections.data(), run.infra.numBlocks, 3, run.infra.detectionSections);
+	nativeCheckRouteTokens(scene, resolveSection, add);
+	if (nativeHasErrors(diagnostics))
+		return;
+	setUpRoutesFromScene(run, scene, plan.routeDirections);
+	nativeCheckBuiltRoutes(run, scene, plan, add);
 	setRouteVirtualSignals(run);
 	setListAllInfrastructureElementsFromRoutes(run);
 }

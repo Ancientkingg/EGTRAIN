@@ -240,29 +240,39 @@ public:
 
 bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
 
-/// A station, with the delay statistics of the trains that stop there. Delays are in seconds and percentages in percent.
-/// The statistics stay -1 until they are computed.
-class Stations : public Node {
+/// The name that the station statistics files give to the statistics at the last stop of every train, SimulationRun::finalStation.
+inline constexpr char kFinalStationName[] = "Final_Station";
+
+/// The delay statistics of a set of trains. Delays are in seconds and percentages in percent. The statistics stay -1 until they are
+/// computed, and totalArrivalDelay stays 0.
+struct DelayStats {
+	double Av_Arrival_Delay = -1;	 ///< Average arrival delay
+	double Std_Arrival_Delay = -1;	 ///< Standard deviation of arrival delay
+	double totalArrivalDelay = 0;	 ///< Sum of arrival delays across all trains
+	double Max_TotalDelay = -1;		 ///< Maximum total delay
+	double Tot_Consec_Delay = -1;	 ///< Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
+	double Max_Cons_Delay = -1;		 ///< Maximum consecutive delay
+	int N_Stopped_Trains = -1;		 ///< Number of trains that stopped at this station
+	int N_Delayed_Arr = -1;			 ///< Number of delayed arrivals
+	int N_Delayed_Arr_3min = -1;	 ///< Number of arrivals delayed >3 minutes
+	int N_Delayed_Arr_5min = -1;	 ///< Number of arrivals delayed >5 minutes
+	double Perc_Delayed_T = -1;		 ///< Percentage of trains delayed
+	double Perc_Delayed_T_3min = -1; ///< Percentage delayed >3 minutes
+	double Perc_Delayed_T_5min = -1; ///< Percentage delayed >5 minutes
+};
+
+/// A station, with the delay statistics of the trains that stop there.
+class Stations : public DelayStats {
 public:
-	int N_StationPlatforms;					   ///< Number of platforms of the station.
+	std::string stationName;				   ///< Name of the station, or its ID when it has no name.
+	double X = 0;							   ///< Position along the track in kilometres.
+	double Y = 0;							   ///< Y coordinate of the first node of the first platform in kilometres; 0 for a station with a position.
+	int N_StationPlatforms = 0;				   ///< Number of platforms of the station.
 	std::list<std::string> StationPlatformIDs; ///< IDs of platforms at this station
-	double Av_Arrival_Delay;				   ///< Average arrival delay
-	double Std_Arrival_Delay;				   ///< Standard deviation of arrival delay
-	double totalArrivalDelay;				   ///< Sum of arrival delays across all trains
-	double Max_TotalDelay;					   ///< Maximum total delay
-	double Tot_Consec_Delay;				   ///< Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
-	double Max_Cons_Delay;					   ///< Maximum consecutive delay
-	int N_Stopped_Trains;					   ///< Number of trains that stopped at this station
-	int N_Delayed_Arr;						   ///< Number of delayed arrivals
-	int N_Delayed_Arr_3min;					   ///< Number of arrivals delayed >3 minutes
-	int N_Delayed_Arr_5min;					   ///< Number of arrivals delayed >5 minutes
-	double Perc_Delayed_T;					   ///< Percentage of trains delayed
-	double Perc_Delayed_T_3min;				   ///< Percentage delayed >3 minutes
-	double Perc_Delayed_T_5min;				   ///< Percentage delayed >5 minutes
 	/// Latitude in degrees from the scene views; 0 when there is none.
-	double latitude, longitude; ///< Longitude in degrees from the scene views; 0 when there is none.
+	double latitude = 0, longitude = 0; ///< Longitude in degrees from the scene views; 0 when there is none.
 	/// X of the station on the canvas, which the network presenter sets.
-	double graphX, graphY; ///< Y of the station on the canvas, which the network presenter sets.
+	double graphX = 0, graphY = 0; ///< Y of the station on the canvas, which the network presenter sets.
 	/// Per display region, the unit vector along which the canvas shifts the display levels of the tracks at the station.
 	std::map<int, double> shiftX, shiftY; ///< See shiftX.
 	/// Per display region, the unit vector along which the canvas places trackside signals at the station.
@@ -270,9 +280,6 @@ public:
 	std::vector<int> regions;						  ///< Display regions of the station from the scene views.
 	std::map<int, double> regionX;					  ///< Position in kilometres of the station in each display region.
 	std::vector<std::string> corridors;				  ///< Corridors of the station from the scene views.
-
-	/// Sets the statistics to -1, totalArrivalDelay and the coordinates to 0.
-	Stations();
 };
 
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);

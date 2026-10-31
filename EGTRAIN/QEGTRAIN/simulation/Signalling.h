@@ -130,6 +130,11 @@ enum class SignalState : unsigned char {
 
 /// A block section. RunInfrastructure::sections holds the sections of the scene and the sections derived at switches, and
 /// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
+///
+/// Each route copy has its own code, state, exit_speed and, on each arc, speedInBraking and signalSpeedLimit, because the
+/// activation writes them along that route: the aspects come from the occupied sections ahead on the route, and the speed at
+/// the end of a section from its next section on the route. Copies of one section in one direction can therefore differ where
+/// their routes part ahead, and the window shows the most restrictive code (GuiSignalStateList).
 class Section {
 public:
 	std::string ID;					///< ID of the section.
@@ -155,24 +160,20 @@ public:
 	/// Signalling level 0 to 5 (enum SignallingLevel in scene/SignallingLevel.h); kSignallingLevelUnset (-99999999)
 	/// means no level (default)
 	int SignallingLevel;
-	double ETCS3BrakingPoints[40];			   ///< Set to -1 by the constructor and never given another value.
-	std::string ETCS3BrakingPointsTrainID[40]; ///< Set to "None" by the constructor and never given another value.
-	int N_ETCS3BrakingPoints;				   ///< Set to 0 by the constructor and never given another value.
-	SignalState state;						   ///< Main signal aspect; Green by default.
-	bool Occupied;							   ///< Block section occupied by a train
-	bool Occup_By_Train;					   ///< Set to false by the constructor and never given another value.
-	bool withSwitchDiv;						   ///< Block section contains a diverging switch
+	SignalState state;	 ///< Main signal aspect; Green by default.
+	bool Occupied;		 ///< Block section occupied by a train
+	bool Occup_By_Train; ///< Set to false by the constructor and never given another value.
+	bool withSwitchDiv;	 ///< Block section contains a diverging switch
 	/// IDs of the sections that depend on this one, which are occupied and released with it.
 	std::string IDConnectedBS[RuntimeLimits::kNativeMaxDependencies];
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
-	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs and
-	/// the ETCS3 braking points are -1.
+	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs are -1.
 	Section();
 
-	/// Copies the members, but the three arrays only up to their counts (total_arcs, N_ConnectedBS and N_ETCS3BrakingPoints):
-	/// the entries after those keep their values. The copy constructor copies every entry. The node list stays shared.
+	/// Copies the members, but the two arrays only up to their counts (total_arcs and N_ConnectedBS): the entries after those
+	/// keep their values. The copy constructor copies every entry. The node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -204,12 +205,6 @@ public:
 		XEndSwitch = ob2.XEndSwitch;
 		for (int i = 0; i < N_ConnectedBS; i++) {
 			IDConnectedBS[i] = ob2.IDConnectedBS[i];
-		}
-		// Copy ETCS3 braking points
-		N_ETCS3BrakingPoints = ob2.N_ETCS3BrakingPoints;
-		for (int i = 0; i < N_ETCS3BrakingPoints; i++) {
-			ETCS3BrakingPoints[i] = ob2.ETCS3BrakingPoints[i];
-			ETCS3BrakingPointsTrainID[i] = ob2.ETCS3BrakingPointsTrainID[i];
 		}
 		TDS_in_block.clear();
 
@@ -292,8 +287,10 @@ void setGeoCoordinates(Section* BS, int N_BS);
 /// sections of the route; a train position in metres is X * 1000.
 class Route {
 public:
-	std::string ID;									 ///< ID of the scene route; "None" until built.
-	int N_Block_Sections;							 ///< Number of block sections composing the route
+	std::string ID;		  ///< ID of the scene route; "None" until built.
+	int N_Block_Sections; ///< Number of block sections composing the route
+	/// The copies belong to this route: the activation writes their signal state along it, and a train reads the copies of its
+	/// own route. The copies of a section on two routes can differ (see Section).
 	std::vector<Section> sequence_of_block_sections; ///< Sequence of block sections, N_Block_Sections elements once the route is built
 	double x_of_start_node;							 ///< X in kilometres of the start node of the route.
 	double x_of_end_node;							 ///< X in kilometres of the end node of the route.
