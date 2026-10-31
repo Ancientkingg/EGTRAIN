@@ -1217,7 +1217,7 @@ void TestSceneBuilder::routeEndsWhereLastSectionEnds() {
 
 // The sample objects give every member that the copy operators copy a value of its own, different from the constructor default.
 static void fillNode(Node& n, double id) {
-	double* numbers[] = {&n.X, &n.Y, &n.dwellTime, &n.StopTime, &n.arcSpeedLimit, &n.tdsbGeoCoordX, &n.tdsbGeoCoordY, &n.latitude, &n.longitude, &n.graphX, &n.graphY};
+	double* numbers[] = {&n.X, &n.Y, &n.dwellTime, &n.StopTime, &n.arcSpeedLimit, &n.tdsbGeoCoordX, &n.tdsbGeoCoordY, &n.latitude, &n.longitude};
 	double value = 11.5;
 	for (double* number : numbers)
 		*number = value++;
@@ -1284,7 +1284,7 @@ static bool sameNode(const Node& a, const Node& b) {
 		&& std::equal(a.connectXNode, a.connectXNode + 6, b.connectXNode) && a.IDConnectedBlocks == b.IDConnectedBlocks
 		&& a.arcSpeedLimit == b.arcSpeedLimit && a.stationName == b.stationName && a.stationPlatformId == b.stationPlatformId
 		&& a.tdsbId == b.tdsbId && a.tdsbGeoCoordX == b.tdsbGeoCoordX && a.tdsbGeoCoordY == b.tdsbGeoCoordY
-		&& a.latitude == b.latitude && a.longitude == b.longitude && a.graphX == b.graphX && a.graphY == b.graphY
+		&& a.latitude == b.latitude && a.longitude == b.longitude
 		&& a.virtualSignal == b.virtualSignal;
 }
 

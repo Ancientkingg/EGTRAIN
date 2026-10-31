@@ -98,10 +98,7 @@ public:
 	double tdsbGeoCoordY;						///< Y of the border in metres; -1 when unset.
 	/// Not set for a node; Stations has its own latitude and longitude.
 	double latitude, longitude; ///< Not set for a node.
-	/// Stays 0. The builder copies it and graphY into the fields of a connection (Connections::graphXFirstNode and the
-	/// others), and the network canvas works out the point of a node when it draws it.
-	double graphX, graphY; ///< Stays 0, like graphX.
-	bool virtualSignal;	   ///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
+	bool virtualSignal;			///< True for the signal in the middle of a double switch, which setVirtualSignals marks.
 
 	/// Sets the numbers to 0, the flags to false, indexOrderList and the border coordinates to -1.
 	Node();
@@ -196,13 +193,6 @@ public:
 	/// X of the first node in kilometres.
 	double xFirstNode, xSecondNode; ///< X of the second node in kilometres.
 	double speedlimit;				///< Speed limit in m/s; 16.667 (60 km/h) when the scene gives none.
-	/// Not used: the builder copies them from Node::graphX and graphY, which are 0, and the network canvas works out the
-	/// ends of the connection it draws itself.
-	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode; ///< See graphXFirstNode.
-	/// \var Connections::graphYFirstNode
-	/// See graphXFirstNode.
-	/// \var Connections::graphXSecondNode
-	/// See graphXFirstNode.
 
 	/// Sets the numbers to 0 and speedlimit to 16.667 m/s.
 	Connections();
@@ -272,16 +262,9 @@ public:
 	std::list<std::string> StationPlatformIDs; ///< IDs of platforms at this station
 	/// Latitude in degrees from the scene views; 0 when there is none.
 	double latitude = 0, longitude = 0; ///< Longitude in degrees from the scene views; 0 when there is none.
-	/// Not used: the network canvas keeps the positions, shifts and signal offsets of the stations in its own layout
-	/// tables. 0.
-	double graphX = 0, graphY = 0; ///< Not used, like graphX.
-	/// Not used, like graphX; empty.
-	std::map<int, double> shiftX, shiftY; ///< Not used, like graphX; empty.
-	/// Not used, like graphX; empty.
-	std::map<int, double> signalDeltaX, signalDeltaY; ///< Not used, like graphX; empty.
-	std::vector<int> regions;						  ///< Display regions of the station from the scene views.
-	std::map<int, double> regionX;					  ///< Position in kilometres of the station in each display region.
-	std::vector<std::string> corridors;				  ///< Corridors of the station from the scene views.
+	std::vector<int> regions;			///< Display regions of the station from the scene views.
+	std::map<int, double> regionX;		///< Position in kilometres of the station in each display region.
+	std::vector<std::string> corridors; ///< Corridors of the station from the scene views.
 };
 
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);

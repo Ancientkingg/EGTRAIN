@@ -503,33 +503,21 @@ static bool platformAlong(const PlatformItem& platform, const QPointF& node, con
 		&& near(centre.x(), expected.x()) && near(centre.y(), expected.y());
 }
 
-// The fields of the source that hold a place on the canvas: the levels of the tracks, the canvas points of their nodes,
-// the places, regions and shifts of the stations and the canvas ends of the connections, a map as its keys and values.
+// The fields of the source that hold a place on the canvas: the levels of the tracks and the regions of the stations with
+// their positions in each, a map as its keys and values.
 static std::vector<double> canvasFields(const RuntimeGeometrySource& source) {
 	std::vector<double> fields;
-	const auto addMap = [&fields](const std::map<int, double>& values) {
-		fields.push_back(static_cast<double>(values.size()));
-		for (const auto& [key, value] : values) {
+	for (int track = 0; track < source.trackCount(); ++track)
+		fields.push_back(source.track(track).graphID);
+	for (int index = 0; index < source.stationCount(); ++index) {
+		const Stations& station = source.station(index);
+		fields.push_back(static_cast<double>(station.regions.size()));
+		fields.insert(fields.end(), station.regions.begin(), station.regions.end());
+		fields.push_back(static_cast<double>(station.regionX.size()));
+		for (const auto& [key, value] : station.regionX) {
 			fields.push_back(key);
 			fields.push_back(value);
 		}
-	};
-	for (int track = 0; track < source.trackCount(); ++track) {
-		fields.push_back(source.track(track).graphID);
-		for (const Arc& arc : source.track(track).member)
-			fields.insert(fields.end(), {arc.startNode.graphX, arc.startNode.graphY, arc.endNode.graphX, arc.endNode.graphY});
-	}
-	for (int index = 0; index < source.stationCount(); ++index) {
-		const Stations& station = source.station(index);
-		fields.insert(fields.end(), {station.graphX, station.graphY, static_cast<double>(station.regions.size())});
-		fields.insert(fields.end(), station.regions.begin(), station.regions.end());
-		for (const std::map<int, double>* values :
-			{&station.regionX, &station.shiftX, &station.shiftY, &station.signalDeltaX, &station.signalDeltaY})
-			addMap(*values);
-	}
-	for (int index = 0; index < source.connectionCount(); ++index) {
-		const Connections& connection = source.connection(index);
-		fields.insert(fields.end(), {connection.graphXFirstNode, connection.graphYFirstNode, connection.graphXSecondNode, connection.graphYSecondNode});
 	}
 	return fields;
 }
