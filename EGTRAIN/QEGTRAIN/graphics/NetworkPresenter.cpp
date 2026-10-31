@@ -296,6 +296,28 @@ void interpolateBetweenStations(Stations& first, Stations& second, int region, d
 	graphY = y1 + (((X - first.regionX[region]) / (second.regionX[region] - first.regionX[region])) * (y2 - y1));
 }
 
+// The unit vector along which the display levels of the tracks shift at middle, on a line from previous through middle
+// to next: the direction of the bisector of the angle at middle. The angle of the shift counts from the x axis of the
+// screen, which points down and is positive clockwise.
+QPointF bisectorShift(const QPointF& previous, const QPointF& middle, const QPointF& next) {
+	const double x1 = previous.x();
+	const double y1 = previous.y();
+	const double x2 = middle.x();
+	const double y2 = middle.y();
+	const double x3 = next.x();
+	const double y3 = next.y();
+	const double dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
+	const double det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
+	// the angle between the two arcs, in the range 0 to 2 * kPi
+	double alpha = atan2(det, dot);
+	if (alpha < 0)
+		alpha += 2 * kPi;
+	// the angle between the first arc and the x axis of the screen
+	const double beta = atan2(-(y1 - y2), (x1 - x2));
+	const double gamma = alpha / 2 - beta;
+	return QPointF(cos(gamma), sin(gamma));
+}
+
 void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string& id) {
 	item->setData(PreviewGraphics::Kind, kind);
 	item->setData(PreviewGraphics::Id, QString::fromStdString(id));
@@ -2066,10 +2088,7 @@ QPointF NetworkPresenter::Coord2ScreenPoint(double x, double y, double factor) c
 // find delta X,Y to place trackside signals
 void NetworkPresenter::calculateStationCoordAndShift() {
 	const auto stationAt = [this](int index) -> Stations& { return m_source->station(index); };
-	double alpha;	 // angle between two arcs (with a station in the middle)
-	double gamma;	 // angle for shift (considered to be the angle with screen x axis (pointing down), being positive clockwise)
-	double beta;	 // angle between first Arc and screen x axis
-	double dot, det; // dot product and determinant
+	double beta; // angle between first Arc and screen x axis
 	double x1, x2, x3;
 	double y1, y2, y3;
 	QPointF pt;
@@ -2162,26 +2181,16 @@ void NetworkPresenter::calculateStationCoordAndShift() {
 					y3 = stationAt(m_regionStations[r][i + 1]).graphY;
 				}
 
-				dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
-				det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
-				alpha = atan2(det, dot);							 // atan2(y, x)
-
-				// adjust alpha to 0 to 2*kPi range
-				if (alpha < 0) {
-					alpha += 2 * kPi;
-				}
-
 				beta = atan2(-(y1 - y2), (x1 - x2));
-
-				gamma = alpha / 2 - beta;
 
 				// calculate trackside signal deltas
 				stationAt(m_regionStations[r][i]).signalDeltaX[r] = sin(beta);
 				stationAt(m_regionStations[r][i]).signalDeltaY[r] = cos(beta);
 
 				// calculate shifts
-				stationAt(m_regionStations[r][i]).shiftX[r] = cos(gamma);
-				stationAt(m_regionStations[r][i]).shiftY[r] = sin(gamma);
+				const QPointF shift = bisectorShift(QPointF(x1, y1), QPointF(x2, y2), QPointF(x3, y3));
+				stationAt(m_regionStations[r][i]).shiftX[r] = shift.x();
+				stationAt(m_regionStations[r][i]).shiftY[r] = shift.y();
 			}
 		}
 	}
@@ -2714,8 +2723,7 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 	const Route* trainRoute = m_source ? m_source->route(train.routeIndex) : nullptr;
 	if (!trainPolygon || !trainRoute)
 		return;
-	double headX, tailX, connectionX1, connectionX2, x0, x1, x2, x3, y0, y1, y2, y3;
-	double dot, det, beta, alpha, gamma;
+	double headX, tailX, connectionX1, connectionX2;
 	std::vector<double>& posX = m_wagonScratch.posX;
 	std::vector<double>& routeX = m_wagonScratch.routeX;
 	QPointF ptTrainEdge, ptConnection1, ptConnection2, ptBegin1, ptEnd2;
@@ -2882,39 +2890,13 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 						revPrevIndexConnection2 = stationIdx[1] * (1 - revStIndex) + stationIdx[0] * revStIndex;
 					}
 
-					// linear interpolation of geodetic coordinates using known coordinates of closest stations
-					x0 = ptBegin1.x();
-					y0 = ptBegin1.y();
-					x1 = ptConnection1.x();
-					y1 = ptConnection1.y();
-					x2 = ptConnection2.x();
-					y2 = ptConnection2.y();
-					x3 = ptEnd2.x();
-					y3 = ptEnd2.y();
-
-					// shift on beginning of connection
-					dot = (x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1); // dot product
-					det = (x0 - x1) * (y2 - y1) - (y0 - y1) * (x2 - x1); // determinant
-					alpha = atan2(det, dot);							 // atan2(y, x)
-					if (alpha < 0) {
-						alpha += 2 * kPi;
-					} // adjust alpha to 0 to 2*kPi range
-					beta = atan2(-(y0 - y1), (x0 - x1));
-					gamma = alpha / 2 - beta;
-					double connectionStartShiftX = cos(gamma);
-					double connectionStartShiftY = sin(gamma);
-
-					// shift on end of connection
-					dot = (x1 - x2) * (x3 - x2) + (y1 - y2) * (y3 - y2); // dot product
-					det = (x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2); // determinant
-					alpha = atan2(det, dot);							 // atan2(y, x)
-					if (alpha < 0) {
-						alpha += 2 * kPi;
-					} // adjust alpha to 0 to 2*kPi range
-					beta = atan2(-(y1 - y2), (x1 - x2));
-					gamma = alpha / 2 - beta;
-					double connectionEndShiftX = cos(gamma);
-					double connectionEndShiftY = sin(gamma);
+					// shifts on the beginning and the end of the connection
+					const QPointF connectionStartShift = bisectorShift(ptBegin1, ptConnection1, ptConnection2);
+					const QPointF connectionEndShift = bisectorShift(ptConnection1, ptConnection2, ptEnd2);
+					double connectionStartShiftX = connectionStartShift.x();
+					double connectionStartShiftY = connectionStartShift.y();
+					double connectionEndShiftX = connectionEndShift.x();
+					double connectionEndShiftY = connectionEndShift.y();
 					if (hasPreview) {
 						QPointF normal;
 						if (!previewSignalNormal(*previewLine1, connectionX1, normal))
@@ -2928,13 +2910,13 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 					}
 
 					// calculate connection deltas (inside connection)
-					beta = atan2(-(y1 - y2), (x1 - x2));
+					const double beta = atan2(-(ptConnection1.y() - ptConnection2.y()), (ptConnection1.x() - ptConnection2.x()));
 					double connectionDeltaX = sin(beta);
 					double connectionDeltaY = cos(beta);
 
-					// add connection points if it is a middle section
-					// add connection points if it is the tail block sections and head already added
-					if ((posX[j] == -DBL_MAX) || (posX.size() == 1 && occupiedBS[i] == tailIndex)) { // adding connection points before adding tail of the train
+					// adds the ends of the connection that lie between the head and the tail of the wagon, in the order in
+					// which the train runs over them
+					const auto addCrossedConnectionPoints = [&]() {
 						// non-reversed route (add first connection 2)
 						if (!train.reversedDirection) {
 							if (headX > connectionX2 && tailX < connectionX2) {
@@ -2953,6 +2935,12 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
 							}
 						}
+					};
+
+					// add connection points if it is a middle section
+					// add connection points if it is the tail block sections and head already added
+					if ((posX[j] == -DBL_MAX) || (posX.size() == 1 && occupiedBS[i] == tailIndex)) { // adding connection points before adding tail of the train
+						addCrossedConnectionPoints();
 					}
 
 					// head/tail in the 1st track and before connection
@@ -2983,24 +2971,7 @@ void NetworkPresenter::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const
 					// add connection points if it is head section and tail is in another block sections
 					// add connection points if head and tail in the same section
 					if ((occupiedBS[i] == headIndex && headIndex != tailIndex) || (posX.size() == 2 && j == 0)) { // adding connection points after adding head of the train
-						// non-reversed route (add first connection 2)
-						if (!train.reversedDirection) {
-							if (headX > connectionX2 && tailX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-							if (headX > connectionX1 && tailX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-						}
-						// reversed route (add first connection 1)
-						else {
-							if (tailX > connectionX1 && headX < connectionX1) {
-								addConnectionPoint(ptConnection1, connectionStartShiftX, connectionStartShiftY, revPrevIndexConnection1, BS1);
-							}
-							if (tailX > connectionX2 && headX < connectionX2) {
-								addConnectionPoint(ptConnection2, connectionEndShiftX, connectionEndShiftY, revPrevIndexConnection2, BS2);
-							}
-						}
+						addCrossedConnectionPoints();
 					}
 				}
 			}
