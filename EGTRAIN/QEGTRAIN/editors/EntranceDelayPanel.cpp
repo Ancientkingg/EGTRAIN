@@ -96,8 +96,11 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 
 void EntranceDelayPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
 	// The case duration sets the occurrences of a service, and the timetable sets the stations where a train can be held.
-	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
+	// The panel edits only the scenarios, so these are edits of other panels.
+	if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services)) {
+		takePendingText();
 		refresh();
+	}
 }
 
 const SceneScenario* EntranceDelayPanel::scenario() const {

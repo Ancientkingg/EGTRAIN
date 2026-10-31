@@ -118,8 +118,11 @@ int CompositionPanel::selectedRow() const {
 }
 
 void CompositionPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The units of a composition show the rolling stock. The panel does not edit the rolling stock, so this is an edit of
+	// another panel.
 	if (!kinds.testFlag(SceneDocument::TrainUnits))
 		return;
+	takePendingText();
 	const int unitRow = m_unitsListWidget->currentRow();
 	refresh();
 	m_unitsListWidget->setCurrentRow(unitRow);

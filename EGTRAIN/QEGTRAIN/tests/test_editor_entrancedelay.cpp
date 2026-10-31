@@ -1,16 +1,20 @@
 #include "editors/EntranceDelayPanel.h"
+#include "editors/ServicePanel.h"
 
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSpinBox>
 #include <QString>
 #include <QStringList>
 #include <QTest>
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -151,6 +155,7 @@ private slots:
 	void addsScenarioOnlyWithAnEdit();
 	void showsOtherScenario();
 	void takesPendingEditOfFocusedField();
+	void keepsTypedTextWhenServiceIsAdded();
 	void choicesFollowDocument();
 	void ignoresActionsWhileRunUsesScene();
 	void showsAnotherScene();
@@ -436,6 +441,50 @@ void TestEntranceDelayPanel::takesPendingEditOfFocusedField() {
 	// A value in the field that has the focus is taken into the document.
 	QCOMPARE_EQ(f.document.model().scenarios[0].entranceDelays[0].delaySeconds, 77.0);
 	QCOMPARE(f.events.log, edit);
+}
+
+// A delay that is still being typed stays when the service panel adds a service, which shows the delays again: the panel
+// takes the text into the document first, as an edit of its own after the other one. The labels and kinds of the changes
+// are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+void TestEntranceDelayPanel::keepsTypedTextWhenServiceIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	RunSelection selection;
+	EntranceDelayPanel panel;
+	ServicePanel services;
+	panel.setPrompts(&prompts);
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	services.setPrompts(&prompts);
+	services.setDocument(&document);
+	document.replace(delayScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	panel.activateWindow();
+	panel.secondsEdit()->setFocus();
+	QApplication::processEvents();
+	QVERIFY(panel.secondsEdit()->hasFocus());
+	QLineEdit* typed = panel.secondsEdit()->findChild<QLineEdit*>();
+	typed->setText("77");
+	services.addButton()->click();
+	// The service is added, and the typed delay is taken in after it.
+	QCOMPARE(document.model().services.size(), std::size_t(4));
+	QCOMPARE_EQ(document.model().scenarios[0].entranceDelays[0].delaySeconds, 77.0);
+	QCOMPARE(labels, Log({"Add service", "Change entrance delay"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::Services));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	// The field and the list show the typed delay.
+	QCOMPARE(typed->text(), "77");
+	QCOMPARE(items(panel.listWidget()), QStringList({"100-2 at A: +77 s", "s2 at X: +0 s"}));
 }
 
 // The choices follow the document.

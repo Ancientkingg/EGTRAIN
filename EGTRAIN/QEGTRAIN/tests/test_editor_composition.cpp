@@ -1,4 +1,5 @@
 #include "editors/CompositionPanel.h"
+#include "editors/TrainUnitPanel.h"
 
 #include "diagrams/TractionCurve.h"
 #include "support/FakePrompts.h"
@@ -143,6 +144,7 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void keepsSelectionOfReorderedScene();
+	void keepsTypedTextWhenUnitIsAdded();
 	void forgetsDeletedDocument();
 	void emptyStateFollowsSelection();
 	void unitsEmptyStateFollowsUnits();
@@ -514,6 +516,40 @@ void TestCompositionPanel::keepsSelectionOfReorderedScene() {
 	QCOMPARE(items(panel.listWidget()), QStringList({"c2", "c1"}));
 	QCOMPARE(panel.listWidget()->currentRow(), 0);
 	QCOMPARE(panel.idEdit()->text(), "c2");
+}
+
+// An id that is still being typed stays when the rolling stock panel adds a unit, which shows the compositions again: the
+// panel takes the text into the document first, as an edit of its own after the other one. The labels and kinds of the
+// changes are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+void TestCompositionPanel::keepsTypedTextWhenUnitIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	CompositionPanel panel;
+	TrainUnitPanel units;
+	panel.setPrompts(&prompts);
+	panel.setDocument(&document);
+	units.setPrompts(&prompts);
+	units.setDocument(&document);
+	document.replace(compositionScene(), false);
+	panel.listWidget()->setCurrentRow(0);
+	panel.idEdit()->setText("c1_typed");
+	units.addButton()->click();
+	// The unit is added, and the typed id is taken in after it with the services that use the composition.
+	QCOMPARE(document.model().trainUnits.size(), std::size_t(4));
+	QCOMPARE(document.model().compositions[0].id, "c1_typed");
+	QCOMPARE(serviceCompositions(document), std::vector<std::string>({"c1_typed", "c1_typed", "c2"}));
+	QCOMPARE(labels, Log({"Add rolling stock unit", "Rename composition"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::TrainUnits));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Compositions | SceneDocument::Services));
+	// The field and the list show the typed id.
+	QCOMPARE(panel.idEdit()->text(), "c1_typed");
+	QCOMPARE(items(panel.listWidget()), QStringList({"c1_typed", "c2"}));
 }
 
 void TestCompositionPanel::forgetsDeletedDocument() {
