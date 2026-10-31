@@ -334,7 +334,7 @@ struct StartupIdentity {
 	std::string baseTime;
 	std::string defaultScenarioId;
 	SceneSimulationSettings settings;
-	std::array<std::size_t, 22> collectionSizes{};
+	std::array<std::size_t, 21> collectionSizes{};
 	std::string inputSnapshot;
 	bool set = false;
 };
@@ -348,7 +348,7 @@ StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
 	const std::string& inputSnapshot = {}) {
 	return {QFileInfo(path).absoluteFilePath(), model.schemaVersion, model.name, model.baseTime,
 		model.defaultScenarioId, model.settings,
-		{buildLoadedDataSummary(model, model.sourceFiles, {}).size(), model.sourceFiles.size(), model.importReport.size(),
+		{model.sourceFiles.size(), model.importReport.size(),
 			model.tracks.size(), model.trackViews.size(), model.nodes.size(), model.arcs.size(),
 			model.blocks.size(), model.connections.size(), model.stations.size(),
 			model.stationViews.size(), model.signals.size(), model.signallingAreas.size(),
