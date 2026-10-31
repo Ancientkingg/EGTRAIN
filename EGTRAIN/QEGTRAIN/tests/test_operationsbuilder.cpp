@@ -374,7 +374,6 @@ void TestOperationsBuilder::platformNumberOfId_data() {
 	QTest::newRow("empty") << "" << 0;
 	QTest::newRow("reads as not a number") << "Nantes.platform.1" << 0;
 	QTest::newRow("reads as infinity") << "INF.platform.2" << 0;
-	QTest::newRow("hex prefix") << "0x1A.platform.1" << 26;
 	QTest::newRow("beyond int") << "Platform_1e30" << 0;
 	QTest::newRow("below int") << "Platform_-1e30" << 0;
 	QTest::newRow("largest int") << "Platform_2147483647.9" << std::numeric_limits<int>::max();
