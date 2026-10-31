@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <stdexcept>
+#include <exception>
 
 using namespace std;
 
@@ -30,13 +30,6 @@ namespace {
 constexpr int kExitedPassengerShownSeconds = 5;
 // A snapshot holds the virtual coupling messages of this many seconds before its step.
 constexpr int kVirtualCouplingMessageSeconds = 40;
-// The blocking times of a run: the setup time, the release time before the buffer time is added, the sight and reaction
-// time and the absolute running time supplement in seconds, and the safety margin in metres.
-constexpr double kBlockingSetupTimeSeconds = 5;
-constexpr double kBlockingReleaseTimeSeconds = 3;
-constexpr double kBlockingSightReactionTimeSeconds = 0.5;
-constexpr double kBlockingRunningTimeSupplementSeconds = 0;
-constexpr double kBlockingSafetyMarginMetres = 50;
 
 // Makes the folder and the folders above it. Returns the reason when that fails.
 std::error_code ensureDirectory(const string& path) {
@@ -543,8 +536,6 @@ void DispatchController::runSimulationStages() {
 		EG_LOG(AppRun, Error) << "ERROR: Cannot run simulation because zero trains were loaded.\n";
 		return;
 	}
-	const InitialParameters& settings = run.settings;
-	const std::string trajectoryFolder = settings.OutputMainFolder + "/TrainTrajectories";
 
 	// The worker of a run in the window made its control before the run, so a stop requested earlier is
 	// kept. A run without a worker, as with -g 0, makes one for itself.
@@ -575,83 +566,8 @@ void DispatchController::runSimulationStages() {
 		return;
 
 	emit executionPostprocessing();
-	ComputeEnergyConsumptionForAllTrains(run.trains.data(), run.numTrains);
-	ComputeTimetableEnergyConsumption(run.trains.data(), run.numTrains, settings.OutputMainFolder);
-
-	if (stoppedHere())
+	if (!runSimulationPostprocessing(run, stoppedHere))
 		return;
-
-	clock_t StartRun = clock();
-
-	// sorting recorded events of all infrastructure elements in chronological order
-	SortRecordedEventsForAllInfrastructureElements(run.infra.infraEvents);
-
-	if (stoppedHere())
-		return;
-
-	EG_LOG(AppRun, Info) << "Computing Blocking Times....\n";
-
-	clock_t EndRun = clock();
-
-	double TimeElapsed = 0;
-
-	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC); // NOLINT(bugprone-integer-division): the log shows whole seconds
-	EG_LOG(AppRun, Info) << "TimeElapsed is : " << TimeElapsed;
-
-	// Compute passage times at timetable points
-	Compute_TimetablingPoints_For_All_Trains(run.trains.data(), run.numTrains);
-
-	// Calculate Train Delays
-	calculateArrivalDelayAllTrains(run);
-	calculateDelayStatsForAllStations(run);
-	calculateDelayStatsAtStation(run, run.finalStation); // Computing the delay stats at the final station of all the trains
-	Compute_Input_Delays(run);							 // Computing the amount of entrance delays and disturbances set in input in the scenario
-														 // Print Delay at stations in the right folder
-	Print_Station_Delay_Stats(run, trajectoryFolder, "pos");
-
-	// Print Out Passenger Delays
-	printPassengerTotalJourneyDelay(run.passengers, settings.OutputMainFolder + "/PassengerStatus");
-
-	// Calculating positive and negative Train Delays to debug the program
-	calculatePosAndNegArrivalDelayAllTrains(run);
-	calculatePosAndNegDelayStatsForAllStations(run);
-	calculatePosAndNegDelayStatsAtStation(run, run.finalStation); // Calculating the pos and neg Delay stats at final station of all trains
-																  // Print aggregated results of positive and negative delays at stations
-	Print_Station_Delay_Stats(run, trajectoryFolder, "pos&neg");
-
-	Print_Computing_Times(run, trajectoryFolder); // Printing the total computation time of ROMA and EGTRAIN
-
-
-	if (stoppedHere())
-		return;
-
-	EG_LOG(AppRun, Info) << "\n\n Computing Train Blocking Times....\n\n";
-
-	ComputeBlockingTimesInMixedSignallingForAllTrains(run, kBlockingSetupTimeSeconds, kBlockingReleaseTimeSeconds + settings.bufferTime,
-		kBlockingSightReactionTimeSeconds, kBlockingSafetyMarginMetres, trajectoryFolder, kBlockingRunningTimeSupplementSeconds,
-		settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
-
-	// The dense path diagram is part of the detailed trajectories.
-	if (settings.exportDetailedTrajectories)
-		PrintTrainPathDiagram(run, run.trains.data(), run.numTrains, trajectoryFolder);
-
-	PrintTimetablePoints(run, trajectoryFolder);
-
-	// print trajectories
-	// before in Regional destructor - moved here because vectors are deleted automatically in the destructor and it is no longer possible to use them there
-	if (stoppedHere())
-		return;
-	// The per-train files and their folder are part of the detailed trajectories.
-	if (settings.exportDetailedTrajectories) {
-		const std::string temporaryFolder = settings.OutputMainFolder + "/TEMP";
-		if (const std::error_code error = ensureDirectory(temporaryFolder))
-			throw std::runtime_error("Cannot create the folder " + temporaryFolder + ": " + error.message());
-		for (int i = 0; i < run.numTrains; i++) {
-			if (stoppedHere())
-				return;
-			run.trains[i].PrintTrajectory();
-		}
-	}
 	// The window reports the end of the run here. A run without a window leaves it to main.
 	if (worker) {
 		EG_LOG(AppRun, Info) << "\n End of Simulation";

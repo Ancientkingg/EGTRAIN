@@ -637,9 +637,9 @@ void TestSimulationRun::secondRunFollowsRunOfProcess() {
 	QVERIFY(sameSnapshot(*reference.lastSnapshot, fromOther));
 }
 
-// The simulation library runs the steps of a case without the controller. A run that the builders make and that
-// runSimulationStep steps, from the first step to the last, moves the trains and the passengers of the passenger scene as the
-// controller does in the run of the process, to the end of the routes.
+// The simulation library runs a case without the controller. A run that the builders make and that runSimulationStep steps, from
+// the first step to the last, moves the trains and the passengers of the passenger scene as the controller does in the run of the
+// process, to the end of the routes. runSimulationPostprocessing then gives it the blocking times and the files of that run.
 void TestSimulationRun::stepsRunWithoutController() {
 	RunSetup setup;
 	setup.scene = &m_passengers;
@@ -701,6 +701,46 @@ void TestSimulationRun::stepsRunWithoutController() {
 	const int lastStep = static_cast<int>(other->settings.times) - 1;
 	QCOMPARE(reference.lastSnapshot->timestep, lastStep);
 	QVERIFY(sameSnapshot(*reference.lastSnapshot, buildGuiSimulationSnapshot(*other, lastStep)));
+
+	// The stages after the steps also need no controller. They give every train the blocking times of the run of the controller and
+	// write the same files. Without detailed files they look for a stop four times.
+	QTemporaryDir output;
+	const std::filesystem::path outputFolder = output.path().toStdString();
+	std::filesystem::create_directories(outputFolder / "TrainTrajectories");
+	std::filesystem::create_directories(outputFolder / "PassengerStatus");
+	other->settings.OutputMainFolder = outputFolder.string();
+	int stopChecks = 0;
+	const bool stagesEnded = runSimulationPostprocessing(*other, [&stopChecks] {
+		++stopChecks;
+		return false;
+	});
+	QVERIFY(stagesEnded);
+	QCOMPARE(stopChecks, 4);
+	int blockingTimes = 0;
+	for (int i = 0; i < controlled.numTrains; ++i) {
+		QCOMPARE(other->trains[i].N_BlockSections, controlled.trains[i].N_BlockSections);
+		blockingTimes += other->trains[i].N_BlockSections;
+	}
+	QCOMPARE_GT(blockingTimes, 0);
+	const Files written = readFiles(outputFolder);
+	QVERIFY(written.count("TrainTrajectories/TimetablePoints.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/Stats_Stations.txt") == 1);
+	QVERIFY(written.count("TrainTrajectories/BlockingTimes.txt") == 1);
+	for (const auto& [name, content] : written) {
+		const auto found = reference.files.find(name);
+		if (found == reference.files.end())
+			QFAIL((name + " is not a file of the run of the controller").c_str());
+		QVERIFY2(found->second == content, (name + " differs").c_str());
+	}
+
+	// A stop at the first check ends the stages after the energy files.
+	QTemporaryDir stoppedOutput;
+	other->settings.OutputMainFolder = stoppedOutput.path().toStdString();
+	QVERIFY(!runSimulationPostprocessing(*other, [] { return true; }));
+	const Files stoppedFiles = readFiles(stoppedOutput.path().toStdString());
+	QCOMPARE(stoppedFiles.size(), std::size_t(2));
+	QVERIFY(stoppedFiles.count("EnergyConsumptionPerTrain.txt") == 1);
+	QVERIFY(stoppedFiles.count("TotalEnergyConsumption.txt") == 1);
 }
 
 QTEST_GUILESS_MAIN(TestSimulationRun)

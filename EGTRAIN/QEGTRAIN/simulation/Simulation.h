@@ -3,6 +3,7 @@
 
 #include "simulation/RollingStock.h"
 #include "simulation/Passengers.h"
+#include <functional>
 #include <vector>
 
 /// Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoints).
@@ -94,5 +95,17 @@ struct TrainMovementOrder {
 /// for the next step, and the processor time of the step is added to run.compTimeEgtrain. order belongs to the run and keeps its
 /// due order for every step.
 void runSimulationStep(SimulationRun& run, int t, TrainMovementOrder& order);
+
+/// Runs the stages that follow the steps of run, in this order: the energy totals and their two files, the sort of the recorded
+/// events of the infrastructure, the timetable points, the delays of the trains with the statistics of the stations and the input
+/// delays and their files, the passenger delay file, the computing times, the blocking times, the path diagram with
+/// settings.exportDetailedTrajectories, the timetable points file and, with that setting too, the file of each train. The folders
+/// TrainTrajectories and PassengerStatus of the output folder must exist; the folder TEMP is made here, and a failure to make it
+/// throws std::runtime_error.
+///
+/// stopRequested is called after the energy stage, after the sort, before the blocking times, before the files of the trains and
+/// before the file of each train, and the stages end there when it returns true. The caller checks for a stop before this
+/// function. Returns true when every stage ran and false when a stop ended them.
+bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>& stopRequested);
 
 #endif

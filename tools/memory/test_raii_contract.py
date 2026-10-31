@@ -5,22 +5,21 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def check_run_output_written_once(dispatch_controller: str) -> None:
-    start = "void DispatchController::runSimulation()"
-    end = "void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers("
-    begin = dispatch_controller.index(start)
-    run_simulation = dispatch_controller[begin : dispatch_controller.index(end, begin)]
+def check_run_output_written_once(simulation: str) -> None:
+    begin = simulation.index("bool runSimulationPostprocessing(")
+    postprocessing = simulation[begin : simulation.index("\n}\n", begin)]
 
-    if run_simulation.count("PrintTrajectory()") != 1:
-        raise SystemExit("runSimulation must write the train trajectory files once")
-    timetable_points = run_simulation.find("PrintTimetablePoints(")
-    if timetable_points < 0 or run_simulation.index("PrintTrajectory()") < timetable_points:
+    if postprocessing.count("PrintTrajectory()") != 1:
+        raise SystemExit("runSimulationPostprocessing must write the train trajectory files once")
+    timetable_points = postprocessing.find("PrintTimetablePoints(")
+    if timetable_points < 0 or postprocessing.index("PrintTrajectory()") < timetable_points:
         raise SystemExit(
-            "runSimulation must write the train trajectory files after PrintTimetablePoints, as its last output stage"
+            "runSimulationPostprocessing must write the train trajectory files after PrintTimetablePoints, "
+            "as its last output stage"
         )
-    if "PrintTrainBlockingTimes(" in run_simulation:
+    if "PrintTrainBlockingTimes(" in postprocessing:
         raise SystemExit(
-            "runSimulation must leave BlockingTimes.txt to ComputeBlockingTimesInMixedSignallingForAllTrains"
+            "runSimulationPostprocessing must leave BlockingTimes.txt to ComputeBlockingTimesInMixedSignallingForAllTrains"
         )
 
 
@@ -49,7 +48,7 @@ def main() -> None:
         raise SystemExit("obsolete legacy setup path is still compiled")
     if "void DispatchController::prepareSimulation()" in dispatch_controller:
         raise SystemExit("obsolete legacy preparation path is still compiled")
-    check_run_output_written_once(dispatch_controller)
+    check_run_output_written_once(simulation)
 
 
 if __name__ == "__main__":
