@@ -142,9 +142,8 @@ void nativeResetRuntime(SimulationRun& run) {
 	run.numPlatforms = 0;
 	run.platforms.clear();
 	run.platformIndex.clear();
-	// The fictitious station of the delay statistics at the final stop of every train
-	run.finalStation = Stations();
-	run.finalStation.stationName = "Final_Station";
+	// The delay statistics at the final stop of every train
+	run.finalStation = DelayStats();
 }
 
 bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
@@ -182,7 +181,7 @@ private:
 	RunInfrastructure infra_;
 	std::list<StationPlatform> platforms_;
 	int numPlatforms_ = 0;
-	Stations finalStation_;
+	DelayStats finalStation_;
 };
 
 // The tracks of the scene by ID; orderedTracks receives them sorted by ID.
@@ -958,7 +957,6 @@ void nativeBuildStations(SimulationRun& run, const SceneModel& scene, NativeRunt
 		const SceneStation& source = scene.stations[stationIndex];
 		Stations& station = run.infra.stations[stationIndex];
 		station.stationName = source.name.empty() ? source.id : source.name;
-		station.station = true;
 		if (source.hasPosition)
 			station.X = source.positionKm;
 		else if (!source.platforms.empty() && !source.platforms.front().nodeIds.empty()) {

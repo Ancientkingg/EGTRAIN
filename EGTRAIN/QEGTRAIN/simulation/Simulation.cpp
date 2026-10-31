@@ -45,7 +45,7 @@ bool canComputeTrainEnergy(Train& train) {
 				.empty();
 }
 
-void calculateDelayStatistics(Stations& result, const std::vector<double>& delays,
+void calculateDelayStatistics(DelayStats& result, const std::vector<double>& delays,
 	const std::vector<double>& consecutive, bool includeNonPositive) {
 	result.N_Stopped_Trains = static_cast<int>(delays.size());
 	result.N_Delayed_Arr = result.N_Delayed_Arr_3min = result.N_Delayed_Arr_5min = 0;
@@ -95,7 +95,7 @@ void calculateDelayStatistics(Stations& result, const std::vector<double>& delay
 	}
 }
 
-void calculateStationDelayStatistics(SimulationRun& run, Stations& station, bool includeNonPositive) {
+void calculateStationDelayStatistics(SimulationRun& run, const std::string& stationName, DelayStats& result, bool includeNonPositive) {
 	std::vector<double> arrivals;
 	std::vector<double> consecutive;
 	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
@@ -110,17 +110,17 @@ void calculateStationDelayStatistics(SimulationRun& run, Stations& station, bool
 
 	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex) {
 		const Train& train = run.trains[trainIndex];
-		if (station.stationName == "Final_Station") {
+		if (stationName == kFinalStationName) {
 			if (train.numStations > 0)
 				append(train, train.numStations - 1);
 			continue;
 		}
 		for (int stationIndex = 0; stationIndex < train.numStations; ++stationIndex) {
-			if (train.stationNameForArrivalStats(stationIndex) == station.stationName)
+			if (train.stationNameForArrivalStats(stationIndex) == stationName)
 				append(train, stationIndex);
 		}
 	}
-	calculateDelayStatistics(station, arrivals, consecutive, includeNonPositive);
+	calculateDelayStatistics(result, arrivals, consecutive, includeNonPositive);
 }
 } // namespace
 
@@ -136,12 +136,20 @@ void calculateArrivalDelayAllTrains(SimulationRun& run) {
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
 void calculateDelayStatsAtStation(SimulationRun& run, Stations& S) {
-	calculateStationDelayStatistics(run, S, false);
+	calculateStationDelayStatistics(run, S.stationName, S, false);
+}
+
+void calculateDelayStatsAtFinalStops(SimulationRun& run) {
+	calculateStationDelayStatistics(run, kFinalStationName, run.finalStation, false);
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
 void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S) {
-	calculateStationDelayStatistics(run, S, true);
+	calculateStationDelayStatistics(run, S.stationName, S, true);
+}
+
+void calculatePosAndNegDelayStatsAtFinalStops(SimulationRun& run) {
+	calculateStationDelayStatistics(run, kFinalStationName, run.finalStation, true);
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
@@ -693,9 +701,9 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 	// Calculate Train Delays
 	calculateArrivalDelayAllTrains(run);
 	calculateDelayStatsForAllStations(run);
-	calculateDelayStatsAtStation(run, run.finalStation); // Computing the delay stats at the final station of all the trains
-	Compute_Input_Delays(run);							 // Computing the amount of entrance delays and disturbances set in input in the scenario
-														 // Print Delay at stations in the right folder
+	calculateDelayStatsAtFinalStops(run); // Computing the delay stats at the final station of all the trains
+	Compute_Input_Delays(run);			  // Computing the amount of entrance delays and disturbances set in input in the scenario
+										  // Print Delay at stations in the right folder
 	Print_Station_Delay_Stats(run, trajectoryFolder, "pos");
 
 	// Print Out Passenger Delays
@@ -704,8 +712,8 @@ bool runSimulationPostprocessing(SimulationRun& run, const std::function<bool()>
 	// Calculating positive and negative Train Delays to debug the program
 	calculatePosAndNegArrivalDelayAllTrains(run);
 	calculatePosAndNegDelayStatsForAllStations(run);
-	calculatePosAndNegDelayStatsAtStation(run, run.finalStation); // Calculating the pos and neg Delay stats at final station of all trains
-																  // Print aggregated results of positive and negative delays at stations
+	calculatePosAndNegDelayStatsAtFinalStops(run); // Calculating the pos and neg Delay stats at final station of all trains
+												   // Print aggregated results of positive and negative delays at stations
 	Print_Station_Delay_Stats(run, trajectoryFolder, "pos&neg");
 
 	Print_Computing_Times(run, trajectoryFolder); // Printing the total computation time of ROMA and EGTRAIN

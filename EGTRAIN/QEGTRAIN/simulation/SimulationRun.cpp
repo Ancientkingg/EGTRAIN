@@ -48,10 +48,10 @@ void SimulationRun::reset() {
 	numPassengers = 0;
 	passengerIndex.clear();
 	platformIndex.clear();
-	totalInputDelays = Stations();
-	entranceInputDelays = Stations();
-	disturbanceInput = Stations();
-	finalStation = Stations();
+	totalInputDelays = DelayStats();
+	entranceInputDelays = DelayStats();
+	disturbanceInput = DelayStats();
+	finalStation = DelayStats();
 	std::vector<Train>().swap(trains);
 	numTrains = 0;
 	numberGenerator = NumberGenerator(kDefaultRandomSeed);

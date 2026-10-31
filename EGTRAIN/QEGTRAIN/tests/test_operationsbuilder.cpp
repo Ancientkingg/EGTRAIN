@@ -1320,8 +1320,6 @@ void TestOperationsBuilder::stationStatisticsOfSmallPopulations() {
 	QVERIFY(!hasErrors(statisticsInfrastructure));
 	QVERIFY(!hasErrors(statisticsOperations));
 	QCOMPARE(defaultRun().numTrains, 3);
-	// Building a scene names the fictitious station of the final-station statistics.
-	QCOMPARE(defaultRun().finalStation.stationName, "Final_Station");
 	Stations statistics;
 	statistics.stationName = "Final_Station";
 	for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
@@ -1429,14 +1427,18 @@ void TestOperationsBuilder::stationStatisticsOfSmallPopulations() {
 	Print_Station_Delay_Stats(defaultRun(), statisticsOutput.path().toStdString(), "pos");
 	std::ifstream exported(statisticsOutput.filePath("Stats_Stations.txt").toStdString());
 	bool finiteExport = exported.good();
+	int finalStationRows = 0;
 	for (std::string token; exported >> token;) {
 		char* end = nullptr;
 		const double value = std::strtod(token.c_str(), &end);
 		if (end != token.c_str() && *end == '\0' && !std::isfinite(value))
 			finiteExport = false;
+		finalStationRows += token == "Final_Station" ? 1 : 0;
 	}
 	exported.close();
 	QVERIFY2(finiteExport, "one-station statistics export contains no non-finite values");
+	// The export names the fictitious station of the final-station statistics.
+	QCOMPARE(finalStationRows, 1);
 
 	// The statistics take the arrival of the timetable point, the one the timetable results report.
 	Train& train = defaultRun().trains[0];

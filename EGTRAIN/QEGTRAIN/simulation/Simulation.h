@@ -18,13 +18,19 @@ void calculateArrivalDelayAllTrains(SimulationRun& run);
 void calculatePosAndNegArrivalDelayAllTrains(SimulationRun& run);
 
 /// Fills the delay statistics of station S from the trains with an arrival delay there, in seconds; the average and standard
-/// deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. The station "Final_Station" takes
-/// the last stop of every train.
+/// deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. A station named kFinalStationName
+/// takes the last stop of every train.
 void calculateDelayStatsAtStation(SimulationRun& run, Stations& S);
+
+/// Fills run.finalStation with the statistics of calculateDelayStatsAtStation over the last stop of every train.
+void calculateDelayStatsAtFinalStops(SimulationRun& run);
 
 /// The same as calculateDelayStatsAtStation with early arrivals: every train with an arrival and a planned arrival there counts, and
 /// the average and standard deviation include delays of 0 and below.
 void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S);
+
+/// Fills run.finalStation with the statistics of calculatePosAndNegDelayStatsAtStation over the last stop of every train.
+void calculatePosAndNegDelayStatsAtFinalStops(SimulationRun& run);
 
 /// Fills run.totalInputDelays, run.entranceInputDelays and run.disturbanceInput with the statistics of the input delays of all trains
 /// (s): the total, the entrance delay, and the dwell disturbances (the total less the entrance delay).

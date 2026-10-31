@@ -129,13 +129,13 @@ struct SimulationRun {
 	PlatformIndex platformIndex;
 
 	/// Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.
-	Stations totalInputDelays;
+	DelayStats totalInputDelays;
 	/// Statistics over the trains of the entrance delay that the scenario sets, in seconds.
-	Stations entranceInputDelays;
+	DelayStats entranceInputDelays;
 	/// Statistics over the trains of the station disturbances, in seconds. Nothing sets a disturbance, so they are 0.
-	Stations disturbanceInput;
-	/// Delay statistics at the final stop of every train, under the station name "Final_Station".
-	Stations finalStation;
+	DelayStats disturbanceInput;
+	/// Delay statistics at the final stop of every train, which the files show under kFinalStationName.
+	DelayStats finalStation;
 
 	/// The trains of the scene. The operations builder creates the vector once per build with
 	/// exactly the trains of the scene, and it does not grow while the trains are live.

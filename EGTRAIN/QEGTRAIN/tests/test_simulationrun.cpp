@@ -94,8 +94,8 @@ Description describe(const SimulationRun& run) {
 	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
 		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
 		egtrainTime, romaTime, infrastructure] = run;
-	const auto station = [](const Stations& s) {
-		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
+	const auto statistics = [](const DelayStats& s) {
+		return std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
 	NumberGenerator draws = generator;
 	const std::string draw = std::to_string(draws.getUniformFloat()) + "/" + std::to_string(draws.getGaussianFloat());
@@ -113,10 +113,10 @@ Description describe(const SimulationRun& run) {
 		{"numPassengers", std::to_string(numPassengers)},
 		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
 		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
-		{"totalInputDelays", station(totalDelays)},
-		{"entranceInputDelays", station(entranceDelays)},
-		{"disturbanceInput", station(disturbances)},
-		{"finalStation", station(finalStation)},
+		{"totalInputDelays", statistics(totalDelays)},
+		{"entranceInputDelays", statistics(entranceDelays)},
+		{"disturbanceInput", statistics(disturbances)},
+		{"finalStation", statistics(finalStation)},
 		{"trains", std::to_string(trains.size()) + "/" + std::to_string(trains.capacity())},
 		{"numTrains", std::to_string(numTrains)},
 		{"numberGenerator", draw},
@@ -158,10 +158,10 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 }
 
 // True when the run is as a new run in every member that the builders do not fill. A prepared scene has its settings, infrastructure,
-// platforms, passengers, incidents and seeded generator, and the name of the final station.
+// platforms, passengers, incidents and seeded generator.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "finalStation", "trains", "numTrains", "numberGenerator"};
+		"passengerIndex", "platformIndex", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (!isInfrastructureMember(name) && builderState.count(name) == 0
@@ -194,10 +194,9 @@ void fill(SimulationRun& run) {
 	numPassengers = 1;
 	passengerIndex.build(passengers);
 	platformIndex.build(platforms);
-	for (Stations* station : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
-		station->stationName = "Final_Station";
-		station->N_Stopped_Trains = 4;
-		station->totalArrivalDelay = 30;
+	for (DelayStats* statistics : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
+		statistics->N_Stopped_Trains = 4;
+		statistics->totalArrivalDelay = 30;
 	}
 	trains.resize(2);
 	numTrains = 2;
