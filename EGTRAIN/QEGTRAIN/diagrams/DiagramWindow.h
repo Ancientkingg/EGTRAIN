@@ -233,10 +233,9 @@ private:
 	void applyChartStyle(QChart* chart);
 	void applyTimeAxis();
 	void applyPositionAxis();
-	void schedulePositionLayout();
 	void layoutPositionAxis();
 	void reserveStripRoom();
-	void scheduleStationLayout();
+	void queueLayout(bool& pending, void (DiagramWindow::*layout)());
 	void layoutStationAxis();
 	QString elidedAxisTextAt(const QPointF& chartPosition) const;
 	ChartHit hitAt(const QPoint& viewportPosition) const;

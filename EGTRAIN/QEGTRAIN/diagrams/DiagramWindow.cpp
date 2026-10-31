@@ -125,6 +125,26 @@ QImage plannedMarker(const QPen& pen, const QColor& fill = Qt::white) {
 // emphasised line of 3.5 px and room for the pointer. Further from the line the click is on the box.
 constexpr double kLineOverBox = 4;
 
+// The nearest sample found so far of one kind of hit. A candidate replaces it only when strictly closer, so of samples as
+// near as each other the first stays.
+struct NearestSample {
+	explicit NearestSample(double start) : distance(start) {}
+
+	double distance;
+	QXYSeries* series = nullptr;
+	QPointF sample;
+	int index = -1;
+
+	void offer(double candidateDistance, QXYSeries* candidateSeries, const QPointF& candidateSample, int candidateIndex) {
+		if (candidateDistance < distance) {
+			distance = candidateDistance;
+			series = candidateSeries;
+			sample = candidateSample;
+			index = candidateIndex;
+		}
+	}
+};
+
 // Puts the ticks of a numeric axis on round values: the multiples of 1, 2 or 5 times a power of ten that divide its range
 // into at most eight steps, labelled with as many decimals as the step has.
 void roundTicks(QValueAxis* axis) {
@@ -870,17 +890,18 @@ void DiagramWindow::setStationAxis(QCategoryAxis* axis, std::vector<StationTick>
 	if (!axis || !chart) return;
 	m_stationAxis = axis;
 	m_stations = std::move(stations);
-	connect(axis, &QValueAxis::rangeChanged, this, [this] { scheduleStationLayout(); });
-	connect(chart, &QChart::plotAreaChanged, this, [this] { scheduleStationLayout(); });
+	const auto queue = [this] { queueLayout(m_stationLayoutPending, &DiagramWindow::layoutStationAxis); };
+	connect(axis, &QValueAxis::rangeChanged, this, queue);
+	connect(chart, &QChart::plotAreaChanged, this, queue);
 	layoutStationAxis();
 }
 
-// The chart is laid out when it is shown and whenever its plot area changes, and an axis must not change in the
-// middle of that, so the labels are chosen once the layout is done.
-void DiagramWindow::scheduleStationLayout() {
-	if (m_stationLayoutPending) return;
-	m_stationLayoutPending = true;
-	QMetaObject::invokeMethod(this, [this] { layoutStationAxis(); }, Qt::QueuedConnection);
+// The chart is laid out when it is shown and whenever its plot area changes, and an axis must not change in the middle of
+// that, so `layout` runs once the layout is done, and once for a burst of range and plot changes. It clears `pending`.
+void DiagramWindow::queueLayout(bool& pending, void (DiagramWindow::*layout)()) {
+	if (pending) return;
+	pending = true;
+	QMetaObject::invokeMethod(this, [this, layout] { (this->*layout)(); }, Qt::QueuedConnection);
 }
 
 void DiagramWindow::layoutStationAxis() {
@@ -1114,20 +1135,14 @@ void DiagramWindow::applyPositionAxis() {
 		palette().brush(QPalette::WindowText));
 	m_positionNumericAxis = distance;
 	m_positionAxis = position;
-	connect(position, &QValueAxis::rangeChanged, this, [this] { schedulePositionLayout(); });
-	connect(chart, &QChart::plotAreaChanged, position, [this] { schedulePositionLayout(); });
+	const auto queue = [this] { queueLayout(m_positionLayoutPending, &DiagramWindow::layoutPositionAxis); };
+	connect(position, &QValueAxis::rangeChanged, this, queue);
+	connect(chart, &QChart::plotAreaChanged, position, queue);
 	layoutPositionAxis();
 	if (overlay) {
 		overlay->setJumps(m_positionScale.jumps());
 		overlay->watchAxes();
 	}
-}
-
-// One relayout for a burst of range and plot changes, once the chart is laid out, as for the station axis.
-void DiagramWindow::schedulePositionLayout() {
-	if (m_positionLayoutPending) return;
-	m_positionLayoutPending = true;
-	QMetaObject::invokeMethod(this, [this] { layoutPositionAxis(); }, Qt::QueuedConnection);
 }
 
 // The labels of the position axis for the range in view: the round geo X values of the scale at their route distance,
@@ -1635,19 +1650,10 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		if (!title.isEmpty()) hit.lines << title;
 		return hit;
 	}
-	QXYSeries* selected = nullptr;
-	QPointF sample;
-	int sampleIndex = -1;
-	double best = 10;
+	NearestSample selected(10);
 	// The nearest sample of a line that is not the outline of a box, which inside a box wins only when it is this near.
-	QXYSeries* line = nullptr;
-	QPointF lineSample;
-	int lineIndex = -1;
-	double lineBest = kLineOverBox;
-	QXYSeries* filled = nullptr;
-	QPointF filledSample;
-	int filledIndex = -1;
-	double filledVertexDistance = std::numeric_limits<double>::max();
+	NearestSample line(kLineOverBox);
+	NearestSample filled(std::numeric_limits<double>::max());
 	for (auto* series : chart->series()) {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
@@ -1663,29 +1669,13 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		for (int i = 0; i < points.size(); ++i) {
 			const QPointF point = chart->mapToPosition(points[i], xy);
 			if (inside) {
-				const double vertexDistance = QLineF(cursor, point).length();
-				if (vertexDistance < filledVertexDistance) {
-					filledVertexDistance = vertexDistance;
-					filled = xy;
-					filledSample = points[i];
-					filledIndex = i;
-				}
+				filled.offer(QLineF(cursor, point).length(), xy, points[i], i);
 				continue;
 			}
 			if (chart->plotArea().contains(point)) {
 				const double distance = QLineF(cursor, point).length();
-				if (distance < best) {
-					best = distance;
-					selected = xy;
-					sample = points[i];
-					sampleIndex = i;
-				}
-				if (!outline && distance < lineBest) {
-					lineBest = distance;
-					line = xy;
-					lineSample = points[i];
-					lineIndex = i;
-				}
+				selected.offer(distance, xy, points[i], i);
+				if (!outline) line.offer(distance, xy, points[i], i);
 			}
 			if (i == 0 || qobject_cast<QScatterSeries*>(xy)) continue;
 			const QPointF previous = chart->mapToPosition(points[i - 1], xy);
@@ -1696,45 +1686,33 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 			const double t = length2 > 0 ? std::clamp(QPointF::dotProduct(cursor - previous, delta) / length2, first, last) : first;
 			const double distance = QLineF(cursor, previous + t * delta).length();
 			const int nearest = t < 0.5 ? i - 1 : i;
-			if (distance < best) {
-				best = distance;
-				selected = xy;
-				sample = points[nearest];
-				sampleIndex = nearest;
-			}
-			if (!outline && distance < lineBest) {
-				lineBest = distance;
-				line = xy;
-				lineSample = points[nearest];
-				lineIndex = nearest;
-			}
+			selected.offer(distance, xy, points[nearest], nearest);
+			if (!outline) line.offer(distance, xy, points[nearest], nearest);
 		}
 	}
-	if (filled) {
-		hit.inside = !line;
-		selected = line ? line : filled;
-		sample = line ? lineSample : filledSample;
-		sampleIndex = line ? lineIndex : filledIndex;
+	if (filled.series) {
+		hit.inside = !line.series;
+		selected = line.series ? line : filled;
 	}
-	if (!selected) {
+	if (!selected.series) {
 		if (const auto* overlay = m_sectionOverlay.data()) {
 			const QString text = overlay->inspect(cursor, false);
 			if (!text.isEmpty()) hit.lines = text.split('\n');
 		}
 		return hit;
 	}
-	hit.series = selected;
-	QString identity = selected->name();
-	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
+	hit.series = selected.series;
+	QString identity = selected.series->name();
+	if (!identity.contains(groupIdForSeries(selected.series))) identity.prepend(groupIdForSeries(selected.series) + " ");
 	// A box can name itself, such as "IC1723-2 on 12-B0", also near its outline.
-	const SeriesMeta meta = seriesMeta(selected);
+	const SeriesMeta meta = seriesMeta(selected.series);
 	const QString& title = meta.inspectionTitle;
 	if (!title.isEmpty()) identity = title;
 	// The corner of a box nearest the pointer says nothing about the box, so a box gives only its own lines.
-	hit.lines = hit.inside || !title.isEmpty() ? QStringList{identity} : sampleLines(sample, identity);
+	hit.lines = hit.inside || !title.isEmpty() ? QStringList{identity} : sampleLines(selected.sample, identity);
 	const QStringList& contexts = meta.inspectionPoints;
-	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
-		hit.lines << contexts[sampleIndex].split('\n');
+	if (selected.index >= 0 && selected.index < contexts.size() && !contexts[selected.index].isEmpty())
+		hit.lines << contexts[selected.index].split('\n');
 	const QString& interval = meta.inspectionInterval;
 	if (!interval.isEmpty()) hit.lines << interval.split('\n');
 	return hit;
