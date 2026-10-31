@@ -1525,11 +1525,13 @@ void TestSceneWriter::summarisesLoadedDataStatuses() {
 	warning.file = "services.json";
 
 	const std::vector<SceneLoadedData> summary = buildLoadedDataSummary(scene, scene.sourceFiles, {warning});
+	// A missing row fails the test, because the default status Parsed would pass the checks that expect it.
 	const auto row = [](const std::vector<SceneLoadedData>& rows, const std::string& category) -> const SceneLoadedData& {
 		static const SceneLoadedData none;
 		for (const auto& item : rows)
 			if (item.category == category)
 				return item;
+		QTest::qFail(("no row " + category).c_str(), __FILE__, __LINE__);
 		return none;
 	};
 	QCOMPARE(summary.size(), std::size_t(8));
