@@ -8,6 +8,7 @@
 #include "app/RunOutcome.h"
 #include "app/RunResultsDock.h"
 #include "app/SceneOutputDirectory.h"
+#include "app/StartupTiming.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/ResultFrame.h"
@@ -26,7 +27,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QGridLayout>
-#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMainWindow>
@@ -34,14 +34,12 @@
 #include <QPushButton>
 #include <QStandardPaths>
 #include <QStatusBar>
-#include <QSysInfo>
 #include <QToolButton>
 #include <QVBoxLayout>
 // SceneSession.h holds a pointer to a QMenu that has to be complete.
 #include "app/SceneSession.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <exception>
 
 QString completedRunContext(const RunProvenance& provenance) {
@@ -709,26 +707,8 @@ void RunController::runScene() {
 	if (!m_document->isLoaded())
 		return;
 
-	if (PlaybackProfiler::enabled()) {
-		const std::string requested = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-										  .toStdString();
-		const SceneScenario* configured = requested == "default"
-			? defaultScenario(m_document->model())
-			: nullptr;
-		if (requested != "default") {
-			const auto match = std::find_if(m_document->model().scenarios.cbegin(), m_document->model().scenarios.cend(),
-				[&requested](const SceneScenario& scenario) { return scenario.id == requested; });
-			if (match != m_document->model().scenarios.cend())
-				configured = &*match;
-		}
-		if (!configured) {
-			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"scenario_unavailable\"}\n");
-			QCoreApplication::exit(2);
-			return;
-		}
-		m_selection.selectScenario(configured->id);
-	}
+	if (!selectPlaybackProfileScenario(m_document->model(), m_selection))
+		return;
 
 	m_host.validateScene();
 	if (hasErrors(m_session->diagnostics())) {
@@ -793,34 +773,8 @@ void RunController::runScene() {
 	m_pendingRunProvenance = captureRunProvenance();
 
 	m_host.buildRunCanvas();
-	if (PlaybackProfiler::enabled()) {
-		PlaybackProfiler::RunConfig config;
-		config.trial = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_TRIAL");
-		config.view = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW").toStdString();
-#if defined(Q_OS_MACOS)
-		config.platform = "macOS";
-#elif defined(Q_OS_WIN)
-		config.platform = "Windows";
-#else
-		config.platform = "Linux";
-#endif
-		config.architecture = QSysInfo::currentCpuArchitecture().toStdString();
-		config.qtPlatform = QGuiApplication::platformName().toStdString();
-		config.buildType = EGTRAIN_BUILD_TYPE;
-		config.caseName = m_document->model().name;
-		config.requestedScenario = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-									   .toStdString();
-		config.scenario = m_selection.appliedScenarioId();
-		config.defaultScenario = m_document->model().defaultScenarioId;
-		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
-		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");
-		config.delayMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS");
-		config.passengerGui = initial_variables.PAX_GUI;
-		config.horizon = static_cast<int>(initial_variables.times);
-		config.structural = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_STRUCTURAL") == QLatin1String("1");
-		PlaybackProfiler::instance().configure(config);
-	}
+	configurePlaybackProfile(m_document->model(), m_selection.appliedScenarioId(), initial_variables.PAX_GUI,
+		static_cast<int>(initial_variables.times));
 	if (m_host.startupTimingHoldsRun(timingIdentityOk))
 		return;
 

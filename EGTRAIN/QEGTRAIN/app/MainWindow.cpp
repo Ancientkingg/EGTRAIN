@@ -198,10 +198,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QRegularExpression>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <cstdio>
-#include <chrono>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -319,22 +316,6 @@ protected:
 	}
 };
 
-using StartupClock = std::chrono::steady_clock;
-StartupClock::time_point g_startupTimingOrigin;
-quint64 g_startupTimingSequence = 0;
-struct StartupIdentity {
-	QString path;
-	int schemaVersion = 0;
-	std::string name;
-	std::string baseTime;
-	std::string defaultScenarioId;
-	SceneSimulationSettings settings;
-	std::array<std::size_t, 21> collectionSizes{};
-	std::string inputSnapshot;
-	bool set = false;
-};
-StartupIdentity g_startupIdentity;
-
 #ifdef signals
 #define EGTRAIN_RESTORE_STARTUP_SIGNALS
 #undef signals
@@ -356,23 +337,6 @@ StartupIdentity startupIdentity(const QString& path, const SceneModel& model,
 #define signals Q_SIGNALS
 #undef EGTRAIN_RESTORE_STARTUP_SIGNALS
 #endif
-
-bool sameStartupSettings(const SceneSimulationSettings& left,
-	const SceneSimulationSettings& right) {
-	return left.hasDuration == right.hasDuration && left.durationSeconds == right.durationSeconds
-		&& left.hasBufferTime == right.hasBufferTime
-		&& left.bufferTimeSeconds == right.bufferTimeSeconds
-		&& left.hasRecoveryTime == right.hasRecoveryTime
-		&& left.recoveryTimePercent == right.recoveryTimePercent;
-}
-
-bool sameStartupIdentity(const StartupIdentity& left, const StartupIdentity& right) {
-	return left.set && right.set && left.path == right.path
-		&& left.schemaVersion == right.schemaVersion && left.name == right.name
-		&& left.baseTime == right.baseTime && left.defaultScenarioId == right.defaultScenarioId
-		&& sameStartupSettings(left.settings, right.settings)
-		&& left.collectionSizes == right.collectionSizes;
-}
 
 // The window draws a snapshot of a run at most once in this many milliseconds.
 constexpr int kRenderIntervalMs = 33;
@@ -491,53 +455,9 @@ QString crashNoteFolder() {
 	return runDataFolder("QEGTRAIN_CRASH_DIR", "Crashes");
 }
 
-bool startupTimingEnabled() {
-	return qEnvironmentVariable("QEGTRAIN_STARTUP_TIMING") == QLatin1String("1");
-}
-
-void beginStartupTiming() {
-	if (startupTimingEnabled()) {
-		g_startupTimingOrigin = StartupClock::now();
-		g_startupTimingSequence = 0;
-		g_startupIdentity = StartupIdentity();
-	}
-}
-
-qint64 startupTimingNowNanoseconds() {
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(
-		StartupClock::now() - g_startupTimingOrigin)
-		.count();
-}
-
-void recordStartupTiming(const QString& phase, int iteration, int generation,
-	qint64 elapsedNanoseconds, const QString& invocation, const QString& source,
-	bool identityOk, bool canonicalPreloadNested) {
-	if (!startupTimingEnabled())
-		return;
-	QJsonObject record{{QStringLiteral("event"), QStringLiteral("complete")},
-		{QStringLiteral("sequence"), static_cast<qint64>(g_startupTimingSequence++)},
-		{QStringLiteral("phase"), phase}, {QStringLiteral("iteration"), iteration},
-		{QStringLiteral("temperature"), iteration == 0 ? QStringLiteral("fresh_process") : QStringLiteral("warm_in_process")},
-		{QStringLiteral("elapsed_ms"), elapsedNanoseconds / 1000000.0},
-		{QStringLiteral("identity_ok"), identityOk}};
-	if (generation >= 0)
-		record.insert(QStringLiteral("generation"), generation);
-	if (!invocation.isEmpty())
-		record.insert(QStringLiteral("invocation"), invocation);
-	if (!source.isEmpty())
-		record.insert(QStringLiteral("source"), source);
-	if (canonicalPreloadNested)
-		record.insert(QStringLiteral("canonical_preload_nested"), true);
-	if (phase.endsWith(QLatin1String("paint")))
-		record.insert(QStringLiteral("paint_scope"), QStringLiteral("completed_qt_viewport_paint_handling"));
-	const QByteArray json = QJsonDocument(record).toJson(QJsonDocument::Compact);
-	std::fprintf(stdout, "QEGTRAIN_TIMING %s\n", json.constData());
-	std::fflush(stdout);
-}
-
 void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded) {
 	if (startupTimingEnabled())
-		g_startupIdentity = startupIdentity(path, loaded.scene, loaded.inputSnapshot);
+		setStartupTimingPreloadIdentity(startupIdentity(path, loaded.scene, loaded.inputSnapshot));
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
@@ -620,12 +540,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Dock/editor construction above can rebuild the top-level focus chain;
 	// restore the command-bar sequence after every child widget exists.
 	setCommandBarTabOrder();
-	if (startupTimingEnabled()) {
-		bool ok = false;
-		m_startupTimingWarmTrials = qEnvironmentVariableIntValue("QEGTRAIN_STARTUP_WARM_TRIALS", &ok);
-		if (!ok || m_startupTimingWarmTrials < 0)
-			m_startupTimingWarmTrials = 0;
-	}
 }
 
 void MainWindow::setupHelpMenu() {
@@ -1590,10 +1504,9 @@ SceneLoadResult MainWindow::readScene(const QString& path, bool& identityOk) {
 	const qint64 loadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 	SceneLoadResult result = loadScenePath(path.toStdString());
 	identityOk = !startupTimingEnabled()
-		|| (sameStartupIdentity(g_startupIdentity, startupIdentity(path, result.scene, result.inputSnapshot))
-			&& g_startupIdentity.inputSnapshot == result.inputSnapshot);
+		|| matchesExpectedStartupIdentity(startupIdentity(path, result.scene, result.inputSnapshot), true);
 	if (startupTimingEnabled())
-		recordStartupTiming(QStringLiteral("canonical_load"), m_startupTimingIteration, -1,
+		recordStartupTiming(QStringLiteral("canonical_load"), m_startupTrials.iteration(), -1,
 			startupTimingNowNanoseconds() - loadStarted, QStringLiteral("scene_open"),
 			QStringLiteral("MainWindow::openSceneDirectory"), identityOk);
 	return result;
@@ -1658,9 +1571,8 @@ bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
 			failStartupTiming(QStringLiteral("scene identity, counts, or canonical input snapshot changed"));
 			return false;
 		}
-		if (m_startupTimingScenePath.isEmpty())
-			m_startupTimingScenePath = opened.path;
-		networkView->armTimingPaint(QStringLiteral("preview"), m_startupTimingIteration);
+		m_startupTrials.rememberScene(opened.path);
+		networkView->armTimingPaint(QStringLiteral("preview"), m_startupTrials.iteration());
 	}
 	if (m_loadedDataDock && advancedDetailsEnabled()) {
 		m_loadedDataDock->show();
@@ -1752,7 +1664,7 @@ std::vector<SceneDiagnostic> MainWindow::timedPreparation(
 	identityOk = identityBeforePrepare
 		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_session->sceneDir(), m_document->model()));
 	if (startupTimingEnabled())
-		recordStartupTiming(QStringLiteral("native_runtime_construction"), m_startupTimingIteration,
+		recordStartupTiming(QStringLiteral("native_runtime_construction"), m_startupTrials.iteration(),
 			-1, startupTimingNowNanoseconds() - prepareStarted,
 			QStringLiteral("simulation.prepareScene"), QStringLiteral("MainWindow::runScene"),
 			identityOk);
@@ -1773,7 +1685,7 @@ bool MainWindow::startupTimingHoldsRun(bool identityOk) {
 		failStartupTiming(QStringLiteral("scene identity or counts changed during native preparation"));
 		return true;
 	}
-	networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
+	networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTrials.iteration());
 	statusBar()->showMessage(QString("Prepared case: %1").arg(QString::fromStdString(m_document->model().name)));
 	return true;
 }
@@ -3279,29 +3191,19 @@ void MainWindow::setupGUI() {
 	refreshFollowTrainChoices();
 }
 
-bool MainWindow::startupTimingIdentityMatches(const QString& path, const SceneModel& model,
-	const std::string* inputSnapshot) const {
-	const StartupIdentity current = startupIdentity(
-		path, model, inputSnapshot ? *inputSnapshot : std::string());
-	return sameStartupIdentity(g_startupIdentity, current)
-		&& (!inputSnapshot || g_startupIdentity.inputSnapshot == *inputSnapshot);
-}
-
-void MainWindow::failStartupTiming(const QString& message) {
-	std::fprintf(stderr, "QEGTRAIN_TIMING_ERROR %s\n", message.toUtf8().constData());
-	std::fflush(stderr);
-	QCoreApplication::exit(2);
+bool MainWindow::startupTimingIdentityMatches(const QString& path, const SceneModel& model) const {
+	return matchesExpectedStartupIdentity(startupIdentity(path, model));
 }
 
 void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 	qint64 elapsedNanoseconds) {
-	if (!startupTimingEnabled() || generation != m_startupTimingIteration)
+	if (!startupTimingEnabled() || generation != m_startupTrials.iteration())
 		return;
 	const bool identityOk = startupTimingIdentityMatches(m_session->sceneDir(), m_document->model());
 	recordStartupTiming(kind == QLatin1String("preview")
 			? QStringLiteral("first_preview_paint")
 			: QStringLiteral("first_runtime_paint"),
-		m_startupTimingIteration, generation, elapsedNanoseconds, kind,
+		m_startupTrials.iteration(), generation, elapsedNanoseconds, kind,
 		QStringLiteral("NetworkView::viewportEvent"), identityOk);
 	if (!identityOk) {
 		failStartupTiming(QStringLiteral("scene identity or counts changed before first paint"));
@@ -3315,13 +3217,12 @@ void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 		failStartupTiming(QStringLiteral("unexpected paint generation kind"));
 		return;
 	}
-	if (m_startupTimingIteration >= m_startupTimingWarmTrials) {
+	if (!m_startupTrials.nextIteration()) {
 		QCoreApplication::exit(0);
 		return;
 	}
-	++m_startupTimingIteration;
 	QTimer::singleShot(0, this, [this]() {
-		if (!openSceneDirectory(m_startupTimingScenePath))
+		if (!openSceneDirectory(m_startupTrials.scenePath()))
 			failStartupTiming(QStringLiteral("warm scene reload failed"));
 	});
 }

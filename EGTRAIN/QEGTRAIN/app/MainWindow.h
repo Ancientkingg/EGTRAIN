@@ -33,6 +33,7 @@
 #include "app/RunController.h"
 #include "app/RunSelection.h"
 #include "app/SceneSession.h"
+#include "app/StartupTiming.h"
 #include "diagrams/RunResults.h"
 #include "graphics/NetworkPresenter.h"
 #include "recovery/RecoveryStore.h"
@@ -104,18 +105,6 @@ struct UpdateCheckResult;
 /// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
 /// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
 QString crashNoteFolder();
-/// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
-bool startupTimingEnabled();
-/// Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.
-void beginStartupTiming();
-/// Nanoseconds since beginStartupTiming() started the clock.
-qint64 startupTimingNowNanoseconds();
-/// Writes one QEGTRAIN_TIMING line of JSON to standard output when startup timing is on. `elapsedNanoseconds` is
-/// written in milliseconds. `iteration` 0 is the fresh process and higher ones are warm reloads; a negative
-/// `generation` and empty `invocation` and `source` are left out.
-void recordStartupTiming(const QString& phase, int iteration, int generation,
-	qint64 elapsedNanoseconds, const QString& invocation = {}, const QString& source = {},
-	bool identityOk = true, bool canonicalPreloadNested = false);
 /// Records the scene at `path`, as `loaded` read it, as the scene that startup timing expects. Does nothing when
 /// startup timing is off.
 void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult& loaded);
@@ -305,9 +294,7 @@ private:
 	// The editor panels and their docks at the right, which the constructor builds.
 	EditorDocks m_editorDocks{this, *this};
 	RunSelection m_runSelection;
-	int m_startupTimingIteration = 0;
-	int m_startupTimingWarmTrials = 0;
-	QString m_startupTimingScenePath;
+	StartupTimingTrials m_startupTrials;
 
 	// Compact shell state. These pointers observe scene-owned items without
 	// taking ownership; teardownGUI clears them after scene->clear().
@@ -533,9 +520,7 @@ private:
 	void refreshRunResultsSummary();
 
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
-	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
-		const std::string* inputSnapshot = nullptr) const;
-	void failStartupTiming(const QString& message);
+	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model) const;
 	void clearReplay();
 	void showReplayBar();
 	bool writeReplayText(std::optional<int> shownTime);
