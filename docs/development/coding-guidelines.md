@@ -67,7 +67,7 @@ cannot see how Qt owns objects.
 | `bugprone-exception-escape` | `main`, destructors and lambdas of slots; the application does not throw across them |
 | `bugprone-throwing-static-initialization` | Statics that hold a `std::string` or a mutex |
 | `bugprone-implicit-widening-of-multiplication-result` | Products of small values, such as milliseconds per second |
-| `bugprone-unchecked-string-to-number-conversion` | `atof` on legacy text fields in `simulation/Simulation.cpp`, `graphics/NetworkPresenter.cpp` and `scene/SceneExporter.cpp` |
+| `bugprone-unchecked-string-to-number-conversion` | `atof` on legacy text fields in `graphics/NetworkPresenter.cpp` and `scene/SceneExporter.cpp` |
 | `bugprone-nondeterministic-pointer-iteration-order` | Vectors of pointers that are sorted by a field, not by address |
 | `bugprone-derived-method-shadowing-base-method` | `NetworkView::centerOn` hides the Qt method on purpose |
 | `bugprone-misplaced-widening-cast` | `static_cast<std::size_t>(index + 1)` on a checked index |
@@ -404,11 +404,10 @@ exactly one of `unit` and `integration`, and on an unknown label. A `gui` test r
 the arguments or runs a script instead, and options such as `TIMEOUT` and `ENVIRONMENT` set the
 test properties; the comment above the function lists them all.
 
-- The tests are moving to Qt Test. A converted file is one test class, as
-  [Writing a test](testing.md#writing-a-test) describes (`tests/test_timeformat.cpp`). A file that
-  is not converted yet is a plain program with a `main()`; most define a local
-  `expect(bool, const char*)` that prints `failed: <message>`, combine results with
-  `ok &= expect(...)` and return a non-zero exit code on failure.
+- The tests use Qt Test. A test file is one test class, as
+  [Writing a test](testing.md#writing-a-test) describes (`tests/test_timeformat.cpp`).
+  `tests/test_updatetransport_https.cpp` and the three programs in `tests/characterization/` are
+  plain programs with a `main()`.
 - Checks must still run in a Release build, the default, so a test does not use `assert`, which
   `NDEBUG` removes there.
 - A logic change comes with the smallest test that fails without it. For a validation rule,
