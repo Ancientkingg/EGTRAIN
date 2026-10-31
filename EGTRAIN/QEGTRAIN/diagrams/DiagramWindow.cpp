@@ -96,10 +96,10 @@ QPen emphasisedPen(const QPen& base) {
 	return pen;
 }
 
-// Planned series are drawn dashed and have their own Key entry; both rules use this one test: the "planned" property of
-// the series. The name does not count, because it holds the id of a train, which the user chose.
+// Planned series are drawn dashed and have their own Key entry; both rules use this one test: SeriesMeta::planned of the
+// series. The name does not count, because it holds the id of a train, which the user chose.
 bool isPlannedSeries(const QAbstractSeries* series) {
-	return series->property("planned").toBool();
+	return seriesMeta(series).planned;
 }
 
 // The planned points of a series are open circles, as wide as this, in the colour of its pen on white.
@@ -1083,19 +1083,19 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 	QHash<QString, QBrush> fills;
 	for (QAbstractSeries* one : series)
 		if (const auto* area = qobject_cast<QAreaSeries*>(one); area && area->isVisible()) {
-			const QString kind = one->property("keyKind").toString();
+			const QString kind = seriesMeta(one).keyKind.value_or(QString());
 			if (!kind.isEmpty() && !fills.contains(kind)) fills.insert(kind, m_baseBrushes.value(one, area->brush()));
 		}
 	const QColor text = palette().color(QPalette::WindowText);
 	for (QAbstractSeries* one : series) {
 		const auto* xy = qobject_cast<QXYSeries*>(one);
 		if (!xy || !xy->isVisible()) continue;
-		const QVariant keyKind = one->property("keyKind");
-		QString name = keyKind.isValid() ? keyKind.toString() : one->property("layer").toString();
-		if (!keyKind.isValid() && name.isEmpty()) name = isPlannedSeries(one) ? QStringLiteral("planned") : QStringLiteral("simulated");
+		const SeriesMeta meta = seriesMeta(one);
+		QString name = meta.keyKind.value_or(meta.layer);
+		if (!meta.keyKind && name.isEmpty()) name = isPlannedSeries(one) ? QStringLiteral("planned") : QStringLiteral("simulated");
 		// The points of a planned series are open circles, as the chart draws them, and those of another series dots.
 		const bool planned = isPlannedSeries(one);
-		const QString marker = xy->pointsVisible() ? one->property("keyMarker").toString() : QString();
+		const QString marker = xy->pointsVisible() ? meta.keyMarker : QString();
 		if (!marker.isEmpty()) {
 			const auto known = entryNamed(marker);
 			if (known == entries.end())
@@ -1108,15 +1108,14 @@ QVector<DiagramKeyEntry> DiagramWindow::keyEntries() const {
 		const QPen pen = m_basePens.value(one, xy->pen());
 		DiagramKeyEntry entry;
 		entry.name = name;
-		if (one->property("inspectionFilled").toBool()) {
-			// The "keyPen" of the outline, when it has one, draws the kind alike for every train.
-			const QVariant keyPen = one->property("keyPen");
+		if (meta.inspectionFilled) {
+			// The keyPen of the outline, when it has one, draws the kind alike for every train.
 			entry.shape = DiagramKeyEntry::Shape::Box;
-			entry.pen = keyPen.canConvert<QPen>() ? keyPen.value<QPen>() : pen;
+			entry.pen = meta.keyPen.value_or(pen);
 			entry.brush = fills.value(name, QBrush(Qt::NoBrush));
 		} else {
 			// The colour of a line belongs to its train, so the sample takes the text colour.
-			entry.shape = one->property("keyUpright").toBool() ? DiagramKeyEntry::Shape::Tick : DiagramKeyEntry::Shape::Line;
+			entry.shape = meta.keyUpright ? DiagramKeyEntry::Shape::Tick : DiagramKeyEntry::Shape::Line;
 			entry.pen = QPen(text, pen.widthF(), pen.style());
 			// A planned line shows its points as open circles, also those that the Key names as a kind of their own.
 			entry.marker = xy->pointsVisible() && (marker.isEmpty() || planned);
@@ -1186,7 +1185,7 @@ void DiagramWindow::applyColourPlan() {
 		for (const SeriesGroup& group : m_groups) {
 			const QColor colour = m_planColours.value(group.trainId);
 			for (QAbstractSeries* series : group.members) {
-				if (!colour.isValid() || series->property("ownColour").toBool()) continue;
+				if (!colour.isValid() || seriesMeta(series).ownColour) continue;
 				if (qobject_cast<QXYSeries*>(series) && m_basePens.contains(series)) {
 					m_basePens[series].setColor(colour);
 				} else if (auto* area = qobject_cast<QAreaSeries*>(series); area && m_baseBrushes.contains(series)) {
@@ -1256,7 +1255,7 @@ void DiagramWindow::setChart(QChart* chart) {
 				// builder where it asks for that range exactly.
 				if (qobject_cast<QCategoryAxis*>(axis) || value->tickType() != QValueAxis::TicksFixed) continue;
 				m_builderBounds.insert(axis, {value->min(), value->max()});
-				if (!value->property("exactRange").toBool()) widenToRoundTicks(value);
+				if (!axisMeta(value).exactRange) widenToRoundTicks(value);
 				roundTicks(value);
 				connect(value, &QValueAxis::rangeChanged, value, [value] { roundTicks(value); });
 			}
@@ -1414,7 +1413,7 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 				pen.setStyle(Qt::DashLine);
 			xy->setPen(pen);
 			// A line is at least 2 px wide; the outline of a box keeps its width.
-			if (pen.widthF() < 2.0 && !series->property("inspectionFilled").toBool()) {
+			if (pen.widthF() < 2.0 && !seriesMeta(series).inspectionFilled) {
 				pen.setWidthF(2.0);
 				xy->setPen(pen);
 			}
@@ -1589,10 +1588,8 @@ void DiagramWindow::layoutPositionAxis() {
 QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
 	if (!series)
 		return QString();
-	const QVariant trainId = series->property("trainId");
-	if (trainId.isValid() && !trainId.toString().isEmpty())
-		return trainId.toString();
-	return series->name();
+	const QString trainId = seriesMeta(series).trainId;
+	return trainId.isEmpty() ? series->name() : trainId;
 }
 
 void DiagramWindow::rebuildFilterGroups() {
@@ -1838,7 +1835,7 @@ void DiagramWindow::updateCursorReadout(const QPointF& chartPosition) {
 			values << QString::fromStdString(formatSimTime(static_cast<long long>(std::floor(value)), m_startOffset));
 			continue;
 		}
-		if (axis->property("readoutStation").toBool()) {
+		if (axisMeta(axis).readoutStation) {
 			double nearest = std::numeric_limits<double>::quiet_NaN();
 			for (QAbstractSeries* series : chart->series()) {
 				const auto* xy = qobject_cast<const QXYSeries*>(series);
@@ -2087,7 +2084,7 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
 		const auto points = xy->points();
-		const bool outline = xy->property("inspectionFilled").toBool();
+		const bool outline = seriesMeta(xy).inspectionFilled;
 		bool inside = false;
 		if (outline && points.size() >= 4
 			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {
@@ -2162,14 +2159,15 @@ DiagramWindow::ChartHit DiagramWindow::hitAt(const QPoint& position) const {
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
 	// A box can name itself, such as "IC1723-2 on 12-B0", also near its outline.
-	const QString title = selected->property("inspectionTitle").toString();
+	const SeriesMeta meta = seriesMeta(selected);
+	const QString& title = meta.inspectionTitle;
 	if (!title.isEmpty()) identity = title;
 	// The corner of a box nearest the pointer says nothing about the box, so a box gives only its own lines.
 	hit.lines = hit.inside || !title.isEmpty() ? QStringList{identity} : sampleLines(sample, identity);
-	const QStringList contexts = selected->property("inspectionPoints").toStringList();
+	const QStringList& contexts = meta.inspectionPoints;
 	if (sampleIndex >= 0 && sampleIndex < contexts.size() && !contexts[sampleIndex].isEmpty())
 		hit.lines << contexts[sampleIndex].split('\n');
-	const QString interval = selected->property("inspectionInterval").toString();
+	const QString& interval = meta.inspectionInterval;
 	if (!interval.isEmpty()) hit.lines << interval.split('\n');
 	return hit;
 }

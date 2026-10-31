@@ -395,6 +395,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
     ${SRC_DIR}/diagrams/RunExports.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
+    ${SRC_DIR}/diagrams/SeriesMeta.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/diagrams/TrainColors.cpp

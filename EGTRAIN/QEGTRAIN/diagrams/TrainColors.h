@@ -65,11 +65,12 @@ enum class BlockingTimeKind {
 	Conflict	   ///< A block that two trains occupy at once, keyed "Conflict"
 };
 
-/// Gives the fill and the closed outline of a blocking time the look of its kind and its kind in the Key ("keyKind"). An
+/// Gives the fill and the closed outline of a blocking time the look of its kind and its kind in the Key
+/// (SeriesMeta::keyKind), on top of the description that they have. An
 /// ordinary blocking time has a neutral grey fill and an outline 1.4 px wide that the diagram window paints in the colour
 /// of the train; the Key shows its outline neutral grey. A critical block is amber with a 45 degree hatch and an outline
 /// of amber brown, and a conflict is #9e1b1b with a cross hatch and an outline of that red; both keep their colours
-/// ("ownColour"). The pen of the sample in the Key is the property "keyPen" of the outline. The hatches are textures
+/// (SeriesMeta::ownColour). The pen of the sample in the Key is SeriesMeta::keyPen of the outline. The hatches are textures
 /// at two pixels per pixel, so that a figure at twice the size of the window draws them sharp. `fill` is null for a
 /// blocking time of no width.
 void styleBlockingTime(QAreaSeries* fill, QLineSeries* outline, BlockingTimeKind kind);

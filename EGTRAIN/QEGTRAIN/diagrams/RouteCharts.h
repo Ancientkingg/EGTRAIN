@@ -9,7 +9,7 @@
 
 #include <vector>
 
-// The charts of a finished run: each function turns run data into a QChart with its series, their properties and its
+// The charts of a finished run: each function turns run data into a QChart with its series, their descriptions and its
 // axes. A chart that a function returns belongs to the caller until DiagramWindow::setChart takes it. The functions read
 // nothing but their arguments and open no window.
 

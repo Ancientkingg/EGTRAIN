@@ -3,6 +3,7 @@
 #include "scene/SceneModel.h"
 
 #include "diagrams/TrainColors.h"
+#include "diagrams/SeriesMeta.h"
 
 #include <QBrush>
 #include <QImage>
@@ -149,11 +150,15 @@ void styleBlockingTime(QAreaSeries* fill, QLineSeries* outline, BlockingTimeKind
 	if (fill) {
 		fill->setBrush(brush);
 		fill->setPen(Qt::NoPen);
-		fill->setProperty("keyKind", name);
-		fill->setProperty("ownColour", true);
+		SeriesMeta fillMeta = seriesMeta(fill);
+		fillMeta.keyKind = name;
+		fillMeta.ownColour = true;
+		describeSeries(fill, fillMeta);
 	}
 	outline->setPen(pen);
-	outline->setProperty("keyKind", name);
-	outline->setProperty("ownColour", ownColour);
-	outline->setProperty("keyPen", QVariant::fromValue(keyPen));
+	SeriesMeta outlineMeta = seriesMeta(outline);
+	outlineMeta.keyKind = name;
+	outlineMeta.ownColour = ownColour;
+	outlineMeta.keyPen = keyPen;
+	describeSeries(outline, outlineMeta);
 }

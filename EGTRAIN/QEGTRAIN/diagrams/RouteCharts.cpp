@@ -1,5 +1,6 @@
 #include "diagrams/RouteCharts.h"
 #include "diagrams/PositionScale.h"
+#include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "scene/SectionLabels.h"
 #include "util/TrajectoryUtil.h"
@@ -41,14 +42,21 @@ QString referenceRouteText(const std::string& routeId, bool leftward) {
 
 // Asks setChart for the range of the axis as it is, with round ticks inside it.
 void keepExactRange(QValueAxis* axis) {
-	axis->setProperty("exactRange", true);
+	AxisMeta meta = axisMeta(axis);
+	meta.exactRange = true;
+	describeAxis(axis, meta);
 }
 
-void appendInspectedPoint(QLineSeries* series, double x, double y, const QString& context) {
+// The description of a series of a train.
+SeriesMeta metaOfTrain(const QString& trainId) {
+	SeriesMeta meta;
+	meta.trainId = trainId;
+	return meta;
+}
+
+void appendInspectedPoint(QLineSeries* series, SeriesMeta& meta, double x, double y, const QString& context) {
 	series->append(x, y);
-	QStringList points = series->property("inspectionPoints").toStringList();
-	points.append(context);
-	series->setProperty("inspectionPoints", points);
+	meta.inspectionPoints.append(context);
 }
 
 } // namespace
@@ -63,7 +71,7 @@ TrajectoryChartResult buildTrajectoryChart(const CompletedRunData& run, Trajecto
 		for (const TrajectorySegment& segment : trajectory.segments) {
 			QLineSeries* series = new QLineSeries();
 			series->setName(QString::fromStdString(train.trainId));
-			series->setProperty("trainId", QString::fromStdString(train.trainId));
+			describeSeries(series, metaOfTrain(QString::fromStdString(train.trainId)));
 			for (int i = segment.first; i <= segment.last; i++) {
 				double tSec = trajectoryTimeSeconds(i, run.settings.timestepSeconds);
 				double dist = trajectory.at(trajectory.position, i).value_or(0.0) / 1000.0;
@@ -100,19 +108,23 @@ RouteChart buildDelayChart(const DelayDiagramData& diagram) {
 		auto* series = new QLineSeries();
 		const QString trainName = QString::fromStdString(source.trainId);
 		series->setName(trainName);
-		series->setProperty("trainId", trainName);
+		SeriesMeta meta = metaOfTrain(trainName);
 		// A train may call at two or three stations of the route, so each call is a marker on the line.
 		series->setPointsVisible(true);
 		for (const DelayDiagramPoint& point : source.points)
-			appendInspectedPoint(series, point.positionKm, point.delaySeconds / 60.0,
+			appendInspectedPoint(series, meta, point.positionKm, point.delaySeconds / 60.0,
 				QString("%1, stop %2").arg(QString::fromStdString(point.station)).arg(point.journey));
+		describeSeries(series, meta);
 		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
 	std::vector<StationTick> stationTicks;
 	QCategoryAxis* stationAxis = addRouteAxes(chart, referencePath, stationTicks, calls);
 	// The readout names the station nearest the pointer.
-	chart->axes(Qt::Horizontal).first()->setProperty("readoutStation", true);
+	QAbstractAxis* distanceAxis = chart->axes(Qt::Horizontal).first();
+	AxisMeta distanceMeta = axisMeta(distanceAxis);
+	distanceMeta.readoutStation = true;
+	describeAxis(distanceAxis, distanceMeta);
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignLeft);
 	chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 	const bool leftward = referencePath.nodes.back().positionKm < referencePath.nodes.front().positionKm;
@@ -132,7 +144,7 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 	for (const RouteDiagramSeries& source : diagram.series) {
 		const QString name = QString::fromStdString(source.trainId);
 		auto* series = new QLineSeries();
-		series->setProperty("trainId", name);
+		SeriesMeta meta = metaOfTrain(name);
 		if (source.kind == RouteDiagramSeries::Kind::Trajectory) {
 			series->setName(name);
 			for (const RouteDiagramPoint& point : source.points) series->append(point.positionKm, point.seconds);
@@ -141,25 +153,26 @@ RouteChart buildRouteDiagramChart(const RouteDiagramData& diagram, const RouteDi
 			const QString event = QString::fromStdString(source.event);
 			series->setName(name + " (" + event + ")");
 			// The window paints the stops and dwells in the colour of the train; planned ones are dashed.
-			series->setProperty("planned", source.planned);
+			meta.planned = source.planned;
 			series->setPen(QPen(QColor(20, 35, 45), 1.0, source.planned ? Qt::DashLine : Qt::SolidLine));
 			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
 			series->setPointsVisible(!dwell);
 			// In the Key a dwell is a kind of its own, and the points of an event are its stops.
 			if (dwell) {
-				series->setProperty("keyKind", QStringLiteral("Dwell"));
-				series->setProperty("keyUpright", true);
+				meta.keyKind = QStringLiteral("Dwell");
+				meta.keyUpright = true;
 			} else {
-				series->setProperty("keyMarker", QStringLiteral("Stop"));
+				meta.keyMarker = QStringLiteral("Stop");
 			}
 			for (const RouteDiagramPoint& point : source.points) {
 				const QString station = QString::fromStdString(point.station);
 				const QString context = dwell
 					? QString("%1, %2 dwell").arg(station, source.planned ? "planned" : "simulated")
 					: QString("%1, stop %2, %3").arg(station).arg(point.journey).arg(event);
-				appendInspectedPoint(series, point.positionKm, point.seconds, context);
+				appendInspectedPoint(series, meta, point.positionKm, point.seconds, context);
 			}
 		}
+		describeSeries(series, meta);
 		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
@@ -192,15 +205,16 @@ QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool comp
 		const bool first = plannedTrains.insert(trainName).second;
 		auto* series = new QLineSeries();
 		series->setName(QString::fromStdString(trainName));
-		series->setProperty("trainId", QString::fromStdString(trainName));
-		series->setProperty("planned", true);
+		SeriesMeta meta = metaOfTrain(QString::fromStdString(trainName));
+		meta.planned = true;
 		series->setPen(QPen(QColor(20, 35, 45), 2.0, Qt::DashLine));
 		series->setPointsVisible(true);
 		for (const auto& reference : group)
-			appendInspectedPoint(series, reference.positionKm, reference.time,
+			appendInspectedPoint(series, meta, reference.positionKm, reference.time,
 				reference.stationName.empty()
 					? "Planned time at the section edge"
 					: QString("%1, planned %2").arg(QString::fromStdString(reference.stationName), QString::fromStdString(reference.eventType)));
+		describeSeries(series, meta);
 		chart->addSeries(series);
 		if (!first)
 			for (QLegendMarker* marker : chart->legend()->markers(series)) marker->setVisible(false);
@@ -209,9 +223,10 @@ QChart* buildBlockingTimeChart(const BlockingTimeDiagramData& diagram, bool comp
 	for (const BlockingTimeTrajectory& trajectory : diagram.trajectories) {
 		auto* line = new QLineSeries();
 		line->setName(QString::fromStdString(trajectory.trainId));
-		line->setProperty("trainId", QString::fromStdString(trajectory.trainId));
-		line->setProperty("layer", "simulated");
-		if (compressed) line->setProperty("inspectionInterval", "Shifted with the train's blocking times");
+		SeriesMeta meta = metaOfTrain(QString::fromStdString(trajectory.trainId));
+		meta.layer = QStringLiteral("simulated");
+		if (compressed) meta.inspectionInterval = QStringLiteral("Shifted with the train's blocking times");
+		describeSeries(line, meta);
 		line->setPen(QPen(QColor(20, 35, 45), 2.0));
 		line->setPointsVisible(trajectory.points.size() == 1);
 		for (const auto& point : trajectory.points)
@@ -348,22 +363,17 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 			upper->append(right, segment.endTime);
 			fill = new QAreaSeries(upper, lower);
 			fill->setName(name);
-			fill->setProperty("trainId", name);
+			describeSeries(fill, metaOfTrain(name));
 		}
 		auto* outline = new QLineSeries();
 		outline->setName(name);
-		outline->setProperty("trainId", name);
-		outline->setProperty("layer", kBlockingTimeLayer);
-		outline->setProperty("inspectionFilled", left != right);
-		styleBlockingTime(fill, outline, kindFor(segment));
-		if (fill) {
-			chart->addSeries(fill);
-			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
-		}
+		SeriesMeta meta = metaOfTrain(name);
+		meta.layer = QString::fromLatin1(kBlockingTimeLayer);
+		meta.inspectionFilled = left != right;
 		// The train on the block by its short id, as the section strip names it, then one fact per line: the kind, the label
 		// of the block, where and when it was blocked, how that time is made up and the section of the reference route.
 		const QString blockText = QString::fromStdString(shortBlockId(segment.blockId));
-		outline->setProperty("inspectionTitle", name + " on " + blockText);
+		meta.inspectionTitle = name + " on " + blockText;
 		QStringList lines;
 		if (const QString kind = kindText(segment); !kind.isEmpty()) lines << kind;
 		if (const QString label = QString::fromStdString(readableSectionLabel(segment.blockId, labels)); label != blockText) lines << label;
@@ -379,7 +389,13 @@ void addBlockingTimeSeries(QChart* chart, const std::vector<BlockingTimeDiagramS
 						 .arg(QString::number(segment.originalStartTime), QString::number(segment.originalEndTime));
 		lines << blockingComponentLines(segment, useCapacityCriticalStyle);
 		if (!segment.referenceNote.empty()) lines << QString::fromStdString(segment.referenceNote).split('\n');
-		outline->setProperty("inspectionInterval", lines.join('\n'));
+		meta.inspectionInterval = lines.join('\n');
+		describeSeries(outline, meta);
+		styleBlockingTime(fill, outline, kindFor(segment));
+		if (fill) {
+			chart->addSeries(fill);
+			for (QLegendMarker* marker : chart->legend()->markers(fill)) marker->setVisible(false);
+		}
 		outline->append(left, segment.startTime);
 		outline->append(right, segment.startTime);
 		outline->append(right, segment.endTime);

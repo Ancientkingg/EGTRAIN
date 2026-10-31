@@ -13,6 +13,7 @@
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
+#include "diagrams/SeriesMeta.h"
 #include "diagrams/TrainColors.h"
 #include "diagrams/TrainKeyList.h"
 #include "editors/ScenarioPanel.h"
@@ -174,15 +175,32 @@ std::string exactNumber(double value) {
 	return buffer;
 }
 
-std::string propertyText(const QVariant& value) {
-	if (value.userType() == QMetaType::QStringList)
-		return value.toStringList().join('|').toStdString();
-	return value.toString().toStdString();
-}
-
 std::string penText(const QPen& pen) {
 	return pen.color().name(QColor::HexArgb).toStdString() + " " + exactNumber(pen.widthF()) + " "
 		+ std::to_string(static_cast<int>(pen.style()));
+}
+
+// The description of a series, one field per line, without the fields that have their default.
+std::string metaText(const QAbstractSeries* series) {
+	const SeriesMeta meta = seriesMeta(series);
+	std::string text;
+	const auto add = [&text](const char* name, const QString& value) {
+		if (!value.isEmpty()) text += std::string("  ") + name + "=" + value.toStdString() + "\n";
+	};
+	const auto flag = [&add](const char* name, bool value) { add(name, value ? QStringLiteral("true") : QString()); };
+	add("trainId", meta.trainId);
+	flag("planned", meta.planned);
+	add("layer", meta.layer);
+	if (meta.keyKind) text += "  keyKind=" + meta.keyKind->toStdString() + "\n";
+	if (meta.keyPen) text += "  keyPen=" + penText(*meta.keyPen) + "\n";
+	add("keyMarker", meta.keyMarker);
+	flag("keyUpright", meta.keyUpright);
+	flag("ownColour", meta.ownColour);
+	add("inspectionPoints", meta.inspectionPoints.join('|'));
+	add("inspectionTitle", meta.inspectionTitle);
+	add("inspectionInterval", meta.inspectionInterval);
+	flag("inspectionFilled", meta.inspectionFilled);
+	return text;
 }
 
 std::string pointsText(const QList<QPointF>& points) {
@@ -192,7 +210,7 @@ std::string pointsText(const QList<QPointF>& points) {
 	return text;
 }
 
-// The chart of a result window as exact text: its axes, then every series with its name, properties, pen and points.
+// The chart of a result window as exact text: its axes, then every series with its name, description, pen and points.
 // Two builds of one diagram can be compared byte by byte.
 std::string chartDump(const DiagramWindow& window) {
 	std::string text = "window " + window.windowTitle().toStdString() + "\n";
@@ -211,8 +229,7 @@ std::string chartDump(const DiagramWindow& window) {
 	for (const QAbstractSeries* series : chart->series()) {
 		text += "series " + std::to_string(static_cast<int>(series->type())) + " " + series->name().toStdString()
 			+ (series->isVisible() ? "" : " hidden") + "\n";
-		for (const QByteArray& name : series->dynamicPropertyNames())
-			text += "  " + name.toStdString() + "=" + propertyText(series->property(name.constData())) + "\n";
+		text += metaText(series);
 		if (const auto* line = qobject_cast<const QXYSeries*>(series)) {
 			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line->points());
 		} else if (const auto* area = qobject_cast<const QAreaSeries*>(series)) {
@@ -474,7 +491,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					const auto shown = routeDiagramData(*w.m_runController->m_completedRun, timetable, reference);
 					long long plannedLines = 0, plannedSeries = 0;
 					for (const QAbstractSeries* series : view->chart()->series())
-						plannedLines += series->property("planned").toBool() ? 1 : 0;
+						plannedLines += seriesMeta(series).planned ? 1 : 0;
 					for (const RouteDiagramSeries& series : shown ? shown->series : std::vector<RouteDiagramSeries>())
 						plannedSeries += series.planned ? 1 : 0;
 					if (plannedLines != plannedSeries || (timetable && plannedSeries == 0)) {

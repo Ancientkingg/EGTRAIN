@@ -119,6 +119,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "simulation/SimulationRun.h"
 #include "diagrams/RunResults.h"
+#include "diagrams/SeriesMeta.h"
 #include "util/PlaybackProfiler.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
@@ -410,7 +411,9 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 	QChart* chart = new QChart();
 	QLineSeries* series = new QLineSeries();
 	series->setName(QString::fromStdString(unit.id));
-	series->setProperty("trainId", QString::fromStdString(unit.id));
+	SeriesMeta meta;
+	meta.trainId = QString::fromStdString(unit.id);
+	describeSeries(series, meta);
 	for (const auto& point : samples)
 		series->append(point.first * 3.6, point.second / 1000.0);
 	series->setPointsVisible(samples.size() == 1);

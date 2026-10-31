@@ -1,5 +1,6 @@
 #include "diagrams/PositionScale.h"
 #include "diagrams/RouteCharts.h"
+#include "diagrams/SeriesMeta.h"
 
 #include <QGraphicsLayout>
 #include <QPointF>
@@ -149,6 +150,9 @@ private slots:
 	void blockingChartHasPlannedAndSimulatedLines();
 	void blockingChartSpansItsSections();
 	void listsEveryTrainOfABlockingChartOnce();
+	void seriesKeepsItsDescription();
+	void seriesWithoutDescriptionHasDefaults();
+	void axisKeepsItsDescription();
 };
 
 void TestRouteCharts::distanceAxisSpansTheRoute_data() {
@@ -174,7 +178,7 @@ void TestRouteCharts::distanceAxisSpansTheRoute() {
 	QCOMPARE(distance->max(), high);
 	QCOMPARE(distance->titleText(), QStringLiteral("Distance (km)"));
 	// The window keeps the range as it is.
-	QVERIFY(distance->property("exactRange").toBool());
+	QVERIFY(axisMeta(distance).exactRange);
 	// The station axis runs along the distance axis, and every series is on both.
 	if (stations == nullptr) QFAIL("no station axis");
 	QCOMPARE(stations->min(), low);
@@ -291,16 +295,16 @@ void TestRouteCharts::boxHasFillAndClosedOutline() {
 	auto* fill = qobject_cast<QAreaSeries*>(chart.series()[0]);
 	if (fill == nullptr) QFAIL("the first series is not the fill");
 	QCOMPARE(fill->name(), QStringLiteral("A"));
-	QCOMPARE(fill->property("trainId").toString(), QStringLiteral("A"));
+	QCOMPARE(seriesMeta(fill).trainId, QStringLiteral("A"));
 	// The ends of the block in either order, from its start time to its end time.
 	QCOMPARE(fill->lowerSeries()->points(), QList<QPointF>({{1, 100}, {4, 100}}));
 	QCOMPARE(fill->upperSeries()->points(), QList<QPointF>({{1, 160}, {4, 160}}));
 	QAbstractSeries* outline = chart.series()[1];
 	QCOMPARE(pointsOf(outline), QList<QPointF>({{1, 100}, {4, 100}, {4, 160}, {1, 160}, {1, 100}}));
 	QCOMPARE(outline->name(), QStringLiteral("A"));
-	QCOMPARE(outline->property("trainId").toString(), QStringLiteral("A"));
-	QCOMPARE(outline->property("layer").toString(), QStringLiteral("blocking time"));
-	QVERIFY(outline->property("inspectionFilled").toBool());
+	QCOMPARE(seriesMeta(outline).trainId, QStringLiteral("A"));
+	QCOMPARE(seriesMeta(outline).layer, QStringLiteral("blocking time"));
+	QVERIFY(seriesMeta(outline).inspectionFilled);
 }
 
 void TestRouteCharts::blockOfNoWidthHasNoFill() {
@@ -311,7 +315,7 @@ void TestRouteCharts::blockOfNoWidthHasNoFill() {
 	QVERIFY(qobject_cast<QLineSeries*>(outline) != nullptr);
 	// The upright line of a block without length is no closed box.
 	QCOMPARE(pointsOf(outline), QList<QPointF>({{2, 100}, {2, 100}, {2, 160}, {2, 160}}));
-	QVERIFY(!outline->property("inspectionFilled").toBool());
+	QVERIFY(!seriesMeta(outline).inspectionFilled);
 }
 
 void TestRouteCharts::chartOwnsEveryLineOfABox() {
@@ -345,8 +349,8 @@ void TestRouteCharts::describesABlockInItsHover() {
 	labels.byReference["3-B0"] = "Delft yard";
 	addBlockingTimeSeries(&chart, {segment}, false, labels, PositionScale({extent}));
 	QAbstractSeries* outline = chart.series().last();
-	QCOMPARE(outline->property("inspectionTitle").toString(), QStringLiteral("A on 3-B0"));
-	QCOMPARE(outline->property("inspectionInterval").toString().split('\n'),
+	QCOMPARE(seriesMeta(outline).inspectionTitle, QStringLiteral("A on 3-B0"));
+	QCOMPARE(seriesMeta(outline).inspectionInterval.split('\n'),
 		QStringList({"Conflict at a station", "Delft yard", "Position 11.000 to 12.000 km", "Blocked 100 to 160 s", "Setup 2 s",
 			"Part of section 4", "of route0"}));
 }
@@ -358,8 +362,8 @@ void TestRouteCharts::keepsWholeTimesOfMovedBlock() {
 	QChart normal, compressed;
 	addBlockingTimeSeries(&normal, {segment}, false, {}, PositionScale());
 	addBlockingTimeSeries(&compressed, {segment}, true, {}, PositionScale());
-	QVERIFY(normal.series().last()->property("inspectionInterval").toString().contains("Whole 40 to 90 s"));
-	QVERIFY(compressed.series().last()->property("inspectionInterval").toString().contains("Simulated 40 to 90 s"));
+	QVERIFY(seriesMeta(normal.series().last()).inspectionInterval.contains("Whole 40 to 90 s"));
+	QVERIFY(seriesMeta(compressed.series().last()).inspectionInterval.contains("Simulated 40 to 90 s"));
 }
 
 void TestRouteCharts::drawsCriticalBlockOnlyInCompressedChart() {
@@ -368,9 +372,9 @@ void TestRouteCharts::drawsCriticalBlockOnlyInCompressedChart() {
 	QChart normal, compressed;
 	addBlockingTimeSeries(&normal, {segment}, false, {}, PositionScale());
 	addBlockingTimeSeries(&compressed, {segment}, true, {}, PositionScale());
-	QCOMPARE(normal.series().last()->property("keyKind").toString(), QStringLiteral("Blocking time"));
-	QCOMPARE(compressed.series().last()->property("keyKind").toString(), QStringLiteral("Critical block"));
-	QCOMPARE(compressed.series().last()->property("inspectionInterval").toString().split('\n').first(), QStringLiteral("Critical block"));
+	QCOMPARE(seriesMeta(normal.series().last()).keyKind.value_or(QString()), QStringLiteral("Blocking time"));
+	QCOMPARE(seriesMeta(compressed.series().last()).keyKind.value_or(QString()), QStringLiteral("Critical block"));
+	QCOMPARE(seriesMeta(compressed.series().last()).inspectionInterval.split('\n').first(), QStringLiteral("Critical block"));
 }
 
 void TestRouteCharts::trajectoryChartPerKind_data() {
@@ -400,7 +404,7 @@ void TestRouteCharts::trajectoryChartPerKind() {
 	QCOMPARE(built.timeAxis, time);
 	QCOMPARE(chart->series().size(), 1);
 	QCOMPARE(chart->series().first()->name(), QStringLiteral("A"));
-	QCOMPARE(chart->series().first()->property("trainId").toString(), QStringLiteral("A"));
+	QCOMPARE(seriesMeta(chart->series().first()).trainId, QStringLiteral("A"));
 	QCOMPARE(pointsOf(chart->series().first()), points);
 	QCOMPARE(chart->axes(Qt::Horizontal).first()->titleText(), xTitle);
 	QCOMPARE(chart->axes(Qt::Vertical).first()->titleText(), yTitle);
@@ -424,14 +428,14 @@ void TestRouteCharts::routeDiagramDrawsPlannedEventsDashed() {
 	auto* simulated = qobject_cast<QLineSeries*>(chart->series()[1]);
 	if (planned == nullptr || simulated == nullptr) QFAIL("an event is not a line");
 	QCOMPARE(planned->name(), QStringLiteral("A (planned arrival)"));
-	QCOMPARE(planned->property("trainId").toString(), QStringLiteral("A"));
-	QVERIFY(planned->property("planned").toBool());
+	QCOMPARE(seriesMeta(planned).trainId, QStringLiteral("A"));
+	QVERIFY(seriesMeta(planned).planned);
 	QCOMPARE(planned->pen().style(), Qt::DashLine);
 	QVERIFY(planned->pointsVisible());
-	QCOMPARE(planned->property("keyMarker").toString(), QStringLiteral("Stop"));
-	QCOMPARE(planned->property("inspectionPoints").toStringList(),
+	QCOMPARE(seriesMeta(planned).keyMarker, QStringLiteral("Stop"));
+	QCOMPARE(seriesMeta(planned).inspectionPoints,
 		QStringList({"Delft, stop 2, planned arrival", "Delft, stop 2, planned arrival"}));
-	QVERIFY(!simulated->property("planned").toBool());
+	QVERIFY(!seriesMeta(simulated).planned);
 	QCOMPARE(simulated->pen().style(), Qt::SolidLine);
 }
 
@@ -442,12 +446,12 @@ void TestRouteCharts::routeDiagramKeysADwell() {
 	const std::unique_ptr<QChart> chart(built.chart);
 	auto* dwell = qobject_cast<QLineSeries*>(chart->series()[0]);
 	if (dwell == nullptr) QFAIL("a dwell is not a line");
-	QCOMPARE(dwell->property("keyKind").toString(), QStringLiteral("Dwell"));
-	QVERIFY(dwell->property("keyUpright").toBool());
-	QVERIFY(!dwell->property("keyMarker").isValid());
+	QCOMPARE(seriesMeta(dwell).keyKind.value_or(QString()), QStringLiteral("Dwell"));
+	QVERIFY(seriesMeta(dwell).keyUpright);
+	QVERIFY(seriesMeta(dwell).keyMarker.isEmpty());
 	QVERIFY(!dwell->pointsVisible());
-	QCOMPARE(dwell->property("inspectionPoints").toStringList(), QStringList({"Delft, planned dwell", "Delft, planned dwell"}));
-	QCOMPARE(chart->series()[1]->property("inspectionPoints").toStringList().first(), QStringLiteral("Delft, simulated dwell"));
+	QCOMPARE(seriesMeta(dwell).inspectionPoints, QStringList({"Delft, planned dwell", "Delft, planned dwell"}));
+	QCOMPARE(seriesMeta(chart->series()[1]).inspectionPoints.first(), QStringLiteral("Delft, simulated dwell"));
 }
 
 void TestRouteCharts::routeDiagramShowsIsolatedSample() {
@@ -462,7 +466,7 @@ void TestRouteCharts::routeDiagramShowsIsolatedSample() {
 	QVERIFY(isolated->pointsVisible());
 	QVERIFY(!line->pointsVisible());
 	QCOMPARE(line->points(), QList<QPointF>({{3, 30}, {4, 40}}));
-	QVERIFY(!line->property("inspectionPoints").isValid());
+	QVERIFY(seriesMeta(line).inspectionPoints.isEmpty());
 }
 
 void TestRouteCharts::routeDiagramCountsTheStopsItIsGiven() {
@@ -525,12 +529,12 @@ void TestRouteCharts::delayChartShowsCallsInMinutes() {
 	auto* series = qobject_cast<QLineSeries*>(chart->series().first());
 	if (series == nullptr) QFAIL("a train is not a line");
 	QCOMPARE(series->name(), QStringLiteral("A"));
-	QCOMPARE(series->property("trainId").toString(), QStringLiteral("A"));
+	QCOMPARE(seriesMeta(series).trainId, QStringLiteral("A"));
 	QVERIFY(series->pointsVisible());
 	QCOMPARE(series->points(), QList<QPointF>({{1, 1.5}}));
-	QCOMPARE(series->property("inspectionPoints").toStringList(), QStringList({"Delft, stop 3"}));
+	QCOMPARE(seriesMeta(series).inspectionPoints, QStringList({"Delft, stop 3"}));
 	QCOMPARE(chart->axes(Qt::Vertical).first()->titleText(), QStringLiteral("Arrival delay (min)"));
-	QVERIFY(distanceAxis(*chart)->property("readoutStation").toBool());
+	QVERIFY(axisMeta(distanceAxis(*chart)).readoutStation);
 	QCOMPARE(built.referenceRoute, QStringLiteral("route0, right to left"));
 	QCOMPARE(built.stationTicks.size(), std::size_t(2));
 	QCOMPARE(built.stationTicks[0].calls, 1);
@@ -566,20 +570,20 @@ void TestRouteCharts::blockingChartHasPlannedAndSimulatedLines() {
 	auto* isolated = qobject_cast<QLineSeries*>(chart->series()[2]);
 	auto* simulated = qobject_cast<QLineSeries*>(chart->series()[3]);
 	if (planned == nullptr || isolated == nullptr || simulated == nullptr) QFAIL("a line is missing");
-	QVERIFY(planned->property("planned").toBool());
+	QVERIFY(seriesMeta(planned).planned);
 	QCOMPARE(planned->pen().style(), Qt::DashLine);
 	QVERIFY(planned->pointsVisible());
-	QCOMPARE(planned->property("inspectionPoints").toStringList(),
+	QCOMPARE(seriesMeta(planned).inspectionPoints,
 		QStringList({"Planned time at the section edge", "Delft, planned arrival"}));
-	QCOMPARE(simulated->property("layer").toString(), QStringLiteral("simulated"));
+	QCOMPARE(seriesMeta(simulated).layer, QStringLiteral("simulated"));
 	QCOMPARE(simulated->pen().style(), Qt::SolidLine);
-	QCOMPARE(simulated->property("inspectionInterval").toString(), QStringLiteral("Shifted with the train's blocking times"));
+	QCOMPARE(seriesMeta(simulated).inspectionInterval, QStringLiteral("Shifted with the train's blocking times"));
 	QVERIFY(isolated->pointsVisible());
 	QVERIFY(!simulated->pointsVisible());
 	// The second line of a train has no entry of its own.
 	QCOMPARE(shownLegendEntries(*chart), 3);
 	const std::unique_ptr<QChart> uncompressed(buildBlockingTimeChart(data, false, {}, PositionScale()));
-	QVERIFY(!uncompressed->series()[3]->property("inspectionInterval").isValid());
+	QVERIFY(seriesMeta(uncompressed->series()[3]).inspectionInterval.isEmpty());
 }
 
 void TestRouteCharts::blockingChartSpansItsSections() {
@@ -597,7 +601,7 @@ void TestRouteCharts::blockingChartSpansItsSections() {
 	QCOMPARE(distance->titleText(), QStringLiteral("Distance (km)"));
 	QCOMPARE(distance->min(), 2.5);
 	QCOMPARE(distance->max(), 6.25);
-	QVERIFY(distance->property("exactRange").toBool());
+	QVERIFY(axisMeta(distance).exactRange);
 	QValueAxis* time = timeAxis(*chart);
 	QCOMPARE(time->titleText(), QStringLiteral("Time (s)"));
 	QVERIFY(time->isReverse());
@@ -614,6 +618,64 @@ void TestRouteCharts::listsEveryTrainOfABlockingChartOnce() {
 	reference.trainName = "B";
 	QCOMPARE(blockingTimeTrainIds({blockOf("A", 0, 1), blockOf("A", 1, 2)}, {reference}, {{"C", "1"}, {}, {"A"}}, {blockOf("D", 0, 1), blockOf("", 0, 1)}),
 		QStringList({"A", "B", "C", "D"}));
+}
+
+void TestRouteCharts::seriesKeepsItsDescription() {
+	QLineSeries series;
+	SeriesMeta meta;
+	meta.trainId = "A";
+	meta.planned = true;
+	meta.layer = "simulated";
+	meta.keyKind = QString();
+	meta.keyPen = QPen(Qt::red, 3.0);
+	meta.keyMarker = "Stop";
+	meta.keyUpright = true;
+	meta.ownColour = true;
+	meta.inspectionPoints = {"one", ""};
+	meta.inspectionTitle = "title";
+	meta.inspectionInterval = "interval";
+	meta.inspectionFilled = true;
+	describeSeries(&series, meta);
+	const SeriesMeta read = seriesMeta(&series);
+	QCOMPARE(read.trainId, QStringLiteral("A"));
+	QVERIFY(read.planned);
+	QCOMPARE(read.layer, QStringLiteral("simulated"));
+	// An empty kind is set, and leaves the series out of the Key.
+	QVERIFY(read.keyKind.has_value());
+	QCOMPARE(*read.keyKind, QString());
+	QVERIFY(read.keyPen.has_value());
+	QCOMPARE(*read.keyPen, QPen(Qt::red, 3.0));
+	QCOMPARE(read.keyMarker, QStringLiteral("Stop"));
+	QVERIFY(read.keyUpright);
+	QVERIFY(read.ownColour);
+	QCOMPARE(read.inspectionPoints, QStringList({"one", ""}));
+	QCOMPARE(read.inspectionTitle, QStringLiteral("title"));
+	QCOMPARE(read.inspectionInterval, QStringLiteral("interval"));
+	QVERIFY(read.inspectionFilled);
+	// A new description takes the place of the old one.
+	describeSeries(&series, SeriesMeta());
+	QVERIFY(seriesMeta(&series).trainId.isEmpty());
+}
+
+void TestRouteCharts::seriesWithoutDescriptionHasDefaults() {
+	QLineSeries series;
+	const SeriesMeta read = seriesMeta(&series);
+	QVERIFY(read.trainId.isEmpty());
+	QVERIFY(!read.planned);
+	QVERIFY(!read.keyKind.has_value());
+	QVERIFY(!read.keyPen.has_value());
+	QVERIFY(!read.inspectionFilled);
+}
+
+void TestRouteCharts::axisKeepsItsDescription() {
+	QValueAxis axis;
+	QVERIFY(!axisMeta(&axis).exactRange);
+	QVERIFY(!axisMeta(&axis).readoutStation);
+	AxisMeta meta;
+	meta.readoutStation = true;
+	describeAxis(&axis, meta);
+	QVERIFY(!axisMeta(&axis).exactRange);
+	QVERIFY(axisMeta(&axis).readoutStation);
 }
 
 QTEST_MAIN(TestRouteCharts)
