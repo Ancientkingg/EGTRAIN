@@ -65,8 +65,10 @@ QTEST_APPLESS_MAIN(TestSpeedFormat)
 - `tests/support/FakePrompts.h` answers the prompts of an editor panel without a dialog and keeps what the panel asked
   (`tests/test_editor_infrastructure_blocks.cpp`).
 - `test_updatetransport_https` and the three programs in `tests/characterization/` are plain programs with a `main`,
-  built with `add_executable`. The first returns 0, 77 or 1 ([HTTPS update check](#https-update-check)); the others
-  compare their output with golden files ([Simulation characterization tests](characterization-tests.md)).
+  built with `add_executable`. The first returns 0, 77 or 1 ([HTTPS update check](#https-update-check)).
+  `test_characterization` and `test_signalling_aspects` compare their output with golden files, and
+  `test_crossover_chain` checks how trains run over two crossovers that follow each other
+  ([Simulation characterization tests](characterization-tests.md)).
 
 ### Test labels
 
@@ -101,8 +103,8 @@ ctest --test-dir build -LE legacy-compat --output-on-failure
 
 ### Tests by area
 
-Most C++ tests `test_<name>` are built from `EGTRAIN/QEGTRAIN/tests/test_<name>.cpp`, and the comment at the top of a
-test file or script says what it checks. [Smoke tests](smoke-tests.md) describes the end-to-end scripts, and
+Most C++ tests `test_<name>` are built from `EGTRAIN/QEGTRAIN/tests/test_<name>.cpp`, and the names of their slots
+say what they check (`-functions` lists them). [Smoke tests](smoke-tests.md) describes the end-to-end scripts, and
 [Simulation characterization tests](characterization-tests.md) the golden-file tests of the simulation core.
 
 | Area | Tests | What they cover |
@@ -116,7 +118,7 @@ test file or script says what it checks. [Smoke tests](smoke-tests.md) describes
 | Recovery, crashes and opening files | `test_recovery*`, `test_crashnote`, `test_openrequestrelay`, `test_startup_launch_contract`, `test_case_chooser_contract` | Recovery copies, the crash note, and a file that a second launch or the system hands to the running window. |
 | Updates and telemetry | `test_update*`, `test_httptransport`, `test_selfupdater`, `test_releasenotes`, `test_distribution`, `test_telemetry*` | The update check and its transport, staging and installing an update, and the telemetry consent, queue and sender. `tools/e2e/test_telemetry_contract.py` runs in the telemetry contract workflow, not in CTest. |
 | Packages and release scripts | `tools/release/test_*`, `tools/ci/test_changed_files.py`, `tools/e2e/test_ci_workflow.py`, `test_windows_image_size`, `test_windows_default_stack`, `test_win32_configure_rejected` | The release, packaging and signing scripts, the PE header of the Windows programs and the workflows. `test_notarize_macos.sh` runs in the macOS package job, not in CTest. |
-| Smoke tests | `tools/e2e/*_smoke.*`, `tools/e2e/*_contract.py`, `tools/e2e/test_case3_startup_errors.py`, `tools/e2e/test_headless_smoke_decode.py`, `test_headless_scene_smoke`, `test_scene_version_run_*`, and the scripted window runs of `tests/e2e/` | The built application end to end on the committed scenes ([Smoke tests](smoke-tests.md)). |
+| Smoke tests | `tools/e2e/*_smoke.*`, `tools/e2e/startup_launch_contract.py`, `tools/e2e/case_chooser_contract.py`, `tools/e2e/dialog_presentation_contract.py`, `tools/e2e/test_case3_startup_errors.py`, `tools/e2e/test_headless_smoke_decode.py`, `test_headless_scene_smoke`, `test_scene_version_run_*`, and the scripted window runs of `tests/e2e/` | The built application end to end on the committed scenes ([Smoke tests](smoke-tests.md)). |
 | Source and tool checks | `tools/e2e/test_logging_contract.py`, `test_no_e2e_in_product.py`, `test_qt_resources.py`, `test_app_icon_config.py`, `test_windows_subsystem_config.py`, `tools/memory/test_*.py`, `tools/performance/test_playback_profile.py` | Static checks of the application source and its resources, and the tests of the memory and profiling tools. |
 | Documentation tools | `tools/docs/test_check_docs.py`, `tools/docs/test_check_undocumented.py`, `docs_check`, `test_capture_screenshots` | The documentation checks and the capture of the pictures ([Documentation pictures](smoke-tests.md#documentation-pictures)). |
 
@@ -126,6 +128,14 @@ may. `test_crashnote` and the crash note case of `test_recovery_smoke` crash pro
 report of each is expected. `test_openrequestrelay` and `test_startup_launch_contract` put their socket files in a
 folder directly below `/tmp` on macOS and Linux, because a socket path is limited to about 100 characters. The two
 `test_telemetrynetwork_*` tests start `tools/e2e/telemetry_tls_receiver.py`, an https server on the loopback address.
+`test_recoverycontroller` sets the autosave interval to 10 ms with `QEGTRAIN_RECOVERY_INTERVAL_MS`; the default is
+30 s.
+
+A launch that names only a file hands it to a window that runs. A run with any `QEGTRAIN_E2E_` variable does not,
+unless `QEGTRAIN_E2E_OPEN_RELAY` is set as well. The test hook `QEGTRAIN_E2E_OPEN_REQUEST` names a file that the run
+hands to the application as a `QFileOpenEvent`, and `QEGTRAIN_E2E_OPEN_REQUEST_AT` says when: as the window first
+shows (`launch`, the default), 50 ms later while the program still starts (`startup`), from inside the open case
+chooser (`chooser`) or one second later (`running`). `test_startup_launch_contract` uses both.
 
 ### Scene-version fixtures
 
@@ -165,7 +175,7 @@ run there.
 | `test_startup_launch_contract` | yes | yes | partly | The pseudo-terminal launches, the `--interactive` launches, the window launch with a bundle argument, the open events and the file launches while a window runs need macOS or Linux. |
 | `test_updatepreparation` | partly | partly | partly | The disk image and zip checks run on macOS only and need `hdiutil`, `ditto` and `codesign`; the AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. |
-| `test_sign_macos`, `test_package_macos` | yes | no | no | Run the macOS release scripts on a fixture bundle and need `cc` and `codesign`, but no signing identity. |
+| `test_sign_macos`, `test_package_macos` | yes | no | no | Run the macOS release scripts on a fixture bundle. Both need `cc` and `codesign`, `test_package_macos` also `lipo`, and neither needs a signing identity. |
 
 Every Bash smoke in the table reads the application path from `QEGTRAIN_APP`, which `visual_polish_smoke.sh` passes on
 to the two scripts of its `scripts` phase, except `test_package_contents_smoke`, which reads the app bundle from
@@ -184,9 +194,9 @@ build: `test_headless_smoke_case_*`, `test_roundtrip_smoke`, `test_bundle_smoke`
 `test_route_diagram_smoke`, the visual polish smokes and `test_capture_screenshots`. `-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies by N the limit of every test that
 `egtrain_add_test` registers, the 300 s after which Qt Test stops a slot (`QTEST_FUNCTION_TIMEOUT`) and the waits of
 scripts such as `startup_launch_contract.py`. The characterization tests that run committed scenes take
-`-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS` (default 300) instead. The sanitizer jobs pass a scale of 10 and a
-scene limit of 5400 s, and the leak check a scene limit of 1500 s
-([Nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs)).
+`-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS` (default 300) instead. `sanitizers (Linux)` and the `Sanitizers` job of
+the release workflow pass a scale of 10 and a scene limit of 5400 s, `thread sanitizer (Linux)` only the scale of 10,
+and `leak check (Linux)` a scene limit of 1500 s ([Nightly sanitizer runs](smoke-tests.md#nightly-sanitizer-runs)).
 
 ### HTTPS update check
 
@@ -268,7 +278,8 @@ committed scene directories with `build/scene_tool`.
 For documentation changes, run `python3 tools/docs/check_docs.py`. It checks the links, anchors, images and code
 examples of the Markdown files, the pages that `docs/README.md` does not reach and the style rules of the pages. In
 the manual, every bold name must be a string of the application or a term that the script lists. It prints one line
-per finding as `path:line: [kind] message` and exits with 1 when it finds any. The docstring at the top of
+per finding as `path:line: [kind] message` and exits with 1 when it finds any. A `json` example must be valid JSON, so an excerpt
+with comments or ellipses takes another info word such as `text`. The docstring at the top of
 `tools/docs/check_docs.py` lists every rule; `--help` shows only the options. CTest runs the script as `docs_check` in
 a Git checkout, and its own tests as `test_check_docs`. The CMake workflow runs it on every pull request.
 

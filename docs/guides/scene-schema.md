@@ -650,10 +650,12 @@ source time.
 
 A legacy file that cannot be opened, or is not valid UTF-16, is reported as
 unreadable (`scene.import.read`) or missing. For most files that is a warning:
-the file counts as skipped and none of its rows is imported. For `Stations.txt`,
-the passenger files and the train, train data, traction, timetable and route
-files of the trains, it is an error, and an import with an error writes no
-case. A number written as `nan` or `inf` counts as malformed.
+the file counts as skipped and none of its rows is imported. For `Stations.txt`
+and the train, train data, traction, timetable and route files of the trains, it
+is an error, and an import with an error writes no case. The two passenger files
+count only together: when one of them is missing, the other is skipped with the
+warning `scene.import.passengers`, and when both exist but one cannot be read,
+that is an error. A number written as `nan` or `inf` counts as malformed.
 
 A `TrackLines/AreasCaseStudy.txt` is reported in `import_report` and in a
 warning, but its rows are not converted: add the signalling areas in
