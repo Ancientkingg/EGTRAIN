@@ -192,11 +192,14 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 void IncidentPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
 	// The occurrences that a breakdown can have as its target depend on the duration of the case and on the services, and
-	// the signals and blocks of a signal failure on the infrastructure.
-	if (kinds.testFlag(SceneDocument::Infrastructure))
+	// the signals and blocks of a signal failure on the infrastructure. The panel does not edit the infrastructure, and the
+	// targets leave the other fields as they are.
+	if (kinds.testFlag(SceneDocument::Infrastructure)) {
+		takePendingText();
 		refresh();
-	else if (kinds & (SceneDocument::CaseSettings | SceneDocument::Services))
+	} else if (kinds & (SceneDocument::CaseSettings | SceneDocument::Services)) {
 		refreshTargets();
+	}
 }
 
 void IncidentPanel::setDefaultTarget(std::function<IncidentTarget()> target) {

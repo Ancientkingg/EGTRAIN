@@ -289,12 +289,17 @@ int ServicePanel::selectedRow() const {
 }
 
 void ServicePanel::documentChanged(SceneDocument::ChangeKinds kinds) {
+	// The panel edits neither the infrastructure nor the compositions, so these are edits of other panels. The preview
+	// leaves the fields as they are.
 	if (kinds.testFlag(SceneDocument::Infrastructure)) {
+		takePendingText();
 		refresh();
 		return;
 	}
-	if (kinds.testFlag(SceneDocument::Compositions))
+	if (kinds.testFlag(SceneDocument::Compositions)) {
+		takePendingText();
 		updateDetail();
+	}
 	if (kinds.testFlag(SceneDocument::CaseSettings))
 		refreshOccurrencePreview();
 }

@@ -1,5 +1,6 @@
 #include "editors/PassengerPanel.h"
 #include "editors/EditorRules.h"
+#include "editors/ServicePanel.h"
 
 #include "scene/SceneDiagnostic.h"
 #include "support/FakePrompts.h"
@@ -215,6 +216,31 @@ struct PassengerFixture {
 	}
 };
 
+// The passenger panel and a service panel, with prompts that answer Yes, on one document that shows passengerScene(). The
+// labels and kinds of the changes of the document are kept in their order, by a connection made before those of the
+// panels, as the window keeps its undo steps.
+struct ServiceEditFixture {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	FakePrompts prompts;
+	PassengerPanel passengers;
+	ServicePanel services;
+
+	ServiceEditFixture() {
+		QObject::connect(&document, &SceneDocument::changed, &document, [this](SceneDocument::ChangeKinds changedKinds) {
+			labels.push_back(document.lastChangeLabel().toStdString());
+			kinds.push_back(changedKinds);
+		});
+		prompts.confirmAnswer = true;
+		passengers.setPrompts(&prompts);
+		services.setPrompts(&prompts);
+		passengers.setDocument(&document);
+		services.setDocument(&document);
+		document.replace(passengerScene(), false);
+	}
+};
+
 class TestPassengerPanel : public QObject {
 	Q_OBJECT
 
@@ -231,6 +257,8 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void keepsSelectionOfReorderedScene();
+	void keepsTypedTextWhenServiceIsAdded();
+	void takesTypedTextQuietlyDuringOtherEdit();
 	void forgetsDeletedDocument();
 	void importsPassengers();
 	void calloutsShowSelectedPassenger();
@@ -735,6 +763,45 @@ void TestPassengerPanel::keepsSelectionOfReorderedScene() {
 	QCOMPARE(items(panel.passengerList()), std::vector<std::string>({"P2", "P1"}));
 	QCOMPARE(panel.passengerList()->currentRow(), 0);
 	QCOMPARE(panel.passengerIdEdit()->text(), "P2");
+}
+
+// Text that is still being typed stays when the service panel adds a service, which shows the passengers again: the panel
+// takes the text into the document first, as an edit of its own after the other one.
+void TestPassengerPanel::keepsTypedTextWhenServiceIsAdded() {
+	ServiceEditFixture f;
+	f.passengers.passengerIdEdit()->setText("P1_typed");
+	f.services.addButton()->click();
+	// The service is added, and the typed id is taken in after it.
+	QCOMPARE(f.document.model().services.size(), std::size_t(4));
+	QCOMPARE(f.document.model().passengers[0].id, "P1_typed");
+	QCOMPARE(f.labels, Log({"Add service", "Rename passenger"}));
+	QCOMPARE(f.kinds[0], SceneDocument::ChangeKinds(SceneDocument::Services));
+	QCOMPARE(f.kinds[1], SceneDocument::ChangeKinds(SceneDocument::Passengers));
+	// The field and the list show the typed id.
+	QCOMPARE(f.passengers.passengerIdEdit()->text(), "P1_typed");
+	QCOMPARE(items(f.passengers.passengerList()), std::vector<std::string>({"P1_typed", "P2"}));
+}
+
+// The panel takes the text while the other panel is still in the middle of its edit, and says nothing then. The window
+// answers changed() by taking the text of every panel, and the service panel, whose list still shows a deleted service,
+// would give the service after it the id of the deleted one.
+void TestPassengerPanel::takesTypedTextQuietlyDuringOtherEdit() {
+	ServiceEditFixture f;
+	// As in the window, a change that one panel reports takes the text of the other.
+	QObject::connect(&f.passengers, &PassengerPanel::changed, &f.services, [&f] { f.services.commitPendingEditors(); });
+	QObject::connect(&f.services, &ServicePanel::changed, &f.passengers, [&f] { f.passengers.commitPendingEditors(); });
+	f.services.addButton()->click();
+	f.services.listWidget()->setCurrentRow(2);
+	f.labels.clear();
+	f.passengers.passengerIdEdit()->setText("P1_typed");
+	f.services.deleteButton()->click();
+	// S3 is deleted, the service after it keeps its id, and the typed id is taken in after the delete.
+	std::vector<std::string> serviceIds;
+	for (const SceneService& service : f.document.model().services)
+		serviceIds.push_back(service.id);
+	QCOMPARE(serviceIds, std::vector<std::string>({"S1", "S2", "new_service"}));
+	QCOMPARE(f.document.model().passengers[0].id, "P1_typed");
+	QCOMPARE(f.labels, Log({"Delete service", "Rename passenger"}));
 }
 
 void TestPassengerPanel::forgetsDeletedDocument() {

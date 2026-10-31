@@ -1,5 +1,7 @@
 #include "editors/EditorRules.h"
 #include "editors/IncidentPanel.h"
+#include "editors/InfrastructurePanel.h"
+#include "editors/infrastructure/TopologyFacets.h"
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneWriter.h"
 #include "support/FakePrompts.h"
@@ -26,8 +28,10 @@
 #include <QToolTip>
 
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 // The macOS style, where a form keeps each field at its size hint.
@@ -235,6 +239,7 @@ private slots:
 	void showsAnotherScene();
 	void detachedPanelIgnoresDocument();
 	void targetsFollowDocument();
+	void keepsTypedTextWhenTrackIsAdded();
 	void forgetsDeletedDocument();
 	void emptyStateFollowsSelection();
 	void checkBoxStandsBeforeItsField();
@@ -907,6 +912,57 @@ void TestIncidentPanel::targetsFollowDocument() {
 	sceneSignals(model).push_back(SceneSignal{"sig3", ""});
 	document.markChanged(SceneDocument::Scenarios, "Edit scenario");
 	QVERIFY2(panel.targetCombo()->findText("sig3") < 0, "the targets stay as they are when only scenarios change");
+}
+
+// Text that is still being typed stays when the infrastructure panel adds a track, which shows the incidents again: the
+// panel takes the text into the document first, as edits of its own after the other one. The labels and kinds of the
+// changes are kept in their order, by a connection made before those of the panels, as the window keeps its undo steps.
+void TestIncidentPanel::keepsTypedTextWhenTrackIsAdded() {
+	SceneDocument document;
+	Log labels;
+	std::vector<SceneDocument::ChangeKinds> kinds;
+	QObject::connect(&document, &SceneDocument::changed, &document, [&](SceneDocument::ChangeKinds changedKinds) {
+		labels.push_back(document.lastChangeLabel().toStdString());
+		kinds.push_back(changedKinds);
+	});
+	FakePrompts prompts;
+	RunSelection selection;
+	IncidentPanel panel;
+	InfrastructurePanel infrastructure;
+	panel.setPrompts(&prompts);
+	panel.setRunSelection(&selection);
+	panel.setDocument(&document);
+	infrastructure.setPrompts(&prompts);
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		infrastructure.setFacet(std::move(facet));
+	infrastructure.setDocument(&document);
+	document.replace(incidentScene(), false);
+	selection.selectScenario("base");
+	panel.refresh();
+	// The window shows the infrastructure of a scene that it opens.
+	infrastructure.refresh();
+	infrastructure.facetCombo()->setCurrentIndex(infrastructure.facetCombo()->findData("tracks"));
+	panel.listWidget()->setCurrentRow(0);
+	panel.show();
+	// The panel is hidden before it is destroyed, also when a check fails.
+	const auto hide = qScopeGuard([&panel] { panel.hide(); });
+	panel.activateWindow();
+	panel.idEdit()->setText("i1_typed");
+	QVERIFY(giveFocus(panel.startSecondsEdit()));
+	spinText(panel.startSecondsEdit())->setText("77");
+	infrastructure.addButton()->click();
+	// The track is added, and the typed id and start are taken in after it, each as an edit of its own.
+	QCOMPARE(document.model().tracks.size(), std::size_t(1));
+	const SceneIncident& incident = document.model().scenarios[0].incidents[0];
+	QCOMPARE(incident.id, "i1_typed");
+	QCOMPARE_EQ(incident.startSeconds, 77.0);
+	QCOMPARE(labels, Log({"Add track", "Rename incident", "Change incident start"}));
+	QCOMPARE(kinds[0], SceneDocument::ChangeKinds(SceneDocument::Infrastructure));
+	QCOMPARE(kinds[1], SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	QCOMPARE(kinds[2], SceneDocument::ChangeKinds(SceneDocument::Scenarios));
+	// The fields show the typed values.
+	QCOMPARE(panel.idEdit()->text(), "i1_typed");
+	QCOMPARE(spinText(panel.startSecondsEdit())->text(), "77");
 }
 
 void TestIncidentPanel::forgetsDeletedDocument() {

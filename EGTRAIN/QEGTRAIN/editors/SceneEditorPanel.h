@@ -9,6 +9,7 @@
 #include <QListWidget>
 #include <QMetaObject>
 #include <QPointer>
+#include <QSignalBlocker>
 #include <QString>
 #include <QWidget>
 
@@ -94,6 +95,15 @@ protected:
 	virtual void documentReplaced() { refresh(); }
 	/// `kinds` of the document have changed. A panel that shows them goes along here.
 	virtual void documentChanged([[maybe_unused]] SceneDocument::ChangeKinds kinds) {}
+	/// Takes the text that is still being typed in the panel into the document, before documentChanged() writes the
+	/// stored values over the fields. Only for kinds that the panel never edits itself: the change is then an edit of
+	/// another panel, and the text is taken as an edit of its own after it. The signals of the panel are blocked meanwhile,
+	/// because the other panel is still in the middle of its edit and the window answers changed() by taking the text of
+	/// every panel, that one too. The window validates both edits when the other panel emits changed().
+	void takePendingText() {
+		const QSignalBlocker blocker(this);
+		commitPendingEditors();
+	}
 	/// The time in seconds over which the occurrences of a service are counted. The panel must have a document.
 	double occurrenceDuration() const {
 		return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;

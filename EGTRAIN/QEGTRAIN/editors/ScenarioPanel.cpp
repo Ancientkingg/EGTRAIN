@@ -76,10 +76,14 @@ ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 }
 
 void ScenarioPanel::documentChanged(SceneDocument::ChangeKinds kinds) {
-	if (kinds.testFlag(SceneDocument::Infrastructure))
+	// The panel does not edit the infrastructure. It edits the scenarios itself, so it takes no text for them, and
+	// updatePresentation() leaves the fields as they are.
+	if (kinds.testFlag(SceneDocument::Infrastructure)) {
+		takePendingText();
 		refresh();
-	else if (kinds.testFlag(SceneDocument::Scenarios))
+	} else if (kinds.testFlag(SceneDocument::Scenarios)) {
 		updatePresentation();
+	}
 }
 
 void ScenarioPanel::setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics) {
