@@ -449,6 +449,11 @@ egtrain_add_test(test_diagramwindow
 	DEFINITIONS EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss"
 	LABELS unit gui)
 
+egtrain_add_test(test_routecharts
+	SOURCES ${SRC_DIR}/tests/test_routecharts.cpp
+	LIBS egtrain_diagrams
+	LABELS unit gui)
+
 egtrain_add_test(test_timetabletablewindow
 	SOURCES ${SRC_DIR}/tests/test_timetabletablewindow.cpp
 	LIBS egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt::Network Qt::Core Qt::Gui Qt::Widgets
